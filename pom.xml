@@ -9,19 +9,21 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Zombies Plugin</name>
+    <name>zombies-plugin</name>
 
-    <description>A better version of the Hypixel minigame Zombies.</description>
+    <description>An improved version of the Hypixel minigame Zombies.</description>
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
+        <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+
                 <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
@@ -71,5 +73,12 @@
             <version>1.16.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.lumine.xikage</groupId>
+            <artifactId>mythicmobs</artifactId>
+            <version>4.10.1</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>
+
