@@ -48,10 +48,10 @@
                                     <artifactId>mythicmobs</artifactId>
                                     <version>4.10.1</version>
                                 </artifactItem>
-                            </artifactItems>
 
                             <!-- If we ever need to depend on other plugins, add their artifacts directly
                             below this, in the same way as mythicmobs! -->
+                            </artifactItems>
                             <outputDirectory>${pluginDir}</outputDirectory>
                         </configuration>
                     </execution>
