@@ -135,6 +135,12 @@
             <version>6f339ab</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.John-DND</groupId>
+            <artifactId>RegularCommands</artifactId>
+            <version>v1.7.0</version>
+        </dependency>
     </dependencies>
 </project>
 
