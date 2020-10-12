@@ -48,10 +48,10 @@
                                     <artifactId>mythicmobs</artifactId>
                                     <version>4.10.1</version>
                                 </artifactItem>
-                            </artifactItems>
 
                             <!-- If we ever need to depend on other plugins, add their artifacts directly
                             below this, in the same way as mythicmobs! -->
+                            </artifactItems>
                             <outputDirectory>${pluginDir}</outputDirectory>
                         </configuration>
                     </execution>
@@ -100,6 +100,11 @@
             <id>projectlombok.org</id>
             <url>http://projectlombok.org/mavenrepo</url>
         </repository>
+
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -121,6 +126,13 @@
             <groupId>io.lumine.xikage</groupId>
             <artifactId>mythicmobs</artifactId>
             <version>4.10.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.Grinderwolf</groupId>
+            <artifactId>Slime-World-Manager</artifactId>
+            <version>6f339ab</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
