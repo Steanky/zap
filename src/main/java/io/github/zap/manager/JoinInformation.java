@@ -13,6 +13,6 @@ public class JoinInformation {
     Set<Player> player;
 
     /*
-    Add other fields here later corresponding to the map, difficulty?, other metadata
+    Add other fields here later
      */
 }
