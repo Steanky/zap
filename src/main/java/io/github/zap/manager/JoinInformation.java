@@ -10,7 +10,7 @@ public class JoinInformation {
     /*
     Use a set of players so we can support parties
      */
-    Set<Player> player;
+    Set<Player> players;
 
     /*
     Add other fields here later
