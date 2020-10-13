@@ -130,9 +130,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.Grinderwolf</groupId>
+            <groupId>com.github.thamid-gamer</groupId>
             <artifactId>Slime-World-Manager</artifactId>
-            <version>6f339ab</version>
+            <version>31879d5</version>
             <scope>provided</scope>
         </dependency>
 
