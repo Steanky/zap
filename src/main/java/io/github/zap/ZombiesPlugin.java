@@ -4,7 +4,7 @@ import com.google.common.io.ByteStreams;
 import io.github.zap.game.ArenaManager;
 import io.github.zap.manager.PlayerRouter;
 import io.github.zap.net.BungeeHandler;
-import io.github.zap.net.MessageHandler;
+import io.github.zap.net.MessageRouter;
 import lombok.Getter;
 import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -39,7 +39,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     Responsible for handling all incoming plugin messages.
      */
     @Getter
-    private MessageHandler messageHandler;
+    private MessageRouter messageRouter;
 
     @Override
     public void onEnable() {
@@ -89,8 +89,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     }
 
     private void initMessaging() {
-        messageHandler = new MessageHandler();
-        messageHandler.registerHandler(ChannelNames.BUNGEECORD, new BungeeHandler());
+        MessageRouter.getInstance().registerHandler(ChannelNames.BUNGEECORD, new BungeeHandler());
 
         Messenger messenger = this.getServer().getMessenger();
         messenger.registerOutgoingPluginChannel(this, ChannelNames.BUNGEECORD);
@@ -100,6 +99,6 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        messageHandler.handle(channel, player, ByteStreams.newDataInput(message));
+        messageRouter.handle(channel, player, ByteStreams.newDataInput(message));
     }
 }
