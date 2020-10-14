@@ -102,8 +102,8 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             slimeMapLoader = new SlimeMapLoader(slimePlugin);
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
-            super.getLogger().log(Level.SEVERE, "Unable to located required plugin SlimeWorldManager. Aborting.");
-            throw new IllegalStateException(); //not sure if this is the right exception to throw
+            super.getPluginLoader().disablePlugin(this);
+            throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
         }
     }
 
