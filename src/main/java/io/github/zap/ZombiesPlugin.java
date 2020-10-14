@@ -1,23 +1,23 @@
 package io.github.zap;
 
-import com.google.common.io.ByteStreams;
 import io.github.zap.game.ArenaManager;
 import io.github.zap.manager.PlayerRouter;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.MessageRouter;
-import lombok.Getter;
+
+import com.grinderwolf.swm.api.SlimePlugin;
+import com.google.common.io.ByteStreams;
+
 import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-
-import com.grinderwolf.swm.api.SlimePlugin;
-import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.Bukkit;
-
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
+
+import lombok.Getter;
 
 import java.util.logging.Level;
 
@@ -25,13 +25,13 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     @Getter
     private static ZombiesPlugin instance; //singleton pattern for our main plugin class
 
-    /*
-    Warning! This object is NOT thread safe! Only call if you're on the main server thread. Also make sure you always
-    call timer.reset() after a call to timer.start() (use a finally block in case of exceptions!)
-     */
     @Getter
     private static SlimePlugin slimePlugin;
 
+    /*
+    Warning! This object is NOT thread safe! Only call if you're on the main server thread. Also make sure you always
+    call timer.reset() after a call to timer.start() (use a finally block in case of exceptions!)
+    */
     @Getter
     private StopWatch timer;
 
@@ -70,8 +70,9 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             }
 
             initMessaging();
-            //...plugin enabling code here
+
             slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
+
             timer.stop();
             super.getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
         }
