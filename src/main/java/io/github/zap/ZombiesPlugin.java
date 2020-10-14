@@ -63,7 +63,6 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
 
             initMessaging();
 
-
             timer.stop();
             super.getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
         }

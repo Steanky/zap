@@ -51,8 +51,14 @@
 
                                 <artifactItem>
                                     <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+                                    <artifactId>slimeworldmanager-plugin</artifactId>
+                                    <version>d8c0d60</version>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
                                     <artifactId>slimeworldmanager-classmodifier</artifactId>
-                                    <version>31879d5</version>
+                                    <version>d8c0d60</version>
                                     <!-- below suppresion is necessary because of an intelliJ glitch -->
                                     <!--suppress UnresolvedMavenProperty -->
                                     <outputDirectory>${pluginDir}/../</outputDirectory>
@@ -78,13 +84,10 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <outputFile>${pluginDir}\${project.name}-${project.version}.jar</outputFile>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <includes>
                                     <include>com.github.John-DND:RegularCommands</include>
                                     <include>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-api</include>
-                                    <include>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-nms-common</include>
 
                                     <!-- Include any artifacts here that should be uber-jar'ed. Note that the dependency
                                      scope must be set to "compile" for this to work properly. compile is the maven
@@ -99,12 +102,14 @@
                                 <filter>
                                     <artifact>com.github.John-DND:RegularCommands</artifact>
                                     <artifact>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-api</artifact>
-                                    <artifact>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-nms-common</artifact>
                                     <excludes>
                                         <exclude>META-INF/*.MF</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
+
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <outputFile>${pluginDir}\${project.name}-${project.version}.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -162,10 +167,24 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.thamid-gamer</groupId>
-            <artifactId>Slime-World-Manager</artifactId>
-            <version>31879d5</version>
+            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <artifactId>slimeworldmanager-api</artifactId>
+            <version>d8c0d60</version>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <artifactId>slimeworldmanager-classmodifier</artifactId>
+            <version>d8c0d60</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <artifactId>slimeworldmanager-plugin</artifactId>
+            <version>d8c0d60</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
