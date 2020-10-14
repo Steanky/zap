@@ -8,18 +8,17 @@ To build this project given the current pom.xml, you will need to supply the dir
 
 This is designed to make testing very easy. You can simply create a Build/Run configuration in IntelliJ from the "Jar Application" template, supply the relevant arguments, and then start the server with a single click. Setup instructions:
 
-1. Go to `Edit Configurations...` in the dropdown next to the `Run` button
-2. Create a new configuration from the `JAR Application` template
-3. Add the newest version of the Slime World Manager class modifier to the root directory. The newest version will be found either in Discord, the Slime World Manager Discord, or at https://github.com/Grinderwolf/Slime-World-Manager/releases
-4. Under the configuration tab:
-   1. Set `Path to Jar` to the path to the location of your PaperMC build
-   2. Add the `-javaagent:[filename].jar` flag to `VM Options` (replace [filename] with the name of the Slime World Manager class modifier). Skip this step if you have not added the class modifier to the plugin root directory.
-   3. Add the `-nogui` flag to `Program Arguments`
+1. Go to `Edit Configurations...` in the dropdown next to the `Run` button.
+2. Create a new configuration from the `JAR Application` template.
+3. Under the configuration tab:
+   1. Set `Path to Jar` to the path to the location of your PaperMC build.
+   2. Add the `-javaagent:slimeworldmanager-classmodifier.jar` flag to `VM Options`.
+   3. Add the `-nogui` flag to `Program Arguments`.
    4. Set `Working directory` to the directory that your PaperMC build is in.
-5. Under the `Before launch` task list:
-   1. Add a new `Run Maven Goal` task (click the plus button)
-   2. Keeping the working directory set to default (it should point to your IntelliJ project folder), set `Command line` to `clean compile package "-DpluginDir=path-to-plugins-folder"`, replacing `path-to-plugins-folder` with the path to the plugins folder used by your test server
-6. At this point, you should be done. Make sure your configuration is selected, and then run. IntelliJ should start your test server after Maven finishes cleaning, compiling, and finally packaging the plugin to the appropriate folder.
+4. Under the `Before launch` task list:
+   1. Add a new `Run Maven Goal` task (click the plus button).
+   2. Keeping the working directory set to default (it should point to your IntelliJ project folder), set `Command line` to `clean compile package "-DpluginDir=path-to-plugins-folder"`, replacing `path-to-plugins-folder` with the path to the plugins folder used by your test server.
+5. At this point, you should be done. Make sure your configuration is selected, and then run. IntelliJ should start your test server after Maven finishes cleaning, compiling, and finally packaging the plugin to the appropriate folder.
 
 ### Contributing
 Your general workflow should follow these steps:
