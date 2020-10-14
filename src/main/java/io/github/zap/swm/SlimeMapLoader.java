@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Class used to duplicate or unload a Zombies map with the Slime format
+ * Class used to load a Zombies map with the Slime format
  */
 public final class SlimeMapLoader {
 
