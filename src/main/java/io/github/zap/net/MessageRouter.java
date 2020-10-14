@@ -6,6 +6,9 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
+/**
+ * Class responsible for passing plugin messages to their assigned handlers.
+ */
 public class MessageRouter {
     @Getter
     private static final MessageRouter instance = new MessageRouter();
