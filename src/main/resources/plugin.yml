@@ -4,5 +4,5 @@ main: io.github.zap.ZombiesPlugin
 api-version: 1.16
 authors: [ Steank, TachibanaYui, thamid, syeyoung, Dictyophora ]
 description: A better version of the Hypixel minigame Zombies.
+loadbefore: [ MythicMobs ]
 depend: [ SlimeWorldManager ]
-loadbefore: [ mythicmobs ]

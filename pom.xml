@@ -49,8 +49,24 @@
                                     <version>4.10.1</version>
                                 </artifactItem>
 
-                            <!-- If we ever need to depend on other plugins, add their artifacts directly
-                            below this, in the same way as mythicmobs! -->
+                                <artifactItem>
+                                    <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+                                    <artifactId>slimeworldmanager-plugin</artifactId>
+                                    <version>d8c0d60</version>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+                                    <artifactId>slimeworldmanager-classmodifier</artifactId>
+                                    <version>d8c0d60</version>
+                                    <!-- below suppresion is necessary because of an intelliJ glitch -->
+                                    <!--suppress UnresolvedMavenProperty -->
+                                    <outputDirectory>${pluginDir}/../</outputDirectory>
+                                    <destFileName>slimeworldmanager-classmodifier.jar</destFileName>
+                                </artifactItem>
+
+                                <!-- If we ever need to depend on other plugins, add their artifacts directly
+                                     below this, in the same way as mythicmobs! -->
                             </artifactItems>
                             <outputDirectory>${pluginDir}</outputDirectory>
                         </configuration>
@@ -61,9 +77,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.4</version>
-                <configuration>
-                    <outputFile>${pluginDir}\${project.name}-${project.version}.jar</outputFile>
-                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -71,7 +84,32 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>com.github.John-DND:RegularCommands</include>
+                                    <include>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-api</include>
+
+                                    <!-- Include any artifacts here that should be uber-jar'ed. Note that the dependency
+                                     scope must be set to "compile" for this to work properly. compile is the maven
+                                     default so just don't include a scope tag and you should be fine. also add the artifact
+                                     to the exclusion list below so its manifest file doesn't overlap with our project's.-->
+                                </includes>
+                            </artifactSet>
+
+                            <!-- Exclude the manifest files from being shaded so we don't get the
+                            'overlapping resources' warning when building-->
+                            <filters>
+                                <filter>
+                                    <artifact>com.github.John-DND:RegularCommands</artifact>
+                                    <artifact>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-api</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.MF</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <outputFile>${pluginDir}\${project.name}-${project.version}.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -112,7 +150,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.16</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -130,9 +167,24 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.thamid-gamer</groupId>
-            <artifactId>Slime-World-Manager</artifactId>
-            <version>31879d5</version>
+            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <artifactId>slimeworldmanager-api</artifactId>
+            <version>d8c0d60</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <artifactId>slimeworldmanager-classmodifier</artifactId>
+            <version>d8c0d60</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <artifactId>slimeworldmanager-plugin</artifactId>
+            <version>d8c0d60</version>
+
             <scope>provided</scope>
         </dependency>
 
