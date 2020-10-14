@@ -9,6 +9,11 @@ import lombok.Getter;
 import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+
+import com.grinderwolf.swm.api.SlimePlugin;
+import org.apache.commons.lang.time.StopWatch;
+import org.bukkit.Bukkit;
+
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -24,6 +29,9 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     Warning! This object is NOT thread safe! Only call if you're on the main server thread. Also make sure you always
     call timer.reset() after a call to timer.start() (use a finally block in case of exceptions!)
      */
+    @Getter
+    private static SlimePlugin slimePlugin;
+
     @Getter
     private StopWatch timer;
 
@@ -62,7 +70,8 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             }
 
             initMessaging();
-
+            //...plugin enabling code here
+            slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
             timer.stop();
             super.getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
         }

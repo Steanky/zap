@@ -184,6 +184,7 @@
             <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
             <artifactId>slimeworldmanager-plugin</artifactId>
             <version>d8c0d60</version>
+
             <scope>provided</scope>
         </dependency>
 
