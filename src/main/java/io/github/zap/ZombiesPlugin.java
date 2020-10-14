@@ -1,14 +1,16 @@
 package io.github.zap;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import io.github.zap.game.ArenaManager;
 import io.github.zap.manager.PlayerRouter;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.MessageRouter;
 
 import com.grinderwolf.swm.api.SlimePlugin;
-import com.google.common.io.ByteStreams;
 
 import io.github.zap.swm.SlimeMapLoader;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -110,14 +112,25 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     private void initMessaging() {
         MessageRouter.getInstance().registerHandler(ChannelNames.BUNGEECORD, new BungeeHandler());
 
-        Messenger messenger = this.getServer().getMessenger();
+        Messenger messenger = super.getServer().getMessenger();
         messenger.registerOutgoingPluginChannel(this, ChannelNames.BUNGEECORD);
         messenger.registerIncomingPluginChannel(this, ChannelNames.BUNGEECORD, this);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        MessageRouter.getInstance().handle(channel, player, ByteStreams.newDataInput(message));
+        if(channel.equals(ChannelNames.BUNGEECORD)) {
+            ByteArrayDataInput input = ByteStreams.newDataInput(message);
+
+            try {
+                String subchannel = input.readUTF();
+                MessageRouter.getInstance().handleCustom(subchannel, player, input);
+            }
+            catch(IllegalStateException ignored)
+            {
+                super.getLogger().log(Level.WARNING, String.format("Invalid sequence (%s bytes) received from bungeecord.", message.length));
+            }
+        }
     }
 }

@@ -1,9 +1,14 @@
 package io.github.zap.net;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import io.github.zap.ZombiesPlugin;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.*;
 
 /**
@@ -42,18 +47,12 @@ public class MessageRouter {
         return new ArrayList<>(handlers.values()); //return new list so user can't modify the backing map directly
     }
 
-    /**
-     * Calls the associated handler for the given ByteArrayDataInput, assuming standard BungeeCord protocol
-     *
-     * @param player The associated player
-     * @param input The input stream/byte array we're dealing with
-     * @return true if the message was handled, false otherwise
-     */
-    public boolean handle(String channel, Player player, ByteArrayDataInput input) {
+    public boolean handleCustom(String channel, Player player, ByteArrayDataInput messageBytes) {
         MessageHandler handler = handlers.get(channel);
 
+        //implement our own
         if(handler != null) {
-            handler.handle(player, input);
+            handler.handle(player, messageBytes);
             return true;
         }
 
