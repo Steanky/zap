@@ -9,7 +9,7 @@ public interface SlimeMapLoadCallback {
 
     /**
      * Run when a slime Zombies map loads.
-     * @param world The loaded world. Returns null if the world failed to load.
+     * @param world The loaded world. Parameter is null if the world failed to load.
      */
     void onSlimeMapLoad(World world);
 
