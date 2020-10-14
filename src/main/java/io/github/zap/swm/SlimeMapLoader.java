@@ -10,10 +10,12 @@ import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import io.github.zap.ZombiesPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Class used to load a Zombies map with the Slime format
@@ -23,9 +25,9 @@ public final class SlimeMapLoader {
     /**
      * Duplicates and loads a Zombies map world
      * @param name The name of the map to load
-     * @param callback Callback to execute when the map has loaded
+     * @param consumer Consumer to execute when the map has loaded
      */
-    public static void loadMap(String name, SlimeMapLoadCallback callback) {
+    public static void loadMap(String name, Consumer<World> consumer) {
         ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
         SlimePlugin slimePlugin = ZombiesPlugin.getSlimePlugin();
         SlimeLoader loader = slimePlugin.getLoader("file");
@@ -38,11 +40,11 @@ public final class SlimeMapLoader {
 
                 scheduler.runTask(zombiesPlugin, () -> {
                     slimePlugin.generateWorld(world);
-                    callback.onSlimeMapLoad(Bukkit.getWorld(name));
+                    consumer.accept(Bukkit.getWorld(name));
                 });
             } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException e) {
                 e.printStackTrace();
-                callback.onSlimeMapLoad(null);
+                consumer.accept(null);
             }
         });
     }
