@@ -25,7 +25,7 @@ public final class SlimeMapLoader {
      * @param name The name of the map to load
      * @param callback Callback to execute when the map has loaded
      */
-    public static void duplicateMap(String name, SlimeMapLoadCallback callback) {
+    public static void loadMap(String name, SlimeMapLoadCallback callback) {
         ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
         SlimePlugin slimePlugin = ZombiesPlugin.getSlimePlugin();
         SlimeLoader loader = slimePlugin.getLoader("file");
@@ -38,7 +38,7 @@ public final class SlimeMapLoader {
 
                 scheduler.runTask(zombiesPlugin, () -> {
                     slimePlugin.generateWorld(world);
-                    callback.onSlimeMapLoad(name);
+                    callback.onSlimeMapLoad(Bukkit.getWorld(name));
                 });
             } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException e) {
                 e.printStackTrace();
