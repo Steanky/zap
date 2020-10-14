@@ -8,6 +8,7 @@ import io.github.zap.net.MessageRouter;
 import com.grinderwolf.swm.api.SlimePlugin;
 import com.google.common.io.ByteStreams;
 
+import io.github.zap.swm.SlimeMapLoader;
 import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -26,7 +27,10 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     private static ZombiesPlugin instance; //singleton pattern for our main plugin class
 
     @Getter
-    private static SlimePlugin slimePlugin;
+    private SlimePlugin slimePlugin;
+
+    @Getter
+    private SlimeMapLoader slimeMapLoader;
 
     /*
     Warning! This object is NOT thread safe! Only call if you're on the main server thread. Also make sure you always
@@ -43,12 +47,6 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     @Getter
     private PlayerRouter router;
 
-    /*
-    Responsible for handling all incoming plugin messages.
-     */
-    @Getter
-    private MessageRouter messageRouter;
-
     @Override
     public void onEnable() {
         instance = this;
@@ -61,6 +59,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
 
             initConfig();
 
+            //noinspection StatementWithEmptyBody
             if(getConfig().getBoolean(ConfigVariables.ROOT_INSTANCE)) {
                 //set router to an implementation of PlayerRouter that is capable of sending players to other servers
             }
@@ -70,8 +69,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             }
 
             initMessaging();
-
-            slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
+            initSlimeMapLoader();
 
             timer.stop();
             super.getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -98,6 +96,17 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
         this.saveConfig();
     }
 
+    private void initSlimeMapLoader() {
+        slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
+        if(slimePlugin != null) {
+            slimeMapLoader = new SlimeMapLoader(slimePlugin);
+        }
+        else { //plugin should never be null because it's a dependency, but it's best to be safe
+            super.getPluginLoader().disablePlugin(this);
+            throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
+        }
+    }
+
     private void initMessaging() {
         MessageRouter.getInstance().registerHandler(ChannelNames.BUNGEECORD, new BungeeHandler());
 
@@ -109,6 +118,6 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        messageRouter.handle(channel, player, ByteStreams.newDataInput(message));
+        MessageRouter.getInstance().handle(channel, player, ByteStreams.newDataInput(message));
     }
 }

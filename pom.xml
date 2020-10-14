@@ -92,18 +92,24 @@
                                     <!-- Include any artifacts here that should be uber-jar'ed. Note that the dependency
                                      scope must be set to "compile" for this to work properly. compile is the maven
                                      default so just don't include a scope tag and you should be fine. also add the artifact
-                                     to the exclusion list below so its manifest file doesn't overlap with our project's.-->
+                                     to the filter below so its manifest file doesn't overlap with our project's.-->
                                 </includes>
                             </artifactSet>
 
                             <!-- Exclude the manifest files from being shaded so we don't get the
-                            'overlapping resources' warning when building-->
+                            'overlapping resources' warning when building. -->
                             <filters>
                                 <filter>
                                     <artifact>com.github.John-DND:RegularCommands</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                    </excludes>
+                                </filter>
+
+                                <filter>
                                     <artifact>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-api</artifact>
                                     <excludes>
-                                        <exclude>META-INF/*.MF</exclude>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
@@ -160,6 +166,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.John-DND</groupId>
+            <artifactId>RegularCommands</artifactId>
+            <version>1.7.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.lumine.xikage</groupId>
             <artifactId>mythicmobs</artifactId>
             <version>4.10.1</version>
@@ -187,12 +199,5 @@
 
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.github.John-DND</groupId>
-            <artifactId>RegularCommands</artifactId>
-            <version>v1.7.0</version>
-        </dependency>
     </dependencies>
 </project>
-

@@ -23,22 +23,26 @@ import java.util.function.Consumer;
  * Class used to load a Zombies map with the Slime format
  */
 public final class SlimeMapLoader {
+    private final SlimePlugin slimePlugin;
+    private final SlimeLoader slimeLoader;
+
+    public SlimeMapLoader(SlimePlugin slimePlugin) {
+        this.slimePlugin = slimePlugin;
+        slimeLoader = slimePlugin.getLoader("file");
+    }
 
     /**
      * Duplicates and loads a Zombies map world
      * @param name The name of the map to load
      * @param consumer Consumer to execute when the map has loaded
      */
-    public static void loadMap(String name, Consumer<World> consumer) {
+    public void loadMap(String name, Consumer<World> consumer) {
         ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
-        SlimePlugin slimePlugin = ZombiesPlugin.getSlimePlugin();
-        SlimeLoader loader = slimePlugin.getLoader("file");
-
         BukkitScheduler scheduler = Bukkit.getScheduler();
 
         scheduler.runTaskAsynchronously(zombiesPlugin, () -> {
             try {
-                SlimeWorld world = slimePlugin.loadWorld(loader, name, true, new SlimePropertyMap()).clone(UUID.randomUUID().toString());
+                SlimeWorld world = slimePlugin.loadWorld(slimeLoader, name, true, new SlimePropertyMap()).clone(UUID.randomUUID().toString());
 
                 scheduler.runTask(zombiesPlugin, () -> {
                     slimePlugin.generateWorld(world);
@@ -50,5 +54,4 @@ public final class SlimeMapLoader {
             }
         });
     }
-
 }
