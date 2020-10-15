@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+/**
+ * This class wraps a FileConfiguration instance and provides additional functionality: values can be validated first
+ * before being returned from a get() call, defaulting if said validation fails.
+ */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Configuration {
     @Getter

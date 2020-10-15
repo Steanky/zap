@@ -3,15 +3,15 @@ package io.github.zap;
 import io.github.zap.config.Configuration;
 import io.github.zap.game.ArenaManager;
 import io.github.zap.net.BungeeHandler;
-
-import com.grinderwolf.swm.api.SlimePlugin;
-
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.swm.SlimeMapLoader;
 import io.github.zap.util.NumberUtils;
 
+import com.grinderwolf.swm.api.SlimePlugin;
+
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
