@@ -15,11 +15,11 @@ public final class BungeeProtocol implements MessageProtocol {
 
     @Override
     public ImmutablePair<Boolean, MessageMetadata> readFrom(ByteArrayDataInput input) {
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override
     public void writeTo(ByteArrayDataOutput output, MessageMetadata metadata, byte[] message) {
-        throw new NotImplementedException();
+
     }
 }
