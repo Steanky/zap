@@ -26,13 +26,18 @@ public final class SlimeMapLoader {
     private final SlimePlugin slimePlugin;
     private final SlimeLoader slimeLoader;
 
+    /**
+     * Creates a new instance of SlimeMapLoader given a SlimePlugin.
+     * @param slimePlugin The SlimePlugin that this instance uses
+     */
     public SlimeMapLoader(SlimePlugin slimePlugin) {
         this.slimePlugin = slimePlugin;
         slimeLoader = slimePlugin.getLoader("file");
+
     }
 
     /**
-     * Duplicates and loads a Zombies map world
+     * Loads a Zombies map world from disk.
      * @param name The name of the map to load
      * @param consumer Consumer to execute when the map has loaded
      */

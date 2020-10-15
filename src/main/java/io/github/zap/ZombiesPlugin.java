@@ -10,7 +10,6 @@ import io.github.zap.net.MessageRouter;
 import com.grinderwolf.swm.api.SlimePlugin;
 
 import io.github.zap.swm.SlimeMapLoader;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -56,7 +55,6 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
 
         try {
             timer.start();
-            super.onEnable();
             //...plugin enabling code below
 
             initConfig();
@@ -74,7 +72,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             initSlimeMapLoader();
 
             timer.stop();
-            super.getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
+            getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
         }
         finally { //ensure profiler gets reset even if we have an exception
             timer.reset();
@@ -95,7 +93,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
          */
         config.addDefault(ConfigVariables.ROOT_INSTANCE, false);
         config.options().copyDefaults(true);
-        this.saveConfig();
+        saveConfig();
     }
 
     private void initSlimeMapLoader() {
@@ -104,7 +102,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             slimeMapLoader = new SlimeMapLoader(slimePlugin);
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
-            super.getPluginLoader().disablePlugin(this);
+            getPluginLoader().disablePlugin(this);
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
         }
     }
@@ -112,7 +110,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     private void initMessaging() {
         MessageRouter.getInstance().registerHandler(ChannelNames.BUNGEECORD, new BungeeHandler());
 
-        Messenger messenger = super.getServer().getMessenger();
+        Messenger messenger = getServer().getMessenger();
         messenger.registerOutgoingPluginChannel(this, ChannelNames.BUNGEECORD);
         messenger.registerIncomingPluginChannel(this, ChannelNames.BUNGEECORD, this);
     }
@@ -129,7 +127,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             }
             catch(IllegalStateException ignored)
             {
-                super.getLogger().log(Level.WARNING, String.format("Invalid sequence (%s bytes) received from bungeecord.", message.length));
+                getLogger().log(Level.WARNING, String.format("Invalid sequence (%s bytes) received from bungeecord.", message.length));
             }
         }
     }

@@ -50,7 +50,6 @@ public class MessageRouter {
     public boolean handleCustom(String channel, Player player, ByteArrayDataInput messageBytes) {
         MessageHandler handler = handlers.get(channel);
 
-        //implement our own
         if(handler != null) {
             handler.handle(player, messageBytes);
             return true;
