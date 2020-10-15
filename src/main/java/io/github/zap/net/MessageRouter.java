@@ -1,20 +1,14 @@
 package io.github.zap.net;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-import io.github.zap.ZombiesPlugin;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.util.*;
 
 /**
- * Class responsible for passing plugin messages to their assigned handlers.
+ * Singleton class responsible for passing plugin messages to their assigned handlers.
  */
-public class MessageRouter {
+public final class MessageRouter {
     @Getter
     private static final MessageRouter instance = new MessageRouter();
 
@@ -47,12 +41,11 @@ public class MessageRouter {
         return new ArrayList<>(handlers.values()); //return new list so user can't modify the backing map directly
     }
 
-    public boolean handleCustom(String channel, Player player, ByteArrayDataInput messageBytes) {
+    public boolean handleCustom(String channel, Player player, byte[] message) {
         MessageHandler handler = handlers.get(channel);
 
         if(handler != null) {
-            handler.handle(player, messageBytes);
-            return true;
+            return handler.handle(player, message);
         }
 
         return false;

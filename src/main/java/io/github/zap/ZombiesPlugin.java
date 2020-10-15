@@ -1,7 +1,5 @@
 package io.github.zap;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
 import io.github.zap.game.ArenaManager;
 import io.github.zap.manager.PlayerRouter;
 import io.github.zap.net.BungeeHandler;
@@ -116,19 +114,9 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        if(channel.equals(ChannelNames.BUNGEECORD)) {
-            ByteArrayDataInput input = ByteStreams.newDataInput(message);
-
-            try {
-                String subchannel = input.readUTF();
-                MessageRouter.getInstance().handleCustom(subchannel, player, input);
-            }
-            catch(IllegalStateException ignored)
-            {
-                getLogger().log(Level.WARNING, String.format("Invalid sequence (%s bytes) received from bungeecord.", message.length));
-            }
+        if(!MessageRouter.getInstance().handleCustom(channel, player, message)) {
+            getLogger().log(Level.WARNING, String.format("Unable to handle PluginMessage send in channel '%s' from player '%s'.", channel, player.getName()));
         }
     }
 }

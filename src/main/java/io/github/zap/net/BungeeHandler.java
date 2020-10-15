@@ -5,7 +5,8 @@ import org.bukkit.entity.Player;
 
 public class BungeeHandler implements MessageHandler {
     @Override
-    public void handle(Player player, ByteArrayDataInput data) {
-        //handle bungeecord messages (not implemented)
+    public boolean handle(Player player, byte[] message) {
+        //TODO: handle bungeecord messages
+        return false;
     }
 }

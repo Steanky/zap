@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 /**
  * Class used to load a Zombies map with the Slime format
  */
-public final class SlimeMapLoader {
+public class SlimeMapLoader {
     private final SlimePlugin slimePlugin;
     private final SlimeLoader slimeLoader;
 
