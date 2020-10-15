@@ -1,12 +1,12 @@
 package io.github.zap.net;
 
-import com.google.common.io.ByteArrayDataInput;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.jetbrains.annotations.NotNull;
 
-public class BungeeHandler implements MessageHandler {
+public class BungeeHandler implements PluginMessageListener {
     @Override
-    public boolean handle(Player player, byte[] message) {
-        //TODO: handle bungeecord messages
-        return false;
+    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
+        //TODO: use implementation of bungeecord protocol
     }
 }

@@ -1,29 +1,34 @@
 package io.github.zap;
 
+import io.github.zap.config.Configuration;
 import io.github.zap.game.ArenaManager;
-import io.github.zap.manager.PlayerRouter;
 import io.github.zap.net.BungeeHandler;
-import io.github.zap.net.MessageRouter;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
+import io.github.zap.net.NetworkFlow;
 import io.github.zap.swm.SlimeMapLoader;
+import io.github.zap.util.NumberUtils;
+
+import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import org.jetbrains.annotations.NotNull;
 
 import lombok.Getter;
 
+import java.util.Objects;
 import java.util.logging.Level;
 
-public final class ZombiesPlugin extends JavaPlugin implements PluginMessageListener {
+public final class ZombiesPlugin extends JavaPlugin {
     @Getter
     private static ZombiesPlugin instance; //singleton pattern for our main plugin class
+
+    @Getter
+    private Configuration configuration; //access the plugin config through this wrapper class
 
     @Getter
     private SlimePlugin slimePlugin;
@@ -39,12 +44,10 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
     private StopWatch timer;
 
     /*
-    if this plugin is marked as being the root instance, PlayerRouter will be capable of sending players to different
-    linked bungeecord servers, which will in turn just call their own instance of PlayerRouter to add them to games. if
-    it's not (or bungeecord isn't implemented), PlayerRouter will just be a regular instance of ArenaManager.
+    the ArenaManager is responsible for adding players to games, or sending them to other servers if we're using bungee
      */
     @Getter
-    private PlayerRouter router;
+    private ArenaManager arenaManager;
 
     @Override
     public void onEnable() {
@@ -53,18 +56,12 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
 
         try {
             timer.start();
-            //...plugin enabling code below
+            //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
 
             initConfig();
 
-            //noinspection StatementWithEmptyBody
-            if(getConfig().getBoolean(ConfigVariables.ROOT_INSTANCE)) {
-                //set router to an implementation of PlayerRouter that is capable of sending players to other servers
-            }
-            else {
-                //set router to a regular ArenaManager
-                router = new ArenaManager();
-            }
+            //initialize the arenamanager with the configured maximum default amount of worlds
+            arenaManager = new ArenaManager(configuration.get(ConfigPaths.MAX_WORLDS, 10));
 
             initMessaging();
             initSlimeMapLoader();
@@ -72,7 +69,12 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
         }
-        finally { //ensure profiler gets reset even if we have an exception
+        catch(IllegalStateException exception)
+        {
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling. Reason: \"%s\"", exception.getMessage()));
+            getPluginLoader().disablePlugin(this);
+        }
+        finally { //ensure profiler gets reset
             timer.reset();
         }
     }
@@ -82,16 +84,54 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
         //perform shutdown tasks
     }
 
-    private void initConfig() {
-        FileConfiguration config = this.getConfig();
+    /**
+     * Registers a channel and potentially supplies a ChannelHandler for that channel. The latter is only performed
+     * if NetworkFlow is set to either INCOMING or BIDIRECTIONAL. When registering a NetworkFlow.OUTGOING, handler
+     * MUST be null. When registering BIDIRECTIONAL or INCOMING, it must NOT be null.
+     * @param handler The handler to register
+     * @param channel The channel to open, and potentially register a handler for
+     * @param flow Whether or not to open outgoing, incoming, or both plugin channels
+     */
+    public void registerChannel(PluginMessageListener handler, String channel, NetworkFlow flow) {
+        Validate.isTrue(!((flow == NetworkFlow.INCOMING && handler == null) ||
+                (flow == NetworkFlow.OUTGOING && handler != null) ||
+                (flow == NetworkFlow.BIDIRECTIONAL && handler == null)),
+                "the specified NetworkFlow is not valid given the other arguments");
 
-        /*
-        disable root_instance by default; enable only for the plugin instance running on the server people can directly
-        join, because it must run a special implementation of PlayerRouter that can transmit players across BungeeCord
-         */
-        config.addDefault(ConfigVariables.ROOT_INSTANCE, false);
+        Objects.requireNonNull(channel, "channel cannot be null");
+        Objects.requireNonNull(flow, "flow cannot be null");
+
+        Messenger messenger = getServer().getMessenger();
+
+        switch(flow) {
+            case INCOMING:
+                messenger.registerIncomingPluginChannel(this, channel, handler);
+                break;
+            case OUTGOING:
+                messenger.registerOutgoingPluginChannel(this, channel);
+                break;
+            case BIDIRECTIONAL:
+                messenger.registerIncomingPluginChannel(this, channel, handler);
+                messenger.registerOutgoingPluginChannel(this, channel);
+                break;
+        }
+    }
+
+    private void initConfig() {
+        FileConfiguration config = getConfig();
+        configuration = new Configuration(config);
+
+        //make sure the MAX_WORLDS config var is within a reasonable range
+        configuration.registerValidator(ConfigPaths.MAX_WORLDS,
+                (Object val) -> NumberUtils.inRange((int)val, 1, 64));
+
+        config.addDefault(ConfigPaths.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
         saveConfig();
+    }
+
+    private void initMessaging() {
+        registerChannel(new BungeeHandler(), ChannelNames.BUNGEECORD, NetworkFlow.BIDIRECTIONAL);
     }
 
     private void initSlimeMapLoader() {
@@ -100,23 +140,7 @@ public final class ZombiesPlugin extends JavaPlugin implements PluginMessageList
             slimeMapLoader = new SlimeMapLoader(slimePlugin);
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
-            getPluginLoader().disablePlugin(this);
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
-        }
-    }
-
-    private void initMessaging() {
-        MessageRouter.getInstance().registerHandler(ChannelNames.BUNGEECORD, new BungeeHandler());
-
-        Messenger messenger = getServer().getMessenger();
-        messenger.registerOutgoingPluginChannel(this, ChannelNames.BUNGEECORD);
-        messenger.registerIncomingPluginChannel(this, ChannelNames.BUNGEECORD, this);
-    }
-
-    @Override
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        if(!MessageRouter.getInstance().handleCustom(channel, player, message)) {
-            getLogger().log(Level.WARNING, String.format("Unable to handle PluginMessage send in channel '%s' from player '%s'.", channel, player.getName()));
         }
     }
 }
