@@ -4,7 +4,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 //TODO: implement bungeecord protocol
 public final class BungeeProtocol implements MessageProtocol {
