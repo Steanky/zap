@@ -2,10 +2,7 @@ package io.github.zap;
 
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
-import io.github.zap.map.BukkitDataLoader;
-import io.github.zap.map.DataLoader;
-import io.github.zap.map.BukkitDataWrapper;
-import io.github.zap.map.TestData;
+import io.github.zap.map.*;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.swm.SlimeMapLoader;
@@ -164,6 +161,6 @@ public final class ZombiesPlugin extends JavaPlugin {
         /*
         register data classes with custom framework. it is not necessary to register these classes with bukkit
          */
-        BukkitDataWrapper.registerDeserializer(TestData.class, TestData.getDeserializer());
+        DataWrapper.registerDeserializer(TestData.class, TestData.getDeserializer());
     }
 }

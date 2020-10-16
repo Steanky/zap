@@ -11,9 +11,7 @@ import java.util.Objects;
 /**
  * A class that wraps bukkit data objects so they can be serialized.
  */
-public class BukkitDataWrapper<T extends DataSerializer<T>> implements DataWrapper<T>, ConfigurationSerializable {
-    private static final Map<String, DataDeserializer<?>> deserializers = new HashMap<>();
-
+public class BukkitDataWrapper<T extends DataSerializer<T>> extends DataWrapper<T> implements ConfigurationSerializable {
     @Getter
     private final DataSerializer<T> dataSerializer;
 
@@ -38,19 +36,6 @@ public class BukkitDataWrapper<T extends DataSerializer<T>> implements DataWrapp
         result.put("typeClass", dataSerializer.getClass().getTypeName());
 
         return result;
-    }
-
-    /**
-     * Registers a deserializer.
-     * @param serializerClass The class to register
-     * @param deserializer The deserializer that will deserialize this class
-     * @param <T> The type of data object that will be serialized
-     */
-    public static <T extends DataSerializer<T>> void registerDeserializer(Class<T> serializerClass, DataDeserializer<T> deserializer) {
-        Objects.requireNonNull(serializerClass, "serializerClass cannot be null");
-        Objects.requireNonNull(deserializer, "deserializer cannot be null");
-
-        deserializers.put(serializerClass.getTypeName(), deserializer);
     }
 
     /**
