@@ -97,7 +97,7 @@ public final class ZombiesPlugin extends JavaPlugin {
         Objects.requireNonNull(channel, "channel cannot be null");
         Objects.requireNonNull(flow, "flow cannot be null");
 
-        Validate.isTrue((flow == NetworkFlow.OUTGOING && handler == null) || (flow != NetworkFlow.OUTGOING && handler != null),
+        Validate.isTrue((flow == NetworkFlow.OUTGOING) == (handler == null),
                 "the specified NetworkFlow is not valid given the other arguments");
 
         Messenger messenger = getServer().getMessenger();
