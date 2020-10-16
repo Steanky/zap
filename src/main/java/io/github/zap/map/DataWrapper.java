@@ -11,7 +11,7 @@ import java.util.Objects;
  * General interface for a class that wraps data objects so they can be serialized in a unified manner.
  * @param <T> The type of object to wrap, which must be a serializer of itself
  */
-public abstract class DataWrapper<T extends DataSerializer> {
+public class DataWrapper<T extends DataSerializer> {
     protected static final Map<String, DataDeserializer<?>> deserializers = new HashMap<>();
 
     @Getter
@@ -21,10 +21,14 @@ public abstract class DataWrapper<T extends DataSerializer> {
         this.data = data;
     }
 
+    /**
+     * Serializes the data class.
+     * @return The serialized data
+     */
     @NotNull
     public Map<String, Object> serialize() {
-        Map<String, Object> result = getData().serialize();
-        result.put("typeClass", getData().getClass().getTypeName());
+        Map<String, Object> result = data.serialize();
+        result.put("typeClass", data.getClass().getTypeName());
 
         return result;
     }
