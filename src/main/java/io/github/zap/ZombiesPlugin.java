@@ -122,7 +122,7 @@ public final class ZombiesPlugin extends JavaPlugin {
 
         //make sure the MAX_WORLDS config var is within a reasonable range
         configuration.registerValidator(ConfigPaths.MAX_WORLDS,
-                (Object val) -> NumberUtils.inRange((int)val, 1, 64));
+                (val) -> NumberUtils.inRange((int)val, 1, 64));
 
         config.addDefault(ConfigPaths.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
