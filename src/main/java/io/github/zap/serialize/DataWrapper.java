@@ -1,4 +1,4 @@
-package io.github.zap.map;
+package io.github.zap.serialize;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

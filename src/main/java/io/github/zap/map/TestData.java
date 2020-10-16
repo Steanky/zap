@@ -1,6 +1,7 @@
 package io.github.zap.map;
 
-import com.google.common.collect.ImmutableMap;
+import io.github.zap.serialize.DataDeserializer;
+import io.github.zap.serialize.DataSerializer;
 import lombok.Getter;
 
 import java.util.HashMap;
