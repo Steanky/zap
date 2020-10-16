@@ -10,7 +10,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
  */
 public interface MessageProtocol {
     /**
-     * Attempt to read the type of object being transmitted, given the ByteArrayDataInput. This method should not
+     * Attempt to read the metadata of the object being transmitted, given the ByteArrayDataInput. This method should not
      * throw exceptions when provided with invalid input, rather, it should simply set the first parameter of the
      * returned pair to false.
      * @param input The input bytes
@@ -20,7 +20,7 @@ public interface MessageProtocol {
     ImmutablePair<Boolean, MessageMetadata> readFrom(ByteArrayDataInput input);
 
     /**
-     * Writes the BinaryConvertable object to the ByteArrayDataOutput object.
+     * Writes the metadata and body data to the output.
      * @param output The output data stream
      * @param metadata The metadata that will be written to the output
      * @param body The bytes that will be written to the output

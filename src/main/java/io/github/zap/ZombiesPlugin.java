@@ -94,13 +94,11 @@ public final class ZombiesPlugin extends JavaPlugin {
      * @param flow Whether or not to open outgoing, incoming, or both plugin channels
      */
     public void registerChannel(PluginMessageListener handler, String channel, NetworkFlow flow) {
-        Validate.isTrue(!((flow == NetworkFlow.INCOMING && handler == null) ||
-                (flow == NetworkFlow.OUTGOING && handler != null) ||
-                (flow == NetworkFlow.BIDIRECTIONAL && handler == null)),
-                "the specified NetworkFlow is not valid given the other arguments");
-
         Objects.requireNonNull(channel, "channel cannot be null");
         Objects.requireNonNull(flow, "flow cannot be null");
+
+        Validate.isTrue((flow == NetworkFlow.OUTGOING && handler == null) || (flow != NetworkFlow.OUTGOING && handler != null),
+                "the specified NetworkFlow is not valid given the other arguments");
 
         Messenger messenger = getServer().getMessenger();
 
