@@ -1,6 +1,5 @@
 package io.github.zap.map;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 
 import java.util.HashMap;
