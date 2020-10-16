@@ -50,10 +50,8 @@ public class Configuration {
         }
 
         Predicate validator = validators.get(path);
-        if(validator != null) {
-            if(!validator.test(value)) {
-                return fallback;
-            }
+        if(validator != null && !validator.test(value)) {
+            return fallback;
         }
 
         return value;
