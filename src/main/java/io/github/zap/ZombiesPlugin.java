@@ -10,6 +10,7 @@ import io.github.zap.util.NumberUtils;
 import com.grinderwolf.swm.api.SlimePlugin;
 
 import org.apache.commons.lang.Validate;
+import io.github.zap.swm.SlimeMapLoader;
 import org.apache.commons.lang.time.StopWatch;
 
 import org.bukkit.configuration.file.FileConfiguration;
@@ -130,17 +131,18 @@ public final class ZombiesPlugin extends JavaPlugin {
         saveConfig();
     }
 
-    private void initMessaging() {
-        registerChannel(new BungeeHandler(), ChannelNames.BUNGEECORD, NetworkFlow.BIDIRECTIONAL);
-    }
-
     private void initSlimeMapLoader() {
         slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
         if(slimePlugin != null) {
             slimeMapLoader = new SlimeMapLoader(slimePlugin);
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
+            super.getPluginLoader().disablePlugin(this);
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
         }
+    }
+
+    private void initMessaging() {
+        registerChannel(new BungeeHandler(), ChannelNames.BUNGEECORD, NetworkFlow.BIDIRECTIONAL);
     }
 }
