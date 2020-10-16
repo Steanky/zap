@@ -1,5 +1,6 @@
 package io.github.zap.net;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -17,7 +18,7 @@ public interface MessageProtocol {
      * @return An ImmutablePair whose first parameter represents the success of the conversion and whose second
      * parameter contains metadata
      */
-    ImmutablePair<Boolean, MessageMetadata> readFrom(ByteArrayDataInput input);
+    ImmutablePair<Boolean, ImmutableMap<String, Object>> readFrom(ByteArrayDataInput input);
 
     /**
      * Writes the metadata and body data to the output.
@@ -25,5 +26,5 @@ public interface MessageProtocol {
      * @param metadata The metadata that will be written to the output
      * @param body The bytes that will be written to the output
      */
-    void writeTo(ByteArrayDataOutput output, MessageMetadata metadata, byte[] body);
+    void writeTo(ByteArrayDataOutput output, ImmutableMap<String, Object> metadata, byte[] body);
 }

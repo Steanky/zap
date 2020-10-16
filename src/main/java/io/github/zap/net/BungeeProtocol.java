@@ -1,5 +1,6 @@
 package io.github.zap.net;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import lombok.Getter;
@@ -13,12 +14,12 @@ public final class BungeeProtocol implements MessageProtocol {
     private BungeeProtocol() { }
 
     @Override
-    public ImmutablePair<Boolean, MessageMetadata> readFrom(ByteArrayDataInput input) {
+    public ImmutablePair<Boolean, ImmutableMap<String, Object>> readFrom(ByteArrayDataInput input) {
         return null;
     }
 
     @Override
-    public void writeTo(ByteArrayDataOutput output, MessageMetadata metadata, byte[] message) {
+    public void writeTo(ByteArrayDataOutput output, ImmutableMap<String, Object> metadata, byte[] message) {
 
     }
 }

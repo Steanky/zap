@@ -1,7 +1,11 @@
 package io.github.zap;
 
 import io.github.zap.config.Configuration;
-import io.github.zap.game.ArenaManager;
+import io.github.zap.manager.ArenaManager;
+import io.github.zap.map.BukkitDataLoader;
+import io.github.zap.map.DataLoader;
+import io.github.zap.map.DataWrapper;
+import io.github.zap.map.TestData;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.swm.SlimeMapLoader;
@@ -14,6 +18,7 @@ import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -29,6 +34,9 @@ public final class ZombiesPlugin extends JavaPlugin {
 
     @Getter
     private Configuration configuration; //access the plugin config through this wrapper class
+
+    @Getter
+    private final DataLoader dataLoader = new BukkitDataLoader(); //used to load map data
 
     @Getter
     private SlimePlugin slimePlugin;
@@ -61,10 +69,17 @@ public final class ZombiesPlugin extends JavaPlugin {
             initConfig();
 
             //initialize the arenamanager with the configured maximum default amount of worlds
-            arenaManager = new ArenaManager(configuration.get(ConfigPaths.MAX_WORLDS, 10));
+            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
 
             initMessaging();
             initSlimeMapLoader();
+            initSerialization();
+
+            //example test code showing how the serializer api works
+            String configPath = String.format("plugins/%s/test.yml", getName());
+
+            dataLoader.save(new TestData(123456), configPath, "test");
+            TestData data = dataLoader.load(configPath, "test");
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -72,7 +87,7 @@ public final class ZombiesPlugin extends JavaPlugin {
         catch(IllegalStateException exception)
         {
             getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling. Reason: \"%s\"", exception.getMessage()));
-            getPluginLoader().disablePlugin(this);
+            getPluginLoader().disablePlugin(this, true);
         }
         finally { //ensure profiler gets reset
             timer.reset();
@@ -121,10 +136,10 @@ public final class ZombiesPlugin extends JavaPlugin {
         Range<Integer> range = Range.between(1, 64);
 
         //make sure the MAX_WORLDS config var is within a reasonable range
-        configuration.registerValidator(ConfigPaths.MAX_WORLDS,
+        configuration.registerValidator(ConfigNames.MAX_WORLDS,
                 (val) -> range.contains((Integer)val));
 
-        config.addDefault(ConfigPaths.MAX_WORLDS, 10);
+        config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
         saveConfig();
     }
@@ -142,5 +157,14 @@ public final class ZombiesPlugin extends JavaPlugin {
 
     private void initMessaging() {
         registerChannel(new BungeeHandler(), ChannelNames.BUNGEECORD, NetworkFlow.BIDIRECTIONAL);
+    }
+
+    private void initSerialization() {
+        ConfigurationSerialization.registerClass(DataWrapper.class); //register DataWrapper with bukkit
+
+        /*
+        register data classes with custom framework. it is not necessary to register these classes with bukkit
+         */
+        DataWrapper.registerDeserializer(TestData.class, TestData.getDeserializer());
     }
 }
