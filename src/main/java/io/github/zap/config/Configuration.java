@@ -1,5 +1,6 @@
 package io.github.zap.config;
 
+import com.google.common.collect.ImmutableBiMap;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 

@@ -5,14 +5,13 @@ import io.github.zap.game.ArenaManager;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.swm.SlimeMapLoader;
-import io.github.zap.util.NumberUtils;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
 import org.apache.commons.lang.Validate;
-import io.github.zap.swm.SlimeMapLoader;
 import org.apache.commons.lang.time.StopWatch;
 
+import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -119,10 +118,11 @@ public final class ZombiesPlugin extends JavaPlugin {
     private void initConfig() {
         FileConfiguration config = getConfig();
         configuration = new Configuration(config);
+        Range<Integer> range = Range.between(1, 64);
 
         //make sure the MAX_WORLDS config var is within a reasonable range
         configuration.registerValidator(ConfigPaths.MAX_WORLDS,
-                (val) -> NumberUtils.inRange((int)val, 1, 64));
+                (val) -> range.contains((Integer)val));
 
         config.addDefault(ConfigPaths.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
