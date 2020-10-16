@@ -1,4 +1,4 @@
-package io.github.zap.map;
+package io.github.zap.serialization;
 
 /**
  * Specifies a higher-level API that manages DataWrapper serialization

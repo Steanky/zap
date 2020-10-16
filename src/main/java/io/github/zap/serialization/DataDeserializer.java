@@ -1,4 +1,4 @@
-package io.github.zap.map;
+package io.github.zap.serialization;
 
 import java.util.Map;
 

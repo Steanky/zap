@@ -2,7 +2,7 @@ package io.github.zap;
 
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
-import io.github.zap.map.*;
+import io.github.zap.serialization.*;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.swm.SlimeMapLoader;
