@@ -3,6 +3,7 @@ package io.github.zap.map;
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -23,9 +24,11 @@ public class TestData implements DataSerializer<TestData> {
     @Override
     public Map<String, Object> serialize() {
         /*
-        it is necessary to specify the typeClass field, as this is what we will use
-        to identify deserializer during deserialization
-        */
-        return ImmutableMap.of("typeClass", TestData.class.getTypeName(), "value", value);
+        map must not be immutable because the DataWrapper will add a special value to it
+         */
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("value", value);
+
+        return map;
     }
 }

@@ -33,7 +33,10 @@ public class DataWrapper<T extends DataSerializer<T>> implements ConfigurationSe
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        return dataSerializer.serialize();
+        Map<String, Object> result = dataSerializer.serialize();
+        result.put("typeClass", dataSerializer.getClass().getTypeName());
+
+        return result;
     }
 
     /**
