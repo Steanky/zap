@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Currently only used for testing purposes.
  */
-public class TestData implements DataSerializer<TestData> {
+public class TestData implements DataSerializer {
     //let data classes contain their own deserializer as a field. this is registered in ZombiesPlugin
     @Getter
     private static final DataDeserializer<TestData> deserializer = (data) -> new TestData((int)data.get("value"));

@@ -8,7 +8,7 @@ import java.util.Objects;
  * General interface for a class that wraps data objects so they can be serialized in a unified manner.
  * @param <T> The type of object to wrap, which must be a serializer of itself
  */
-public abstract class DataWrapper<T extends DataSerializer<T>> {
+public abstract class DataWrapper<T extends DataSerializer> {
     protected static final Map<String, DataDeserializer<?>> deserializers = new HashMap<>();
 
     /**
@@ -17,16 +17,10 @@ public abstract class DataWrapper<T extends DataSerializer<T>> {
      * @param deserializer The deserializer that will deserialize this class
      * @param <T> The type of data object that will be serialized
      */
-    public static <T extends DataSerializer<T>> void registerDeserializer(Class<T> serializerClass, DataDeserializer<T> deserializer) {
+    public static <T extends DataSerializer> void registerDeserializer(Class<T> serializerClass, DataDeserializer<T> deserializer) {
         Objects.requireNonNull(serializerClass, "serializerClass cannot be null");
         Objects.requireNonNull(deserializer, "deserializer cannot be null");
 
         deserializers.put(serializerClass.getTypeName(), deserializer);
     }
-
-    /**
-     * Returns the data object that this instance wraps.
-     * @return The underlying data object
-     */
-    abstract T getDataObject();
 }
