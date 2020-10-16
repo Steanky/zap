@@ -1,8 +1,6 @@
 package io.github.zap.map;
 
-import lombok.Getter;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
