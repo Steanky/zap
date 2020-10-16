@@ -16,7 +16,7 @@ public class BukkitDataLoader implements DataLoader {
     @Override
     public <T extends DataSerializer<T>> void save(T data, String relativePath, String name) {
         FileConfiguration config = new YamlConfiguration();
-        config.set(name, new DataWrapper<>(data));
+        config.set(name, new BukkitDataWrapper<>(data));
 
         try {
             config.save(relativePath);
@@ -37,7 +37,7 @@ public class BukkitDataLoader implements DataLoader {
             return null;
         }
 
-        DataWrapper<T> wrapped = (DataWrapper<T>)config.get(name);
+        BukkitDataWrapper<T> wrapped = (BukkitDataWrapper<T>)config.get(name);
         Objects.requireNonNull(wrapped, String.format("data named %s does not exist in config file %s", name, relativePath));
 
         return wrapped.getDataObject();
