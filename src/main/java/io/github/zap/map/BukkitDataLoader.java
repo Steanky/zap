@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public class BukkitDataLoader implements DataLoader {
     @Override
-    public <T extends DataSerializer<T>> void save(T data, String relativePath, String name) {
+    public <T extends DataSerializer> void save(T data, String relativePath, String name) {
         FileConfiguration config = new YamlConfiguration();
         config.set(name, new BukkitDataWrapper<>(data));
 
@@ -27,7 +27,7 @@ public class BukkitDataLoader implements DataLoader {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends DataSerializer<T>> T load(String relativePath, String name) {
+    public <T extends DataSerializer> T load(String relativePath, String name) {
         FileConfiguration config = new YamlConfiguration();
 
         try {
@@ -40,6 +40,6 @@ public class BukkitDataLoader implements DataLoader {
         BukkitDataWrapper<T> wrapped = (BukkitDataWrapper<T>)config.get(name);
         Objects.requireNonNull(wrapped, String.format("data named %s does not exist in config file %s", name, relativePath));
 
-        return wrapped.getDataObject();
+        return wrapped.getData();
     }
 }

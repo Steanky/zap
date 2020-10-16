@@ -6,7 +6,7 @@ import java.util.Map;
  * General functional interface for deserializing a map into a data object.
  * @param <T> The type of data object this deserializer outputs
  */
-public interface DataDeserializer<T extends DataSerializer<T>> {
+public interface DataDeserializer<T extends DataSerializer> {
     /**
      * Deserializes the provided map into a data object
      * @param data The map to deserialize

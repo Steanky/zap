@@ -10,7 +10,7 @@ public interface DataLoader {
      * @param relativePath The relative path to save to
      * @param name The name of the data, which may not used by all implementations
      */
-    <T extends DataSerializer<T>> void save(T data, String relativePath, String name);
+    <T extends DataSerializer> void save(T data, String relativePath, String name);
 
     /**
      * Loads a data object from the configuration file at the given path and with the given name.
@@ -19,5 +19,5 @@ public interface DataLoader {
      * @param <T> The type of the data object, which must implement DataSerializer
      * @return The data object
      */
-    <T extends DataSerializer<T>> T load(String relativePath, String name);
+    <T extends DataSerializer> T load(String relativePath, String name);
 }
