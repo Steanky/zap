@@ -1,6 +1,5 @@
 package io.github.zap.map;
 
-
 import io.github.zap.ZombiesPlugin;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;

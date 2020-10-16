@@ -10,18 +10,15 @@ import java.util.Map;
  * A class that wraps bukkit data objects so they can be serialized.
  */
 public class BukkitDataWrapper<T extends DataSerializer> extends DataWrapper<T> implements ConfigurationSerializable {
-    @Getter
-    private final T data;
-
     public BukkitDataWrapper(T data) {
-        this.data = data;
+        super(data);
     }
 
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        Map<String, Object> result = data.serialize();
-        result.put("typeClass", data.getClass().getTypeName());
+        Map<String, Object> result = getData().serialize();
+        result.put("typeClass", getData().getClass().getTypeName());
 
         return result;
     }
@@ -32,7 +29,6 @@ public class BukkitDataWrapper<T extends DataSerializer> extends DataWrapper<T> 
      * @param data The data to deserialize
      * @return Returns a DataWrapper representing the deserialized object
      */
-    @SuppressWarnings("unused")
     public static BukkitDataWrapper<? extends DataSerializer> deserialize(Map<String, Object> data) {
         String type = (String) data.get("typeClass");
         DataDeserializer<? extends DataSerializer> deserializer = deserializers.get(type);

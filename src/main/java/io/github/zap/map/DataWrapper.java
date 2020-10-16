@@ -1,5 +1,7 @@
 package io.github.zap.map;
 
+import lombok.Getter;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -10,6 +12,13 @@ import java.util.Objects;
  */
 public abstract class DataWrapper<T extends DataSerializer> {
     protected static final Map<String, DataDeserializer<?>> deserializers = new HashMap<>();
+
+    @Getter
+    private final T data;
+
+    public DataWrapper(T data) {
+        this.data = data;
+    }
 
     /**
      * Registers a deserializer.

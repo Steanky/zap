@@ -1,6 +1,5 @@
 package io.github.zap.config;
 
-import com.google.common.collect.ImmutableBiMap;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -18,7 +17,7 @@ public class ValidatingConfiguration {
     @Getter
     private final FileConfiguration fileConfiguration;
 
-    private final Map<String, Predicate> validators;
+    private final Map<String, Predicate<?>> validators;
 
     public ValidatingConfiguration(FileConfiguration fileConfiguration) {
         this.fileConfiguration = fileConfiguration;
