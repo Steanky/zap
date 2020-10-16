@@ -1,6 +1,6 @@
 package io.github.zap;
 
-import io.github.zap.config.Configuration;
+import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
 import io.github.zap.map.BukkitDataLoader;
 import io.github.zap.map.DataLoader;
@@ -33,7 +33,7 @@ public final class ZombiesPlugin extends JavaPlugin {
     private static ZombiesPlugin instance; //singleton pattern for our main plugin class
 
     @Getter
-    private Configuration configuration; //access the plugin config through this wrapper class
+    private ValidatingConfiguration configuration; //access the plugin config through this wrapper class
 
     @Getter
     private final DataLoader dataLoader = new BukkitDataLoader(); //used to load map data
@@ -132,12 +132,11 @@ public final class ZombiesPlugin extends JavaPlugin {
 
     private void initConfig() {
         FileConfiguration config = getConfig();
-        configuration = new Configuration(config);
-        Range<Integer> range = Range.between(1, 64);
+        configuration = new ValidatingConfiguration(config);
 
         //make sure the MAX_WORLDS config var is within a reasonable range
-        configuration.registerValidator(ConfigNames.MAX_WORLDS,
-                (val) -> range.contains((Integer)val));
+        Range<Integer> maxWorldRange = Range.between(1, 64);
+        configuration.registerValidator(ConfigNames.MAX_WORLDS, maxWorldRange::contains);
 
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
