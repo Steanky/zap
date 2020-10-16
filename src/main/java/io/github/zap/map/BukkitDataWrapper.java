@@ -14,15 +14,6 @@ public class BukkitDataWrapper<T extends DataSerializer> extends DataWrapper<T> 
         super(data);
     }
 
-    @NotNull
-    @Override
-    public Map<String, Object> serialize() {
-        Map<String, Object> result = getData().serialize();
-        result.put("typeClass", getData().getClass().getTypeName());
-
-        return result;
-    }
-
     /**
      * This function is required by Bukkit's ConfigurationSerializable to deserialize DataWrappers. It cannot have
      * type parameters.

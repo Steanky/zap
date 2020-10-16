@@ -1,6 +1,7 @@
 package io.github.zap.map;
 
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,14 @@ public abstract class DataWrapper<T extends DataSerializer> {
 
     public DataWrapper(T data) {
         this.data = data;
+    }
+
+    @NotNull
+    public Map<String, Object> serialize() {
+        Map<String, Object> result = getData().serialize();
+        result.put("typeClass", getData().getClass().getTypeName());
+
+        return result;
     }
 
     /**
