@@ -79,7 +79,7 @@ public final class ZombiesPlugin extends JavaPlugin {
             //example test code showing how the serializer api works
             String configPath = String.format("plugins/%s/test.yml", getName());
 
-            dataLoader.save(new TestData(123456), configPath, "test");
+            dataLoader.save(new TestData(123456, new TestData2(420)), configPath, "test");
             TestData data = dataLoader.load(configPath, "test");
 
             timer.stop();
@@ -166,5 +166,6 @@ public final class ZombiesPlugin extends JavaPlugin {
         register data classes with custom framework. it is not necessary to register these classes with bukkit
          */
         DataWrapper.registerDeserializer(TestData.class, TestData.getDeserializer());
+        DataWrapper.registerDeserializer(TestData2.class, TestData2.getDeserializer());
     }
 }

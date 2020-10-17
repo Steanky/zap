@@ -22,18 +22,6 @@ public class DataWrapper<T extends DataSerializer> {
     }
 
     /**
-     * Serializes the data class.
-     * @return The serialized data
-     */
-    @NotNull
-    public Map<String, Object> serialize() {
-        Map<String, Object> result = data.serialize();
-        result.put("typeClass", data.getClass().getTypeName());
-
-        return result;
-    }
-
-    /**
      * Registers a deserializer.
      * @param serializerClass The class to register
      * @param deserializer The deserializer that will deserialize this class
