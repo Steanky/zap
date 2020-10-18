@@ -1,36 +1,72 @@
 package io.github.zap.serialize;
 
+import io.github.zap.ZombiesPlugin;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-/**
- * General interface for a class that wraps data objects so they can be serialized in a unified manner.
- * @param <T> The type of object to wrap, which must be a serializer of itself
- */
-public class DataWrapper<T extends DataSerializer> {
-    protected static final Map<String, DataDeserializer<?>> deserializers = new HashMap<>();
+public class DataWrapper<T extends DataSerializable> {
+    @Getter
+    private final SerializationProvider serializationProvider;
 
     @Getter
     private final T data;
 
-    public DataWrapper(T data) {
+    public DataWrapper(SerializationProvider serializationProvider, T data) {
+        this.serializationProvider = serializationProvider;
         this.data = data;
     }
 
-    /**
-     * Registers a deserializer.
-     * @param serializerClass The class to register
-     * @param deserializer The deserializer that will deserialize this class
-     * @param <T> The type of data object that will be serialized
-     */
-    public static <T extends DataSerializer> void registerDeserializer(Class<T> serializerClass, DataDeserializer<T> deserializer) {
-        Objects.requireNonNull(serializerClass, "serializerClass cannot be null");
-        Objects.requireNonNull(deserializer, "deserializer cannot be null");
+    @NotNull
+    public Map<String, Object> serialize() {
+        Map<String, Object> serializedData = new HashMap<>();
+        Field[] fields = data.getClass().getDeclaredFields();
 
-        deserializers.put(serializerClass.getTypeName(), deserializer);
+        for(Field field : fields) {
+            if(!Modifier.isStatic(field.getModifiers())) {
+                if(!field.isAccessible()) {
+                    field.setAccessible(true); //serialize private members
+                }
+
+                Annotation[] annotations = field.getDeclaredAnnotations();
+
+                for(Annotation annotation : annotations) {
+                    if(annotation.annotationType() == Serialize.class) {
+                        Serialize serializeAnnotation = (Serialize)annotation;
+                        String annotationName = serializeAnnotation.name();
+
+                        try {
+                            Object fieldValue = field.get(data);
+                            serializedData.put(annotationName, serializationProvider.wrap(fieldValue));
+                        } catch (IllegalAccessException ignored) {
+                            ZombiesPlugin.getInstance().getLogger().warning(String.format("IllegalAccess exception when " +
+                                    "attempting to serialize field '%s' in object '%s'", field.toGenericString(), data.toString()));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return serializedData;
+    }
+
+    @Override
+    public int hashCode() {
+        return data.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if(other instanceof DataWrapper) {
+            return ((DataWrapper<?>) other).data.equals(data);
+        }
+
+        return false;
     }
 }

@@ -1,56 +1,26 @@
 package io.github.zap.serialize;
 
+import io.github.zap.ZombiesPlugin;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-/**
- * A class that wraps bukkit data objects so they can be serialized.
- */
-public class BukkitDataWrapper<T extends DataSerializer> extends DataWrapper<T> implements ConfigurationSerializable {
-    public BukkitDataWrapper(T data) {
-        super(data);
+public class BukkitDataWrapper<T extends DataSerializable> extends DataWrapper<T> implements ConfigurationSerializable {
+    public BukkitDataWrapper(SerializationProvider serializationProvider, T data) {
+        super(serializationProvider, data);
     }
 
-    /**
-     * Serializes the data class.
-     * @return The serialized data
-     */
     @NotNull
+    @Override
     public Map<String, Object> serialize() {
-        Map<String, Object> result = getData().serialize();
-
-        for(String key : result.keySet()) { //wrap objects
-            Object object = result.get(key);
-
-            if(object instanceof DataSerializer) {
-                result.put(key, new BukkitDataWrapper<>((DataSerializer)object));
-            }
-        }
-
-        result.put("typeClass", getData().getClass().getTypeName());
-        return result;
+        Map<String, Object> data = super.serialize();
+        data.put("typeClass", getData().getClass().getTypeName()); //this extra data may not be needed in all implementations
+        return data;
     }
 
-    /**
-     * This function is required by Bukkit's ConfigurationSerializable to deserialize DataWrappers. It cannot have
-     * type parameters.
-     * @param data The data to deserialize
-     * @return Returns a DataWrapper representing the deserialized object
-     */
-    public static BukkitDataWrapper<? extends DataSerializer> deserialize(Map<String, Object> data) {
-        String type = (String) data.get("typeClass");
-        DataDeserializer<? extends DataSerializer> deserializer = deserializers.get(type);
-
-        for(String key : data.keySet()) { //unwrap objects
-            Object object = data.get(key);
-            if(object instanceof DataWrapper) {
-                DataWrapper<?> wrapper = (DataWrapper<?>)object;
-                data.put(key, wrapper.getData());
-            }
-        }
-
-        return new BukkitDataWrapper<>(deserializer.deserialize(data));
+    //a method with this exact signature is required by Bukkit's ConfigurationSerializable
+    public static BukkitDataWrapper<? extends DataSerializable> deserialize(Map<String, Object> data) {
+        return (BukkitDataWrapper<?>)ZombiesPlugin.getInstance().getSerializationProvider().deserialize(data);
     }
 }

@@ -1,35 +1,17 @@
 package io.github.zap.map;
 
-import io.github.zap.serialize.DataDeserializer;
-import io.github.zap.serialize.DataSerializer;
+import io.github.zap.serialize.DataSerializable;
+import io.github.zap.serialize.Serialize;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Currently only used for testing purposes.
- */
-public class TestData2 implements DataSerializer {
-    //let data classes contain their own deserializer as a field. this is registered in ZombiesPlugin
+public class TestData2 implements DataSerializable {
     @Getter
-    private static final DataDeserializer<TestData2> deserializer = (data) -> new TestData2((int)data.get("value"));
+    @Serialize(name = "value2")
+    private String value;
 
-    @Getter
-    private final int value;
+    private TestData2() {}
 
-    public TestData2(int value) {
+    public TestData2(String value) {
         this.value = value;
-    }
-
-    @Override
-    public Map<String, Object> serialize() {
-        /*
-        map must not be immutable because the DataWrapper will add a special value to it
-         */
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("value", value);
-
-        return map;
     }
 }

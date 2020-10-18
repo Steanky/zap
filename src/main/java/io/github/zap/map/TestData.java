@@ -1,42 +1,26 @@
 package io.github.zap.map;
 
-import io.github.zap.serialize.BukkitDataWrapper;
-import io.github.zap.serialize.DataDeserializer;
-import io.github.zap.serialize.DataSerializer;
-import io.github.zap.serialize.DataWrapper;
+import io.github.zap.serialize.DataSerializable;
+import io.github.zap.serialize.Serialize;
 import lombok.Getter;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Currently only used for testing purposes.
  */
-public class TestData implements DataSerializer {
-    //let data classes contain their own deserializer as a field. this is registered in ZombiesPlugin
+public class TestData implements DataSerializable {
     @Getter
-    private static final DataDeserializer<TestData> deserializer = (data) -> new TestData((int)data.get("value"), (TestData2)data.get("value2"));
+    @Serialize(name = "value")
+    private int value;
 
     @Getter
-    private final int value;
+    @Serialize(name = "data")
+    private TestData2[][] data;
 
-    @Getter
-    private final TestData2 value2;
+    //you must include a parameterless constructor for all DataSerializable classes. it can be private
+    private TestData() { }
 
-    public TestData(int value, TestData2 value2) {
+    public TestData(int value) {
         this.value = value;
-        this.value2 = value2;
-    }
-
-    @Override
-    public Map<String, Object> serialize() {
-        /*
-        map must not be immutable because the DataWrapper will add a special value to it
-         */
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("value", value);
-        map.put("value2", value2);
-
-        return map;
+        data = new TestData2[][] { new TestData2[]{new TestData2("test")}, new TestData2[]{new TestData2("test")} };
     }
 }

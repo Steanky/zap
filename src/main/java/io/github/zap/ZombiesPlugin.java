@@ -2,13 +2,12 @@ package io.github.zap;
 
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
-import io.github.zap.map.*;
+import io.github.zap.map.TestData;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
-import io.github.zap.serialize.BukkitDataLoader;
 import io.github.zap.serialize.BukkitDataWrapper;
-import io.github.zap.serialize.DataLoader;
-import io.github.zap.serialize.DataWrapper;
+import io.github.zap.serialize.BukkitSerializationProvider;
+import io.github.zap.serialize.SerializationProvider;
 import io.github.zap.swm.SlimeMapLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
@@ -25,6 +24,7 @@ import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import lombok.Getter;
+import org.junit.Test;
 
 import java.util.Objects;
 import java.util.logging.Level;
@@ -37,7 +37,7 @@ public final class ZombiesPlugin extends JavaPlugin {
     private ValidatingConfiguration configuration; //access the plugin config through this wrapper class
 
     @Getter
-    private final DataLoader dataLoader = new BukkitDataLoader(); //used to load map data
+    private final SerializationProvider serializationProvider = new BukkitSerializationProvider();
 
     @Getter
     private SlimePlugin slimePlugin;
@@ -77,10 +77,8 @@ public final class ZombiesPlugin extends JavaPlugin {
             initSerialization();
 
             //example test code showing how the serializer api works
-            String configPath = String.format("plugins/%s/test.yml", getName());
-
-            dataLoader.save(new TestData(123456, new TestData2(420)), configPath, "test");
-            TestData data = dataLoader.load(configPath, "test");
+            serializationProvider.save(new TestData(100), "plugins/ZombiesPlugin/test.yml", "test");
+            TestData data = serializationProvider.load("plugins/ZombiesPlugin/test.yml", "test");
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -160,12 +158,6 @@ public final class ZombiesPlugin extends JavaPlugin {
     }
 
     private void initSerialization() {
-        ConfigurationSerialization.registerClass(BukkitDataWrapper.class); //register DataWrapper with bukkit
-
-        /*
-        register data classes with custom framework. it is not necessary to register these classes with bukkit
-         */
-        DataWrapper.registerDeserializer(TestData.class, TestData.getDeserializer());
-        DataWrapper.registerDeserializer(TestData2.class, TestData2.getDeserializer());
+        ConfigurationSerialization.registerClass(BukkitDataWrapper.class);
     }
 }
