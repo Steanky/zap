@@ -3,11 +3,12 @@ package io.github.zap;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
 import io.github.zap.map.TestData;
+import io.github.zap.map.TestData2;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
-import io.github.zap.serialize.BukkitDataWrapper;
-import io.github.zap.serialize.BukkitSerializationProvider;
-import io.github.zap.serialize.SerializationProvider;
+import io.github.zap.serialize.BukkitDataLoader;
+import io.github.zap.serialize.DataLoader;
+import io.github.zap.serialize.DataSerializable;
 import io.github.zap.swm.SlimeMapLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
@@ -24,8 +25,8 @@ import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import lombok.Getter;
-import org.junit.Test;
 
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -37,7 +38,7 @@ public final class ZombiesPlugin extends JavaPlugin {
     private ValidatingConfiguration configuration; //access the plugin config through this wrapper class
 
     @Getter
-    private final SerializationProvider serializationProvider = new BukkitSerializationProvider();
+    private DataLoader dataLoader;
 
     @Getter
     private SlimePlugin slimePlugin;
@@ -70,15 +71,15 @@ public final class ZombiesPlugin extends JavaPlugin {
             initConfig();
 
             //initialize the arenamanager with the configured maximum default amount of worlds
-            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
+            arenaManager = new ArenaManager(configuration.get(ConfigConstants.MAX_WORLDS, 10));
 
             initMessaging();
             initSlimeMapLoader();
             initSerialization();
 
             //example test code showing how the serializer api works
-            serializationProvider.save(new TestData(100), "plugins/ZombiesPlugin/test.yml", "test");
-            TestData data = serializationProvider.load("plugins/ZombiesPlugin/test.yml", "test");
+            dataLoader.save(new TestData(69), ConfigConstants.CONFIG_DIRECTORY + "test.yml", "test");
+            TestData data = dataLoader.load(ConfigConstants.CONFIG_DIRECTORY + "test.yml", "test");
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -135,9 +136,9 @@ public final class ZombiesPlugin extends JavaPlugin {
 
         //make sure the MAX_WORLDS config var is within a reasonable range
         Range<Integer> maxWorldRange = Range.between(1, 64);
-        configuration.registerValidator(ConfigNames.MAX_WORLDS, maxWorldRange::contains);
+        configuration.registerValidator(ConfigConstants.MAX_WORLDS, maxWorldRange::contains);
 
-        config.addDefault(ConfigNames.MAX_WORLDS, 10);
+        config.addDefault(ConfigConstants.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
         saveConfig();
     }
@@ -158,6 +159,14 @@ public final class ZombiesPlugin extends JavaPlugin {
     }
 
     private void initSerialization() {
-        ConfigurationSerialization.registerClass(BukkitDataWrapper.class);
+        ConfigurationSerialization.registerClass(DataSerializable.class);
+
+        /*
+        include all classes you want to be serialized as arguments to BukkitDataLoader
+        (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
+         */
+
+        //noinspection unchecked
+        dataLoader = new BukkitDataLoader(TestData.class, TestData2.class);
     }
 }

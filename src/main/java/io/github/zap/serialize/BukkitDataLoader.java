@@ -1,0 +1,56 @@
+package io.github.zap.serialize;
+
+import io.github.zap.ZombiesPlugin;
+import io.github.zap.map.TestData;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+
+public class BukkitDataLoader implements DataLoader {
+    @SuppressWarnings("unchecked")
+    public BukkitDataLoader(Class<? extends ConfigurationSerializable>... args) {
+        try {
+            Field aliases = ConfigurationSerialization.class.getDeclaredField("aliases");
+            aliases.setAccessible(true);
+
+            //this map is used by ConfigurationSerialization to resolve class names/aliases into the class containing the deserializer method
+            Map<String, Class<? extends ConfigurationSerializable>> aliasesMap =
+                    (Map<String, Class<? extends ConfigurationSerializable>>) aliases.get(null);
+
+            //map all specified ConfigurationSerializable objects to the same deserializer
+            for(Class<? extends ConfigurationSerializable> arg : args) {
+                aliasesMap.put(arg.getName(), DataSerializable.class);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalStateException("Unable to modify ConfigurationSerialization!");
+        }
+    }
+
+    @Override
+    public <T extends DataSerializable> void save(T data, String path, String name) {
+        FileConfiguration configuration = new YamlConfiguration();
+        configuration.set(name, data);
+
+        try {
+            configuration.save(path);
+        } catch (IOException e) {
+            ZombiesPlugin.getInstance().getLogger().warning(String.format("IOException when attempting to save to config file %s", path));
+        }
+    }
+
+    @Override
+    public <T extends DataSerializable> T load(String path, String name) {
+        FileConfiguration configuration = YamlConfiguration.loadConfiguration(new File(path));
+
+        //noinspection unchecked
+        return (T) configuration.get(name);
+    }
+}
