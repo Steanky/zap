@@ -1,6 +1,7 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
+import io.github.zap.util.ReflectionUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -55,7 +56,7 @@ public class BukkitSerializationProvider implements SerializationProvider {
                         constructor.setAccessible(true); //required parameterless constructor can be private
                     }
 
-                    Object instanceObject = constructor.newInstance();; //instantiate the object
+                    Object instanceObject = constructor.newInstance(); //instantiate the object
                     Field[] fields = instanceClass.getDeclaredFields();
 
                     for(Field field : fields) {
@@ -74,20 +75,12 @@ public class BukkitSerializationProvider implements SerializationProvider {
                                     try {
                                         Object rawValue = data.get(annotationName); //get the serialized data
 
-                                        if(rawValue != null && rawValue.getClass() == ArrayList.class) {
-                                            //when this value is non-null, the field is an array
-                                            Class<?> componentType = field.getType().getComponentType();
-
+                                        if(rawValue instanceof ArrayList) {
                                             //workaround for ConfigurationSerialization giving us arraylists when we should have arrays
-                                            if(componentType != null) {
-                                                Object temp = unwrapArray(((ArrayList<?>)rawValue).toArray());
-
-                                                int length = Array.getLength(temp);
-                                                rawValue = Array.newInstance(componentType, length);
-
-                                                //noinspection SuspiciousSystemArraycopy
-                                                System.arraycopy(temp, 0, rawValue, 0, length);
-                                                field.set(instanceObject, rawValue);
+                                            if(field.getType().isArray()) {
+                                                //convert multidimensional arraylist to multidimensional array
+                                                Object array = unwrapArrayListDeep((ArrayList<?>)rawValue, field.getType().getComponentType());
+                                                field.set(instanceObject, array);
                                                 break;
                                             }
                                         }
@@ -152,18 +145,23 @@ public class BukkitSerializationProvider implements SerializationProvider {
     }
 
     private Object wrapArray(Object array) {
-        int length = Array.getLength(array);
-        Class<?> componentType = array.getClass().getComponentType();
-        Object wrapped;
+        int arrayLength = Array.getLength(array);
+        Class<?> arrayClass = array.getClass();
+        Class<?> componentType = arrayClass.getComponentType();
+        Class<?> underlyingType = ReflectionUtils.getUnderlyingComponentType(array.getClass());
 
-        if(DataSerializable.class.isAssignableFrom(componentType)) {
-            wrapped = new BukkitDataWrapper<?>[length];
+        int[] lengths = ReflectionUtils.getDimensionLengths(array);
+
+        Object wrapped;
+        //noinspection ConstantConditions
+        if(DataSerializable.class.isAssignableFrom(underlyingType)) {
+            wrapped = Array.newInstance(BukkitDataWrapper.class, lengths);
         }
         else {
-            wrapped = Array.newInstance(componentType, length);
+            wrapped = Array.newInstance(componentType, lengths);
         }
 
-        for(int i = 0; i < length; i++) {
+        for(int i = 0; i < arrayLength; i++) {
             Array.set(wrapped, i, wrap(Array.get(array, i)));
         }
 
@@ -171,21 +169,45 @@ public class BukkitSerializationProvider implements SerializationProvider {
     }
 
     private Object unwrapArray(Object array) {
-        int length = Array.getLength(array);
-        Class<?> componentType = array.getClass().getComponentType();
-        Object unwrapped;
+        int arrayLength = Array.getLength(array);
+        Class<?> arrayClass = array.getClass();
+        Class<?> componentType = arrayClass.getComponentType();
+        Class<?> underlyingType = ReflectionUtils.getUnderlyingComponentType(array.getClass());
 
-        if(BukkitDataWrapper.class.isAssignableFrom(componentType)) {
-            unwrapped = new DataSerializable[length];
+        int[] lengths = ReflectionUtils.getDimensionLengths(array);
+
+        Object unwrapped;
+        //noinspection ConstantConditions
+        if(BukkitDataWrapper.class.isAssignableFrom(underlyingType)) {
+            unwrapped = Array.newInstance(DataSerializable.class, lengths);
         }
         else {
-            unwrapped = Array.newInstance(componentType, length);
+            unwrapped = Array.newInstance(componentType, lengths);
         }
 
-        for(int i = 0; i < length; i++) {
-            Array.set(unwrapped, i, unwrap(Array.get(array, i)));
+        for(int i = 0; i < arrayLength; i++) {
+            Array.set(unwrapped, i, wrap(Array.get(array, i)));
         }
 
         return unwrapped;
+    }
+
+    private Object unwrapArrayListDeep(ArrayList<?> arrayList, Class<?> fieldType) {
+        Object[] array = arrayList.toArray();
+        Object newArray = Array.newInstance(fieldType, arrayList.size());
+
+        for(int i = 0; i < array.length; i++) {
+            Object item = array[i];
+            if(item instanceof ArrayList) {
+                item = unwrapArrayListDeep((ArrayList<?>)item, fieldType.getComponentType());
+            }
+            else {
+                item = unwrap(item);
+            }
+
+            Array.set(newArray, i, item);
+        }
+
+        return newArray;
     }
 }

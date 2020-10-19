@@ -14,13 +14,13 @@ public class TestData implements DataSerializable {
 
     @Getter
     @Serialize(name = "data")
-    private TestData2[][] data;
+    private Object[][] data;
 
     //you must include a parameterless constructor for all DataSerializable classes. it can be private
     private TestData() { }
 
     public TestData(int value) {
         this.value = value;
-        data = new TestData2[][] { new TestData2[]{new TestData2("test")}, new TestData2[]{new TestData2("test")} };
+        data = new TestData2[][] { new TestData2[]{ new TestData2("test") }, new TestData2[]{ new TestData2("test2") } };
     }
 }
