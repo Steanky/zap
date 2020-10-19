@@ -14,13 +14,13 @@ import java.util.Set;
  */
 public class TestData extends DataSerializable {
     @Getter
-    @Serialize(name = "value")
+    @Serialize
     private int value;
 
-    @Serialize(name = "values")
+    @Serialize
     private TestData2[][] values;
 
-    @Serialize(name = "strings")
+    @Serialize
     private List<String> stringValues;
 
     /*
@@ -30,7 +30,7 @@ public class TestData extends DataSerializable {
     @Getter
     private List<TestData2[]> doNotSerialize;
 
-    @Serialize(name = "set")
+    @Serialize
     private Set<TestData2> set;
 
     //you must include a parameterless constructor for all DataSerializable classes. it can be private

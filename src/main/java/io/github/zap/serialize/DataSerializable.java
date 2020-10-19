@@ -1,6 +1,7 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.jetbrains.annotations.NotNull;
@@ -32,11 +33,12 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                         String annotationName = serializeAnnotation.name();
 
                         try {
-                            serializedData.put(annotationName, field.get(this));
-                        } catch (IllegalAccessException ignored) {
-                            ZombiesPlugin.getInstance().getLogger().warning(String.format("IllegalAccess exception " +
-                                    "when attempting to serialize field '%s' in object '%s'", field.toGenericString(),
-                                    this.toString()));
+                            serializedData.put(annotationName.equals(StringUtils.EMPTY) ? field.getName() :
+                                    annotationName, field.get(this));
+                        } catch (IllegalAccessException e) {
+                            ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting " +
+                                    "to serialize field '%s' in object '%s': %s", field.toGenericString(),
+                                    this.toString(), e.getMessage()));
                         }
                         break;
                     }
@@ -78,9 +80,10 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
                                     Serialize serializeAnnotation = (Serialize)annotation;
                                     String annotationName = serializeAnnotation.name();
+                                    String name = annotationName.equals(StringUtils.EMPTY) ? field.getName() : annotationName;
 
                                     try {
-                                        Object rawValue = data.get(annotationName); //get the serialized data
+                                        Object rawValue = data.get(name); //get the serialized data
                                         Class<?> fieldType = field.getType();
 
                                         //try to modify the value that we get from ConfigurationSerialization

@@ -1,17 +1,14 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
-import io.github.zap.map.TestData;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 
 public class BukkitDataLoader implements DataLoader {
@@ -30,7 +27,8 @@ public class BukkitDataLoader implements DataLoader {
                 aliasesMap.put(arg.getName(), DataSerializable.class);
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException("Unable to modify ConfigurationSerialization!");
+            throw new IllegalStateException(String.format("Unable to edit ConfigurationSerialization aliases map: %s",
+                    e.getMessage()));
         }
     }
 
@@ -42,7 +40,8 @@ public class BukkitDataLoader implements DataLoader {
         try {
             configuration.save(path);
         } catch (IOException e) {
-            ZombiesPlugin.getInstance().getLogger().warning(String.format("IOException when attempting to save to config file %s", path));
+            ZombiesPlugin.getInstance().getLogger().warning(String.format("IOException when attempting to save to " +
+                    "config file '%s'", path));
         }
     }
 
