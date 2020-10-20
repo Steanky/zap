@@ -2,11 +2,11 @@ package io.github.zap;
 
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
-import io.github.zap.map.TestData;
-import io.github.zap.map.TestData2;
+import io.github.zap.data.*;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.serialize.BukkitDataLoader;
+import io.github.zap.serialize.ConverterNames;
 import io.github.zap.serialize.DataLoader;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.swm.SlimeMapLoader;
@@ -17,6 +17,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -26,7 +27,6 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import lombok.Getter;
 
-import java.nio.file.Path;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -76,10 +76,6 @@ public final class ZombiesPlugin extends JavaPlugin {
             initMessaging();
             initSlimeMapLoader();
             initSerialization();
-
-            //example test code showing how the serializer api works
-            dataLoader.save(new TestData(69), ConfigConstants.CONFIG_DIRECTORY + "test.yml", "test");
-            TestData data = dataLoader.load(ConfigConstants.CONFIG_DIRECTORY + "test.yml", "test");
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -167,6 +163,7 @@ public final class ZombiesPlugin extends JavaPlugin {
          */
 
         //noinspection unchecked
-        dataLoader = new BukkitDataLoader(TestData.class, TestData2.class);
+        dataLoader = new BukkitDataLoader(DoorData.class, MapData.class, MultiBoundingBox.class, RoomData.class,
+                WindowData.class);
     }
 }

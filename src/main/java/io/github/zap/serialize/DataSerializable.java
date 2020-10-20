@@ -13,6 +13,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class DataSerializable implements ConfigurationSerializable {
+    private static final Map<String, ValueConverter> converters = new HashMap<>();
+
+    /**
+     * Registers a ValueConverter that can be used to transform the values of fields during serialization and
+     * deserialization.
+     * @param name The name of the converter
+     * @param converter The converter
+     */
+    public static void registerConverter(String name, ValueConverter converter){
+        converters.put(name, converter);
+    }
+
     @NotNull
     @Override
     public Map<String, Object> serialize() {
@@ -23,24 +35,46 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             if(!Modifier.isStatic(field.getModifiers())) { //skip static fields
                 Annotation[] annotations = field.getDeclaredAnnotations();
 
+                boolean skip = false;
+                Serialize serializeAnnotation = null;
                 for(Annotation annotation : annotations) {
-                    if(annotation.annotationType() == Serialize.class) {
-                        if(!field.isAccessible()) {
-                            field.setAccessible(true); //serialize private members too
-                        }
+                    Class<?> annotationType = annotation.annotationType();
 
-                        Serialize serializeAnnotation = (Serialize)annotation;
-                        String annotationName = serializeAnnotation.name();
-
-                        try {
-                            serializedData.put(annotationName.equals(StringUtils.EMPTY) ? field.getName() :
-                                    annotationName, field.get(this));
-                        } catch (IllegalAccessException e) {
-                            ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting " +
-                                    "to serialize field '%s' in object '%s': %s", field.toGenericString(),
-                                    this.toString(), e.getMessage()));
-                        }
+                    if(annotationType == NoSerialize.class) {
+                        skip = true;
                         break;
+                    }
+                    else if(annotationType == Serialize.class) {
+                        serializeAnnotation = (Serialize)annotation;
+                    }
+                }
+
+                if(!skip) {
+                    if(!field.isAccessible()) {
+                        field.setAccessible(true);
+                    }
+
+                    String name = null;
+                    ValueConverter converter = null;
+                    if(serializeAnnotation != null) {
+                        String annotationName = serializeAnnotation.name();
+                        name = annotationName.equals(StringUtils.EMPTY) ? field.getName() : annotationName;
+                        converter = converters.getOrDefault(serializeAnnotation.converter(), ValueConverter.DEFAULT);
+                    }
+
+                    try {
+                        Object data = field.get(this);
+
+                        if(serializeAnnotation != null) {
+                            serializedData.put(name, converter.convert(data, Direction.SERIALIZE));
+                        }
+                        else {
+                            serializedData.put(field.getName(), data);
+                        }
+                    } catch (IllegalAccessException e) {
+                        ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting " +
+                                        "to serialize field '%s' in object '%s': %s", field.toGenericString(),
+                                this.toString(), e.getMessage()));
                     }
                 }
             }
@@ -65,48 +99,66 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                         constructor.setAccessible(true); //required parameterless constructor can be private
                     }
 
-                    Object instanceObject = constructor.newInstance(); //instantiate the object
+                    DataSerializable instanceObject = (DataSerializable)constructor.newInstance(); //instantiate the object
                     Field[] fields = instanceClass.getDeclaredFields();
 
                     for(Field field : fields) {
                         if(!Modifier.isStatic(field.getModifiers())) { //do not deserialize static members
                             Annotation[] annotations = field.getDeclaredAnnotations();
 
+                            boolean skip = false;
+                            Serialize serializeAnnotation = null;
                             for(Annotation annotation : annotations) {
-                                if(annotation.annotationType() == Serialize.class) { //only process @Serialize
-                                    if(!field.isAccessible()) {
-                                        field.setAccessible(true); //deserialize private members too
-                                    }
+                                Class<?> annotationType = annotation.annotationType();
 
-                                    Serialize serializeAnnotation = (Serialize)annotation;
-                                    String annotationName = serializeAnnotation.name();
-                                    String name = annotationName.equals(StringUtils.EMPTY) ? field.getName() : annotationName;
-
-                                    try {
-                                        Object rawValue = data.get(name); //get the serialized data
-                                        Class<?> fieldType = field.getType();
-
-                                        //try to modify the value that we get from ConfigurationSerialization
-                                        if(rawValue instanceof ArrayList && fieldType.isArray()) {
-                                            //workaround for ConfigurationSerialization giving us arraylists when we need arrays
-                                            rawValue = toArrayDeep((ArrayList<?>)rawValue, fieldType);
-
-                                            //TODO: make it so that lists of arrays deserialize into lists of arrays instead of lists of lists
-                                        }
-
-                                        field.set(instanceObject, rawValue);
-                                    } catch (IllegalAccessException | IllegalArgumentException e) {
-                                        ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception " +
-                                                        "when attempting to serialize field '%s' in object '%s': %s",
-                                                field.toGenericString(), data.toString(), e.getMessage()));
-                                    }
+                                if(annotationType == NoSerialize.class) {
+                                    skip = true;
                                     break;
                                 }
+                                else if(annotationType == Serialize.class) {
+                                    serializeAnnotation = (Serialize)annotation;
+                                }
+                            }
+
+                            if(!skip) { //skip all fields tagged with @NoSerialize
+                                if(!field.isAccessible()) {
+                                    field.setAccessible(true); //deserialize private members too
+                                }
+
+                                String name = null;
+                                ValueConverter converter = null;
+                                if(serializeAnnotation != null) { //try to get Serialize annotation values
+                                    String annotationName = serializeAnnotation.name();
+                                    name = annotationName.equals(StringUtils.EMPTY) ? field.getName() : annotationName;
+                                    converter = converters.getOrDefault(serializeAnnotation.converter(), ValueConverter.DEFAULT);
+                                }
+
+                                try {
+                                    Object rawValue = data.get(name); //get the serialized data
+                                    Class<?> fieldType = field.getType();
+
+                                    //workaround for ConfigurationSerialization giving us arraylists when we need arrays
+                                    if(rawValue instanceof ArrayList && fieldType.isArray()) {
+                                        rawValue = toArrayDeep((ArrayList<?>)rawValue, fieldType);
+                                    }
+
+                                    if(serializeAnnotation != null) {
+                                        field.set(instanceObject, converter.convert(rawValue, Direction.DESERIALIZE));
+                                    }
+                                    else {
+                                        field.set(instanceObject, rawValue);
+                                    }
+                                } catch (IllegalAccessException | IllegalArgumentException e) {
+                                    ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception " +
+                                                    "when attempting to serialize field '%s' in object '%s': %s",
+                                            field.toGenericString(), data.toString(), e.getMessage()));
+                                }
+                                break;
                             }
                         }
                     }
 
-                    return (DataSerializable)instanceObject;
+                    return instanceObject;
                 }
                 else {
                     ZombiesPlugin.getInstance().getLogger().warning(String.format("'%s' is not an instance of " +

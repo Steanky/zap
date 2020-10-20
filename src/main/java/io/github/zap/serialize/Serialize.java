@@ -8,10 +8,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to mark fields as capable of being serialized.
+ * Used to provided additional information to the serializer.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Serialize {
     String name() default StringUtils.EMPTY;
+    String converter() default StringUtils.EMPTY;
 }

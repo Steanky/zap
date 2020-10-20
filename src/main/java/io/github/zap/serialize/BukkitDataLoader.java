@@ -1,6 +1,7 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
