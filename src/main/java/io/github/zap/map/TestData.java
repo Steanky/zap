@@ -38,7 +38,7 @@ public class TestData extends DataSerializable {
 
     public TestData(int value) {
         this.value = value;
-        values = new TestData2[][] {{new TestData2(10), new TestData2(11)}, {new TestData2(12)}};
+        values = new TestData2[][] {{ new TestData2(10), new TestData2(11) }, {new TestData2(12)}};
         stringValues = new ArrayList<>();
 
         stringValues.add("this");
