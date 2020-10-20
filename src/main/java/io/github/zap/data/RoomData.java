@@ -1,10 +1,7 @@
 package io.github.zap.data;
 
 import io.github.zap.serialize.DataSerializable;
-import io.github.zap.serialize.Serialize;
 import lombok.Getter;
-
-import java.util.Set;
 
 public class RoomData extends DataSerializable {
     @Getter
@@ -17,11 +14,11 @@ public class RoomData extends DataSerializable {
     private MultiBoundingBox bounds;
 
     @Getter
-    private Set<WindowData> windows;
+    private WindowData[] windows;
 
     private RoomData() {}
 
-    public RoomData(String name, String displayName, MultiBoundingBox bounds, Set<WindowData> windows) {
+    public RoomData(String name, String displayName, MultiBoundingBox bounds, WindowData[] windows) {
         this.name = name;
         this.displayName = displayName;
         this.bounds = bounds;

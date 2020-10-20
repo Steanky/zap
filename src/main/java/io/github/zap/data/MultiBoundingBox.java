@@ -1,7 +1,6 @@
 package io.github.zap.data;
 
 import io.github.zap.serialize.DataSerializable;
-import io.github.zap.serialize.Serialize;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 

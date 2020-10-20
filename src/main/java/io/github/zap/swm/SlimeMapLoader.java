@@ -33,7 +33,6 @@ public class SlimeMapLoader {
     public SlimeMapLoader(SlimePlugin slimePlugin) {
         this.slimePlugin = slimePlugin;
         slimeLoader = slimePlugin.getLoader("file");
-
     }
 
     /**
@@ -54,7 +53,7 @@ public class SlimeMapLoader {
                     consumer.accept(Bukkit.getWorld(name));
                 });
             } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException e) {
-                e.printStackTrace();
+                ZombiesPlugin.getInstance().getLogger().severe(e.getMessage());
                 consumer.accept(null);
             }
         });
