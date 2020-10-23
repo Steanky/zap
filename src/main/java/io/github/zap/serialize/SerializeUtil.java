@@ -13,7 +13,7 @@ public class SerializeUtil {
     /**
      * Runs method on every field of a class that should be serializable
      * @param clazz The class to run the method on
-     * @param biConsumer A BiConsumer of the field of the field to
+     * @param biConsumer A BiConsumer of the field and its serialized name
      */
     public static void forEachSerializable(Class<?> clazz, BiConsumer<Field, String> biConsumer) {
         Field[] fields = clazz.getDeclaredFields();
