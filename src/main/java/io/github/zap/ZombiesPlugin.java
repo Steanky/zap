@@ -1,15 +1,12 @@
 package io.github.zap;
 
 import io.github.regularcommands.commands.CommandManager;
-import io.github.zap.command.MapeditorCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
-import io.github.zap.data.*;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.serialize.BukkitDataLoader;
 import io.github.zap.serialize.DataLoader;
-import io.github.zap.serialize.DataSerializable;
 import io.github.zap.swm.SlimeMapLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
@@ -20,7 +17,6 @@ import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -164,14 +160,12 @@ public final class ZombiesPlugin extends JavaPlugin {
          */
 
         //noinspection unchecked
-        dataLoader = new BukkitDataLoader(DoorData.class, MapData.class, MultiBoundingBox.class, RoomData.class,
-                SpawnpointData.class, WindowData.class);
+        dataLoader = new BukkitDataLoader();
     }
 
     private void initCommands() {
         commandManager = new CommandManager(this);
 
         //register commands here
-        commandManager.registerCommand(new MapeditorCommand());
     }
 }
