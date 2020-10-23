@@ -1,6 +1,6 @@
 package io.github.zap.serialize;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

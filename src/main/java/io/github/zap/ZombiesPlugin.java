@@ -13,8 +13,8 @@ import io.github.zap.swm.SlimeMapLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.time.StopWatch;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -26,7 +26,6 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import lombok.Getter;
 
-import java.nio.file.Path;
 import java.util.Objects;
 import java.util.logging.Level;
 
