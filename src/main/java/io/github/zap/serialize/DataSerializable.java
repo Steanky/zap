@@ -1,15 +1,15 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Classes that need to be serialized and deserialized should inherit from this.
@@ -35,13 +35,12 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     public Map<String, Object> serialize() {
         Map<String, Object> serializedData = new HashMap<>();
 
-        SerializeUtil.forEachSerializable(this.getClass(), (field, name) -> {
+        forEachSerializable(getClass(), (triple) -> {
             try {
-                String serializedName = name.equals(StringUtils.EMPTY) ? field.getName() : name;
-                serializedData.put(serializedName, field.get(this));
+                serializedData.put(triple.left, triple.right.convert(triple.middle.get(this), Direction.SERIALIZE));
             } catch (IllegalAccessException e) {
                 ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting " +
-                                "to serialize field '%s' in object '%s': %s", field.toGenericString(),
+                                "to serialize field '%s' in object '%s': %s", triple.middle.toGenericString(),
                         this.toString(), e.getMessage()));
             }
         });
@@ -83,7 +82,9 @@ public abstract class DataSerializable implements ConfigurationSerializable {
      * @throws InvocationTargetException General deserialization error
      * @throws InstantiationException General deserialization error
      */
-    private static DataSerializable createDeserialized(String className, Map<String, Object> data) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    private static DataSerializable createDeserialized(String className, Map<String, Object> data)
+            throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+            InstantiationException {
         // get the class from the classname
         Class<?> instanceClass = Class.forName(className);
 
@@ -95,7 +96,8 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             }
 
             Object instanceObject = constructor.newInstance(); //instantiate the object
-            SerializeUtil.forEachSerializable(instanceClass, (field, name) -> setDeserializedField(instanceObject, data, name, field));
+            forEachSerializable(instanceClass, (triple) -> setField(triple.middle, instanceObject,
+                    triple.right.convert(data.get(triple.left), Direction.DESERIALIZE)));
 
             return (DataSerializable) instanceObject;
         }
@@ -108,51 +110,98 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     }
 
     /**
-     * Sets the field of a deserialized object
-     * @param instanceObject The object that will be deserialized
-     * @param data The serialized data to modify the object
-     * @param name The name of the field in the serialized representation
+     * Sets the field of a deserialized object, and outputs a warning message if it fails. Performs automatic conversion
+     * between lists and arrays of all dimensions.
      * @param field The field to set in the object
+     * @param instanceObject The object that will be deserialized
+     * @param assignedObject The object that will be assigned
      */
-    private static void setDeserializedField(Object instanceObject, Map<String, Object> data, String name, Field field) {
-        String serializedName = name.equals(StringUtils.EMPTY) ? field.getName() : name;
-
+    private static void setField(Field field, Object instanceObject, Object assignedObject) {
         try {
-            Object rawValue = data.get(serializedName); // get the serialized data
             Class<?> fieldType = field.getType();
 
             // try to modify the value that we get from ConfigurationSerialization
-            if (rawValue instanceof ArrayList && fieldType.isArray()) {
+            if (assignedObject instanceof Collection && fieldType.isArray()) {
                 // workaround for ConfigurationSerialization giving us arraylists when we need arrays
-                rawValue = toArrayDeep((ArrayList<?>)rawValue, fieldType);
-
-                // TODO: make it so that lists of arrays deserialize into lists of arrays instead of lists of lists
+                assignedObject = toArrayDeep((Collection<?>)assignedObject, fieldType);
             }
 
-            field.set(instanceObject, rawValue);
+            field.set(instanceObject, assignedObject);
         } catch (IllegalAccessException | IllegalArgumentException e) {
-            ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception " +
-                            "when attempting to serialize field '%s' in object '%s': %s",
-                    field.toGenericString(), data.toString(), e.getMessage()));
+            ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting to assign value " +
+                    "'%s' to field '%s' in object '%s': '%s'", assignedObject.toString(), field.toGenericString(),
+                    instanceObject.toString(), e.getMessage()));
         }
     }
 
-    // recursive utility function: deep-converts arraylists into arrays (handles any 'dimension' of arraylist)
-    private static Object toArrayDeep(ArrayList<?> arrayList, Class<?> fieldType) {
-        Class<?> fieldComponent = fieldType.getComponentType();
+    /**
+     * Recursive utility function that converts a collection into an array that may be multidimensional.
+     * @param collection The collection to convert
+     * @param arrayType The class of the array we are converting to
+     * @return The array, which may be multidimensional
+     */
+    private static Object toArrayDeep(Collection<?> collection, Class<?> arrayType) {
+        Class<?> arrayComponent = arrayType.getComponentType();
 
-        Object[] array = arrayList.toArray();
-        Object newArray = Array.newInstance(fieldComponent, arrayList.size());
+        Object[] array = collection.toArray();
+        Object newArray = Array.newInstance(arrayComponent, collection.size());
 
         for(int i = 0; i < array.length; i++) {
             Object item = array[i];
             if(item instanceof ArrayList) {
-                item = toArrayDeep((ArrayList<?>)item, fieldComponent);
+                item = toArrayDeep((Collection<?>)item, arrayComponent);
             }
 
             Array.set(newArray, i, item);
         }
 
         return newArray;
+    }
+
+    /**
+     * Runs method on every field of a class that should be serializable
+     * @param clazz The class to run the method on
+     * @param consumer A Consumer that takes an ImmutableTriple containing the name of the value (which may be either
+     *                 the field name or the name parameter of the @Serialize annotation), the field that we are dealing
+     *                 with, and a ValueConverter that will default to a converter which does nothing.
+     */
+    private static void forEachSerializable(Class<?> clazz, Consumer<ImmutableTriple<String, Field, ValueConverter>> consumer) {
+        Field[] fields = clazz.getDeclaredFields();
+
+        for (Field field : fields) {
+            if (!Modifier.isStatic(field.getModifiers())) { // skip static fields
+                Annotation[] annotations = field.getDeclaredAnnotations();
+
+                Serialize serializeAnnotation = null;
+                boolean skip = false;
+
+                for (Annotation annotation : annotations) { //look for Serialize annotation
+                    if(annotation instanceof Serialize) {
+                        serializeAnnotation = (Serialize)annotation;
+                    }
+                    else if(annotation instanceof NoSerialize) {
+                        skip = true;
+                        break;
+                    }
+                }
+
+                if(skip) { //skip this field if we have the NoSerialize annotation. serialize fields by default
+                    continue;
+                }
+
+                String name;
+                ValueConverter converter;
+                if(serializeAnnotation != null) {
+                    name = serializeAnnotation.name();
+                    converter = converters.getOrDefault(serializeAnnotation.converter(), ValueConverter.DEFAULT);
+                }
+                else {
+                    name = field.getName();
+                    converter = ValueConverter.DEFAULT;
+                }
+
+                consumer.accept(ImmutableTriple.of(name, field, converter));
+            }
+        }
     }
 }
