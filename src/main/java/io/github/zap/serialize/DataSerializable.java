@@ -11,7 +11,11 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+/**
+ * Classes that need to be serialized and deserialized should inherit from this.
+ */
 public abstract class DataSerializable implements ConfigurationSerializable {
     private static final Map<String, ValueConverter> converters = new HashMap<>();
 
@@ -22,6 +26,9 @@ public abstract class DataSerializable implements ConfigurationSerializable {
      * @param converter The converter
      */
     public static void registerConverter(String name, ValueConverter converter){
+        Objects.requireNonNull(name, "name cannot be null");
+        Objects.requireNonNull(converter, "converter cannot be null");
+
         converters.put(name, converter);
     }
 
@@ -29,7 +36,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> serializedData = new HashMap<>();
-        Field[] fields = this.getClass().getDeclaredFields();
+        Field[] fields = getClass().getDeclaredFields();
 
         for(Field field : fields) {
             if(!Modifier.isStatic(field.getModifiers())) { //skip static fields
@@ -89,8 +96,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
         if(className != null) {
             try {
-                //get the class from the classname
-                Class<?> instanceClass = Class.forName(className);
+                Class<?> instanceClass = Class.forName(className); //get the class from the classname
 
                 if(DataSerializable.class.isAssignableFrom(instanceClass)) { //check if our instance class is DataSerializable
                     Constructor<?> constructor = instanceClass.getDeclaredConstructor(); //get the parameterless constructor

@@ -1,6 +1,5 @@
 package io.github.zap.config;
 
-import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import java.util.function.Predicate;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ValidatingConfiguration {
-    @Getter
     private final FileConfiguration fileConfiguration;
 
     private final Map<String, Predicate<?>> validators;

@@ -15,6 +15,8 @@ import java.util.Map;
 public class BukkitDataLoader implements DataLoader {
     @SuppressWarnings("unchecked")
     public BukkitDataLoader(Class<? extends ConfigurationSerializable>... args) {
+        ConfigurationSerialization.registerClass(DataSerializable.class);
+
         try {
             Field aliases = ConfigurationSerialization.class.getDeclaredField("aliases");
             aliases.setAccessible(true);

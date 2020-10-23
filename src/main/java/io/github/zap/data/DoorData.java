@@ -1,26 +1,20 @@
 package io.github.zap.data;
 
 import io.github.zap.serialize.DataSerializable;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.util.Vector;
 
+import java.util.List;
+
+@AllArgsConstructor
+@Getter
 public class DoorData extends DataSerializable {
-    @Getter
     private MultiBoundingBox bounds;
-
-    @Getter
-    private MultiBoundingBox[] sides;
-
-    @Getter
-    private int[] costs;
+    private List<MultiBoundingBox> sides;
+    private List<Integer> costs;
 
     private DoorData() {}
-
-    public DoorData(MultiBoundingBox bounds, MultiBoundingBox[] sides, int[] costs) {
-        this.bounds = bounds;
-        this.sides = sides;
-        this.costs = costs;
-    }
 
     /**
      * Gets the index of the side that the specified vector is inside.
@@ -28,8 +22,8 @@ public class DoorData extends DataSerializable {
      * @return The index of the side that the specified vector is located, or -1 if the vector is outside of all sides
      */
     public int getSideAt(Vector coordinate) {
-        for(int i = 0; i < sides.length; i++) {
-            if(sides[i].anyContains(coordinate)) {
+        for(int i = 0; i < sides.size(); i++) {
+            if(sides.get(i).anyContains(coordinate)) {
                 return i;
             }
         }

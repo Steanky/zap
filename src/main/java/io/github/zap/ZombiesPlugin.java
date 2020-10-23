@@ -74,7 +74,7 @@ public final class ZombiesPlugin extends JavaPlugin {
             initConfig();
 
             //initialize the arenamanager with the configured maximum default amount of worlds
-            arenaManager = new ArenaManager(configuration.get(ConfigConstants.MAX_WORLDS, 10));
+            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
 
             initMessaging();
             initSlimeMapLoader();
@@ -86,7 +86,7 @@ public final class ZombiesPlugin extends JavaPlugin {
         }
         catch(IllegalStateException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling. Reason: \"%s\"", exception.getMessage()));
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling: '%s'", exception.getMessage()));
             getPluginLoader().disablePlugin(this, true);
         }
         finally { //ensure profiler gets reset
@@ -136,9 +136,9 @@ public final class ZombiesPlugin extends JavaPlugin {
 
         //make sure the MAX_WORLDS config var is within a reasonable range
         Range<Integer> maxWorldRange = Range.between(1, 64);
-        configuration.registerValidator(ConfigConstants.MAX_WORLDS, maxWorldRange::contains);
+        configuration.registerValidator(ConfigNames.MAX_WORLDS, maxWorldRange::contains);
 
-        config.addDefault(ConfigConstants.MAX_WORLDS, 10);
+        config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
         saveConfig();
     }
@@ -149,7 +149,6 @@ public final class ZombiesPlugin extends JavaPlugin {
             slimeMapLoader = new SlimeMapLoader(slimePlugin);
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
-            super.getPluginLoader().disablePlugin(this);
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
         }
     }
@@ -159,8 +158,6 @@ public final class ZombiesPlugin extends JavaPlugin {
     }
 
     private void initSerialization() {
-        ConfigurationSerialization.registerClass(DataSerializable.class);
-
         /*
         include all classes you want to be serialized as arguments to BukkitDataLoader
         (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
@@ -168,7 +165,7 @@ public final class ZombiesPlugin extends JavaPlugin {
 
         //noinspection unchecked
         dataLoader = new BukkitDataLoader(DoorData.class, MapData.class, MultiBoundingBox.class, RoomData.class,
-                WindowData.class);
+                SpawnpointData.class, WindowData.class);
     }
 
     private void initCommands() {

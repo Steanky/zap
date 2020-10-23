@@ -1,4 +1,4 @@
-package io.github.zap.serialize;
+package io.github.zap;
 
 /**
  * Final class for holding converter names.
