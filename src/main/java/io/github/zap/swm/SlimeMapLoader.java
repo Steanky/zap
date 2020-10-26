@@ -51,7 +51,7 @@ public class SlimeMapLoader {
     }
 
     /**
-     * Loads a Zombies map world from disk.
+     * Loads a Zombies map world from memory
      * @param name The name of the map to load
      */
     public void loadMap(String name, Consumer<World> consumer) {
