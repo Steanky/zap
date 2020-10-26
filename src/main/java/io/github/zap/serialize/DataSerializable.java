@@ -149,7 +149,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         for(int i = 0; i < array.length; i++) {
             Object item = array[i];
 
-            if(item instanceof ArrayList) {
+            if(item instanceof Collection) {
                 item = toArrayDeep((Collection<?>)item, arrayComponent);
             }
 
@@ -169,25 +169,20 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     private static void forEachSerializable(Class<?> clazz, Consumer<ImmutableTriple<String, Field, ValueConverter>> consumer) {
         Field[] fields = clazz.getDeclaredFields();
 
+        fields:
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) { // skip static fields
                 Annotation[] annotations = field.getDeclaredAnnotations();
 
                 Serialize serializeAnnotation = null;
-                boolean skip = false;
 
                 for (Annotation annotation : annotations) { //look for Serialize annotation
                     if(annotation instanceof Serialize) {
                         serializeAnnotation = (Serialize)annotation;
                     }
                     else if(annotation instanceof NoSerialize) {
-                        skip = true;
-                        break;
+                        continue fields;
                     }
-                }
-
-                if(skip) { //skip this field if we have the NoSerialize annotation. serialize fields by default
-                    continue;
                 }
 
                 String name;
