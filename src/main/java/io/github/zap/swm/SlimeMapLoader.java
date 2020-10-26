@@ -1,21 +1,20 @@
 package io.github.zap.swm;
 
 import com.grinderwolf.swm.api.SlimePlugin;
-import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
-import com.grinderwolf.swm.api.exceptions.NewerFormatException;
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.exceptions.WorldInUseException;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 
+import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.zap.ZombiesPlugin;
 
+import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.scheduler.BukkitScheduler;
 
-import java.io.IOException;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -25,6 +24,7 @@ import java.util.function.Consumer;
 public class SlimeMapLoader {
     private final SlimePlugin slimePlugin;
     private final SlimeLoader slimeLoader;
+    private final Map<String, SlimeWorld> preloadedWorlds = new HashMap<>();
 
     /**
      * Creates a new instance of SlimeMapLoader given a SlimePlugin.
@@ -32,30 +32,33 @@ public class SlimeMapLoader {
      */
     public SlimeMapLoader(SlimePlugin slimePlugin) {
         this.slimePlugin = slimePlugin;
-        slimeLoader = slimePlugin.getLoader("file");
+        slimeLoader = new FileLoader(new File(String.format("plugins/%s/maps", ZombiesPlugin.getInstance().getName())));
+    }
+
+    /**
+     * Preloads a series of named worlds and adds them to an internal map.
+     * @param worlds The worlds to preload
+     */
+    @SneakyThrows
+    public void preloadWorlds(String... worlds) {
+        for (String world : worlds) {
+            if(!slimeLoader.worldExists(world)) {
+                slimePlugin.importWorld(new File(world), world, slimeLoader);
+            }
+
+            preloadedWorlds.put(world, slimePlugin.loadWorld(slimeLoader, world, true, new SlimePropertyMap()));
+        }
     }
 
     /**
      * Loads a Zombies map world from disk.
      * @param name The name of the map to load
-     * @param consumer Consumer to execute when the map has loaded
      */
     public void loadMap(String name, Consumer<World> consumer) {
-        ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
-        BukkitScheduler scheduler = Bukkit.getScheduler();
+        String randomName = UUID.randomUUID().toString();
+        SlimeWorld world = preloadedWorlds.get(name).clone(randomName);
 
-        scheduler.runTaskAsynchronously(zombiesPlugin, () -> {
-            try {
-                SlimeWorld world = slimePlugin.loadWorld(slimeLoader, name, true, new SlimePropertyMap()).clone(UUID.randomUUID().toString());
-
-                scheduler.runTask(zombiesPlugin, () -> {
-                    slimePlugin.generateWorld(world);
-                    consumer.accept(Bukkit.getWorld(name));
-                });
-            } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException e) {
-                ZombiesPlugin.getInstance().getLogger().severe(e.getMessage());
-                consumer.accept(null);
-            }
-        });
+        slimePlugin.generateWorld(world);
+        consumer.accept(Bukkit.getWorld(randomName));
     }
 }

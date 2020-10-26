@@ -23,15 +23,15 @@ public class ValidatingConfiguration {
     }
 
     /**
-     * Registers a validator for this Configuration object
-     * @param name The name of the validator. This should be the same as the path of the config value.
-     * @param validator The predicate that will test the value retrieved from the config file.
+     * Registers a validator for this Configuration object.
+     * @param path The path of the config value this validator points to
+     * @param validator The predicate that will test the value retrieved from the config file
      */
-    public <T> void registerValidator(String name, Predicate<T> validator) {
-        Objects.requireNonNull(name, "name cannot be null");
+    public <T> void registerValidator(String path, Predicate<T> validator) {
+        Objects.requireNonNull(path, "name cannot be null");
         Objects.requireNonNull(validator, "validator cannot be null");
 
-        validators.put(name, validator);
+        validators.put(path, validator);
     }
 
     /**

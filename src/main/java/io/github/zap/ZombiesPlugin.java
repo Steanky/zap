@@ -7,10 +7,10 @@ import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.serialize.BukkitDataLoader;
 import io.github.zap.serialize.DataLoader;
-import io.github.zap.swm.SlimeMapLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
+import io.github.zap.swm.SlimeMapLoader;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -68,24 +68,24 @@ public final class ZombiesPlugin extends JavaPlugin {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
 
             initConfig();
-
-            //initialize the arenamanager with the configured maximum default amount of worlds
-            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
-
             initMessaging();
             initSlimeMapLoader();
             initSerialization();
             initCommands();
+
+            //initialize the arenamanager with the configured maximum default amount of worlds
+            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
         }
         catch(IllegalStateException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling: '%s'", exception.getMessage()));
-            getPluginLoader().disablePlugin(this, true);
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'",
+                    exception.getMessage()));
+            getPluginLoader().disablePlugin(this, false);
         }
-        finally { //ensure profiler gets reset
+        finally { //ensure timer gets reset
             timer.reset();
         }
     }
@@ -141,8 +141,10 @@ public final class ZombiesPlugin extends JavaPlugin {
 
     private void initSlimeMapLoader() {
         slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
+
         if(slimePlugin != null) {
             slimeMapLoader = new SlimeMapLoader(slimePlugin);
+            slimeMapLoader.preloadWorlds("world_copy");
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");

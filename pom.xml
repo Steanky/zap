@@ -87,7 +87,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.github.John-DND:RegularCommands</include>
-                                    <include>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-api</include>
 
                                     <!-- Include any artifacts here that should be uber-jar'ed. Note that the dependency
                                      scope must be set to "compile" for this to work properly. compile is the maven
@@ -101,13 +100,6 @@
                             <filters>
                                 <filter>
                                     <artifact>com.github.John-DND:RegularCommands</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/MANIFEST.MF</exclude>
-                                    </excludes>
-                                </filter>
-
-                                <filter>
-                                    <artifact>com.github.thamid-gamer.Slime-World-Manager:slimeworldmanager-api</artifact>
                                     <excludes>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
                                     </excludes>
@@ -162,6 +154,7 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.11</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -188,6 +181,7 @@
             <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
             <artifactId>slimeworldmanager-api</artifactId>
             <version>d8c0d60</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
