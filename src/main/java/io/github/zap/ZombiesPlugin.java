@@ -47,13 +47,6 @@ public final class ZombiesPlugin extends JavaPlugin {
     private CommandManager commandManager;
 
     /*
-    Warning! This object is NOT thread safe! Only call if you're on the main server thread. Also make sure you always
-    call timer.reset() after a call to timer.start() (use a finally block in case of exceptions!)
-    */
-    @Getter
-    private StopWatch timer;
-
-    /*
     the ArenaManager is responsible for adding players to games, or sending them to other servers if we're using bungee
      */
     @Getter
@@ -62,7 +55,7 @@ public final class ZombiesPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        timer = new StopWatch();
+        StopWatch timer = new StopWatch();
 
         try {
             timer.start();
@@ -150,11 +143,16 @@ public final class ZombiesPlugin extends JavaPlugin {
 
             StopWatch timer = new StopWatch();
 
-            timer.start();
-            mapLoader.preloadWorlds("world_copy");
-            timer.stop();
+            try {
+                timer.start();
+                mapLoader.preloadWorlds("world_copy");
+                timer.stop();
 
-            getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
+                getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
+            }
+            finally {
+                timer.reset();
+            }
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");

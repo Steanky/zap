@@ -152,7 +152,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         for(int i = 0; i < array.length; i++) {
             Object item = array[i];
 
-            if(item instanceof Collection) {
+            if(item instanceof Collection && arrayComponent.isArray()) {
                 item = toArrayDeep((Collection<?>)item, arrayComponent);
             }
 
