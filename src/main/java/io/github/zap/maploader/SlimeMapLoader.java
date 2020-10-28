@@ -1,12 +1,9 @@
-package io.github.zap.swm;
+package io.github.zap.maploader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
-
-import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
-import io.github.zap.ZombiesPlugin;
 
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
@@ -21,7 +18,7 @@ import java.util.function.Consumer;
 /**
  * Class used to load a Zombies map with the Slime format
  */
-public class SlimeMapLoader {
+public class SlimeMapLoader implements MapLoader {
     private final SlimePlugin slimePlugin;
     private final SlimeLoader slimeLoader;
     private final Map<String, SlimeWorld> preloadedWorlds = new HashMap<>();
@@ -29,17 +26,15 @@ public class SlimeMapLoader {
     /**
      * Creates a new instance of SlimeMapLoader given a SlimePlugin.
      * @param slimePlugin The SlimePlugin that this instance uses
+     * @param slimeLoader The SlimeLoader that this instance uses
      */
-    public SlimeMapLoader(SlimePlugin slimePlugin) {
+    public SlimeMapLoader(SlimePlugin slimePlugin, SlimeLoader slimeLoader) {
         this.slimePlugin = slimePlugin;
-        slimeLoader = new FileLoader(new File(String.format("plugins/%s/maps", ZombiesPlugin.getInstance().getName())));
+        this.slimeLoader = slimeLoader;
     }
 
-    /**
-     * Preloads a series of named worlds and adds them to an internal map.
-     * @param worlds The worlds to preload
-     */
     @SneakyThrows
+    @Override
     public void preloadWorlds(String... worlds) {
         for (String world : worlds) {
             if(!slimeLoader.worldExists(world)) {
@@ -50,15 +45,17 @@ public class SlimeMapLoader {
         }
     }
 
-    /**
-     * Loads a Zombies map world from memory
-     * @param name The name of the map to load
-     */
+    @Override
     public void loadMap(String name, Consumer<World> consumer) {
         String randomName = UUID.randomUUID().toString();
         SlimeWorld world = preloadedWorlds.get(name).clone(randomName);
 
         slimePlugin.generateWorld(world);
         consumer.accept(Bukkit.getWorld(randomName));
+    }
+
+    @Override
+    public void unloadMap(String mapName) {
+        Bukkit.unloadWorld(mapName, false);
     }
 }

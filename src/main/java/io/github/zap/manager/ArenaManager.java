@@ -11,7 +11,7 @@ public class ArenaManager {
     private final int arenaCapacity;
 
     /**
-     * Creates a new ArenaManager with the specified capacity. Capacity cannot be < 1.
+     * Creates a new ArenaManager with the specified capacity. Cannot be < 1.
      * @param arenaCapacity The capacity of the ArenaManager
      */
     public ArenaManager(int arenaCapacity) {

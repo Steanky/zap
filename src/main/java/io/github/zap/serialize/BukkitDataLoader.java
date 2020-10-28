@@ -21,7 +21,10 @@ public class BukkitDataLoader implements DataLoader {
             Field aliases = ConfigurationSerialization.class.getDeclaredField("aliases");
             aliases.setAccessible(true);
 
-            //this map is used by ConfigurationSerialization to resolve class names/aliases into the class containing the deserializer method
+            /*
+            this map is used by ConfigurationSerialization to resolve class names/aliases into the class containing
+            the deserializer method
+             */
             Map<String, Class<? extends ConfigurationSerializable>> aliasesMap =
                     (Map<String, Class<? extends ConfigurationSerializable>>) aliases.get(null);
 

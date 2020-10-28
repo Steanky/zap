@@ -3,6 +3,7 @@ package io.github.zap;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
+import io.github.zap.maploader.MapLoader;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.serialize.BukkitDataLoader;
@@ -10,7 +11,7 @@ import io.github.zap.serialize.DataLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
-import io.github.zap.swm.SlimeMapLoader;
+import io.github.zap.maploader.SlimeMapLoader;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -40,7 +41,7 @@ public final class ZombiesPlugin extends JavaPlugin {
     private SlimePlugin slimePlugin;
 
     @Getter
-    private SlimeMapLoader slimeMapLoader;
+    private MapLoader mapLoader;
 
     @Getter
     private CommandManager commandManager;
@@ -69,7 +70,7 @@ public final class ZombiesPlugin extends JavaPlugin {
 
             initConfig();
             initMessaging();
-            initSlimeMapLoader();
+            initMapLoader();
             initSerialization();
             initCommands();
 
@@ -139,12 +140,21 @@ public final class ZombiesPlugin extends JavaPlugin {
         saveConfig();
     }
 
-    private void initSlimeMapLoader() {
+    private void initMapLoader() {
         slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
 
         if(slimePlugin != null) {
-            slimeMapLoader = new SlimeMapLoader(slimePlugin);
-            slimeMapLoader.preloadWorlds("world_copy");
+            mapLoader = new SlimeMapLoader(slimePlugin, slimePlugin.getLoader("file"));
+
+            getLogger().info("Preloading worlds.");
+
+            StopWatch timer = new StopWatch();
+
+            timer.start();
+            mapLoader.preloadWorlds("world_copy");
+            timer.stop();
+
+            getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
