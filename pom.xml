@@ -168,7 +168,7 @@
         <dependency>
             <groupId>com.github.John-DND</groupId>
             <artifactId>RegularCommands</artifactId>
-            <version>1.8.0-SNAPSHOT</version>
+            <version>1.8.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>

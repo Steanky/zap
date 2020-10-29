@@ -5,6 +5,7 @@ import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Converters;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.regularcommands.validator.Validators;
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.maploader.MapLoader;
 import org.apache.commons.lang3.Range;
@@ -31,30 +32,23 @@ public class MapLoaderProfilerForm extends CommandForm {
     private static final CommandValidator validator;
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private static final Semaphore profilerSemaphore = new Semaphore(1);
-    private static final Range<Integer> requiredRange = Range.between(1, 100);
     private static final StopWatch profiler = new StopWatch();
 
     static {
         validator = new CommandValidator((context, arguments) -> {
             String worldName = (String)arguments[3];
             if(ZombiesPlugin.getInstance().getMapLoader().worldExists(worldName)) {
-                int iterations = (int)arguments[2];
-                if(requiredRange.contains(iterations)) {
-                    return ImmutablePair.of(true, null);
-                }
-
-                return ImmutablePair.of(false, String.format("Value '%s' out of range %s.", iterations,
-                        requiredRange.toString()));
+                return ImmutablePair.of(true, null);
             }
 
             return ImmutablePair.of(false, String.format("World '%s' doesn't exist.", worldName));
         });
 
-        validator.chain(Validators.PLAYER_EXECUTOR);
+        validator.chain(Validators.newRangeValidator(Range.between(1, 50), 2)).chain(Validators.PLAYER_EXECUTOR);
     }
 
     public MapLoaderProfilerForm() {
-        super("Test command for profiling map loading.", Permissions.REQUIRE_OPERATOR, parameters);
+        super("Debug command for profiling map loading.", Permissions.OPERATOR, parameters);
     }
 
     @Override
@@ -106,8 +100,6 @@ public class MapLoaderProfilerForm extends CommandForm {
                     semaphore.release();
                 }));
             }
-
-            player.sendMessage("All loading tasks started.");
         }
         else {
             return "The profiler is already running.";
