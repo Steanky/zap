@@ -37,9 +37,9 @@ public class ValidatingConfiguration {
     /**
      * Get the value stored in the internal FileConfiguration.
      * @param path The name of the value
-     * @param fallback The default value, if the predicate fails. If the value does not exist, null is returned.
+     * @param fallback The default value, if the predicate fails
      * @param <T> The type of object to retrieve
-     * @return The stored object
+     * @return The stored object, the fallback if the returned value does not validate, or null
      */
     public <T> T get(String path, T fallback) {
         T value = (T)fileConfiguration.get(path);

@@ -176,12 +176,11 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) { // skip static fields
                 Annotation[] annotations = field.getDeclaredAnnotations();
-
                 Serialize serializeAnnotation = null;
 
                 for (Annotation annotation : annotations) { //look for Serialize annotation
                     if(annotation instanceof Serialize) {
-                        serializeAnnotation = (Serialize)annotation;
+                        serializeAnnotation = (Serialize)annotation; //keep checking annotations
                     }
                     else if(annotation instanceof NoSerialize) {
                         continue fields;

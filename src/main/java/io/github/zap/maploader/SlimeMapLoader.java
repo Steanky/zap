@@ -5,14 +5,18 @@ import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 
+import io.github.zap.ZombiesPlugin;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 /**
@@ -22,6 +26,7 @@ public class SlimeMapLoader implements MapLoader {
     private final SlimePlugin slimePlugin;
     private final SlimeLoader slimeLoader;
     private final Map<String, SlimeWorld> preloadedWorlds = new HashMap<>();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
      * Creates a new instance of SlimeMapLoader given a SlimePlugin.
@@ -57,5 +62,18 @@ public class SlimeMapLoader implements MapLoader {
     @Override
     public void unloadMap(String mapName) {
         Bukkit.unloadWorld(mapName, false);
+    }
+
+    @Override
+    public boolean worldExists(String worldName) {
+        try {
+            return slimeLoader.worldExists(worldName);
+        }
+        catch(IOException e) {
+            ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when trying to determine if" +
+                    "world '%s' exists: %s", worldName, e.getMessage()));
+        }
+
+        return false;
     }
 }

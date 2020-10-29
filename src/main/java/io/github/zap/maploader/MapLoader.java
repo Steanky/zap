@@ -6,14 +6,14 @@ import java.util.function.Consumer;
 
 public interface MapLoader {
     /**
-     * Preloads the specified array of world names. The implementation should keep these cached in memory, or throw
-     * an exception if it does not support this functionality.
+     * Preloads the specified array of world names. The implementation should keep these cached in memory.
      * @param worldNames The worlds to preload
      */
     void preloadWorlds(String... worldNames);
 
     /**
      * Loads the map associated with worldName. This should copy from worlds cached via preloadWorlds, if possible.
+     * Implementations of this function may run fully or partially async.
      * @param worldName The name of the world to load from
      * @param worldConsumer The consumer that is called when the world is loaded
      */
@@ -25,4 +25,11 @@ public interface MapLoader {
      * @param mapName The name of the specified map
      */
     void unloadMap(String mapName);
+
+    /**
+     * Determine if the specified world exists. It may not be loaded.
+     * @param worldName The world to test
+     * @return Whether or not the world exists
+     */
+    boolean worldExists(String worldName);
 }

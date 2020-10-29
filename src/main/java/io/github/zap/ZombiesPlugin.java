@@ -1,6 +1,7 @@
 package io.github.zap;
 
 import io.github.regularcommands.commands.CommandManager;
+import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
 import io.github.zap.maploader.MapLoader;
@@ -25,6 +26,9 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 import lombok.Getter;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 
 public final class ZombiesPlugin extends JavaPlugin {
@@ -149,6 +153,7 @@ public final class ZombiesPlugin extends JavaPlugin {
                 timer.stop();
 
                 getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
+                timer.reset();
             }
             finally {
                 timer.reset();
@@ -177,5 +182,6 @@ public final class ZombiesPlugin extends JavaPlugin {
         commandManager = new CommandManager(this);
 
         //register commands here
+        commandManager.registerCommand(new DebugCommand());
     }
 }
