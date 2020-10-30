@@ -1,15 +1,18 @@
 package io.github.zap;
 
-import io.github.zap.config.Configuration;
-import io.github.zap.game.ArenaManager;
+import io.github.regularcommands.commands.CommandManager;
+import io.github.zap.config.ValidatingConfiguration;
+import io.github.zap.manager.ArenaManager;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
+import io.github.zap.serialize.BukkitDataLoader;
+import io.github.zap.serialize.DataLoader;
 import io.github.zap.swm.SlimeMapLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.time.StopWatch;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -28,13 +31,19 @@ public final class ZombiesPlugin extends JavaPlugin {
     private static ZombiesPlugin instance; //singleton pattern for our main plugin class
 
     @Getter
-    private Configuration configuration; //access the plugin config through this wrapper class
+    private ValidatingConfiguration configuration; //access the plugin config through this wrapper class
+
+    @Getter
+    private DataLoader dataLoader;
 
     @Getter
     private SlimePlugin slimePlugin;
 
     @Getter
     private SlimeMapLoader slimeMapLoader;
+
+    @Getter
+    private CommandManager commandManager;
 
     /*
     Warning! This object is NOT thread safe! Only call if you're on the main server thread. Also make sure you always
@@ -61,18 +70,20 @@ public final class ZombiesPlugin extends JavaPlugin {
             initConfig();
 
             //initialize the arenamanager with the configured maximum default amount of worlds
-            arenaManager = new ArenaManager(configuration.get(ConfigPaths.MAX_WORLDS, 10));
+            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
 
             initMessaging();
             initSlimeMapLoader();
+            initSerialization();
+            initCommands();
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
         }
         catch(IllegalStateException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling. Reason: \"%s\"", exception.getMessage()));
-            getPluginLoader().disablePlugin(this);
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling: '%s'", exception.getMessage()));
+            getPluginLoader().disablePlugin(this, true);
         }
         finally { //ensure profiler gets reset
             timer.reset();
@@ -117,14 +128,13 @@ public final class ZombiesPlugin extends JavaPlugin {
 
     private void initConfig() {
         FileConfiguration config = getConfig();
-        configuration = new Configuration(config);
-        Range<Integer> range = Range.between(1, 64);
+        configuration = new ValidatingConfiguration(config);
 
         //make sure the MAX_WORLDS config var is within a reasonable range
-        configuration.registerValidator(ConfigPaths.MAX_WORLDS,
-                (val) -> range.contains((Integer)val));
+        Range<Integer> maxWorldRange = Range.between(1, 64);
+        configuration.registerValidator(ConfigNames.MAX_WORLDS, maxWorldRange::contains);
 
-        config.addDefault(ConfigPaths.MAX_WORLDS, 10);
+        config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
         saveConfig();
     }
@@ -135,12 +145,27 @@ public final class ZombiesPlugin extends JavaPlugin {
             slimeMapLoader = new SlimeMapLoader(slimePlugin);
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
-            super.getPluginLoader().disablePlugin(this);
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
         }
     }
 
     private void initMessaging() {
         registerChannel(new BungeeHandler(), ChannelNames.BUNGEECORD, NetworkFlow.BIDIRECTIONAL);
+    }
+
+    private void initSerialization() {
+        /*
+        include all classes you want to be serialized as arguments to BukkitDataLoader
+        (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
+         */
+
+        //noinspection unchecked
+        dataLoader = new BukkitDataLoader();
+    }
+
+    private void initCommands() {
+        commandManager = new CommandManager(this);
+
+        //register commands here
     }
 }

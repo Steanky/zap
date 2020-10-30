@@ -1,7 +1,5 @@
 package io.github.zap.config;
 
-import com.google.common.collect.ImmutableBiMap;
-import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
@@ -14,13 +12,12 @@ import java.util.function.Predicate;
  * before being returned from a get() call, defaulting if said validation fails.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class Configuration {
-    @Getter
+public class ValidatingConfiguration {
     private final FileConfiguration fileConfiguration;
 
-    private final Map<String, Predicate> validators;
+    private final Map<String, Predicate<?>> validators;
 
-    public Configuration(FileConfiguration fileConfiguration) {
+    public ValidatingConfiguration(FileConfiguration fileConfiguration) {
         this.fileConfiguration = fileConfiguration;
         validators = new HashMap<>();
     }
@@ -30,7 +27,7 @@ public class Configuration {
      * @param name The name of the validator. This should be the same as the path of the config value.
      * @param validator The predicate that will test the value retrieved from the config file.
      */
-    public void registerValidator(String name, Predicate validator) {
+    public <T> void registerValidator(String name, Predicate<T> validator) {
         Objects.requireNonNull(name, "name cannot be null");
         Objects.requireNonNull(validator, "validator cannot be null");
 
