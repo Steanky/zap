@@ -26,9 +26,6 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 import lombok.Getter;
 
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 
 public final class ZombiesPlugin extends JavaPlugin {
@@ -79,8 +76,8 @@ public final class ZombiesPlugin extends JavaPlugin {
         }
         catch(IllegalStateException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'",
-                    exception.getMessage()));
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
+                    " '%s'", exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
         }
         finally { //ensure timer gets reset
@@ -153,7 +150,6 @@ public final class ZombiesPlugin extends JavaPlugin {
                 timer.stop();
 
                 getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
-                timer.reset();
             }
             finally {
                 timer.reset();
