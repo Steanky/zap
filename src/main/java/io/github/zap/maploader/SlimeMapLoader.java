@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 /**
@@ -26,7 +24,6 @@ public class SlimeMapLoader implements MapLoader {
     private final SlimePlugin slimePlugin;
     private final SlimeLoader slimeLoader;
     private final Map<String, SlimeWorld> preloadedWorlds = new HashMap<>();
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
      * Creates a new instance of SlimeMapLoader given a SlimePlugin.

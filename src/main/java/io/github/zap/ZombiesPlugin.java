@@ -13,6 +13,8 @@ import io.github.zap.serialize.DataLoader;
 import com.grinderwolf.swm.api.SlimePlugin;
 
 import io.github.zap.maploader.SlimeMapLoader;
+import io.github.zap.util.ChannelNames;
+import io.github.zap.util.ConfigNames;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -67,9 +69,6 @@ public final class ZombiesPlugin extends JavaPlugin {
             initMapLoader();
             initSerialization();
             initCommands();
-
-            //initialize the arenamanager with the configured maximum default amount of worlds
-            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -135,6 +134,9 @@ public final class ZombiesPlugin extends JavaPlugin {
     }
 
     private void initMapLoader() {
+        //initialize the arenamanager with the configured maximum default amount of worlds
+        arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
+
         slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
 
         if(slimePlugin != null) {

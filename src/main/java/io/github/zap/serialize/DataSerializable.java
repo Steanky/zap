@@ -183,7 +183,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                         serializeAnnotation = (Serialize)annotation; //keep checking annotations
                     }
                     else if(annotation instanceof NoSerialize) {
-                        continue fields;
+                        continue fields; //one NoSerialize will override a Serialize annotation
                     }
                 }
 

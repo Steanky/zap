@@ -33,7 +33,7 @@ public class BukkitDataLoader implements DataLoader {
                 aliasesMap.put(arg.getName(), DataSerializable.class);
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException(String.format("Unable to edit ConfigurationSerialization aliases map: %s",
+            throw new IllegalStateException(String.format("Exception when editing ConfigurationSerialization aliases map: %s",
                     e.getMessage()));
         }
     }
@@ -45,7 +45,7 @@ public class BukkitDataLoader implements DataLoader {
 
         try {
             configuration.save(path);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             ZombiesPlugin.getInstance().getLogger().warning(String.format("IOException when attempting to save to " +
                     "config file '%s'", path));
         }

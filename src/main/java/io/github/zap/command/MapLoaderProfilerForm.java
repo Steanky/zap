@@ -17,8 +17,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 public class MapLoaderProfilerForm extends CommandForm {
@@ -30,7 +28,6 @@ public class MapLoaderProfilerForm extends CommandForm {
     };
 
     private static final CommandValidator validator;
-    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private static final Semaphore profilerSemaphore = new Semaphore(1);
     private static final StopWatch profiler = new StopWatch();
 
@@ -58,7 +55,7 @@ public class MapLoaderProfilerForm extends CommandForm {
 
     @Override
     public String execute(Context context, Object[] arguments) {
-        if(profilerSemaphore.tryAcquire()) {
+        if(profilerSemaphore.tryAcquire()) { //only one instance of the profiler can run at a time
             Player player = (Player)context.getSender(); //validation ensures that this will never throw ClassCastException
             int iterations = (int)arguments[2];
             String worldName = (String)arguments[3];
@@ -69,7 +66,7 @@ public class MapLoaderProfilerForm extends CommandForm {
             List<String> loadedWorlds = new ArrayList<>();
 
             Semaphore semaphore = new Semaphore(-(iterations - 1));
-            executorService.submit(() -> {
+            scheduler.runTaskAsynchronously(instance, () -> {
                 scheduler.runTask(instance, () -> player.sendMessage("===Start maploader profiling session==="));
 
                 profiler.start();
@@ -80,17 +77,20 @@ public class MapLoaderProfilerForm extends CommandForm {
                     player.sendMessage(String.format("Loaded %s copies of world %s in ~%sms", iterations, worldName,
                             profiler.getTime()));
                     profiler.reset();
-                    profilerSemaphore.release();
 
                     player.sendMessage("Cleaning up worlds.");
+
                     profiler.start();
                     for(String world : loadedWorlds) {
                         loader.unloadMap(world);
                     }
                     profiler.stop();
+
                     player.sendMessage(String.format("Done unloading worlds; ~%sms elapsed", profiler.getTime()));
                     player.sendMessage("===End maploader profiling session===");
+
                     profiler.reset();
+                    profilerSemaphore.release();
                 });
             });
 
