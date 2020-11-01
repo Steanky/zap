@@ -2,6 +2,7 @@ package io.github.zap.command;
 
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
+import io.github.regularcommands.commands.PermissionData;
 import io.github.regularcommands.converter.Converters;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.validator.CommandValidator;
@@ -45,7 +46,7 @@ public class MapLoaderProfilerForm extends CommandForm {
     }
 
     public MapLoaderProfilerForm() {
-        super("Debug command for profiling map loading.", Permissions.OPERATOR, parameters);
+        super("Debug command for profiling map loading.", new PermissionData(true), parameters);
     }
 
     @Override
@@ -95,10 +96,10 @@ public class MapLoaderProfilerForm extends CommandForm {
             });
 
             for(int i = 0; i < iterations; i++) {
-                loader.loadMap(worldName, (world -> {
+                loader.loadMap(worldName, world -> {
                     loadedWorlds.add(world.getName());
                     semaphore.release();
-                }));
+                });
             }
         }
         else {
