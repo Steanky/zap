@@ -1,12 +1,13 @@
 package io.github.zap.command;
 
 import io.github.regularcommands.commands.CommandForm;
+import io.github.regularcommands.commands.CommandManager;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.commands.PermissionData;
-import io.github.regularcommands.converter.Converters;
 import io.github.regularcommands.converter.Parameter;
+import io.github.regularcommands.util.Converters;
+import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
-import io.github.regularcommands.validator.Validators;
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.maploader.MapLoader;
 import org.apache.commons.lang3.Range;
@@ -62,24 +63,26 @@ public class MapLoaderProfilerForm extends CommandForm {
             String worldName = (String)arguments[3];
 
             ZombiesPlugin instance = ZombiesPlugin.getInstance();
+            CommandManager commandManager = context.getManager();
             MapLoader loader = instance.getMapLoader();
             BukkitScheduler scheduler = Bukkit.getScheduler();
             List<String> loadedWorlds = new ArrayList<>();
 
             Semaphore semaphore = new Semaphore(-(iterations - 1));
             scheduler.runTaskAsynchronously(instance, () -> {
-                scheduler.runTask(instance, () -> player.sendMessage("===Start maploader profiling session==="));
+                scheduler.runTask(instance, () -> commandManager.sendStylizedMessage(player,
+                        ">green{===Start maploader profiling session===}"));
 
                 profiler.start();
                 semaphore.acquireUninterruptibly();
                 profiler.stop();
 
                 scheduler.runTask(instance, () -> {
-                    player.sendMessage(String.format("Loaded %s copies of world %s in ~%sms", iterations, worldName,
-                            profiler.getTime()));
+                    commandManager.sendStylizedMessage(player, String.format("Loaded >green{%s} copies of world " +
+                                    ">green{%s} in >green{~%sms}", iterations, worldName, profiler.getTime()));
                     profiler.reset();
 
-                    player.sendMessage("Cleaning up worlds.");
+                    commandManager.sendStylizedMessage(player, "Cleaning up worlds.");
 
                     profiler.start();
                     for(String world : loadedWorlds) {
