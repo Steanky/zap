@@ -82,7 +82,8 @@ public final class ZombiesPlugin extends JavaPlugin {
         }
         catch(IllegalStateException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling: '%s'", exception.getMessage()));
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling: '%s'",
+                    exception.getMessage()));
             getPluginLoader().disablePlugin(this, true);
         }
         finally { //ensure profiler gets reset

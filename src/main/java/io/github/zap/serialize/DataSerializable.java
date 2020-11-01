@@ -68,6 +68,8 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                     "required type key '%s'", ConfigurationSerialization.SERIALIZED_TYPE_KEY));
         }
 
+
+
         return null;
     }
 
