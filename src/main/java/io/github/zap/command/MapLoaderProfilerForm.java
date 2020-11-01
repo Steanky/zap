@@ -19,6 +19,8 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 public class MapLoaderProfilerForm extends CommandForm {
@@ -32,6 +34,7 @@ public class MapLoaderProfilerForm extends CommandForm {
     private static final CommandValidator validator;
     private static final Semaphore profilerSemaphore = new Semaphore(1);
     private static final StopWatch profiler = new StopWatch();
+    private static final ExecutorService service = Executors.newSingleThreadExecutor();
 
     static {
         validator = new CommandValidator((context, arguments) -> {
@@ -48,6 +51,11 @@ public class MapLoaderProfilerForm extends CommandForm {
 
     public MapLoaderProfilerForm() {
         super("Debug command for profiling map loading.", new PermissionData(true), parameters);
+    }
+
+    @Override
+    public boolean canStylize() {
+        return true;
     }
 
     @Override
@@ -69,9 +77,9 @@ public class MapLoaderProfilerForm extends CommandForm {
             List<String> loadedWorlds = new ArrayList<>();
 
             Semaphore semaphore = new Semaphore(-(iterations - 1));
-            scheduler.runTaskAsynchronously(instance, () -> {
-                scheduler.runTask(instance, () -> commandManager.sendStylizedMessage(player,
-                        ">green{===Start maploader profiling session===}"));
+            service.submit(() -> { //use executorservice instead of bukkit async so we start immediately
+                scheduler.runTask(instance, () -> commandManager.sendStylizedMessage(player, ">green{===Start" +
+                        " maploader profiling session===}"));
 
                 profiler.start();
                 semaphore.acquireUninterruptibly();
@@ -79,10 +87,10 @@ public class MapLoaderProfilerForm extends CommandForm {
 
                 scheduler.runTask(instance, () -> {
                     commandManager.sendStylizedMessage(player, String.format("Loaded >green{%s} copies of world " +
-                                    ">green{%s} in >green{~%sms}", iterations, worldName, profiler.getTime()));
+                            ">green{%s} in >green{~%sms}", iterations, worldName, profiler.getTime()));
                     profiler.reset();
 
-                    commandManager.sendStylizedMessage(player, "Cleaning up worlds.");
+                    commandManager.sendStylizedMessage(player, ">gray{Cleaning up worlds.}");
 
                     profiler.start();
                     for(String world : loadedWorlds) {
@@ -90,8 +98,9 @@ public class MapLoaderProfilerForm extends CommandForm {
                     }
                     profiler.stop();
 
-                    player.sendMessage(String.format("Done unloading worlds; ~%sms elapsed", profiler.getTime()));
-                    player.sendMessage("===End maploader profiling session===");
+                    commandManager.sendStylizedMessage(player, String.format(">gray{Done unloading worlds; " +
+                            "~%sms elapsed}", profiler.getTime()));
+                    commandManager.sendStylizedMessage(player, ">red{===End maploader profiling session===}");
 
                     profiler.reset();
                     profilerSemaphore.release();
@@ -106,7 +115,7 @@ public class MapLoaderProfilerForm extends CommandForm {
             }
         }
         else {
-            return "The profiler is already running.";
+            return ">red{The profiler is already running.}";
         }
 
         return null;
