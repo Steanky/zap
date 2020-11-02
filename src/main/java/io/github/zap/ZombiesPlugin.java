@@ -3,24 +3,32 @@ package io.github.zap;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
-import io.github.zap.manager.ArenaManager;
-import io.github.zap.maploader.MapLoader;
+import io.github.zap.game.manager.ArenaManager;
+import io.github.zap.maploader.WorldLoader;
+import io.github.zap.proxy.MythicMobs_v4_10_R1;
+import io.github.zap.proxy.MythicProxy;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
+import io.github.zap.proxy.SlimeProxy;
+import io.github.zap.proxy.SlimeWorldManager_v2_3_R0;
 import io.github.zap.serialize.BukkitDataLoader;
 import io.github.zap.serialize.DataLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
-import io.github.zap.maploader.SlimeMapLoader;
+import io.github.zap.maploader.SlimeWorldLoader;
 import io.github.zap.util.ChannelNames;
 import io.github.zap.util.ConfigNames;
+import io.github.zap.util.PluginNames;
+import io.lumine.xikage.mythicmobs.MythicMobs;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -32,26 +40,26 @@ import java.util.logging.Level;
 
 public final class ZombiesPlugin extends JavaPlugin {
     @Getter
-    private static ZombiesPlugin instance; //singleton pattern for our main plugin class
+    private static ZombiesPlugin instance; //singleton for our main plugin class
 
     @Getter
-    private ValidatingConfiguration configuration; //access the plugin config through this wrapper class
+    private ValidatingConfiguration configuration; //wrapper for bukkit's config manager
 
     @Getter
-    private DataLoader dataLoader;
+    private DataLoader dataLoader; //used to save/load data from custom serialization framework
 
     @Getter
-    private SlimePlugin slimePlugin;
+    private SlimeProxy slimeProxy;
 
     @Getter
-    private MapLoader mapLoader;
+    private MythicProxy mythicProxy;
+
+    @Getter
+    private WorldLoader worldLoader;
 
     @Getter
     private CommandManager commandManager;
 
-    /*
-    the ArenaManager is responsible for adding players to games, or sending them to other servers if we're using bungee
-     */
     @Getter
     private ArenaManager arenaManager;
 
@@ -65,10 +73,11 @@ public final class ZombiesPlugin extends JavaPlugin {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
 
             initConfig();
-            initMessaging();
-            initMapLoader();
+            initProxies();
+            initWorldLoader();
             initSerialization();
             initCommands();
+            initMessaging();
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -133,32 +142,65 @@ public final class ZombiesPlugin extends JavaPlugin {
         saveConfig();
     }
 
-    private void initMapLoader() {
+    private void initProxies() {
+        PluginManager manager = Bukkit.getPluginManager();
+        Plugin mythicMobs = manager.getPlugin(PluginNames.MYTHIC_MOBS);
+        Plugin swm = manager.getPlugin(PluginNames.SLIME_WORLD_MANAGER);
+
+        if(mythicMobs != null) {
+            String mythicVersion = mythicMobs.getDescription().getVersion().split("-")[0];
+
+            //noinspection SwitchStatementWithTooFewBranches
+            switch(mythicVersion) {
+                case "4.10.1":
+                    mythicProxy = new MythicMobs_v4_10_R1((MythicMobs)mythicMobs);
+                    break;
+                default:
+                    throw new IllegalStateException(String.format("Unrecognized MythicMobs version '%s'", mythicVersion));
+            }
+        }
+        else {
+            throw new IllegalStateException("Unable to locate required plugin MythicMobs.");
+        }
+
+        if(swm != null) {
+            String swmVersion = swm.getDescription().getVersion().split("-")[0];
+
+
+            //noinspection SwitchStatementWithTooFewBranches
+            switch (swmVersion) {
+                case "2.3.0":
+                    slimeProxy = new SlimeWorldManager_v2_3_R0((SlimePlugin)swm);
+                    break;
+                default:
+                    throw new IllegalStateException(String.format("Unrecognized SWM version '%s'", swmVersion));
+
+            }
+        }
+        else {
+            throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
+
+        }
+    }
+
+    private void initWorldLoader() {
         //initialize the arenamanager with the configured maximum default amount of worlds
         arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
 
-        slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
+        worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
 
-        if(slimePlugin != null) {
-            mapLoader = new SlimeMapLoader(slimePlugin, slimePlugin.getLoader("file"));
+        getLogger().info("Preloading worlds.");
+        StopWatch timer = new StopWatch();
 
-            getLogger().info("Preloading worlds.");
+        try {
+            timer.start();
+            worldLoader.preloadWorlds("world_copy");
+            timer.stop();
 
-            StopWatch timer = new StopWatch();
-
-            try {
-                timer.start();
-                mapLoader.preloadWorlds("world_copy");
-                timer.stop();
-
-                getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
-            }
-            finally {
-                timer.reset();
-            }
+            getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
         }
-        else { //plugin should never be null because it's a dependency, but it's best to be safe
-            throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
+        finally {
+            timer.reset();
         }
     }
 

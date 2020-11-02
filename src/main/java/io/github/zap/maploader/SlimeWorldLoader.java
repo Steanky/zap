@@ -1,11 +1,11 @@
 package io.github.zap.maploader;
 
-import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 
 import io.github.zap.ZombiesPlugin;
+import io.github.zap.proxy.SlimeProxy;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -20,18 +20,15 @@ import java.util.function.Consumer;
 /**
  * Class used to load a Zombies map with the Slime format
  */
-public class SlimeMapLoader implements MapLoader {
-    private final SlimePlugin slimePlugin;
+public class SlimeWorldLoader implements WorldLoader {
     private final SlimeLoader slimeLoader;
     private final Map<String, SlimeWorld> preloadedWorlds = new HashMap<>();
 
     /**
      * Creates a new instance of SlimeMapLoader given a SlimePlugin.
-     * @param slimePlugin The SlimePlugin that this instance uses
      * @param slimeLoader The SlimeLoader that this instance uses
      */
-    public SlimeMapLoader(SlimePlugin slimePlugin, SlimeLoader slimeLoader) {
-        this.slimePlugin = slimePlugin;
+    public SlimeWorldLoader(SlimeLoader slimeLoader) {
         this.slimeLoader = slimeLoader;
     }
 
@@ -39,25 +36,26 @@ public class SlimeMapLoader implements MapLoader {
     @Override
     public void preloadWorlds(String... worlds) {
         for (String world : worlds) {
+            SlimeProxy slime = ZombiesPlugin.getInstance().getSlimeProxy();
             if(!slimeLoader.worldExists(world)) {
-                slimePlugin.importWorld(new File(world), world, slimeLoader);
+                slime.importWorld(new File(world), world, slimeLoader);
             }
 
-            preloadedWorlds.put(world, slimePlugin.loadWorld(slimeLoader, world, true, new SlimePropertyMap()));
+            preloadedWorlds.put(world, slime.loadWorld(slimeLoader, world, true, new SlimePropertyMap()));
         }
     }
 
     @Override
-    public void loadMap(String name, Consumer<World> consumer) {
+    public void loadWorld(String name, Consumer<World> consumer) {
         String randomName = UUID.randomUUID().toString();
         SlimeWorld world = preloadedWorlds.get(name).clone(randomName);
 
-        slimePlugin.generateWorld(world);
+        ZombiesPlugin.getInstance().getSlimeProxy().generate(world);
         consumer.accept(Bukkit.getWorld(randomName));
     }
 
     @Override
-    public void unloadMap(String mapName) {
+    public void unloadWorld(String mapName) {
         Bukkit.unloadWorld(mapName, false);
     }
 

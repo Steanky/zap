@@ -4,7 +4,7 @@ import org.bukkit.World;
 
 import java.util.function.Consumer;
 
-public interface MapLoader {
+public interface WorldLoader {
     /**
      * Preloads the specified array of world names. The implementation should keep these cached in memory.
      * @param worldNames The worlds to preload
@@ -17,14 +17,14 @@ public interface MapLoader {
      * @param worldName The name of the world to load from
      * @param worldConsumer The consumer that is called when the world is loaded
      */
-    void loadMap(String worldName, Consumer<World> worldConsumer);
+    void loadWorld(String worldName, Consumer<World> worldConsumer);
 
     /**
      * Unloads the map associated with the name. This should remove the map from the server world list, but it should
      * not necessarily remove anything from the cache.
      * @param mapName The name of the specified map
      */
-    void unloadMap(String mapName);
+    void unloadWorld(String mapName);
 
     /**
      * Determine if the specified world exists. It may not be loaded.

@@ -9,7 +9,7 @@ import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.ZombiesPlugin;
-import io.github.zap.maploader.MapLoader;
+import io.github.zap.maploader.WorldLoader;
 import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -39,7 +39,7 @@ public class MapLoaderProfilerForm extends CommandForm {
     static {
         validator = new CommandValidator((context, arguments) -> {
             String worldName = (String)arguments[3];
-            if(ZombiesPlugin.getInstance().getMapLoader().worldExists(worldName)) {
+            if(ZombiesPlugin.getInstance().getWorldLoader().worldExists(worldName)) {
                 return ImmutablePair.of(true, null);
             }
 
@@ -72,7 +72,7 @@ public class MapLoaderProfilerForm extends CommandForm {
 
             ZombiesPlugin instance = ZombiesPlugin.getInstance();
             CommandManager commandManager = context.getManager();
-            MapLoader loader = instance.getMapLoader();
+            WorldLoader loader = instance.getWorldLoader();
             BukkitScheduler scheduler = Bukkit.getScheduler();
             List<String> loadedWorlds = new ArrayList<>();
 
@@ -94,7 +94,7 @@ public class MapLoaderProfilerForm extends CommandForm {
 
                     profiler.start();
                     for(String world : loadedWorlds) {
-                        loader.unloadMap(world);
+                        loader.unloadWorld(world);
                     }
                     profiler.stop();
 
@@ -108,7 +108,7 @@ public class MapLoaderProfilerForm extends CommandForm {
             });
 
             for(int i = 0; i < iterations; i++) {
-                loader.loadMap(worldName, world -> {
+                loader.loadWorld(worldName, world -> {
                     loadedWorlds.add(world.getName());
                     semaphore.release();
                 });

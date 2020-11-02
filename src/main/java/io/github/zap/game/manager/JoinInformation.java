@@ -1,4 +1,4 @@
-package io.github.zap.manager;
+package io.github.zap.game.manager;
 
 import lombok.Value;
 import org.bukkit.entity.Player;

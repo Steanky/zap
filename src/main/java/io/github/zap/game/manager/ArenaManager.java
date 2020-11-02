@@ -1,4 +1,4 @@
-package io.github.zap.manager;
+package io.github.zap.game.manager;
 
 import lombok.Getter;
 
