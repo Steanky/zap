@@ -4,6 +4,7 @@ import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.game.manager.ArenaManager;
+import io.github.zap.game.mapdata.*;
 import io.github.zap.maploader.WorldLoader;
 import io.github.zap.proxy.MythicMobs_v4_10_R1;
 import io.github.zap.proxy.MythicProxy;
@@ -80,7 +81,7 @@ public final class ZombiesPlugin extends JavaPlugin {
             initMessaging();
 
             timer.stop();
-            getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
+            getLogger().log(Level.INFO, String.format("Done enabling; ~%sms elapsed", timer.getTime()));
         }
         catch(IllegalStateException exception)
         {
@@ -213,7 +214,8 @@ public final class ZombiesPlugin extends JavaPlugin {
          */
 
         //noinspection unchecked
-        dataLoader = new BukkitDataLoader();
+        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
+                ShopData.class, SpawnpointData.class, WindowData.class);
     }
 
     private void initCommands() {
