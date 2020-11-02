@@ -4,6 +4,7 @@ import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -12,6 +13,9 @@ import java.io.File;
 @RequiredArgsConstructor
 public class SlimeWorldManager_v2_3_R0 implements SlimeProxy {
     private final SlimePlugin slimePlugin;
+
+    @Override
+    public SlimePlugin getSlimePlugin() { return slimePlugin; }
 
     @Override
     public SlimeLoader getLoader(String source) {

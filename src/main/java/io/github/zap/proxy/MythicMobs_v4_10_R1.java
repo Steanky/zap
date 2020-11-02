@@ -1,13 +1,16 @@
 package io.github.zap.proxy;
 
 import io.lumine.xikage.mythicmobs.MythicMobs;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class MythicMobs_v4_10_R1 implements MythicProxy {
-    @Getter
-    private final MythicMobs mythicMobs;
+    private final MythicMobs mythicPlugin;
+
+    @Override
+    public MythicMobs getMythicPlugin() {
+        return mythicPlugin;
+    }
 
     @Override
     public void injectCustomMechanics() {

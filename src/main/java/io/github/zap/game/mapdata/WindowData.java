@@ -24,9 +24,6 @@ public class WindowData extends DataSerializable {
     @Getter
     private MultiBoundingBox faceBounds;
 
-    @Getter
-    private SpawnpointData spawnpoint;
-
     private WindowData() {}
 
     public void breakAtIndex(World world, int index) {

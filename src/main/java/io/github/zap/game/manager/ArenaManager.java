@@ -1,5 +1,6 @@
 package io.github.zap.game.manager;
 
+import io.github.zap.game.JoinInformation;
 import lombok.Getter;
 
 /**

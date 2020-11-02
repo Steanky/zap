@@ -166,7 +166,6 @@ public final class ZombiesPlugin extends JavaPlugin {
         if(swm != null) {
             String swmVersion = swm.getDescription().getVersion().split("-")[0];
 
-
             //noinspection SwitchStatementWithTooFewBranches
             switch (swmVersion) {
                 case "2.3.0":
@@ -174,7 +173,6 @@ public final class ZombiesPlugin extends JavaPlugin {
                     break;
                 default:
                     throw new IllegalStateException(String.format("Unrecognized SWM version '%s'", swmVersion));
-
             }
         }
         else {

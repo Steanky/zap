@@ -11,6 +11,9 @@ import java.util.Set;
 @AllArgsConstructor
 public class SpawnpointData extends DataSerializable {
     @Getter
+    private boolean insideWindow;
+
+    @Getter
     private Vector spawn;
 
     @Getter

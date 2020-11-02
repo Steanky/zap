@@ -14,7 +14,7 @@ public class MultiBoundingBox extends DataSerializable {
         boundingBoxes.add(boundingBox);
     }
 
-    public boolean insideAny(Vector vector) {
+    public boolean contains(Vector vector) {
         for(BoundingBox boundingBox : boundingBoxes) {
             if(boundingBox.contains(vector)) {
                 return true;
