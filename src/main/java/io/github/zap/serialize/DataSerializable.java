@@ -55,9 +55,15 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         if (className != null) {
             try {
                 return createDeserialized(className, data);
-            } catch (ClassNotFoundException ignored) {
-                ZombiesPlugin.getInstance().getLogger().warning(String.format("'%s' cannot be found", className));
-            } catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
+            }
+            catch (ClassNotFoundException ignored) {
+                ZombiesPlugin.getInstance().getLogger().warning(String.format("'%s' does not exist", className));
+            }
+            catch(IllegalStateException ignored) {
+                ZombiesPlugin.getInstance().getLogger().warning(String.format("'%s' does not extend DataSerializable.",
+                        className));
+            }
+            catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
                     InvocationTargetException e) {
                 ZombiesPlugin.getInstance().getLogger().warning(String.format("An error occured when trying to " +
                         "instantiate '%s': %s", className, e.getMessage()));
@@ -86,7 +92,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
      */
     private static DataSerializable createDeserialized(String className, Map<String, Object> data)
             throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException,
-            InstantiationException {
+            InstantiationException, IllegalStateException {
         // get the class from the classname
         Class<?> instanceClass = Class.forName(className);
 
@@ -104,16 +110,13 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             return (DataSerializable) instanceObject;
         }
         else {
-            ZombiesPlugin.getInstance().getLogger().warning(String.format("'%s' is not an instance of " +
-                    "DataSerializable", className));
+            throw new IllegalStateException(String.format("'%s' is not an instance of DataSerializable", className));
         }
-
-        return null;
     }
 
     /**
      * Sets the field of a deserialized object, and outputs a warning message if it fails. Performs automatic conversion
-     * between lists and arrays of all dimensions.
+     * between collections and arrays of all dimensions.
      * @param field The field to set in the object
      * @param instanceObject The object that will be deserialized
      * @param assignedObject The object that will be assigned
@@ -151,7 +154,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         for(int i = 0; i < array.length; i++) {
             Object item = array[i];
 
-            if(item instanceof Collection) {
+            if(item instanceof Collection && arrayComponent.isArray()) {
                 item = toArrayDeep((Collection<?>)item, arrayComponent);
             }
 
@@ -175,15 +178,14 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) { // skip static fields
                 Annotation[] annotations = field.getDeclaredAnnotations();
-
                 Serialize serializeAnnotation = null;
 
                 for (Annotation annotation : annotations) { //look for Serialize annotation
                     if(annotation instanceof Serialize) {
-                        serializeAnnotation = (Serialize)annotation;
+                        serializeAnnotation = (Serialize)annotation; //keep checking annotations
                     }
                     else if(annotation instanceof NoSerialize) {
-                        continue fields;
+                        continue fields; //one NoSerialize will override a Serialize annotation
                     }
                 }
 

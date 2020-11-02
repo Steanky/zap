@@ -21,7 +21,10 @@ public class BukkitDataLoader implements DataLoader {
             Field aliases = ConfigurationSerialization.class.getDeclaredField("aliases");
             aliases.setAccessible(true);
 
-            //this map is used by ConfigurationSerialization to resolve class names/aliases into the class containing the deserializer method
+            /*
+            this map is used by ConfigurationSerialization to resolve class names/aliases into the class containing
+            the deserializer method
+             */
             Map<String, Class<? extends ConfigurationSerializable>> aliasesMap =
                     (Map<String, Class<? extends ConfigurationSerializable>>) aliases.get(null);
 
@@ -30,7 +33,7 @@ public class BukkitDataLoader implements DataLoader {
                 aliasesMap.put(arg.getName(), DataSerializable.class);
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException(String.format("Unable to edit ConfigurationSerialization aliases map: %s",
+            throw new IllegalStateException(String.format("Exception when editing ConfigurationSerialization aliases map: %s",
                     e.getMessage()));
         }
     }
@@ -42,7 +45,7 @@ public class BukkitDataLoader implements DataLoader {
 
         try {
             configuration.save(path);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             ZombiesPlugin.getInstance().getLogger().warning(String.format("IOException when attempting to save to " +
                     "config file '%s'", path));
         }
