@@ -6,8 +6,8 @@ public interface ValueConverter {
     /**
      * Converts the provided object into another object, given a Direction (either SERIALIZE or DESERIALIZE)
      * @param object The object to convert
-     * @param direction Whether the object is being serialized or deserialized
+     * @param serializing Whether the object is being serialized. If false, we are deserializing
      * @return The converted object
      */
-    Object convert(Object object, Direction direction);
+    Object convert(Object object, boolean serializing);
 }

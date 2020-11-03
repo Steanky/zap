@@ -5,4 +5,5 @@ package io.github.zap.util;
  */
 public final class ConfigNames {
     public static final String MAX_WORLDS = "maxWorlds";
+    public static final String GAMETICK_DELAY = "gametickDelay";
 }

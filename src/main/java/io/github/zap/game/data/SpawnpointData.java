@@ -1,4 +1,4 @@
-package io.github.zap.game.mapdata;
+package io.github.zap.game.data;
 
 import io.github.zap.serialize.DataSerializable;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -23,8 +23,4 @@ public class SpawnpointData extends DataSerializable {
     private Set<MythicMob> whitelist;
 
     private SpawnpointData() {}
-
-    public boolean canSpawn(MythicMob mob) {
-        return whitelist.contains(mob);
-    }
 }

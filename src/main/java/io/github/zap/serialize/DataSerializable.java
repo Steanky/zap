@@ -37,7 +37,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
         forEachSerializable(getClass(), (triple) -> {
             try {
-                serializedData.put(triple.left, triple.right.convert(triple.middle.get(this), Direction.SERIALIZE));
+                serializedData.put(triple.left, triple.right.convert(triple.middle.get(this), true));
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting " +
                                 "to serialize field '%s' in object '%s': %s", triple.middle.toGenericString(),
@@ -105,7 +105,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
             Object instanceObject = constructor.newInstance(); //instantiate the object
             forEachSerializable(instanceClass, (triple) -> setField(triple.middle, instanceObject,
-                    triple.right.convert(data.get(triple.left), Direction.DESERIALIZE)));
+                    triple.right.convert(data.get(triple.left), false)));
 
             return (DataSerializable) instanceObject;
         }

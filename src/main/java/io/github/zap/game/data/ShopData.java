@@ -1,4 +1,4 @@
-package io.github.zap.game.mapdata;
+package io.github.zap.game.data;
 
 import io.github.zap.serialize.DataSerializable;
 import lombok.AllArgsConstructor;
