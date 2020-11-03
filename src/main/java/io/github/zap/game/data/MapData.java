@@ -70,11 +70,9 @@ public class MapData extends DataSerializable {
      */
     public WindowData windowAt(Vector target) {
         for(RoomData roomData : rooms.values()) {
-            if(roomData.isSpawn() || roomData.isOpen()) {
-                for(WindowData window : roomData.getWindows()) {
-                    if(window.getFaceBounds().contains(target)) {
-                        return window;
-                    }
+            for(WindowData window : roomData.getWindows()) {
+                if(window.getFaceBounds().contains(target)) {
+                    return window;
                 }
             }
         }
@@ -90,13 +88,11 @@ public class MapData extends DataSerializable {
      */
     public WindowData windowInRange(Vector standing, double manhattanDistance) {
         for(RoomData roomData : rooms.values()) {
-            if(roomData.isSpawn() || roomData.isOpen()) {
-                for(WindowData window : roomData.getWindows()) {
-                    double distance = VectorUtils.manhattanDistance(window.getFaceBounds().getCenter(), standing);
+            for(WindowData window : roomData.getWindows()) {
+                double distance = VectorUtils.manhattanDistance(window.getFaceBounds().getCenter(), standing);
 
-                    if(distance < manhattanDistance) {
-                        return window;
-                    }
+                if(distance < manhattanDistance) {
+                    return window;
                 }
             }
         }

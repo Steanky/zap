@@ -35,10 +35,5 @@ public class WindowData extends DataSerializable {
     @Getter
     private Vector base;
 
-    @Getter
-    @Setter
-    @NoSerialize
-    private int lastRepaired = 0;
-
     private WindowData() {}
 }

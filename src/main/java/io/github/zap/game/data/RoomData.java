@@ -29,10 +29,5 @@ public class RoomData extends DataSerializable {
     @Getter
     private boolean isSpawn;
 
-    @NoSerialize
-    @Getter
-    @Setter
-    private boolean open;
-
     private RoomData() {}
 }

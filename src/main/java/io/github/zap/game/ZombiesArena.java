@@ -1,8 +1,8 @@
 package io.github.zap.game;
 
+import io.github.zap.ZombiesPlugin;
 import io.github.zap.game.data.MapData;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -10,7 +10,6 @@ import org.bukkit.event.Listener;
 import java.util.HashSet;
 import java.util.Set;
 
-@RequiredArgsConstructor
 public class ZombiesArena implements Tickable, Listener {
     @Getter
     private final MapData map;
@@ -21,6 +20,17 @@ public class ZombiesArena implements Tickable, Listener {
     @Getter
     private final Set<Player> players = new HashSet<>();
 
+    @Getter
+    private ArenaState state = ArenaState.PREGAME;
+
+    public ZombiesArena(MapData map, World world) {
+        this.map = map;
+        this.world = world;
+
+        ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
+        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
+    }
+
     /**
      * Gets the name of this arena.
      * @return The name of this arena, which is the same as the world name used to create it
@@ -28,6 +38,14 @@ public class ZombiesArena implements Tickable, Listener {
     @Override
     public String getName() {
         return world.getName();
+    }
+
+    /**
+     * Gets the current player count.
+     * @return The current player count
+     */
+    public int playerCount() {
+        return players.size();
     }
 
     /**
@@ -53,11 +71,28 @@ public class ZombiesArena implements Tickable, Listener {
     }
 
     private void addPlayer(Player player) {
+        players.add(player);
 
+        int count = players.size();
+
+        if(count >= map.getMinimumCapacity()) {
+            state = ArenaState.COUNTDOWN;
+        }
+    }
+
+    public void handleDisconnect(Player player) {
+        players.remove(player);
     }
 
     @Override
     public void doTick() {
 
+    }
+
+    public void close() {
+        ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
+        zombiesPlugin.getArenaManager().getArenas().remove(this);
+        zombiesPlugin.getTicker().remove(this);
+        zombiesPlugin.getWorldLoader().unloadWorld(getWorld().getName());
     }
 }
