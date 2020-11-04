@@ -1,16 +1,20 @@
 package io.github.zap;
 
 import io.github.regularcommands.commands.CommandManager;
+import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.manager.ArenaManager;
+import io.github.zap.maploader.MapLoader;
 import io.github.zap.net.BungeeHandler;
 import io.github.zap.net.NetworkFlow;
 import io.github.zap.serialize.BukkitDataLoader;
 import io.github.zap.serialize.DataLoader;
-import io.github.zap.swm.SlimeMapLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
+import io.github.zap.maploader.SlimeMapLoader;
+import io.github.zap.util.ChannelNames;
+import io.github.zap.util.ConfigNames;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -40,17 +44,10 @@ public final class ZombiesPlugin extends JavaPlugin {
     private SlimePlugin slimePlugin;
 
     @Getter
-    private SlimeMapLoader slimeMapLoader;
+    private MapLoader mapLoader;
 
     @Getter
     private CommandManager commandManager;
-
-    /*
-    Warning! This object is NOT thread safe! Only call if you're on the main server thread. Also make sure you always
-    call timer.reset() after a call to timer.start() (use a finally block in case of exceptions!)
-    */
-    @Getter
-    private StopWatch timer;
 
     /*
     the ArenaManager is responsible for adding players to games, or sending them to other servers if we're using bungee
@@ -61,19 +58,15 @@ public final class ZombiesPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        timer = new StopWatch();
+        StopWatch timer = new StopWatch();
 
         try {
             timer.start();
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
 
             initConfig();
-
-            //initialize the arenamanager with the configured maximum default amount of worlds
-            arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
-
             initMessaging();
-            initSlimeMapLoader();
+            initMapLoader();
             initSerialization();
             initCommands();
 
@@ -82,10 +75,11 @@ public final class ZombiesPlugin extends JavaPlugin {
         }
         catch(IllegalStateException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling: '%s'", exception.getMessage()));
-            getPluginLoader().disablePlugin(this, true);
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
+                    " '%s'", exception.getMessage()));
+            getPluginLoader().disablePlugin(this, false);
         }
-        finally { //ensure profiler gets reset
+        finally { //ensure timer gets reset
             timer.reset();
         }
     }
@@ -139,10 +133,29 @@ public final class ZombiesPlugin extends JavaPlugin {
         saveConfig();
     }
 
-    private void initSlimeMapLoader() {
+    private void initMapLoader() {
+        //initialize the arenamanager with the configured maximum default amount of worlds
+        arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
+
         slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
+
         if(slimePlugin != null) {
-            slimeMapLoader = new SlimeMapLoader(slimePlugin);
+            mapLoader = new SlimeMapLoader(slimePlugin, slimePlugin.getLoader("file"));
+
+            getLogger().info("Preloading worlds.");
+
+            StopWatch timer = new StopWatch();
+
+            try {
+                timer.start();
+                mapLoader.preloadWorlds("world_copy");
+                timer.stop();
+
+                getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
+            }
+            finally {
+                timer.reset();
+            }
         }
         else { //plugin should never be null because it's a dependency, but it's best to be safe
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
@@ -167,5 +180,6 @@ public final class ZombiesPlugin extends JavaPlugin {
         commandManager = new CommandManager(this);
 
         //register commands here
+        commandManager.registerCommand(new DebugCommand());
     }
 }
