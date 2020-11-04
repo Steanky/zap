@@ -1,6 +1,8 @@
 package io.github.zap.game;
 
 import io.github.zap.ZombiesPlugin;
+import io.github.zap.event.PlayerJoinEvent;
+import io.github.zap.event.PlayerRightClickEvent;
 import io.github.zap.game.data.MapData;
 import lombok.Getter;
 import org.bukkit.World;
@@ -8,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.plugin.PluginManager;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +36,22 @@ public class ZombiesArena implements Tickable, Listener {
         this.world = world;
 
         ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
-        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
+        PluginManager pluginManager = zombiesPlugin.getServer().getPluginManager();
+        pluginManager.registerEvents(this, zombiesPlugin);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if(other instanceof ZombiesArena) {
+            return getName().equals(((ZombiesArena)other).getName());
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return getName().hashCode();
     }
 
     /**
@@ -47,6 +65,7 @@ public class ZombiesArena implements Tickable, Listener {
         if(joinAttempt.isAsSpectator()) {
             if(state != ArenaState.ENDED && map.isSpectatorAllowed()) {
                 spectators.addAll(joiningPlayers);
+                ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(new PlayerJoinEvent(joiningPlayers, true));
             }
         }
         else {
@@ -55,14 +74,23 @@ public class ZombiesArena implements Tickable, Listener {
             if(newSize <= map.getMaximumCapacity()) { //we can fit the players
                 switch (state) {
                     case PREGAME:
+                        if(newSize >= map.getMinimumCapacity()) {
+                            startCountdown();
+                        }
+                        players.addAll(joiningPlayers);
+                        ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(new PlayerJoinEvent(joiningPlayers, false));
+                        return true;
                     case COUNTDOWN:
                         players.addAll(joiningPlayers);
-                        break;
+                        ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(new PlayerJoinEvent(joiningPlayers, false));
+                        return true;
                     case STARTED:
                         if(map.isInProgressJoin()) {
                             players.addAll(joiningPlayers);
+                            ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(new PlayerJoinEvent(joiningPlayers, false));
+                            return true;
                         }
-                        break;
+                        return false;
                 }
             }
         }
@@ -72,6 +100,10 @@ public class ZombiesArena implements Tickable, Listener {
 
     public void handleDisconnect(JoinInformation leaveAttempt) {
         Set<Player> leavingPlayers = leaveAttempt.getPlayers();
+
+        if(leaveAttempt.isAsSpectator()) {
+            spectators.removeAll(leavingPlayers);
+        }
     }
 
     /**
@@ -91,8 +123,11 @@ public class ZombiesArena implements Tickable, Listener {
         return players.size();
     }
 
-    @Override
-    public void doTick() {
+    private void startCountdown() {
+
+    }
+
+    private void cancelCountdown() {
 
     }
 
@@ -103,33 +138,13 @@ public class ZombiesArena implements Tickable, Listener {
         zombiesPlugin.getWorldLoader().unloadWorld(getWorld().getName());
     }
 
-    private void startCountdown() {
-
-    }
-
-    private void cancelCountdown() {
-
-    }
-
     @Override
-    public boolean equals(Object other) {
-        if(other instanceof ZombiesArena) {
-            return getName().equals(((ZombiesArena)other).getName());
-        }
-
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return getName().hashCode();
+    public void doTick() {
+        //gameloop
     }
 
     @EventHandler
-    private void onPlayerInteract(PlayerInteractEvent event) {
-        //noinspection StatementWithEmptyBody
-        if(players.contains(event.getPlayer())) {
-            //proxy to custom event handling system
-        }
+    private void onPlayerRightClick(PlayerRightClickEvent event) {
+
     }
 }

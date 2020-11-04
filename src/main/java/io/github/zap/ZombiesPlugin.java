@@ -3,6 +3,7 @@ package io.github.zap;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
+import io.github.zap.event.EventProxy;
 import io.github.zap.game.Ticker;
 import io.github.zap.game.manager.ArenaManager;
 import io.github.zap.game.data.*;
@@ -50,6 +51,9 @@ public final class ZombiesPlugin extends JavaPlugin {
     private static ZombiesPlugin instance; //singleton for our main plugin class
 
     @Getter
+    private EventProxy eventProxy;
+
+    @Getter
     private ValidatingConfiguration configuration; //wrapper for bukkit's config manager
 
     @Getter
@@ -76,8 +80,9 @@ public final class ZombiesPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        StopWatch timer = new StopWatch();
+        eventProxy = new EventProxy();
 
+        StopWatch timer = new StopWatch();
         try {
             timer.start();
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
