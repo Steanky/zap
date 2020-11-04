@@ -4,7 +4,7 @@ public interface ValueConverter {
     ValueConverter DEFAULT = (object, direction) -> object;
 
     /**
-     * Converts the provided object into another object, given a Direction (either serialize or deserialize)
+     * Converts the provided object into another object, given a Direction (either SERIALIZE or DESERIALIZE)
      * @param object The object to convert
      * @param direction Whether the object is being serialized or deserialized
      * @return The converted object

@@ -6,3 +6,7 @@ authors: [ Steank, TachibanaYui, Lysogenic, syeyoung, Dictyophora ]
 description: A better version of the Hypixel minigame Zombies.
 loadbefore: [ MythicMobs ]
 depend: [ SlimeWorldManager ]
+commands:
+  zap_debug:
+    description: A debugging command.
+    usage: /zap_debug for more info.

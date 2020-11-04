@@ -1,4 +1,4 @@
-package io.github.zap;
+package io.github.zap.util;
 
 /**
  * Final class for holding converter names.

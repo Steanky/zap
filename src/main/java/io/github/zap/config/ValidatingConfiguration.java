@@ -23,23 +23,23 @@ public class ValidatingConfiguration {
     }
 
     /**
-     * Registers a validator for this Configuration object
-     * @param name The name of the validator. This should be the same as the path of the config value.
-     * @param validator The predicate that will test the value retrieved from the config file.
+     * Registers a validator for this Configuration object.
+     * @param path The path of the config value this validator points to
+     * @param validator The predicate that will test the value retrieved from the config file
      */
-    public <T> void registerValidator(String name, Predicate<T> validator) {
-        Objects.requireNonNull(name, "name cannot be null");
+    public <T> void registerValidator(String path, Predicate<T> validator) {
+        Objects.requireNonNull(path, "name cannot be null");
         Objects.requireNonNull(validator, "validator cannot be null");
 
-        validators.put(name, validator);
+        validators.put(path, validator);
     }
 
     /**
      * Get the value stored in the internal FileConfiguration.
      * @param path The name of the value
-     * @param fallback The default value, if the predicate fails. If the value does not exist, null is returned.
+     * @param fallback The default value, if the predicate fails
      * @param <T> The type of object to retrieve
-     * @return The stored object
+     * @return The stored object, the fallback if the returned value does not validate, or null
      */
     public <T> T get(String path, T fallback) {
         T value = (T)fileConfiguration.get(path);
