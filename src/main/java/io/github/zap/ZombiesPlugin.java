@@ -3,6 +3,7 @@ package io.github.zap;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
+import io.github.zap.event.PlayerRightClickEvent;
 import io.github.zap.manager.ArenaManager;
 import io.github.zap.maploader.MapLoader;
 import io.github.zap.net.BungeeHandler;
@@ -21,6 +22,11 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -30,7 +36,7 @@ import lombok.Getter;
 import java.util.Objects;
 import java.util.logging.Level;
 
-public final class ZombiesPlugin extends JavaPlugin {
+public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Getter
     private static ZombiesPlugin instance; //singleton pattern for our main plugin class
 
@@ -69,6 +75,9 @@ public final class ZombiesPlugin extends JavaPlugin {
             initMapLoader();
             initSerialization();
             initCommands();
+
+            //self register as listener for testing custom event code
+            getServer().getPluginManager().registerEvents(this, this);
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling: ~%sms", timer.getTime()));
@@ -181,5 +190,28 @@ public final class ZombiesPlugin extends JavaPlugin {
 
         //register commands here
         commandManager.registerCommand(new DebugCommand());
+    }
+
+    /*
+    example code showing how custom events can work
+     */
+
+    @EventHandler
+    private void onPlayerRightClick(PlayerRightClickEvent event) {
+        getLogger().info("Got PlayerRightClickEvent.");
+    }
+
+    /**
+     * Example: handle Bukkit onPlayerInteract and invoke our custom PlayerRightClickEvent if the user right-clicked.
+     * @param event The PlayerInteractEvent
+     */
+    @EventHandler
+    private void onPlayerInteract(PlayerInteractEvent event) {
+        getLogger().info("Got PlayerInteractEvent.");
+
+        Action action = event.getAction();
+        if(event.getHand() == EquipmentSlot.HAND && (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)) {
+            Bukkit.getServer().getPluginManager().callEvent(new PlayerRightClickEvent(event.getPlayer(), event.getClickedBlock(), event.getItem(), event.getAction()));
+        }
     }
 }

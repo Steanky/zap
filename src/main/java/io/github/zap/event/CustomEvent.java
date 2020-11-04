@@ -4,6 +4,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Base class for custom events. This implements the most simple functions required by Bukkit.
+ */
 public class CustomEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
 
@@ -13,6 +16,10 @@ public class CustomEvent extends Event {
         return handlers;
     }
 
+    /**
+     * This function is required by Bukkit's event API and is accessed via reflection.
+     * @return The list of handlers (used by Bukkit's event API)
+     */
     @NotNull
     public static HandlerList getHandlerList() {  //req'd by bukkit event api
         return handlers;
