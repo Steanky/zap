@@ -39,6 +39,8 @@ public class ArenaManager {
                 zombiesPlugin.getTicker().register(arena);
                 arenas.add(arena);
             });
+
+            return true;
         }
 
         return false;

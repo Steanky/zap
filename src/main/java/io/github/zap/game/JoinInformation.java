@@ -14,4 +14,6 @@ public class JoinInformation {
     Set<Player> players;
 
     String mapName;
+
+    boolean asSpectator;
 }

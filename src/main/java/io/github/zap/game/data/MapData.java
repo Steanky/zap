@@ -1,6 +1,5 @@
 package io.github.zap.game.data;
 
-import io.github.zap.game.Difficulty;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.util.VectorUtils;
 import lombok.AllArgsConstructor;
@@ -26,15 +25,18 @@ public class MapData extends DataSerializable {
     private int maximumCapacity;
 
     @Getter
-    private Difficulty difficulty;
-
-    @Getter
     private Set<DoorData> doors;
 
     private Map<String, RoomData> rooms;
 
     @Getter
     private Set<ShopData> shops;
+
+    @Getter
+    private boolean inProgressJoin;
+
+    @Getter
+    private boolean spectatorAllowed;
 
     private MapData() { }
 
