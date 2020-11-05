@@ -62,13 +62,13 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     private DataLoader dataLoader; //used to save/load data from custom serialization framework
 
     @Getter
-    private SlimeProxy slimeProxy;
+    private SlimeProxy slimeProxy; //access SWM through this proxy interface
 
     @Getter
-    private MythicProxy mythicProxy;
+    private MythicProxy mythicProxy; //access mythicmobs through this proxy interface
 
     @Getter
-    private WorldLoader worldLoader;
+    private WorldLoader worldLoader; //responsible for loading slime worlds
 
     @Getter
     private CommandManager commandManager;
@@ -83,10 +83,10 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         instance = this;
 
-        StopWatch timer = new StopWatch();
+
         try {
-            timer.start();
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
+            StopWatch timer = StopWatch.createStarted();
 
             initConfig();
             initProxies();
@@ -96,6 +96,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
             initMessaging();
 
             timer.stop();
+
             getLogger().log(Level.INFO, String.format("Done enabling; ~%sms elapsed", timer.getTime()));
         }
         catch(IllegalStateException exception)
@@ -104,18 +105,21 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
                     " '%s'", exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
         }
-        finally { //ensure timer gets reset
-            timer.reset();
-        }
     }
 
     @Override
     public void onDisable() {
         //perform shutdown tasks
         ticker.stop();
+        getLogger().info("Closing active arenas.");
+
+        StopWatch timer = StopWatch.createStarted();
         for(Arena arena : arenaManager.getArenas()) {
             arena.close();
         }
+        timer.stop();
+
+        getLogger().info(String.format("Done closing arenas; ~%sms elapsed", timer.getTime()));
     }
 
     /**
@@ -188,7 +192,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
             }
         }
         else {
-            throw new IllegalStateException("Unable to locate required plugin MythicMobs.");
+            throw new IllegalStateException("Unable to locate required plugin MythicMobs");
         }
 
         if(swm != null) {
@@ -204,7 +208,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
             }
         }
         else {
-            throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
+            throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager");
 
         }
     }
@@ -220,17 +224,11 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
         getLogger().info("Preloading worlds.");
 
-        StopWatch timer = new StopWatch();
-        try {
-            timer.start();
-            worldLoader.preloadWorlds("world_copy");
-            timer.stop();
+        StopWatch timer = StopWatch.createStarted();
+        worldLoader.preloadWorlds("world_copy");
+        timer.stop();
 
-            getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
-        }
-        finally {
-            timer.reset();
-        }
+        getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
     }
 
     private void initMessaging() {

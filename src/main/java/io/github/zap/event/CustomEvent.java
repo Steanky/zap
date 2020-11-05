@@ -17,8 +17,8 @@ public class CustomEvent extends Event {
     }
 
     /**
-     * This function is required by Bukkit's event API and is accessed via reflection.
-     * @return The list of handlers (used by Bukkit's event API)
+     * This function is required by Bukkit's event API.
+     * @return The list of handlers
      */
     @NotNull
     public static HandlerList getHandlerList() {  //req'd by bukkit event api

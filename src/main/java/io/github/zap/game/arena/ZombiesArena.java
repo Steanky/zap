@@ -1,5 +1,6 @@
 package io.github.zap.game.arena;
 
+import com.google.common.collect.Lists;
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.event.player.PlayerJoinArenaEvent;
 import io.github.zap.event.player.PlayerLeaveArenaEvent;
@@ -13,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 
 import java.util.*;
@@ -23,7 +25,6 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
 
     @Getter
     private final Map<UUID, ZombiesPlayer> playerMap = new HashMap<>();
-    private final Set<UUID> playerUUIDS = playerMap.keySet();
     private final Collection<ZombiesPlayer> players = playerMap.values();
 
     @Getter
@@ -129,6 +130,8 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
 
     public void close() {
         PlayerRightClickEvent.getHandlerList().unregister(this);
+        PlayerQuitEvent.getHandlerList().unregister(this);
+
         zombiesPlugin.getTicker().remove(this);
         zombiesPlugin.getArenaManager().removeArena(getName());
         zombiesPlugin.getWorldLoader().unloadWorld(world.getName());
@@ -149,6 +152,19 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
 
         if(player != null) {
             player.playerRightClick();
+        }
+    }
+
+    @EventHandler
+    private void onPlayerQuit(PlayerQuitEvent event) {
+        Player bukkitPlayer = event.getPlayer();
+        ZombiesPlayer zombiesPlayer = playerMap.getOrDefault(bukkitPlayer.getUniqueId(), null);
+
+        if(zombiesPlayer != null) {
+            handleLeave(new LeaveInformation(Lists.newArrayList(zombiesPlayer.getPlayer()), false));
+        }
+        else if(spectators.contains(bukkitPlayer)) {
+            handleLeave(new LeaveInformation(Lists.newArrayList(bukkitPlayer), true));
         }
     }
 
