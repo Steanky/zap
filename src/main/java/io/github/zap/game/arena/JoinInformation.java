@@ -13,7 +13,7 @@ import java.util.Set;
 @Value
 public class JoinInformation {
     /**
-     * The players who are involved in the transfer.
+     * The players who are trying to join.
      */
     List<Player> players;
 

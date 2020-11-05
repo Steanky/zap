@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
+@Getter
 public class ShopData extends DataSerializable {
-    @Getter
     private ShopType type;
 
     private ShopData() {}

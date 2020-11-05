@@ -10,7 +10,29 @@ public interface ArenaManager<T extends Arena> {
      * game)
      */
     boolean handleJoin(JoinInformation joinAttempt);
+
+    /**
+     * Removes the specified arena from the manager.
+     * @param name The name of the arena to remove
+     */
     void removeArena(String name);
+
+    /**
+     * Retrieves an arena from the internal map.
+     * @param name The name of the arena to retrieve
+     * @return The arena itself
+     */
     T getArena(String name);
+
+    /**
+     * Returns a list of arenas managed by this ArenaManager.
+     * @return A list of the arenas managed by this ArenaManager. This should be a copy of the underlying Collection,
+     * so that illegal modifications cannot be performed
+     */
     List<T> getArenas();
+
+    /**
+     * Loads the map data.
+     */
+    void loadMaps();
 }

@@ -7,7 +7,7 @@ import java.util.*;
 
 public class Ticker {
     private final List<Tickable> tickables = new ArrayList<>();
-    private final Set<String> remove = new HashSet<>();
+    private final Set<String> pendingRemoval = new HashSet<>();
     private int taskId = -1;
 
     private void doTick() {
@@ -15,9 +15,9 @@ public class Ticker {
             Tickable tickable = tickables.get(i);
             String name = tickable.getName();
 
-            if(remove.contains(name)) {
+            if(pendingRemoval.contains(name)) {
                 tickables.remove(i);
-                remove.remove(name);
+                pendingRemoval.remove(name);
             }
             else {
                 tickable.doTick();
@@ -30,18 +30,24 @@ public class Ticker {
     }
 
     public void remove(Tickable tickable) {
-        remove.add(tickable.getName());
+        pendingRemoval.add(tickable.getName());
+    }
+
+    public void remove(String name) {
+        pendingRemoval.add(name);
     }
 
     public void start(long period) {
         if(taskId == -1){
-            taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(ZombiesPlugin.getInstance(), this::doTick, 0, period);
+            taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(ZombiesPlugin.getInstance(), this::doTick, 0,
+                    period);
         }
     }
 
     public void stop() {
         if(taskId != -1) {
             Bukkit.getScheduler().cancelTask(taskId);
+            taskId = -1;
         }
     }
 }

@@ -5,17 +5,13 @@ import io.github.zap.serialize.DataSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Set;
+import java.util.List;
 
 @AllArgsConstructor
+@Getter
 public class DoorSide extends DataSerializable {
-    @Getter
     private int cost;
-
-    @Getter
-    private Set<String> opensTo;
-
-    @Getter
+    private List<String> opensTo;
     private MultiBoundingBox triggerBounds;
 
     private DoorSide() {}

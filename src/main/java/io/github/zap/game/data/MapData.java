@@ -9,7 +9,6 @@ import org.bukkit.util.Vector;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @AllArgsConstructor
 public class MapData extends DataSerializable {
@@ -25,19 +24,22 @@ public class MapData extends DataSerializable {
     @Getter
     private int maximumCapacity;
 
+    private Map<String, RoomData> rooms;
+
     @Getter
     private List<DoorData> doors;
-
-    private Map<String, RoomData> rooms;
 
     @Getter
     private List<ShopData> shops;
 
     @Getter
-    private boolean inProgressJoin;
+    private boolean joinableStarted;
 
     @Getter
-    private boolean spectatorAllowed;
+    private boolean spectatorsAllowed;
+
+    @Getter
+    private int windowRepairRadius;
 
     private MapData() { }
 
@@ -92,7 +94,7 @@ public class MapData extends DataSerializable {
     public WindowData windowInRange(Vector standing, double manhattanDistance) {
         for(RoomData roomData : rooms.values()) {
             for(WindowData window : roomData.getWindows()) {
-                double distance = VectorUtils.manhattanDistance(window.getFaceBounds().getCenter(), standing);
+                double distance = VectorUtils.manhattanDistance(window.getCenter(), standing);
 
                 if(distance < manhattanDistance) {
                     return window;

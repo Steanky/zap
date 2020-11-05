@@ -1,5 +1,7 @@
 package io.github.zap;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
@@ -43,9 +45,7 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import lombok.Getter;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 public final class ZombiesPlugin extends JavaPlugin {
@@ -95,6 +95,7 @@ public final class ZombiesPlugin extends JavaPlugin {
             initSerialization();
             initCommands();
             initMessaging();
+            setVsList();
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling; ~%sms elapsed", timer.getTime()));
@@ -114,6 +115,9 @@ public final class ZombiesPlugin extends JavaPlugin {
     public void onDisable() {
         //perform shutdown tasks
         ticker.stop();
+        for(Arena arena : arenaManager.getArenas()) {
+            arena.close();
+        }
     }
 
     /**
@@ -209,7 +213,8 @@ public final class ZombiesPlugin extends JavaPlugin {
 
     private void initWorldLoader() {
         //initialize the arenamanager with the configured maximum default amount of worlds
-        arenaManager = new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
+        arenaManager = new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10),
+                configuration.get(ConfigNames.ARENA_TIMEOUT_DELAY, 300000));
         worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
 
         ticker = new Ticker();
@@ -276,5 +281,44 @@ public final class ZombiesPlugin extends JavaPlugin {
 
         //register commands here
         commandManager.registerCommand(new DebugCommand());
+    }
+
+    private void setVsList() {
+        int iters = 1000000;
+        Set<Integer> set = Sets.newHashSet(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+        List<Long> setDiffs = new ArrayList<>();
+        for(int i = 0; i < iters; i++) {
+
+            long startTime = System.nanoTime();
+            for(Integer integer : set) { }
+            long endTime = System.nanoTime();
+
+            setDiffs.add(endTime - startTime);
+        }
+
+        long setSum = 0;
+        for(Long diff : setDiffs) {
+            setSum += diff;
+        }
+
+        getLogger().info(String.format("Average iteration for set: %s, total time: %s", (double)setSum / (double)iters, setSum));
+
+        List<Integer> list = Lists.newArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+        List<Long> listDiffs = new ArrayList<>();
+        for(int i = 0; i < iters; i++) {
+
+            long startTime = System.nanoTime();
+            for(Integer integer : list) { }
+            long endTime = System.nanoTime();
+
+            listDiffs.add(endTime - startTime);
+        }
+
+        long listSum = 0;
+        for(Long diff : listDiffs) {
+            listSum += diff;
+        }
+
+        getLogger().info(String.format("Average iteration for list: %s, total time: %s", (double)listSum / (double)iters, listSum));
     }
 }

@@ -17,6 +17,9 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     @Getter
     private final int arenaCapacity;
 
+    @Getter
+    private final int arenaTimeout;
+
     private final Map<String, MapData> maps = new HashMap<>();
     private final Map<String, ZombiesArena> arenas = new HashMap<>();
     private final Collection<ZombiesArena> mapArenas = arenas.values();
@@ -39,7 +42,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                 logger.fine(String.format("JoinInformation that triggered this load: '%s'", information));
 
                 zombiesPlugin.getWorldLoader().loadWorld(mapName, (world) -> {
-                    ZombiesArena arena = new ZombiesArena(maps.get(mapName), world);
+                    ZombiesArena arena = new ZombiesArena(maps.get(mapName), world, arenaTimeout);
                     arenas.put(arena.getName(), arena);
 
                     logger.info("Done loading arena.");
@@ -82,5 +85,10 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     @Override
     public List<ZombiesArena> getArenas() {
         return new ArrayList<>(mapArenas);
+    }
+
+    @Override
+    public void loadMaps() {
+
     }
 }
