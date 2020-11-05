@@ -4,8 +4,10 @@ import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.event.EventProxy;
+import io.github.zap.game.arena.Arena;
 import io.github.zap.game.Ticker;
-import io.github.zap.game.manager.ArenaManager;
+import io.github.zap.game.arena.ArenaManager;
+import io.github.zap.game.arena.ZombiesArenaManager;
 import io.github.zap.game.data.*;
 import io.github.zap.maploader.WorldLoader;
 import io.github.zap.proxy.MythicMobs_v4_10_R1;
@@ -72,7 +74,7 @@ public final class ZombiesPlugin extends JavaPlugin {
     private CommandManager commandManager;
 
     @Getter
-    private ArenaManager arenaManager;
+    private ArenaManager<? extends Arena> arenaManager;
 
     @Getter
     private Ticker ticker;
@@ -152,12 +154,15 @@ public final class ZombiesPlugin extends JavaPlugin {
         //make sure the MAX_WORLDS config var is within a reasonable range
         Range<Integer> maxWorldRange = Range.between(1, 64);
         Range<Integer> gametickDelayRange = Range.between(0, 5);
+        Range<Integer> arenaTimeoutDelay = Range.between(0, Integer.MAX_VALUE);
 
         configuration.registerValidator(ConfigNames.MAX_WORLDS, maxWorldRange::contains);
         configuration.registerValidator(ConfigNames.GAMETICK_DELAY, gametickDelayRange::contains);
+        configuration.registerValidator(ConfigNames.ARENA_TIMEOUT_DELAY, arenaTimeoutDelay::contains);
 
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.addDefault(ConfigNames.GAMETICK_DELAY, 2);
+        config.addDefault(ConfigNames.ARENA_TIMEOUT_DELAY, 300000);
         config.options().copyDefaults(true);
 
         saveConfig();
@@ -204,7 +209,7 @@ public final class ZombiesPlugin extends JavaPlugin {
 
     private void initWorldLoader() {
         //initialize the arenamanager with the configured maximum default amount of worlds
-        arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
+        arenaManager = new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
         worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
 
         ticker = new Ticker();

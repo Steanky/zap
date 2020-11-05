@@ -13,7 +13,7 @@ public class DoorSide extends DataSerializable {
     private int cost;
 
     @Getter
-    private Set<String> openings;
+    private Set<String> opensTo;
 
     @Getter
     private MultiBoundingBox triggerBounds;

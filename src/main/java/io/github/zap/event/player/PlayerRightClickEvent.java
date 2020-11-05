@@ -1,5 +1,6 @@
-package io.github.zap.event;
+package io.github.zap.event.player;
 
+import io.github.zap.event.CustomEvent;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

@@ -7,6 +7,7 @@ import lombok.Getter;
 import org.bukkit.util.Vector;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,12 +26,12 @@ public class MapData extends DataSerializable {
     private int maximumCapacity;
 
     @Getter
-    private Set<DoorData> doors;
+    private List<DoorData> doors;
 
     private Map<String, RoomData> rooms;
 
     @Getter
-    private Set<ShopData> shops;
+    private List<ShopData> shops;
 
     @Getter
     private boolean inProgressJoin;

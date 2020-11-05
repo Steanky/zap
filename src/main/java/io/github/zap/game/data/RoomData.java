@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -21,10 +22,10 @@ public class RoomData extends DataSerializable {
     private MultiBoundingBox bounds;
 
     @Getter
-    private Set<WindowData> windows;
+    private List<WindowData> windows;
 
     @Getter
-    private Set<SpawnpointData> spawnpoints;
+    private List<SpawnpointData> spawnpoints;
 
     @Getter
     private boolean isSpawn;

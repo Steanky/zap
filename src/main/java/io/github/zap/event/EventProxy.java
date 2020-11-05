@@ -1,6 +1,7 @@
 package io.github.zap.event;
 
 import io.github.zap.ZombiesPlugin;
+import io.github.zap.event.player.PlayerRightClickEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
