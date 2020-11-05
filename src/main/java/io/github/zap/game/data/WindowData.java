@@ -1,5 +1,6 @@
 package io.github.zap.game.data;
 
+import io.github.zap.game.MultiAccessor;
 import io.github.zap.game.MultiBoundingBox;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
@@ -34,6 +35,13 @@ public class WindowData extends DataSerializable {
     @NoSerialize
     private Vector centerVector;
 
+    @NoSerialize
+    private int volume = -1;
+
+    @Getter
+    @NoSerialize
+    private final MultiAccessor<Integer> currentIndexAccessor = new MultiAccessor<>(0);
+
     private WindowData() {}
 
     public Vector getCenter() {
@@ -42,5 +50,13 @@ public class WindowData extends DataSerializable {
         }
 
         return centerVector.clone();
+    }
+
+    public int getVolume() {
+        if(volume == -1) {
+            volume = (int)faceBounds.getVolume();
+        }
+
+        return volume;
     }
 }

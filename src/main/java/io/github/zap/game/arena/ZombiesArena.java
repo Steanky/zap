@@ -6,6 +6,7 @@ import io.github.zap.event.player.PlayerLeaveArenaEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
 import io.github.zap.game.Tickable;
 import io.github.zap.game.data.MapData;
+import io.github.zap.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -14,11 +15,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 
-import java.util.List;
+import java.util.*;
 
 public class ZombiesArena extends Arena implements Tickable, Listener {
     private final ZombiesPlugin zombiesPlugin;
     private final PluginManager pluginManager;
+
+    @Getter
+    private final Map<UUID, ZombiesPlayer> playerMap = new HashMap<>();
+    private final Set<UUID> playerUUIDS = playerMap.keySet();
+    private final Collection<ZombiesPlayer> players = playerMap.values();
+
+    @Getter
+    private final List<Player> spectators = new ArrayList<>();
 
     @Getter
     private final MapData map;
@@ -36,13 +45,8 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
         zombiesPlugin = ZombiesPlugin.getInstance();
         pluginManager = zombiesPlugin.getServer().getPluginManager();
 
-        pluginManager.registerEvents(this, zombiesPlugin);
         zombiesPlugin.getTicker().register(this);
-    }
-
-    @Override
-    public String getName() {
-        return world.getName();
+        pluginManager.registerEvents(this, zombiesPlugin);
     }
 
     public boolean handleJoin(JoinInformation joinAttempt) {
@@ -55,7 +59,7 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
             }
         }
         else {
-            int newSize = players.size() + joiningPlayers.size();
+            int newSize = playerMap.size() + joiningPlayers.size();
 
             if(newSize <= map.getMaximumCapacity()) { //we can fit the players
                 switch (state) {
@@ -72,7 +76,7 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
                 }
 
                 resetTimeout();
-                players.addAll(joiningPlayers);
+                addPlayers(joiningPlayers);
                 pluginManager.callEvent(new PlayerJoinArenaEvent(this, joiningPlayers, false));
                 return true;
             }
@@ -89,8 +93,8 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
             pluginManager.callEvent(new PlayerLeaveArenaEvent(this, leavingPlayers, true));
         }
         else {
-            players.removeAll(leavingPlayers);
-            int currentSize = players.size();
+            removePlayers(leavingPlayers);
+            int currentSize = playerMap.size();
 
             switch(state) {
                 case PREGAME:
@@ -104,7 +108,7 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
                     }
 
                     if(currentSize < map.getMinimumCapacity()) {
-                        cancelCountdown();
+                        resetCountdown();
                     }
                     break;
                 case STARTED:
@@ -128,19 +132,35 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
         zombiesPlugin.getTicker().remove(this);
         zombiesPlugin.getArenaManager().removeArena(getName());
         zombiesPlugin.getWorldLoader().unloadWorld(world.getName());
+
+        MapData.cleanup(this);
     }
 
     @Override
     public void doTick() {
-        for(Player player : players) {
-
+        for(ZombiesPlayer player : players) {
+            player.playerTick();
         }
     }
 
     @EventHandler
     private void onPlayerRightClick(PlayerRightClickEvent event) {
-        if(players.contains(event.getPlayer())) {
+        ZombiesPlayer player = playerMap.getOrDefault(event.getPlayer().getUniqueId(), null);
 
+        if(player != null) {
+            player.playerRightClick();
+        }
+    }
+
+    private void addPlayers(Iterable<Player> players) {
+        for(Player player : players) {
+            this.playerMap.put(player.getUniqueId(), new ZombiesPlayer(player, this));
+        }
+    }
+
+    private void removePlayers(Iterable<Player> players) {
+        for(Player player : players) {
+            this.playerMap.remove(player.getUniqueId());
         }
     }
 
@@ -161,7 +181,7 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
 
     }
 
-    private void cancelCountdown() {
+    private void resetCountdown() {
 
     }
 }

@@ -12,6 +12,10 @@ import java.util.Set;
 public class MultiBoundingBox extends DataSerializable {
     private final List<BoundingBox> boundingBoxes = new ArrayList<>();
 
+    /**
+     * Adds a BoundingBox to this instance.
+     * @param boundingBox The BoundingBox to include
+     */
     public void addBounds(BoundingBox boundingBox) {
         boundingBoxes.add(boundingBox);
     }

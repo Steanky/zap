@@ -1,5 +1,6 @@
 package io.github.zap.game;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
@@ -12,6 +13,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MultiAccessor<T> {
     private final Map<String, T> mappings = new HashMap<>();
+
+    @Getter
     private final T defaultValue;
 
     /**
@@ -28,13 +31,22 @@ public class MultiAccessor<T> {
      * Sets the value associated with this accessor.
      * @param accessor The accessor to use
      * @param value The value to store for this accessor
+     * @return true if the value changed as a result of this call, false otherwise
      */
-    public void setValue(String accessor, T value) {
-        mappings.put(accessor, value);
+    public boolean setValue(String accessor, T value) {
+        T oldValue = mappings.get(accessor);
+
+        if(!value.equals(oldValue)) {
+            mappings.put(accessor, value);
+            AccessorManager.getInstance().addAccessor(accessor, this);
+            return true;
+        }
+
+        return false;
     }
 
     /**
-     * Returns whether or not the existing accessor has any stored value associated with it.
+     * Returns whether or not the existing accessor has any non-default stored value associated with it.
      * @param accessor The accessor to look for
      * @return true if the accessor has a value, false if it doesn't
      */

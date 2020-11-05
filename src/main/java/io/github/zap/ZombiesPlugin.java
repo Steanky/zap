@@ -1,11 +1,9 @@
 package io.github.zap;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
-import io.github.zap.event.EventProxy;
+import io.github.zap.event.player.PlayerRightClickEvent;
 import io.github.zap.game.arena.Arena;
 import io.github.zap.game.Ticker;
 import io.github.zap.game.arena.ArenaManager;
@@ -37,6 +35,11 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -48,12 +51,9 @@ import lombok.Getter;
 import java.util.*;
 import java.util.logging.Level;
 
-public final class ZombiesPlugin extends JavaPlugin {
+public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Getter
     private static ZombiesPlugin instance; //singleton for our main plugin class
-
-    @Getter
-    private EventProxy eventProxy;
 
     @Getter
     private ValidatingConfiguration configuration; //wrapper for bukkit's config manager
@@ -82,7 +82,6 @@ public final class ZombiesPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        eventProxy = new EventProxy();
 
         StopWatch timer = new StopWatch();
         try {
@@ -95,7 +94,6 @@ public final class ZombiesPlugin extends JavaPlugin {
             initSerialization();
             initCommands();
             initMessaging();
-            setVsList();
 
             timer.stop();
             getLogger().log(Level.INFO, String.format("Done enabling; ~%sms elapsed", timer.getTime()));
@@ -283,42 +281,14 @@ public final class ZombiesPlugin extends JavaPlugin {
         commandManager.registerCommand(new DebugCommand());
     }
 
-    private void setVsList() {
-        int iters = 1000000;
-        Set<Integer> set = Sets.newHashSet(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-        List<Long> setDiffs = new ArrayList<>();
-        for(int i = 0; i < iters; i++) {
+    @EventHandler
+    private void onPlayerInteract(PlayerInteractEvent event) {
+        Action action = event.getAction();
 
-            long startTime = System.nanoTime();
-            for(Integer integer : set) { }
-            long endTime = System.nanoTime();
-
-            setDiffs.add(endTime - startTime);
+        if(event.getHand() == EquipmentSlot.HAND && (action == Action.RIGHT_CLICK_BLOCK ||
+                action == Action.RIGHT_CLICK_AIR)) {
+            getServer().getPluginManager().callEvent(new PlayerRightClickEvent(event.getPlayer(),
+                    event.getClickedBlock(), event.getItem(), action));
         }
-
-        long setSum = 0;
-        for(Long diff : setDiffs) {
-            setSum += diff;
-        }
-
-        getLogger().info(String.format("Average iteration for set: %s, total time: %s", (double)setSum / (double)iters, setSum));
-
-        List<Integer> list = Lists.newArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-        List<Long> listDiffs = new ArrayList<>();
-        for(int i = 0; i < iters; i++) {
-
-            long startTime = System.nanoTime();
-            for(Integer integer : list) { }
-            long endTime = System.nanoTime();
-
-            listDiffs.add(endTime - startTime);
-        }
-
-        long listSum = 0;
-        for(Long diff : listDiffs) {
-            listSum += diff;
-        }
-
-        getLogger().info(String.format("Average iteration for list: %s, total time: %s", (double)listSum / (double)iters, listSum));
     }
 }

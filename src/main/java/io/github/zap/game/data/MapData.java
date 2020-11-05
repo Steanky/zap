@@ -1,14 +1,15 @@
 package io.github.zap.game.data;
 
+import io.github.zap.game.AccessorManager;
+import io.github.zap.game.MultiAccessor;
+import io.github.zap.game.arena.Arena;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.util.VectorUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.util.Vector;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @AllArgsConstructor
 public class MapData extends DataSerializable {
@@ -133,5 +134,41 @@ public class MapData extends DataSerializable {
         }
 
         return null;
+    }
+
+    public static boolean openDoor(Arena arena, DoorData door) {
+        return door.getOpenAccessor().setValue(arena.getName(), true);
+    }
+
+    public static boolean breakWindow(Arena arena, WindowData window) {
+        MultiAccessor<Integer> accessor = window.getCurrentIndexAccessor();
+        String accessName = arena.getName();
+
+        int currentIndex = accessor.getValue(accessName);
+        currentIndex--;
+
+        if(currentIndex > -1 && currentIndex < window.getVolume()) {
+            return accessor.setValue(accessName, currentIndex);
+        }
+
+        return false;
+    }
+
+    public static boolean repairWindow(Arena arena, WindowData window) {
+        MultiAccessor<Integer> accessor = window.getCurrentIndexAccessor();
+        String accessName = arena.getName();
+
+        int currentIndex = accessor.getValue(accessName);
+        currentIndex++;
+
+        if(currentIndex < window.getVolume() && currentIndex > -1) {
+            return accessor.setValue(accessName, currentIndex);
+        }
+
+        return false;
+    }
+
+    public static void cleanup(Arena arena) {
+        AccessorManager.getInstance().removeMappingsFor(arena.getName());
     }
 }

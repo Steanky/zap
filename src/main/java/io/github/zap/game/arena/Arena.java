@@ -1,25 +1,14 @@
 package io.github.zap.game.arena;
 
+import io.github.zap.game.Tickable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @RequiredArgsConstructor
-public abstract class Arena {
+public abstract class Arena implements Tickable {
     @Getter
     protected final World world;
-
-    @Getter
-    protected final List<Player> players = new ArrayList<>();
-
-    @Getter
-    protected final List<Player> spectators = new ArrayList<>();
 
     @Getter
     protected ArenaState state = ArenaState.PREGAME;
@@ -36,6 +25,11 @@ public abstract class Arena {
     @Override
     public int hashCode() {
         return world.getName().hashCode();
+    }
+
+    @Override
+    public String getName() {
+        return world.getName();
     }
 
     /**
