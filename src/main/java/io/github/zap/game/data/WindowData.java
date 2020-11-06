@@ -5,8 +5,10 @@ import io.github.zap.game.MultiBoundingBox;
 import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
@@ -14,54 +16,93 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
+/**
+ * Represents a window.
+ */
+@Getter
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class WindowData extends DataSerializable {
-    @Getter
-    private List<Material> repairedMaterials;
+    /**
+     * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
+     * the same index in faceVectors.
+     */
+    List<Material> repairedMaterials;
 
-    @Getter
-    private List<Material> brokenMaterials;
+    /**
+     * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
+     * this at a later date as I'm not exactly sure of its utility
+     */
+    List<Material> brokenMaterials;
 
-    @Getter
-    private List<Vector> faceVectors;
+    /**
+     * A list of vectors corresponding to the blocks of window face
+     */
+    List<Vector> faceVectors;
 
-    @Getter
-    private BoundingBox faceBounds;
+    /**
+     * A BoundingBox containing the face of the window
+     */
+    BoundingBox faceBounds;
 
-    @Getter
-    private MultiBoundingBox interiorBounds;
+    /**
+     * The bounds of the window interior - used for player position checking
+     */
+    MultiBoundingBox interiorBounds;
 
-    @Getter
-    private Vector base;
+    /**
+     * The coordinate considered the 'base' of the window, to which players are teleported if they enter the interior
+     */
+    Vector base;
 
+    /**
+     * The center of the window's face, used for distance checking. This value is calculated once and cached.
+     */
     @NoSerialize
-    private Vector centerVector;
+    Vector center;
 
+    /**
+     * The volume of the window's face. This is calculated once and cached.
+     */
     @NoSerialize
-    private int volume = -1;
+    int volume = -1;
 
-    @Getter
+    /**
+     * Arena specific state: the current index at which the window is being repaired or broken
+     */
     @NoSerialize
-    private final MultiAccessor<Integer> currentIndexAccessor = new MultiAccessor<>(0);
+    final MultiAccessor<Integer> currentIndexAccessor = new MultiAccessor<>(0);
 
-    @Getter
+    /**
+     * Arena specific state: the player who is currently repairing the window
+     */
     @NoSerialize
-    private final MultiAccessor<ZombiesPlayer> repairingPlayer = new MultiAccessor<>(null);
+    final MultiAccessor<ZombiesPlayer> repairingPlayer = new MultiAccessor<>(null);
 
-    @Getter
+    /**
+     * Arena specific state: the entity that is currently attacking the window
+     */
     @NoSerialize
-    private final MultiAccessor<Entity> attackingEntity = new MultiAccessor<>(null);
+    final MultiAccessor<Entity> attackingEntity = new MultiAccessor<>(null);
 
     private WindowData() {}
 
+    /**
+     * Gets the center of the window's face (its breakable/repairable blocks)
+     * @return The central vector of the window's face
+     */
     public Vector getCenter() {
-        if(centerVector == null) {
-            centerVector = faceBounds.getCenter();
+        if(center == null) {
+            center = faceBounds.getCenter();
         }
 
-        return centerVector.clone();
+        return center.clone();
     }
 
+    /**
+     * Gets the volume of the window's face (it's breakable/repairable blocks)
+     * @return The volume of the window's face
+     */
     public int getVolume() {
         if(volume == -1) {
             volume = (int)faceBounds.getVolume();

@@ -4,6 +4,10 @@ import lombok.Getter;
 
 import java.util.*;
 
+/**
+ * Singleton responsible for handling accessors and ensuring that their internal maps are cleared to prevent
+ * "memory leaks".
+ */
 public class AccessorManager {
     @Getter
     private static final AccessorManager instance = new AccessorManager();
@@ -30,7 +34,7 @@ public class AccessorManager {
     }
 
     /**
-     * Adds an accessor mapping.
+     * Adds an accessor
      * @param accessor The object accessing the specified MultiAccessor
      * @param variable The MultiAccessor it referenced
      */
@@ -40,7 +44,7 @@ public class AccessorManager {
             set = new HashSet<>();
         }
 
-        set.add(variable);
+        set.add(variable); //disallow duplicate elements
     }
 
     /**

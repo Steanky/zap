@@ -8,7 +8,9 @@ import java.util.Map;
 
 /**
  * Generic utility class that enables different named accessor objects to access their own unique copies of a single
- * value.
+ * value. Specifically, this is used by some map data classes to store state information that is game-specific (such
+ * as whether or not a door is open). The value will be different for each accessing ZombiesArena. Furthermore, the
+ * mappings will be removed when the arena closes thanks to the AccessorManager.
  * @param <T> The type of value this accessor stores
  */
 @RequiredArgsConstructor
@@ -19,27 +21,27 @@ public class MultiAccessor<T> {
     private final T defaultValue;
 
     /**
-     * Gets the value that is stored for this accessor. Returns the default value if it is not in the internal map.
-     * @param accessor The accessor name
-     * @return The value stored for this accessor, or the default value used by this instance
+     * Gets the value that is stored for the given Named. Returns the default value if it is not in the internal map.
+     * @param named The Named object attempting to access this instance, which should have a unique name
+     * @return The value stored for the provided Named object, or the default value used by this instance
      */
-    public T getValue(Named accessor) {
-        return mappings.getOrDefault(accessor.getName(), defaultValue);
+    public T get(Named named) {
+        return mappings.getOrDefault(named.getName(), defaultValue);
     }
 
     /**
-     * Sets the value associated with this accessor.
-     * @param accessor The accessor to use
-     * @param value The value to store for this accessor
-     * @return true if the value changed as a result of this call, false otherwise
+     * Sets the value associated with this Named instance.
+     * @param named The enacting Named instance
+     * @param value The value to store for Named
+     * @return true if the stored value changed as a result of this call, false otherwise
      */
-    public boolean setValue(Named accessor, T value) {
-        String name = accessor.getName();
-        T oldValue = mappings.get(name);
+    public boolean set(Named named, T value) {
+        String accessorName = named.getName();
+        T oldValue = mappings.get(accessorName);
 
         if(!value.equals(oldValue)) {
-            mappings.put(name, value);
-            AccessorManager.getInstance().addAccessor(accessor, this);
+            mappings.put(accessorName, value);
+            AccessorManager.getInstance().addAccessor(named, this);
             return true;
         }
 
@@ -47,19 +49,10 @@ public class MultiAccessor<T> {
     }
 
     /**
-     * Returns whether or not the existing accessor has any non-default stored value associated with it.
-     * @param accessor The accessor to look for
-     * @return true if the accessor has a value, false if it doesn't
+     * Removes the mapping for the provided Named object.
+     * @param named The Named instance to remove the mapping for
      */
-    public boolean hasAccessor(Named accessor) {
-        return mappings.containsKey(accessor.getName());
-    }
-
-    /**
-     * Removes an accessor and any stored value from the internal map.
-     * @param accessor The accessor to remove
-     */
-    public void removeAccessor(Named accessor) {
-        mappings.remove(accessor.getName());
+    public void removeAccessor(Named named) {
+        mappings.remove(named.getName());
     }
 }

@@ -1,23 +1,35 @@
 package io.github.zap.game.data;
 
-import io.github.zap.event.map.DoorOpenEvent;
 import io.github.zap.game.MultiBoundingBox;
-import io.github.zap.game.arena.Purchasable;
-import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
-import io.github.zap.util.WorldUtils;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.bukkit.Material;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
-@AllArgsConstructor
+/**
+ * Represents a DoorSide, which can be defined as "a place from which the door may be opened".
+ */
 @Getter
-public class DoorSide extends DataSerializable implements Purchasable {
-    private int cost;
-    private List<String> opensTo;
-    private MultiBoundingBox triggerBounds;
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class DoorSide extends DataSerializable {
+    /**
+     * What it will cost to open the door from this side.
+     */
+    int cost;
+
+    /**
+     * The names of the rooms this DoorSide will open, when it is purchased.
+     */
+    List<String> opensTo;
+
+    /**
+     * The bounds in which the player must stand in order to open the door from this side.
+     */
+    MultiBoundingBox triggerBounds;
 
     private DoorSide() {}
 }

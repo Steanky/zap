@@ -1,88 +1,100 @@
 package io.github.zap.game.data;
 
-import io.github.zap.game.AccessorManager;
-import io.github.zap.game.MultiAccessor;
-import io.github.zap.game.arena.Arena;
-import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.util.VectorUtils;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import lombok.experimental.FieldDefaults;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.*;
 
+/**
+ * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
+ * retrieving and manipulating its own data values.
+ */
+@Getter
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class MapData extends DataSerializable {
-    @Getter
-    private String name;
+    /**
+     * The unique name of this map that need not be user friendly
+     */
+    String name;
 
-    @Getter
-    private String displayName;
+    /**
+     * The user-friendly name of this map
+     */
+    String displayName;
 
-    @Getter
-    private BoundingBox mapBounds;
+    /**
+     * The bounds of the map, inside which every component should exist
+     */
+    BoundingBox mapBounds;
 
-    @Getter
-    private int minimumCapacity;
+    /**
+     * The minimum required number of players that this map can start with
+     */
+    int minimumCapacity;
 
-    @Getter
-    private int maximumCapacity;
+    /**
+     * The maximum number of players this map can hold
+     */
+    int maximumCapacity;
 
-    private Map<String, RoomData> rooms;
+    /**
+     * The list of rooms managed by this map
+     */
+    List<RoomData> rooms;
 
-    @Getter
-    private List<DoorData> doors;
+    /**
+     * All the doors managed by this map
+     */
+    List<DoorData> doors;
 
-    @Getter
-    private List<ShopData> shops;
+    /**
+     * All the shops managed by this map
+     */
+    List<ShopData> shops;
 
-    @Getter
-    private boolean joinableStarted;
+    /**
+     * The number of coins each player should start with
+     */
+    int startingCoins;
 
-    @Getter
+    /**
+     * Whether or not this map should be joinable by other players after it has started
+     */
+    boolean joinableStarted;
+
+    /**
+     * Whether or not spectators are allowed here
+     */
     private boolean spectatorsAllowed;
 
-    @Getter
+    /**
+     * If this is true, players will be required to be holding nothing in order to open doors
+     */
     private boolean handRequiredToOpenDoors;
 
-    @Getter
+    /**
+     * The minimum (Manhattan) distance that players must be from a window in order to repair it
+     */
     private int windowRepairRadius;
 
-    @Getter
+    /**
+     * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
+     */
     private int windowRepairDelay;
 
-    @Getter
+    /**
+     * The base rate at which mobs break through windows, in server ticks
+     */
     private int windowBreakDelay;
 
     private MapData() { }
-
-    /**
-     * Adds a room to this MapData instance.
-     * @param room The room to add
-     */
-    public void addRoom(RoomData room) {
-        rooms.put(room.getName(), room);
-    }
-
-    /**
-     * Gets the room with the specified name.
-     * @param name The name of the room to retrieve
-     * @return The RoomData, or null
-     */
-    public RoomData getRoom(String name) {
-        return rooms.get(name);
-    }
-
-    /**
-     * Gets all the rooms contained in this map.
-     * @return The collection of rooms contained in this map
-     */
-    public Collection<RoomData> getRooms() {
-        return rooms.values();
-    }
 
     /**
      * Gets the window whose face contains the provided vector, or null if the vector is not inside any windows.
@@ -91,7 +103,7 @@ public class MapData extends DataSerializable {
      */
     public WindowData windowAt(Vector target) {
         if(mapBounds.contains(target)) {
-            for(RoomData roomData : rooms.values()) {
+            for(RoomData roomData : rooms) {
                 for(WindowData window : roomData.getWindows()) {
                     if(window.getFaceBounds().contains(target)) {
                         return window;
@@ -111,7 +123,7 @@ public class MapData extends DataSerializable {
      */
     public WindowData windowInRange(Vector standing, double distance) {
         if(mapBounds.contains(standing)) {
-            for(RoomData roomData : rooms.values()) {
+            for(RoomData roomData : rooms) {
                 for(WindowData window : roomData.getWindows()) {
                     if(VectorUtils.manhattanDistance(window.getCenter(), standing) < distance) {
                         return window;
@@ -147,7 +159,7 @@ public class MapData extends DataSerializable {
      */
     public RoomData roomAt(Vector target) {
         if(mapBounds.contains(target)) {
-            for(RoomData room : rooms.values()) {
+            for(RoomData room : rooms) {
                 if(room.getBounds().contains(target)) {
                     return room;
                 }
@@ -155,9 +167,5 @@ public class MapData extends DataSerializable {
         }
 
         return null;
-    }
-
-    public void cleanup(Arena arena) {
-        AccessorManager.getInstance().removeMappingsFor(arena);
     }
 }

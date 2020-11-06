@@ -1,8 +1,8 @@
 package io.github.zap.game;
 
 /**
- * Represents some kind of uniquely named object. Used to identify Tickables, but other interfaces that need this
- * functionality should extend from this.
+ * Represents some kind of uniquely named object. Used to identify Tickables and objects that are accessing values from
+ * a MultiAccessor.
  */
 public interface Named {
     /**

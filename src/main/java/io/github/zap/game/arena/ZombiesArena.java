@@ -6,6 +6,7 @@ import io.github.zap.event.map.DoorOpenEvent;
 import io.github.zap.event.player.PlayerJoinArenaEvent;
 import io.github.zap.event.player.PlayerLeaveArenaEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
+import io.github.zap.game.AccessorManager;
 import io.github.zap.game.MultiAccessor;
 import io.github.zap.game.data.DoorData;
 import io.github.zap.game.data.DoorSide;
@@ -27,12 +28,17 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
+/**
+ * Encapsulates an active Zombies game and handles most related logic.
+ */
 public class ZombiesArena extends Arena implements Listener {
     private final ZombiesPlugin zombiesPlugin;
     private final PluginManager pluginManager;
 
     @Getter
     private final Map<UUID, ZombiesPlayer> playerMap = new HashMap<>();
+
+    @Getter
     private final Collection<ZombiesPlayer> players = playerMap.values();
 
     @Getter
@@ -45,14 +51,20 @@ public class ZombiesArena extends Arena implements Listener {
     protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
 
     @Getter
-    private final long timeout;
+    private final long emptyTimeout;
 
     private int timeoutTaskId = -1;
 
-    public ZombiesArena(MapData map, World world, long timeout) {
+    /**
+     * Creates a new ZombiesArena with the specified map, world, and timeout.
+     * @param map The map to use
+     * @param world The world to use
+     * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
+     */
+    public ZombiesArena(MapData map, World world, long emptyTimeout) {
         super(world);
         this.map = map;
-        this.timeout = timeout;
+        this.emptyTimeout = emptyTimeout;
 
         zombiesPlugin = ZombiesPlugin.getInstance();
         pluginManager = zombiesPlugin.getServer().getPluginManager();
@@ -77,17 +89,17 @@ public class ZombiesArena extends Arena implements Listener {
                 switch (state) {
                     case PREGAME:
                         if(newSize >= map.getMinimumCapacity()) {
-                            startCountdown();
+                            startCountdown(); //we have enough to start
                         }
                         break;
                     case STARTED:
-                        if(!map.isJoinableStarted()) {
+                        if(!map.isJoinableStarted()) { //support players joining midgame
                             return false;
                         }
                         break;
                 }
 
-                resetTimeout();
+                resetTimeout(); //reset timeout task
                 addPlayers(joiningPlayers);
                 pluginManager.callEvent(new PlayerJoinArenaEvent(this, joiningPlayers, false));
                 return true;
@@ -119,17 +131,17 @@ public class ZombiesArena extends Arena implements Listener {
                         startTimeout();
                     }
 
-                    if(currentSize < map.getMinimumCapacity()) {
+                    if(currentSize < map.getMinimumCapacity()) { //cancel countdown if too many people left
                         resetCountdown();
                     }
                     break;
                 case STARTED:
                     if(currentSize == 0) {
                         if(map.isJoinableStarted()) {
-                            close(); //close if nobody can rejoin
+                            close(); //close immediately if nobody can rejoin
                         }
                         else {
-                            startTimeout();
+                            startTimeout(); //otherwise, wait
                         }
                     }
                     break;
@@ -147,13 +159,13 @@ public class ZombiesArena extends Arena implements Listener {
         zombiesPlugin.getArenaManager().removeArena(getName());
         zombiesPlugin.getWorldLoader().unloadWorld(world.getName());
 
-        map.cleanup(this);
+        AccessorManager.getInstance().removeMappingsFor(this);
     }
 
     @Override
-    public void doTick() {
+    public void onTick() {
         for(ZombiesPlayer player : players) {
-            player.playerTick();
+            player.onPlayerTick();
         }
     }
 
@@ -166,17 +178,16 @@ public class ZombiesArena extends Arena implements Listener {
         if(opener.getState() == PlayerState.ALIVE) {
             Player player = opener.getPlayer();
 
-            if(ItemStackUtils.isEmpty(player.getInventory().getItemInMainHand()) ||
-                    !map.isHandRequiredToOpenDoors()) {
+            if(ItemStackUtils.isEmpty(player.getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
                 DoorData door = map.doorAt(targetBlock);
 
                 if(door != null) {
                     DoorSide side = door.sideAt(player.getLocation().toVector());
 
-                    if(side != null && opener.canPurchase(side)) {
+                    if(side != null && opener.getCoins() >= side.getCost()) {
                         WorldUtils.fillBounds(world, door.getDoorBounds(), Material.AIR);
                         opener.giveCoins(-side.getCost());
-                        door.getOpenAccessor().setValue(this, true);
+                        door.getOpenAccessor().set(this, true);
                         pluginManager.callEvent(new DoorOpenEvent(opener, door, side, side.getOpensTo()));
                     }
                 }
@@ -184,22 +195,25 @@ public class ZombiesArena extends Arena implements Listener {
         }
     }
 
+    /**
+     * Attempts to repair the given window.
+     * @param repairer The player attempting to repair this window
+     */
     public void tryRepairWindow(ZombiesPlayer repairer) {
         if(repairer.getState() == PlayerState.ALIVE) {
             Player player = repairer.getPlayer();
             WindowData window = map.windowInRange(player.getLocation().toVector(), map.getWindowRepairRadius());
 
-
             if(window != null) {
                 MultiAccessor<Entity> attackingEntityAccessor = window.getAttackingEntity();
 
-                if(attackingEntityAccessor.getValue(this) == null) {
+                if(attackingEntityAccessor.get(this) == null) {
                     MultiAccessor<ZombiesPlayer> currentRepairerAccessor = window.getRepairingPlayer();
-                    ZombiesPlayer currentRepairer = currentRepairerAccessor.getValue(this);
+                    ZombiesPlayer currentRepairer = currentRepairerAccessor.get(this);
 
                     if(currentRepairer == null) {
                         currentRepairer = repairer;
-                        currentRepairerAccessor.setValue(this, repairer);
+                        currentRepairerAccessor.set(this, repairer);
                     }
 
                     if(currentRepairer == repairer) {
@@ -240,7 +254,7 @@ public class ZombiesArena extends Arena implements Listener {
 
     private void addPlayers(Iterable<Player> players) {
         for(Player player : players) {
-            this.playerMap.put(player.getUniqueId(), new ZombiesPlayer(player, this));
+            this.playerMap.put(player.getUniqueId(), new ZombiesPlayer(this, player, map.getStartingCoins()));
         }
     }
 
@@ -252,7 +266,8 @@ public class ZombiesArena extends Arena implements Listener {
 
     private void startTimeout() {
         if(timeoutTaskId == -1) {
-            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(ZombiesPlugin.getInstance(), this::close, timeout);
+            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(ZombiesPlugin.getInstance(), this::close,
+                    emptyTimeout);
         }
     }
 

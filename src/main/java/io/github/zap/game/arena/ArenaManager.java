@@ -2,6 +2,10 @@ package io.github.zap.game.arena;
 
 import java.util.List;
 
+/**
+ * Generic interface for an ArenaManager.
+ * @param <T> The type of arena this instance manages
+ */
 public interface ArenaManager<T extends Arena> {
     /**
      * Handle the specified JoinInformation.
@@ -32,7 +36,7 @@ public interface ArenaManager<T extends Arena> {
     List<T> getArenas();
 
     /**
-     * Loads the map data.
+     * Loads any required map data.
      */
     void loadMaps();
 }

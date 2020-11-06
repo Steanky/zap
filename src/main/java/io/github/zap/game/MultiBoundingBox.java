@@ -7,6 +7,9 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Encapsulates a bounding box made up of any number of axis-aligned bounding boxes.
+ */
 public class MultiBoundingBox extends DataSerializable {
     private final List<BoundingBox> boundingBoxes = new ArrayList<>();
 
@@ -33,7 +36,17 @@ public class MultiBoundingBox extends DataSerializable {
         return false;
     }
 
+    /**
+     * Returns copies of all the bounding boxes this instance contains. This method calls clone() on every bounding
+     * box to ensure that its internal state is protected.
+     * @return A copy of all the bounding boxes this instance contains
+     */
     public List<BoundingBox> getBounds() {
-        return new ArrayList<>(boundingBoxes);
+        List<BoundingBox> result = new ArrayList<>();
+        for(BoundingBox internalBounds : boundingBoxes) {
+            result.add(internalBounds.clone());
+        }
+
+        return result;
     }
 }

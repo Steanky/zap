@@ -4,24 +4,44 @@ import io.github.zap.game.MultiAccessor;
 import io.github.zap.game.MultiBoundingBox;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 import org.bukkit.util.Vector;
 
 import java.util.List;
 
-@AllArgsConstructor
+/**
+ * Represents a door.
+ */
 @Getter
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class DoorData extends DataSerializable {
-    private MultiBoundingBox doorBounds;
-    private List<DoorSide> sides;
+    /**
+     * The bounds of the door, any of which may be right-clicked in attempt to open it
+     */
+    MultiBoundingBox doorBounds;
 
-    @Getter
+    /**
+     * The list of DoorSide objects. Doors typically contain 2 sides but may contain any number
+     */
+    List<DoorSide> sides;
+
+    /**
+     * Arena-specific state information: whether or not the door is open
+     */
     @NoSerialize
-    private final MultiAccessor<Boolean> openAccessor = new MultiAccessor<>(false);
+    final MultiAccessor<Boolean> openAccessor = new MultiAccessor<>(false);
 
     private DoorData() { }
 
+    /**
+     * Returns the DoorSide object whose trigger bounds contain the provided vector.
+     * @param standingPosition The vector that may be inside a trigger bounds
+     * @return The corresponding DoorSide object, or null if the provided vector is not inside of a trigger
+     */
     public DoorSide sideAt(Vector standingPosition) {
         for(DoorSide side : sides) {
             if(side.getTriggerBounds().contains(standingPosition)) {
