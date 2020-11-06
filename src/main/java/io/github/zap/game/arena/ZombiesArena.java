@@ -5,6 +5,7 @@ import io.github.zap.ZombiesPlugin;
 import io.github.zap.event.map.DoorOpenEvent;
 import io.github.zap.event.player.PlayerJoinArenaEvent;
 import io.github.zap.event.player.PlayerLeaveArenaEvent;
+import io.github.zap.event.player.PlayerRepairWindowEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
 import io.github.zap.game.AccessorManager;
 import io.github.zap.game.MultiAccessor;
@@ -188,7 +189,7 @@ public class ZombiesArena extends Arena implements Listener {
                         WorldUtils.fillBounds(world, door.getDoorBounds(), Material.AIR);
                         opener.giveCoins(-side.getCost());
                         door.getOpenAccessor().set(this, true);
-                        pluginManager.callEvent(new DoorOpenEvent(opener, door, side, side.getOpensTo()));
+                        pluginManager.callEvent(new DoorOpenEvent(opener, door, side));
                     }
                 }
             }
@@ -218,6 +219,7 @@ public class ZombiesArena extends Arena implements Listener {
 
                     if(currentRepairer == repairer) {
                         //advance repair state
+                        pluginManager.callEvent(new PlayerRepairWindowEvent(repairer, window));
                     }
                     else {
                         //can't repair because someone else already is
@@ -242,7 +244,7 @@ public class ZombiesArena extends Arena implements Listener {
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
         Player bukkitPlayer = event.getPlayer();
-        ZombiesPlayer zombiesPlayer = playerMap.getOrDefault(bukkitPlayer.getUniqueId(), null);
+        ZombiesPlayer zombiesPlayer = playerMap.get(bukkitPlayer.getUniqueId());
 
         if(zombiesPlayer != null) {
             handleLeave(new LeaveInformation(Lists.newArrayList(zombiesPlayer.getPlayer()), false));

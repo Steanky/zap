@@ -1,11 +1,19 @@
 package io.github.zap.game.arena;
 
 import io.github.zap.ZombiesPlugin;
+import io.github.zap.event.map.DoorOpenEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
+import io.github.zap.game.data.DoorData;
+import io.github.zap.game.data.DoorSide;
+import io.github.zap.game.data.MapData;
+import io.github.zap.util.ItemStackUtils;
+import io.github.zap.util.WorldUtils;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.util.Vector;
 
 public class ZombiesPlayer {
     @Getter
@@ -83,5 +91,33 @@ public class ZombiesPlayer {
      */
     public void giveCoins(int amount) {
         coins += amount;
+    }
+
+    /**
+     * Attempts to open the door that may be at the provided vector, given the provided player.
+     * @param opener The player that's trying to open the door
+     * @param targetBlock The block to target
+     */
+    public void tryOpenDoor(ZombiesPlayer opener, Vector targetBlock) {
+        if(opener.getState() == PlayerState.ALIVE) {
+            Player player = opener.getPlayer();
+            MapData map = arena.getMap();
+
+            if(ItemStackUtils.isEmpty(player.getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
+                DoorData door = map.doorAt(targetBlock);
+
+                if(door != null) {
+                    DoorSide side = door.sideAt(player.getLocation().toVector());
+
+                    if(side != null && opener.getCoins() >= side.getCost()) {
+                        WorldUtils.fillBounds(arena.world, door.getDoorBounds(), Material.AIR);
+                        opener.giveCoins(-side.getCost());
+                        door.getOpenAccessor().set(arena, true);
+                        ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(new DoorOpenEvent(opener,
+                                door, side));
+                    }
+                }
+            }
+        }
     }
 }

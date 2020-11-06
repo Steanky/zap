@@ -1,9 +1,8 @@
-package io.github.zap.event.map;
+package io.github.zap.event.player;
 
 import io.github.zap.event.CustomEvent;
 import io.github.zap.game.arena.ZombiesPlayer;
-import io.github.zap.game.data.DoorData;
-import io.github.zap.game.data.DoorSide;
+import io.github.zap.game.data.WindowData;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +11,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class DoorOpenEvent extends CustomEvent {
+public class PlayerRepairWindowEvent extends CustomEvent {
     ZombiesPlayer player;
-    DoorData openedDoor;
-    DoorSide openedSide;
+    WindowData window;
 }
