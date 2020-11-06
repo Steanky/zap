@@ -1,4 +1,4 @@
-package io.github.zap.maploader;
+package io.github.zap.world;
 
 import org.bukkit.World;
 

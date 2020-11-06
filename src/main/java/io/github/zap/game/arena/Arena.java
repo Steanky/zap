@@ -5,13 +5,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.World;
 
+/**
+ * This abstract class contains some basic functionality all Arena objects share. This is not necessarily
+ * Zombies-specific and could be used for other minigames, lobbies, etc.
+ */
 @RequiredArgsConstructor
 public abstract class Arena implements Tickable {
     @Getter
     protected final World world;
-
-    @Getter
-    protected ArenaState state = ArenaState.PREGAME;
 
     @Override
     public boolean equals(Object other) {

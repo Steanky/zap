@@ -3,10 +3,13 @@ package io.github.zap.game.data;
 import io.github.zap.game.AccessorManager;
 import io.github.zap.game.MultiAccessor;
 import io.github.zap.game.arena.Arena;
+import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.util.VectorUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -18,6 +21,9 @@ public class MapData extends DataSerializable {
 
     @Getter
     private String displayName;
+
+    @Getter
+    private BoundingBox mapBounds;
 
     @Getter
     private int minimumCapacity;
@@ -40,7 +46,16 @@ public class MapData extends DataSerializable {
     private boolean spectatorsAllowed;
 
     @Getter
+    private boolean handRequiredToOpenDoors;
+
+    @Getter
     private int windowRepairRadius;
+
+    @Getter
+    private int windowRepairDelay;
+
+    @Getter
+    private int windowBreakDelay;
 
     private MapData() { }
 
@@ -75,10 +90,12 @@ public class MapData extends DataSerializable {
      * @return The window the vector is in, or null if it's not inside anything
      */
     public WindowData windowAt(Vector target) {
-        for(RoomData roomData : rooms.values()) {
-            for(WindowData window : roomData.getWindows()) {
-                if(window.getFaceBounds().contains(target)) {
-                    return window;
+        if(mapBounds.contains(target)) {
+            for(RoomData roomData : rooms.values()) {
+                for(WindowData window : roomData.getWindows()) {
+                    if(window.getFaceBounds().contains(target)) {
+                        return window;
+                    }
                 }
             }
         }
@@ -87,18 +104,18 @@ public class MapData extends DataSerializable {
     }
 
     /**
-     * Gets the window that may be within range of the specified vector.
+     * Gets the window that may be within range of the specified vector. Uses Manhattan distance for fast calculations.
      * @param standing The vector used as the origin for the distance check
-     * @param manhattanDistance The distance limit
-     * @return The WindowData, or null
+     * @param distance The distance limit
+     * @return The WindowData, or null if there is none in range
      */
-    public WindowData windowInRange(Vector standing, double manhattanDistance) {
-        for(RoomData roomData : rooms.values()) {
-            for(WindowData window : roomData.getWindows()) {
-                double distance = VectorUtils.manhattanDistance(window.getCenter(), standing);
-
-                if(distance < manhattanDistance) {
-                    return window;
+    public WindowData windowInRange(Vector standing, double distance) {
+        if(mapBounds.contains(standing)) {
+            for(RoomData roomData : rooms.values()) {
+                for(WindowData window : roomData.getWindows()) {
+                    if(VectorUtils.manhattanDistance(window.getCenter(), standing) < distance) {
+                        return window;
+                    }
                 }
             }
         }
@@ -112,9 +129,11 @@ public class MapData extends DataSerializable {
      * @return The door whose bounds contains the specified vector, or null
      */
     public DoorData doorAt(Vector target) {
-        for(DoorData door : doors) {
-            if(door.getDoorBounds().contains(target)) {
-                return door;
+        if(mapBounds.contains(target)) {
+            for(DoorData door : doors) {
+                if(door.getDoorBounds().contains(target)) {
+                    return door;
+                }
             }
         }
 
@@ -127,48 +146,18 @@ public class MapData extends DataSerializable {
      * @return The room whose bounds contains the specified vector, or null
      */
     public RoomData roomAt(Vector target) {
-        for(RoomData room : rooms.values()) {
-            if(room.getBounds().contains(target)) {
-                return room;
+        if(mapBounds.contains(target)) {
+            for(RoomData room : rooms.values()) {
+                if(room.getBounds().contains(target)) {
+                    return room;
+                }
             }
         }
 
         return null;
     }
 
-    public static boolean openDoor(Arena arena, DoorData door) {
-        return door.getOpenAccessor().setValue(arena.getName(), true);
-    }
-
-    public static boolean breakWindow(Arena arena, WindowData window) {
-        MultiAccessor<Integer> accessor = window.getCurrentIndexAccessor();
-        String accessName = arena.getName();
-
-        int currentIndex = accessor.getValue(accessName);
-        currentIndex--;
-
-        if(currentIndex > -1 && currentIndex < window.getVolume()) {
-            return accessor.setValue(accessName, currentIndex);
-        }
-
-        return false;
-    }
-
-    public static boolean repairWindow(Arena arena, WindowData window) {
-        MultiAccessor<Integer> accessor = window.getCurrentIndexAccessor();
-        String accessName = arena.getName();
-
-        int currentIndex = accessor.getValue(accessName);
-        currentIndex++;
-
-        if(currentIndex < window.getVolume() && currentIndex > -1) {
-            return accessor.setValue(accessName, currentIndex);
-        }
-
-        return false;
-    }
-
-    public static void cleanup(Arena arena) {
-        AccessorManager.getInstance().removeMappingsFor(arena.getName());
+    public void cleanup(Arena arena) {
+        AccessorManager.getInstance().removeMappingsFor(arena);
     }
 }

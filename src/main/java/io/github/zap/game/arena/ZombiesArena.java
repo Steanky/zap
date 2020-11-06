@@ -2,24 +2,32 @@ package io.github.zap.game.arena;
 
 import com.google.common.collect.Lists;
 import io.github.zap.ZombiesPlugin;
+import io.github.zap.event.map.DoorOpenEvent;
 import io.github.zap.event.player.PlayerJoinArenaEvent;
 import io.github.zap.event.player.PlayerLeaveArenaEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
-import io.github.zap.game.Tickable;
+import io.github.zap.game.MultiAccessor;
+import io.github.zap.game.data.DoorData;
+import io.github.zap.game.data.DoorSide;
 import io.github.zap.game.data.MapData;
-import io.github.zap.game.player.ZombiesPlayer;
+import io.github.zap.game.data.WindowData;
+import io.github.zap.util.ItemStackUtils;
+import io.github.zap.util.WorldUtils;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class ZombiesArena extends Arena implements Tickable, Listener {
+public class ZombiesArena extends Arena implements Listener {
     private final ZombiesPlugin zombiesPlugin;
     private final PluginManager pluginManager;
 
@@ -32,6 +40,9 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
 
     @Getter
     private final MapData map;
+
+    @Getter
+    protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
 
     @Getter
     private final long timeout;
@@ -136,7 +147,7 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
         zombiesPlugin.getArenaManager().removeArena(getName());
         zombiesPlugin.getWorldLoader().unloadWorld(world.getName());
 
-        MapData.cleanup(this);
+        map.cleanup(this);
     }
 
     @Override
@@ -146,12 +157,71 @@ public class ZombiesArena extends Arena implements Tickable, Listener {
         }
     }
 
+    /**
+     * Attempts to open the door that may be at the provided vector, given the provided player.
+     * @param opener The player that's trying to open the door
+     * @param targetBlock The block to target
+     */
+    public void tryOpenDoor(ZombiesPlayer opener, Vector targetBlock) {
+        if(opener.getState() == PlayerState.ALIVE) {
+            Player player = opener.getPlayer();
+
+            if(ItemStackUtils.isEmpty(player.getInventory().getItemInMainHand()) ||
+                    !map.isHandRequiredToOpenDoors()) {
+                DoorData door = map.doorAt(targetBlock);
+
+                if(door != null) {
+                    DoorSide side = door.sideAt(player.getLocation().toVector());
+
+                    if(side != null && opener.canPurchase(side)) {
+                        WorldUtils.fillBounds(world, door.getDoorBounds(), Material.AIR);
+                        opener.giveCoins(-side.getCost());
+                        door.getOpenAccessor().setValue(this, true);
+                        pluginManager.callEvent(new DoorOpenEvent(opener, door, side, side.getOpensTo()));
+                    }
+                }
+            }
+        }
+    }
+
+    public void tryRepairWindow(ZombiesPlayer repairer) {
+        if(repairer.getState() == PlayerState.ALIVE) {
+            Player player = repairer.getPlayer();
+            WindowData window = map.windowInRange(player.getLocation().toVector(), map.getWindowRepairRadius());
+
+
+            if(window != null) {
+                MultiAccessor<Entity> attackingEntityAccessor = window.getAttackingEntity();
+
+                if(attackingEntityAccessor.getValue(this) == null) {
+                    MultiAccessor<ZombiesPlayer> currentRepairerAccessor = window.getRepairingPlayer();
+                    ZombiesPlayer currentRepairer = currentRepairerAccessor.getValue(this);
+
+                    if(currentRepairer == null) {
+                        currentRepairer = repairer;
+                        currentRepairerAccessor.setValue(this, repairer);
+                    }
+
+                    if(currentRepairer == repairer) {
+                        //advance repair state
+                    }
+                    else {
+                        //can't repair because someone else already is
+                    }
+                }
+                else {
+                    //can't repair because there is a zombie attacking the window
+                }
+            }
+        }
+    }
+
     @EventHandler
     private void onPlayerRightClick(PlayerRightClickEvent event) {
         ZombiesPlayer player = playerMap.getOrDefault(event.getPlayer().getUniqueId(), null);
 
         if(player != null) {
-            player.playerRightClick();
+            player.playerRightClick(event);
         }
     }
 

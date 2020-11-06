@@ -19,7 +19,7 @@ public class SpawnpointData extends DataSerializable {
 
     private Vector target;
 
-    @Serialize(name = ConverterNames.MYTHIC_MOB_SET_CONVERTER)
+    @Serialize(converter = ConverterNames.MYTHIC_MOB_SET_CONVERTER)
     private Set<MythicMob> whitelist;
 
     private SpawnpointData() {}

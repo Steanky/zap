@@ -6,6 +6,7 @@ import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.bukkit.util.Vector;
 
 import java.util.List;
 
@@ -20,4 +21,14 @@ public class DoorData extends DataSerializable {
     private final MultiAccessor<Boolean> openAccessor = new MultiAccessor<>(false);
 
     private DoorData() { }
+
+    public DoorSide sideAt(Vector standingPosition) {
+        for(DoorSide side : sides) {
+            if(side.getTriggerBounds().contains(standingPosition)) {
+                return side;
+            }
+        }
+
+        return null;
+    }
 }

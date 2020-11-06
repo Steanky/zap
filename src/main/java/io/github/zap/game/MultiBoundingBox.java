@@ -32,4 +32,8 @@ public class MultiBoundingBox extends DataSerializable {
 
         return false;
     }
+
+    public List<BoundingBox> getBounds() {
+        return new ArrayList<>(boundingBoxes);
+    }
 }

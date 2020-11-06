@@ -7,8 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Generic utility class that enables multiple named accessors to access different copies of a single value.
- * @param <T> The kind of value
+ * Generic utility class that enables different named accessor objects to access their own unique copies of a single
+ * value.
+ * @param <T> The type of value this accessor stores
  */
 @RequiredArgsConstructor
 public class MultiAccessor<T> {
@@ -18,13 +19,12 @@ public class MultiAccessor<T> {
     private final T defaultValue;
 
     /**
-     * Gets the value that is stored for this accessor. Returns the fallback value if it is not in the internal
-     * map.
+     * Gets the value that is stored for this accessor. Returns the default value if it is not in the internal map.
      * @param accessor The accessor name
      * @return The value stored for this accessor, or the default value used by this instance
      */
-    public T getValue(String accessor) {
-        return mappings.getOrDefault(accessor, defaultValue);
+    public T getValue(Named accessor) {
+        return mappings.getOrDefault(accessor.getName(), defaultValue);
     }
 
     /**
@@ -33,11 +33,12 @@ public class MultiAccessor<T> {
      * @param value The value to store for this accessor
      * @return true if the value changed as a result of this call, false otherwise
      */
-    public boolean setValue(String accessor, T value) {
-        T oldValue = mappings.get(accessor);
+    public boolean setValue(Named accessor, T value) {
+        String name = accessor.getName();
+        T oldValue = mappings.get(name);
 
         if(!value.equals(oldValue)) {
-            mappings.put(accessor, value);
+            mappings.put(name, value);
             AccessorManager.getInstance().addAccessor(accessor, this);
             return true;
         }
@@ -50,15 +51,15 @@ public class MultiAccessor<T> {
      * @param accessor The accessor to look for
      * @return true if the accessor has a value, false if it doesn't
      */
-    public boolean hasAccessor(String accessor) {
-        return mappings.containsKey(accessor);
+    public boolean hasAccessor(Named accessor) {
+        return mappings.containsKey(accessor.getName());
     }
 
     /**
      * Removes an accessor and any stored value from the internal map.
      * @param accessor The accessor to remove
      */
-    public void removeAccessor(String accessor) {
-        mappings.remove(accessor);
+    public void removeAccessor(Named accessor) {
+        mappings.remove(accessor.getName());
     }
 }

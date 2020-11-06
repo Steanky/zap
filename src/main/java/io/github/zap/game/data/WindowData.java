@@ -2,11 +2,13 @@ package io.github.zap.game.data;
 
 import io.github.zap.game.MultiAccessor;
 import io.github.zap.game.MultiBoundingBox;
+import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -41,6 +43,14 @@ public class WindowData extends DataSerializable {
     @Getter
     @NoSerialize
     private final MultiAccessor<Integer> currentIndexAccessor = new MultiAccessor<>(0);
+
+    @Getter
+    @NoSerialize
+    private final MultiAccessor<ZombiesPlayer> repairingPlayer = new MultiAccessor<>(null);
+
+    @Getter
+    @NoSerialize
+    private final MultiAccessor<Entity> attackingEntity = new MultiAccessor<>(null);
 
     private WindowData() {}
 

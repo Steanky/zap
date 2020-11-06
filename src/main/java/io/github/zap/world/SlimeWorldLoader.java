@@ -1,4 +1,4 @@
-package io.github.zap.maploader;
+package io.github.zap.world;
 
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
@@ -6,7 +6,6 @@ import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.proxy.SlimeProxy;
-import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 

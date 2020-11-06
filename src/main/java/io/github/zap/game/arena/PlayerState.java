@@ -1,4 +1,4 @@
-package io.github.zap.game.player;
+package io.github.zap.game.arena;
 
 public enum PlayerState {
     ALIVE,

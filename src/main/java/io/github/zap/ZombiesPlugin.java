@@ -9,7 +9,7 @@ import io.github.zap.game.Ticker;
 import io.github.zap.game.arena.ArenaManager;
 import io.github.zap.game.arena.ZombiesArenaManager;
 import io.github.zap.game.data.*;
-import io.github.zap.maploader.WorldLoader;
+import io.github.zap.world.WorldLoader;
 import io.github.zap.proxy.MythicMobs_v4_10_R1;
 import io.github.zap.proxy.MythicProxy;
 import io.github.zap.net.BungeeHandler;
@@ -21,7 +21,7 @@ import io.github.zap.serialize.DataLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
-import io.github.zap.maploader.SlimeWorldLoader;
+import io.github.zap.world.SlimeWorldLoader;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.util.ChannelNames;
 import io.github.zap.util.ConfigNames;
@@ -82,7 +82,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-
+        getServer().getPluginManager().registerEvents(this,this);
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
@@ -110,6 +110,8 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         //perform shutdown tasks
+        PlayerInteractEvent.getHandlerList().unregister((Listener) this);
+
         ticker.stop();
         getLogger().info("Closing active arenas.");
 

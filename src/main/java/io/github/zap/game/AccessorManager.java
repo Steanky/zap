@@ -14,14 +14,15 @@ public class AccessorManager {
 
     /**
      * Clears all the mappings associated with the specific accessor.
-     * @param accessorName The name of the accessor
+     * @param accessor The accessor object
      */
-    public void removeMappingsFor(String accessorName) {
+    public void removeMappingsFor(Named accessor) {
+        String accessorName = accessor.getName();
         Set<MultiAccessor<?>> values = mappings.get(accessorName);
 
         if(values != null) {
-            for(MultiAccessor<?> accessor : values) {
-                accessor.removeAccessor(accessorName);
+            for(MultiAccessor<?> multiAccessor : values) {
+                multiAccessor.removeAccessor(accessor);
             }
 
             mappings.remove(accessorName);
@@ -30,27 +31,27 @@ public class AccessorManager {
 
     /**
      * Adds an accessor mapping.
-     * @param accessorName The name of the accessor
+     * @param accessor The object accessing the specified MultiAccessor
      * @param variable The MultiAccessor it referenced
      */
-    public void addAccessor(String accessorName, MultiAccessor<?> variable) {
-        Set<MultiAccessor<?>> list = mappings.getOrDefault(accessorName, null);
-        if(list == null) {
-            list = new HashSet<>();
+    public void addAccessor(Named accessor, MultiAccessor<?> variable) {
+        Set<MultiAccessor<?>> set = mappings.get(accessor.getName());
+        if(set == null) {
+            set = new HashSet<>();
         }
 
-        list.add(variable);
+        set.add(variable);
     }
 
     /**
      * Removes an accessor mapping.
-     * @param accessorName The name of the accessor to remove
+     * @param accessor The accessing object
      * @param value The value to remove
      */
-    public void removeAccessor(String accessorName, MultiAccessor<?> value) {
-        Set<MultiAccessor<?>> list = mappings.getOrDefault(accessorName, null);
-        if(list != null) {
-            list.remove(value);
+    public void removeAccessor(Named accessor, MultiAccessor<?> value) {
+        Set<MultiAccessor<?>> set = mappings.get(accessor.getName());
+        if(set != null) {
+            set.remove(value);
         }
     }
 }

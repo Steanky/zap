@@ -9,7 +9,7 @@ import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.ZombiesPlugin;
-import io.github.zap.maploader.WorldLoader;
+import io.github.zap.world.WorldLoader;
 import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
