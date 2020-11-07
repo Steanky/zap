@@ -1,6 +1,6 @@
 package io.github.zap.game.data;
 
-import io.github.zap.game.MultiAccessor;
+import io.github.zap.game.Property;
 import io.github.zap.game.MultiBoundingBox;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
@@ -52,7 +52,7 @@ public class RoomData extends DataSerializable {
      * Arena specific state: whether or not this room has been opened.
      */
     @NoSerialize
-    final MultiAccessor<Boolean> openAccessor = new MultiAccessor<>(false);
+    final Property<Boolean> openAccessor = new Property<>(false);
 
     private RoomData() {}
 }

@@ -1,6 +1,6 @@
 package io.github.zap.game.arena;
 
-import io.github.zap.game.Tickable;
+import io.github.zap.game.Unique;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.World;
@@ -10,7 +10,7 @@ import org.bukkit.World;
  * Zombies-specific and could be used for other minigames, lobbies, etc.
  */
 @RequiredArgsConstructor
-public abstract class Arena implements Tickable {
+public abstract class Arena implements Unique {
     @Getter
     protected final World world;
 

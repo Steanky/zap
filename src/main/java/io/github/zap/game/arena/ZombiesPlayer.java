@@ -3,8 +3,7 @@ package io.github.zap.game.arena;
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.event.map.DoorOpenEvent;
 import io.github.zap.event.player.PlayerRepairWindowEvent;
-import io.github.zap.event.player.PlayerRightClickEvent;
-import io.github.zap.game.MultiAccessor;
+import io.github.zap.game.Property;
 import io.github.zap.game.data.DoorData;
 import io.github.zap.game.data.DoorSide;
 import io.github.zap.game.data.MapData;
@@ -34,10 +33,6 @@ public class ZombiesPlayer {
     @Getter
     private int coins;
 
-    private int lastTps = -1;
-    private int repairTickOn;
-    private int repairTick = 0;
-
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
@@ -48,44 +43,15 @@ public class ZombiesPlayer {
         this.arena = arena;
         this.player = player;
         this.coins = coins;
-
-        tryUpdateTimings();
-    }
-
-    /**
-     * If the speed of the Ticker is changed midgame, we must adjust our timings to ensure window repairs and
-     * reviving progress at the same speed
-     */
-    private void tryUpdateTimings() {
-        int currentTps = ZombiesPlugin.getInstance().getTicker().getTps();
-
-        if(currentTps != lastTps) {
-            int adjustFactor = (20 / currentTps);
-            repairTickOn = arena.getMap().getWindowRepairDelay() * adjustFactor;
-            lastTps = currentTps;
-        }
-    }
-
-    /**
-     * This is called periodically by the plugin's Ticker.
-     */
-    public void onPlayerTick() {
-        if(repairTick++ == repairTickOn) {
-            if(state == PlayerState.ALIVE && player.isSneaking()) {
-                tryRepairWindow();
-            }
-
-            tryUpdateTimings();
-        }
     }
 
     /**
      * This is called by the Arena when the player performs a right-click action.
-     * @param event The PlayerRightClick event to handle
+     * @param action The PlayerRightClick event to handle
      */
-    public void playerRightClick(PlayerRightClickEvent event) {
-        if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-            tryOpenDoor(event.getClicked().getLocation().toVector());
+    public void onRightClickBlock(Action action, Vector vector) {
+        if(action == Action.RIGHT_CLICK_BLOCK) {
+            tryOpenDoor(vector);
         }
     }
 
@@ -123,10 +89,10 @@ public class ZombiesPlayer {
             WindowData window = map.windowInRange(player.getLocation().toVector(), map.getWindowRepairRadius());
 
             if(window != null) {
-                MultiAccessor<Entity> attackingEntityAccessor = window.getAttackingEntity();
+                Property<Entity> attackingEntityAccessor = window.getAttackingEntity();
 
                 if(attackingEntityAccessor.get(arena) == null) {
-                    MultiAccessor<ZombiesPlayer> currentRepairerAccessor = window.getRepairingPlayer();
+                    Property<ZombiesPlayer> currentRepairerAccessor = window.getRepairingPlayer();
                     ZombiesPlayer currentRepairer = currentRepairerAccessor.get(arena);
 
                     if(currentRepairer == null) {

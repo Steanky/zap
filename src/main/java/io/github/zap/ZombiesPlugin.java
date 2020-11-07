@@ -5,7 +5,6 @@ import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.event.player.PlayerRightClickEvent;
 import io.github.zap.game.arena.Arena;
-import io.github.zap.game.Ticker;
 import io.github.zap.game.arena.ArenaManager;
 import io.github.zap.game.arena.ZombiesArenaManager;
 import io.github.zap.game.data.*;
@@ -76,9 +75,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Getter
     private ArenaManager<? extends Arena> arenaManager;
 
-    @Getter
-    private Ticker ticker;
-
     @Override
     public void onEnable() {
         instance = this;
@@ -112,7 +108,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         //perform shutdown tasks
         PlayerInteractEvent.getHandlerList().unregister((Listener) this);
 
-        ticker.stop();
         getLogger().info("Closing active arenas.");
 
         StopWatch timer = StopWatch.createStarted();
@@ -221,9 +216,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
                 configuration.get(ConfigNames.ARENA_TIMEOUT_DELAY, 300000));
         worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
 
-        ticker = new Ticker();
-        ticker.start(configuration.get(ConfigNames.GAMETICK_DELAY, 2));
-
         getLogger().info("Preloading worlds.");
 
         StopWatch timer = StopWatch.createStarted();
@@ -290,5 +282,9 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
             getServer().getPluginManager().callEvent(new PlayerRightClickEvent(event.getPlayer(),
                     event.getClickedBlock(), event.getItem(), action));
         }
+    }
+
+    private void compareTicking() {
+
     }
 }

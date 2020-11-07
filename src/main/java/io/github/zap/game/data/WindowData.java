@@ -1,6 +1,6 @@
 package io.github.zap.game.data;
 
-import io.github.zap.game.MultiAccessor;
+import io.github.zap.game.Property;
 import io.github.zap.game.MultiBoundingBox;
 import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
@@ -71,19 +71,19 @@ public class WindowData extends DataSerializable {
      * Arena specific state: the current index at which the window is being repaired or broken
      */
     @NoSerialize
-    final MultiAccessor<Integer> currentIndexAccessor = new MultiAccessor<>(0);
+    final Property<Integer> currentIndexAccessor = new Property<>(0);
 
     /**
      * Arena specific state: the player who is currently repairing the window
      */
     @NoSerialize
-    final MultiAccessor<ZombiesPlayer> repairingPlayer = new MultiAccessor<>(null);
+    final Property<ZombiesPlayer> repairingPlayer = new Property<>(null);
 
     /**
      * Arena specific state: the entity that is currently attacking the window
      */
     @NoSerialize
-    final MultiAccessor<Entity> attackingEntity = new MultiAccessor<>(null);
+    final Property<Entity> attackingEntity = new Property<>(null);
 
     private WindowData() {}
 

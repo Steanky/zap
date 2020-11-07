@@ -5,7 +5,7 @@ import io.github.zap.ZombiesPlugin;
 import io.github.zap.event.player.PlayerJoinArenaEvent;
 import io.github.zap.event.player.PlayerLeaveArenaEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
-import io.github.zap.game.AccessorManager;
+import io.github.zap.game.Property;
 import io.github.zap.game.data.MapData;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -58,8 +58,6 @@ public class ZombiesArena extends Arena implements Listener {
 
         zombiesPlugin = ZombiesPlugin.getInstance();
         pluginManager = zombiesPlugin.getServer().getPluginManager();
-
-        zombiesPlugin.getTicker().register(this);
         pluginManager.registerEvents(this, zombiesPlugin);
     }
 
@@ -145,26 +143,20 @@ public class ZombiesArena extends Arena implements Listener {
         PlayerRightClickEvent.getHandlerList().unregister(this);
         PlayerQuitEvent.getHandlerList().unregister(this);
 
-        zombiesPlugin.getTicker().remove(this);
         zombiesPlugin.getArenaManager().removeArena(getName());
         zombiesPlugin.getWorldLoader().unloadWorld(world.getName());
 
-        AccessorManager.getInstance().removeMappingsFor(this);
-    }
-
-    @Override
-    public void onTick() {
-        for(ZombiesPlayer player : players) {
-            player.onPlayerTick();
-        }
+        Property.removeMappingsFor(this);
     }
 
     @EventHandler
     private void onPlayerRightClick(PlayerRightClickEvent event) {
-        ZombiesPlayer player = playerMap.getOrDefault(event.getPlayer().getUniqueId(), null);
+        if(event.getPlayer().getWorld() == world) {
+            ZombiesPlayer player = playerMap.getOrDefault(event.getPlayer().getUniqueId(), null);
 
-        if(player != null) {
-            player.playerRightClick(event);
+            if(player != null) {
+                player.onRightClickBlock(event.getAction(), event.getClicked().getLocation().toVector());
+            }
         }
     }
 
