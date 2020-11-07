@@ -1,6 +1,7 @@
 package io.github.zap.util;
 
 import io.github.zap.game.MultiBoundingBox;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -34,5 +35,9 @@ public final class WorldUtils {
         for(BoundingBox box : bounds.getBounds()) {
             fillBounds(world, box, material);
         }
+    }
+
+    public static Location locationFrom(World world, Vector vector) {
+        return new Location(world, vector.getX(), vector.getY(), vector.getZ());
     }
 }

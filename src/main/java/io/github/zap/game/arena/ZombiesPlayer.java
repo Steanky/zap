@@ -48,8 +48,9 @@ public class ZombiesPlayer {
     /**
      * This is called by the Arena when the player performs a right-click action.
      * @param action The PlayerRightClick event to handle
+     * @param vector The vector of the Block that they clicked, or null if there is none
      */
-    public void onRightClickBlock(Action action, Vector vector) {
+    public void onRightClick(Action action, Vector vector) {
         if(action == Action.RIGHT_CLICK_BLOCK) {
             tryOpenDoor(vector);
         }

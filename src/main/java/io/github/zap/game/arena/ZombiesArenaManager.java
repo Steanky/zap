@@ -4,6 +4,8 @@ import io.github.zap.ZombiesPlugin;
 import io.github.zap.game.data.MapData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -46,6 +48,11 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                     arenas.put(arena.getName(), arena);
 
                     logger.info("Done loading arena.");
+
+                    if(!arena.handleJoin(information)) {
+                        ZombiesPlugin.getInstance().getLogger().warning(String.format("Newly created arena rejected" +
+                                "join request '%s'", information));
+                    }
                 });
 
                 return true;

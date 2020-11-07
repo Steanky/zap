@@ -34,7 +34,7 @@ public abstract class Arena implements Unique {
     }
 
     /**
-     * Attempts to add the players to arena.
+     * Attempts to add the players to arena. This should also teleport them to the arena's world.
      * @param joinAttempt The JoinInformation object to handle
      * @return If all of the players are added, this should return true. If not all are added for any reason, this
      * should return false.
@@ -42,7 +42,8 @@ public abstract class Arena implements Unique {
     public abstract boolean handleJoin(JoinInformation joinAttempt);
 
     /**
-     * Removes the players from the arena. This method must always successfully remove the players.
+     * Removes the players from the arena. This method must always successfully remove the players. It should also
+     * teleport them elsewhere.
      * @param leaveInformation The LeaveInformation object to handle
      */
     public abstract void handleLeave(LeaveInformation leaveInformation);

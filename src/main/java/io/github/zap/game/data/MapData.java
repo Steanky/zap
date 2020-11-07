@@ -35,6 +35,11 @@ public class MapData extends DataSerializable {
     BoundingBox mapBounds;
 
     /**
+     * The spawn vector of this map.
+     */
+    Vector spawn;
+
+    /**
      * The minimum required number of players that this map can start with
      */
     int minimumCapacity;

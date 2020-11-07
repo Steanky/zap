@@ -156,16 +156,13 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
         //make sure the MAX_WORLDS config var is within a reasonable range
         Range<Integer> maxWorldRange = Range.between(1, 64);
-        Range<Integer> gametickDelayRange = Range.between(0, 5);
         Range<Integer> arenaTimeoutDelay = Range.between(0, Integer.MAX_VALUE);
 
         configuration.registerValidator(ConfigNames.MAX_WORLDS, maxWorldRange::contains);
-        configuration.registerValidator(ConfigNames.GAMETICK_DELAY, gametickDelayRange::contains);
-        configuration.registerValidator(ConfigNames.ARENA_TIMEOUT_DELAY, arenaTimeoutDelay::contains);
+        configuration.registerValidator(ConfigNames.ARENA_TIMEOUT, arenaTimeoutDelay::contains);
 
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
-        config.addDefault(ConfigNames.GAMETICK_DELAY, 2);
-        config.addDefault(ConfigNames.ARENA_TIMEOUT_DELAY, 300000);
+        config.addDefault(ConfigNames.ARENA_TIMEOUT, 300000);
         config.options().copyDefaults(true);
 
         saveConfig();
@@ -213,7 +210,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     private void initWorldLoader() {
         //initialize the arenamanager with the configured maximum default amount of worlds
         arenaManager = new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10),
-                configuration.get(ConfigNames.ARENA_TIMEOUT_DELAY, 300000));
+                configuration.get(ConfigNames.ARENA_TIMEOUT, 300000));
         worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
 
         getLogger().info("Preloading worlds.");
