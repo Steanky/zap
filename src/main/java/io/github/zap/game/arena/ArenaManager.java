@@ -34,9 +34,4 @@ public interface ArenaManager<T extends Arena> {
      * so that illegal modifications cannot be performed
      */
     List<T> getArenas();
-
-    /**
-     * Loads any required map data.
-     */
-    void loadMaps();
 }

@@ -2,30 +2,19 @@ package io.github.zap.game.arena;
 
 import com.google.common.collect.Lists;
 import io.github.zap.ZombiesPlugin;
-import io.github.zap.event.map.DoorOpenEvent;
 import io.github.zap.event.player.PlayerJoinArenaEvent;
 import io.github.zap.event.player.PlayerLeaveArenaEvent;
-import io.github.zap.event.player.PlayerRepairWindowEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
 import io.github.zap.game.AccessorManager;
-import io.github.zap.game.MultiAccessor;
-import io.github.zap.game.data.DoorData;
-import io.github.zap.game.data.DoorSide;
 import io.github.zap.game.data.MapData;
-import io.github.zap.game.data.WindowData;
-import io.github.zap.util.ItemStackUtils;
-import io.github.zap.util.WorldUtils;
 import lombok.Getter;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -43,7 +32,7 @@ public class ZombiesArena extends Arena implements Listener {
     private final Collection<ZombiesPlayer> players = playerMap.values();
 
     @Getter
-    private final List<Player> spectators = new ArrayList<>();
+    private final Set<Player> spectators = new HashSet<>();
 
     @Getter
     private final MapData map;
@@ -167,68 +156,6 @@ public class ZombiesArena extends Arena implements Listener {
     public void onTick() {
         for(ZombiesPlayer player : players) {
             player.onPlayerTick();
-        }
-    }
-
-    /**
-     * Attempts to open the door that may be at the provided vector, given the provided player.
-     * @param opener The player that's trying to open the door
-     * @param targetBlock The block to target
-     */
-    public void tryOpenDoor(ZombiesPlayer opener, Vector targetBlock) {
-        if(opener.getState() == PlayerState.ALIVE) {
-            Player player = opener.getPlayer();
-
-            if(ItemStackUtils.isEmpty(player.getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
-                DoorData door = map.doorAt(targetBlock);
-
-                if(door != null) {
-                    DoorSide side = door.sideAt(player.getLocation().toVector());
-
-                    if(side != null && opener.getCoins() >= side.getCost()) {
-                        WorldUtils.fillBounds(world, door.getDoorBounds(), Material.AIR);
-                        opener.giveCoins(-side.getCost());
-                        door.getOpenAccessor().set(this, true);
-                        pluginManager.callEvent(new DoorOpenEvent(opener, door, side));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Attempts to repair the given window.
-     * @param repairer The player attempting to repair this window
-     */
-    public void tryRepairWindow(ZombiesPlayer repairer) {
-        if(repairer.getState() == PlayerState.ALIVE) {
-            Player player = repairer.getPlayer();
-            WindowData window = map.windowInRange(player.getLocation().toVector(), map.getWindowRepairRadius());
-
-            if(window != null) {
-                MultiAccessor<Entity> attackingEntityAccessor = window.getAttackingEntity();
-
-                if(attackingEntityAccessor.get(this) == null) {
-                    MultiAccessor<ZombiesPlayer> currentRepairerAccessor = window.getRepairingPlayer();
-                    ZombiesPlayer currentRepairer = currentRepairerAccessor.get(this);
-
-                    if(currentRepairer == null) {
-                        currentRepairer = repairer;
-                        currentRepairerAccessor.set(this, repairer);
-                    }
-
-                    if(currentRepairer == repairer) {
-                        //advance repair state
-                        pluginManager.callEvent(new PlayerRepairWindowEvent(repairer, window));
-                    }
-                    else {
-                        //can't repair because someone else already is
-                    }
-                }
-                else {
-                    //can't repair because there is a zombie attacking the window
-                }
-            }
         }
     }
 

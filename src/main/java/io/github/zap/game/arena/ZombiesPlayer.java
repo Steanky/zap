@@ -2,15 +2,19 @@ package io.github.zap.game.arena;
 
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.event.map.DoorOpenEvent;
+import io.github.zap.event.player.PlayerRepairWindowEvent;
 import io.github.zap.event.player.PlayerRightClickEvent;
+import io.github.zap.game.MultiAccessor;
 import io.github.zap.game.data.DoorData;
 import io.github.zap.game.data.DoorSide;
 import io.github.zap.game.data.MapData;
+import io.github.zap.game.data.WindowData;
 import io.github.zap.util.ItemStackUtils;
 import io.github.zap.util.WorldUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.util.Vector;
@@ -45,14 +49,14 @@ public class ZombiesPlayer {
         this.player = player;
         this.coins = coins;
 
-        calculateTimings();
+        tryUpdateTimings();
     }
 
     /**
      * If the speed of the Ticker is changed midgame, we must adjust our timings to ensure window repairs and
      * reviving progress at the same speed
      */
-    private void calculateTimings() {
+    private void tryUpdateTimings() {
         int currentTps = ZombiesPlugin.getInstance().getTicker().getTps();
 
         if(currentTps != lastTps) {
@@ -68,10 +72,10 @@ public class ZombiesPlayer {
     public void onPlayerTick() {
         if(repairTick++ == repairTickOn) {
             if(state == PlayerState.ALIVE && player.isSneaking()) {
-                arena.tryRepairWindow(this);
+                tryRepairWindow();
             }
 
-            calculateTimings();
+            tryUpdateTimings();
         }
     }
 
@@ -81,26 +85,16 @@ public class ZombiesPlayer {
      */
     public void playerRightClick(PlayerRightClickEvent event) {
         if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-            arena.tryOpenDoor(this, event.getClicked().getLocation().toVector());
+            tryOpenDoor(event.getClicked().getLocation().toVector());
         }
     }
 
     /**
-     * Gives the player a certain amount of coins. Give a negative number to remove coins.
-     * @param amount The amount of coins to give
-     */
-    public void giveCoins(int amount) {
-        coins += amount;
-    }
-
-    /**
-     * Attempts to open the door that may be at the provided vector, given the provided player.
-     * @param opener The player that's trying to open the door
+     * Attempts to open the door that may be at the provided vector.
      * @param targetBlock The block to target
      */
-    public void tryOpenDoor(ZombiesPlayer opener, Vector targetBlock) {
-        if(opener.getState() == PlayerState.ALIVE) {
-            Player player = opener.getPlayer();
+    public void tryOpenDoor(Vector targetBlock) {
+        if(state == PlayerState.ALIVE) {
             MapData map = arena.getMap();
 
             if(ItemStackUtils.isEmpty(player.getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
@@ -109,13 +103,48 @@ public class ZombiesPlayer {
                 if(door != null) {
                     DoorSide side = door.sideAt(player.getLocation().toVector());
 
-                    if(side != null && opener.getCoins() >= side.getCost()) {
+                    if(side != null && coins >= side.getCost()) {
                         WorldUtils.fillBounds(arena.world, door.getDoorBounds(), Material.AIR);
-                        opener.giveCoins(-side.getCost());
+                        coins -= side.getCost();
                         door.getOpenAccessor().set(arena, true);
-                        ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(new DoorOpenEvent(opener,
-                                door, side));
+                        ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(
+                                new DoorOpenEvent(this, door, side));
                     }
+                }
+            }
+        }
+    }
+    /**
+     * Attempts to repair the given window.
+     */
+    public void tryRepairWindow() {
+        if(state == PlayerState.ALIVE) {
+            MapData map = arena.getMap();
+            WindowData window = map.windowInRange(player.getLocation().toVector(), map.getWindowRepairRadius());
+
+            if(window != null) {
+                MultiAccessor<Entity> attackingEntityAccessor = window.getAttackingEntity();
+
+                if(attackingEntityAccessor.get(arena) == null) {
+                    MultiAccessor<ZombiesPlayer> currentRepairerAccessor = window.getRepairingPlayer();
+                    ZombiesPlayer currentRepairer = currentRepairerAccessor.get(arena);
+
+                    if(currentRepairer == null) {
+                        currentRepairer = this;
+                        currentRepairerAccessor.set(arena, this);
+                    }
+
+                    if(currentRepairer == this) {
+                        //advance repair state
+                        ZombiesPlugin.getInstance().getServer().getPluginManager().callEvent(
+                                new PlayerRepairWindowEvent(this, window));
+                    }
+                    else {
+                        //can't repair because someone else already is
+                    }
+                }
+                else {
+                    //can't repair because there is a zombie attacking the window
                 }
             }
         }

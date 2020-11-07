@@ -86,9 +86,4 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     public List<ZombiesArena> getArenas() {
         return new ArrayList<>(mapArenas);
     }
-
-    @Override
-    public void loadMaps() {
-
-    }
 }
