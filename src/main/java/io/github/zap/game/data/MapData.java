@@ -51,6 +51,11 @@ public class MapData extends DataSerializable {
     int maximumCapacity;
 
     /**
+     * The duration of the game start countdown timer, in seconds
+     */
+    int countdownSeconds;
+
+    /**
      * The list of rooms managed by this map
      */
     List<RoomData> rooms;
@@ -71,6 +76,11 @@ public class MapData extends DataSerializable {
     int startingCoins;
 
     /**
+     * The number of coins you get for repairing a window
+     */
+    int coinsOnRepair;
+
+    /**
      * Whether or not this map should be joinable by other players after it has started
      */
     boolean joinableStarted;
@@ -78,12 +88,17 @@ public class MapData extends DataSerializable {
     /**
      * Whether or not spectators are allowed here
      */
-    boolean spectatorsAllowed;
+    boolean spectatorAllowed;
 
     /**
      * If this is true, players will be required to be holding nothing in order to open doors
      */
     boolean handRequiredToOpenDoors;
+
+    /**
+     * Whether or not the players should be allowed to forcibly start the game regardless of the minimum player limit
+     */
+    boolean forceStart;
 
     /**
      * The minimum (Manhattan) distance that players must be from a window in order to repair it
@@ -93,12 +108,12 @@ public class MapData extends DataSerializable {
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
      */
-    int windowRepairDelay;
+    int windowRepairTicks;
 
     /**
      * The base rate at which mobs break through windows, in server ticks
      */
-    int windowBreakDelay;
+    int windowBreakTicks;
 
     /**
      * The material that should replace door blocks when they are opened.
@@ -132,11 +147,11 @@ public class MapData extends DataSerializable {
      * @param distance The distance limit
      * @return The WindowData, or null if there is none in range
      */
-    public WindowData windowInRange(Vector standing, double distance) {
+    public WindowData windowAtRange(Vector standing, double distance) {
         if(mapBounds.contains(standing)) {
             for(RoomData roomData : rooms) {
                 for(WindowData window : roomData.getWindows()) {
-                    if(VectorUtils.manhattanDistance(window.getCenter(), standing) < distance) {
+                    if(window.inRange(standing, distance)) {
                         return window;
                     }
                 }

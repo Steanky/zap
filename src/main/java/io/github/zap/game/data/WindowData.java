@@ -6,6 +6,7 @@ import io.github.zap.game.Unique;
 import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
+import io.github.zap.util.VectorUtils;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -111,6 +112,16 @@ public class WindowData extends DataSerializable {
         }
 
         return volume;
+    }
+
+    /**
+     * Performs a range check on the window.
+     * @param standing The vector to base the check from
+     * @param distance The distance to base the range check off of
+     * @return Whether or not the window is within the specified distance from the standing vector
+     */
+    public boolean inRange(Vector standing, double distance) {
+        return VectorUtils.manhattanDistance(standing, getCenter()) < distance;
     }
 
     /**

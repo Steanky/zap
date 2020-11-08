@@ -65,9 +65,10 @@ public class ZombiesArena extends Arena implements Listener {
         List<Player> joiningPlayers = joinAttempt.getPlayers();
 
         if(joinAttempt.isSpectator()) {
-            if(map.isSpectatorsAllowed()) {
+            if(map.isSpectatorAllowed()) {
                 spectators.addAll(joiningPlayers);
                 pluginManager.callEvent(new PlayerJoinArenaEvent(this, joiningPlayers, true));
+                return true;
             }
         }
         else {
@@ -81,7 +82,7 @@ public class ZombiesArena extends Arena implements Listener {
                         }
                         break;
                     case STARTED:
-                        if(!map.isJoinableStarted()) { //support players joining midgame
+                        if(!map.isJoinableStarted()) { //support players joining midgame..?
                             return false;
                         }
                         break;
@@ -165,7 +166,8 @@ public class ZombiesArena extends Arena implements Listener {
                 pluginManager.callEvent(new PlayerLeaveArenaEvent(this, players, false));
             }
             else if(spectators.remove(bukkitPlayer)) {
-                pluginManager.callEvent(new PlayerLeaveArenaEvent(this, Lists.newArrayList(bukkitPlayer), true));
+                pluginManager.callEvent(new PlayerLeaveArenaEvent(this, Lists.newArrayList(bukkitPlayer),
+                        true));
             }
         }
     }
