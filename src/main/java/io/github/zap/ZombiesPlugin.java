@@ -3,7 +3,6 @@ package io.github.zap;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
-import io.github.zap.event.player.PlayerRightClickEvent;
 import io.github.zap.game.arena.Arena;
 import io.github.zap.game.arena.ArenaManager;
 import io.github.zap.game.arena.ZombiesArenaManager;
@@ -36,9 +35,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -78,7 +75,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-        getServer().getPluginManager().registerEvents(this,this);
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
@@ -268,20 +264,5 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
         //register commands here
         commandManager.registerCommand(new DebugCommand());
-    }
-
-    @EventHandler
-    private void onPlayerInteract(PlayerInteractEvent event) {
-        Action action = event.getAction();
-
-        if(event.getHand() == EquipmentSlot.HAND && (action == Action.RIGHT_CLICK_BLOCK ||
-                action == Action.RIGHT_CLICK_AIR)) {
-            getServer().getPluginManager().callEvent(new PlayerRightClickEvent(event.getPlayer(),
-                    event.getClickedBlock(), event.getItem(), action));
-        }
-    }
-
-    private void compareTicking() {
-
     }
 }

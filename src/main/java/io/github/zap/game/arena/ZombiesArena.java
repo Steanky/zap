@@ -4,20 +4,17 @@ import com.google.common.collect.Lists;
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.event.player.PlayerJoinArenaEvent;
 import io.github.zap.event.player.PlayerLeaveArenaEvent;
-import io.github.zap.event.player.PlayerRightClickEvent;
 import io.github.zap.game.Property;
 import io.github.zap.game.data.MapData;
 import io.github.zap.util.WorldUtils;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -143,32 +140,16 @@ public class ZombiesArena extends Arena implements Listener {
     }
 
     public void close() {
-        PlayerRightClickEvent.getHandlerList().unregister(this);
         PlayerQuitEvent.getHandlerList().unregister(this);
 
         zombiesPlugin.getArenaManager().removeArena(getName());
         zombiesPlugin.getWorldLoader().unloadWorld(world.getName());
 
-        Property.removeMappingsFor(this);
-    }
-
-    @EventHandler
-    private void onPlayerRightClick(PlayerRightClickEvent event) {
-        Player bukkitPlayer = event.getPlayer();
-
-        if(bukkitPlayer.getWorld() == world) {
-            ZombiesPlayer player = playerMap.getOrDefault(bukkitPlayer.getUniqueId(), null);
-
-            if(player != null) {
-                Vector vector = null;
-                Block clicked = event.getClicked();
-                if(clicked != null) {
-                    vector = clicked.getLocation().toVector();
-                }
-
-                player.onRightClick(event.getAction(), vector);
-            }
+        for(ZombiesPlayer player : players) {
+            player.cleanup();
         }
+
+        Property.removeMappingsFor(this);
     }
 
     @EventHandler
@@ -179,24 +160,26 @@ public class ZombiesArena extends Arena implements Listener {
             ZombiesPlayer zombiesPlayer = playerMap.get(bukkitPlayer.getUniqueId());
 
             if(zombiesPlayer != null) {
-                handleLeave(new LeaveInformation(Lists.newArrayList(zombiesPlayer.getPlayer()), false));
+                List<Player> players = Lists.newArrayList(zombiesPlayer.getPlayer());
+                removePlayers(players);
+                pluginManager.callEvent(new PlayerLeaveArenaEvent(this, players, false));
             }
-            else if(spectators.contains(bukkitPlayer)) {
-                handleLeave(new LeaveInformation(Lists.newArrayList(bukkitPlayer), true));
+            else if(spectators.remove(bukkitPlayer)) {
+                pluginManager.callEvent(new PlayerLeaveArenaEvent(this, Lists.newArrayList(bukkitPlayer), true));
             }
         }
     }
 
     private void addPlayers(Iterable<Player> players) {
         for(Player player : players) {
-            this.playerMap.put(player.getUniqueId(), new ZombiesPlayer(this, player, map.getStartingCoins()));
+            playerMap.put(player.getUniqueId(), new ZombiesPlayer(this, player, map.getStartingCoins()));
             player.teleportAsync(WorldUtils.locationFrom(world, map.getSpawn()));
         }
     }
 
     private void removePlayers(Iterable<Player> players) {
         for(Player player : players) {
-            this.playerMap.remove(player.getUniqueId());
+            playerMap.remove(player.getUniqueId()).cleanup();
         }
     }
 

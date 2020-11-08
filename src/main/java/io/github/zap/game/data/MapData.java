@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -77,27 +78,32 @@ public class MapData extends DataSerializable {
     /**
      * Whether or not spectators are allowed here
      */
-    private boolean spectatorsAllowed;
+    boolean spectatorsAllowed;
 
     /**
      * If this is true, players will be required to be holding nothing in order to open doors
      */
-    private boolean handRequiredToOpenDoors;
+    boolean handRequiredToOpenDoors;
 
     /**
      * The minimum (Manhattan) distance that players must be from a window in order to repair it
      */
-    private int windowRepairRadius;
+    int windowRepairRadius;
 
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
      */
-    private int windowRepairDelay;
+    int windowRepairDelay;
 
     /**
      * The base rate at which mobs break through windows, in server ticks
      */
-    private int windowBreakDelay;
+    int windowBreakDelay;
+
+    /**
+     * The material that should replace door blocks when they are opened.
+     */
+    Material doorFillMaterial;
 
     private MapData() { }
 

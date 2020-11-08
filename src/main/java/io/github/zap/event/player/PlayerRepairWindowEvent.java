@@ -14,4 +14,5 @@ import lombok.experimental.FieldDefaults;
 public class PlayerRepairWindowEvent extends CustomEvent {
     ZombiesPlayer player;
     WindowData window;
+    int increment;
 }

@@ -2,6 +2,7 @@ package io.github.zap.game.data;
 
 import io.github.zap.game.Property;
 import io.github.zap.game.MultiBoundingBox;
+import io.github.zap.game.Unique;
 import io.github.zap.game.arena.ZombiesPlayer;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.serialize.NoSerialize;
@@ -68,10 +69,11 @@ public class WindowData extends DataSerializable {
     int volume = -1;
 
     /**
-     * Arena specific state: the current index at which the window is being repaired or broken
+     * Arena specific state: the current index at which the window is being repaired or broken. This points to the index
+     * of the current repaired block; thus, if the window is fully broken, it will == -1
      */
     @NoSerialize
-    final Property<Integer> currentIndexAccessor = new Property<>(0);
+    final Property<Integer> currentIndexAccessor = new Property<>(getVolume() - 1);
 
     /**
      * Arena specific state: the player who is currently repairing the window
@@ -100,7 +102,7 @@ public class WindowData extends DataSerializable {
     }
 
     /**
-     * Gets the volume of the window's face (it's breakable/repairable blocks)
+     * Gets the volume of the window's face (its breakable/repairable blocks)
      * @return The volume of the window's face
      */
     public int getVolume() {
@@ -109,5 +111,42 @@ public class WindowData extends DataSerializable {
         }
 
         return volume;
+    }
+
+    /**
+     * Incrementally repairs this window by the specified amount. The repair index is limited by the volume of the
+     * window.
+     * @param accessor The accessor using this object
+     * @param by The amount to try to advance the repair index by
+     * @return The number of blocks that were actually repaired
+     */
+    public int advanceRepairState(Unique accessor, int by) {
+        int currentIndex = currentIndexAccessor.get(accessor);
+        int max = getVolume() - 1;
+
+        if(currentIndex < max) {
+            int repaired = Math.min(currentIndex + by, max);
+            currentIndexAccessor.set(accessor, repaired);
+            return repaired;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Incrementally breaks the window by the specified amount. Works the same as advanceRepairState, but in reverse.
+     * @param accessor The accessor using this object
+     * @param by The amount to reduce the repair index by
+     * @return true if any number of breaks occurred, false otherwise
+     */
+    public boolean retractRepairState(Unique accessor, int by) {
+        int currentIndex = currentIndexAccessor.get(accessor);
+
+        if(currentIndex > -1) {
+            currentIndexAccessor.set(accessor, Math.max(currentIndex - by, -1));
+            return true;
+        }
+
+        return false;
     }
 }
