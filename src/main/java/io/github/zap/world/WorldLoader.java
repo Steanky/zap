@@ -6,7 +6,8 @@ import java.util.function.Consumer;
 
 public interface WorldLoader {
     /**
-     * Preloads the specified array of world names. The implementation should keep these cached in memory.
+     * Preloads the specified array of world names. The implementation should keep these cached in memory for some
+     * amount of time, although not necessarily permanently.
      * @param worldNames The worlds to preload
      */
     void preloadWorlds(String... worldNames);

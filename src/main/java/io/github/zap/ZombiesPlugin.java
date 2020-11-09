@@ -10,8 +10,6 @@ import io.github.zap.game.data.*;
 import io.github.zap.world.WorldLoader;
 import io.github.zap.proxy.MythicMobs_v4_10_R1;
 import io.github.zap.proxy.MythicProxy;
-import io.github.zap.net.BungeeHandler;
-import io.github.zap.net.NetworkFlow;
 import io.github.zap.proxy.SlimeProxy;
 import io.github.zap.proxy.SlimeWorldManager_v2_3_R0;
 import io.github.zap.serialize.BukkitDataLoader;
@@ -21,26 +19,21 @@ import com.grinderwolf.swm.api.SlimePlugin;
 
 import io.github.zap.world.SlimeWorldLoader;
 import io.github.zap.serialize.DataSerializable;
-import io.github.zap.util.ChannelNames;
 import io.github.zap.util.ConfigNames;
 import io.github.zap.util.ConverterNames;
 import io.github.zap.util.PluginNames;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.Messenger;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import lombok.Getter;
 
@@ -85,7 +78,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
             initWorldLoader();
             initSerialization();
             initCommands();
-            initMessaging();
 
             timer.stop();
 
@@ -102,8 +94,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         //perform shutdown tasks
-        PlayerInteractEvent.getHandlerList().unregister((Listener) this);
-
         getLogger().info("Closing active arenas.");
 
         StopWatch timer = StopWatch.createStarted();
@@ -113,37 +103,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         timer.stop();
 
         getLogger().info(String.format("Done closing arenas; ~%sms elapsed", timer.getTime()));
-    }
-
-    /**
-     * Registers a channel and potentially supplies a ChannelHandler for that channel. The latter is only performed
-     * if NetworkFlow is set to either INCOMING or BIDIRECTIONAL. When registering a NetworkFlow.OUTGOING, handler
-     * MUST be null. When registering BIDIRECTIONAL or INCOMING, it must NOT be null.
-     * @param handler The handler to register
-     * @param channel The channel to open, and potentially register a handler for
-     * @param flow Whether or not to open outgoing, incoming, or both plugin channels
-     */
-    public void registerChannel(PluginMessageListener handler, String channel, NetworkFlow flow) {
-        Objects.requireNonNull(channel, "channel cannot be null");
-        Objects.requireNonNull(flow, "flow cannot be null");
-
-        Validate.isTrue((flow == NetworkFlow.OUTGOING) == (handler == null),
-                "the specified NetworkFlow is not valid given the other arguments");
-
-        Messenger messenger = getServer().getMessenger();
-
-        switch(flow) {
-            case INCOMING:
-                messenger.registerIncomingPluginChannel(this, channel, handler);
-                break;
-            case OUTGOING:
-                messenger.registerOutgoingPluginChannel(this, channel);
-                break;
-            case BIDIRECTIONAL:
-                messenger.registerIncomingPluginChannel(this, channel, handler);
-                messenger.registerOutgoingPluginChannel(this, channel);
-                break;
-        }
     }
 
     private void initConfig() {
@@ -216,10 +175,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         timer.stop();
 
         getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
-    }
-
-    private void initMessaging() {
-        registerChannel(new BungeeHandler(), ChannelNames.BUNGEECORD, NetworkFlow.BIDIRECTIONAL);
     }
 
     private void initSerialization() {
