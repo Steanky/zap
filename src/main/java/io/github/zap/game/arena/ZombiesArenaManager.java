@@ -4,6 +4,7 @@ import io.github.zap.ZombiesPlugin;
 import io.github.zap.game.data.MapData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -28,15 +29,17 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     private final Map<String, ZombiesArena> arenas = new HashMap<>();
     private final Collection<ZombiesArena> mapArenas = arenas.values();
 
+    private static final String offlinePlayer = "offline_player";
+
     @Override
     public String getName() {
         return NAME;
     }
 
-    public void handleJoin(JoinInformation information, Consumer<Boolean> onCompletion) {
+    public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
         for(Player player : information.getPlayers()) {
             if(!player.isOnline()) {
-                onCompletion.accept(false);
+                onCompletion.accept(ImmutablePair.of(false, offlinePlayer));
                 return;
             }
         }
@@ -47,7 +50,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
         if(mapName != null) {
             for(ZombiesArena arena : mapArenas) {
                 if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information)) {
-                    onCompletion.accept(true);
+                    onCompletion.accept(ImmutablePair.of(true, null));
                     return;
                 }
             }
@@ -65,13 +68,13 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                     logger.info("Done loading arena.");
 
                     if(arena.handleJoin(information)) {
-                        onCompletion.accept(true);
+                        onCompletion.accept(ImmutablePair.of(true, null));
                     }
                     else {
                         ZombiesPlugin.getInstance().getLogger().warning(String.format("Newly created arena rejected" +
                                 " join request '%s'", information));
                         arena.close();
-                        onCompletion.accept(false);
+                        onCompletion.accept(ImmutablePair.of(false,""));
                     }
                 });
 
@@ -85,7 +88,12 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
             ZombiesArena arena = arenas.get(targetArena);
 
             if(arena != null) {
-                onCompletion.accept(arena.handleJoin(information));
+                if(arena.handleJoin(information)) {
+                    onCompletion.accept(ImmutablePair.of(true, null));
+                }
+                else {
+                    onCompletion.accept(ImmutablePair.of(false, ""));
+                }
                 return;
             }
             else {
@@ -98,20 +106,10 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                     "ArenaManager (both mapName and targetArena are null): '%s'", information));
         }
 
-        onCompletion.accept(false);
+        onCompletion.accept(ImmutablePair.of(false, null));
     }
 
     public void removeArena(String name) {
         arenas.remove(name);
-    }
-
-    @Override
-    public ZombiesArena getArena(String name) {
-        return arenas.get(name);
-    }
-
-    @Override
-    public List<ZombiesArena> getArenas() {
-        return new ArrayList<>(mapArenas);
     }
 }

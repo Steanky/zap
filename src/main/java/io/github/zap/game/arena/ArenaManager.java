@@ -1,6 +1,7 @@
 package io.github.zap.game.arena;
 
 import io.github.zap.game.Unique;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,27 +19,17 @@ public interface ArenaManager<T extends Arena> extends Unique {
      * Offline players must not be sent to the arena.
      * @param joinAttempt The JoinInformation object
      * @param onCompletion The consumer that will execute when the JoinInformation is processed. This should always
-     *                     run on the main server thread.
+     *                     run on the main server thread. The first parameter of the ImmutablePair should correspond
+     *                     to the success of the operation (whether or not the players were added). The second
+     *                     parameter should be a resource key pointing to an error message explaining, in user-friendly
+     *                     terms, why the JoinAttempt was rejected. It should only be non-null if the first part of
+     *                     the pair is false.
      */
-    void handleJoin(JoinInformation joinAttempt, Consumer<Boolean> onCompletion);
+    void handleJoin(JoinInformation joinAttempt, Consumer<ImmutablePair<Boolean, String>> onCompletion);
 
     /**
      * Removes the specified arena from the manager.
      * @param name The name of the arena to remove
      */
     void removeArena(String name);
-
-    /**
-     * Retrieves an arena from the internal map.
-     * @param name The name of the arena to retrieve
-     * @return The arena itself
-     */
-    T getArena(String name);
-
-    /**
-     * Returns a list of arenas managed by this ArenaManager.
-     * @return A list of the arenas managed by this ArenaManager. This should be a copy of the underlying Collection,
-     * so that illegal modifications cannot be performed
-     */
-    List<T> getArenas();
 }
