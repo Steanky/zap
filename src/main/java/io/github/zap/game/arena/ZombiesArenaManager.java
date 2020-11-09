@@ -4,10 +4,10 @@ import io.github.zap.ZombiesPlugin;
 import io.github.zap.game.data.MapData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
@@ -16,6 +16,8 @@ import java.util.logging.Logger;
  */
 @RequiredArgsConstructor
 public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
+    private static final String NAME = "zombies";
+
     @Getter
     private final int arenaCapacity;
 
@@ -26,14 +28,27 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     private final Map<String, ZombiesArena> arenas = new HashMap<>();
     private final Collection<ZombiesArena> mapArenas = arenas.values();
 
-    public boolean handleJoin(JoinInformation information) {
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    public void handleJoin(JoinInformation information, Consumer<Boolean> onCompletion) {
+        for(Player player : information.getPlayers()) {
+            if(!player.isOnline()) {
+                onCompletion.accept(false);
+                return;
+            }
+        }
+
         String mapName = information.getMapName();
         String targetArena = information.getTargetArena();
 
         if(mapName != null) {
             for(ZombiesArena arena : mapArenas) {
                 if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information)) {
-                    return true;
+                    onCompletion.accept(true);
+                    return;
                 }
             }
 
@@ -49,13 +64,18 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
 
                     logger.info("Done loading arena.");
 
-                    if(!arena.handleJoin(information)) {
+                    if(arena.handleJoin(information)) {
+                        onCompletion.accept(true);
+                    }
+                    else {
                         ZombiesPlugin.getInstance().getLogger().warning(String.format("Newly created arena rejected" +
-                                "join request '%s'", information));
+                                " join request '%s'", information));
+                        arena.close();
+                        onCompletion.accept(false);
                     }
                 });
 
-                return true;
+                return;
             }
             else {
                 logger.info("A JoinAttempt was rejected, as we have reached arena capacity.");
@@ -65,7 +85,8 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
             ZombiesArena arena = arenas.get(targetArena);
 
             if(arena != null) {
-                return arena.handleJoin(information);
+                onCompletion.accept(arena.handleJoin(information));
+                return;
             }
             else {
                 ZombiesPlugin.getInstance().getLogger().warning(String.format("Requested arena '%s' does not exist.",
@@ -77,7 +98,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                     "ArenaManager (both mapName and targetArena are null): '%s'", information));
         }
 
-        return false;
+        onCompletion.accept(false);
     }
 
     public void removeArena(String name) {

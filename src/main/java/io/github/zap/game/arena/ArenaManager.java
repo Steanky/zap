@@ -1,19 +1,26 @@
 package io.github.zap.game.arena;
 
+import io.github.zap.game.Unique;
+
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Generic interface for an ArenaManager.
  * @param <T> The type of arena this instance manages
  */
-public interface ArenaManager<T extends Arena> {
+public interface ArenaManager<T extends Arena> extends Unique {
     /**
-     * Handle the specified JoinInformation.
+     * Handle the specified JoinInformation. This method should create arenas as necessary to handle join requests.
+     * This method may run fully or partially async, in which case it may return before the arena is created.
+     *
+     * This function must also take into account the possibility that some players in JoinInformation are offline.
+     * Offline players must not be sent to the arena.
      * @param joinAttempt The JoinInformation object
-     * @return This method should return false if the requested operation succeeded (ex. all of the users joined the
-     * game)
+     * @param onCompletion The consumer that will execute when the JoinInformation is processed. This should always
+     *                     run on the main server thread.
      */
-    boolean handleJoin(JoinInformation joinAttempt);
+    void handleJoin(JoinInformation joinAttempt, Consumer<Boolean> onCompletion);
 
     /**
      * Removes the specified arena from the manager.

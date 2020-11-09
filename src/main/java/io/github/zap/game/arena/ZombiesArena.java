@@ -8,6 +8,7 @@ import io.github.zap.game.Property;
 import io.github.zap.game.data.MapData;
 import io.github.zap.util.WorldUtils;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -17,6 +18,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
@@ -161,9 +163,9 @@ public class ZombiesArena extends Arena implements Listener {
             ZombiesPlayer zombiesPlayer = playerMap.get(bukkitPlayer.getUniqueId());
 
             if(zombiesPlayer != null) {
-                List<Player> players = Lists.newArrayList(zombiesPlayer.getPlayer());
-                removePlayers(players);
-                pluginManager.callEvent(new PlayerLeaveArenaEvent(this, players, false));
+                List<Player> player = Lists.newArrayList(bukkitPlayer);
+                removePlayers(player);
+                pluginManager.callEvent(new PlayerLeaveArenaEvent(this, player, false));
             }
             else if(spectators.remove(bukkitPlayer)) {
                 pluginManager.callEvent(new PlayerLeaveArenaEvent(this, Lists.newArrayList(bukkitPlayer),
@@ -172,10 +174,17 @@ public class ZombiesArena extends Arena implements Listener {
         }
     }
 
+    @SneakyThrows
     private void addPlayers(Iterable<Player> players) {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
         for(Player player : players) {
             playerMap.put(player.getUniqueId(), new ZombiesPlayer(this, player, map.getStartingCoins()));
-            player.teleportAsync(WorldUtils.locationFrom(world, map.getSpawn()));
+            futures.add(player.teleportAsync(WorldUtils.locationFrom(world, map.getSpawn())));
+        }
+
+        for(CompletableFuture<?> future : futures) {
+            future.join();
         }
     }
 

@@ -15,13 +15,14 @@ public interface WorldLoader {
      * Loads the map associated with worldName. This should copy from worlds cached via preloadWorlds, if possible.
      * Implementations of this function may run fully or partially async.
      * @param worldName The name of the world to load from
-     * @param worldConsumer The consumer that is called when the world is loaded
+     * @param worldConsumer The consumer that is called when the world is loaded. This should always be run on the main
+     *                      server thread
      */
     void loadWorld(String worldName, Consumer<World> worldConsumer);
 
     /**
-     * Unloads the map associated with the name. This should remove the map from the server world list, but it should
-     * not necessarily remove anything from the cache.
+     * Unloads the map associated with the name. This must remove the map from the server world list, but it is not
+     * required to remove anything from the world cache.
      * @param mapName The name of the specified map
      */
     void unloadWorld(String mapName);

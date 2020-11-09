@@ -33,6 +33,11 @@ public abstract class Arena implements Unique {
         return world.getName();
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
+
     /**
      * Attempts to add the players to arena. This should also teleport them to the arena's world.
      * @param joinAttempt The JoinInformation object to handle

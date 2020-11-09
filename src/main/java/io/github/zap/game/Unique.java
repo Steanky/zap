@@ -5,8 +5,8 @@ package io.github.zap.game;
  */
 public interface Unique {
     /**
-     * Gets the unique name of this object.
-     * @return The unique name of this object.
+     * Gets the unique name of this object. No specific format is required, nor should one be assumed.
+     * @return The unique name of this object
      */
     String getName();
 }
