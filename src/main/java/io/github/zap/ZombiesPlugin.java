@@ -4,19 +4,16 @@ import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.event.PlayerRightClickEvent;
+import io.github.zap.localization.LocalizationManager;
 import io.github.zap.manager.ArenaManager;
 import io.github.zap.maploader.MapLoader;
-import io.github.zap.net.BungeeHandler;
-import io.github.zap.net.NetworkFlow;
 import io.github.zap.serialize.BukkitDataLoader;
 import io.github.zap.serialize.DataLoader;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
 import io.github.zap.maploader.SlimeMapLoader;
-import io.github.zap.util.ChannelNames;
 import io.github.zap.util.ConfigNames;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
@@ -28,12 +25,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.Messenger;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import lombok.Getter;
 
-import java.util.Objects;
+import java.io.File;
+import java.util.Locale;
 import java.util.logging.Level;
 
 public final class ZombiesPlugin extends JavaPlugin implements Listener {
@@ -51,6 +47,9 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
     @Getter
     private MapLoader mapLoader;
+
+    @Getter
+    private LocalizationManager localizationManager;
 
     @Getter
     private CommandManager commandManager;
@@ -71,10 +70,10 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
 
             initConfig();
-            initMessaging();
-            initMapLoader();
             initSerialization();
+            initLocalization();
             initCommands();
+            initMapLoader();
 
             //self register as listener for testing custom event code
             getServer().getPluginManager().registerEvents(this, this);
@@ -98,37 +97,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         //perform shutdown tasks
     }
 
-    /**
-     * Registers a channel and potentially supplies a ChannelHandler for that channel. The latter is only performed
-     * if NetworkFlow is set to either INCOMING or BIDIRECTIONAL. When registering a NetworkFlow.OUTGOING, handler
-     * MUST be null. When registering BIDIRECTIONAL or INCOMING, it must NOT be null.
-     * @param handler The handler to register
-     * @param channel The channel to open, and potentially register a handler for
-     * @param flow Whether or not to open outgoing, incoming, or both plugin channels
-     */
-    public void registerChannel(PluginMessageListener handler, String channel, NetworkFlow flow) {
-        Objects.requireNonNull(channel, "channel cannot be null");
-        Objects.requireNonNull(flow, "flow cannot be null");
-
-        Validate.isTrue((flow == NetworkFlow.OUTGOING) == (handler == null),
-                "the specified NetworkFlow is not valid given the other arguments");
-
-        Messenger messenger = getServer().getMessenger();
-
-        switch(flow) {
-            case INCOMING:
-                messenger.registerIncomingPluginChannel(this, channel, handler);
-                break;
-            case OUTGOING:
-                messenger.registerOutgoingPluginChannel(this, channel);
-                break;
-            case BIDIRECTIONAL:
-                messenger.registerIncomingPluginChannel(this, channel, handler);
-                messenger.registerOutgoingPluginChannel(this, channel);
-                break;
-        }
-    }
-
     private void initConfig() {
         FileConfiguration config = getConfig();
         configuration = new ValidatingConfiguration(config);
@@ -140,6 +108,17 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.options().copyDefaults(true);
         saveConfig();
+    }
+
+    private void initLocalization() {
+        getLogger().info("Initializing localization");
+
+        StopWatch timer = StopWatch.createStarted();
+        localizationManager = new LocalizationManager(Locale.US, new File("localization"));
+        localizationManager.loadTranslations();
+        timer.stop();
+
+        getLogger().info(String.format("Localization initialized; ~%sms elapsed", timer.getTime()));
     }
 
     private void initMapLoader() {
@@ -157,7 +136,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
             try {
                 timer.start();
-                mapLoader.preloadWorlds("world_copy");
+                mapLoader.preloadWorlds();
                 timer.stop();
 
                 getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
@@ -169,10 +148,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         else { //plugin should never be null because it's a dependency, but it's best to be safe
             throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager.");
         }
-    }
-
-    private void initMessaging() {
-        registerChannel(new BungeeHandler(), ChannelNames.BUNGEECORD, NetworkFlow.BIDIRECTIONAL);
     }
 
     private void initSerialization() {

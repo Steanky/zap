@@ -174,7 +174,7 @@
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.16.3-R0.1-SNAPSHOT</version>
+            <version>1.16.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -188,21 +188,21 @@
         <dependency>
             <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
             <artifactId>slimeworldmanager-api</artifactId>
-            <version>d8c0d60</version>
+            <version>9113a9c</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
             <artifactId>slimeworldmanager-classmodifier</artifactId>
-            <version>d8c0d60</version>
+            <version>9113a9c</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
             <artifactId>slimeworldmanager-plugin</artifactId>
-            <version>d8c0d60</version>
+            <version>9113a9c</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

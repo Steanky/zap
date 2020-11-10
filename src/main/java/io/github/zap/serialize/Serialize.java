@@ -14,5 +14,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Serialize {
     String name() default StringUtils.EMPTY;
-    String converter() default StringUtils.EMPTY;
+    Converter converter() default Converter.DEFAULT;
 }

@@ -39,21 +39,21 @@ public class BukkitDataLoader implements DataLoader {
     }
 
     @Override
-    public <T extends DataSerializable> void save(T data, String path, String name) {
+    public <T extends DataSerializable> void save(T data, File file, String name) {
         FileConfiguration configuration = new YamlConfiguration();
         configuration.set(name, data);
 
         try {
-            configuration.save(path);
+            configuration.save(file);
         } catch (IOException ignored) {
             ZombiesPlugin.getInstance().getLogger().warning(String.format("IOException when attempting to save to " +
-                    "config file '%s'", path));
+                    "config file '%s'", file));
         }
     }
 
     @Override
-    public <T extends DataSerializable> T load(String path, String name) {
-        FileConfiguration configuration = YamlConfiguration.loadConfiguration(new File(path));
+    public <T extends DataSerializable> T load(File file, String name) {
+        FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
 
         //noinspection unchecked
         return (T) configuration.get(name);
