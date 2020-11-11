@@ -30,7 +30,6 @@ import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -94,15 +93,13 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         //perform shutdown tasks
-        getLogger().info("Closing active arenas.");
+        getLogger().info("Shutting down ArenaManager.");
 
         StopWatch timer = StopWatch.createStarted();
-        for(Arena arena : arenaManager.getArenas()) {
-            arena.close();
-        }
+        arenaManager.shutdown();
         timer.stop();
 
-        getLogger().info(String.format("Done closing arenas; ~%sms elapsed", timer.getTime()));
+        getLogger().info(String.format("Done shutting down ArenaManager; ~%sms elapsed", timer.getTime()));
     }
 
     private void initConfig() {

@@ -26,8 +26,8 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     private final int arenaTimeout;
 
     private final Map<String, MapData> maps = new HashMap<>();
-    private final Map<String, ZombiesArena> arenas = new HashMap<>();
-    private final Collection<ZombiesArena> mapArenas = arenas.values();
+    private final Map<String, ZombiesArena> arenaMappings = new HashMap<>();
+    private final Collection<ZombiesArena> arenas = arenaMappings.values();
 
     private static final String offlinePlayer = "offline_player";
 
@@ -48,7 +48,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
         String targetArena = information.getTargetArena();
 
         if(mapName != null) {
-            for(ZombiesArena arena : mapArenas) {
+            for(ZombiesArena arena : arenas) {
                 if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information)) {
                     onCompletion.accept(ImmutablePair.of(true, null));
                     return;
@@ -57,13 +57,13 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
 
             ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
             Logger logger = zombiesPlugin.getLogger();
-            if(arenas.size() < arenaCapacity) {
+            if(arenaMappings.size() < arenaCapacity) {
                 logger.info(String.format("Loading arena for map '%s'", mapName));
                 logger.fine(String.format("JoinInformation that triggered this load: '%s'", information));
 
                 zombiesPlugin.getWorldLoader().loadWorld(mapName, (world) -> {
                     ZombiesArena arena = new ZombiesArena(maps.get(mapName), world, arenaTimeout);
-                    arenas.put(arena.getName(), arena);
+                    arenaMappings.put(arena.getName(), arena);
 
                     logger.info("Done loading arena.");
 
@@ -85,7 +85,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
             }
         }
         else if(targetArena != null) {
-            ZombiesArena arena = arenas.get(targetArena);
+            ZombiesArena arena = arenaMappings.get(targetArena);
 
             if(arena != null) {
                 if(arena.handleJoin(information)) {
@@ -110,6 +110,13 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     }
 
     public void removeArena(String name) {
-        arenas.remove(name);
+        arenaMappings.remove(name);
+    }
+
+    @Override
+    public void shutdown() {
+        for(ZombiesArena arena : arenas) {
+            arena.close();
+        }
     }
 }

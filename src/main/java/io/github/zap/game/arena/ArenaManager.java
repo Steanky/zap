@@ -32,4 +32,9 @@ public interface ArenaManager<T extends Arena> extends Unique {
      * @param name The name of the arena to remove
      */
     void removeArena(String name);
+
+    /**
+     * Closes this ArenaManager instance and all of its managed arenas.
+     */
+    void shutdown();
 }
