@@ -1,7 +1,6 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
-import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -32,9 +31,12 @@ public class BukkitDataLoader implements DataLoader {
             for(Class<? extends ConfigurationSerializable> arg : args) {
                 aliasesMap.put(arg.getName(), DataSerializable.class);
             }
+
+            //below classes are always compatible with DataSerializable
+            aliasesMap.put(EnumWrapper.class.getName(), DataSerializable.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException(String.format("Exception when editing ConfigurationSerialization aliases map: %s",
-                    e.getMessage()));
+            throw new IllegalStateException(String.format("Exception when editing ConfigurationSerialization aliases " +
+                    "map: %s", e.getMessage()));
         }
     }
 

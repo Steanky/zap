@@ -2,16 +2,16 @@ package io.github.zap.serialize;
 
 import lombok.Getter;
 
+/**
+ * Provides a way to easily pass field-specific converters in an annotation argument.
+ */
 public enum Converter {
-    DEFAULT(ValueConverter.DEFAULT),
-    MYTHIC_MOB_SET_CONVERTER((object, direction) -> {
-        return object;
-    });
+    DEFAULT((object, direction) -> object);
 
     @Getter
-    private final ValueConverter converter;
+    private final ValueConverter valueConverter;
 
-    Converter(ValueConverter converter) {
-        this.converter = converter;
+    Converter(ValueConverter valueConverter) {
+        this.valueConverter = valueConverter;
     }
 }

@@ -11,7 +11,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class Translation extends DataSerializable {
     @Getter
-    private final Map<MessageKey, String> translations = new HashMap<>();
+    private final Map<String, String> mappings = new HashMap<>();
 
     @Getter
     private Locale locale;

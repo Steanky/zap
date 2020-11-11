@@ -5,15 +5,19 @@ import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.event.PlayerRightClickEvent;
 import io.github.zap.localization.LocalizationManager;
+import io.github.zap.localization.MessageKey;
+import io.github.zap.localization.Translation;
 import io.github.zap.manager.ArenaManager;
 import io.github.zap.maploader.MapLoader;
-import io.github.zap.serialize.BukkitDataLoader;
-import io.github.zap.serialize.DataLoader;
+import io.github.zap.serialize.*;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 
 import io.github.zap.maploader.SlimeMapLoader;
 import io.github.zap.util.ConfigNames;
+import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.mobs.MythicMob;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
@@ -115,6 +119,10 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
         StopWatch timer = StopWatch.createStarted();
         localizationManager = new LocalizationManager(Locale.US, new File("localization"));
+
+        Translation translation = new Translation(Locale.US);
+        translation.getMappings().put(MessageKey.EXAMPLE_KEY.getResourceKey(), "This is an example of a localized string.");
+        localizationManager.saveTranslation(translation);
         localizationManager.loadTranslations();
         timer.stop();
 
@@ -157,7 +165,33 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
          */
 
         //noinspection unchecked
-        dataLoader = new BukkitDataLoader();
+        dataLoader = new BukkitDataLoader(Translation.class);
+
+        DataSerializable.registerGlobalConverter(Locale.class, (object, serializing) -> {
+            if(serializing) {
+                Locale locale = (Locale)object;
+                String[] components = new String[3];
+
+                components[0] = locale.getLanguage();
+                components[1] = locale.getCountry();
+                components[2] = locale.getVariant();
+
+                return components;
+            }
+            else {
+                String[] components = (String[])object;
+                return new Locale(components[0], components[1], components[2]);
+            }
+        });
+
+        DataSerializable.registerGlobalConverter(MythicMob.class, (object, serializing) -> {
+            if(serializing) {
+                return ((MythicMob)object).getInternalName();
+            }
+            else {
+                return MythicMobs.inst().getAPIHelper().getMythicMob((String)object);
+            }
+        });
     }
 
     private void initCommands() {

@@ -1,6 +1,7 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -9,25 +10,23 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
  * Classes that need to be serialized and deserialized should inherit from this.
  */
 public abstract class DataSerializable implements ConfigurationSerializable {
-    private static final Map<String, ValueConverter> converters = new HashMap<>();
+    private static final Map<Class<?>, ValueConverter> globalConverters = new HashMap<>();
 
     /**
-     * Registers a ValueConverter that can be used to transform the values of fields during serialization and
-     * deserialization.
-     * @param name The name of the converter
-     * @param converter The converter
+     * Registers a global converter for the specified kind of object. This converter will apply to all instances of the
+     * object, even as part of an array, generic collection, or map.
+     * @param clazz The class of the object that will be converted
+     * @param converter The converter that will be used to convert the object
      */
-    public static void registerConverter(String name, ValueConverter converter){
-        Objects.requireNonNull(name, "name cannot be null");
-        Objects.requireNonNull(converter, "converter cannot be null");
-
-        converters.put(name, converter);
+    public static void registerGlobalConverter(Class<?> clazz, ValueConverter converter) {
+        globalConverters.put(clazz, converter);
     }
 
     @NotNull
@@ -37,8 +36,11 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
         forEachSerializable(getClass(), (triple) -> {
             try {
-                serializedData.put(triple.left, triple.right.convert(triple.middle.get(this), Direction.SERIALIZE));
-            } catch (IllegalAccessException | IllegalArgumentException e) {
+                Object fieldValue = triple.middle.get(this);
+                serializedData.put(triple.left, deserializeObject(triple.right.convert(fieldValue, true),
+                        triple.middle.getGenericType()));
+            } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
+                    ClassNotFoundException e) {
                 ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting " +
                                 "to serialize field '%s' in object '%s': %s", triple.middle.toGenericString(),
                         this.toString(), e.getMessage()));
@@ -48,6 +50,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         return serializedData;
     }
 
+    @SuppressWarnings("unused")
     public static DataSerializable deserialize(Map<String, Object> data) {
         // get the classname from the type key, which will be the class we want to construct
         String className = (String) data.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY);
@@ -102,8 +105,20 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             }
 
             Object instanceObject = constructor.newInstance(); //instantiate the object
-            forEachSerializable(instanceClass, (triple) -> setField(triple.middle, instanceObject,
-                    triple.right.convert(data.get(triple.left), Direction.DESERIALIZE)));
+            forEachSerializable(instanceClass, (triple) -> {
+                Object fieldValue = "null";
+                try {
+                    fieldValue = deserializeObject(triple.right.convert(data.get(triple.left), false),
+                            triple.middle.getGenericType()); //process serialized
+
+                    triple.middle.set(instanceObject, fieldValue);
+                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
+                        ClassNotFoundException e) {
+                    ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting to " +
+                            "assign value '%s' to field '%s' in object '%s': '%s'", fieldValue.toString(),
+                            triple.middle.toGenericString(), instanceObject.toString(), e.getMessage()));
+                }
+            });
 
             return (DataSerializable) instanceObject;
         }
@@ -113,53 +128,94 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     }
 
     /**
-     * Sets the field of a deserialized object, and outputs a warning message if it fails. Performs automatic conversion
-     * between collections and arrays of all dimensions.
-     * @param field The field to set in the object
-     * @param instanceObject The object that will be deserialized
-     * @param assignedObject The object that will be assigned
+     * Performs potentially necessary marshalling between deserialized data and the field of the class we're creating.
+     * This method will in most cases simply return the object it was passed. It will, however, iterate through
+     * implementations of Collection, Map, and arrays looking for values to convert.
+     * @param instance The object to marshal
+     * @param fieldType The target type of the field
+     * @return A new object that should be assignable to the field
      */
-    private static void setField(Field field, Object instanceObject, Object assignedObject) {
-        try {
-            Class<?> fieldType = field.getType();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object deserializeObject(Object instance, Type fieldType)
+            throws IllegalAccessException, InstantiationException, ClassNotFoundException {
+        ParameterizedType parameterizedType = null;
+        Class<?> instanceClass = instance.getClass();
+        Class<?> fieldClass;
 
-            // try to modify the value that we get from ConfigurationSerialization
-            if (assignedObject instanceof Collection && fieldType.isArray()) {
-                // workaround for ConfigurationSerialization giving us arraylists when we need arrays
-                assignedObject = toArrayDeep((Collection<?>)assignedObject, fieldType);
-            }
-
-            field.set(instanceObject, assignedObject);
-        } catch (IllegalAccessException | IllegalArgumentException e) {
-            ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting to assign value " +
-                    "'%s' to field '%s' in object '%s': '%s'", assignedObject.toString(), field.toGenericString(),
-                    instanceObject.toString(), e.getMessage()));
+        if(fieldType instanceof ParameterizedType) {
+            parameterizedType = (ParameterizedType)fieldType;
+            fieldClass = (Class<?>)parameterizedType.getRawType(); //extract generic type information
         }
-    }
-
-    /**
-     * Recursive utility function that converts a collection into an array that may be multidimensional.
-     * @param collection The collection to convert
-     * @param arrayType The class of the array we are converting to
-     * @return The array, which may be multidimensional
-     */
-    private static Object toArrayDeep(Collection<?> collection, Class<?> arrayType) {
-        Class<?> arrayComponent = arrayType.getComponentType();
-
-        Object[] array = collection.toArray();
-        Object newArray = Array.newInstance(arrayComponent, collection.size());
-
-        for(int i = 0; i < array.length; i++) {
-            Object item = array[i];
-
-            if(item instanceof Collection && arrayComponent.isArray()) {
-                item = toArrayDeep((Collection<?>)item, arrayComponent);
-            }
-
-            Array.set(newArray, i, item);
+        else {
+            fieldClass = (Class<?>)fieldType; //there is no generic type information
         }
 
-        return newArray;
+        if(instance instanceof Collection) {
+            if(fieldClass.isArray()) { //fix bukkit serializing arrays to lists
+                Class<?> arrayComponent = fieldClass.getComponentType();
+
+                Object[] array = ((Collection<?>)instance).toArray();
+                Object newArray = Array.newInstance(arrayComponent, array.length);
+
+                for(int i = 0; i < array.length; i++) {
+                    Array.set(newArray, i, deserializeObject(array[i], arrayComponent));
+                }
+
+                return newArray;
+            }
+            else if(instanceClass.isAssignableFrom(fieldClass)) { //recursively parse collections
+                Collection newCollection = (Collection)instanceClass.newInstance();
+                Type nextType = parameterizedType == null ? Object.class : parameterizedType.getActualTypeArguments()[0];
+
+                for(Object element : (Collection)instance) {
+                    newCollection.add(deserializeObject(element, nextType));
+                }
+
+                return newCollection;
+            }
+        }
+        else if(instance instanceof Map && Map.class.isAssignableFrom(fieldClass)) { //also recursively parse maps
+            Map oldMap = (Map)instance;
+            Map newMap = (Map)instanceClass.newInstance();
+
+            Type nextKeyType;
+            Type nextValueType;
+            if(parameterizedType == null) {
+                nextKeyType = Object.class;
+                nextValueType = Object.class;
+            }
+            else {
+                nextKeyType = parameterizedType.getActualTypeArguments()[0];
+                nextValueType = parameterizedType.getActualTypeArguments()[1];
+            }
+
+            //noinspection Convert2Lambda
+            oldMap.forEach(new BiConsumer<Object, Object>() {
+                @SuppressWarnings("unchecked")
+                @SneakyThrows
+                @Override
+                public void accept(Object key, Object value) {
+                    newMap.put(deserializeObject(key, nextKeyType),
+                            deserializeObject(value, nextValueType));
+                }
+            });
+
+            return newMap;
+        }
+        else { //convert globally registered types
+            ValueConverter converter = globalConverters.get(instance.getClass());
+
+            if(converter != null) {
+                instance = converter.convert(instance, false);
+            }
+
+            if(instance instanceof EnumWrapper) {
+                EnumWrapper enumWrapper = (EnumWrapper)instance;
+                return Enum.valueOf((Class)Class.forName(enumWrapper.getEnumClass()), enumWrapper.getEnumValue());
+            }
+        }
+
+        return instance;
     }
 
     /**
@@ -175,6 +231,10 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         fields:
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) { // skip static fields
+                if(!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+
                 Annotation[] annotations = field.getDeclaredAnnotations();
                 Serialize serializeAnnotation = null;
 
@@ -191,11 +251,11 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 ValueConverter converter;
                 if(serializeAnnotation != null) {
                     name = serializeAnnotation.name();
-                    converter = converters.getOrDefault(serializeAnnotation.converter(), ValueConverter.DEFAULT);
+                    converter = serializeAnnotation.converter().getValueConverter();
                 }
                 else {
                     name = field.getName();
-                    converter = ValueConverter.DEFAULT;
+                    converter = Converter.DEFAULT.getValueConverter();
                 }
 
                 consumer.accept(ImmutableTriple.of(name, field, converter));

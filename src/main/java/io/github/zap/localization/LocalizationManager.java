@@ -3,22 +3,17 @@ package io.github.zap.localization;
 import com.google.common.io.Files;
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.serialize.DataLoader;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 @RequiredArgsConstructor
 public class LocalizationManager {
-    private static final String errorMessage = "Missing translation for locale %s and MessageKey %s. Report this " +
-            "error to server administration.";
-    private static final String extension = "lang";
+    private static final String extension = "yml";
     private static final String dataName = "translations";
 
     private final Map<Locale, Translation> resources = new HashMap<>();
@@ -26,15 +21,16 @@ public class LocalizationManager {
     private final File localizationFileDirectory;
 
     public String getLocalizedMessage(Locale locale, MessageKey messageKey) {
-        Map<MessageKey, String> messages = resources.get(locale).getTranslations();
+        Map<String, String> messages = resources.get(locale).getMappings();
         if(messages == null) {
-            messages = resources.get(defaultLocale).getTranslations();
+            messages = resources.get(defaultLocale).getMappings();
         }
 
         //this doesn't use getOrDefault to avoid evaluating String.format when unnecessary
-        String message = messages.get(messageKey);
+        String message = messages.get(messageKey.getResourceKey());
         if(message == null) {
-            message = String.format(errorMessage, locale.toLanguageTag(), messageKey);
+            message = String.format("Missing translation for locale %s and MessageKey %s. Report this error to server" +
+                    " administration.", locale.toLanguageTag(), messageKey);
         }
 
         return message;
@@ -52,10 +48,11 @@ public class LocalizationManager {
             File[] files = localizationFileDirectory.listFiles();
 
             if(files != null) {
-                for(File file : files) {
+                for(File file : files) { //TODO: make custom lang file parser instead of using DataSerializable
                     if(file.isFile() && Files.getFileExtension(file.getName()).equals(extension)) {
                         try {
                             Translation translation = loader.load(file, dataName);
+
                             if(translation != null) {
                                 resources.put(translation.getLocale(), translation);
                                 zombiesPlugin.getLogger().info(String.format("Loaded '%s' translations",
@@ -87,7 +84,7 @@ public class LocalizationManager {
         ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
         DataLoader loader = zombiesPlugin.getDataLoader();
 
-        loader.save(translation, Paths.get(localizationFileDirectory.getAbsolutePath(),
-                translation.getLocale().toString()).toFile(), dataName);
+        loader.save(translation, Paths.get(localizationFileDirectory.getPath(),
+                translation.getLocale().toString() + "." + extension).toFile(), dataName);
     }
 }

@@ -1,13 +1,11 @@
 package io.github.zap.serialize;
 
 public interface ValueConverter {
-    ValueConverter DEFAULT = (object, direction) -> object;
-
     /**
-     * Converts the provided object into another object, given a Direction (either SERIALIZE or DESERIALIZE)
+     * Converts the provided object into another object, depending on of it is being serialized or deserialized.
      * @param object The object to convert
-     * @param direction Whether the object is being serialized or deserialized
+     * @param serializing Whether the object is being serialized or deserialized
      * @return The converted object
      */
-    Object convert(Object object, Direction direction);
+    Object convert(Object object, boolean serializing);
 }
