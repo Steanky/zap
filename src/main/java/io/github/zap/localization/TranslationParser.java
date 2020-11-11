@@ -25,7 +25,7 @@ public class TranslationParser {
 
         String line;
         while ((line = bufferedReader.readLine()) != null) {
-            String[] parts = line.split("=");
+            String[] parts = line.split("=", 2);
 
             if (parts.length >= 2) {
                 values.put(parts[0].trim(), parts[1].trim());
