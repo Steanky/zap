@@ -120,7 +120,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         StopWatch timer = StopWatch.createStarted();
         localizationManager = new LocalizationManager(Locale.US, new File("localization"));
 
-        Translation translation = new Translation(Locale.US);
+        Translation translation = new Translation(Locale.US, null);
         translation.getMappings().put(MessageKey.EXAMPLE_KEY.getResourceKey(), "This is an example of a localized string.");
         localizationManager.saveTranslation(translation);
         localizationManager.loadTranslations();
@@ -165,7 +165,7 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
          */
 
         //noinspection unchecked
-        dataLoader = new BukkitDataLoader(Translation.class);
+        dataLoader = new BukkitDataLoader();
 
         DataSerializable.registerGlobalConverter(Locale.class, (object, serializing) -> {
             if(serializing) {
