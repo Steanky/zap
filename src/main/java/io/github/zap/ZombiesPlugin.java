@@ -2,8 +2,8 @@ package io.github.zap;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.sun.istack.internal.NotNull;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
@@ -26,7 +26,6 @@ import com.grinderwolf.swm.api.SlimePlugin;
 import io.github.zap.world.SlimeWorldLoader;
 import io.github.zap.serialize.DataSerializable;
 import io.github.zap.util.ConfigNames;
-import io.github.zap.util.ConverterNames;
 import io.github.zap.util.PluginNames;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -36,14 +35,17 @@ import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -70,8 +72,8 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
     @Getter
     private CommandManager commandManager;
 
-    private Map<String, ArenaManager<? extends Arena>> arenaManagerMappings = new HashMap<>();
-    private Collection<ArenaManager<? extends Arena>> arenaManagers = arenaManagerMappings.values();
+    private Map<String, ArenaManager<? extends Arena<?>>> arenaManagerMappings = new HashMap<>();
+    private Collection<ArenaManager<? extends Arena<?>>> arenaManagers = arenaManagerMappings.values();
 
     @Override
     public void onEnable() {
@@ -150,6 +152,23 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
         saveConfig();
     }
 
+    private void initWorldLoader() {
+        worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
+
+        getLogger().info("Preloading worlds.");
+
+        StopWatch timer = StopWatch.createStarted();
+        worldLoader.preloadWorlds();
+        timer.stop();
+
+        getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
+    }
+
+    private void initArenaManagers() {
+        addArenaManager(new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10),
+                configuration.get(ConfigNames.ARENA_TIMEOUT, 300000)));
+    }
+
     private void initProxies() {
         PluginManager manager = Bukkit.getPluginManager();
         Plugin mythicMobs = manager.getPlugin(PluginNames.MYTHIC_MOBS);
@@ -189,23 +208,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
         }
     }
 
-    private void initArenaManagers() {
-        addArenaManager(new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10),
-                configuration.get(ConfigNames.ARENA_TIMEOUT, 300000)));
-    }
-
-    private void initWorldLoader() {
-        worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
-
-        getLogger().info("Preloading worlds.");
-
-        StopWatch timer = StopWatch.createStarted();
-        worldLoader.preloadWorlds();
-        timer.stop();
-
-        getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
-    }
-
     private void initSerialization() {
         /*
         include all classes you want to be serialized as arguments to BukkitDataLoader
@@ -216,29 +218,23 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
         dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
                 ShopData.class, SpawnpointData.class, WindowData.class);
 
-        //register converters
-        DataSerializable.registerConverter(ConverterNames.MYTHIC_MOB_SET_CONVERTER, (data, serializing) -> {
+        DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, (object, serializing) -> {
             if(serializing) {
-                //noinspection unchecked
-                Set<MythicMob> set = (Set<MythicMob>)data;
-                Set<String> result = new HashSet<>();
-
-                for(MythicMob mob : set) {
-                    result.add(mob.getInternalName());
-                }
-
-                return result;
+                Locale locale = (Locale)object;
+                return Lists.newArrayList(locale.getLanguage(), locale.getCountry(), locale.getVariant());
             }
             else {
-                //noinspection unchecked
-                Set<String> set = (Set<String>)data;
-                Set<MythicMob> result = new HashSet<>();
+                List<?> components = (List<?>)object;
+                return new Locale((String)components.get(0), (String)components.get(1), (String)components.get(2));
+            }
+        });
 
-                for(String name : set) {
-                    result.add(MythicMobs.inst().getAPIHelper().getMythicMob(name));
-                }
-
-                return result;
+        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, (object, serializing) -> {
+            if(serializing) {
+                return ((MythicMob)object).getInternalName();
+            }
+            else {
+                return MythicMobs.inst().getAPIHelper().getMythicMob((String)object);
             }
         });
     }
@@ -258,36 +254,35 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        if(channel.equals(ChannelNames.BUNGEECORD)) {
+        if (channel.equals(ChannelNames.BUNGEECORD)) {
             ByteArrayDataInput input = ByteStreams.newDataInput(message);
             String subchannel = input.readUTF();
 
-            if(subchannel.equals("Forward")) {
+            if (subchannel.equals("Forward")) {
                 input.readUTF(); //disregard target server
                 String packetName = input.readUTF();
 
-                if(packetName.equals("JOIN")) {
+                if (packetName.equals("JOIN")) {
                     input.readUTF();
                     String playerString = input.readUTF();
                     Player[] players = Arrays.stream(playerString.split(",")).map((name) ->
                             getServer().getPlayer(UUID.fromString(name))).toArray(Player[]::new);
 
-                    if(Arrays.stream(players).allMatch((player1 -> player1 != null && player1.isOnline()))) {
+                    if (Arrays.stream(players).allMatch((player1 -> player1 != null && player1.isOnline()))) {
                         String managerName = input.readUTF();
                         String mapName = input.readUTF();
                         boolean isSpectator = input.readBoolean();
                         String targetArena = input.readUTF();
 
                         ArenaManager<?> arenaManager = arenaManagerMappings.get(managerName);
-                        if(arenaManager != null) {
+                        if (arenaManager != null) {
                             arenaManager.handleJoin(new JoinInformation(Arrays.asList(players), mapName, isSpectator,
                                     targetArena), (pair) -> {
-                                if(!pair.left) {
+                                if (!pair.left) {
                                     //send error message to player
                                 }
                             });
-                        }
-                        else {
+                        } else {
 
                         }
                     }

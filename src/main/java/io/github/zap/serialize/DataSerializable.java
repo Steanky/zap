@@ -1,7 +1,7 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
+import lombok.SneakyThrows;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.jetbrains.annotations.NotNull;
@@ -9,25 +9,26 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
  * Classes that need to be serialized and deserialized should inherit from this.
  */
 public abstract class DataSerializable implements ConfigurationSerializable {
-    private static final Map<String, ValueConverter> converters = new HashMap<>();
+    private static final Map<Class<?>, ValueConverter> serializedGlobals = new HashMap<>();
+    private static final Map<Class<?>, ValueConverter> deserializedGlobals = new HashMap<>();
 
     /**
-     * Registers a ValueConverter that can be used to transform the values of fields during serialization and
-     * deserialization.
-     * @param name The name of the converter
-     * @param converter The converter
+     * Registers a global converter for the specified kind of object. This converter will apply to all instances of the
+     * object, even as part of an array, generic collection, or map.
+     * @param serializedClass The class of the object that will be serialized
+     * @param deserializedClass The class of the object that will be deserialized
+     * @param converter The converter that will be used to convert the object
      */
-    public static void registerConverter(String name, ValueConverter converter){
-        Objects.requireNonNull(name, "name cannot be null");
-        Objects.requireNonNull(converter, "converter cannot be null");
-
-        converters.put(name, converter);
+    public static void registerGlobalConverter(Class<?> serializedClass, Class<?> deserializedClass, ValueConverter converter) {
+        serializedGlobals.put(serializedClass, converter);
+        deserializedGlobals.put(deserializedClass, converter);
     }
 
     @NotNull
@@ -35,19 +36,37 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     public Map<String, Object> serialize() {
         Map<String, Object> serializedData = new HashMap<>();
 
-        forEachSerializable(getClass(), (triple) -> {
+        forEachSerializable(getClass(), (entry) -> { //iterate through all serializable fields in this DataSerializable
+            String name = entry.getName();
+            Field field = entry.getField();
+            ValueConverter converter = entry.getConverter();
+
             try {
-                serializedData.put(triple.left, triple.right.convert(triple.middle.get(this), true));
-            } catch (IllegalAccessException | IllegalArgumentException e) {
+                Object fieldValue = entry.getField().get(this);
+                Object transformedValue;
+
+                if(entry.isCollection()) { //perform more complicated recursive conversion process
+                    transformedValue = (converter == null) ? processCollection(fieldValue, field.getGenericType(),
+                            true) : converter.convert(fieldValue, true);
+                }
+                else { //simple conversion process for simple, non-collection objects
+                    transformedValue = (converter == null) ? processObject(fieldValue, field.getType(), true) :
+                            converter.convert(fieldValue, true);
+                }
+
+                serializedData.put(name, transformedValue);
+            } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
+                    ClassNotFoundException e) {
                 ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting " +
-                                "to serialize field '%s' in object '%s': %s", triple.middle.toGenericString(),
-                        this.toString(), e.getMessage()));
+                                "to serialize field '%s' in object '%s': %s", field.toGenericString(), this.toString(),
+                        e.getMessage()));
             }
         });
 
         return serializedData;
     }
 
+    @SuppressWarnings("unused")
     public static DataSerializable deserialize(Map<String, Object> data) {
         // get the classname from the type key, which will be the class we want to construct
         String className = (String) data.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY);
@@ -73,8 +92,6 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             ZombiesPlugin.getInstance().getLogger().warning(String.format("The serialized data does not contain " +
                     "required type key '%s'", ConfigurationSerialization.SERIALIZED_TYPE_KEY));
         }
-
-
 
         return null;
     }
@@ -104,8 +121,33 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             }
 
             Object instanceObject = constructor.newInstance(); //instantiate the object
-            forEachSerializable(instanceClass, (triple) -> setField(triple.middle, instanceObject,
-                    triple.right.convert(data.get(triple.left), false)));
+
+            forEachSerializable(instanceClass, (entry) -> {
+                String name = entry.getName();
+                Field field = entry.getField();
+                ValueConverter converter = entry.getConverter();
+
+                Object fieldValue = data.get(name);
+
+                try {
+                    Object transformedValue;
+                    if(entry.isCollection()) {
+                        transformedValue = (converter == null) ? processCollection(fieldValue,
+                                field.getGenericType(), false) : converter.convert(fieldValue, false);
+                    }
+                    else {
+                        transformedValue = (converter == null) ? processObject(fieldValue, field.getType(),
+                                false) : converter.convert(fieldValue, false);
+                    }
+
+                    field.set(instanceObject, transformedValue);
+                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
+                        ClassNotFoundException e) {
+                    ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting to " +
+                            "assign value '%s' to field '%s' in object '%s': '%s'", fieldValue.toString(),
+                            field.toGenericString(), instanceObject.toString(), e.getMessage()));
+                }
+            });
 
             return (DataSerializable) instanceObject;
         }
@@ -114,54 +156,104 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         }
     }
 
-    /**
-     * Sets the field of a deserialized object, and outputs a warning message if it fails. Performs automatic conversion
-     * between collections and arrays of all dimensions.
-     * @param field The field to set in the object
-     * @param instanceObject The object that will be deserialized
-     * @param assignedObject The object that will be assigned
-     */
-    private static void setField(Field field, Object instanceObject, Object assignedObject) {
-        try {
-            Class<?> fieldType = field.getType();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object processCollection(Object instance, Type fieldType, boolean serializing)
+            throws IllegalAccessException, InstantiationException, ClassNotFoundException {
+        ParameterizedType parameterizedType = null;
+        Class<?> instanceClass = instance.getClass();
+        Class<?> fieldClass;
 
-            // try to modify the value that we get from ConfigurationSerialization
-            if (assignedObject instanceof Collection && fieldType.isArray()) {
-                // workaround for ConfigurationSerialization giving us arraylists when we need arrays
-                assignedObject = toArrayDeep((Collection<?>)assignedObject, fieldType);
+        if(fieldType instanceof ParameterizedType) {
+            parameterizedType = (ParameterizedType)fieldType;
+            fieldClass = (Class<?>)parameterizedType.getRawType(); //extract generic type information
+        }
+        else {
+            fieldClass = (Class<?>)fieldType; //there is no generic type information
+        }
+
+        if(instance instanceof Collection) {
+            if(fieldClass.isArray()) { //fix bukkit serializing arrays to lists
+                Class<?> arrayComponent = fieldClass.getComponentType();
+
+                Object[] array = ((Collection<?>)instance).toArray();
+                Object newArray = Array.newInstance(arrayComponent, array.length);
+
+                for(int i = 0; i < array.length; i++) {
+                    Array.set(newArray, i, processCollection(array[i], arrayComponent, serializing));
+                }
+
+                return newArray;
+            }
+            else if(fieldClass.isAssignableFrom(instance.getClass())) { //recursively parse collections
+                Collection newCollection = (Collection)instanceClass.newInstance();
+                Type nextType = parameterizedType == null ? Object.class : parameterizedType.getActualTypeArguments()[0];
+
+                for(Object element : (Collection)instance) {
+                    newCollection.add(processCollection(element, nextType, serializing));
+                }
+
+                return newCollection;
+            }
+        }
+        else if(instance instanceof Map) { //also recursively parse maps
+            Map oldMap = (Map) instance;
+            Map newMap = (Map) instanceClass.newInstance();
+
+            Type nextKeyType;
+            Type nextValueType;
+            if (parameterizedType == null) {
+                nextKeyType = Object.class;
+                nextValueType = Object.class;
+            } else {
+                nextKeyType = parameterizedType.getActualTypeArguments()[0];
+                nextValueType = parameterizedType.getActualTypeArguments()[1];
             }
 
-            field.set(instanceObject, assignedObject);
-        } catch (IllegalAccessException | IllegalArgumentException e) {
-            ZombiesPlugin.getInstance().getLogger().warning(String.format("Exception when attempting to assign value " +
-                    "'%s' to field '%s' in object '%s': '%s'", assignedObject.toString(), field.toGenericString(),
-                    instanceObject.toString(), e.getMessage()));
+            //noinspection Convert2Lambda
+            oldMap.forEach(new BiConsumer<Object, Object>() {
+                @SuppressWarnings("unchecked")
+                @SneakyThrows
+                @Override
+                public void accept(Object key, Object value) {
+                    newMap.put(processCollection(key, nextKeyType, serializing),
+                            processCollection(value, nextValueType, serializing));
+                }
+            });
+
+            return newMap;
         }
+
+        return processObject(instance, fieldClass, serializing);
     }
 
-    /**
-     * Recursive utility function that converts a collection into an array that may be multidimensional.
-     * @param collection The collection to convert
-     * @param arrayType The class of the array we are converting to
-     * @return The array, which may be multidimensional
-     */
-    private static Object toArrayDeep(Collection<?> collection, Class<?> arrayType) {
-        Class<?> arrayComponent = arrayType.getComponentType();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object processObject(Object instance, Class<?> fieldClass, boolean serializing)
+            throws ClassNotFoundException {
+        Class<?> instanceClass = instance.getClass();
 
-        Object[] array = collection.toArray();
-        Object newArray = Array.newInstance(arrayComponent, collection.size());
-
-        for(int i = 0; i < array.length; i++) {
-            Object item = array[i];
-
-            if(item instanceof Collection && arrayComponent.isArray()) {
-                item = toArrayDeep((Collection<?>)item, arrayComponent);
-            }
-
-            Array.set(newArray, i, item);
+        if(serializing && instance instanceof Enum) { //implement baked in support for all enums via EnumWrapper
+            Enum<?> enumInstance = (Enum<?>)instance;
+            return new EnumWrapper(enumInstance.getClass().getName(), enumInstance.name());
+        }
+        else if(!serializing && instance instanceof EnumWrapper) {
+            EnumWrapper wrapper = (EnumWrapper)instance;
+            return Enum.valueOf((Class)Class.forName(wrapper.getEnumClass()), wrapper.getEnumValue());
         }
 
-        return newArray;
+        /*
+        check for global object converter if we're serializing, or deserializing and the object types are
+        not compatible.
+         */
+        if(serializing || !fieldClass.isAssignableFrom(instanceClass)) {
+            ValueConverter converter = (serializing) ? serializedGlobals.get(instanceClass) :
+                    deserializedGlobals.get(instanceClass);
+
+            if(converter != null) {
+                return converter.convert(instance, serializing);
+            }
+        }
+
+        return instance;
     }
 
     /**
@@ -171,18 +263,26 @@ public abstract class DataSerializable implements ConfigurationSerializable {
      *                 the field name or the name parameter of the @Serialize annotation), the field that we are dealing
      *                 with, and a ValueConverter that will default to a converter which does nothing.
      */
-    private static void forEachSerializable(Class<?> clazz, Consumer<ImmutableTriple<String, Field, ValueConverter>> consumer) {
+    private static void forEachSerializable(Class<?> clazz, Consumer<SerializationEntry> consumer) {
         Field[] fields = clazz.getDeclaredFields();
 
         fields:
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) { // skip static fields
+                if(!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+
                 Annotation[] annotations = field.getDeclaredAnnotations();
                 Serialize serializeAnnotation = null;
+                boolean serializeCollection = false;
 
                 for (Annotation annotation : annotations) { //look for Serialize annotation
                     if(annotation instanceof Serialize) {
                         serializeAnnotation = (Serialize)annotation; //keep checking annotations
+                    }
+                    else if(annotation instanceof SerializeCollection) {
+                        serializeCollection = true;
                     }
                     else if(annotation instanceof NoSerialize) {
                         continue fields; //one NoSerialize will override a Serialize annotation
@@ -193,14 +293,14 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 ValueConverter converter;
                 if(serializeAnnotation != null) {
                     name = serializeAnnotation.name();
-                    converter = converters.getOrDefault(serializeAnnotation.converter(), ValueConverter.DEFAULT);
+                    converter = serializeAnnotation.converter().getValueConverter();
                 }
                 else {
                     name = field.getName();
-                    converter = ValueConverter.DEFAULT;
+                    converter = null;
                 }
 
-                consumer.accept(ImmutableTriple.of(name, field, converter));
+                consumer.accept(new SerializationEntry(name, field, converter, serializeCollection));
             }
         }
     }

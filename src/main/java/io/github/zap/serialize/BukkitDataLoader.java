@@ -1,7 +1,6 @@
 package io.github.zap.serialize;
 
 import io.github.zap.ZombiesPlugin;
-import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -32,28 +31,31 @@ public class BukkitDataLoader implements DataLoader {
             for(Class<? extends ConfigurationSerializable> arg : args) {
                 aliasesMap.put(arg.getName(), DataSerializable.class);
             }
+
+            //below classes are always compatible with DataSerializable
+            aliasesMap.put(EnumWrapper.class.getName(), DataSerializable.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException(String.format("Exception when editing ConfigurationSerialization aliases map: %s",
-                    e.getMessage()));
+            throw new IllegalStateException(String.format("Exception when editing ConfigurationSerialization aliases " +
+                    "map: %s", e.getMessage()));
         }
     }
 
     @Override
-    public <T extends DataSerializable> void save(T data, String path, String name) {
+    public <T extends DataSerializable> void save(T data, File file, String name) {
         FileConfiguration configuration = new YamlConfiguration();
         configuration.set(name, data);
 
         try {
-            configuration.save(path);
+            configuration.save(file);
         } catch (IOException ignored) {
             ZombiesPlugin.getInstance().getLogger().warning(String.format("IOException when attempting to save to " +
-                    "config file '%s'", path));
+                    "config file '%s'", file));
         }
     }
 
     @Override
-    public <T extends DataSerializable> T load(String path, String name) {
-        FileConfiguration configuration = YamlConfiguration.loadConfiguration(new File(path));
+    public <T extends DataSerializable> T load(File file, String name) {
+        FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
 
         //noinspection unchecked
         return (T) configuration.get(name);

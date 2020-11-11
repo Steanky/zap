@@ -1,18 +1,15 @@
 package io.github.zap.serialize;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to provided additional information to the serializer.
+ * This annotation should be applied to any collection that is supposed to be deeply serialized; ex. all of its objects
+ * will be iterated and converted if necessary.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Serialize {
-    String name() default StringUtils.EMPTY;
-    Converter converter() default Converter.DEFAULT;
+public @interface SerializeCollection {
 }
