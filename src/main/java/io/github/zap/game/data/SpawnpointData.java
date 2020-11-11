@@ -1,8 +1,6 @@
 package io.github.zap.game.data;
 
 import io.github.zap.serialize.DataSerializable;
-import io.github.zap.serialize.Serialize;
-import io.github.zap.util.ConverterNames;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -34,7 +32,6 @@ public class SpawnpointData extends DataSerializable {
     /**
      * This represents all of the mobs that can be spawned here
      */
-    @Serialize(converter = ConverterNames.MYTHIC_MOB_SET_CONVERTER)
     Set<MythicMob> whitelist;
 
     private SpawnpointData() {}

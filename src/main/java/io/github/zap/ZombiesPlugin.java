@@ -3,7 +3,6 @@ package io.github.zap;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.sun.istack.internal.NotNull;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
@@ -12,6 +11,7 @@ import io.github.zap.game.arena.ArenaManager;
 import io.github.zap.game.arena.JoinInformation;
 import io.github.zap.game.arena.ZombiesArenaManager;
 import io.github.zap.game.data.*;
+import io.github.zap.localization.LocalizationManager;
 import io.github.zap.util.ChannelNames;
 import io.github.zap.world.WorldLoader;
 import io.github.zap.proxy.MythicMobs_v4_10_R1;
@@ -35,17 +35,14 @@ import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
 import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -70,6 +67,9 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
     private WorldLoader worldLoader; //responsible for loading slime worlds
 
     @Getter
+    private LocalizationManager localizationManager;
+
+    @Getter
     private CommandManager commandManager;
 
     private Map<String, ArenaManager<? extends Arena<?>>> arenaManagerMappings = new HashMap<>();
@@ -84,11 +84,11 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
             StopWatch timer = StopWatch.createStarted();
 
             initConfig();
-            initProxies();
+            initCommands();
             initSerialization();
+            initProxies();
             initWorldLoader();
             initArenaManagers();
-            initCommands();
             initNetworking();
 
             timer.stop();
