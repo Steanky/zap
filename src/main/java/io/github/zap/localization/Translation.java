@@ -1,6 +1,5 @@
 package io.github.zap.localization;
 
-import io.github.zap.serialize.DataSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,12 +8,15 @@ import java.util.Locale;
 import java.util.Map;
 
 @AllArgsConstructor
-public class Translation extends DataSerializable {
+public class Translation {
     @Getter
     private final Map<String, String> mappings = new HashMap<>();
 
     @Getter
-    private Locale locale;
+    private final Locale locale;
 
-    private Translation() {}
+    private final String fileName;
+    public String getFileName() {
+        return (fileName == null) ? locale.toLanguageTag() : fileName;
+    }
 }

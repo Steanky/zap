@@ -2,29 +2,43 @@ package io.github.zap.localization;
 
 import com.google.common.io.Files;
 import io.github.zap.ZombiesPlugin;
-import io.github.zap.serialize.DataLoader;
-import lombok.RequiredArgsConstructor;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-@RequiredArgsConstructor
 public class LocalizationManager {
-    private static final String extension = "yml";
-    private static final String dataName = "translations";
+    private static final String extension = "lang";
 
     private final Map<Locale, Translation> resources = new HashMap<>();
     private final Locale defaultLocale;
     private final File localizationFileDirectory;
 
-    public String getLocalizedMessage(Locale locale, MessageKey messageKey) {
-        Map<String, String> messages = resources.get(locale).getMappings();
-        if(messages == null) {
-            messages = resources.get(defaultLocale).getMappings();
+    public LocalizationManager(Locale defaultLocale, File localizationFileDirectory) {
+        this.defaultLocale = defaultLocale;
+        this.localizationFileDirectory = localizationFileDirectory;
+
+        ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
+        try {
+            if (!localizationFileDirectory.exists() && !localizationFileDirectory.mkdirs()) {
+                zombiesPlugin.getLogger().warning(String.format("Error creating localization file directory at %s", localizationFileDirectory.getPath()));
+            }
+        } catch (SecurityException e) {
+            zombiesPlugin.getLogger().warning(String.format("SecurityException when attemping to create translations " +
+                    "folder: %s", e.getMessage()));
         }
+    }
+
+    public String getLocalizedMessage(Locale locale, MessageKey messageKey) {
+        Translation translation = resources.get(locale);
+        if (translation == null) {
+            translation = resources.get(defaultLocale);
+        }
+
+        Map<String, String> messages = translation.getMappings();
 
         //this doesn't use getOrDefault to avoid evaluating String.format when unnecessary
         String message = messages.get(messageKey.getResourceKey());
@@ -39,52 +53,43 @@ public class LocalizationManager {
     @SuppressWarnings("UnstableApiUsage")
     public void loadTranslations() {
         ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
-        DataLoader loader = zombiesPlugin.getDataLoader();
 
-        try {
-            //noinspection ResultOfMethodCallIgnored
-            localizationFileDirectory.mkdir();
+        File[] files = localizationFileDirectory.listFiles();
 
-            File[] files = localizationFileDirectory.listFiles();
+        if(files != null) {
+            for(File file : files) {
+                if(file.isFile() && Files.getFileExtension(file.getName()).equals(extension)) {
+                    try {
+                        Translation translation = TranslationParser.load(file);
 
-            if(files != null) {
-                for(File file : files) { //TODO: make custom lang file parser instead of using DataSerializable
-                    if(file.isFile() && Files.getFileExtension(file.getName()).equals(extension)) {
-                        try {
-                            Translation translation = loader.load(file, dataName);
-
-                            if(translation != null) {
-                                resources.put(translation.getLocale(), translation);
-                                zombiesPlugin.getLogger().info(String.format("Loaded '%s' translations",
-                                        translation.getLocale().toString()));
-                            }
-                            else {
-                                zombiesPlugin.getLogger().warning(String.format("Unable to find translations under " +
-                                        "data name '%s' in file '%s", dataName, file.getPath()));
-                            }
+                        if(translation != null) {
+                            resources.put(translation.getLocale(), translation);
+                            zombiesPlugin.getLogger().info(String.format("Loaded '%s' translations",
+                                    translation.getLocale().toLanguageTag()));
                         }
-                        catch (ClassCastException e) {
-                            zombiesPlugin.getLogger().warning(String.format("Unable to load translation from file " +
-                                    "'%s': %s", file.getPath(), e.getMessage()));
+                        else {
+                            zombiesPlugin.getLogger().warning(String.format("Unable to find translations " +
+                                    "in file '%s", file.getPath()));
                         }
+                    } catch (IOException e) {
+                        zombiesPlugin.getLogger().warning(String.format("Unable to load translation from file " +
+                                "'%s': %s", file.getPath(), e.getMessage()));
                     }
                 }
             }
-            else {
-                zombiesPlugin.getLogger().warning("No translations loaded");
-            }
         }
-        catch (SecurityException e) {
-            zombiesPlugin.getLogger().warning(String.format("SecurityException when attemping to create translations " +
-                    "folder: %s", e.getMessage()));
+        else {
+            zombiesPlugin.getLogger().warning("No translations loaded");
         }
     }
 
     public void saveTranslation(Translation translation) {
-        ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
-        DataLoader loader = zombiesPlugin.getDataLoader();
-
-        loader.save(translation, Paths.get(localizationFileDirectory.getPath(),
-                translation.getLocale().toString() + "." + extension).toFile(), dataName);
+        File file = Paths.get(localizationFileDirectory.getPath(), String.format("%s.%s", translation.getFileName(), extension)).toFile();
+        try {
+            TranslationParser.save(file, translation);
+        } catch (IOException e) {
+            ZombiesPlugin.getInstance().getLogger().warning(String.format("Unable to load translation to file " +
+                    "'%s': %s", file.getPath(), e.getMessage()));
+        }
     }
 }

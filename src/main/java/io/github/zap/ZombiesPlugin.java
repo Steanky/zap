@@ -6,8 +6,6 @@ import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.event.PlayerRightClickEvent;
 import io.github.zap.localization.LocalizationManager;
-import io.github.zap.localization.MessageKey;
-import io.github.zap.localization.Translation;
 import io.github.zap.manager.ArenaManager;
 import io.github.zap.maploader.MapLoader;
 import io.github.zap.serialize.*;
@@ -18,8 +16,6 @@ import io.github.zap.maploader.SlimeMapLoader;
 import io.github.zap.util.ConfigNames;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
-import junit.framework.TestCase;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
@@ -34,7 +30,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
