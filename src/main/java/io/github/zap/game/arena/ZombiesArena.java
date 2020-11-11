@@ -23,10 +23,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Encapsulates an active Zombies game and handles most related logic.
  */
-public class ZombiesArena extends Arena implements Listener {
-    private final ZombiesPlugin zombiesPlugin;
-    private final PluginManager pluginManager;
-
+public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
     private final Map<UUID, ZombiesPlayer> playerMap = new HashMap<>();
 
@@ -45,6 +42,8 @@ public class ZombiesArena extends Arena implements Listener {
     @Getter
     private final long emptyTimeout;
 
+    private final ZombiesPlugin zombiesPlugin;
+    private final PluginManager pluginManager;
     private int timeoutTaskId = -1;
 
     /**
@@ -53,8 +52,8 @@ public class ZombiesArena extends Arena implements Listener {
      * @param world The world to use
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
-    public ZombiesArena(MapData map, World world, long emptyTimeout) {
-        super(world);
+    public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
+        super(manager, world);
         this.map = map;
         this.emptyTimeout = emptyTimeout;
 
@@ -145,7 +144,7 @@ public class ZombiesArena extends Arena implements Listener {
     public void close() {
         PlayerQuitEvent.getHandlerList().unregister(this);
 
-        zombiesPlugin.getArenaManager().removeArena(getName());
+        arenaManager.removeArena(getName());
         zombiesPlugin.getWorldLoader().unloadWorld(world.getName());
 
         for(ZombiesPlayer player : players) {

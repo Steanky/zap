@@ -1,12 +1,18 @@
 package io.github.zap;
 
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
 import io.github.zap.game.arena.Arena;
 import io.github.zap.game.arena.ArenaManager;
+import io.github.zap.game.arena.JoinInformation;
 import io.github.zap.game.arena.ZombiesArenaManager;
 import io.github.zap.game.data.*;
+import io.github.zap.util.ChannelNames;
 import io.github.zap.world.WorldLoader;
 import io.github.zap.proxy.MythicMobs_v4_10_R1;
 import io.github.zap.proxy.MythicProxy;
@@ -29,17 +35,20 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.Range;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
+import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.logging.Level;
 
-public final class ZombiesPlugin extends JavaPlugin implements Listener {
+public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginMessageListener {
     @Getter
     private static ZombiesPlugin instance; //singleton for our main plugin class
 
@@ -61,8 +70,8 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Getter
     private CommandManager commandManager;
 
-    @Getter
-    private ArenaManager<? extends Arena> arenaManager;
+    private Map<String, ArenaManager<? extends Arena>> arenaManagerMappings = new HashMap<>();
+    private Collection<ArenaManager<? extends Arena>> arenaManagers = arenaManagerMappings.values();
 
     @Override
     public void onEnable() {
@@ -74,9 +83,11 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
             initConfig();
             initProxies();
-            initWorldLoader();
             initSerialization();
+            initWorldLoader();
+            initArenaManagers();
             initCommands();
+            initNetworking();
 
             timer.stop();
 
@@ -93,13 +104,32 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         //perform shutdown tasks
-        getLogger().info("Shutting down ArenaManager.");
+        getLogger().info("Shutting down ArenaManagers.");
 
         StopWatch timer = StopWatch.createStarted();
-        arenaManager.shutdown();
+        for(ArenaManager<?> manager : arenaManagers) {
+            manager.shutdown();
+        }
         timer.stop();
 
-        getLogger().info(String.format("Done shutting down ArenaManager; ~%sms elapsed", timer.getTime()));
+        getLogger().info(String.format("Done shutting down ArenaManagers; ~%sms elapsed", timer.getTime()));
+    }
+
+    /**
+     * Returns the named ArenaManager, or null if none exist.
+     * @param name The name of the ArenaManager to fetch
+     * @return The ArenaManager, or null
+     */
+    public ArenaManager<?> getArenaManager(String name) {
+        return arenaManagerMappings.get(name);
+    }
+
+    /**
+     * Adds the specified ArenaManager to the plugin.
+     * @param manager The ArenaManager to add
+     */
+    public void addArenaManager(ArenaManager<?> manager) {
+        arenaManagerMappings.put(manager.getName(), manager);
     }
 
     private void initConfig() {
@@ -159,16 +189,18 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    private void initArenaManagers() {
+        addArenaManager(new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10),
+                configuration.get(ConfigNames.ARENA_TIMEOUT, 300000)));
+    }
+
     private void initWorldLoader() {
-        //initialize the arenamanager with the configured maximum default amount of worlds
-        arenaManager = new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10),
-                configuration.get(ConfigNames.ARENA_TIMEOUT, 300000));
         worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
 
         getLogger().info("Preloading worlds.");
 
         StopWatch timer = StopWatch.createStarted();
-        worldLoader.preloadWorlds("world_copy");
+        worldLoader.preloadWorlds();
         timer.stop();
 
         getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
@@ -216,5 +248,51 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
         //register commands here
         commandManager.registerCommand(new DebugCommand());
+    }
+
+    private void initNetworking() {
+        getServer().getMessenger().registerOutgoingPluginChannel(this, ChannelNames.BUNGEECORD);
+        getServer().getMessenger().registerIncomingPluginChannel(this, ChannelNames.BUNGEECORD, this);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
+        if(channel.equals(ChannelNames.BUNGEECORD)) {
+            ByteArrayDataInput input = ByteStreams.newDataInput(message);
+            String subchannel = input.readUTF();
+
+            if(subchannel.equals("Forward")) {
+                input.readUTF(); //disregard target server
+                String packetName = input.readUTF();
+
+                if(packetName.equals("JOIN")) {
+                    input.readUTF();
+                    String playerString = input.readUTF();
+                    Player[] players = Arrays.stream(playerString.split(",")).map((name) ->
+                            getServer().getPlayer(UUID.fromString(name))).toArray(Player[]::new);
+
+                    if(Arrays.stream(players).allMatch((player1 -> player1 != null && player1.isOnline()))) {
+                        String managerName = input.readUTF();
+                        String mapName = input.readUTF();
+                        boolean isSpectator = input.readBoolean();
+                        String targetArena = input.readUTF();
+
+                        ArenaManager<?> arenaManager = arenaManagerMappings.get(managerName);
+                        if(arenaManager != null) {
+                            arenaManager.handleJoin(new JoinInformation(Arrays.asList(players), mapName, isSpectator,
+                                    targetArena), (pair) -> {
+                                if(!pair.left) {
+                                    //send error message to player
+                                }
+                            });
+                        }
+                        else {
+
+                        }
+                    }
+                }
+            }
+        }
     }
 }

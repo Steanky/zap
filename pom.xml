@@ -67,6 +67,11 @@
 
                                 <!-- If we ever need to depend on other plugins, add their artifacts directly
                                      below this, in the same way as mythicmobs! -->
+                                <artifactItem>
+                                    <groupId>com.github.John-DND</groupId>
+                                    <artifactId>server-manager</artifactId>
+                                    <version>main-SNAPSHOT</version>
+                                </artifactItem>
                             </artifactItems>
                             <outputDirectory>${pluginDir}</outputDirectory>
                         </configuration>
@@ -162,6 +167,12 @@
             <groupId>com.github.John-DND</groupId>
             <artifactId>RegularCommands</artifactId>
             <version>0.8.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.John-DND</groupId>
+            <artifactId>server-manager</artifactId>
+            <version>main-SNAPSHOT</version>
         </dependency>
 
         <dependency>

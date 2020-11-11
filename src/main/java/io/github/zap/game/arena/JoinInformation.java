@@ -18,14 +18,14 @@ public class JoinInformation {
     List<Player> players;
 
     /**
-     * True if the players should be considered game spectators; false otherwise
-     */
-    boolean spectator;
-
-    /**
      * The target map name. This may be null; in which case, targetArena must not be null.
      */
     String mapName;
+
+    /**
+     * True if the players should be considered game spectators; false otherwise
+     */
+    boolean spectator;
 
     /**
      * The unique name of the arena to connect to, which should be ignored if mapName is not provided.

@@ -29,8 +29,6 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     private final Map<String, ZombiesArena> arenaMappings = new HashMap<>();
     private final Collection<ZombiesArena> arenas = arenaMappings.values();
 
-    private static final String offlinePlayer = "offline_player";
-
     @Override
     public String getName() {
         return NAME;
@@ -39,7 +37,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
         for(Player player : information.getPlayers()) {
             if(!player.isOnline()) {
-                onCompletion.accept(ImmutablePair.of(false, offlinePlayer));
+                onCompletion.accept(ImmutablePair.of(false, ""));
                 return;
             }
         }
@@ -62,7 +60,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                 logger.fine(String.format("JoinInformation that triggered this load: '%s'", information));
 
                 zombiesPlugin.getWorldLoader().loadWorld(mapName, (world) -> {
-                    ZombiesArena arena = new ZombiesArena(maps.get(mapName), world, arenaTimeout);
+                    ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                     arenaMappings.put(arena.getName(), arena);
 
                     logger.info("Done loading arena.");

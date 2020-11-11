@@ -10,7 +10,7 @@ import java.util.function.Consumer;
  * Generic interface for an ArenaManager.
  * @param <T> The type of arena this instance manages
  */
-public interface ArenaManager<T extends Arena> extends Unique {
+public interface ArenaManager<T extends Arena<T>> extends Unique {
     /**
      * Handle the specified JoinInformation. This method should create arenas as necessary to handle join requests.
      * This method may run fully or partially async, in which case it may return before the arena is created.

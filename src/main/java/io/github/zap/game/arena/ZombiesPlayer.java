@@ -25,8 +25,6 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.Vector;
 
 public class ZombiesPlayer implements Listener {
-    private final PluginManager pluginManager;
-
     @Getter
     private final ZombiesArena arena;
 
@@ -45,6 +43,7 @@ public class ZombiesPlayer implements Listener {
     @Setter
     private int repairIncrement = 1;
 
+    private final PluginManager pluginManager;
     private WindowData targetWindow;
     private int windowRepairTaskId = -1;
 

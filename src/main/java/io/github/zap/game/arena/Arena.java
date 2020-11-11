@@ -10,14 +10,17 @@ import org.bukkit.World;
  * Zombies-specific and could be used for other minigames, lobbies, etc.
  */
 @RequiredArgsConstructor
-public abstract class Arena implements Unique {
+public abstract class Arena<T extends Arena<T>> implements Unique {
+    @Getter
+    protected final ArenaManager<T> arenaManager;
+
     @Getter
     protected final World world;
 
     @Override
     public boolean equals(Object other) {
         if(other instanceof Arena) {
-            return world.getName().equals(((Arena)other).world.getName());
+            return world.getName().equals(((Arena<?>)other).world.getName());
         }
 
         return false;
