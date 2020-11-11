@@ -1,5 +1,6 @@
 package io.github.zap;
 
+import com.google.common.collect.Lists;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.command.DebugCommand;
 import io.github.zap.config.ValidatingConfiguration;
@@ -17,6 +18,7 @@ import io.github.zap.maploader.SlimeMapLoader;
 import io.github.zap.util.ConfigNames;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
+import junit.framework.TestCase;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -33,6 +35,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import lombok.Getter;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 
@@ -75,7 +79,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
 
             initConfig();
             initSerialization();
-            initLocalization();
             initCommands();
             initMapLoader();
 
@@ -114,21 +117,6 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         saveConfig();
     }
 
-    private void initLocalization() {
-        getLogger().info("Initializing localization");
-
-        StopWatch timer = StopWatch.createStarted();
-        localizationManager = new LocalizationManager(Locale.US, new File("localization"));
-
-        Translation translation = new Translation(Locale.US);
-        translation.getMappings().put(MessageKey.EXAMPLE_KEY.getResourceKey(), "This is an example of a localized string.");
-        localizationManager.saveTranslation(translation);
-        localizationManager.loadTranslations();
-        timer.stop();
-
-        getLogger().info(String.format("Localization initialized; ~%sms elapsed", timer.getTime()));
-    }
-
     private void initMapLoader() {
         //initialize the arenamanager with the configured maximum default amount of worlds
         arenaManager = new ArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10));
@@ -165,26 +153,20 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
          */
 
         //noinspection unchecked
-        dataLoader = new BukkitDataLoader(Translation.class);
+        dataLoader = new BukkitDataLoader();
 
-        DataSerializable.registerGlobalConverter(Locale.class, (object, serializing) -> {
+        DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, (object, serializing) -> {
             if(serializing) {
                 Locale locale = (Locale)object;
-                String[] components = new String[3];
-
-                components[0] = locale.getLanguage();
-                components[1] = locale.getCountry();
-                components[2] = locale.getVariant();
-
-                return components;
+                return Lists.newArrayList(locale.getLanguage(), locale.getCountry(), locale.getVariant());
             }
             else {
-                String[] components = (String[])object;
-                return new Locale(components[0], components[1], components[2]);
+                List<?> components = (List<?>)object;
+                return new Locale((String)components.get(0), (String)components.get(1), (String)components.get(2));
             }
         });
 
-        DataSerializable.registerGlobalConverter(MythicMob.class, (object, serializing) -> {
+        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, (object, serializing) -> {
             if(serializing) {
                 return ((MythicMob)object).getInternalName();
             }
@@ -219,8 +201,10 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener {
         getLogger().info("Got PlayerInteractEvent.");
 
         Action action = event.getAction();
-        if(event.getHand() == EquipmentSlot.HAND && (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)) {
-            Bukkit.getServer().getPluginManager().callEvent(new PlayerRightClickEvent(event.getPlayer(), event.getClickedBlock(), event.getItem(), event.getAction()));
+        if(event.getHand() == EquipmentSlot.HAND && (action == Action.RIGHT_CLICK_AIR ||
+                action == Action.RIGHT_CLICK_BLOCK)) {
+            Bukkit.getServer().getPluginManager().callEvent(new PlayerRightClickEvent(event.getPlayer(),
+                    event.getClickedBlock(), event.getItem(), event.getAction()));
         }
     }
 }
