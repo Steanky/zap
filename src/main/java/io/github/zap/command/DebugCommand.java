@@ -9,5 +9,7 @@ public class DebugCommand extends RegularCommand {
     public DebugCommand() {
         super("zap_debug");
         addForm(new MapLoaderProfilerForm());
+        addForm(new JoinArenaForm());
+        addForm(new ImportWorldForm());
     }
 }

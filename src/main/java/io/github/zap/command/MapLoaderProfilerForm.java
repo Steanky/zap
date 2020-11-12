@@ -46,7 +46,8 @@ public class MapLoaderProfilerForm extends CommandForm {
             return ImmutablePair.of(false, String.format("World '%s' doesn't exist.", worldName));
         });
 
-        validator.chain(Validators.newRangeValidator(Range.between(1, 50), 2)).chain(Validators.PLAYER_EXECUTOR);
+        validator.chain(Validators.newRangeValidator(Range.between(1, 50), 2))
+                .chain(Validators.PLAYER_EXECUTOR);
     }
 
     public MapLoaderProfilerForm() {

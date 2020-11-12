@@ -53,6 +53,7 @@
                                     <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
                                     <artifactId>slimeworldmanager-plugin</artifactId>
                                     <version>d8c0d60</version>
+                                    <destFileName>slimeworldmanager.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -71,6 +72,7 @@
                                     <groupId>com.github.John-DND</groupId>
                                     <artifactId>server-manager</artifactId>
                                     <version>main-SNAPSHOT</version>
+                                    <destFileName>server-manager.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${pluginDir}</outputDirectory>

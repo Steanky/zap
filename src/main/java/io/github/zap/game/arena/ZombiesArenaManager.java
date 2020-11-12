@@ -2,11 +2,18 @@ package io.github.zap.game.arena;
 
 import io.github.zap.ZombiesPlugin;
 import io.github.zap.game.data.MapData;
+import io.github.zap.localization.MessageKey;
+import io.github.zap.serialize.DataLoader;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -18,6 +25,10 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     private static final String NAME = "zombies";
+    private static final String DATA_KEY = "map";
+
+    @Getter
+    private final File dataFolder;
 
     @Getter
     private final int arenaCapacity;
@@ -34,10 +45,10 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
         return NAME;
     }
 
-    public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
+    public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, MessageKey>> onCompletion) {
         for(Player player : information.getPlayers()) {
             if(!player.isOnline()) {
-                onCompletion.accept(ImmutablePair.of(false, ""));
+                onCompletion.accept(ImmutablePair.of(false, MessageKey.EXAMPLE_KEY));
                 return;
             }
         }
@@ -72,7 +83,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                         ZombiesPlugin.getInstance().getLogger().warning(String.format("Newly created arena rejected" +
                                 " join request '%s'", information));
                         arena.close();
-                        onCompletion.accept(ImmutablePair.of(false,""));
+                        onCompletion.accept(ImmutablePair.of(false,MessageKey.EXAMPLE_KEY));
                     }
                 });
 
@@ -90,7 +101,7 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
                     onCompletion.accept(ImmutablePair.of(true, null));
                 }
                 else {
-                    onCompletion.accept(ImmutablePair.of(false, ""));
+                    onCompletion.accept(ImmutablePair.of(false, MessageKey.LOCALE));
                 }
                 return;
             }
@@ -115,6 +126,26 @@ public class ZombiesArenaManager implements ArenaManager<ZombiesArena> {
     public void shutdown() {
         for(ZombiesArena arena : arenas) {
             arena.close();
+        }
+    }
+
+    @Override
+    public void loadMaps() {
+        dataFolder.mkdir();
+
+        File[] files = dataFolder.listFiles();
+        DataLoader loader = ZombiesPlugin.getInstance().getDataLoader();
+        MapData data = new MapData("test_world", "Test World", new BoundingBox(), new Vector(),
+                1, 4, 10, 0, 10, false,
+                false, true, true, 4, 20,
+                20, Material.AIR);
+        loader.save(data, Paths.get(dataFolder.getName(), "test_map.yml").toFile(), DATA_KEY);
+
+        if(files != null) {
+            for(File file : files) {
+                MapData map = loader.load(file, DATA_KEY);
+                maps.put(map.getName(), map);
+            }
         }
     }
 }

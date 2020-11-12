@@ -32,6 +32,7 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import org.apache.commons.lang3.time.StopWatch;
 
 import org.apache.commons.lang3.Range;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -42,8 +43,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
 import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -153,20 +157,22 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
     }
 
     private void initWorldLoader() {
-        worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
-
         getLogger().info("Preloading worlds.");
-
         StopWatch timer = StopWatch.createStarted();
-        worldLoader.preloadWorlds();
+        worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
+        worldLoader.preload();
         timer.stop();
 
         getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
     }
 
     private void initArenaManagers() {
-        addArenaManager(new ZombiesArenaManager(configuration.get(ConfigNames.MAX_WORLDS, 10),
-                configuration.get(ConfigNames.ARENA_TIMEOUT, 300000)));
+        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(
+                new File("plugins/ZombiesPlugin/maps"), configuration.get(ConfigNames.MAX_WORLDS, 10),
+                configuration.get(ConfigNames.ARENA_TIMEOUT, 300000));
+        zombiesArenaManager.loadMaps();
+
+        addArenaManager(zombiesArenaManager);
     }
 
     private void initProxies() {
@@ -278,12 +284,8 @@ public final class ZombiesPlugin extends JavaPlugin implements Listener, PluginM
                         if (arenaManager != null) {
                             arenaManager.handleJoin(new JoinInformation(Arrays.asList(players), mapName, isSpectator,
                                     targetArena), (pair) -> {
-                                if (!pair.left) {
-                                    //send error message to player
-                                }
-                            });
-                        } else {
 
+                            });
                         }
                     }
                 }

@@ -58,17 +58,17 @@ public class MapData extends DataSerializable {
     /**
      * The list of rooms managed by this map
      */
-    List<RoomData> rooms;
+    final List<RoomData> rooms = new ArrayList<>();
 
     /**
      * All the doors managed by this map
      */
-    List<DoorData> doors;
+    final List<DoorData> doors = new ArrayList<>();
 
     /**
      * All the shops managed by this map
      */
-    List<ShopData> shops;
+    final List<ShopData> shops = new ArrayList<>();
 
     /**
      * The number of coins each player should start with

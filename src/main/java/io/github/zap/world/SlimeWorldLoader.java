@@ -1,5 +1,10 @@
 package io.github.zap.world;
 
+import com.google.common.io.Files;
+import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
+import com.grinderwolf.swm.api.exceptions.NewerFormatException;
+import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
+import com.grinderwolf.swm.api.exceptions.WorldInUseException;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
@@ -12,6 +17,7 @@ import org.bukkit.World;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -31,16 +37,34 @@ public class SlimeWorldLoader implements WorldLoader {
         this.slimeLoader = slimeLoader;
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     @Override
-    public void preloadWorlds(String... worlds) {
-        try {
-            for (String world : worlds) {
-                preloadedWorlds.put(world, readWorld(world));
+    public void preload() {
+        SlimeProxy slime = ZombiesPlugin.getInstance().getSlimeProxy();
+        File[] files = slime.getSlimeWorldDirectory().listFiles();
+
+        if(files != null) {
+            for(File worldFile : files) {
+                String worldFileName = worldFile.getName();
+
+                if(worldFileName.endsWith(slime.getSlimeFileExtension())) {
+                    String worldName = Files.getNameWithoutExtension(worldFileName);
+
+                    try {
+                        preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
+                                new SlimePropertyMap()));
+                    }
+                    catch(IOException | CorruptedWorldException | WorldInUseException | NewerFormatException |
+                            UnknownWorldException e) {
+                        ZombiesPlugin.getInstance().getLogger().severe(String.format("Exception when attempting to " +
+                                "preload world '%s': %s", worldName, e.getMessage()));
+                    }
+                }
+                else {
+                    ZombiesPlugin.getInstance().getLogger().warning(String.format("Ignoring non-SWF file '%s'",
+                            worldFileName));
+                }
             }
-        }
-        catch(IOException e) {
-            ZombiesPlugin.getInstance().getLogger().severe(String.format("IOException when attempting to preload " +
-                    "worlds: %s", e.getMessage()));
         }
     }
 
@@ -49,30 +73,22 @@ public class SlimeWorldLoader implements WorldLoader {
         ZombiesPlugin zombiesPlugin = ZombiesPlugin.getInstance();
         SlimeWorld base = preloadedWorlds.get(worldName);
 
-        if(base == null) {
-            zombiesPlugin.getLogger().warning(String.format("Trying to load world '%s' in loadWorld function, as" +
-                    " it was not preloaded.", worldName));
-            try {
-                base = readWorld(worldName);
-            }
-            catch(IOException e) {
-                zombiesPlugin.getLogger().severe(String.format("IOException when attempting to load world '%s': %s",
-                        worldName, e.getMessage()));
-                return;
-            }
-        }
+        if(base != null) {
+            String randomName = UUID.randomUUID().toString();
+            SlimeWorld world = base.clone(randomName);
+            zombiesPlugin.getSlimeProxy().generate(world);
 
-        String randomName = UUID.randomUUID().toString();
-        SlimeWorld world = base.clone(randomName);
-        zombiesPlugin.getSlimeProxy().generate(world);
-
-        World generatedWorld = Bukkit.getWorld(randomName);
-        if(generatedWorld != null) {
-            onLoad.accept(Bukkit.getWorld(randomName));
+            World generatedWorld = Bukkit.getWorld(randomName);
+            if(generatedWorld != null) {
+                onLoad.accept(Bukkit.getWorld(randomName));
+            }
+            else {
+                zombiesPlugin.getLogger().severe(String.format("World '%s' was just generated, but it could not be " +
+                        "found on the Bukkit world list.", randomName));
+            }
         }
         else {
-            zombiesPlugin.getLogger().severe(String.format("World '%s' was just generated, but it could not be found" +
-                    "on the Bukkit world list.", randomName));
+            zombiesPlugin.getLogger().severe(String.format("Requested world '%s' could not be found.", worldName));
         }
     }
 
@@ -92,14 +108,5 @@ public class SlimeWorldLoader implements WorldLoader {
         }
 
         return false;
-    }
-
-    private SlimeWorld readWorld(String worldName) throws IOException {
-        SlimeProxy slime = ZombiesPlugin.getInstance().getSlimeProxy();
-        if(!slimeLoader.worldExists(worldName)) {
-            slime.importWorld(new File(worldName), worldName, slimeLoader);
-        }
-
-        return slime.loadWorld(slimeLoader, worldName, true, new SlimePropertyMap());
     }
 }

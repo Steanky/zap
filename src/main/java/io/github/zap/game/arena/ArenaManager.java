@@ -1,6 +1,7 @@
 package io.github.zap.game.arena;
 
 import io.github.zap.game.Unique;
+import io.github.zap.localization.MessageKey;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public interface ArenaManager<T extends Arena<T>> extends Unique {
      *                     terms, why the JoinAttempt was rejected. It should only be non-null if the first part of
      *                     the pair is false.
      */
-    void handleJoin(JoinInformation joinAttempt, Consumer<ImmutablePair<Boolean, String>> onCompletion);
+    void handleJoin(JoinInformation joinAttempt, Consumer<ImmutablePair<Boolean, MessageKey>> onCompletion);
 
     /**
      * Removes the specified arena from the manager.
@@ -37,4 +38,9 @@ public interface ArenaManager<T extends Arena<T>> extends Unique {
      * Closes this ArenaManager instance and all of its managed arenas.
      */
     void shutdown();
+
+    /**
+     * Preloads all map data that will be utilized by this instance.
+     */
+    void loadMaps();
 }
