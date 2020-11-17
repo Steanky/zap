@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="multi-server" type="Multirun" factoryName="Multirun" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0">
+    <runConfiguration name="server-1" type="JAR Application" />
+    <runConfiguration name="server-2" type="JAR Application" />
+    <runConfiguration name="waterfall" type="JAR Application" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="root" run_configuration_type="MavenRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="mirror" run_configuration_type="BatchConfigurationType" />
+    </method>
+  </configuration>
+</component>
