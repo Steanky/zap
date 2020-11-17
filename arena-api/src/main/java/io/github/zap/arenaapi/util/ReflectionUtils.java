@@ -12,7 +12,7 @@ public final class ReflectionUtils {
     public static String getCallerName() {
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
 
-        for(int i = 1; i < elements.length; i++) { //skip 0th entry as it's always java.lang.Thread
+        for(int i = 2; i < elements.length; i++) { //skip first two entries
             StackTraceElement element = elements[i];
             String elementName = element.getClassName();
 

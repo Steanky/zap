@@ -14,7 +14,7 @@
     <description>An improved version of the Hypixel minigame Zombies.</description>
     <properties>
         <java.version>1.8</java.version>
-        <swm.version>9113a9c</swm.version>
+        <swm.version>217988c</swm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -67,8 +67,11 @@
                                     <destFileName>slimeworldmanager-classmodifier.jar</destFileName>
                                 </artifactItem>
 
-                                <!-- If we ever need to depend on other plugins, add their artifacts directly
-                                     below this, in the same way as mythicmobs! -->
+                                <artifactItem>
+                                    <groupId>io.github.zap</groupId>
+                                    <artifactId>arena-api</artifactId>
+                                    <version>1.0-SNAPSHOT</version>
+                                </artifactItem>
                             </artifactItems>
                             <outputDirectory>${pluginDir}</outputDirectory>
                         </configuration>

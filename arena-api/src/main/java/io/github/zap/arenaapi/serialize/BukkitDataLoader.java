@@ -57,10 +57,7 @@ public class BukkitDataLoader implements DataLoader {
                     }
                 }
 
-                if(aliasesMap.putIfAbsent(name, DataSerializable.class) != null) {
-                    throw new LoadFailureException(String.format("Aliases/classname map already contains key '%s'",
-                            name));
-                }
+                aliasesMap.put(name, arg);
 
                 try {
                     DataSerializable.registerClass(name, arg);

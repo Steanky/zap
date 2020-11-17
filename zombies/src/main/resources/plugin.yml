@@ -2,3 +2,7 @@ name: zombies
 version: ${project.version}
 main: io.github.zap.zombies.Zombies
 api-version: 1.16
+depend: [ arena-api, SlimeWorldManager, MythicMobs ]
+commands:
+  zap_debug:
+    description: "ZAP debugging utility command."
