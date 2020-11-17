@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class PlayerJoinArenaEvent extends CustomEvent {
-    Arena joinedArena;
+    Arena<?> joinedArena;
     List<Player> players;
     boolean spectator;
 }
