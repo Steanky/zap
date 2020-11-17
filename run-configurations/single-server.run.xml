@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="single-server" type="Multirun" factoryName="Multirun" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0">
-    <runConfiguration name="server-1" type="JAR Application" />
-    <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="root" run_configuration_type="MavenRunConfiguration" />
-    </method>
-  </configuration>
-</component>
