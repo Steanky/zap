@@ -14,7 +14,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "Shop")
+@TypeAlias(alias = "ZombiesShop")
 public class ShopData extends DataSerializable {
     ShopType type;
 

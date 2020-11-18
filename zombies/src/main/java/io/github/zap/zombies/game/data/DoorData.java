@@ -19,7 +19,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "Door")
+@TypeAlias(alias = "ZombiesDoor")
 public class DoorData extends DataSerializable {
     /**
      * The bounds of the door, any of which may be right-clicked in attempt to open it

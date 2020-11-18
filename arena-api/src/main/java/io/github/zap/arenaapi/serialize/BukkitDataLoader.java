@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.serialize;
 import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
-import io.github.zap.arenaapi.util.ReflectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -36,13 +35,12 @@ public class BukkitDataLoader implements DataLoader {
                     (Map<String, Class<? extends ConfigurationSerializable>>) aliases.get(null);
 
             //map all specified ConfigurationSerializable objects to the same deserializer
-
             List<Class<? extends DataSerializable>> elements = Lists.newArrayList(args);
             elements.add(EnumWrapper.class); //global support for enums
 
             for(Class<? extends DataSerializable> element : elements) {
                 String elementName = element.getName();
-                TypeAlias typeAlias = ReflectionUtils.getDeclaredAnnotation(element, TypeAlias.class);
+                TypeAlias typeAlias = element.getAnnotation(TypeAlias.class);
 
                 if(typeAlias != null) {
                     String alias = typeAlias.alias();

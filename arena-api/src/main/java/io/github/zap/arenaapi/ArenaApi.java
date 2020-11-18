@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi;
 
-import io.github.zap.arenaapi.event.JoinAttemptEvent;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import lombok.Getter;
@@ -56,7 +55,6 @@ public final class ArenaApi extends JavaPlugin {
         ArenaManager<?> arenaManager = arenaManagers.get(gameName);
 
         if(arenaManager != null) {
-            getServer().getPluginManager().callEvent(new JoinAttemptEvent(information));
             arenaManager.handleJoin(information, onCompletion);
         }
         else {

@@ -25,7 +25,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "Window")
+@TypeAlias(alias = "ZombiesWindow")
 public class WindowData extends DataSerializable {
     /**
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at

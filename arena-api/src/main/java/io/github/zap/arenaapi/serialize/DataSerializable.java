@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.serialize;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.util.ReflectionUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -70,7 +69,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     public @NotNull Map<String, Object> serialize() {
         Map<String, Object> serializedData = new LinkedHashMap<>();
 
-        TypeAlias type = ReflectionUtils.getDeclaredAnnotation(getClass(), TypeAlias.class);
+        TypeAlias type = getClass().getAnnotation(TypeAlias.class);
         if(type != null) {
             serializedData.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, type.alias());
         }
@@ -341,20 +340,25 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                     field.setAccessible(true);
                 }
 
-                Serialize serializeAnnotation = ReflectionUtils.getDeclaredAnnotation(field, Serialize.class);
-                boolean isAggregation = false;
-
-                String name = field.getName();
-                ValueConverter<?,?> converter = null;
-
+                Serialize serializeAnnotation = field.getAnnotation(Serialize.class);
+                String name;
+                ValueConverter<?,?> converter;
+                boolean isAggregation;
                 if(serializeAnnotation != null) {
                     if(serializeAnnotation.skip()) {
                         continue;
                     }
 
-                    name = serializeAnnotation.name();
+                    String serializeName = serializeAnnotation.name();
+
+                    name = serializeName.equals(StringUtils.EMPTY) ? field.getName() : serializeName;
                     converter = namedConverters.get(serializeAnnotation.converter());
                     isAggregation = serializeAnnotation.isAggregation();
+                }
+                else {
+                    name = field.getName();
+                    converter = null;
+                    isAggregation = false;
                 }
 
                 consumer.accept(new SerializationEntry(name, field, converter, isAggregation));

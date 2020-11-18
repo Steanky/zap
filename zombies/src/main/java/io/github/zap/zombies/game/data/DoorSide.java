@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "DoorSide")
+@TypeAlias(alias = "ZombiesDoorSide")
 public class DoorSide extends DataSerializable {
     /**
      * What it will cost to open the door from this side.

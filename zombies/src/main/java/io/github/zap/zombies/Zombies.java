@@ -24,7 +24,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -114,7 +113,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
     }
 
-    private void initProxies() {
+    private void initProxies() throws LoadFailureException {
         PluginManager manager = Bukkit.getPluginManager();
         Plugin mythicMobs = manager.getPlugin(PluginNames.MYTHIC_MOBS);
         Plugin swm = manager.getPlugin(PluginNames.SLIME_WORLD_MANAGER);
@@ -128,11 +127,11 @@ public final class Zombies extends JavaPlugin implements Listener {
                     mythicProxy = new MythicMobs_v4_10_R1((MythicMobs)mythicMobs);
                     break;
                 default:
-                    throw new IllegalStateException(String.format("Unrecognized MythicMobs version '%s'", mythicVersion));
+                    throw new LoadFailureException(String.format("Unrecognized MythicMobs version '%s'", mythicVersion));
             }
         }
         else {
-            throw new IllegalStateException("Unable to locate required plugin MythicMobs");
+            throw new LoadFailureException("Unable to locate required plugin MythicMobs");
         }
 
         if(swm != null) {
@@ -144,11 +143,11 @@ public final class Zombies extends JavaPlugin implements Listener {
                     slimeProxy = new SlimeWorldManager_v2_3_R0((SlimePlugin)swm);
                     break;
                 default:
-                    throw new IllegalStateException(String.format("Unrecognized SWM version '%s'", swmVersion));
+                    throw new LoadFailureException(String.format("Unrecognized SWM version '%s'", swmVersion));
             }
         }
         else {
-            throw new IllegalStateException("Unable to locate required plugin SlimeWorldManager");
+            throw new LoadFailureException("Unable to locate required plugin SlimeWorldManager");
 
         }
     }
@@ -162,6 +161,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
                 ShopData.class, SpawnpointData.class, WindowData.class);
 
+        //noinspection rawtypes
         DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, new ValueConverter<Locale, ArrayList>() {
             @Override
             public ArrayList serialize(Locale object) {
