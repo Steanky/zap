@@ -27,13 +27,6 @@ public @interface Serialize {
     String converter() default StringUtils.EMPTY;
 
     /**
-     * Gets name of the validator used to ensure the to-be-serialized output (or deserialized input) satisfies a
-     * predicate.
-     * @return The validator name, or an empty string if no validator should be used
-     */
-    String validator() default StringUtils.EMPTY;
-
-    /**
      * Whether or not the field is an <i>aggregation</i> (subclass of Map or Collection) and the implementation requires
      * a deep conversion of the data structure (lists of arrays, or collections containing types for which
      * ConfigurationSerializable cannot natively handle).

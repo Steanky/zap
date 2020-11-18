@@ -9,7 +9,6 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.HashMap;
@@ -60,7 +59,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 " name already exists");
     }
 
-    public static void registerAlias(String name, Class<? extends DataSerializable> clazz) {
+    public static void registerClass(String name, Class<? extends DataSerializable> clazz) {
         Validate.notNull(name, "name cannot be null");
         Validate.notNull(clazz, "clazz cannot be null");
         Validate.isTrue(classes.putIfAbsent(name, clazz) == null, String.format("a class with name/alias " +
@@ -193,6 +192,20 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         return null;
     }
 
+    /**
+     * Recursively iterates through all members in a given object, performing conversions where possible to ensure
+     * that the returned object can be assigned to the field with the specified type. Automatically iterates through
+     * maps, collections, and arrays, converting each object they contain regardless of how deeply they are nested.
+     * @param instance The object to process
+     * @param fieldType The type of the field we're trying to assign to
+     * @param serializing Whether or not we are serializing
+     * @return The converted object
+     * @throws IllegalAccessException Generic reflection exception
+     * @throws InstantiationException Generic reflection exception
+     * @throws ClassNotFoundException Generic reflection exception
+     * @throws SecurityException Generic reflection exception
+     * @throws ClassCastException Generic reflection exception
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Object processCollection(Object instance, Type fieldType, boolean serializing)
             throws IllegalAccessException, InstantiationException, ClassNotFoundException, SecurityException,
@@ -264,6 +277,16 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         return processObject(instance, fieldClass, serializing);
     }
 
+    /**
+     * Processes an individual object that may or may not be a collection. Does not perform a deep conversion or any
+     * iteration over contained objects. Otherwise, works the same way as processCollection.
+     * @param instance The object to process
+     * @param fieldClass The class of the field we are converting to
+     * @param serializing Whether or not we are serializing
+     * @return The converted object
+     * @throws ClassNotFoundException Generic reflection exception
+     * @throws ClassCastException Generic reflection exception
+     */
     private static Object processObject(Object instance, Class<?> fieldClass, boolean serializing)
             throws ClassNotFoundException, ClassCastException {
         Class<?> instanceClass = instance.getClass();
@@ -318,7 +341,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                     field.setAccessible(true);
                 }
 
-                Serialize serializeAnnotation = ReflectionUtils.getDeclaredAnnotation(clazz, Serialize.class);
+                Serialize serializeAnnotation = ReflectionUtils.getDeclaredAnnotation(field, Serialize.class);
                 boolean isAggregation = false;
 
                 String name = field.getName();

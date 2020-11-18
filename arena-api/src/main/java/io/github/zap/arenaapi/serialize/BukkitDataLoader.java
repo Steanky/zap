@@ -12,10 +12,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -40,28 +37,28 @@ public class BukkitDataLoader implements DataLoader {
 
             //map all specified ConfigurationSerializable objects to the same deserializer
 
-            List<Class<? extends DataSerializable>> items = Lists.newArrayList(args);
-            items.add(EnumWrapper.class); //global support for enums
+            List<Class<? extends DataSerializable>> elements = Lists.newArrayList(args);
+            elements.add(EnumWrapper.class); //global support for enums
 
-            for(Class<? extends DataSerializable> arg : items) {
-                String name = arg.getName();
-                TypeAlias typeAlias = ReflectionUtils.getDeclaredAnnotation(arg, TypeAlias.class);
+            for(Class<? extends DataSerializable> element : elements) {
+                String elementName = element.getName();
+                TypeAlias typeAlias = ReflectionUtils.getDeclaredAnnotation(element, TypeAlias.class);
 
                 if(typeAlias != null) {
                     String alias = typeAlias.alias();
 
                     if(!alias.equals(StringUtils.EMPTY)) {
-                        name = alias;
+                        elementName = alias;
                     }
                     else {
-                        throw new LoadFailureException(String.format("Invalid alias in class '%s'", name));
+                        throw new LoadFailureException(String.format("Invalid alias in class '%s'", elementName));
                     }
                 }
 
-                aliasesMap.put(name, DataSerializable.class);
+                aliasesMap.put(elementName, DataSerializable.class);
 
                 try {
-                    DataSerializable.registerAlias(name, arg);
+                    DataSerializable.registerClass(elementName, element);
                 }
                 catch (IllegalArgumentException e) { //duplicate value, etc
                     throw new LoadFailureException("IllegalArgumentException occured when registering " +
