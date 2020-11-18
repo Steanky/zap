@@ -40,4 +40,10 @@ public @interface Serialize {
      * @return Whether or not the field is an aggregation. Defaults to false
      */
     boolean isAggregation() default false;
+
+    /**
+     * Whether or not to skip serializing this element.
+     * @return True if this member should be skipped, false otherwise
+     */
+    boolean skip() default false;
 }

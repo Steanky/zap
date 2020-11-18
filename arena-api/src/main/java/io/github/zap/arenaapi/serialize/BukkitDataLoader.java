@@ -1,7 +1,9 @@
 package io.github.zap.arenaapi.serialize;
 
+import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
+import io.github.zap.arenaapi.util.ReflectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,6 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,8 +27,6 @@ public class BukkitDataLoader implements DataLoader {
 
     @SafeVarargs
     public BukkitDataLoader(Class<? extends DataSerializable>... args) throws LoadFailureException {
-        ConfigurationSerialization.registerClass(DataSerializable.class);
-
         try {
             Field aliases = ConfigurationSerialization.class.getDeclaredField("aliases");
             aliases.setAccessible(true);
@@ -36,40 +39,35 @@ public class BukkitDataLoader implements DataLoader {
                     (Map<String, Class<? extends ConfigurationSerializable>>) aliases.get(null);
 
             //map all specified ConfigurationSerializable objects to the same deserializer
-            for(Class<? extends DataSerializable> arg : args) {
-                Annotation[] annotations = arg.getDeclaredAnnotations();
+
+            List<Class<? extends DataSerializable>> items = Lists.newArrayList(args);
+            items.add(EnumWrapper.class); //global support for enums
+
+            for(Class<? extends DataSerializable> arg : items) {
                 String name = arg.getName();
+                TypeAlias typeAlias = ReflectionUtils.getDeclaredAnnotation(arg, TypeAlias.class);
 
-                if(annotations != null) {
-                    for(Annotation annotation : annotations) {
-                        if(annotation instanceof TypeAlias) {
-                            TypeAlias type = (TypeAlias)annotation;
-                            String alias = type.alias();
+                if(typeAlias != null) {
+                    String alias = typeAlias.alias();
 
-                            if(!alias.equals(StringUtils.EMPTY)) {
-                                name = alias;
-                            }
-                            else {
-                                throw new LoadFailureException(String.format("%s contains invalid TypeAlias; cannot " +
-                                        "be an empty string.", arg.getName()));
-                            }
-                        }
+                    if(!alias.equals(StringUtils.EMPTY)) {
+                        name = alias;
+                    }
+                    else {
+                        throw new LoadFailureException(String.format("Invalid alias in class '%s'", name));
                     }
                 }
 
-                aliasesMap.put(name, arg);
+                aliasesMap.put(name, DataSerializable.class);
 
                 try {
-                    DataSerializable.registerClass(name, arg);
+                    DataSerializable.registerAlias(name, arg);
                 }
                 catch (IllegalArgumentException e) { //duplicate value, etc
                     throw new LoadFailureException("IllegalArgumentException occured when registering " +
                             "DataSerializableClass: duplicate values are not permitted");
                 }
             }
-
-            //register wrapper class for enum compatibility
-            aliasesMap.put(EnumWrapper.class.getName(), DataSerializable.class);
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
             throw new LoadFailureException(e.getMessage());
         }

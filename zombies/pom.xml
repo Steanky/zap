@@ -63,8 +63,6 @@
                                     <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
                                     <artifactId>slimeworldmanager-classmodifier</artifactId>
                                     <version>${swm.version}</version>
-                                    <!-- below suppresion is necessary because of an intelliJ glitch -->
-                                    <!--suppress UnresolvedMavenProperty -->
                                     <outputDirectory>${pluginsDirectory}/../</outputDirectory>
                                     <destFileName>slimeworldmanager-classmodifier.jar</destFileName>
                                 </artifactItem>

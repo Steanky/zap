@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data;
 
 import io.github.zap.arenaapi.serialize.DataSerializable;
+import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,6 +20,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@TypeAlias(alias = "ZombiesMap")
 public class MapData extends DataSerializable {
     /**
      * The unique name of this map that need not be user friendly

@@ -3,7 +3,8 @@ package io.github.zap.zombies.game.data;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.NoSerialize;
+import io.github.zap.arenaapi.serialize.Serialize;
+import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@TypeAlias(alias = "Room")
 public class RoomData extends DataSerializable {
     /**
      * The unique, non-user-friendly name of this room.
@@ -51,7 +53,7 @@ public class RoomData extends DataSerializable {
     /**
      * Arena specific state: whether or not this room has been opened.
      */
-    @NoSerialize
+    @Serialize(skip = true)
     final Property<Boolean> openAccessor = new Property<>(false);
 
     private RoomData() {}

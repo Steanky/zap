@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="server-2" type="JarApplication" singleton="true">
-    <option name="JAR_PATH" value="$PROJECT_DIR$/run/server-2/paper-275.jar" />
+    <option name="JAR_PATH" value="$PROJECT_DIR$\run\server-2\paper-275.jar" />
     <option name="VM_PARAMETERS" value="-server -javaagent:slimeworldmanager-classmodifier.jar" />
     <option name="PROGRAM_PARAMETERS" value="-nogui" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$\run\server-2" />

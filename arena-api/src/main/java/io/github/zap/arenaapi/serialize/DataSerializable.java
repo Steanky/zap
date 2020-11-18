@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.serialize;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.util.ReflectionUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -12,6 +13,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -58,7 +60,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 " name already exists");
     }
 
-    public static void registerClass(String name, Class<? extends DataSerializable> clazz) {
+    public static void registerAlias(String name, Class<? extends DataSerializable> clazz) {
         Validate.notNull(name, "name cannot be null");
         Validate.notNull(clazz, "clazz cannot be null");
         Validate.isTrue(classes.putIfAbsent(name, clazz) == null, String.format("a class with name/alias " +
@@ -67,7 +69,12 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
     @Override
     public @NotNull Map<String, Object> serialize() {
-        Map<String, Object> serializedData = new HashMap<>();
+        Map<String, Object> serializedData = new LinkedHashMap<>();
+
+        TypeAlias type = ReflectionUtils.getDeclaredAnnotation(getClass(), TypeAlias.class);
+        if(type != null) {
+            serializedData.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, type.alias());
+        }
 
         forEachSerializable(getClass(), (entry) -> { //iterate through all serializable fields in this DataSerializable
             String name = entry.getName();
@@ -103,17 +110,17 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
     @SuppressWarnings("unused")
     public static DataSerializable deserialize(Map<String, Object> data) {
-        // get the classname from the type key, which will be the class we want to construct
-        String className = (String) data.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY);
+        // get the classname from the type key, which will be the class we want to construct or an alias
+        String name = (String) data.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY);
 
-        if (className != null) {
+        if (name != null) {
             try {
-                return createDeserialized(className, data);
+                return createDeserialized(name, data);
             }
             catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
                     InvocationTargetException e) {
                 ArenaApi.getInstance().getLogger().warning(String.format("An error occured when trying to instantiate" +
-                        " '%s': %s", className, e.getMessage()));
+                        " '%s': %s", name, e.getMessage()));
             }
         }
         else {
@@ -305,36 +312,26 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     private static void forEachSerializable(Class<?> clazz, Consumer<SerializationEntry> consumer) {
         Field[] fields = clazz.getDeclaredFields();
 
-        fields:
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) { // skip static fields
                 if(!field.isAccessible()) {
                     field.setAccessible(true);
                 }
 
-                Annotation[] annotations = field.getDeclaredAnnotations();
-                Serialize serializeAnnotation = null;
+                Serialize serializeAnnotation = ReflectionUtils.getDeclaredAnnotation(clazz, Serialize.class);
                 boolean isAggregation = false;
 
-                for (Annotation annotation : annotations) { //look for Serialize annotation
-                    if(annotation instanceof Serialize) {
-                        serializeAnnotation = (Serialize)annotation; //keep checking annotations
-                        isAggregation = serializeAnnotation.isAggregation();
-                    }
-                    else if(annotation instanceof NoSerialize) {
-                        continue fields; //one NoSerialize will override a Serialize annotation
-                    }
-                }
+                String name = field.getName();
+                ValueConverter<?,?> converter = null;
 
-                String name;
-                ValueConverter<?,?> converter;
                 if(serializeAnnotation != null) {
+                    if(serializeAnnotation.skip()) {
+                        continue;
+                    }
+
                     name = serializeAnnotation.name();
                     converter = namedConverters.get(serializeAnnotation.converter());
-                }
-                else {
-                    name = field.getName();
-                    converter = null;
+                    isAggregation = serializeAnnotation.isAggregation();
                 }
 
                 consumer.accept(new SerializationEntry(name, field, converter, isAggregation));

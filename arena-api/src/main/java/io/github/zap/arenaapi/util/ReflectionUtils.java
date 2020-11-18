@@ -2,6 +2,8 @@ package io.github.zap.arenaapi.util;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.lang.annotation.Annotation;
+
 public final class ReflectionUtils {
     private static final String CLASS_NAME = ReflectionUtils.class.getName();
 
@@ -21,6 +23,19 @@ public final class ReflectionUtils {
             }
         }
 
-        return StringUtils.EMPTY; //may return this under very odd circumstances
+        return null; //may return this under very odd circumstances
+    }
+
+    public static <T extends Annotation> T getDeclaredAnnotation(Class<?> targetClass, Class<T> annotationClass) {
+        Annotation[] annotations = targetClass.getDeclaredAnnotations();
+
+        for(Annotation annotation : annotations) {
+            if(annotation.annotationType().equals(annotationClass)) {
+                //noinspection unchecked
+                return (T)annotation;
+            }
+        }
+
+        return null;
     }
 }

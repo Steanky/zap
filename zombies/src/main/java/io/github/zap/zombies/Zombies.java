@@ -24,6 +24,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -109,9 +110,8 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     private void initArenaManagers() {
         FileConfiguration config = getConfig();
-        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(
-                new File("plugins/ZombiesPlugin/maps"), config.getInt(ConfigNames.MAX_WORLDS),
-                config.getInt(ConfigNames.ARENA_TIMEOUT));
+        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
+                getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
     }
 
     private void initProxies() {

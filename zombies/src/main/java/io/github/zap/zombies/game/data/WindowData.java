@@ -4,7 +4,8 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.NoSerialize;
+import io.github.zap.arenaapi.serialize.Serialize;
+import io.github.zap.arenaapi.serialize.TypeAlias;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.AccessLevel;
@@ -24,6 +25,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@TypeAlias(alias = "Window")
 public class WindowData extends DataSerializable {
     /**
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
@@ -60,32 +62,32 @@ public class WindowData extends DataSerializable {
     /**
      * The center of the window's face, used for distance checking. This value is calculated once and cached.
      */
-    @NoSerialize
+    @Serialize(skip = true)
     Vector center;
 
     /**
      * The volume of the window's face. This is calculated once and cached.
      */
-    @NoSerialize
+    @Serialize(skip = true)
     int volume = -1;
 
     /**
      * Arena specific state: the current index at which the window is being repaired or broken. This points to the index
      * of the current repaired block; thus, if the window is fully broken, it will == -1
      */
-    @NoSerialize
+    @Serialize(skip = true)
     final Property<Integer> currentIndexAccessor = new Property<>(getVolume() - 1);
 
     /**
      * Arena specific state: the player who is currently repairing the window
      */
-    @NoSerialize
+    @Serialize(skip = true)
     final Property<ZombiesPlayer> repairingPlayer = new Property<>(null);
 
     /**
      * Arena specific state: the entity that is currently attacking the window
      */
-    @NoSerialize
+    @Serialize(skip = true)
     final Property<Entity> attackingEntity = new Property<>(null);
 
     private WindowData() {}

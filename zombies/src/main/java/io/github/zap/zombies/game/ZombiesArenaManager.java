@@ -45,7 +45,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
 
-        dataFolder.mkdir();
+        dataFolder.mkdirs();
 
         File[] files = dataFolder.listFiles();
         DataLoader loader = Zombies.getInstance().getDataLoader();
@@ -53,7 +53,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                 1, 4, 10, 0, 10, false,
                 false, true, true, 4, 20,
                 20, Material.AIR);
-        loader.save(data, Paths.get(dataFolder.getName(), "test_map.yml").toFile(), DATA_KEY);
+        loader.save(data, Paths.get(dataFolder.getPath(), "test_map.yml").toFile(), DATA_KEY);
 
         if(files != null) {
             for(File file : files) {

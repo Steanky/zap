@@ -3,7 +3,8 @@ package io.github.zap.zombies.game.data;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.NoSerialize;
+import io.github.zap.arenaapi.serialize.Serialize;
+import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@TypeAlias(alias = "Door")
 public class DoorData extends DataSerializable {
     /**
      * The bounds of the door, any of which may be right-clicked in attempt to open it
@@ -32,7 +34,7 @@ public class DoorData extends DataSerializable {
     /**
      * Arena-specific state information: whether or not the door is open
      */
-    @NoSerialize
+    @Serialize(skip = true)
     final Property<Boolean> openAccessor = new Property<>(false);
 
     private DoorData() { }

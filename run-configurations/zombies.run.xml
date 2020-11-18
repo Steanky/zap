@@ -19,7 +19,7 @@
             <map />
           </option>
           <option name="resolveToWorkspace" value="true" />
-          <option name="workingDirPath" value="$PROJECT_DIR$/zombies" />
+          <option name="workingDirPath" value="$PROJECT_DIR$\zombies" />
         </MavenRunnerParameters>
       </option>
     </MavenSettings>

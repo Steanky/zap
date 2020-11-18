@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data;
 
 import io.github.zap.arenaapi.serialize.DataSerializable;
+import io.github.zap.arenaapi.serialize.TypeAlias;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import java.util.Set;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@TypeAlias(alias = "Spawnpoint")
 public class SpawnpointData extends DataSerializable {
     /**
      * Whether or not this spawnpoint is part of a window
