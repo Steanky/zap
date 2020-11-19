@@ -14,7 +14,7 @@ import java.util.Set;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesSpawnpoint")
+@TypeAlias("ZombiesSpawnpoint")
 public class SpawnpointData extends DataSerializable {
     /**
      * Whether or not this spawnpoint is part of a window

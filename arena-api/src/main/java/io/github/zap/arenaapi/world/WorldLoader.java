@@ -20,11 +20,11 @@ public interface WorldLoader {
     void loadWorld(String worldName, Consumer<World> worldConsumer);
 
     /**
-     * Unloads the map associated with the name. This must remove the map from the server world list, but it is not
-     * required to remove anything from the world cache.
-     * @param mapName The name of the specified map
+     * Unloads the world associated with the name. This should remove the world from Bukkit's server list, in addition
+     * to performing any necessary cleanup.
+     * @param world The name of the specified map
      */
-    void unloadWorld(String mapName);
+    void unloadWorld(World world);
 
     /**
      * Determine if the specified world exists. It may not be loaded.

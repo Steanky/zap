@@ -92,8 +92,8 @@ public class SlimeWorldLoader implements WorldLoader {
     }
 
     @Override
-    public void unloadWorld(String mapName) {
-        Bukkit.unloadWorld(mapName, false);
+    public void unloadWorld(World world) {
+        Bukkit.unloadWorld(world, false);
     }
 
     @Override

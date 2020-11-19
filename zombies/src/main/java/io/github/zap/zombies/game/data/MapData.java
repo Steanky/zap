@@ -20,7 +20,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesMap")
+@TypeAlias("ZombiesMap")
 public class MapData extends DataSerializable {
     /**
      * The unique name of this map that need not be user friendly

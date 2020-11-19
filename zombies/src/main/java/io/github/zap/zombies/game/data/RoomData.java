@@ -18,7 +18,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesRoom")
+@TypeAlias("ZombiesRoom")
 public class RoomData extends DataSerializable {
     /**
      * The unique, non-user-friendly name of this room.

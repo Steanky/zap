@@ -2,6 +2,9 @@ package io.github.zap.arenaapi;
 
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.playerdata.FilePlayerData;
+import io.github.zap.arenaapi.serialize.BukkitDataLoader;
+import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
@@ -18,12 +21,24 @@ public final class ArenaApi extends JavaPlugin {
     @Getter
     private static ArenaApi instance;
 
+    @Getter
+    private DataLoader dataLoader;
+
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
     @Override
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();
         instance = this;
+
+        try {
+            initDataLoader();
+        }
+        catch (LoadFailureException exception) {
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
+                    " '%s'", exception.getMessage()));
+            getPluginLoader().disablePlugin(this, false);
+        }
 
         timer.stop();
         getLogger().info(String.format("Done enabling; ~%sms elapsed", timer.getTime()));
@@ -60,5 +75,9 @@ public final class ArenaApi extends JavaPlugin {
         else {
             getLogger().warning(String.format("Invalid JoinInformation received: '%s' is not a game", gameName));
         }
+    }
+
+    private void initDataLoader() throws LoadFailureException {
+        dataLoader = new BukkitDataLoader(FilePlayerData.class);
     }
 }

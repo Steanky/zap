@@ -5,6 +5,6 @@ package io.github.zap.arenaapi;
  */
 public class LoadFailureException extends Exception {
     public LoadFailureException(String message) {
-        super(String.format("An error occured that prevented this plugin from loading: %s", message));
+        super(String.format("An error occured that prevented this plugin from loading. %s", message));
     }
 }

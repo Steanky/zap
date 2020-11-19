@@ -45,15 +45,11 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
 
+        //noinspection ResultOfMethodCallIgnored
         dataFolder.mkdirs();
 
         File[] files = dataFolder.listFiles();
         DataLoader loader = Zombies.getInstance().getDataLoader();
-        MapData data = new MapData("test_world", "Test World", new BoundingBox(), new Vector(),
-                1, 4, 10, 0, 10, false,
-                false, true, true, 4, 20,
-                20, Material.AIR);
-        loader.save(data, Paths.get(dataFolder.getPath(), "test_map.yml").toFile(), DATA_KEY);
 
         if(files != null) {
             for(File file : files) {
@@ -71,7 +67,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
         for(Player player : information.getPlayers()) {
             if(!player.isOnline()) {
-                onCompletion.accept(ImmutablePair.of(false, "RESOURCE_KEY_HERE"));
+                onCompletion.accept(ImmutablePair.of(false, "MESSAGE_HERE"));
                 return;
             }
         }
@@ -142,8 +138,20 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void closeArena(Arena<ZombiesArena> arena) {
+    public void closeArena(ZombiesArena arena) {
+        boolean sharedWorld = false;
+        for(ZombiesArena otherArena : arenas) {
+            if(!otherArena.equals(arena)) {
+                if(otherArena.getWorld() == arena.getWorld()) {
+                    sharedWorld = true; //if this world is being shared with another arena, do not unload the world
+                }
+            }
+        }
 
+        managedArenas.remove(arena.getId());
+        if(!sharedWorld) {
+            Zombies.getInstance().getWorldLoader().unloadWorld(arena.getWorld());
+        }
     }
 
     @Override

@@ -49,7 +49,7 @@ public abstract class ArenaManager<T extends Arena<T>> {
      * done without impacting other arenas).
      * @param arena The arena to remove
      */
-    public abstract void closeArena(Arena<T> arena);
+    public abstract void closeArena(T arena);
 
     /**
      * Closes this ArenaManager instance and forcefully terminates all of its managed arenas.
