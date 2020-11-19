@@ -1,0 +1,4 @@
+name: arena-api
+version: ${project.version}
+main: io.github.zap.arenaapi.ArenaApi
+api-version: 1.16
