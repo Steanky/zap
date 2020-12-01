@@ -43,7 +43,7 @@ public class BukkitDataLoader implements DataLoader {
                 TypeAlias typeAlias = element.getAnnotation(TypeAlias.class);
 
                 if(typeAlias != null) {
-                    String alias = typeAlias.alias();
+                    String alias = typeAlias.value();
 
                     if(!alias.equals(StringUtils.EMPTY)) {
                         elementName = alias;

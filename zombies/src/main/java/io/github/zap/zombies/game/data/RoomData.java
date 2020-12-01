@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,12 +39,12 @@ public class RoomData extends DataSerializable {
     /**
      * All of the windows contained in this room
      */
-    List<WindowData> windows;
+    ArrayList<WindowData> windows;
 
     /**
      * All of the spawnpoints contained in this room
      */
-    List<SpawnpointData> spawnpoints;
+    ArrayList<SpawnpointData> spawnpoints;
 
     /**
      * Whether or not this room is the 'spawn' room; where the players start off in

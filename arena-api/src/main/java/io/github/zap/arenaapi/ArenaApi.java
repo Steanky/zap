@@ -2,6 +2,7 @@ package io.github.zap.arenaapi;
 
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.playerdata.FilePlayerData;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
@@ -11,10 +12,8 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 import java.util.function.Consumer;
 
 public final class ArenaApi extends JavaPlugin {
@@ -23,6 +22,9 @@ public final class ArenaApi extends JavaPlugin {
 
     @Getter
     private DataLoader dataLoader;
+
+    @Getter
+    private LocalizationManager localizationManager;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
@@ -33,6 +35,7 @@ public final class ArenaApi extends JavaPlugin {
 
         try {
             initDataLoader();
+            initLocalization();
         }
         catch (LoadFailureException exception) {
             getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
@@ -79,5 +82,10 @@ public final class ArenaApi extends JavaPlugin {
 
     private void initDataLoader() throws LoadFailureException {
         dataLoader = new BukkitDataLoader(FilePlayerData.class);
+    }
+
+    private void initLocalization() throws LoadFailureException {
+        localizationManager = new LocalizationManager(Locale.ENGLISH, new File("localization"));
+        localizationManager.loadTranslations();
     }
 }

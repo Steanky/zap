@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class DoorSide extends DataSerializable {
     /**
      * The names of the rooms this DoorSide will open, when it is purchased.
      */
-    List<String> opensTo;
+    ArrayList<String> opensTo;
 
     /**
      * The bounds in which the player must stand in order to open the door from this side.

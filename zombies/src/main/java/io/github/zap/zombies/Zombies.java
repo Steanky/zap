@@ -3,6 +3,7 @@ package io.github.zap.zombies;
 import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.SlimePlugin;
 import io.github.regularcommands.commands.CommandManager;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
@@ -48,9 +49,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Getter
     private WorldLoader worldLoader; //responsible for loading slime worlds
-
-    @Getter
-    private LocalizationManager localizationManager;
 
     @Getter
     private CommandManager commandManager;
@@ -111,6 +109,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
         ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+
+        ArenaApi.getInstance().registerArenaManager(zombiesArenaManager);
     }
 
     private void initProxies() throws LoadFailureException {
@@ -173,7 +173,6 @@ public final class Zombies extends JavaPlugin implements Listener {
                 return new Locale((String)object.get(0), (String)object.get(1), (String)object.get(2));
             }
         });
-
         DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<MythicMob, String>() {
             @Override
             public String serialize(MythicMob object) {

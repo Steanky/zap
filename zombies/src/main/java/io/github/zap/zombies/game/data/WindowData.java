@@ -17,6 +17,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,18 +32,18 @@ public class WindowData extends DataSerializable {
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
-    List<Material> repairedMaterials;
+    ArrayList<Material> repairedMaterials;
 
     /**
      * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
      * this at a later date as I'm not exactly sure of its utility
      */
-    List<Material> brokenMaterials;
+    ArrayList<Material> brokenMaterials;
 
     /**
      * A list of vectors corresponding to the blocks of window face
      */
-    List<Vector> faceVectors;
+    ArrayList<Vector> faceVectors;
 
     /**
      * A BoundingBox containing the face of the window

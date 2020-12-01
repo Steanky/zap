@@ -13,7 +13,7 @@ public class FileDataManager implements PlayerDataManager {
     private final File playerFile;
 
     @Getter
-    private final int cacheLimit;
+    private final int memoryCacheLength;
 
     private final Map<UUID, FilePlayerData> cache = new LinkedHashMap<>();
     private final Set<UUID> cacheKeys = cache.keySet();
@@ -50,7 +50,7 @@ public class FileDataManager implements PlayerDataManager {
     private void addMapping(UUID id, FilePlayerData data) {
         cache.put(id, data); //add the mapping to the cache
 
-        if(cacheKeys.size() > cacheLimit) { //if we exceeded the limit, we must remove the first entry
+        if(cacheKeys.size() > memoryCacheLength) { //if we exceeded the limit, we must remove the first entry
             UUID remove = null;
             for(UUID uuid : cacheKeys) {
                 remove = uuid;
@@ -58,7 +58,7 @@ public class FileDataManager implements PlayerDataManager {
             }
 
             FilePlayerData removedValue = cache.get(remove); //get the value so we can save it if needed
-            cacheKeys.remove(remove); //remove the entry
+            cacheKeys.remove(remove); //remove the first entry
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
                 ArenaApi.getInstance().getDataLoader().save(removedValue, playerFile, id.toString());

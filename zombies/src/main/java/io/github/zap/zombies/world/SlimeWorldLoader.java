@@ -79,7 +79,7 @@ public class SlimeWorldLoader implements WorldLoader {
 
             World generatedWorld = Bukkit.getWorld(randomName);
             if(generatedWorld != null) {
-                onLoad.accept(Bukkit.getWorld(randomName));
+                onLoad.accept(generatedWorld);
             }
             else {
                 zombiesPlugin.getLogger().severe(String.format("World '%s' was just generated, but it could not be " +

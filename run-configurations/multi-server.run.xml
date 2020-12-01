@@ -1,5 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="multi-server" type="Multirun" factoryName="Multirun" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0">
+  <configuration default="false" name="multi-server" type="Multirun" factoryName="Multirun" separateTabs="true" reuseTabsWithFailures="false" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0.0">
+    <runConfiguration name="server-1" type="JAR Application" />
+    <runConfiguration name="server-2" type="JAR Application" />
+    <runConfiguration name="waterfall" type="JAR Application" />
+    <method v="2" />
+  </configuration>
+  <configuration default="false" name="multi-server" type="Multirun" factoryName="Multirun" separateTabs="true" reuseTabsWithFailures="false" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0.0">
     <runConfiguration name="server-1" type="JAR Application" />
     <runConfiguration name="server-2" type="JAR Application" />
     <runConfiguration name="waterfall" type="JAR Application" />
