@@ -61,8 +61,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     public static void registerClass(String name, Class<? extends DataSerializable> clazz) {
         Validate.notNull(name, "name cannot be null");
         Validate.notNull(clazz, "clazz cannot be null");
-        Validate.isTrue(classes.putIfAbsent(name, clazz) == null, String.format("a class with name/alias " +
-                "'%s' already exists", name));
+        classes.putIfAbsent(name, clazz);
     }
 
     @Override

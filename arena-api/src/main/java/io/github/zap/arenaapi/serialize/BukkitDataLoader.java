@@ -53,15 +53,8 @@ public class BukkitDataLoader implements DataLoader {
                     }
                 }
 
-                aliasesMap.put(elementName, DataSerializable.class);
-
-                try {
-                    DataSerializable.registerClass(elementName, element);
-                }
-                catch (IllegalArgumentException e) { //duplicate value, etc
-                    throw new LoadFailureException("IllegalArgumentException occured when registering " +
-                            "DataSerializableClass: duplicate values are not permitted");
-                }
+                aliasesMap.putIfAbsent(elementName, DataSerializable.class);
+                DataSerializable.registerClass(elementName, element);
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
             throw new LoadFailureException(e.getMessage());

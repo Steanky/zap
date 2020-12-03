@@ -114,6 +114,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
 
+        arenaApi.registerArenaManager(zombiesArenaManager);
     }
 
     private void initProxies() throws LoadFailureException {

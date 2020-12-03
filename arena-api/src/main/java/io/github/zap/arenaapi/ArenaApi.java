@@ -3,7 +3,9 @@ package io.github.zap.arenaapi;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.arenaapi.playerdata.FileDataManager;
 import io.github.zap.arenaapi.playerdata.FilePlayerData;
+import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
@@ -26,6 +28,9 @@ public final class ArenaApi extends JavaPlugin {
     @Getter
     private LocalizationManager localizationManager;
 
+    @Getter
+    private PlayerDataManager dataManager;
+
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
     @Override
@@ -36,11 +41,15 @@ public final class ArenaApi extends JavaPlugin {
         try {
             localizationManager = new LocalizationManager(Locale.US, new File("localization"));
             dataLoader = new BukkitDataLoader(FilePlayerData.class);
+            dataManager = new FileDataManager(new File("playdata.yml"), 4096);
+            timer.stop();
+            getLogger().info(String.format("Done enabling; ~%sms elapsed", timer.getTime()));
         }
-        catch (LoadFailureException ignored) {}
-
-        timer.stop();
-        getLogger().info(String.format("Done enabling; ~%sms elapsed", timer.getTime()));
+        catch (LoadFailureException exception) {
+            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
+                    " '%s'", exception.getMessage()));
+            getPluginLoader().disablePlugin(this, false);
+        }
     }
 
     @Override

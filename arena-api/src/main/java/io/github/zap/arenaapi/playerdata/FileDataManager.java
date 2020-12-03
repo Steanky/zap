@@ -34,6 +34,7 @@ public class FileDataManager implements PlayerDataManager {
         catch (ClassCastException e) { //there's some kind of invalid data there
             ArenaApi.getInstance().getLogger().warning(String.format("Tried to load non-PlayerData object at name %s" +
                     " in the playerdata file", name));
+            return null;
         }
 
         if(data != null) { //data was stored in the file, cache it in case of further use
