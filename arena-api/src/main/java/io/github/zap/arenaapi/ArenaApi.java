@@ -3,6 +3,9 @@ package io.github.zap.arenaapi;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.arenaapi.playerdata.FilePlayerData;
+import io.github.zap.arenaapi.serialize.BukkitDataLoader;
+import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
@@ -18,6 +21,9 @@ public final class ArenaApi extends JavaPlugin {
     private static ArenaApi instance;
 
     @Getter
+    private DataLoader dataLoader;
+
+    @Getter
     private LocalizationManager localizationManager;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
@@ -29,6 +35,7 @@ public final class ArenaApi extends JavaPlugin {
 
         try {
             localizationManager = new LocalizationManager(Locale.US, new File("localization"));
+            dataLoader = new BukkitDataLoader(FilePlayerData.class);
         }
         catch (LoadFailureException ignored) {}
 
