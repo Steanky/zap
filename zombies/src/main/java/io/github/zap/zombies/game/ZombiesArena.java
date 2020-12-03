@@ -159,6 +159,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
 
         Property.removeMappingsFor(this);
+
         manager.closeArena(this);
     }
 

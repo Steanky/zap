@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
+import io.github.zap.zombies.MessageKeys;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
@@ -73,7 +74,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
         for(Player player : information.getPlayers()) {
             if(!player.isOnline()) {
-                onCompletion.accept(ImmutablePair.of(false, "RESOURCE_KEY_HERE"));
+                onCompletion.accept(ImmutablePair.of(false, MessageKeys.OFFLINE_ARENA_REJECTION.getKey()));
                 return;
             }
         }
@@ -107,7 +108,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     else {
                         Zombies.getInstance().getLogger().warning(String.format("Newly created arena rejected join " +
                                 "request '%s'", information));
-                        onCompletion.accept(ImmutablePair.of(false, "example.key"));
+                        onCompletion.accept(ImmutablePair.of(false, MessageKeys.NEW_ARENA_REJECTION.getKey()));
                     }
                 });
 
@@ -125,8 +126,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     onCompletion.accept(ImmutablePair.of(true, null));
                 }
                 else {
-                    onCompletion.accept(ImmutablePair.of(false, "example.key"));
+                    onCompletion.accept(ImmutablePair.of(false, MessageKeys.GENERIC_ARENA_REJECTION.getKey()));
                 }
+
                 return;
             }
             else {
@@ -135,17 +137,18 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             }
         }
 
-        onCompletion.accept(ImmutablePair.of(false, null));
+        onCompletion.accept(ImmutablePair.of(false, MessageKeys.UNKNOWN_ARENA_REJECTION.getKey()));
     }
 
     @Override
     public boolean acceptsPlayers() {
-        return false;
+        return true;
     }
 
     @Override
     public void closeArena(ZombiesArena arena) {
-
+        managedArenas.remove(arena.getId());
+        Zombies.getInstance().getWorldLoader().unloadWorld(arena.getWorld());
     }
 
     @Override
