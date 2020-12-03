@@ -27,6 +27,7 @@ public class LocalizationManager {
 
         try {
             if (!localizationFileDirectory.exists()) {
+                //noinspection ResultOfMethodCallIgnored
                 localizationFileDirectory.mkdirs();
             }
         } catch (SecurityException e) {
@@ -36,8 +37,15 @@ public class LocalizationManager {
 
     public String getLocalizedMessage(Locale locale, String messageKey) {
         Translation translation = resources.get(locale);
+
         if (translation == null) {
             translation = resources.get(defaultLocale);
+
+            if(translation == null) {
+                return String.format("We wanted to send you a message, but no translation for your language exists " +
+                        "and no suitable default could be found (locale %s, key %s). Send this screenshot to server " +
+                        "administration.", locale.toLanguageTag(), messageKey);
+            }
         }
 
         Map<String, String> messages = translation.getMappings();

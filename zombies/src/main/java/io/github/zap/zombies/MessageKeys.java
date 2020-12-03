@@ -9,7 +9,10 @@ public enum MessageKeys {
     GENERIC_ARENA_REJECTION("zombies.arena.reject.generic"),
     NEW_ARENA_REJECTION("zombies.arena.reject.new"),
     OFFLINE_ARENA_REJECTION("zombies.arena.reject.offline"),
-    UNKNOWN_ARENA_REJECTION("zombies.arena.reject.unknown");
+    UNKNOWN_ARENA_REJECTION("zombies.arena.reject.unknown"),
+
+    //for when an arena is not gracefully terminated
+    ARENA_TERMINATION("zombies.arena.terminate");
 
     @Getter
     private String key;

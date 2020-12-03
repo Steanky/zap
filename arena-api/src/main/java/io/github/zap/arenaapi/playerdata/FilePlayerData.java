@@ -9,16 +9,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @TypeAlias("PlayerData")
 public class FilePlayerData extends DataSerializable implements PlayerData {
-    Set<UUID> friends = new HashSet<>();
+    @Getter
+    Locale locale;
+
+    final Set<UUID> friends = new HashSet<>();
 
     @Getter
     Date lastLogin = new Date();
@@ -37,6 +37,14 @@ public class FilePlayerData extends DataSerializable implements PlayerData {
     boolean isDirty = false;
 
     public FilePlayerData() {}
+
+    @Override
+    public void setLocale(Locale locale) {
+        if(!this.locale.equals(locale)) {
+            this.locale = locale;
+            isDirty = true;
+        }
+    }
 
     @Override
     public ImmutableSet<UUID> getFriends() {

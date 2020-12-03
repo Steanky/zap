@@ -1,12 +1,14 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.PlayerMessageHandler;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.LeaveInformation;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.zombies.MessageKeys;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
 import io.github.zap.zombies.event.player.PlayerLeaveArenaEvent;
@@ -146,12 +148,9 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     @Override
     public void terminate() {
-        ArenaApi api = Zombies.getInstance().getArenaApi();
-        LocalizationManager localizationManager = api.getLocalizationManager();
-
-
         for(ZombiesPlayer zombiesPlayer : players) {
-
+            PlayerMessageHandler.sendLocalizedMessage(zombiesPlayer.getPlayer(),
+                    MessageKeys.ARENA_TERMINATION.getKey());
         }
 
         close();
@@ -174,6 +173,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
+        //noinspection StatementWithEmptyBody
         if(playerMap.containsKey(event.getPlayer().getUniqueId())) {
             //handle players quitting
         }

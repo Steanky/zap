@@ -165,19 +165,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
                 ShopData.class, SpawnpointData.class, WindowData.class);
 
-        //noinspection rawtypes
-        DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, new ValueConverter<Locale, ArrayList>() {
-            @Override
-            public ArrayList serialize(Locale object) {
-                return Lists.newArrayList(object.getLanguage(), object.getCountry(), object.getVariant());
-            }
-
-            @Override
-            public Locale deserialize(ArrayList object) {
-                return new Locale((String)object.get(0), (String)object.get(1), (String)object.get(2));
-            }
-        });
-
         DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<MythicMob, String>() {
             @Override
             public String serialize(MythicMob object) {
