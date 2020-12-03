@@ -21,7 +21,6 @@ public class TranslationParser {
 
     public static Translation load(File file) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-
         Map<String, String> values = new HashMap<>();
 
         String line;

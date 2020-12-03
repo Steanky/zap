@@ -16,5 +16,5 @@ public @interface TypeAlias {
      * The alias of this class. Cannot be an empty string.
      * @return The alias of this class
      */
-    String alias();
+    String value();
 }

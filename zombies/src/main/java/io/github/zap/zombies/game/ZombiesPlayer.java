@@ -33,7 +33,7 @@ public class ZombiesPlayer implements Listener {
 
     @Getter
     @Setter
-    private PlayerState state;
+    private ZombiesPlayerState state;
 
     @Setter
     @Getter
@@ -66,13 +66,14 @@ public class ZombiesPlayer implements Listener {
     @EventHandler
     private void onPlayerInteract(PlayerInteractEvent event) {
         if(event.getPlayer().getUniqueId().equals(player.getUniqueId())) {
-            if(event.getHand() == EquipmentSlot.HAND && state == PlayerState.ALIVE) {
+            if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
                 Block block = event.getClickedBlock();
 
                 if(block != null) {
                     Vector clickedVector = block.getLocation().toVector();
                     if(!tryOpenDoor(clickedVector)) {
                         //if the door wasn't opened, see if there are other right-click actions we can perform
+                        //guns won't shoot if there was a door we clicked, for example
                     }
                 }
                 else {
@@ -100,6 +101,7 @@ public class ZombiesPlayer implements Listener {
 
     private void checkForWindow() {
         MapData map = arena.getMap();
+
         if(targetWindow == null) {
             WindowData window = map.windowAtRange(player.getLocation().toVector(), map.getWindowRepairRadius());
 

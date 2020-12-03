@@ -71,7 +71,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
         TypeAlias type = getClass().getAnnotation(TypeAlias.class);
         if(type != null) {
-            serializedData.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, type.alias());
+            serializedData.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, type.value());
         }
 
         forEachSerializable(getClass(), (entry) -> { //iterate through all serializable fields in this DataSerializable
@@ -160,24 +160,26 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
                 Object fieldValue = data.get(name);
 
-                try {
-                    Object transformedValue;
-                    if (entry.isCollection()) {
-                        //noinspection unchecked
-                        transformedValue = (converter == null) ? processCollection(fieldValue, field.getGenericType(),
-                                false) : converter.deserialize(fieldValue);
-                    } else {
-                        //noinspection unchecked
-                        transformedValue = (converter == null) ? processObject(fieldValue, field.getType(),
-                                false) : converter.deserialize(fieldValue);
-                    }
+                if(fieldValue != null) { //only serialize entries for which data exists
+                    try {
+                        Object transformedValue;
+                        if (entry.isCollection()) {
+                            //noinspection unchecked
+                            transformedValue = (converter == null) ? processCollection(fieldValue, field.getGenericType(),
+                                    false) : converter.deserialize(fieldValue);
+                        } else {
+                            //noinspection unchecked
+                            transformedValue = (converter == null) ? processObject(fieldValue, field.getType(),
+                                    false) : converter.deserialize(fieldValue);
+                        }
 
-                    field.set(instanceObject, transformedValue);
-                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
-                        ClassNotFoundException | ClassCastException e) {
-                    ArenaApi.getInstance().getLogger().warning(String.format("Exception when attempting to " +
-                                    "assign value '%s' to field '%s' in object '%s': '%s'", fieldValue.toString(),
-                            field.toGenericString(), instanceObject.toString(), e.getMessage()));
+                        field.set(instanceObject, transformedValue);
+                    } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
+                            ClassNotFoundException | ClassCastException e) {
+                        ArenaApi.getInstance().getLogger().warning(String.format("Exception when attempting to " +
+                                        "assign value '%s' to field '%s' in object '%s': '%s'", fieldValue.toString(),
+                                field.toGenericString(), instanceObject.toString(), e.getMessage()));
+                    }
                 }
             });
 
@@ -210,7 +212,6 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             throws IllegalAccessException, InstantiationException, ClassNotFoundException, SecurityException,
             ClassCastException {
         ParameterizedType parameterizedType = null;
-        Class<?> instanceClass = instance.getClass();
         Class<?> fieldClass;
 
         if(fieldType instanceof ParameterizedType) {
@@ -235,7 +236,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 return newArray;
             }
             else if(fieldClass.isAssignableFrom(instance.getClass())) { //recursively parse collections
-                Collection newCollection = (Collection)instanceClass.newInstance();
+                Collection newCollection = (Collection)fieldClass.newInstance(); //use field class
                 Type nextType = parameterizedType == null ? Object.class : parameterizedType.getActualTypeArguments()[0];
 
                 for(Object element : (Collection)instance) {
@@ -247,7 +248,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         }
         else if(instance instanceof Map) { //also recursively parse maps
             Map oldMap = (Map) instance;
-            Map newMap = (Map) instanceClass.newInstance();
+            Map newMap = (Map) fieldClass.newInstance();
 
             Type nextKeyType;
             Type nextValueType;

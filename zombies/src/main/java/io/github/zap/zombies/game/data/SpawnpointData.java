@@ -9,12 +9,13 @@ import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.util.Vector;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesSpawnpoint")
+@TypeAlias("ZombiesSpawnpoint")
 public class SpawnpointData extends DataSerializable {
     /**
      * Whether or not this spawnpoint is part of a window
@@ -34,7 +35,7 @@ public class SpawnpointData extends DataSerializable {
     /**
      * This represents all of the mobs that can be spawned here
      */
-    Set<MythicMob> whitelist;
+    HashSet<MythicMob> whitelist;
 
     private SpawnpointData() {}
 }

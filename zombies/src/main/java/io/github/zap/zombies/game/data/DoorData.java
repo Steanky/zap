@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesDoor")
+@TypeAlias("ZombiesDoor")
 public class DoorData extends DataSerializable {
     /**
      * The bounds of the door, any of which may be right-clicked in attempt to open it
@@ -29,7 +30,7 @@ public class DoorData extends DataSerializable {
     /**
      * The list of DoorSide objects. Doors typically contain 2 sides but may contain any number
      */
-    List<DoorSide> sides;
+    ArrayList<DoorSide> sides;
 
     /**
      * Arena-specific state information: whether or not the door is open
