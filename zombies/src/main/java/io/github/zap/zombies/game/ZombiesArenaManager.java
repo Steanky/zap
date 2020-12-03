@@ -17,6 +17,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -45,6 +46,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
 
+        //noinspection ResultOfMethodCallIgnored
         dataFolder.mkdirs();
 
         File[] files = dataFolder.listFiles();
@@ -77,7 +79,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         }
 
         String mapName = information.getMapName();
-        long targetArena = information.getTargetArena();
+        UUID targetArena = information.getTargetArena();
 
         if(mapName != null) {
             for(ZombiesArena arena : arenas) {
@@ -142,7 +144,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void closeArena(Arena<ZombiesArena> arena) {
+    public void closeArena(ZombiesArena arena) {
 
     }
 

@@ -169,15 +169,9 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     @SneakyThrows
     private void addPlayers(Player[] players) {
-        List<CompletableFuture<?>> futures = new ArrayList<>();
-
         for(Player player : players) {
             playerMap.put(player.getUniqueId(), new ZombiesPlayer(this, player, map.getStartingCoins()));
-            futures.add(player.teleportAsync(WorldUtils.locationFrom(world, map.getSpawn())));
-        }
-
-        for(CompletableFuture<?> future : futures) {
-            future.join();
+            player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
         }
     }
 

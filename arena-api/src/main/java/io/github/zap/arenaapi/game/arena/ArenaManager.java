@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -18,7 +19,7 @@ public abstract class ArenaManager<T extends Arena<T>> {
     @Getter
     private final String gameName;
 
-    protected Map<Long, T> managedArenas = new HashMap<>();
+    protected Map<UUID, T> managedArenas = new HashMap<>();
 
     protected Collection<T> arenas = managedArenas.values();
 
@@ -49,7 +50,7 @@ public abstract class ArenaManager<T extends Arena<T>> {
      * done without impacting other arenas).
      * @param arena The arena to remove
      */
-    public abstract void closeArena(Arena<T> arena);
+    public abstract void closeArena(T arena);
 
     /**
      * Closes this ArenaManager instance and forcefully terminates all of its managed arenas.
