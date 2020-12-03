@@ -2,21 +2,23 @@ package io.github.zap.arenaapi;
 
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 import java.util.function.Consumer;
 
 public final class ArenaApi extends JavaPlugin {
     @Getter
     private static ArenaApi instance;
+
+    @Getter
+    private LocalizationManager localizationManager;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
@@ -24,6 +26,11 @@ public final class ArenaApi extends JavaPlugin {
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();
         instance = this;
+
+        try {
+            localizationManager = new LocalizationManager(Locale.US, new File("localization"));
+        }
+        catch (LoadFailureException ignored) {}
 
         timer.stop();
         getLogger().info(String.format("Done enabling; ~%sms elapsed", timer.getTime()));

@@ -3,6 +3,7 @@ package io.github.zap.zombies;
 import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.SlimePlugin;
 import io.github.regularcommands.commands.CommandManager;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
@@ -38,6 +39,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     private static Zombies instance; //singleton for our main plugin class
 
     @Getter
+    private ArenaApi arenaApi;
+
+    @Getter
     private DataLoader dataLoader; //used to save/load data from custom serialization framework
 
     @Getter
@@ -50,14 +54,12 @@ public final class Zombies extends JavaPlugin implements Listener {
     private WorldLoader worldLoader; //responsible for loading slime worlds
 
     @Getter
-    private LocalizationManager localizationManager;
-
-    @Getter
     private CommandManager commandManager;
 
     @Override
     public void onEnable() {
         instance = this;
+        arenaApi = (ArenaApi)Bukkit.getPluginManager().getPlugin(PluginNames.ARENA_API);
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
@@ -111,6 +113,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
         ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+
     }
 
     private void initProxies() throws LoadFailureException {

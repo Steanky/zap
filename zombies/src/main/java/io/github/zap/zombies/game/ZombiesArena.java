@@ -1,9 +1,11 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.LeaveInformation;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
@@ -20,7 +22,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
@@ -145,6 +146,14 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     @Override
     public void terminate() {
+        ArenaApi api = Zombies.getInstance().getArenaApi();
+        LocalizationManager localizationManager = api.getLocalizationManager();
+
+
+        for(ZombiesPlayer zombiesPlayer : players) {
+
+        }
+
         close();
     }
 
@@ -160,12 +169,14 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         Property.removeMappingsFor(this);
 
-        manager.closeArena(this);
+        manager.removeArena(this);
     }
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
-        //handle people quitting
+        if(playerMap.containsKey(event.getPlayer().getUniqueId())) {
+            //handle players quitting
+        }
     }
 
     @SneakyThrows
@@ -179,6 +190,8 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private void removePlayers(Player[] players) {
         for(Player player : players) {
             playerMap.remove(player.getUniqueId()).close();
+
+            //teleport to destination lobby
         }
     }
 

@@ -146,8 +146,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void closeArena(ZombiesArena arena) {
+    public void removeArena(ZombiesArena arena) {
         managedArenas.remove(arena.getId());
+
+        //we are doing a single-world, single-arena approach so no need to check for other arenas sharing this world
         Zombies.getInstance().getWorldLoader().unloadWorld(arena.getWorld());
     }
 
