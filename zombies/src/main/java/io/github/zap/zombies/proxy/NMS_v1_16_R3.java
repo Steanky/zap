@@ -2,6 +2,8 @@ package io.github.zap.zombies.proxy;
 
 import io.github.zap.zombies.Zombies;
 import net.minecraft.server.v1_16_R3.Entity;
+import net.minecraft.server.v1_16_R3.EntityTypes;
+import net.minecraft.server.v1_16_R3.IRegistry;
 import net.minecraft.server.v1_16_R3.MathHelper;
 
 import java.lang.reflect.Field;
@@ -33,5 +35,10 @@ public class NMS_v1_16_R3 implements NMSProxy {
     @Override
     public UUID randomUUID() {
         return MathHelper.a(Entity.SHARED_RANDOM);
+    }
+
+    @Override
+    public int getEntityLivingTypeId(EntityTypes<?> entityTypes) {
+        return IRegistry.ENTITY_TYPE.a(entityTypes);
     }
 }
