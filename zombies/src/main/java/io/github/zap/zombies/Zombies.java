@@ -1,5 +1,7 @@
 package io.github.zap.zombies;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.SlimePlugin;
 import io.github.regularcommands.commands.CommandManager;
@@ -13,21 +15,24 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
-import io.github.zap.zombies.proxy.MythicMobs_v4_10_R1;
-import io.github.zap.zombies.proxy.MythicProxy;
-import io.github.zap.zombies.proxy.SlimeProxy;
-import io.github.zap.zombies.proxy.SlimeWorldManager_v2_3_R0;
+import io.github.zap.zombies.hologram.Hologram;
+import io.github.zap.zombies.proxy.*;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
@@ -47,6 +52,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     private MythicProxy mythicProxy; //access mythicmobs through this proxy interface
 
     @Getter
+    private NMSProxy nmsProxy; //access nms-specific information through this proxy interface
+
+    @Getter
     private WorldLoader worldLoader; //responsible for loading slime worlds
 
     @Getter
@@ -54,6 +62,9 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Getter
     private CommandManager commandManager;
+
+    @Getter
+    private ProtocolManager protocolManager;
 
     @Override
     public void onEnable() {
@@ -149,6 +160,14 @@ public final class Zombies extends JavaPlugin implements Listener {
         else {
             throw new LoadFailureException("Unable to locate required plugin SlimeWorldManager");
 
+        }
+
+        switch (Bukkit.getBukkitVersion()) {
+            case "1.16.4-R0.1-SNAPSHOT":
+                nmsProxy = new NMS_v1_16_R3();
+                break;
+            default:
+                throw new LoadFailureException("Invalid MC version");
         }
     }
 
