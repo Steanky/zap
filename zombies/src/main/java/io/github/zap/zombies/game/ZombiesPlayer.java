@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.PlayerMessageHandler;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.util.ItemStackUtils;
@@ -140,12 +139,12 @@ public class ZombiesPlayer implements Listener {
                     if(coins >= side.getCost()) {
                         WorldUtils.fillBounds(arena.getWorld(), door.getDoorBounds(), map.getDoorFillMaterial());
                         subtractCoins(side.getCost());
-                        door.getOpenAccessor().set(arena, true);
+                        door.getOpenProperty().set(arena, true);
                         pluginManager.callEvent(new DoorOpenEvent(this, door, side));
                         return true;
                     }
-                    else {
-                        //can't afford door
+                    else { //can't afford door
+
                     }
                 }
             }
@@ -158,10 +157,10 @@ public class ZombiesPlayer implements Listener {
      * Attempts to repair the given window.
      */
     private void tryRepairWindow(WindowData targetWindow) {
-        Property<Entity> attackingEntityProperty = targetWindow.getAttackingEntity();
+        Property<Entity> attackingEntityProperty = targetWindow.getAttackingEntityProperty();
 
         if(attackingEntityProperty.get(arena) == null) {
-            Property<ZombiesPlayer> currentRepairerProperty = targetWindow.getRepairingPlayer();
+            Property<ZombiesPlayer> currentRepairerProperty = targetWindow.getRepairingPlayerProperty();
             ZombiesPlayer currentRepairer = currentRepairerProperty.get(arena);
 
             if(currentRepairer == null) {
@@ -171,7 +170,7 @@ public class ZombiesPlayer implements Listener {
 
             if(currentRepairer == this) {
                 //advance repair state
-                int previousIndex = targetWindow.getCurrentIndexAccessor().get(arena);
+                int previousIndex = targetWindow.getCurrentIndexProperty().get(arena);
                 int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
                 if(blocksRepaired > 0) {
                     for(int i = previousIndex; i <= previousIndex + blocksRepaired; i++) { //break the actual blocks

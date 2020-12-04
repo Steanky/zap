@@ -36,7 +36,7 @@ public class DoorData extends DataSerializable {
      * Arena-specific state information: whether or not the door is open
      */
     @Serialize(skip = true)
-    final Property<Boolean> openAccessor = new Property<>(false);
+    final Property<Boolean> openProperty = new Property<>(false);
 
     private DoorData() { }
 

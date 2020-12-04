@@ -55,7 +55,7 @@ public class RoomData extends DataSerializable {
      * Arena specific state: whether or not this room has been opened.
      */
     @Serialize(skip = true)
-    final Property<Boolean> openAccessor = new Property<>(false);
+    final Property<Boolean> openProperty = new Property<>(false);
 
     private RoomData() {}
 }
