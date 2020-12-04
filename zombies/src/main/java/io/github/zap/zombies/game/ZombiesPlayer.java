@@ -1,8 +1,11 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.PlayerMessageHandler;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.zombies.MessageKeys;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.event.map.DoorOpenEvent;
 import io.github.zap.zombies.event.player.PlayerRepairWindowEvent;
@@ -102,7 +105,7 @@ public class ZombiesPlayer implements Listener {
     private void checkForWindow() {
         MapData map = arena.getMap();
 
-        if(targetWindow == null) {
+        if(targetWindow == null) { //our target window is null, so look for one
             WindowData window = map.windowAtRange(player.getLocation().toVector(), map.getWindowRepairRadius());
 
             if(window != null) {
@@ -110,7 +113,7 @@ public class ZombiesPlayer implements Listener {
                 tryRepairWindow(targetWindow);
             }
         }
-        else {
+        else { //we already have a target window - make sure it's still in range
             if(targetWindow.inRange(player.getLocation().toVector(), map.getWindowRepairRadius())) {
                 tryRepairWindow(targetWindow);
             }
@@ -182,18 +185,22 @@ public class ZombiesPlayer implements Listener {
             }
             else {
                 //can't repair because someone else already is, send message to player about that
+                PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.WINDOW_REPAIR_FAIL_PLAYER.getKey());
             }
         }
         else {
             //can't repair because there is a something attacking the window, send message to player about that
+            PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.WINDOW_REPAIR_FAIL_MOB.getKey());
         }
     }
 
     public void addCoins(int amount) {
+        PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.ADD_GOLD.getKey(), amount);
         coins += amount;
     }
 
     public void subtractCoins(int amount) {
+        PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.SUBTRACT_GOLD.getKey(), amount);
         coins -= amount;
     }
 

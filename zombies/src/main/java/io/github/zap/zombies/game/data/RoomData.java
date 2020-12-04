@@ -27,12 +27,12 @@ public class RoomData extends DataSerializable {
     String name;
 
     /**
-     * The user-friendly name of this room
+     * The message key of the room name
      */
-    String displayName;
+    String roomNameKey;
 
     /**
-     * The bounds of this room, used for knockdown messages
+     * The bounds of this room, used for knockdown messages and other things
      */
     MultiBoundingBox bounds;
 

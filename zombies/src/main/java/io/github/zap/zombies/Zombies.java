@@ -59,9 +59,15 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-        arenaApi = (ArenaApi)Bukkit.getPluginManager().getPlugin(PluginNames.ARENA_API);
+
+        PluginManager pluginManager = Bukkit.getPluginManager();
+        arenaApi = (ArenaApi)pluginManager.getPlugin(PluginNames.ARENA_API);
 
         try {
+            if(!pluginManager.isPluginEnabled(arenaApi)) {
+                throw new LoadFailureException("Required plugin ArenaApi is not enabled.");
+            }
+
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
             StopWatch timer = StopWatch.createStarted();
 
@@ -165,7 +171,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
                 ShopData.class, SpawnpointData.class, WindowData.class);
 
-        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<MythicMob, String>() {
+        DataSerializable.registerGlobalConverter(MythicMob.class, String.class,
+                new ValueConverter<MythicMob, String>() {
             @Override
             public String serialize(MythicMob object) {
                 return object.getInternalName();

@@ -32,7 +32,7 @@ public final class ArenaApi extends JavaPlugin {
     private LocalizationManager localizationManager;
 
     @Getter
-    private PlayerDataManager dataManager;
+    private PlayerDataManager playerDataManager;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
@@ -44,7 +44,7 @@ public final class ArenaApi extends JavaPlugin {
         try {
             localizationManager = new LocalizationManager(Locale.US, new File("localization"));
             dataLoader = new BukkitDataLoader(FilePlayerData.class);
-            dataManager = new FileDataManager(new File("playdata.yml"), 4096);
+            playerDataManager = new FileDataManager(new File("playerdata.yml"), 4096);
 
             //noinspection rawtypes
             DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, new ValueConverter<Locale, ArrayList>() {

@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data;
 
 import io.github.zap.arenaapi.serialize.DataSerializable;
+import io.github.zap.arenaapi.serialize.Serialize;
 import io.github.zap.arenaapi.serialize.TypeAlias;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
@@ -35,6 +36,7 @@ public class SpawnpointData extends DataSerializable {
     /**
      * This represents all of the mobs that can be spawned here
      */
+    @Serialize(isAggregation = true)
     HashSet<MythicMob> whitelist;
 
     private SpawnpointData() {}

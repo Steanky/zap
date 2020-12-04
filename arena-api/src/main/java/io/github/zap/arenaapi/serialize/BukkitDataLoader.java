@@ -20,11 +20,12 @@ import java.util.Map;
  */
 public class BukkitDataLoader implements DataLoader {
     private static final String EXTENSION = "yml";
+    private static final String ALIASES_FIELD_NAME = "aliases";
 
     @SafeVarargs
     public BukkitDataLoader(Class<? extends DataSerializable>... args) throws LoadFailureException {
         try {
-            Field aliases = ConfigurationSerialization.class.getDeclaredField("aliases");
+            Field aliases = ConfigurationSerialization.class.getDeclaredField(ALIASES_FIELD_NAME);
             aliases.setAccessible(true);
 
             /*

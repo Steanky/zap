@@ -28,9 +28,9 @@ public class MapData extends DataSerializable {
     String name;
 
     /**
-     * The user-friendly name of this map
+     * The resource key of the map name
      */
-    String displayName;
+    String mapNameKey;
 
     /**
      * The bounds of the map, inside which every component should exist

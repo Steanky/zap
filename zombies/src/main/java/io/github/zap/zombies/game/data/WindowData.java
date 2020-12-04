@@ -32,17 +32,20 @@ public class WindowData extends DataSerializable {
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
+    @Serialize(isAggregation = true)
     ArrayList<Material> repairedMaterials;
 
     /**
      * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
      * this at a later date as I'm not exactly sure of its utility
      */
+    @Serialize(isAggregation = true)
     ArrayList<Material> brokenMaterials;
 
     /**
      * A list of vectors corresponding to the blocks of window face
      */
+    @Serialize(isAggregation = true)
     ArrayList<Vector> faceVectors;
 
     /**

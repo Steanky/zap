@@ -31,7 +31,7 @@ public class LocalizationManager {
                 localizationFileDirectory.mkdirs();
             }
         } catch (SecurityException e) {
-            throw new LoadFailureException("SecurityException when creating localization file folder");
+            throw new LoadFailureException("SecurityException when creating localization file folder.");
         }
     }
 
@@ -42,9 +42,8 @@ public class LocalizationManager {
             translation = resources.get(defaultLocale);
 
             if(translation == null) {
-                return String.format("We wanted to send you a message, but no translation for your language exists " +
-                        "and no suitable default could be found (locale %s, key %s). Send this screenshot to server " +
-                        "administration.", locale.toLanguageTag(), messageKey);
+                return String.format("Missing translation for locale %s and key %s. Report this error to server" +
+                        " administration.", locale.toLanguageTag(), messageKey);
             }
         }
 
@@ -52,6 +51,7 @@ public class LocalizationManager {
 
         //this doesn't use getOrDefault to avoid evaluating String.format when unnecessary
         String message = messages.get(messageKey);
+
         if(message == null) {
             message = String.format("Missing translation for locale %s and key %s. Report this error to server" +
                     " administration.", locale.toLanguageTag(), messageKey);
