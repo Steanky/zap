@@ -76,17 +76,6 @@ public class Hologram implements Listener {
         });
     }
 
-    public Hologram() {
-        Zombies plugin = Zombies.getInstance();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        protocolManager = plugin.getProtocolManager();
-        nmsUtilProxy = plugin.getNmsUtilProxy();
-
-        location = null;
-
-        HOLOGRAMS.add(this);
-    }
-
     public Hologram(Location location) {
         Zombies plugin = Zombies.getInstance();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
