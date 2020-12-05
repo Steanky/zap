@@ -1,5 +1,6 @@
 package io.github.zap.zombies;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.SlimePlugin;
@@ -45,7 +46,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private MythicProxy mythicProxy; //access mythicmobs through this proxy interface
 
     @Getter
-    private NMSProxy nmsProxy; //access nms-specific information through this proxy interface
+    private NMSUtilProxy nmsUtilProxy; //access nms-specific information through this proxy interface
 
     @Getter
     private WorldLoader worldLoader; //responsible for loading slime worlds
@@ -73,6 +74,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             initProxies();
             initWorldLoader();
             initArenaManagers();
+            initProtocolManager();
 
             timer.stop();
 
@@ -157,7 +159,7 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         switch (Bukkit.getBukkitVersion()) {
             case "1.16.4-R0.1-SNAPSHOT":
-                nmsProxy = new NMS_v1_16_R3();
+                nmsUtilProxy = new NMSUtilProxy_v1_16_R3();
                 break;
             default:
                 throw new LoadFailureException("Invalid MC version");
@@ -204,5 +206,9 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         //register commands here
         commandManager.registerCommand(new DebugCommand());
+    }
+
+    private void initProtocolManager() {
+        protocolManager = ProtocolLibrary.getProtocolManager();
     }
 }
