@@ -14,7 +14,6 @@ import io.github.zap.zombies.proxy.NMSUtilProxy;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
@@ -85,11 +84,6 @@ public class Hologram implements Listener {
         this.location = location;
 
         HOLOGRAMS.add(this);
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Zombies.getInstance().getLogger().info("t");
     }
 
     public Hologram(Location location, int lineCount) {
