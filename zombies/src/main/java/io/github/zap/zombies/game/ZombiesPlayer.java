@@ -7,6 +7,8 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKeys;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.event.map.DoorOpenEvent;
+import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
+import io.github.zap.zombies.event.player.PlayerQuitArenaEvent;
 import io.github.zap.zombies.event.player.PlayerRepairWindowEvent;
 import io.github.zap.zombies.game.data.DoorData;
 import io.github.zap.zombies.game.data.DoorSide;
@@ -21,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.PluginManager;
@@ -44,6 +47,10 @@ public class ZombiesPlayer implements Listener {
     @Getter
     @Setter
     private int repairIncrement = 1;
+
+    @Getter
+    @Setter
+    private boolean isInGame = true;
 
     private final PluginManager pluginManager;
     private WindowData targetWindow;
@@ -79,7 +86,7 @@ public class ZombiesPlayer implements Listener {
                     }
                 }
                 else {
-
+                    //clicking air
                 }
             }
         }
@@ -100,6 +107,21 @@ public class ZombiesPlayer implements Listener {
             }
         }
     }
+
+    @EventHandler
+    private void onPlayerQuitArena(PlayerQuitArenaEvent event) {
+        if(event.getAttempt().getPlayers().contains(player.getUniqueId())) {
+
+        }
+    }
+
+    @EventHandler
+    private void onPlayerJoinArena(PlayerJoinArenaEvent event) {
+        if(event.getAttempt().getPlayers().contains(player.getUniqueId())) {
+
+        }
+    }
+
 
     private void checkForWindow() {
         MapData map = arena.getMap();
@@ -144,7 +166,7 @@ public class ZombiesPlayer implements Listener {
                         return true;
                     }
                     else { //can't afford door
-
+                        PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.CANT_AFFORD.getKey());
                     }
                 }
             }
@@ -206,6 +228,7 @@ public class ZombiesPlayer implements Listener {
     public void close() {
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         PlayerInteractEvent.getHandlerList().unregister(this);
-        PlayerToggleSneakEvent.getHandlerList().unregister(this);
+        PlayerQuitArenaEvent.getHandlerList().unregister(this);
+        PlayerJoinArenaEvent.getHandlerList().unregister(this);
     }
 }

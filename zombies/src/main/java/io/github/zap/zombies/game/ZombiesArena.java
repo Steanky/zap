@@ -1,26 +1,22 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.PlayerMessageHandler;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.LeaveInformation;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKeys;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
-import io.github.zap.zombies.event.player.PlayerLeaveArenaEvent;
+import io.github.zap.zombies.event.player.PlayerQuitArenaEvent;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 
 import java.util.*;
@@ -36,7 +32,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private final Collection<ZombiesPlayer> players = playerMap.values();
 
     @Getter
-    private final Set<Player> spectators = new HashSet<>();
+    private final Set<UUID> spectators = new HashSet<>();
 
     @Getter
     private final MapData map;
@@ -63,21 +59,20 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         Zombies zombies = Zombies.getInstance();
         pluginManager = zombies.getServer().getPluginManager();
-        pluginManager.registerEvents(this, zombies);
     }
 
     public boolean handleJoin(JoinInformation joinAttempt) {
-        Player[] joiningPlayers = joinAttempt.getPlayers();
+        Set<UUID> joiningPlayers = joinAttempt.getPlayers();
 
         if(joinAttempt.isSpectator()) {
             if(map.isSpectatorAllowed()) {
-                Collections.addAll(spectators, joiningPlayers);
+                spectators.addAll(joiningPlayers);
                 pluginManager.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
         else {
-            int newSize = playerMap.size() + joiningPlayers.length;
+            int newSize = playerMap.size() + joiningPlayers.size();
 
             if(newSize <= map.getMaximumCapacity()) { //we can fit the players
                 switch (state) {
@@ -105,10 +100,10 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     @Override
     public void handleLeave(LeaveInformation leaveAttempt) {
-        Player[] leavingPlayers = leaveAttempt.getPlayers();
+        Set<UUID> leavingPlayers = leaveAttempt.getPlayers();
 
         if(leaveAttempt.isSpectator()) {
-            spectators.removeAll(Arrays.asList(leavingPlayers));
+            spectators.removeAll(leavingPlayers);
         }
         else {
             removePlayers(leavingPlayers);
@@ -143,14 +138,16 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         }
 
-        pluginManager.callEvent(new PlayerLeaveArenaEvent(leaveAttempt));
+        pluginManager.callEvent(new PlayerQuitArenaEvent(leaveAttempt));
     }
 
     @Override
-    public void terminate() {
+    public void terminate() { //non-graceful termination; might happen mid game, sends error messages
         for(ZombiesPlayer zombiesPlayer : players) {
-            PlayerMessageHandler.sendLocalizedMessage(zombiesPlayer.getPlayer(),
-                    MessageKeys.ARENA_TERMINATION.getKey());
+            if(zombiesPlayer.isInGame()) {
+                PlayerMessageHandler.sendLocalizedMessage(zombiesPlayer.getPlayer(),
+                        MessageKeys.ARENA_TERMINATION.getKey());
+            }
         }
 
         close();
@@ -160,38 +157,41 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
      * Used internally to "gracefully" shut down the arena — without sending error messages to the player.
      */
     private void close() {
-        PlayerQuitEvent.getHandlerList().unregister(this);
-
         for(ZombiesPlayer player : players) {
             player.close();
         }
 
         Property.removeMappingsFor(this);
-
         manager.removeArena(this);
     }
 
-    @EventHandler
-    private void onPlayerQuit(PlayerQuitEvent event) {
-        //noinspection StatementWithEmptyBody
-        if(playerMap.containsKey(event.getPlayer().getUniqueId())) {
-            //handle players quitting
+    private void addPlayers(Collection<UUID> players) {
+        for(UUID player : players) {
+            Player bukkitPlayer = Bukkit.getPlayer(player);
+
+            if(bukkitPlayer != null) {
+                if(!playerMap.containsKey(player)) {
+                    playerMap.put(player, new ZombiesPlayer(this, bukkitPlayer, map.getStartingCoins()));
+                }
+                else {
+                    playerMap.get(player).setInGame(true); //player rejoined
+                }
+
+                bukkitPlayer.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
+            }
+            else {
+                Zombies.getInstance().getLogger().warning(String.format("When attempting to add players to " +
+                        "ZombiesArena, UUID %s was not found.", player.toString()));
+            }
         }
     }
 
-    @SneakyThrows
-    private void addPlayers(Player[] players) {
-        for(Player player : players) {
-            playerMap.put(player.getUniqueId(), new ZombiesPlayer(this, player, map.getStartingCoins()));
-            player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
-        }
-    }
+    private void removePlayers(Collection<UUID> players) {
+        for(UUID player : players) {
+            ZombiesPlayer zombiesPlayer = playerMap.get(player);
+            zombiesPlayer.setInGame(false);
 
-    private void removePlayers(Player[] players) {
-        for(Player player : players) {
-            playerMap.remove(player.getUniqueId()).close();
-
-            //teleport to destination lobby
+            //teleport player to destination lobby
         }
     }
 

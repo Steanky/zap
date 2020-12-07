@@ -6,6 +6,6 @@ import lombok.*;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class PlayerLeaveArenaEvent extends CustomEvent {
+public class PlayerQuitArenaEvent extends CustomEvent {
     LeaveInformation attempt;
 }

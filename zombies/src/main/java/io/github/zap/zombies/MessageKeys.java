@@ -17,7 +17,9 @@ public enum MessageKeys {
     WINDOW_REPAIR_FAIL_PLAYER("zombies.game.window.fail.player"), //shown when a player blocks window repair
 
     ADD_GOLD("zombies.game.gold.add"), //shown when gold is given to the player
-    SUBTRACT_GOLD("zombies.game.gold.subtract"); //shown when gold is given to the player
+    SUBTRACT_GOLD("zombies.game.gold.subtract"), //shown when gold is given to the player
+
+    CANT_AFFORD("zombies.game.gold.unaffordable"); //generic message shown when something is too expensive to purchase
 
     @Getter
     private String key;

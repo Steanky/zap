@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.game.arena;
 import lombok.Value;
 import org.bukkit.entity.Player;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -11,8 +12,8 @@ import java.util.UUID;
  */
 @Value
 public class JoinInformation {
-    int leadPlayer;
-    Player[] players;
+    UUID leader;
+    Set<UUID> players;
     boolean spectator;
     String gameName;
     String mapName;
