@@ -74,7 +74,6 @@ public final class Zombies extends JavaPlugin implements Listener {
             initProxies();
             initWorldLoader();
             initArenaManagers();
-            initProtocolManager();
 
             timer.stop();
 
@@ -123,6 +122,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         PluginManager manager = Bukkit.getPluginManager();
         Plugin mythicMobs = manager.getPlugin(PluginNames.MYTHIC_MOBS);
         Plugin swm = manager.getPlugin(PluginNames.SLIME_WORLD_MANAGER);
+        Plugin protocolLib = manager.getPlugin(PluginNames.PROTOCOL_MANAGER);
 
         if(mythicMobs != null) {
             String mythicVersion = mythicMobs.getDescription().getVersion().split("-")[0];
@@ -137,7 +137,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             }
         }
         else {
-            throw new LoadFailureException("Unable to locate required plugin MythicMobs");
+            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.MYTHIC_MOBS);
         }
 
         if(swm != null) {
@@ -153,16 +153,22 @@ public final class Zombies extends JavaPlugin implements Listener {
             }
         }
         else {
-            throw new LoadFailureException("Unable to locate required plugin SlimeWorldManager");
+            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.SLIME_WORLD_MANAGER);
 
         }
 
-        switch (Bukkit.getBukkitVersion()) {
-            case "1.16.4-R0.1-SNAPSHOT":
-                nmsUtilProxy = new NMSUtilProxy_v1_16_R3();
-                break;
-            default:
-                throw new LoadFailureException("Invalid MC version");
+        if (protocolLib != null) {
+            //noinspection SwitchStatementWithTooFewBranches
+            switch (Bukkit.getBukkitVersion()) {
+                case "1.16.4-R0.1-SNAPSHOT":
+                    nmsUtilProxy = new NMSUtilProxy_v1_16_R3();
+                    break;
+                default:
+                    throw new LoadFailureException(String.format("Invalid MC version '%s'", Bukkit.getBukkitVersion()));
+            }
+            protocolManager = ProtocolLibrary.getProtocolManager();
+        } else {
+            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.PROTOCOL_MANAGER);
         }
     }
 
@@ -206,9 +212,5 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         //register commands here
         commandManager.registerCommand(new DebugCommand());
-    }
-
-    private void initProtocolManager() {
-        protocolManager = ProtocolLibrary.getProtocolManager();
     }
 }

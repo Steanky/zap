@@ -16,15 +16,13 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class Hologram {
 
     private final static double LINE_SPACE = 0.25;
 
-    private final static List<Hologram> HOLOGRAMS = new ArrayList<>();
+    private final static Set<Integer> IDSET = new HashSet<>();
 
     private final ProtocolManager protocolManager;
 
@@ -50,20 +48,16 @@ public class Hologram {
                     if (packetContainer.getEntityUseActions().read(0) == EnumWrappers.EntityUseAction.INTERACT_AT) {
                         int id = packetContainer.getIntegers().read(0);
 
-                        for (Hologram hologram : HOLOGRAMS) {
-                            if (hologram.hologramLines.contains(id)) {
-                                event.setCancelled(true);
+                        if (IDSET.contains(id)) {
+                            event.setCancelled(true);
 
-                                PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client.BLOCK_PLACE);
-                                fakePacketContainer.getHands().write(0, packetContainer.getHands().read(0));
+                            PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client.BLOCK_PLACE);
+                            fakePacketContainer.getHands().write(0, packetContainer.getHands().read(0));
 
-                                try {
-                                    protocolManager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
-                                } catch (IllegalAccessException | InvocationTargetException e) {
-                                    plugin.getLogger().warning("Error blocking player interact at entity with id " + id + ":\n" + e.getMessage());
-                                }
-
-                                break;
+                            try {
+                                protocolManager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
+                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                plugin.getLogger().warning("Error blocking player interact at entity with id " + id + ":\n" + e.getMessage());
                             }
                         }
                     }
@@ -78,8 +72,6 @@ public class Hologram {
         nmsUtilProxy = plugin.getNmsUtilProxy();
 
         this.location = location;
-
-        HOLOGRAMS.add(this);
     }
 
     public Hologram(Location location, int lineCount) {
@@ -153,7 +145,6 @@ public class Hologram {
 
         hologramLines.clear();
         active = false;
-        HOLOGRAMS.remove(this);
     }
 
     /**
@@ -200,6 +191,7 @@ public class Hologram {
         int id = nmsUtilProxy.nextEntityId();
 
         hologramLines.add(id);
+        IDSET.add(id);
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
         packetContainer.getIntegers().write(0, id);
@@ -250,6 +242,7 @@ public class Hologram {
     private PacketContainer removeHologramLines() {
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
         packetContainer.getIntegerArrays().write(0, hologramLines.stream().mapToInt(Integer::intValue).toArray());
+        IDSET.removeAll(hologramLines);
 
         return packetContainer;
     }
