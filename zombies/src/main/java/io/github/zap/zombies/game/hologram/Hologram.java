@@ -48,7 +48,7 @@ public class Hologram {
                     if (packetContainer.getEntityUseActions().read(0) == EnumWrappers.EntityUseAction.INTERACT_AT) {
                         int id = packetContainer.getIntegers().read(0);
 
-                        if (IDSET.contains(id)) {
+                        if (ID_SET.contains(id)) {
                             event.setCancelled(true);
 
                             PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client.BLOCK_PLACE);
@@ -191,7 +191,7 @@ public class Hologram {
         int id = nmsUtilProxy.nextEntityId();
 
         hologramLines.add(id);
-        IDSET.add(id);
+        ID_SET.add(id);
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
         packetContainer.getIntegers().write(0, id);
@@ -242,7 +242,7 @@ public class Hologram {
     private PacketContainer removeHologramLines() {
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
         packetContainer.getIntegerArrays().write(0, hologramLines.stream().mapToInt(Integer::intValue).toArray());
-        IDSET.removeAll(hologramLines);
+        ID_SET.removeAll(hologramLines);
 
         return packetContainer;
     }
