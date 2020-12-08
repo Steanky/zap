@@ -9,6 +9,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -72,8 +73,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
-        for(Player player : information.getPlayers()) {
-            if(!player.isOnline()) {
+        for(UUID player : information.getPlayers()) {
+            Player bukkitPlayer = Bukkit.getPlayer(player);
+            if(bukkitPlayer != null && !bukkitPlayer.isOnline()) {
                 onCompletion.accept(ImmutablePair.of(false, MessageKeys.OFFLINE_ARENA_REJECTION.getKey()));
                 return;
             }

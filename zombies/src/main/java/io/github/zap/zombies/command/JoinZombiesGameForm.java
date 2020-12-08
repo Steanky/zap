@@ -1,5 +1,6 @@
 package io.github.zap.zombies.command;
 
+import com.google.common.collect.ImmutableSet;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
@@ -35,7 +36,7 @@ public class JoinZombiesGameForm extends CommandForm {
     public String execute(Context context, Object[] arguments) {
         Player player = (Player) context.getSender();
         ArenaApi api = Zombies.getInstance().getArenaApi();
-        JoinInformation testInformation = new JoinInformation(0, new Player[] { player }, false,
+        JoinInformation testInformation = new JoinInformation(player.getUniqueId(), ImmutableSet.of(player.getUniqueId()), false,
                 "zombies", "test_map", null);
 
         api.handleJoin(testInformation, (pair) -> {
