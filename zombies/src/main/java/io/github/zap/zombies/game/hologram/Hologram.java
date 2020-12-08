@@ -22,7 +22,7 @@ public class Hologram {
 
     private final static double LINE_SPACE = 0.25;
 
-    private final static Set<Integer> IDSET = new HashSet<>();
+    private final static Set<Integer> ID_SET = new HashSet<>();
 
     private final ProtocolManager protocolManager;
 
