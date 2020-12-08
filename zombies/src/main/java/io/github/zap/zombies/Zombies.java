@@ -1,5 +1,7 @@
 package io.github.zap.zombies;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.SlimePlugin;
 import io.github.regularcommands.commands.CommandManager;
@@ -14,10 +16,7 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
-import io.github.zap.zombies.proxy.MythicMobs_v4_10_R1;
-import io.github.zap.zombies.proxy.MythicProxy;
-import io.github.zap.zombies.proxy.SlimeProxy;
-import io.github.zap.zombies.proxy.SlimeWorldManager_v2_3_R0;
+import io.github.zap.zombies.proxy.*;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -51,10 +50,16 @@ public final class Zombies extends JavaPlugin implements Listener {
     private MythicProxy mythicProxy; //access mythicmobs through this proxy interface
 
     @Getter
+    private NMSUtilProxy nmsUtilProxy; //access nms-specific information through this proxy interface
+
+    @Getter
     private WorldLoader worldLoader; //responsible for loading slime worlds
 
     @Getter
     private CommandManager commandManager;
+
+    @Getter
+    private ProtocolManager protocolManager;
 
     @Override
     public void onEnable() {
@@ -127,6 +132,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         PluginManager manager = Bukkit.getPluginManager();
         Plugin mythicMobs = manager.getPlugin(PluginNames.MYTHIC_MOBS);
         Plugin swm = manager.getPlugin(PluginNames.SLIME_WORLD_MANAGER);
+        Plugin protocolLib = manager.getPlugin(PluginNames.PROTOCOL_MANAGER);
 
         if(mythicMobs != null) {
             String mythicVersion = mythicMobs.getDescription().getVersion().split("-")[0];
@@ -141,7 +147,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             }
         }
         else {
-            throw new LoadFailureException("Unable to locate required plugin MythicMobs");
+            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.MYTHIC_MOBS);
         }
 
         if(swm != null) {
@@ -157,8 +163,22 @@ public final class Zombies extends JavaPlugin implements Listener {
             }
         }
         else {
-            throw new LoadFailureException("Unable to locate required plugin SlimeWorldManager");
+            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.SLIME_WORLD_MANAGER);
 
+        }
+
+        if (protocolLib != null) {
+            //noinspection SwitchStatementWithTooFewBranches
+            switch (Bukkit.getBukkitVersion()) {
+                case "1.16.4-R0.1-SNAPSHOT":
+                    nmsUtilProxy = new NMSUtilProxy_v1_16_R3();
+                    break;
+                default:
+                    throw new LoadFailureException(String.format("Invalid MC version '%s'", Bukkit.getBukkitVersion()));
+            }
+            protocolManager = ProtocolLibrary.getProtocolManager();
+        } else {
+            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.PROTOCOL_MANAGER);
         }
     }
 
