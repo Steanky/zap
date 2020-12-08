@@ -14,15 +14,13 @@ import io.github.zap.zombies.proxy.NMSUtilProxy;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class Hologram implements Listener {
+public class Hologram {
 
     private final static double LINE_SPACE = 0.25;
 
@@ -61,7 +59,6 @@ public class Hologram implements Listener {
 
                                 try {
                                     protocolManager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
-                                    System.out.println();
                                 } catch (IllegalAccessException | InvocationTargetException e) {
                                     plugin.getLogger().warning("Error blocking player interact at entity with id " + id + ":\n" + e.getMessage());
                                 }
@@ -77,7 +74,6 @@ public class Hologram implements Listener {
 
     public Hologram(Location location) {
         Zombies plugin = Zombies.getInstance();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         protocolManager = plugin.getProtocolManager();
         nmsUtilProxy = plugin.getNmsUtilProxy();
 
