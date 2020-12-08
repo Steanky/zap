@@ -81,12 +81,16 @@ public class ZombiesPlayer implements Listener {
                 if(block != null) {
                     Vector clickedVector = block.getLocation().toVector();
                     if(!tryOpenDoor(clickedVector)) {
-                        //if the door wasn't opened, see if there are other right-click actions we can perform
-                        //guns won't shoot if there was a door we clicked, for example
+                        /*
+                        if a door wasn't opened, see if there are other right-click actions we can perform gun
+                        shooting/inventory item activation/possibly shop activation
+                         */
                     }
                 }
                 else {
-                    //clicking air
+                    /*
+                    air was clicked, so we also need gun shooting/other inventory item activation code here
+                     */
                 }
             }
         }
@@ -228,6 +232,7 @@ public class ZombiesPlayer implements Listener {
     public void close() {
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         PlayerInteractEvent.getHandlerList().unregister(this);
+        PlayerToggleSneakEvent.getHandlerList().unregister(this);
         PlayerQuitArenaEvent.getHandlerList().unregister(this);
         PlayerJoinArenaEvent.getHandlerList().unregister(this);
     }

@@ -23,8 +23,6 @@ public class LocalizationManager {
         this.defaultLocale = defaultLocale;
         this.localizationFileDirectory = localizationFileDirectory;
 
-        ArenaApi arenaApi = ArenaApi.getInstance();
-
         try {
             if (!localizationFileDirectory.exists()) {
                 //noinspection ResultOfMethodCallIgnored
