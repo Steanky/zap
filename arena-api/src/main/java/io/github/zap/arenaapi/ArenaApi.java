@@ -1,49 +1,32 @@
 package io.github.zap.arenaapi;
 
 import com.comphenix.protocol.ProtocolLib;
-import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSUtilProxy_v1_16_R3;
-import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public final class ArenaApi extends JavaPlugin {
     @Getter
     private static ArenaApi instance;
 
     @Getter
-    private DataLoader dataLoader;
-
-    @Getter
     private NMSProxy nmsProxy;
 
     @Getter
     private ProtocolLib protocolLib;
-
-    @Getter
-    private LocalizationManager localizationManager;
-
-    @Getter
-    private PlayerDataManager playerDataManager;
-
-    @Getter
-    private CommandManager commandManager;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
@@ -56,19 +39,17 @@ public final class ArenaApi extends JavaPlugin {
             initConfig();
             initProxy();
             initDependencies();
-            initLocalization();
-            initCommands();
         }
         catch(LoadFailureException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
-                    " '%s'", exception.getMessage()));
+            severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
+                    exception.getMessage()));
             getPluginLoader().disablePlugin(this, true);
             return;
         }
 
         timer.stop();
-        getLogger().info(String.format("Enabled successfully; ~%sms elapsed", timer.getTime()));
+        getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
     private void initConfig() {
@@ -88,31 +69,12 @@ public final class ArenaApi extends JavaPlugin {
                 nmsProxy = new NMSUtilProxy_v1_16_R3();
                 break;
             default:
-                throw new LoadFailureException(String.format("Unsupported MC version '%s'", Bukkit.getBukkitVersion()));
+                throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));
         }
     }
 
     private void initDependencies() throws LoadFailureException {
         protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB, true);
-    }
-
-    private void initLocalization() throws LoadFailureException {
-        Configuration config = getConfig();
-
-        String locale = config.getString(ConfigNames.DEFAULT_LOCALE);
-        String localizationDirectory = config.getString(ConfigNames.LOCALIZATION_DIRECTORY);
-
-        if(locale != null && localizationDirectory != null) {
-            localizationManager = new LocalizationManager(Locale.forLanguageTag(locale),
-                    new File(localizationDirectory));
-        }
-        else {
-            throw new LoadFailureException("One or more configuration entries could not be retrieved.");
-        }
-    }
-
-    private void initCommands() {
-        commandManager = new CommandManager(this);
     }
 
     public void registerArenaManager(ArenaManager<?> manager) {
@@ -129,9 +91,13 @@ public final class ArenaApi extends JavaPlugin {
             arenaManager.handleJoin(information, onCompletion);
         }
         else {
-            getLogger().warning(String.format("Invalid JoinInformation received: '%s' is not a game", gameName));
+            warning(String.format("Invalid JoinInformation received: '%s' is not a game.", gameName));
         }
     }
+
+    /*
+    Static utility functions below
+     */
 
     public static <T extends Plugin> T getRequiredPlugin(String pluginName, boolean requireEnabled)
             throws LoadFailureException {
@@ -154,5 +120,40 @@ public final class ArenaApi extends JavaPlugin {
         else {
             throw new LoadFailureException(String.format("Required plugin %s cannot be found.", pluginName));
         }
+    }
+
+    /**
+     * Logs a message with this plugin, at the specified level.
+     * @param level The level to log at
+     * @param message The log message
+     */
+    public static void log(Level level, String message) {
+        instance.getLogger().log(level, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.INFO — to signify that things are happening which are normal, expected
+     * operations.
+     * @param message The message to log
+     */
+    public static void info(String message) {
+        log(Level.INFO, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.WARNING — signifying that something happened which has potential to
+     * cause issues but has not resulted in a hard crash.
+     * @param message The message to log
+     */
+    public static void warning(String message) {
+        log(Level.WARNING, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.SEVERE — signifying that something happened which caused a hard crash.
+     * @param message The message to log
+     */
+    public static void severe(String message) {
+        log(Level.SEVERE, message);
     }
 }

@@ -94,9 +94,8 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 serializedData.put(name, transformedValue);
             } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
                     ClassNotFoundException | ClassCastException e) {
-                ArenaApi.getInstance().getLogger().warning(String.format("Exception when attempting to serialize " +
-                                "field '%s' in object '%s': %s", field.toGenericString(), this.toString(),
-                        e.getMessage()));
+                ArenaApi.warning(String.format("Exception when attempting to serialize field '%s' in object '%s': %s.",
+                        field.toGenericString(), this.toString(), e.getMessage()));
             }
         });
 
@@ -114,13 +113,13 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             }
             catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
                     InvocationTargetException e) {
-                ArenaApi.getInstance().getLogger().warning(String.format("An error occured when trying to instantiate" +
-                        " '%s': %s", name, e.getMessage()));
+                ArenaApi.warning(String.format("An error occured when trying to instantiate '%s': %s.", name,
+                        e.getMessage()));
             }
         }
         else {
-            ArenaApi.getInstance().getLogger().warning(String.format("The serialized data does not contain required " +
-                    "type key '%s'", ConfigurationSerialization.SERIALIZED_TYPE_KEY));
+            ArenaApi.warning(String.format("The serialized data does not contain required type key '%s'.",
+                    ConfigurationSerialization.SERIALIZED_TYPE_KEY));
         }
 
         return null;
@@ -173,9 +172,9 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                         field.set(instanceObject, transformedValue);
                     } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
                             ClassNotFoundException | ClassCastException e) {
-                        ArenaApi.getInstance().getLogger().warning(String.format("Exception when attempting to " +
-                                        "assign value '%s' to field '%s' in object '%s': '%s'", fieldValue.toString(),
-                                field.toGenericString(), instanceObject.toString(), e.getMessage()));
+                        ArenaApi.warning(String.format("Exception when attempting to assign value '%s' to field '%s'" +
+                                        " in object '%s': '%s'.", fieldValue.toString(), field.toGenericString(),
+                                instanceObject.toString(), e.getMessage()));
                     }
                 }
             });
@@ -183,8 +182,8 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             return (DataSerializable) instanceObject;
         }
         else {
-            ArenaApi.getInstance().getLogger().warning(String.format("Class name or alias '%s' has not been " +
-                    "registered and therefore will not be deserialized.", className));
+            ArenaApi.warning(String.format("Class name or alias '%s' has not been registered and therefore will not " +
+                    "be deserialized.", className));
         }
 
         return null;

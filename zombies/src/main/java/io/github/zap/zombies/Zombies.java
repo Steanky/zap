@@ -1,16 +1,14 @@
 package io.github.zap.zombies;
 
-import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
-import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
+import io.github.zap.arenaapi.event.CustomEvent;
 import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.DataSerializable;
@@ -19,17 +17,15 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
-import io.github.zap.zombies.proxy.*;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -50,25 +46,25 @@ public final class Zombies extends JavaPlugin implements Listener {
     private SlimeLoader slimeLoader;
 
     @Getter
-    private DataLoader dataLoader; //used to save/load data from custom serialization framework
-
-    @Getter
-    private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
-
-    @Getter
-    private WorldLoader worldLoader; //responsible for loading slime worlds
-
-    @Getter
     private File slimeWorldDirectory;
 
     @Getter
     private String slimeExtension;
 
     @Getter
+    private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
+
+    @Getter
+    private DataLoader dataLoader; //used to save/load data from custom serialization framework
+
+    @Getter
+    private WorldLoader worldLoader; //responsible for loading worlds
+
+    @Getter
     private CommandManager commandManager;
 
     @Getter
-    private ProtocolManager protocolManager;
+    private LocalizationManager localizationManager;
 
     @Override
     public void onEnable() {
@@ -86,18 +82,18 @@ public final class Zombies extends JavaPlugin implements Listener {
 
             timer.stop();
 
-            getLogger().log(Level.INFO, String.format("Done enabling; ~%sms elapsed", timer.getTime()));
+            info(String.format("Done enabling; ~%sms elapsed.", timer.getTime()));
         }
         catch(LoadFailureException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
-                    " '%s'", exception.getMessage()));
+            severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
+                    exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
             return;
         }
 
         timer.stop();
-        getLogger().log(Level.INFO, String.format("Enabled successfully; ~%sms elapsed", timer.getTime()));
+        info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
     private void initConfig() {
@@ -117,7 +113,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initWorldLoader() {
-        getLogger().info("Preloading worlds.");
+        info("Preloading worlds.");
 
         StopWatch timer = StopWatch.createStarted();
         slimeLoader = new FileLoader(slimeWorldDirectory);
@@ -127,13 +123,14 @@ public final class Zombies extends JavaPlugin implements Listener {
         worldLoader.preload();
         timer.stop();
 
-        getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
+        info(String.format("Done preloading worlds; ~%sms elapsed.", timer.getTime()));
     }
 
     private void initArenaManagers() {
         FileConfiguration config = getConfig();
         ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+        arenaApi.registerArenaManager(zombiesArenaManager);
     }
 
     private void initSerialization() throws LoadFailureException {
@@ -172,7 +169,63 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initCommands() {
-        CommandManager commandManager = arenaApi.getCommandManager();
+        CommandManager commandManager = new CommandManager(this);
         commandManager.registerCommand(new DebugCommand());
+    }
+
+    /*
+    Public static utility functions below
+     */
+
+    /**
+     * Sends a localized message to the specific player. The message displayed will be in whatever language the
+     * player has chosen.
+     * @param player The player we are sending the message to
+     * @param key The MessageKey of the message we are sending
+     * @param formatArgs Format arguments for the message, which may or may not be necessary for a given format string
+     */
+    public static void sendLocalizedMessage(Player player, MessageKey key, Object... formatArgs) {
+        instance.getLocalizationManager().sendLocalizedMessage(player, key.getKey(), formatArgs);
+    }
+
+    /**
+     * Logs a message with this plugin, at the specified level.
+     * @param level The level to log at
+     * @param message The log message
+     */
+    public static void log(Level level, String message) {
+        instance.getLogger().log(level, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.INFO
+     * @param message The message to log
+     */
+    public static void info(String message) {
+        log(Level.INFO, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.WARNING
+     * @param message The message to log
+     */
+    public static void warning(String message) {
+        log(Level.WARNING, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.SEVERE
+     * @param message The message to log
+     */
+    public static void severe(String message) {
+        log(Level.SEVERE, message);
+    }
+
+    /**
+     * Calls the specified event for this plugin.
+     * @param event The event to call
+     */
+    public static void callEvent(Event event) {
+        instance.getServer().getPluginManager().callEvent(event);
     }
 }

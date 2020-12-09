@@ -50,7 +50,7 @@ public class BukkitDataLoader implements DataLoader {
                         elementName = alias;
                     }
                     else {
-                        throw new LoadFailureException(String.format("Invalid alias in class '%s'", elementName));
+                        throw new LoadFailureException(String.format("Invalid alias in class '%s'.", elementName));
                     }
                 }
 
@@ -70,8 +70,8 @@ public class BukkitDataLoader implements DataLoader {
         try {
             configuration.save(file);
         } catch (IOException e) {
-            ArenaApi.getInstance().getLogger().warning(String.format("IOException when attempting to save data with " +
-                    "name '%s' to config file '%s': %s", name, file, e.getMessage()));
+            ArenaApi.warning(String.format("IOException when attempting to save data with name '%s' to config file " +
+                    "'%s': %s.", name, file, e.getMessage()));
         }
     }
 
@@ -84,8 +84,7 @@ public class BukkitDataLoader implements DataLoader {
             return (T) configuration.get(name);
         }
         catch (ClassCastException e) {
-            ArenaApi.getInstance().getLogger().warning(String.format("Incompatible type cast applied to named data " +
-                    "'%s'", name));
+            ArenaApi.warning(String.format("Incompatible type cast applied to named data '%s'.", name));
         }
 
         return null;

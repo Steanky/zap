@@ -1,10 +1,9 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import io.github.zap.zombies.MessageKeys;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
@@ -21,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 /**
  * This class manages active arenas and loads new ones as required, up to a specified limit. It is also responsible for
@@ -76,7 +74,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         for(UUID player : information.getPlayers()) {
             Player bukkitPlayer = Bukkit.getPlayer(player);
             if(bukkitPlayer != null && !bukkitPlayer.isOnline()) {
-                onCompletion.accept(ImmutablePair.of(false, MessageKeys.OFFLINE_ARENA_REJECTION.getKey()));
+                onCompletion.accept(ImmutablePair.of(false, MessageKey.OFFLINE_ARENA_REJECTION.getKey()));
                 return;
             }
         }
@@ -92,32 +90,27 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                 }
             }
 
-            Zombies zombiesPlugin = Zombies.getInstance();
-            Logger logger = zombiesPlugin.getLogger();
             if(managedArenas.size() < arenaCapacity) {
-                logger.info(String.format("Loading arena for map '%s'", mapName));
-                logger.fine(String.format("JoinInformation that triggered this load: '%s'", information));
+                Zombies.info(String.format("Loading arena for map '%s'.", mapName));
+                Zombies.info(String.format("JoinInformation that triggered this load: '%s'.", information));
 
-                zombiesPlugin.getWorldLoader().loadWorld(mapName, (world) -> {
+                Zombies.getInstance().getWorldLoader().loadWorld(mapName, (world) -> {
                     ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                     managedArenas.put(arena.getId(), arena);
-
-                    logger.info("Done loading arena.");
 
                     if(arena.handleJoin(information)) {
                         onCompletion.accept(ImmutablePair.of(true, null));
                     }
                     else {
-                        Zombies.getInstance().getLogger().warning(String.format("Newly created arena rejected join " +
-                                "request '%s'", information));
-                        onCompletion.accept(ImmutablePair.of(false, MessageKeys.NEW_ARENA_REJECTION.getKey()));
+                        Zombies.warning(String.format("Newly created arena rejected join request '%s'.", information));
+                        onCompletion.accept(ImmutablePair.of(false, MessageKey.NEW_ARENA_REJECTION.getKey()));
                     }
                 });
 
                 return;
             }
             else {
-                logger.info("A JoinAttempt was rejected, as we have reached arena capacity.");
+                Zombies.info("A JoinAttempt was rejected, as we have reached arena capacity.");
             }
         }
         else {
@@ -128,18 +121,17 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     onCompletion.accept(ImmutablePair.of(true, null));
                 }
                 else {
-                    onCompletion.accept(ImmutablePair.of(false, MessageKeys.GENERIC_ARENA_REJECTION.getKey()));
+                    onCompletion.accept(ImmutablePair.of(false, MessageKey.GENERIC_ARENA_REJECTION.getKey()));
                 }
 
                 return;
             }
             else {
-                Zombies.getInstance().getLogger().warning(String.format("Requested arena '%s' does not exist.",
-                        targetArena));
+                Zombies.warning(String.format("Requested arena '%s' does not exist.", targetArena));
             }
         }
 
-        onCompletion.accept(ImmutablePair.of(false, MessageKeys.UNKNOWN_ARENA_REJECTION.getKey()));
+        onCompletion.accept(ImmutablePair.of(false, MessageKey.UNKNOWN_ARENA_REJECTION.getKey()));
     }
 
     @Override

@@ -8,7 +8,6 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.PlayerMessageHandler;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.zombies.Zombies;
 import org.bukkit.entity.Player;
@@ -41,10 +40,9 @@ public class JoinZombiesGameForm extends CommandForm {
 
         api.handleJoin(testInformation, (pair) -> {
             if(!pair.left) {
-                PlayerMessageHandler.sendLocalizedMessage(player, pair.right);
+                player.sendMessage(pair.right);
             }
         });
-
 
         return ">green{Attemping to join a game...}";
     }

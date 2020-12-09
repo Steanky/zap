@@ -1,18 +1,16 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.PlayerMessageHandler;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.LeaveInformation;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.MessageKeys;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
 import io.github.zap.zombies.event.player.PlayerQuitArenaEvent;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -43,7 +41,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
     private final long emptyTimeout;
 
-    private final PluginManager pluginManager;
     private int timeoutTaskId = -1;
 
     /**
@@ -56,9 +53,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         super(manager, world);
         this.map = map;
         this.emptyTimeout = emptyTimeout;
-
-        Zombies zombies = Zombies.getInstance();
-        pluginManager = zombies.getServer().getPluginManager();
     }
 
     public boolean handleJoin(JoinInformation joinAttempt) {
@@ -67,7 +61,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         if(joinAttempt.isSpectator()) {
             if(map.isSpectatorAllowed()) {
                 spectators.addAll(joiningPlayers);
-                pluginManager.callEvent(new PlayerJoinArenaEvent(joinAttempt));
+                Zombies.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
@@ -90,7 +84,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
                 resetTimeout(); //reset timeout task
                 addPlayers(joiningPlayers);
-                pluginManager.callEvent(new PlayerJoinArenaEvent(joinAttempt));
+                Zombies.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
@@ -138,15 +132,17 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         }
 
-        pluginManager.callEvent(new PlayerQuitArenaEvent(leaveAttempt));
+        Zombies.callEvent(new PlayerQuitArenaEvent(leaveAttempt));
     }
 
     @Override
     public void terminate() { //non-graceful termination; might happen mid game, sends error messages
+        Zombies.warning(String.format("Arena '%s', belonging to manager '%s', was terminated.", id.toString(),
+                manager.getGameName()));
+
         for(ZombiesPlayer zombiesPlayer : players) {
             if(zombiesPlayer.isInGame()) {
-                PlayerMessageHandler.sendLocalizedMessage(zombiesPlayer.getPlayer(),
-                        MessageKeys.ARENA_TERMINATION.getKey());
+                Zombies.sendLocalizedMessage(zombiesPlayer.getPlayer(), MessageKey.ARENA_TERMINATION);
             }
         }
 

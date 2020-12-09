@@ -56,13 +56,12 @@ public class SlimeWorldLoader implements WorldLoader {
                     }
                     catch(IOException | CorruptedWorldException | WorldInUseException | NewerFormatException |
                             UnknownWorldException e) {
-                        Zombies.getInstance().getLogger().severe(String.format("Exception when attempting to preload " +
-                                "world '%s': %s", worldName, e.getMessage()));
+                        Zombies.warning(String.format("Exception when attempting to preload world '%s': %s.", worldName,
+                                e.getMessage()));
                     }
                 }
                 else {
-                    Zombies.getInstance().getLogger().warning(String.format("Ignoring non-SWF file '%s'",
-                            worldFileName));
+                    Zombies.info(String.format("Ignoring non-SWF file '%s'.", worldFileName));
                 }
             }
         }
@@ -70,25 +69,24 @@ public class SlimeWorldLoader implements WorldLoader {
 
     @Override
     public void loadWorld(String worldName, Consumer<World> onLoad) {
-        Zombies zombies = Zombies.getInstance();
         SlimeWorld base = preloadedWorlds.get(worldName);
 
         if(base != null) {
             String randomName = UUID.randomUUID().toString();
             SlimeWorld world = base.clone(randomName);
-            zombies.getSWM().generateWorld(world);
+            Zombies.getInstance().getSWM().generateWorld(world);
 
             World generatedWorld = Bukkit.getWorld(randomName);
             if(generatedWorld != null) {
                 onLoad.accept(generatedWorld);
             }
             else {
-                zombies.getLogger().severe(String.format("World '%s' was just generated, but it could not be " +
-                        "found on the Bukkit world list.", randomName));
+                Zombies.warning(String.format("World '%s' was just generated, but it could not be found on the Bukkit" +
+                        " world list.", randomName));
             }
         }
         else {
-            zombies.getLogger().severe(String.format("Requested world '%s' could not be found.", worldName));
+            Zombies.warning(String.format("Requested world '%s' could not be found.", worldName));
         }
     }
 
@@ -103,8 +101,8 @@ public class SlimeWorldLoader implements WorldLoader {
             return slimeLoader.worldExists(worldName);
         }
         catch(IOException e) {
-            Zombies.getInstance().getLogger().warning(String.format("Exception when trying to determine if world '%s' " +
-                    "exists: %s", worldName, e.getMessage()));
+            Zombies.warning(String.format("Exception when trying to determine if world '%s' exists: %s.", worldName,
+                    e.getMessage()));
         }
 
         return false;

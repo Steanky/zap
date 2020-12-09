@@ -1,22 +1,31 @@
 package io.github.zap.arenaapi.playerdata;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.util.*;
 
-@RequiredArgsConstructor
 public class FileDataManager implements PlayerDataManager {
     @Getter
     private final File playerFile;
+
+    @Getter
+    private final DataLoader loader;
 
     @Getter
     private final int memoryCacheLength;
 
     private final Map<UUID, FilePlayerData> cache = new LinkedHashMap<>();
     private final Set<UUID> cacheKeys = cache.keySet();
+
+    public FileDataManager(File playerFile, DataLoader loader, int memoryCacheLength) {
+        this.playerFile = playerFile;
+        this.loader = loader;
+        this.memoryCacheLength = memoryCacheLength;
+    }
 
     @Override
     public PlayerData getPlayerData(UUID id) {
@@ -29,11 +38,11 @@ public class FileDataManager implements PlayerDataManager {
 
         String name = id.toString();
         try { //data was not cached; try to load the playerdata from a file
-            data = ArenaApi.getInstance().getDataLoader().load(playerFile, name);
+            data = loader.load(playerFile, name);
         }
         catch (ClassCastException e) { //there's some kind of invalid data there
-            ArenaApi.getInstance().getLogger().warning(String.format("Tried to load non-PlayerData object at name %s" +
-                    " in the playerdata file", name));
+            ArenaApi.warning(String.format("Tried to load non-PlayerData object at name %s in the playerdata file",
+                    name));
             return null;
         }
 
@@ -62,7 +71,7 @@ public class FileDataManager implements PlayerDataManager {
             cacheKeys.remove(remove); //remove the first entry
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
-                ArenaApi.getInstance().getDataLoader().save(removedValue, playerFile, id.toString());
+                loader.save(removedValue, playerFile, id.toString());
             }
         }
     }

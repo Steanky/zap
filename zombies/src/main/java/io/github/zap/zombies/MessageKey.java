@@ -2,7 +2,7 @@ package io.github.zap.zombies;
 
 import lombok.Getter;
 
-public enum MessageKeys {
+public enum MessageKey {
     /*
     These are all error message resources that should be displayed to the player when they fail to join an arena.
      */
@@ -24,7 +24,7 @@ public enum MessageKeys {
     @Getter
     private String key;
 
-    MessageKeys(String key) {
+    MessageKey(String key) {
         this.key = key;
     }
 }

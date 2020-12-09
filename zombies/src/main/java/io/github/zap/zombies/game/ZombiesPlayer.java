@@ -1,10 +1,9 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.PlayerMessageHandler;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.MessageKeys;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.event.map.DoorOpenEvent;
 import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
@@ -23,7 +22,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.PluginManager;
@@ -170,7 +168,7 @@ public class ZombiesPlayer implements Listener {
                         return true;
                     }
                     else { //can't afford door
-                        PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.CANT_AFFORD.getKey());
+                        Zombies.sendLocalizedMessage(player, MessageKey.CANT_AFFORD);
                     }
                 }
             }
@@ -210,22 +208,22 @@ public class ZombiesPlayer implements Listener {
             }
             else {
                 //can't repair because someone else already is, send message to player about that
-                PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.WINDOW_REPAIR_FAIL_PLAYER.getKey());
+                Zombies.sendLocalizedMessage(player, MessageKey.WINDOW_REPAIR_FAIL_PLAYER);
             }
         }
         else {
             //can't repair because there is a something attacking the window, send message to player about that
-            PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.WINDOW_REPAIR_FAIL_MOB.getKey());
+            Zombies.sendLocalizedMessage(player, MessageKey.WINDOW_REPAIR_FAIL_MOB);
         }
     }
 
     public void addCoins(int amount) {
-        PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.ADD_GOLD.getKey(), amount);
+        Zombies.sendLocalizedMessage(player, MessageKey.ADD_GOLD, amount);
         coins += amount;
     }
 
     public void subtractCoins(int amount) {
-        PlayerMessageHandler.sendLocalizedMessage(player, MessageKeys.SUBTRACT_GOLD.getKey(), amount);
+        Zombies.sendLocalizedMessage(player, MessageKey.SUBTRACT_GOLD, amount);
         coins -= amount;
     }
 

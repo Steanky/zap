@@ -57,7 +57,8 @@ public class Hologram {
                             try {
                                 manager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
                             } catch (IllegalAccessException | InvocationTargetException e) {
-                                plugin.getLogger().warning("Error blocking player interact at entity with id " + id + ":\n" + e.getMessage());
+                                ArenaApi.warning(String.format("Error blocking player interact at entity with id %s:" +
+                                        " %s.", id, e.getMessage()));
                             }
                         }
                     }
@@ -177,8 +178,8 @@ public class Hologram {
             try {
                 protocolManager.sendServerPacket(player, packetContainer);
             } catch (InvocationTargetException exception) {
-                ArenaApi.getInstance().getLogger().warning("Error sending packet of type: " +
-                        packetContainer.getType().name() + " to player " + player.getName());
+                ArenaApi.warning(String.format("Error sending packet of type '%s' to player '%s'.",
+                        packetContainer.getType().name(), player.getName()));
             }
         }
     }
