@@ -1,6 +1,7 @@
-package io.github.zap.zombies.game.hologram;
+package io.github.zap.arenaapi.hologram;
 
 import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -9,8 +10,8 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.proxy.NMSUtilProxy;
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.proxy.NMSProxy;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -19,14 +20,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class Hologram {
-
     private final static double LINE_SPACE = 0.25;
 
     private final static Set<Integer> ID_SET = new HashSet<>();
 
     private final ProtocolManager protocolManager;
 
-    private final NMSUtilProxy nmsUtilProxy;
+    private final NMSProxy nmsProxy;
 
     private final Location location;
 
@@ -37,9 +37,9 @@ public class Hologram {
     private boolean active = true;
 
     static {
-        Zombies plugin = Zombies.getInstance();
-        ProtocolManager protocolManager = plugin.getProtocolManager();
-        protocolManager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.USE_ENTITY) {
+        ArenaApi arenaApi = ArenaApi.getInstance();
+        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+        manager.addPacketListener(new PacketAdapter(arenaApi, ListenerPriority.NORMAL, PacketType.Play.Client.USE_ENTITY) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 if (event.getPacketType() == PacketType.Play.Client.USE_ENTITY) {
@@ -55,7 +55,7 @@ public class Hologram {
                             fakePacketContainer.getHands().write(0, packetContainer.getHands().read(0));
 
                             try {
-                                protocolManager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
+                                manager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
                             } catch (IllegalAccessException | InvocationTargetException e) {
                                 plugin.getLogger().warning("Error blocking player interact at entity with id " + id + ":\n" + e.getMessage());
                             }
@@ -67,9 +67,9 @@ public class Hologram {
     }
 
     public Hologram(Location location) {
-        Zombies plugin = Zombies.getInstance();
-        protocolManager = plugin.getProtocolManager();
-        nmsUtilProxy = plugin.getNmsUtilProxy();
+        ArenaApi plugin = ArenaApi.getInstance();
+        protocolManager = ProtocolLibrary.getProtocolManager();
+        nmsProxy = plugin.getNmsProxy();
 
         this.location = location;
     }
@@ -177,7 +177,8 @@ public class Hologram {
             try {
                 protocolManager.sendServerPacket(player, packetContainer);
             } catch (InvocationTargetException exception) {
-                Zombies.getInstance().getLogger().warning("Error sending packet of type: " + packetContainer.getType().name() + " to player " + player.getName());
+                ArenaApi.getInstance().getLogger().warning("Error sending packet of type: " +
+                        packetContainer.getType().name() + " to player " + player.getName());
             }
         }
     }
@@ -188,15 +189,15 @@ public class Hologram {
      * @return The packet
      */
     private PacketContainer createHologramLine(Location location) {
-        int id = nmsUtilProxy.nextEntityId();
+        int id = nmsProxy.nextEntityId();
 
         hologramLines.add(id);
         ID_SET.add(id);
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
         packetContainer.getIntegers().write(0, id);
-        packetContainer.getIntegers().write(1, nmsUtilProxy.getEntityLivingTypeId(EntityType.ARMOR_STAND));
-        packetContainer.getUUIDs().write(0, nmsUtilProxy.randomUUID());
+        packetContainer.getIntegers().write(1, nmsProxy.getEntityLivingTypeId(EntityType.ARMOR_STAND));
+        packetContainer.getUUIDs().write(0, nmsProxy.randomUUID());
 
         packetContainer.getDoubles().write(0, location.getX());
         packetContainer.getDoubles().write(1, location.getY());

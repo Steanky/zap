@@ -1,4 +1,4 @@
-package io.github.zap.zombies.proxy;
+package io.github.zap.arenaapi.proxy;
 
 import net.minecraft.server.v1_16_R3.Entity;
 import net.minecraft.server.v1_16_R3.EntityTypes;
@@ -9,7 +9,7 @@ import org.bukkit.entity.EntityType;
 import java.util.Optional;
 import java.util.UUID;
 
-public class NMSUtilProxy_v1_16_R3 implements NMSUtilProxy {
+public class NMSUtilProxy_v1_16_R3 implements NMSProxy {
 
     @Override
     public int nextEntityId() {
