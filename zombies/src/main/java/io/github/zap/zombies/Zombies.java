@@ -96,9 +96,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initDependencies() throws LoadFailureException {
-        arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API);
-        SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER);
-        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS);
+        arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
+        SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
+        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, true);
     }
 
     private void initSerialization() throws LoadFailureException {

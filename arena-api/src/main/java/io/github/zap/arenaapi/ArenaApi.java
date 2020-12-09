@@ -87,7 +87,7 @@ public final class ArenaApi extends JavaPlugin {
     }
 
     private void initDependencies() throws LoadFailureException {
-        protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB);
+        protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB, true);
     }
 
     private void initLocalization() throws LoadFailureException {
@@ -127,17 +127,22 @@ public final class ArenaApi extends JavaPlugin {
         }
     }
 
-    public static <T extends Plugin> T getRequiredPlugin(String pluginName)
+    public static <T extends Plugin> T getRequiredPlugin(String pluginName, boolean requireEnabled)
             throws LoadFailureException {
         Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
 
         if(plugin != null) {
-            try {
-                //noinspection unchecked
-                return (T)plugin;
+            if(plugin.isEnabled() || !requireEnabled) {
+                try {
+                    //noinspection unchecked
+                    return (T)plugin;
+                }
+                catch (ClassCastException ignored) {
+                    throw new LoadFailureException(String.format("ClassCastException when loading plugin %s.", pluginName));
+                }
             }
-            catch (ClassCastException ignored) {
-                throw new LoadFailureException(String.format("ClassCastException when loading plugin %s", pluginName));
+            else {
+                throw new LoadFailureException(String.format("Plugin %s is not enabled.", pluginName));
             }
         }
         else {
