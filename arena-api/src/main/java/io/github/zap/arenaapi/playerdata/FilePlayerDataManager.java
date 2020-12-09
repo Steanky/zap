@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import java.io.File;
 import java.util.*;
 
-public class FileDataManager implements PlayerDataManager {
+public class FilePlayerDataManager implements PlayerDataManager {
     @Getter
     private final File playerFile;
 
@@ -21,7 +21,7 @@ public class FileDataManager implements PlayerDataManager {
     private final Map<UUID, FilePlayerData> cache = new LinkedHashMap<>();
     private final Set<UUID> cacheKeys = cache.keySet();
 
-    public FileDataManager(File playerFile, DataLoader loader, int memoryCacheLength) {
+    public FilePlayerDataManager(File playerFile, DataLoader loader, int memoryCacheLength) {
         this.playerFile = playerFile;
         this.loader = loader;
         this.memoryCacheLength = memoryCacheLength;
@@ -34,7 +34,6 @@ public class FileDataManager implements PlayerDataManager {
         if(data != null) { //data was cached so just retrieve it
             return data;
         }
-
 
         String name = id.toString();
         try { //data was not cached; try to load the playerdata from a file

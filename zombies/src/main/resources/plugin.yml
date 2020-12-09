@@ -1,4 +1,4 @@
-name: zombies
+name: Zombies
 version: ${project.version}
 main: io.github.zap.zombies.Zombies
 api-version: 1.16

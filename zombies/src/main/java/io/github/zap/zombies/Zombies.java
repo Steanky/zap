@@ -7,8 +7,9 @@ import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
-import io.github.zap.arenaapi.event.CustomEvent;
 import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
+import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.DataSerializable;
@@ -22,6 +23,7 @@ import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -43,13 +45,13 @@ public final class Zombies extends JavaPlugin implements Listener {
     private SWMPlugin SWM; //access SWM through this proxy interface
 
     @Getter
-    private SlimeLoader slimeLoader;
-
-    @Getter
     private File slimeWorldDirectory;
 
     @Getter
     private String slimeExtension;
+
+    @Getter
+    private SlimeLoader slimeLoader;
 
     @Getter
     private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
@@ -64,6 +66,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     private CommandManager commandManager;
 
     @Getter
+    private PlayerDataManager playerDataManager;
+
+    @Getter
     private LocalizationManager localizationManager;
 
     @Override
@@ -76,13 +81,11 @@ public final class Zombies extends JavaPlugin implements Listener {
             initConfig();
             initDependencies();
             initSerialization();
+            initPlayerDataManager();
+            initLocalization();
             initWorldLoader();
             initArenaManagers();
             initCommands();
-
-            timer.stop();
-
-            info(String.format("Done enabling; ~%sms elapsed.", timer.getTime()));
         }
         catch(LoadFailureException exception)
         {
@@ -101,8 +104,11 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.addDefault(ConfigNames.ARENA_TIMEOUT, 300000);
-        config.options().copyDefaults(true);
+        config.addDefault(ConfigNames.DATA_CACHE_CAPACITY, 2048);
+        config.addDefault(ConfigNames.DEFAULT_LOCALE, "en_US");
+        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, String.format("plugins/%s/", PluginNames.ZOMBIES));
 
+        config.options().copyDefaults(true);
         saveConfig();
     }
 
@@ -116,9 +122,9 @@ public final class Zombies extends JavaPlugin implements Listener {
         info("Preloading worlds.");
 
         StopWatch timer = StopWatch.createStarted();
-        slimeLoader = new FileLoader(slimeWorldDirectory);
         slimeWorldDirectory = new File("slime");
         slimeExtension = ".slime";
+        slimeLoader = new FileLoader(slimeWorldDirectory);
         worldLoader = new SlimeWorldLoader(slimeLoader);
         worldLoader.preload();
         timer.stop();
@@ -166,6 +172,26 @@ public final class Zombies extends JavaPlugin implements Listener {
                 return MythicMobs.inst().getAPIHelper().getMythicMob(object);
             }
         });
+    }
+
+    private void initPlayerDataManager() {
+        playerDataManager = new FilePlayerDataManager(new File(String.format("plugins/%s/playerdata.yml",
+                PluginNames.ZOMBIES)), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
+    }
+
+    private void initLocalization() throws LoadFailureException {
+        Configuration config = getConfig();
+
+        String locale = config.getString(ConfigNames.DEFAULT_LOCALE);
+        String localizationDirectory = config.getString(ConfigNames.LOCALIZATION_DIRECTORY);
+
+        if(locale != null && localizationDirectory != null) {
+            localizationManager = new LocalizationManager(Locale.forLanguageTag(locale),
+                    new File(localizationDirectory), playerDataManager);
+        }
+        else {
+            throw new LoadFailureException("One or more configuration entries could not be retrieved.");
+        }
     }
 
     private void initCommands() {

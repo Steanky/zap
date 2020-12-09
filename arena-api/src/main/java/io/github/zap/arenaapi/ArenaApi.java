@@ -10,7 +10,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -36,7 +35,6 @@ public final class ArenaApi extends JavaPlugin {
         instance = this;
 
         try {
-            initConfig();
             initProxy();
             initDependencies();
         }
@@ -50,16 +48,6 @@ public final class ArenaApi extends JavaPlugin {
 
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-    }
-
-    private void initConfig() {
-        FileConfiguration config = getConfig();
-
-        config.addDefault(ConfigNames.DEFAULT_LOCALE, "en_US");
-        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, "localization");
-        config.options().copyDefaults(true);
-
-        saveConfig();
     }
 
     private void initProxy() throws LoadFailureException {
