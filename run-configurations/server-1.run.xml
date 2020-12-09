@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="server-1" type="JarApplication" singleton="true">
-    <option name="JAR_PATH" value="$PROJECT_DIR$/../zombies-plugin\run\server-1\paper-275.jar" />
+    <option name="JAR_PATH" value="$PROJECT_DIR$/run/server-1/paper.jar" />
     <option name="VM_PARAMETERS" value="-server -javaagent:slimeworldmanager-classmodifier.jar" />
     <option name="PROGRAM_PARAMETERS" value="-nogui" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../zombies-plugin\run\server-1" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run/server-1/" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <method v="2">
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="root" run_configuration_type="MavenRunConfiguration" />
