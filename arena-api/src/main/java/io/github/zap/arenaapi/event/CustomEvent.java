@@ -6,9 +6,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for custom events. This implements the most simple functions required by Bukkit. Implementations of this
- * should simply add @RequiredArgsConstructor and a list of fields representing the event "arguments".
+ * can simply add @RequiredArgsConstructor and a list of fields representing the event "arguments".
  */
-public class CustomEvent extends Event {
+public abstract class CustomEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
 
     @NotNull

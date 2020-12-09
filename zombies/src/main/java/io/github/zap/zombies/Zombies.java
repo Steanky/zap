@@ -1,13 +1,16 @@
 package io.github.zap.zombies;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.SlimePlugin;
+import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.grinderwolf.swm.plugin.SWMPlugin;
+import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.DataSerializable;
@@ -41,19 +44,25 @@ public final class Zombies extends JavaPlugin implements Listener {
     private ArenaApi arenaApi;
 
     @Getter
+    private SWMPlugin SWM; //access SWM through this proxy interface
+
+    @Getter
+    private SlimeLoader slimeLoader;
+
+    @Getter
     private DataLoader dataLoader; //used to save/load data from custom serialization framework
 
     @Getter
-    private SlimeProxy slimeProxy; //access SWM through this proxy interface
-
-    @Getter
-    private MythicProxy mythicProxy; //access mythicmobs through this proxy interface
-
-    @Getter
-    private NMSUtilProxy nmsUtilProxy; //access nms-specific information through this proxy interface
+    private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
 
     @Getter
     private WorldLoader worldLoader; //responsible for loading slime worlds
+
+    @Getter
+    private File slimeWorldDirectory;
+
+    @Getter
+    private String slimeExtension;
 
     @Getter
     private CommandManager commandManager;
@@ -63,25 +72,17 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        StopWatch timer = StopWatch.createStarted();
         instance = this;
 
-        PluginManager pluginManager = Bukkit.getPluginManager();
-        arenaApi = (ArenaApi)pluginManager.getPlugin(PluginNames.ARENA_API);
-
         try {
-            if(!pluginManager.isPluginEnabled(arenaApi)) {
-                throw new LoadFailureException("Required plugin ArenaApi is not enabled.");
-            }
-
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
-            StopWatch timer = StopWatch.createStarted();
-
             initConfig();
-            initCommands();
+            initDependencies();
             initSerialization();
-            initProxies();
             initWorldLoader();
             initArenaManagers();
+            initCommands();
 
             timer.stop();
 
@@ -92,12 +93,11 @@ public final class Zombies extends JavaPlugin implements Listener {
             getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
                     " '%s'", exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
+            return;
         }
-    }
 
-    @Override
-    public void onDisable() {
-        //perform shutdown tasks
+        timer.stop();
+        getLogger().log(Level.INFO, String.format("Enabled successfully; ~%sms elapsed", timer.getTime()));
     }
 
     private void initConfig() {
@@ -110,10 +110,20 @@ public final class Zombies extends JavaPlugin implements Listener {
         saveConfig();
     }
 
+    private void initDependencies() throws LoadFailureException {
+        arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
+        SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
+        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, true);
+    }
+
     private void initWorldLoader() {
         getLogger().info("Preloading worlds.");
+
         StopWatch timer = StopWatch.createStarted();
-        worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
+        slimeLoader = new FileLoader(slimeWorldDirectory);
+        slimeWorldDirectory = new File("slime");
+        slimeExtension = ".slime";
+        worldLoader = new SlimeWorldLoader(slimeLoader);
         worldLoader.preload();
         timer.stop();
 
@@ -124,62 +134,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
         ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
-
-        arenaApi.registerArenaManager(zombiesArenaManager);
-    }
-
-    private void initProxies() throws LoadFailureException {
-        PluginManager manager = Bukkit.getPluginManager();
-        Plugin mythicMobs = manager.getPlugin(PluginNames.MYTHIC_MOBS);
-        Plugin swm = manager.getPlugin(PluginNames.SLIME_WORLD_MANAGER);
-        Plugin protocolLib = manager.getPlugin(PluginNames.PROTOCOL_MANAGER);
-
-        if(mythicMobs != null) {
-            String mythicVersion = mythicMobs.getDescription().getVersion().split("-")[0];
-
-            //noinspection SwitchStatementWithTooFewBranches
-            switch(mythicVersion) {
-                case "4.10.1":
-                    mythicProxy = new MythicMobs_v4_10_R1((MythicMobs)mythicMobs);
-                    break;
-                default:
-                    throw new LoadFailureException(String.format("Unrecognized MythicMobs version '%s'", mythicVersion));
-            }
-        }
-        else {
-            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.MYTHIC_MOBS);
-        }
-
-        if(swm != null) {
-            String swmVersion = swm.getDescription().getVersion().split("-")[0];
-
-            //noinspection SwitchStatementWithTooFewBranches
-            switch (swmVersion) {
-                case "2.3.0":
-                    slimeProxy = new SlimeWorldManager_v2_3_R0((SlimePlugin)swm);
-                    break;
-                default:
-                    throw new LoadFailureException(String.format("Unrecognized SWM version '%s'", swmVersion));
-            }
-        }
-        else {
-            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.SLIME_WORLD_MANAGER);
-
-        }
-
-        if (protocolLib != null) {
-            //noinspection SwitchStatementWithTooFewBranches
-            switch (Bukkit.getBukkitVersion()) {
-                case "1.16.4-R0.1-SNAPSHOT":
-                    nmsUtilProxy = new NMSUtilProxy_v1_16_R3();
-                    break;
-                default:
-                    throw new LoadFailureException(String.format("Invalid MC version '%s'", Bukkit.getBukkitVersion()));
-            }
-            protocolManager = ProtocolLibrary.getProtocolManager();
-        } else {
-            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.PROTOCOL_MANAGER);
-        }
     }
 
     private void initSerialization() throws LoadFailureException {
@@ -191,8 +145,20 @@ public final class Zombies extends JavaPlugin implements Listener {
         dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
                 ShopData.class, SpawnpointData.class, WindowData.class);
 
-        DataSerializable.registerGlobalConverter(MythicMob.class, String.class,
-                new ValueConverter<MythicMob, String>() {
+        //noinspection rawtypes
+        DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, new ValueConverter<Locale, ArrayList>() {
+            @Override
+            public ArrayList serialize(Locale object) {
+                return Lists.newArrayList(object.getLanguage(), object.getCountry(), object.getVariant());
+            }
+
+            @Override
+            public Locale deserialize(ArrayList object) {
+                return new Locale((String)object.get(0), (String)object.get(1), (String)object.get(2));
+            }
+        });
+
+        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<MythicMob, String>() {
             @Override
             public String serialize(MythicMob object) {
                 return object.getInternalName();
@@ -206,9 +172,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initCommands() {
-        commandManager = new CommandManager(this);
-
-        //register commands here
+        CommandManager commandManager = arenaApi.getCommandManager();
         commandManager.registerCommand(new DebugCommand());
     }
 }

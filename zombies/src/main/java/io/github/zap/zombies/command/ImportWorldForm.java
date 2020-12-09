@@ -4,6 +4,8 @@ import com.grinderwolf.swm.api.exceptions.InvalidWorldException;
 import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
 import com.grinderwolf.swm.api.exceptions.WorldLoadedException;
 import com.grinderwolf.swm.api.exceptions.WorldTooBigException;
+import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.grinderwolf.swm.plugin.SWMPlugin;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
@@ -12,7 +14,6 @@ import io.github.regularcommands.util.StringUtils;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.proxy.SlimeProxy;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.World;
 
@@ -59,10 +60,10 @@ public class ImportWorldForm extends CommandForm {
     @Override
     public String execute(Context context, Object[] arguments) {
         String worldName = (String)arguments[2];
-        SlimeProxy slimeProxy = Zombies.getInstance().getSlimeProxy();
+        Zombies zombies = Zombies.getInstance();
 
         try {
-            slimeProxy.importWorld(new File(worldName), worldName, slimeProxy.getLoader("file"));
+            zombies.getSWM().importWorld(new File(worldName), worldName, zombies.getSlimeLoader());
         } catch (WorldTooBigException | WorldLoadedException | WorldAlreadyExistsException | IOException |
                 InvalidWorldException e) {
             return String.format("Failed to import world. Reason: >red{%s}", StringUtils.escapify(e.getMessage()));

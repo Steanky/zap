@@ -38,10 +38,8 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         Validate.isTrue(!serializedClass.equals(deserializedClass), "serializedClass and deserializedClass " +
                 "cannot be equal to each other");
 
-        Validate.isTrue(globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), true),
-                converter) == null, "a converter for that serialized type already exists");
-        Validate.isTrue(globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), false),
-                converter) == null, "a converter for that deserialized type already exists");
+        globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), true), converter);
+        globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), false), converter);
     }
 
     /**

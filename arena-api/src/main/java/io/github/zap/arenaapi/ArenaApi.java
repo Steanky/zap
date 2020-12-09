@@ -1,20 +1,22 @@
 package io.github.zap.arenaapi;
 
-import com.google.common.collect.Lists;
+import com.comphenix.protocol.ProtocolLib;
+import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.arenaapi.playerdata.FileDataManager;
-import io.github.zap.arenaapi.playerdata.FilePlayerData;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
-import io.github.zap.arenaapi.serialize.BukkitDataLoader;
+import io.github.zap.arenaapi.proxy.NMSProxy;
+import io.github.zap.arenaapi.proxy.NMSUtilProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.ValueConverter;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -29,10 +31,19 @@ public final class ArenaApi extends JavaPlugin {
     private DataLoader dataLoader;
 
     @Getter
+    private NMSProxy nmsProxy;
+
+    @Getter
+    private ProtocolLib protocolLib;
+
+    @Getter
     private LocalizationManager localizationManager;
 
     @Getter
     private PlayerDataManager playerDataManager;
+
+    @Getter
+    private CommandManager commandManager;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
@@ -42,46 +53,66 @@ public final class ArenaApi extends JavaPlugin {
         instance = this;
 
         try {
-            localizationManager = new LocalizationManager(Locale.US, new File("localization"));
-            dataLoader = new BukkitDataLoader(FilePlayerData.class);
-            playerDataManager = new FileDataManager(new File("playerdata.yml"), 4096);
-
-            //noinspection rawtypes
-            DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, new ValueConverter<Locale, ArrayList>() {
-                @Override
-                public ArrayList serialize(Locale object) {
-                    return Lists.newArrayList(object.getLanguage(), object.getCountry(), object.getVariant());
-                }
-
-                @Override
-                public Locale deserialize(ArrayList object) {
-                    return new Locale((String)object.get(0), (String)object.get(1), (String)object.get(2));
-                }
-            });
-
-            timer.stop();
-            getLogger().info(String.format("Done enabling; ~%sms elapsed", timer.getTime()));
+            initConfig();
+            initProxy();
+            initDependencies();
+            initLocalization();
+            initCommands();
         }
-        catch (LoadFailureException exception) {
+        catch(LoadFailureException exception)
+        {
             getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
                     " '%s'", exception.getMessage()));
-            getPluginLoader().disablePlugin(this, false);
+            getPluginLoader().disablePlugin(this, true);
+            return;
+        }
+
+        timer.stop();
+        getLogger().info(String.format("Enabled successfully; ~%sms elapsed", timer.getTime()));
+    }
+
+    private void initConfig() {
+        FileConfiguration config = getConfig();
+
+        config.addDefault(ConfigNames.DEFAULT_LOCALE, "en_US");
+        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, "localization");
+        config.options().copyDefaults(true);
+
+        saveConfig();
+    }
+
+    private void initProxy() throws LoadFailureException {
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (Bukkit.getBukkitVersion()) {
+            case "1.16.4-R0.1-SNAPSHOT":
+                nmsProxy = new NMSUtilProxy_v1_16_R3();
+                break;
+            default:
+                throw new LoadFailureException(String.format("Unsupported MC version '%s'", Bukkit.getBukkitVersion()));
         }
     }
 
-    @Override
-    public void onDisable() {
-        StopWatch timer = StopWatch.createStarted();
+    private void initDependencies() throws LoadFailureException {
+        protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB, true);
+    }
 
-        List<ArenaManager<?>> arenas = new ArrayList<>(arenaManagers.values());
-        for(int i = arenas.size() - 1; i >= 0; i--) {
-            arenas.remove(i).terminate();
+    private void initLocalization() throws LoadFailureException {
+        Configuration config = getConfig();
+
+        String locale = config.getString(ConfigNames.DEFAULT_LOCALE);
+        String localizationDirectory = config.getString(ConfigNames.LOCALIZATION_DIRECTORY);
+
+        if(locale != null && localizationDirectory != null) {
+            localizationManager = new LocalizationManager(Locale.forLanguageTag(locale),
+                    new File(localizationDirectory));
         }
+        else {
+            throw new LoadFailureException("One or more configuration entries could not be retrieved.");
+        }
+    }
 
-        getLogger().info("Terminated ArenaManagers...");
-
-        timer.stop();
-        getLogger().info(String.format("Done disabling; ~%sms elapsed", timer.getTime()));
+    private void initCommands() {
+        commandManager = new CommandManager(this);
     }
 
     public void registerArenaManager(ArenaManager<?> manager) {
@@ -99,6 +130,29 @@ public final class ArenaApi extends JavaPlugin {
         }
         else {
             getLogger().warning(String.format("Invalid JoinInformation received: '%s' is not a game", gameName));
+        }
+    }
+
+    public static <T extends Plugin> T getRequiredPlugin(String pluginName, boolean requireEnabled)
+            throws LoadFailureException {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
+
+        if(plugin != null) {
+            if(plugin.isEnabled() || !requireEnabled) {
+                try {
+                    //noinspection unchecked
+                    return (T)plugin;
+                }
+                catch (ClassCastException ignored) {
+                    throw new LoadFailureException(String.format("ClassCastException when loading plugin %s.", pluginName));
+                }
+            }
+            else {
+                throw new LoadFailureException(String.format("Plugin %s is not enabled.", pluginName));
+            }
+        }
+        else {
+            throw new LoadFailureException(String.format("Required plugin %s cannot be found.", pluginName));
         }
     }
 }
