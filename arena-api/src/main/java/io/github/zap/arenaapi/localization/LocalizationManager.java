@@ -68,8 +68,6 @@ public class LocalizationManager {
 
     @SuppressWarnings("UnstableApiUsage")
     public void loadTranslations() {
-        ArenaApi arenaApi = ArenaApi.getInstance();
-
         FileUtils.forEachFile(localizationFileDirectory, (file) -> {
             if(file.isFile() && Files.getFileExtension(file.getName()).equals(EXTENSION)) {
                 try {
@@ -81,10 +79,10 @@ public class LocalizationManager {
                                 .toLanguageTag()));
                     }
                     else {
-                        ArenaApi.warning(String.format("Unable to find translations in file '%s", file.getPath()));
+                        ArenaApi.warning(String.format("Unable to find translations in file '%s'.", file.getPath()));
                     }
                 } catch (IOException e) {
-                    ArenaApi.warning(String.format("Unable to load translation from file '%s': %s", file.getPath(),
+                    ArenaApi.warning(String.format("Unable to load translation from file '%s': %s.", file.getPath(),
                             e.getMessage()));
                 }
             }
@@ -106,7 +104,7 @@ public class LocalizationManager {
         PlayerData data = dataManager.getPlayerData(player.getUniqueId());
 
         if(data != null) {
-            Locale playerLocale = data.getLocale();
+            Locale playerLocale = Locale.forLanguageTag(data.getLocale());
             String localizedMessage = getLocalizedMessage(playerLocale, messageKey);
 
             if(formatArguments.length > 0) {

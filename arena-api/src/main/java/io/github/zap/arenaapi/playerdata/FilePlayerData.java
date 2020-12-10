@@ -16,7 +16,7 @@ import java.util.*;
 @TypeAlias("PlayerData")
 public class FilePlayerData extends DataSerializable implements PlayerData {
     @Getter
-    Locale locale;
+    String locale;
 
     final Set<UUID> friends = new HashSet<>();
 
@@ -39,7 +39,7 @@ public class FilePlayerData extends DataSerializable implements PlayerData {
     public FilePlayerData() {}
 
     @Override
-    public void setLocale(Locale locale) {
+    public void setLocale(String locale) {
         if(!this.locale.equals(locale)) {
             this.locale = locale;
             isDirty = true;

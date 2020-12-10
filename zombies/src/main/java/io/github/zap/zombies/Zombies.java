@@ -106,7 +106,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.ARENA_TIMEOUT, 300000);
         config.addDefault(ConfigNames.DATA_CACHE_CAPACITY, 2048);
         config.addDefault(ConfigNames.DEFAULT_LOCALE, "en_US");
-        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, String.format("plugins/%s/", PluginNames.ZOMBIES));
+        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, String.format("plugins/%s/localization",
+                PluginNames.ZOMBIES));
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -122,7 +123,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         info("Preloading worlds.");
 
         StopWatch timer = StopWatch.createStarted();
-        slimeWorldDirectory = new File("slime");
+        slimeWorldDirectory = new File("slime_worlds");
         slimeExtension = ".slime";
         slimeLoader = new FileLoader(slimeWorldDirectory);
         worldLoader = new SlimeWorldLoader(slimeLoader);
@@ -148,20 +149,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
                 ShopData.class, SpawnpointData.class, WindowData.class);
 
-        //noinspection rawtypes
-        DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, new ValueConverter<Locale, ArrayList>() {
-            @Override
-            public ArrayList serialize(Locale object) {
-                return Lists.newArrayList(object.getLanguage(), object.getCountry(), object.getVariant());
-            }
-
-            @Override
-            public Locale deserialize(ArrayList object) {
-                return new Locale((String)object.get(0), (String)object.get(1), (String)object.get(2));
-            }
-        });
-
-        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<MythicMob, String>() {
+        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<>() {
             @Override
             public String serialize(MythicMob object) {
                 return object.getInternalName();
@@ -190,7 +178,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                     new File(localizationDirectory), playerDataManager);
         }
         else {
-            throw new LoadFailureException("One or more configuration entries could not be retrieved.");
+            throw new LoadFailureException("One or more required configuration entries could not be retrieved.");
         }
     }
 
@@ -208,7 +196,7 @@ public final class Zombies extends JavaPlugin implements Listener {
      * player has chosen.
      * @param player The player we are sending the message to
      * @param key The MessageKey of the message we are sending
-     * @param formatArgs Format arguments for the message, which may or may not be necessary for a given format string
+     * @param formatArgs Format arguments for the message, which may be necessary for some MessageKeys
      */
     public static void sendLocalizedMessage(Player player, MessageKey key, Object... formatArgs) {
         instance.getLocalizationManager().sendLocalizedMessage(player, key.getKey(), formatArgs);

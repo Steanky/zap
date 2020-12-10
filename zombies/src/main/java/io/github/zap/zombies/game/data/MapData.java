@@ -108,6 +108,11 @@ public class MapData extends DataSerializable {
     int windowRepairRadius;
 
     /**
+     * The initial delay (in Minecraft server ticks) before the window will be first repaired, after the player crouches
+     */
+    int initialRepairDelay;
+
+    /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
      */
     int windowRepairTicks;

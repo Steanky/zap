@@ -2,9 +2,10 @@ package io.github.zap.arenaapi.game.arena;
 
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
-import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.World;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -20,6 +21,12 @@ public abstract class Arena<T extends Arena<T>> implements Unique {
 
     @Getter
     protected final UUID id;
+
+    @Getter
+    protected final Set<UUID> players = new HashSet<>();
+
+    @Getter
+    protected final Set<UUID> spectators = new HashSet<>();
 
     public Arena(ArenaManager<T> manager, World world) {
         this.manager = manager;

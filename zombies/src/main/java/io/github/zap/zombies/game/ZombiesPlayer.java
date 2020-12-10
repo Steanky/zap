@@ -5,10 +5,6 @@ import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.event.map.DoorOpenEvent;
-import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
-import io.github.zap.zombies.event.player.PlayerQuitArenaEvent;
-import io.github.zap.zombies.event.player.PlayerRepairWindowEvent;
 import io.github.zap.zombies.game.data.DoorData;
 import io.github.zap.zombies.game.data.DoorSide;
 import io.github.zap.zombies.game.data.MapData;
@@ -21,7 +17,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.PluginManager;
@@ -47,10 +45,8 @@ public class ZombiesPlayer implements Listener {
     private int repairIncrement = 1;
 
     @Getter
-    @Setter
-    private boolean isInGame = true;
+    private boolean inGame = true;
 
-    private final PluginManager pluginManager;
     private WindowData targetWindow;
     private int windowRepairTaskId = -1;
 
@@ -66,8 +62,7 @@ public class ZombiesPlayer implements Listener {
         this.coins = coins;
 
         Zombies zombiesPlugin = Zombies.getInstance();
-        pluginManager = zombiesPlugin.getServer().getPluginManager();
-        pluginManager.registerEvents(this, zombiesPlugin);
+        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
     }
 
     @EventHandler
@@ -99,8 +94,9 @@ public class ZombiesPlayer implements Listener {
         if(event.getPlayer().getUniqueId().equals(player.getUniqueId())) {
             if(event.isSneaking()) {
                 if(windowRepairTaskId == -1) {
+                    MapData map = arena.getMap();
                     windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                            this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
+                            this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
                 }
             }
             else {
@@ -111,19 +107,23 @@ public class ZombiesPlayer implements Listener {
     }
 
     @EventHandler
-    private void onPlayerQuitArena(PlayerQuitArenaEvent event) {
-        if(event.getAttempt().getPlayers().contains(player.getUniqueId())) {
+    private void onPlayerDeath(PlayerDeathEvent event) {
+        if(event.getEntity().getUniqueId().equals(player.getUniqueId()) && state == ZombiesPlayerState.ALIVE) {
+            event.setCancelled(true); //we don't want them to respawn normally
+            state = ZombiesPlayerState.KNOCKED;
 
+            /*
+            downed player code here
+             */
         }
     }
 
     @EventHandler
-    private void onPlayerJoinArena(PlayerJoinArenaEvent event) {
-        if(event.getAttempt().getPlayers().contains(player.getUniqueId())) {
-
+    private void onPlayerQuit(PlayerQuitEvent event) {
+        if(event.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+            quit();
         }
     }
-
 
     private void checkForWindow() {
         MapData map = arena.getMap();
@@ -164,7 +164,6 @@ public class ZombiesPlayer implements Listener {
                         WorldUtils.fillBounds(arena.getWorld(), door.getDoorBounds(), map.getDoorFillMaterial());
                         subtractCoins(side.getCost());
                         door.getOpenProperty().set(arena, true);
-                        pluginManager.callEvent(new DoorOpenEvent(this, door, side));
                         return true;
                     }
                     else { //can't afford door
@@ -203,7 +202,6 @@ public class ZombiesPlayer implements Listener {
                     }
 
                     addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
-                    pluginManager.callEvent(new PlayerRepairWindowEvent(this, targetWindow, blocksRepaired));
                 }
             }
             else {
@@ -227,11 +225,31 @@ public class ZombiesPlayer implements Listener {
         coins -= amount;
     }
 
+    public void rejoin() {
+        inGame = true;
+
+        Zombies zombiesPlugin = Zombies.getInstance();
+        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
+
+        /*
+        may or may not need to give the player their items and such back
+         */
+    }
+
+    public void quit() {
+        state = ZombiesPlayerState.DEAD;
+        inGame = false;
+        close(); //turn off events and tasks
+    }
+
+    /**
+     * Unregisters all events and cancels all tasks managed by this player.
+     */
     public void close() {
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         PlayerInteractEvent.getHandlerList().unregister(this);
         PlayerToggleSneakEvent.getHandlerList().unregister(this);
-        PlayerQuitArenaEvent.getHandlerList().unregister(this);
-        PlayerJoinArenaEvent.getHandlerList().unregister(this);
+        PlayerDeathEvent.getHandlerList().unregister(this);
+        PlayerQuitEvent.getHandlerList().unregister(this);
     }
 }

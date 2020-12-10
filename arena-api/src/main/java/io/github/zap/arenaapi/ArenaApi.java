@@ -10,6 +10,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
+import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -143,5 +144,13 @@ public final class ArenaApi extends JavaPlugin {
      */
     public static void severe(String message) {
         log(Level.SEVERE, message);
+    }
+
+    /**
+     * Calls the specified event for this plugin.
+     * @param event The event to call
+     */
+    public static void callEvent(Event event) {
+        instance.getServer().getPluginManager().callEvent(event);
     }
 }

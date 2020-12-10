@@ -7,15 +7,12 @@ import io.github.zap.arenaapi.game.arena.LeaveInformation;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
-import io.github.zap.zombies.event.player.PlayerQuitArenaEvent;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.PluginManager;
 
 import java.util.*;
 
@@ -24,10 +21,10 @@ import java.util.*;
  */
 public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
-    private final Map<UUID, ZombiesPlayer> playerMap = new HashMap<>();
+    private final Map<UUID, ZombiesPlayer> zombiesPlayerMap = new HashMap<>();
 
     @Getter
-    private final Collection<ZombiesPlayer> players = playerMap.values();
+    private final Collection<ZombiesPlayer> zombiesPlayers = zombiesPlayerMap.values();
 
     @Getter
     private final Set<UUID> spectators = new HashSet<>();
@@ -61,12 +58,11 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         if(joinAttempt.isSpectator()) {
             if(map.isSpectatorAllowed()) {
                 spectators.addAll(joiningPlayers);
-                Zombies.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
         else {
-            int newSize = playerMap.size() + joiningPlayers.size();
+            int newSize = zombiesPlayerMap.size() + joiningPlayers.size();
 
             if(newSize <= map.getMaximumCapacity()) { //we can fit the players
                 switch (state) {
@@ -84,7 +80,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
                 resetTimeout(); //reset timeout task
                 addPlayers(joiningPlayers);
-                Zombies.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
@@ -101,7 +96,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
         else {
             removePlayers(leavingPlayers);
-            int currentSize = playerMap.size();
+            int currentSize = zombiesPlayerMap.size();
 
             switch(state) {
                 case PREGAME:
@@ -120,7 +115,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                     break;
                 case STARTED:
                     if(currentSize == 0) {
-                        if(map.isJoinableStarted()) {
+                        if(!map.isJoinableStarted()) {
                             close(); //close immediately if nobody can rejoin
                         }
                         else {
@@ -131,8 +126,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             }
 
         }
-
-        Zombies.callEvent(new PlayerQuitArenaEvent(leaveAttempt));
     }
 
     @Override
@@ -140,7 +133,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         Zombies.warning(String.format("Arena '%s', belonging to manager '%s', was terminated.", id.toString(),
                 manager.getGameName()));
 
-        for(ZombiesPlayer zombiesPlayer : players) {
+        for(ZombiesPlayer zombiesPlayer : zombiesPlayers) {
             if(zombiesPlayer.isInGame()) {
                 Zombies.sendLocalizedMessage(zombiesPlayer.getPlayer(), MessageKey.ARENA_TERMINATION);
             }
@@ -153,7 +146,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
      * Used internally to "gracefully" shut down the arena — without sending error messages to the player.
      */
     private void close() {
-        for(ZombiesPlayer player : players) {
+        for(ZombiesPlayer player : zombiesPlayers) {
             player.close();
         }
 
@@ -166,11 +159,12 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             Player bukkitPlayer = Bukkit.getPlayer(player);
 
             if(bukkitPlayer != null) {
-                if(!playerMap.containsKey(player)) {
-                    playerMap.put(player, new ZombiesPlayer(this, bukkitPlayer, map.getStartingCoins()));
+                if(!zombiesPlayerMap.containsKey(player)) {
+                    zombiesPlayerMap.put(player, new ZombiesPlayer(this, bukkitPlayer, map.getStartingCoins()));
                 }
                 else {
-                    playerMap.get(player).setInGame(true); //player rejoined
+                    ZombiesPlayer zombiesPlayer = zombiesPlayerMap.get(player);
+                    zombiesPlayer.rejoin();
                 }
 
                 bukkitPlayer.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
@@ -184,8 +178,8 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     private void removePlayers(Collection<UUID> players) {
         for(UUID player : players) {
-            ZombiesPlayer zombiesPlayer = playerMap.get(player);
-            zombiesPlayer.setInGame(false);
+            ZombiesPlayer zombiesPlayer = zombiesPlayerMap.get(player);
+            zombiesPlayer.quit();
 
             //teleport player to destination lobby
         }

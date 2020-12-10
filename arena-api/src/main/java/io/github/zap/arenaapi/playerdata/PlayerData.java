@@ -7,8 +7,8 @@ import java.util.Locale;
 import java.util.UUID;
 
 public interface PlayerData {
-    Locale getLocale();
-    void setLocale(Locale locale);
+    String getLocale();
+    void setLocale(String locale);
     ImmutableSet<UUID> getFriends();
     boolean hasFriend(UUID id);
     void addFriend(UUID id);
