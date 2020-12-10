@@ -22,12 +22,6 @@ public abstract class Arena<T extends Arena<T>> implements Unique {
     @Getter
     protected final UUID id;
 
-    @Getter
-    protected final Set<UUID> players = new HashSet<>();
-
-    @Getter
-    protected final Set<UUID> spectators = new HashSet<>();
-
     public Arena(ArenaManager<T> manager, World world) {
         this.manager = manager;
         this.world = world;
