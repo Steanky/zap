@@ -7,12 +7,16 @@ import io.github.zap.arenaapi.game.arena.LeaveInformation;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.MapData;
+import io.github.zap.zombies.game.data.*;
+import io.github.zap.zombies.game.mob.RangelessSpawner;
+import io.github.zap.zombies.game.mob.Spawner;
+import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.*;
 
@@ -38,7 +42,9 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
     private final long emptyTimeout;
 
+    private final Spawner spawner = new RangelessSpawner();
     private int timeoutTaskId = -1;
+    private int waveSpawnerTaskId = -1;
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
@@ -146,6 +152,10 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
      * Used internally to "gracefully" shut down the arena — without sending error messages to the player.
      */
     private void close() {
+        BukkitScheduler scheduler = Bukkit.getScheduler();
+        scheduler.cancelTask(timeoutTaskId);
+        scheduler.cancelTask(waveSpawnerTaskId);
+
         for(ZombiesPlayer player : zombiesPlayers) {
             player.close();
         }
@@ -205,5 +215,41 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     private void resetCountdown() {
 
+    }
+
+    private void start() {
+        if(state == ZombiesArenaState.COUNTDOWN) {
+            state = ZombiesArenaState.STARTED;
+
+            long cumulativeDelay = 0;
+
+            for(RoundData round : map.getRounds()) {
+                for(WaveData wave : round.getWaves()) {
+                    cumulativeDelay += wave.getWaveLength();
+
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
+                        for(RoomData room : map.getRooms()) {
+                            if(room.isSpawn() || room.getOpenProperty().get(this)) {
+                                List<MythicMob> mobs = wave.getMobs();
+
+                                do {
+                                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
+                                        for(int i = mobs.size() - 1; i >= 0; i--) {
+                                            MythicMob mob = mobs.get(i);
+
+                                            if(spawner.canSpawn(this, spawnpoint, mob)) {
+                                                spawner.spawnAt(this, spawnpoint, mob);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                while(mobs.size() > 0);
+                            }
+                        }
+                    }, cumulativeDelay);
+                }
+            }
+        }
     }
 }

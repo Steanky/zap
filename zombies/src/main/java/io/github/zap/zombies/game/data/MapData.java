@@ -1,12 +1,16 @@
 package io.github.zap.zombies.game.data;
 
+import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.serialize.DataSerializable;
+import io.github.zap.arenaapi.serialize.Serialize;
 import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -102,8 +106,14 @@ public class MapData extends DataSerializable {
      */
     boolean forceStart;
 
+
     /**
-     * The minimum (Manhattan) distance that players must be from a window in order to repair it
+     * The squared distance in blocks from which zombies *must* spawn from a player
+     */
+    int spawnRadiusSquared;
+
+    /**
+     * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
      */
     int windowRepairRadius;
 
@@ -126,6 +136,11 @@ public class MapData extends DataSerializable {
      * The material that should replace door blocks when they are opened.
      */
     Material doorFillMaterial;
+
+    /**
+     * All the rounds in the game
+     */
+    final List<RoundData> rounds = new ArrayList<>();
 
     private MapData() { }
 

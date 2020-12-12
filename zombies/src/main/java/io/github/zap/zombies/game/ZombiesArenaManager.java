@@ -51,12 +51,14 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
         File[] files = dataFolder.listFiles();
         DataLoader loader = Zombies.getInstance().getDataLoader();
+
+        /*
         MapData data = new MapData("test_world", "Test World", new BoundingBox(), new Vector(),
                 1, 4, 10, 0, 10, false,
                 false, true, true, 4, 0,
                 20, 20, Material.AIR);
         loader.save(data, Paths.get(dataFolder.getPath(), "test_map.yml").toFile(), DATA_KEY);
-
+        */
         if(files != null) {
             for(File file : files) {
                 MapData map = loader.load(file, DATA_KEY);

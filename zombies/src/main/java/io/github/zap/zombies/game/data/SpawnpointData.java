@@ -19,17 +19,12 @@ import java.util.Set;
 @TypeAlias("ZombiesSpawnpoint")
 public class SpawnpointData extends DataSerializable {
     /**
-     * Whether or not this spawnpoint is part of a window
-     */
-    boolean insideWindow;
-
-    /**
      * The location of this spawnpoint
      */
     Vector spawn;
 
     /**
-     * If the spawnpoint is a window spawnpoint, this is the vector to which mobs should pathfind after being spawned
+     * this is the vector to which mobs should pathfind after being spawned. if == to spawn, no pathfinding will occur
      */
     Vector target;
 
