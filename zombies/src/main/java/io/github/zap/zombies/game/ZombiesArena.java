@@ -219,6 +219,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     private void start() {
         if(state == ZombiesArenaState.COUNTDOWN) {
+            //display start message to all players
             state = ZombiesArenaState.STARTED;
 
             long cumulativeDelay = 0;
@@ -228,20 +229,30 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                     cumulativeDelay += wave.getWaveLength();
 
                     Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
+                        //TODO: broadcast wave start
+
                         for(RoomData room : map.getRooms()) {
                             if(room.isSpawn() || room.getOpenProperty().get(this)) {
                                 List<MythicMob> mobs = wave.getMobs();
 
                                 do {
+                                    boolean spawned = false;
+
                                     for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
                                         for(int i = mobs.size() - 1; i >= 0; i--) {
                                             MythicMob mob = mobs.get(i);
 
                                             if(spawner.canSpawn(this, spawnpoint, mob)) {
                                                 spawner.spawnAt(this, spawnpoint, mob);
+                                                spawned = true;
                                                 break;
                                             }
                                         }
+                                    }
+
+                                    if(!spawned) {
+                                        Zombies.warning("A wave occured, but no zombies were spawned! Skipping it.");
+                                        break;
                                     }
                                 }
                                 while(mobs.size() > 0);

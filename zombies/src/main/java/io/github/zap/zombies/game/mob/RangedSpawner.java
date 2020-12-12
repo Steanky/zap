@@ -3,15 +3,28 @@ package io.github.zap.zombies.game.mob;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.SpawnpointData;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.exceptions.InvalidMobTypeException;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 
-public class RangelessSpawner implements Spawner {
+public class RangedSpawner implements Spawner {
     @Override
     public boolean canSpawn(ZombiesArena arena, SpawnpointData spawnpoint, MythicMob mob) {
-        return spawnpoint.getWhitelist().contains(mob);
+        int minRangeSq = arena.getMap().getSpawnRadiusSquared();
+
+        if(spawnpoint.getWhitelist().contains(mob)) {
+            for(ZombiesPlayer player : arena.getZombiesPlayers()) {
+                double dSq = spawnpoint.getSpawn().distanceSquared(player.getPlayer().getLocation().toVector());
+
+                if(dSq <= minRangeSq) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     @Override
