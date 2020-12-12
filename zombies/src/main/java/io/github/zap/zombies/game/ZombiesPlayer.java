@@ -67,7 +67,7 @@ public class ZombiesPlayer implements Listener {
 
     @EventHandler
     private void onPlayerInteract(PlayerInteractEvent event) {
-        if(event.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+        if(event.getPlayer().getUniqueId().equals(player.getUniqueId()) && isAlive()) {
             if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
                 Block block = event.getClickedBlock();
 
@@ -91,7 +91,7 @@ public class ZombiesPlayer implements Listener {
 
     @EventHandler
     private void onPlayerSneak(PlayerToggleSneakEvent event) {
-        if(event.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+        if(event.getPlayer().getUniqueId().equals(player.getUniqueId()) && isAlive()) {
             if(event.isSneaking()) {
                 if(windowRepairTaskId == -1) {
                     MapData map = arena.getMap();
@@ -108,7 +108,7 @@ public class ZombiesPlayer implements Listener {
 
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
-        if(event.getEntity().getUniqueId().equals(player.getUniqueId()) && state == ZombiesPlayerState.ALIVE) {
+        if(event.getEntity().getUniqueId().equals(player.getUniqueId()) && isAlive()) {
             event.setCancelled(true); //we don't want them to respawn normally
             state = ZombiesPlayerState.KNOCKED;
 
@@ -225,6 +225,9 @@ public class ZombiesPlayer implements Listener {
         coins -= amount;
     }
 
+    /**
+     * Called when the player rejoins the game
+     */
     public void rejoin() {
         inGame = true;
 
@@ -236,9 +239,13 @@ public class ZombiesPlayer implements Listener {
          */
     }
 
+    /**
+     * Called when the player leaves the game
+     */
     public void quit() {
         state = ZombiesPlayerState.DEAD;
         inGame = false;
+
         close(); //turn off events and tasks
     }
 
@@ -251,5 +258,9 @@ public class ZombiesPlayer implements Listener {
         PlayerToggleSneakEvent.getHandlerList().unregister(this);
         PlayerDeathEvent.getHandlerList().unregister(this);
         PlayerQuitEvent.getHandlerList().unregister(this);
+    }
+
+    public boolean isAlive() {
+        return state == ZombiesPlayerState.ALIVE;
     }
 }

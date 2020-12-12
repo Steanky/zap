@@ -18,7 +18,7 @@ public class RangelessSpawner implements Spawner {
     public void spawnAt(ZombiesArena arena, SpawnpointData spawnpoint, MythicMob mob) {
         try {
             MythicMobs.inst().getAPIHelper().spawnMythicMob(mob, WorldUtils.locationFrom(arena.getWorld(),
-                    spawnpoint.getTarget()), 0);
+                    spawnpoint.getTarget()), arena.getMap().getMobSpawnLevel());
         } catch (InvalidMobTypeException e) {
             Zombies.warning(String.format("InvalidMobException when trying to spawn mob with internal name %s",
                     mob.getInternalName()));

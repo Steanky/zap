@@ -133,6 +133,11 @@ public class MapData extends DataSerializable {
     int windowBreakTicks;
 
     /**
+     * The MythicMobs mob level that mobs will spawn at
+     */
+    int mobSpawnLevel;
+
+    /**
      * The material that should replace door blocks when they are opened.
      */
     Material doorFillMaterial;
