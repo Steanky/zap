@@ -27,10 +27,5 @@ public class WaveData extends DataSerializable {
     @Serialize(isAggregation = true)
     final ArrayList<MythicMob> mobs = new ArrayList<>();
 
-    /**
-     * bosses that will spawn during this wave
-     */
-    final ArrayList<BossSpawnpoint> bosses = new ArrayList<>();
-
     private WaveData() {}
 }
