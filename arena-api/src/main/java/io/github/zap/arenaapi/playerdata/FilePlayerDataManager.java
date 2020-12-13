@@ -19,7 +19,6 @@ public class FilePlayerDataManager implements PlayerDataManager {
     private final int memoryCacheLength;
 
     private final Map<UUID, FilePlayerData> cache = new LinkedHashMap<>();
-    private final Set<UUID> cacheKeys = cache.keySet();
 
     public FilePlayerDataManager(File playerFile, DataLoader loader, int memoryCacheLength) {
         this.playerFile = playerFile;
@@ -59,8 +58,8 @@ public class FilePlayerDataManager implements PlayerDataManager {
     private void addMapping(UUID id, FilePlayerData data) {
         cache.put(id, data); //add the mapping to the cache
 
-        if(cacheKeys.size() > memoryCacheLength) { //if we exceeded the limit, we must remove the first entry
-            FilePlayerData removedValue = cache.remove(cacheKeys.iterator().next()); //get the value so we can save it if needed
+        if(cache.keySet().size() > memoryCacheLength) { //if we exceeded the limit, we must remove the first entry
+            FilePlayerData removedValue = cache.remove(cache.keySet().iterator().next()); //get the value so we can save it if needed
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
                 loader.save(removedValue, playerFile, id.toString());
