@@ -8,7 +8,6 @@ import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import io.lumine.xikage.mythicmobs.api.exceptions.InvalidMobTypeException;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
-import org.bukkit.entity.Entity;
 
 public class RangelessSpawner implements Spawner {
     @Override
