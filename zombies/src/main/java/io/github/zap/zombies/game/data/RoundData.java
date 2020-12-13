@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -19,7 +20,7 @@ public class RoundData extends DataSerializable {
      */
     String customMessage;
 
-    List<WaveData> waves;
+    ArrayList<WaveData> waves;
 
     private RoundData() {}
 }

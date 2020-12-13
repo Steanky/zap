@@ -150,7 +150,7 @@ public class MapData extends DataSerializable {
     /**
      * All the rounds in the game
      */
-    final List<RoundData> rounds = new ArrayList<>();
+    final ArrayList<RoundData> rounds = new ArrayList<>();
 
     @Serialize(skip = true)
     final Property<Integer> currentRoundProperty = new Property<>(0);
