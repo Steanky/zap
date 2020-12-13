@@ -175,7 +175,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         for(RoomData room : map.getRooms()) {
             if(room.isSpawn() || room.getOpenProperty().get(this)) {
-                do {
+                while(true) {
                     boolean spawned = false;
 
                     for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
@@ -193,7 +193,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                                     break;
                                 }
 
-                                if(mobs.size() == 0) { //avoid redundant iteration with empty mobs list
+                                if(mobs.size() == 0) { //avoid redundant iteration when all mobs have been spawned
                                     return activeMobs;
                                 }
                             }
@@ -205,7 +205,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                         return activeMobs;
                     }
                 }
-                while(mobs.size() > 0);
             }
         }
 
