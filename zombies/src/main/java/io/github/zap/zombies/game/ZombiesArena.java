@@ -6,8 +6,6 @@ import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.LeaveInformation;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
-import io.github.zap.zombies.event.player.PlayerLeaveArenaEvent;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -69,7 +67,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         if(joinAttempt.isSpectator()) {
             if(map.isSpectatorAllowed()) {
                 Collections.addAll(spectators, joiningPlayers);
-                pluginManager.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
@@ -92,7 +89,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
                 resetTimeout(); //reset timeout task
                 addPlayers(joiningPlayers);
-                pluginManager.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
@@ -139,8 +135,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             }
 
         }
-
-        pluginManager.callEvent(new PlayerLeaveArenaEvent(leaveAttempt));
     }
 
     @Override

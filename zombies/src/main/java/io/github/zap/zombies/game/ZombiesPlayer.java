@@ -4,8 +4,6 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.event.map.DoorOpenEvent;
-import io.github.zap.zombies.event.player.PlayerRepairWindowEvent;
 import io.github.zap.zombies.game.data.DoorData;
 import io.github.zap.zombies.game.data.DoorSide;
 import io.github.zap.zombies.game.data.MapData;
@@ -136,7 +134,6 @@ public class ZombiesPlayer implements Listener {
                         WorldUtils.fillBounds(arena.getWorld(), door.getDoorBounds(), map.getDoorFillMaterial());
                         subtractCoins(side.getCost());
                         door.getOpenAccessor().set(arena, true);
-                        pluginManager.callEvent(new DoorOpenEvent(this, door, side));
                         return true;
                     }
                     else {
@@ -175,7 +172,6 @@ public class ZombiesPlayer implements Listener {
                     }
 
                     addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
-                    pluginManager.callEvent(new PlayerRepairWindowEvent(this, targetWindow, blocksRepaired));
                 }
             }
             else {
