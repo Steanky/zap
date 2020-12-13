@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.ai;
+package io.github.zap.zombies.mob.goal;
 
 import io.github.zap.arenaapi.util.ListUtils;
 import io.github.zap.zombies.Zombies;
@@ -121,7 +121,7 @@ public class PathfinderGoalTargetPlayerUnbounded extends Pathfinder implements P
                 List<ZombiesPlayer> players = positionMappings.get(targetPosition);
 
                 if(players != null) {
-                    target = ListUtils.randomElement(players);
+                    target = ListUtils.randomElement(players); //randomly targets player if blockpos is the same
                     ai().setTarget(nmsEntity.getBukkitLivingEntity(), target.getPlayer());
                 }
                 else {

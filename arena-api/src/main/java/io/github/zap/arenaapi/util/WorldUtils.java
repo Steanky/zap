@@ -40,4 +40,8 @@ public final class WorldUtils {
     public static Location locationFrom(World world, Vector vector) {
         return new Location(world, vector.getX(), vector.getY(), vector.getZ());
     }
+
+    public static Block up(World world, Block block) {
+        return world.getBlockAt(block.getLocation().add(new Vector(0, 1, 0)));
+    }
 }
