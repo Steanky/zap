@@ -14,6 +14,7 @@ import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -75,7 +76,7 @@ public class MapLoaderProfilerForm extends CommandForm {
             CommandManager commandManager = context.getManager();
             WorldLoader loader = instance.getWorldLoader();
             BukkitScheduler scheduler = Bukkit.getScheduler();
-            List<String> loadedWorlds = new ArrayList<>();
+            List<World> loadedWorlds = new ArrayList<>();
 
             Semaphore semaphore = new Semaphore(-(iterations - 1));
             service.submit(() -> { //use executorservice instead of bukkit async so we start immediately
@@ -94,7 +95,7 @@ public class MapLoaderProfilerForm extends CommandForm {
                     commandManager.sendStylizedMessage(player, ">gray{Cleaning up worlds.}");
 
                     profiler.start();
-                    for(String world : loadedWorlds) {
+                    for(World world : loadedWorlds) {
                         loader.unloadWorld(world);
                     }
                     profiler.stop();
@@ -110,7 +111,7 @@ public class MapLoaderProfilerForm extends CommandForm {
 
             for(int i = 0; i < iterations; i++) {
                 loader.loadWorld(worldName, world -> {
-                    loadedWorlds.add(world.getName());
+                    loadedWorlds.add(world);
                     semaphore.release();
                 });
             }

@@ -17,7 +17,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Represents a window.
@@ -25,24 +25,27 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesWindow")
+@TypeAlias("ZombiesWindow")
 public class WindowData extends DataSerializable {
     /**
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
-    List<Material> repairedMaterials;
+    @Serialize(isAggregation = true)
+    ArrayList<Material> repairedMaterials;
 
     /**
      * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
      * this at a later date as I'm not exactly sure of its utility
      */
-    List<Material> brokenMaterials;
+    @Serialize(isAggregation = true)
+    ArrayList<Material> brokenMaterials;
 
     /**
      * A list of vectors corresponding to the blocks of window face
      */
-    List<Vector> faceVectors;
+    @Serialize(isAggregation = true)
+    ArrayList<Vector> faceVectors;
 
     /**
      * A BoundingBox containing the face of the window
@@ -76,19 +79,19 @@ public class WindowData extends DataSerializable {
      * of the current repaired block; thus, if the window is fully broken, it will == -1
      */
     @Serialize(skip = true)
-    final Property<Integer> currentIndexAccessor = new Property<>(getVolume() - 1);
+    final Property<Integer> currentIndexProperty = new Property<>(getVolume() - 1);
 
     /**
      * Arena specific state: the player who is currently repairing the window
      */
     @Serialize(skip = true)
-    final Property<ZombiesPlayer> repairingPlayer = new Property<>(null);
+    final Property<ZombiesPlayer> repairingPlayerProperty = new Property<>(null);
 
     /**
      * Arena specific state: the entity that is currently attacking the window
      */
     @Serialize(skip = true)
-    final Property<Entity> attackingEntity = new Property<>(null);
+    final Property<Entity> attackingEntityProperty = new Property<>(null);
 
     private WindowData() {}
 
@@ -134,12 +137,12 @@ public class WindowData extends DataSerializable {
      * @return The number of blocks that were actually repaired
      */
     public int advanceRepairState(Unique accessor, int by) {
-        int currentIndex = currentIndexAccessor.get(accessor);
+        int currentIndex = currentIndexProperty.get(accessor);
         int max = getVolume() - 1;
 
         if(currentIndex < max) {
             int repaired = Math.min(currentIndex + by, max);
-            currentIndexAccessor.set(accessor, repaired);
+            currentIndexProperty.set(accessor, repaired);
             return repaired;
         }
 
@@ -153,10 +156,10 @@ public class WindowData extends DataSerializable {
      * @return true if any number of breaks occurred, false otherwise
      */
     public boolean retractRepairState(Unique accessor, int by) {
-        int currentIndex = currentIndexAccessor.get(accessor);
+        int currentIndex = currentIndexProperty.get(accessor);
 
         if(currentIndex > -1) {
-            currentIndexAccessor.set(accessor, Math.max(currentIndex - by, -1));
+            currentIndexProperty.set(accessor, Math.max(currentIndex - by, -1));
             return true;
         }
 

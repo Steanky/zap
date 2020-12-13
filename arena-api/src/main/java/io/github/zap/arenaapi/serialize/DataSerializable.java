@@ -38,10 +38,8 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         Validate.isTrue(!serializedClass.equals(deserializedClass), "serializedClass and deserializedClass " +
                 "cannot be equal to each other");
 
-        Validate.isTrue(globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), true),
-                converter) == null, "a converter for that serialized type already exists");
-        Validate.isTrue(globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), false),
-                converter) == null, "a converter for that deserialized type already exists");
+        globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), true), converter);
+        globalConverters.putIfAbsent(new ClassEntry(serializedClass.getName(), false), converter);
     }
 
     /**
@@ -61,8 +59,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
     public static void registerClass(String name, Class<? extends DataSerializable> clazz) {
         Validate.notNull(name, "name cannot be null");
         Validate.notNull(clazz, "clazz cannot be null");
-        Validate.isTrue(classes.putIfAbsent(name, clazz) == null, String.format("a class with name/alias " +
-                "'%s' already exists", name));
+        classes.putIfAbsent(name, clazz);
     }
 
     @Override
@@ -71,7 +68,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
         TypeAlias type = getClass().getAnnotation(TypeAlias.class);
         if(type != null) {
-            serializedData.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, type.alias());
+            serializedData.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, type.value());
         }
 
         forEachSerializable(getClass(), (entry) -> { //iterate through all serializable fields in this DataSerializable
@@ -97,9 +94,8 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 serializedData.put(name, transformedValue);
             } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
                     ClassNotFoundException | ClassCastException e) {
-                ArenaApi.getInstance().getLogger().warning(String.format("Exception when attempting to serialize " +
-                                "field '%s' in object '%s': %s", field.toGenericString(), this.toString(),
-                        e.getMessage()));
+                ArenaApi.warning(String.format("Exception when attempting to serialize field '%s' in object '%s': %s.",
+                        field.toGenericString(), this.toString(), e.getMessage()));
             }
         });
 
@@ -117,13 +113,13 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             }
             catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
                     InvocationTargetException e) {
-                ArenaApi.getInstance().getLogger().warning(String.format("An error occured when trying to instantiate" +
-                        " '%s': %s", name, e.getMessage()));
+                ArenaApi.warning(String.format("An error occured when trying to instantiate '%s': %s.", name,
+                        e.getMessage()));
             }
         }
         else {
-            ArenaApi.getInstance().getLogger().warning(String.format("The serialized data does not contain required " +
-                    "type key '%s'", ConfigurationSerialization.SERIALIZED_TYPE_KEY));
+            ArenaApi.warning(String.format("The serialized data does not contain required type key '%s'.",
+                    ConfigurationSerialization.SERIALIZED_TYPE_KEY));
         }
 
         return null;
@@ -160,32 +156,34 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
                 Object fieldValue = data.get(name);
 
-                try {
-                    Object transformedValue;
-                    if (entry.isCollection()) {
-                        //noinspection unchecked
-                        transformedValue = (converter == null) ? processCollection(fieldValue, field.getGenericType(),
-                                false) : converter.deserialize(fieldValue);
-                    } else {
-                        //noinspection unchecked
-                        transformedValue = (converter == null) ? processObject(fieldValue, field.getType(),
-                                false) : converter.deserialize(fieldValue);
-                    }
+                if(fieldValue != null) { //only serialize entries for which data exists
+                    try {
+                        Object transformedValue;
+                        if (entry.isCollection()) {
+                            //noinspection unchecked
+                            transformedValue = (converter == null) ? processCollection(fieldValue, field.getGenericType(),
+                                    false) : converter.deserialize(fieldValue);
+                        } else {
+                            //noinspection unchecked
+                            transformedValue = (converter == null) ? processObject(fieldValue, field.getType(),
+                                    false) : converter.deserialize(fieldValue);
+                        }
 
-                    field.set(instanceObject, transformedValue);
-                } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
-                        ClassNotFoundException | ClassCastException e) {
-                    ArenaApi.getInstance().getLogger().warning(String.format("Exception when attempting to " +
-                                    "assign value '%s' to field '%s' in object '%s': '%s'", fieldValue.toString(),
-                            field.toGenericString(), instanceObject.toString(), e.getMessage()));
+                        field.set(instanceObject, transformedValue);
+                    } catch (IllegalAccessException | IllegalArgumentException | InstantiationException |
+                            ClassNotFoundException | ClassCastException e) {
+                        ArenaApi.warning(String.format("Exception when attempting to assign value '%s' to field '%s'" +
+                                        " in object '%s': '%s'.", fieldValue.toString(), field.toGenericString(),
+                                instanceObject.toString(), e.getMessage()));
+                    }
                 }
             });
 
             return (DataSerializable) instanceObject;
         }
         else {
-            ArenaApi.getInstance().getLogger().warning(String.format("Class name or alias '%s' has not been " +
-                    "registered and therefore will not be deserialized.", className));
+            ArenaApi.warning(String.format("Class name or alias '%s' has not been registered and therefore will not " +
+                    "be deserialized.", className));
         }
 
         return null;
@@ -210,12 +208,11 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             throws IllegalAccessException, InstantiationException, ClassNotFoundException, SecurityException,
             ClassCastException {
         ParameterizedType parameterizedType = null;
-        Class<?> instanceClass = instance.getClass();
         Class<?> fieldClass;
 
         if(fieldType instanceof ParameterizedType) {
             parameterizedType = (ParameterizedType)fieldType;
-            fieldClass = (Class<?>)parameterizedType.getRawType(); //extract generic type information
+            fieldClass = (Class<?>)parameterizedType.getRawType(); //get generic type information
         }
         else {
             fieldClass = (Class<?>)fieldType; //there is no generic type information
@@ -235,7 +232,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
                 return newArray;
             }
             else if(fieldClass.isAssignableFrom(instance.getClass())) { //recursively parse collections
-                Collection newCollection = (Collection)instanceClass.newInstance();
+                Collection newCollection = (Collection)fieldClass.newInstance(); //use field class
                 Type nextType = parameterizedType == null ? Object.class : parameterizedType.getActualTypeArguments()[0];
 
                 for(Object element : (Collection)instance) {
@@ -247,7 +244,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
         }
         else if(instance instanceof Map) { //also recursively parse maps
             Map oldMap = (Map) instance;
-            Map newMap = (Map) instanceClass.newInstance();
+            Map newMap = (Map) fieldClass.newInstance();
 
             Type nextKeyType;
             Type nextValueType;
@@ -260,7 +257,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             }
 
             //noinspection Convert2Lambda
-            oldMap.forEach(new BiConsumer<Object, Object>() {
+            oldMap.forEach(new BiConsumer<>() {
                 @SuppressWarnings("unchecked")
                 @SneakyThrows
                 @Override

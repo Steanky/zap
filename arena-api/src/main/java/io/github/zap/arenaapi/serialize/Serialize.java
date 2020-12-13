@@ -35,7 +35,7 @@ public @interface Serialize {
     boolean isAggregation() default false;
 
     /**
-     * Whether or not to skip serializing this element.
+     * Whether or not to skip serializing this element. Defaults to false.
      * @return True if this member should be skipped, false otherwise
      */
     boolean skip() default false;

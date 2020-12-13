@@ -23,7 +23,7 @@ public interface DataLoader {
      * @param <T> The type of the data
      * @return The data itself
      */
-    <T extends DataSerializable> T load(File file, String name);
+    <T extends DataSerializable> T load(File file, String name) throws ClassCastException;
 
     /**
      * Gets the filename extension that this loader saves to/loads from.

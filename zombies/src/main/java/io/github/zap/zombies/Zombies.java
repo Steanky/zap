@@ -1,12 +1,15 @@
 package io.github.zap.zombies;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
-import com.grinderwolf.swm.api.SlimePlugin;
+import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.grinderwolf.swm.plugin.SWMPlugin;
+import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.regularcommands.commands.CommandManager;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
+import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.DataSerializable;
@@ -15,17 +18,16 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
-import io.github.zap.zombies.proxy.*;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
-import org.bukkit.Bukkit;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -37,59 +39,66 @@ public final class Zombies extends JavaPlugin implements Listener {
     private static Zombies instance; //singleton for our main plugin class
 
     @Getter
+    private ArenaApi arenaApi;
+
+    @Getter
+    private SWMPlugin SWM; //access SWM through this proxy interface
+
+    @Getter
+    private File slimeWorldDirectory;
+
+    @Getter
+    private String slimeExtension;
+
+    @Getter
+    private SlimeLoader slimeLoader;
+
+    @Getter
+    private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
+
+    @Getter
     private DataLoader dataLoader; //used to save/load data from custom serialization framework
 
     @Getter
-    private SlimeProxy slimeProxy; //access SWM through this proxy interface
-
-    @Getter
-    private MythicProxy mythicProxy; //access mythicmobs through this proxy interface
-
-    @Getter
-    private NMSUtilProxy nmsUtilProxy; //access nms-specific information through this proxy interface
-
-    @Getter
-    private WorldLoader worldLoader; //responsible for loading slime worlds
-
-    @Getter
-    private LocalizationManager localizationManager;
+    private WorldLoader worldLoader; //responsible for loading worlds
 
     @Getter
     private CommandManager commandManager;
 
     @Getter
-    private ProtocolManager protocolManager;
+    private PlayerDataManager playerDataManager;
+
+    @Getter
+    private LocalizationManager localizationManager;
+
+    public static final String ARENA_METADATA_NAME = "zombies_arena";
 
     @Override
     public void onEnable() {
+        StopWatch timer = StopWatch.createStarted();
         instance = this;
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
-            StopWatch timer = StopWatch.createStarted();
-
             initConfig();
-            initCommands();
+            initDependencies();
             initSerialization();
-            initProxies();
+            initPlayerDataManager();
+            initLocalization();
             initWorldLoader();
             initArenaManagers();
-
-            timer.stop();
-
-            getLogger().log(Level.INFO, String.format("Done enabling; ~%sms elapsed", timer.getTime()));
+            initCommands();
         }
         catch(LoadFailureException exception)
         {
-            getLogger().severe(String.format("A fatal error occured that prevented the plugin from enabling properly:" +
-                    " '%s'", exception.getMessage()));
+            severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
+                    exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
+            return;
         }
-    }
 
-    @Override
-    public void onDisable() {
-        //perform shutdown tasks
+        timer.stop();
+        info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
     private void initConfig() {
@@ -97,79 +106,40 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.addDefault(ConfigNames.ARENA_TIMEOUT, 300000);
-        config.options().copyDefaults(true);
+        config.addDefault(ConfigNames.DATA_CACHE_CAPACITY, 2048);
+        config.addDefault(ConfigNames.DEFAULT_LOCALE, "en_US");
+        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, String.format("plugins/%s/localization",
+                PluginNames.ZOMBIES));
 
+        config.options().copyDefaults(true);
         saveConfig();
     }
 
+    private void initDependencies() throws LoadFailureException {
+        arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
+        SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
+        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, true);
+    }
+
     private void initWorldLoader() {
-        getLogger().info("Preloading worlds.");
+        info("Preloading worlds.");
+
         StopWatch timer = StopWatch.createStarted();
-        worldLoader = new SlimeWorldLoader(slimeProxy.getLoader("file"));
+        slimeWorldDirectory = new File("slime_worlds");
+        slimeExtension = ".slime";
+        slimeLoader = new FileLoader(slimeWorldDirectory);
+        worldLoader = new SlimeWorldLoader(slimeLoader);
         worldLoader.preload();
         timer.stop();
 
-        getLogger().info(String.format("Done preloading worlds; ~%sms elapsed", timer.getTime()));
+        info(String.format("Done preloading worlds; ~%sms elapsed.", timer.getTime()));
     }
 
     private void initArenaManagers() {
         FileConfiguration config = getConfig();
         ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
-    }
-
-    private void initProxies() throws LoadFailureException {
-        PluginManager manager = Bukkit.getPluginManager();
-        Plugin mythicMobs = manager.getPlugin(PluginNames.MYTHIC_MOBS);
-        Plugin swm = manager.getPlugin(PluginNames.SLIME_WORLD_MANAGER);
-        Plugin protocolLib = manager.getPlugin(PluginNames.PROTOCOL_MANAGER);
-
-        if(mythicMobs != null) {
-            String mythicVersion = mythicMobs.getDescription().getVersion().split("-")[0];
-
-            //noinspection SwitchStatementWithTooFewBranches
-            switch(mythicVersion) {
-                case "4.10.1":
-                    mythicProxy = new MythicMobs_v4_10_R1((MythicMobs)mythicMobs);
-                    break;
-                default:
-                    throw new LoadFailureException(String.format("Unrecognized MythicMobs version '%s'", mythicVersion));
-            }
-        }
-        else {
-            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.MYTHIC_MOBS);
-        }
-
-        if(swm != null) {
-            String swmVersion = swm.getDescription().getVersion().split("-")[0];
-
-            //noinspection SwitchStatementWithTooFewBranches
-            switch (swmVersion) {
-                case "2.3.0":
-                    slimeProxy = new SlimeWorldManager_v2_3_R0((SlimePlugin)swm);
-                    break;
-                default:
-                    throw new LoadFailureException(String.format("Unrecognized SWM version '%s'", swmVersion));
-            }
-        }
-        else {
-            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.SLIME_WORLD_MANAGER);
-
-        }
-
-        if (protocolLib != null) {
-            //noinspection SwitchStatementWithTooFewBranches
-            switch (Bukkit.getBukkitVersion()) {
-                case "1.16.4-R0.1-SNAPSHOT":
-                    nmsUtilProxy = new NMSUtilProxy_v1_16_R3();
-                    break;
-                default:
-                    throw new LoadFailureException(String.format("Invalid MC version '%s'", Bukkit.getBukkitVersion()));
-            }
-            protocolManager = ProtocolLibrary.getProtocolManager();
-        } else {
-            throw new LoadFailureException("Unable to locate required plugin " + PluginNames.PROTOCOL_MANAGER);
-        }
+        arenaApi.registerArenaManager(zombiesArenaManager);
     }
 
     private void initSerialization() throws LoadFailureException {
@@ -178,23 +148,10 @@ public final class Zombies extends JavaPlugin implements Listener {
         (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
          */
 
-        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
-                ShopData.class, SpawnpointData.class, WindowData.class);
+        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class, ShopData.class,
+                SpawnpointData.class, WindowData.class, RoundData.class, WaveData.class);
 
-        //noinspection rawtypes
-        DataSerializable.registerGlobalConverter(Locale.class, ArrayList.class, new ValueConverter<Locale, ArrayList>() {
-            @Override
-            public ArrayList serialize(Locale object) {
-                return Lists.newArrayList(object.getLanguage(), object.getCountry(), object.getVariant());
-            }
-
-            @Override
-            public Locale deserialize(ArrayList object) {
-                return new Locale((String)object.get(0), (String)object.get(1), (String)object.get(2));
-            }
-        });
-
-        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<MythicMob, String>() {
+        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<>() {
             @Override
             public String serialize(MythicMob object) {
                 return object.getInternalName();
@@ -207,10 +164,84 @@ public final class Zombies extends JavaPlugin implements Listener {
         });
     }
 
-    private void initCommands() {
-        commandManager = new CommandManager(this);
+    private void initPlayerDataManager() {
+        playerDataManager = new FilePlayerDataManager(new File(String.format("plugins/%s/playerdata.yml",
+                PluginNames.ZOMBIES)), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
+    }
 
-        //register commands here
+    private void initLocalization() throws LoadFailureException {
+        Configuration config = getConfig();
+
+        String locale = config.getString(ConfigNames.DEFAULT_LOCALE);
+        String localizationDirectory = config.getString(ConfigNames.LOCALIZATION_DIRECTORY);
+
+        if(locale != null && localizationDirectory != null) {
+            localizationManager = new LocalizationManager(Locale.forLanguageTag(locale),
+                    new File(localizationDirectory), playerDataManager);
+        }
+        else {
+            throw new LoadFailureException("One or more required configuration entries could not be retrieved.");
+        }
+    }
+
+    private void initCommands() {
+        CommandManager commandManager = new CommandManager(this);
         commandManager.registerCommand(new DebugCommand());
+    }
+
+    /*
+    Public static utility functions below
+     */
+
+    /**
+     * Sends a localized message to the specific player. The message displayed will be in whatever language the
+     * player has chosen.
+     * @param player The player we are sending the message to
+     * @param key The MessageKey of the message we are sending
+     * @param formatArgs Format arguments for the message, which may be necessary for some MessageKeys
+     */
+    public static void sendLocalizedMessage(Player player, MessageKey key, Object... formatArgs) {
+        instance.getLocalizationManager().sendLocalizedMessage(player, key.getKey(), formatArgs);
+    }
+
+    /**
+     * Logs a message with this plugin, at the specified level.
+     * @param level The level to log at
+     * @param message The log message
+     */
+    public static void log(Level level, String message) {
+        instance.getLogger().log(level, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.INFO
+     * @param message The message to log
+     */
+    public static void info(String message) {
+        log(Level.INFO, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.WARNING
+     * @param message The message to log
+     */
+    public static void warning(String message) {
+        log(Level.WARNING, message);
+    }
+
+    /**
+     * Logs a message with this plugin at Level.SEVERE
+     * @param message The message to log
+     */
+    public static void severe(String message) {
+        log(Level.SEVERE, message);
+    }
+
+    /**
+     * Calls the specified event for this plugin.
+     * @param event The event to call
+     */
+    public static void callEvent(Event event) {
+        instance.getServer().getPluginManager().callEvent(event);
     }
 }

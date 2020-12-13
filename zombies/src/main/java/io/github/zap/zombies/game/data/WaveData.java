@@ -8,31 +8,24 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-import org.bukkit.util.Vector;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
 
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("ZombiesSpawnpoint")
-public class SpawnpointData extends DataSerializable {
+@TypeAlias("ZombiesWave")
+public class WaveData extends DataSerializable {
     /**
-     * The location of this spawnpoint
+     * time, in server ticks, before the wave's mobs are spawned
      */
-    Vector spawn;
+    int waveLength;
 
     /**
-     * this is the vector to which mobs should pathfind after being spawned. if == to spawn, no pathfinding will occur
-     */
-    Vector target;
-
-    /**
-     * This represents all of the mobs that can be spawned here
+     * A list of the mobs that should be spawned during this wave
      */
     @Serialize(isAggregation = true)
-    HashSet<MythicMob> whitelist;
+    final ArrayList<MythicMob> mobs = new ArrayList<>();
 
-    private SpawnpointData() {}
+    private WaveData() {}
 }

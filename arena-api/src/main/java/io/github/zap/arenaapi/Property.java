@@ -3,10 +3,7 @@ package io.github.zap.arenaapi;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Generic utility class that enables different named accessor objects to access their own unique copies of a single
@@ -17,9 +14,9 @@ import java.util.Set;
  */
 @RequiredArgsConstructor
 public class Property<T> {
-    private static final Map<Long, Set<Property<?>>> globalMappings = new HashMap<>();
+    private static final Map<UUID, Set<Property<?>>> globalMappings = new HashMap<>();
 
-    private final Map<Long, T> mappings = new HashMap<>();
+    private final Map<UUID, T> mappings = new HashMap<>();
 
     @Getter
     private final T defaultValue;
@@ -39,7 +36,7 @@ public class Property<T> {
      * @param value The value to store for Named
      */
     public void set(Unique unique, T value) {
-        long id = unique.getId();
+        UUID id = unique.getId();
         mappings.put(id, value);
 
         Set<Property<?>> set = globalMappings.get(id);
@@ -63,7 +60,7 @@ public class Property<T> {
      * @param accessor The accessor object
      */
     public static void removeMappingsFor(Unique accessor) {
-        long id = accessor.getId();
+        UUID id = accessor.getId();
         Set<Property<?>> values = globalMappings.get(id);
 
         if(values != null) {

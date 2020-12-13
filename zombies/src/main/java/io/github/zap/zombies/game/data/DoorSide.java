@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesDoorSide")
+@TypeAlias("ZombiesDoorSide")
 public class DoorSide extends DataSerializable {
     /**
      * What it will cost to open the door from this side.
@@ -26,7 +27,7 @@ public class DoorSide extends DataSerializable {
     /**
      * The names of the rooms this DoorSide will open, when it is purchased.
      */
-    List<String> opensTo;
+    ArrayList<String> opensTo;
 
     /**
      * The bounds in which the player must stand in order to open the door from this side.

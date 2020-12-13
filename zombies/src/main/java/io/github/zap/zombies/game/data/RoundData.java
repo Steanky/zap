@@ -7,16 +7,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
-/**
- * Defines a shop. Not sure what to put here - perhaps hardcoding shops isn't a bad idea given the limited degree
- * to which we can abstract them?
- */
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("ZombiesShop")
-public class ShopData extends DataSerializable {
-    ShopType type;
+@TypeAlias("ZombiesRound")
+public class RoundData extends DataSerializable {
+    /**
+     * Message displayed when the round starts. overrides the normal "Round #" message
+     */
+    String customMessage;
 
-    private ShopData() {}
+    ArrayList<WaveData> waves;
+
+    private RoundData() {}
 }

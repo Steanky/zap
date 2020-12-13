@@ -10,5 +10,6 @@ public class DebugCommand extends RegularCommand {
         super("zap_debug");
         addForm(new MapLoaderProfilerForm());
         addForm(new ImportWorldForm());
+        addForm(new JoinZombiesGameForm());
     }
 }
