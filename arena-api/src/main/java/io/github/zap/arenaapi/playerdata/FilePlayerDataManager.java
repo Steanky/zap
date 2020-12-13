@@ -60,13 +60,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
         cache.put(id, data); //add the mapping to the cache
 
         if(cacheKeys.size() > memoryCacheLength) { //if we exceeded the limit, we must remove the first entry
-            UUID remove = null;
-            for(UUID uuid : cacheKeys) {
-                remove = uuid;
-                break;
-            }
-
-            FilePlayerData removedValue = cache.remove(remove); //get the value so we can save it if needed
+            FilePlayerData removedValue = cache.remove(cacheKeys.iterator().next()); //get the value so we can save it if needed
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
                 loader.save(removedValue, playerFile, id.toString());
