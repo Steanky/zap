@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesRoom")
+@TypeAlias("ZombiesRoom")
 public class RoomData extends DataSerializable {
     /**
      * The unique, non-user-friendly name of this room.
@@ -26,24 +27,24 @@ public class RoomData extends DataSerializable {
     String name;
 
     /**
-     * The user-friendly name of this room
+     * The message key of the room name
      */
-    String displayName;
+    String roomNameKey;
 
     /**
-     * The bounds of this room, used for knockdown messages
+     * The bounds of this room, used for knockdown messages and other things
      */
     MultiBoundingBox bounds;
 
     /**
      * All of the windows contained in this room
      */
-    List<WindowData> windows;
+    ArrayList<WindowData> windows;
 
     /**
      * All of the spawnpoints contained in this room
      */
-    List<SpawnpointData> spawnpoints;
+    ArrayList<SpawnpointData> spawnpoints;
 
     /**
      * Whether or not this room is the 'spawn' room; where the players start off in
@@ -54,7 +55,7 @@ public class RoomData extends DataSerializable {
      * Arena specific state: whether or not this room has been opened.
      */
     @Serialize(skip = true)
-    final Property<Boolean> openAccessor = new Property<>(false);
+    final Property<Boolean> openProperty = new Property<>(false);
 
     private RoomData() {}
 }

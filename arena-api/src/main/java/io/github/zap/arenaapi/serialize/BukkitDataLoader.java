@@ -20,11 +20,12 @@ import java.util.Map;
  */
 public class BukkitDataLoader implements DataLoader {
     private static final String EXTENSION = "yml";
+    private static final String ALIASES_FIELD_NAME = "aliases";
 
     @SafeVarargs
     public BukkitDataLoader(Class<? extends DataSerializable>... args) throws LoadFailureException {
         try {
-            Field aliases = ConfigurationSerialization.class.getDeclaredField("aliases");
+            Field aliases = ConfigurationSerialization.class.getDeclaredField(ALIASES_FIELD_NAME);
             aliases.setAccessible(true);
 
             /*
@@ -43,25 +44,18 @@ public class BukkitDataLoader implements DataLoader {
                 TypeAlias typeAlias = element.getAnnotation(TypeAlias.class);
 
                 if(typeAlias != null) {
-                    String alias = typeAlias.alias();
+                    String alias = typeAlias.value();
 
                     if(!alias.equals(StringUtils.EMPTY)) {
                         elementName = alias;
                     }
                     else {
-                        throw new LoadFailureException(String.format("Invalid alias in class '%s'", elementName));
+                        throw new LoadFailureException(String.format("Invalid alias in class '%s'.", elementName));
                     }
                 }
 
-                aliasesMap.put(elementName, DataSerializable.class);
-
-                try {
-                    DataSerializable.registerClass(elementName, element);
-                }
-                catch (IllegalArgumentException e) { //duplicate value, etc
-                    throw new LoadFailureException("IllegalArgumentException occured when registering " +
-                            "DataSerializableClass: duplicate values are not permitted");
-                }
+                aliasesMap.putIfAbsent(elementName, DataSerializable.class);
+                DataSerializable.registerClass(elementName, element);
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
             throw new LoadFailureException(e.getMessage());
@@ -76,8 +70,8 @@ public class BukkitDataLoader implements DataLoader {
         try {
             configuration.save(file);
         } catch (IOException e) {
-            ArenaApi.getInstance().getLogger().warning(String.format("IOException when attempting to save data with " +
-                    "name '%s' to config file '%s': %s", name, file, e.getMessage()));
+            ArenaApi.warning(String.format("IOException when attempting to save data with name '%s' to config file " +
+                    "'%s': %s.", name, file, e.getMessage()));
         }
     }
 
@@ -90,8 +84,7 @@ public class BukkitDataLoader implements DataLoader {
             return (T) configuration.get(name);
         }
         catch (ClassCastException e) {
-            ArenaApi.getInstance().getLogger().warning(String.format("Incompatible type cast applied to named data " +
-                    "'%s'", name));
+            ArenaApi.warning(String.format("Incompatible type cast applied to named data '%s'.", name));
         }
 
         return null;

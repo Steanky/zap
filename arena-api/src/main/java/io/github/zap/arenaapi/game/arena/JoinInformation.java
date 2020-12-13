@@ -3,7 +3,8 @@ package io.github.zap.arenaapi.game.arena;
 import lombok.Value;
 import org.bukkit.entity.Player;
 
-import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * This data class contains all the information for a 'join request'; that is, when a player attempts to join a game,
@@ -11,10 +12,10 @@ import java.util.List;
  */
 @Value
 public class JoinInformation {
-    int leadPlayer;
-    Player[] players;
+    UUID leader;
+    Set<UUID> players;
     boolean spectator;
     String gameName;
     String mapName;
-    long targetArena;
+    UUID targetArena;
 }

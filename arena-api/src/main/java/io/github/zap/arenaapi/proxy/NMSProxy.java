@@ -1,10 +1,13 @@
-package io.github.zap.zombies.proxy;
+package io.github.zap.arenaapi.proxy;
 
 import org.bukkit.entity.EntityType;
 
 import java.util.UUID;
 
-public interface NMSUtilProxy {
+/**
+ * Access NMS classes through this proxy.
+ */
+public interface NMSProxy {
 
     /**
      * Gets the next entity id
@@ -24,5 +27,4 @@ public interface NMSUtilProxy {
      * @return The living entity typeid
      */
     int getEntityLivingTypeId(EntityType entityType);
-
 }

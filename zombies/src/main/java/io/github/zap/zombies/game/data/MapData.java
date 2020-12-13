@@ -1,12 +1,16 @@
 package io.github.zap.zombies.game.data;
 
+import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.serialize.DataSerializable;
+import io.github.zap.arenaapi.serialize.Serialize;
 import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -20,7 +24,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias(alias = "ZombiesMap")
+@TypeAlias("ZombiesMap")
 public class MapData extends DataSerializable {
     /**
      * The unique name of this map that need not be user friendly
@@ -28,9 +32,9 @@ public class MapData extends DataSerializable {
     String name;
 
     /**
-     * The user-friendly name of this map
+     * The resource key of the map name
      */
-    String displayName;
+    String mapNameKey;
 
     /**
      * The bounds of the map, inside which every component should exist
@@ -60,17 +64,17 @@ public class MapData extends DataSerializable {
     /**
      * The list of rooms managed by this map
      */
-    final List<RoomData> rooms = new ArrayList<>();
+    final ArrayList<RoomData> rooms = new ArrayList<>();
 
     /**
      * All the doors managed by this map
      */
-    final List<DoorData> doors = new ArrayList<>();
+    final ArrayList<DoorData> doors = new ArrayList<>();
 
     /**
      * All the shops managed by this map
      */
-    final List<ShopData> shops = new ArrayList<>();
+    final ArrayList<ShopData> shops = new ArrayList<>();
 
     /**
      * The number of coins each player should start with
@@ -102,10 +106,21 @@ public class MapData extends DataSerializable {
      */
     boolean forceStart;
 
+
     /**
-     * The minimum (Manhattan) distance that players must be from a window in order to repair it
+     * The squared distance in blocks from which zombies *must* spawn from a player
+     */
+    int spawnRadiusSquared;
+
+    /**
+     * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
      */
     int windowRepairRadius;
+
+    /**
+     * The initial delay (in Minecraft server ticks) before the window will be first repaired, after the player crouches
+     */
+    int initialRepairDelay;
 
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
@@ -118,9 +133,27 @@ public class MapData extends DataSerializable {
     int windowBreakTicks;
 
     /**
+     * The MythicMobs mob level that mobs will spawn at
+     */
+    int mobSpawnLevel;
+
+    /**
+     * The number of ticks mobs will wait before switching to a closer target. Set to -1 to disable retargeting.
+     */
+    int mobRetargetTicks;
+
+    /**
      * The material that should replace door blocks when they are opened.
      */
     Material doorFillMaterial;
+
+    /**
+     * All the rounds in the game
+     */
+    final ArrayList<RoundData> rounds = new ArrayList<>();
+
+    @Serialize(skip = true)
+    final Property<Integer> currentRoundProperty = new Property<>(0);
 
     private MapData() { }
 

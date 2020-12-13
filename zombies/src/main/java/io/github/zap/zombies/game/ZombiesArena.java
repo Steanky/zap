@@ -5,35 +5,35 @@ import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.LeaveInformation;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.event.player.PlayerJoinArenaEvent;
-import io.github.zap.zombies.event.player.PlayerLeaveArenaEvent;
-import io.github.zap.zombies.game.data.MapData;
+import io.github.zap.zombies.game.data.*;
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
+import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.PluginManager;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
  */
 public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
-    private final Map<UUID, ZombiesPlayer> playerMap = new HashMap<>();
+    private final Map<UUID, ZombiesPlayer> zombiesPlayerMap = new HashMap<>();
 
     @Getter
-    private final Collection<ZombiesPlayer> players = playerMap.values();
+    private final Collection<ZombiesPlayer> zombiesPlayers = zombiesPlayerMap.values();
 
     @Getter
-    private final Set<Player> spectators = new HashSet<>();
+    private final Set<UUID> spectators = new HashSet<>();
 
     @Getter
     private final MapData map;
@@ -44,8 +44,14 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
     private final long emptyTimeout;
 
-    private final PluginManager pluginManager;
+    @Getter
+    private final Spawner spawner = new RangelessSpawner();
+
+    @Getter
+    private final Set<UUID> mobs = new HashSet<>();
+
     private int timeoutTaskId = -1;
+    private final List<Integer> waveSpawnerTasks = new ArrayList<>();
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
@@ -58,23 +64,20 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.map = map;
         this.emptyTimeout = emptyTimeout;
 
-        Zombies zombies = Zombies.getInstance();
-        pluginManager = zombies.getServer().getPluginManager();
-        pluginManager.registerEvents(this, zombies);
+        Bukkit.getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
     public boolean handleJoin(JoinInformation joinAttempt) {
-        Player[] joiningPlayers = joinAttempt.getPlayers();
+        Set<UUID> joiningPlayers = joinAttempt.getPlayers();
 
         if(joinAttempt.isSpectator()) {
             if(map.isSpectatorAllowed()) {
-                Collections.addAll(spectators, joiningPlayers);
-                pluginManager.callEvent(new PlayerJoinArenaEvent(joinAttempt));
+                spectators.addAll(joiningPlayers);
                 return true;
             }
         }
         else {
-            int newSize = playerMap.size() + joiningPlayers.length;
+            int newSize = zombiesPlayerMap.size() + joiningPlayers.size();
 
             if(newSize <= map.getMaximumCapacity()) { //we can fit the players
                 switch (state) {
@@ -92,7 +95,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
                 resetTimeout(); //reset timeout task
                 addPlayers(joiningPlayers);
-                pluginManager.callEvent(new PlayerJoinArenaEvent(joinAttempt));
                 return true;
             }
         }
@@ -102,14 +104,14 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     @Override
     public void handleLeave(LeaveInformation leaveAttempt) {
-        Player[] leavingPlayers = leaveAttempt.getPlayers();
+        Set<UUID> leavingPlayers = leaveAttempt.getPlayers();
 
         if(leaveAttempt.isSpectator()) {
-            spectators.removeAll(Arrays.asList(leavingPlayers));
+            spectators.removeAll(leavingPlayers);
         }
         else {
             removePlayers(leavingPlayers);
-            int currentSize = playerMap.size();
+            int currentSize = zombiesPlayerMap.size();
 
             switch(state) {
                 case PREGAME:
@@ -128,7 +130,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                     break;
                 case STARTED:
                     if(currentSize == 0) {
-                        if(map.isJoinableStarted()) {
+                        if(!map.isJoinableStarted()) {
                             close(); //close immediately if nobody can rejoin
                         }
                         else {
@@ -139,51 +141,138 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             }
 
         }
-
-        pluginManager.callEvent(new PlayerLeaveArenaEvent(leaveAttempt));
     }
 
     @Override
-    public void terminate() {
+    public void terminate() { //non-graceful termination; might happen mid game, sends error messages
+        Zombies.warning(String.format("Arena '%s', belonging to manager '%s', was terminated.", id.toString(),
+                manager.getGameName()));
+
+        for(ZombiesPlayer zombiesPlayer : zombiesPlayers) {
+            if(zombiesPlayer.isInGame()) {
+                Zombies.sendLocalizedMessage(zombiesPlayer.getPlayer(), MessageKey.ARENA_TERMINATION);
+            }
+        }
+
         close();
+    }
+
+    /**
+     * Whenever a death occurs, check player state (we may have a fail condition)
+     */
+    public void checkPlayerState() {
+        for(ZombiesPlayer zombiesPlayer : zombiesPlayers) {
+            if(zombiesPlayer.isAlive()) {
+                return;
+            }
+        }
+
+        //game loss code here
+    }
+
+    public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
+        List<ActiveMob> activeMobs = new ArrayList<>();
+
+        for(RoomData room : map.getRooms()) {
+            if(room.isSpawn() || room.getOpenProperty().get(this)) {
+                while(true) {
+                    boolean spawned = false;
+
+                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
+                        for(int i = mobs.size() - 1; i >= 0; i--) {
+                            MythicMob mythicMob = mobs.get(i);
+
+                            if(spawner.canSpawn(this, spawnpoint, mythicMob)) {
+                                ActiveMob activeMob = spawner.spawnAt(this, spawnpoint, mythicMob);
+                                mobs.remove(i);
+
+                                if(activeMob != null) {
+                                    this.mobs.add(activeMob.getUniqueId());
+                                    activeMobs.add(activeMob);
+                                    spawned = true;
+                                    break;
+                                }
+
+                                if(mobs.size() == 0) { //avoid redundant iteration when all mobs have been spawned
+                                    return activeMobs;
+                                }
+                            }
+                        }
+                    }
+
+                    if(!spawned) {
+                        Zombies.warning("Some enemies could not be spawned.");
+                        return activeMobs;
+                    }
+                }
+            }
+        }
+
+        return activeMobs;
+    }
+
+    @EventHandler
+    private void onMobDeath(EntityDeathEvent event) {
+        if(mobs.remove(event.getEntity().getUniqueId())) {
+            if(mobs.size() == 0) { //round ended, begin next one
+                doRound();
+            }
+        }
     }
 
     /**
      * Used internally to "gracefully" shut down the arena — without sending error messages to the player.
      */
     private void close() {
-        PlayerQuitEvent.getHandlerList().unregister(this);
+        //unregister events
+        EntityDeathEvent.getHandlerList().unregister(this);
 
-        for(ZombiesPlayer player : players) {
+        //unregister tasks
+        BukkitScheduler scheduler = Bukkit.getScheduler();
+        scheduler.cancelTask(timeoutTaskId);
+
+        for(int taskId : waveSpawnerTasks) { //usually won't get run unless we just terminated
+            scheduler.cancelTask(taskId);
+        }
+
+        //close players
+        for(ZombiesPlayer player : zombiesPlayers) {
             player.close();
         }
 
+        //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
-        manager.closeArena(this);
+        manager.removeArena(this);
     }
 
-    @EventHandler
-    private void onPlayerQuit(PlayerQuitEvent event) {
-        //handle people quitting
-    }
+    private void addPlayers(Collection<UUID> players) {
+        for(UUID player : players) {
+            Player bukkitPlayer = Bukkit.getPlayer(player);
 
-    @SneakyThrows
-    private void addPlayers(Player[] players) {
-        List<CompletableFuture<?>> futures = new ArrayList<>();
+            if(bukkitPlayer != null) {
+                if(!zombiesPlayerMap.containsKey(player)) {
+                    zombiesPlayerMap.put(player, new ZombiesPlayer(this, bukkitPlayer, map.getStartingCoins()));
+                }
+                else {
+                    ZombiesPlayer zombiesPlayer = zombiesPlayerMap.get(player);
+                    zombiesPlayer.rejoin();
+                }
 
-        for(Player player : players) {
-            playerMap.put(player.getUniqueId(), new ZombiesPlayer(this, player, map.getStartingCoins()));
-            futures.add(player.teleportAsync(WorldUtils.locationFrom(world, map.getSpawn())));
+                bukkitPlayer.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
+            }
+            else {
+                Zombies.getInstance().getLogger().warning(String.format("When attempting to add players to " +
+                        "ZombiesArena, UUID %s was not found.", player.toString()));
+            }
         }
-
-        for(CompletableFuture<?> future : futures) {
-            future.join();
-        }
     }
 
-    private void removePlayers(Player[] players) {
-        for(Player player : players) {
-            playerMap.remove(player.getUniqueId()).close();
+    private void removePlayers(Collection<UUID> players) {
+        for(UUID player : players) {
+            ZombiesPlayer zombiesPlayer = zombiesPlayerMap.get(player);
+            zombiesPlayer.quit();
+
+            //teleport player to destination lobby
         }
     }
 
@@ -202,10 +291,37 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     }
 
     private void startCountdown() {
-
+        //do countdown timer; at the end, call doRound() to kick off the game
     }
 
     private void resetCountdown() {
+        //reset countdown timer
+    }
 
+    private void doRound() {
+        Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
+        int currentRoundIndex = currentRoundProperty.get(this);
+
+        List<RoundData> rounds = map.getRounds();
+        if(currentRoundIndex < rounds.size()) {
+            RoundData currentRound = rounds.get(currentRoundIndex);
+
+            long cumulativeDelay = 0;
+            for (WaveData wave : currentRound.getWaves()) {
+                cumulativeDelay += wave.getWaveLength();
+
+                waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
+                    spawnMobs(wave.getMobs(), spawner);
+                    waveSpawnerTasks.remove(0);
+                }, cumulativeDelay));
+            }
+
+            currentRoundProperty.set(this, currentRoundIndex + 1);
+        }
+        else {
+            //game just finished, do win condition
+
+            close();
+        }
     }
 }
