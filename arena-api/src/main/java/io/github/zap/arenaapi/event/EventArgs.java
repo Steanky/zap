@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public abstract class EventArgs<T extends Event<?>> {
+public abstract class EventArgs<T extends Event<T>> {
     @Getter
-    private T sender;
+    private final T event;
 }

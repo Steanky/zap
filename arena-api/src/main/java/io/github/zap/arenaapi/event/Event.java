@@ -14,7 +14,7 @@ public abstract class Event<T extends Event<T>> {
         handlerList.remove(handler);
     }
 
-    public void callEvent(EventArgs<T> arguments) {
+    protected void callEvent(EventArgs<T> arguments) {
         for(EventHandler<T> handler : handlerList) {
             handler.handleEvent(arguments);
         }
