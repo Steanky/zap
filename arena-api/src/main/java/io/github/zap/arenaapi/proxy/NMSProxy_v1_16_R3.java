@@ -9,7 +9,7 @@ import org.bukkit.entity.EntityType;
 import java.util.Optional;
 import java.util.UUID;
 
-public class NMSUtilProxy_v1_16_R3 implements NMSProxy {
+public class NMSProxy_v1_16_R3 implements NMSProxy {
 
     @Override
     public int nextEntityId() {

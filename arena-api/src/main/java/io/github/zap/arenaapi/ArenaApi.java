@@ -4,7 +4,7 @@ import com.comphenix.protocol.ProtocolLib;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
-import io.github.zap.arenaapi.proxy.NMSUtilProxy_v1_16_R3;
+import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
@@ -55,7 +55,7 @@ public final class ArenaApi extends JavaPlugin {
         //noinspection SwitchStatementWithTooFewBranches
         switch (Bukkit.getBukkitVersion()) {
             case "1.16.4-R0.1-SNAPSHOT":
-                nmsProxy = new NMSUtilProxy_v1_16_R3();
+                nmsProxy = new NMSProxy_v1_16_R3();
                 break;
             default:
                 throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));

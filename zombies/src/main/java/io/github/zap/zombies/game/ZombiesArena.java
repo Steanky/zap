@@ -289,6 +289,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             if(room.isSpawn() || room.getOpenProperty().get(this)) {
                 List<MythicMob> mobs = wave.getMobs();
 
+                spawnpointLoop:
                 do {
                     boolean spawned = false;
 
@@ -298,11 +299,16 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
                             if(spawner.canSpawn(this, spawnpoint, mob)) {
                                 Entity entity = spawner.spawnAt(this, spawnpoint, mob);
+                                mobs.remove(i);
 
                                 if(entity != null) {
                                     this.mobs.add(entity.getUniqueId());
                                     spawned = true;
                                     break;
+                                }
+
+                                if(mobs.size() == 0) { //avoid redundant iteration with empty mobs list
+                                    break spawnpointLoop;
                                 }
                             }
                         }

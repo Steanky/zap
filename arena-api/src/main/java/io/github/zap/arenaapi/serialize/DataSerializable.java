@@ -212,7 +212,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
 
         if(fieldType instanceof ParameterizedType) {
             parameterizedType = (ParameterizedType)fieldType;
-            fieldClass = (Class<?>)parameterizedType.getRawType(); //extract generic type information
+            fieldClass = (Class<?>)parameterizedType.getRawType(); //get generic type information
         }
         else {
             fieldClass = (Class<?>)fieldType; //there is no generic type information
@@ -257,7 +257,7 @@ public abstract class DataSerializable implements ConfigurationSerializable {
             }
 
             //noinspection Convert2Lambda
-            oldMap.forEach(new BiConsumer<Object, Object>() {
+            oldMap.forEach(new BiConsumer<>() {
                 @SuppressWarnings("unchecked")
                 @SneakyThrows
                 @Override

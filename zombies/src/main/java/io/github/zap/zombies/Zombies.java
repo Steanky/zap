@@ -146,8 +146,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
          */
 
-        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
-                ShopData.class, SpawnpointData.class, WindowData.class);
+        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class, ShopData.class,
+                SpawnpointData.class, WindowData.class, RoundData.class, WaveData.class);
 
         DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<>() {
             @Override
