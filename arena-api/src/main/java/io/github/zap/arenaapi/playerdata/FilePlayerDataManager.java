@@ -66,8 +66,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
                 break;
             }
 
-            FilePlayerData removedValue = cache.get(remove); //get the value so we can save it if needed
-            cacheKeys.remove(remove); //remove the first entry
+            FilePlayerData removedValue = cache.remove(remove); //get the value so we can save it if needed
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
                 loader.save(removedValue, playerFile, id.toString());
