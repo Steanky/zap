@@ -147,6 +147,9 @@ public class MapData extends DataSerializable {
      */
     final List<RoundData> rounds = new ArrayList<>();
 
+    @Serialize(skip = true)
+    final Property<Integer> currentRoundProperty = new Property<>(0);
+
     private MapData() { }
 
     /**

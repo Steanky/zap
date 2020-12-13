@@ -49,6 +49,7 @@ public class ZombiesPlayer implements Listener {
 
     private WindowData targetWindow;
     private int windowRepairTaskId = -1;
+    private int reviveTaskId = -1;
 
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
@@ -113,14 +114,14 @@ public class ZombiesPlayer implements Listener {
             state = ZombiesPlayerState.KNOCKED;
 
             /*
-            downed player code here
+            downed player code here. if timeout ends, set state to dead and call arena.checkPlayerState()
              */
         }
     }
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
-        if(event.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+        if(event.getPlayer().getUniqueId().equals(player.getUniqueId()) && isInGame()) {
             quit();
         }
     }

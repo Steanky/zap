@@ -14,8 +14,11 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.*;
@@ -44,7 +47,11 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     private final Spawner spawner = new RangelessSpawner();
     private int timeoutTaskId = -1;
-    private int waveSpawnerTaskId = -1;
+
+    private final List<Integer> waveSpawnerTasks = new ArrayList<>();
+
+    @Getter
+    private final Set<UUID> mobs = new HashSet<>();
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
@@ -56,6 +63,8 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         super(manager, world);
         this.map = map;
         this.emptyTimeout = emptyTimeout;
+
+        Bukkit.getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
     public boolean handleJoin(JoinInformation joinAttempt) {
@@ -149,17 +158,48 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     }
 
     /**
+     * Whenever a death occurs, check player state (we may have a fail condition)
+     */
+    public void checkPlayerState() {
+        for(ZombiesPlayer zombiesPlayer : zombiesPlayers) {
+            if(zombiesPlayer.isAlive()) {
+                return;
+            }
+        }
+
+        //game loss code here
+    }
+
+    @EventHandler
+    private void onMobDeath(EntityDeathEvent event) {
+        if(mobs.remove(event.getEntity().getUniqueId())) {
+            if(mobs.size() == 0) { //round ended, begin next one
+                doRound();
+            }
+        }
+    }
+
+    /**
      * Used internally to "gracefully" shut down the arena — without sending error messages to the player.
      */
     private void close() {
+        //unregister events
+        EntityDeathEvent.getHandlerList().unregister(this);
+
+        //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
         scheduler.cancelTask(timeoutTaskId);
-        scheduler.cancelTask(waveSpawnerTaskId);
 
+        for(int taskId : waveSpawnerTasks) { //usually won't get run unless we just terminated
+            scheduler.cancelTask(taskId);
+        }
+
+        //close players
         for(ZombiesPlayer player : zombiesPlayers) {
             player.close();
         }
 
+        //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
         manager.removeArena(this);
     }
@@ -210,56 +250,70 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     }
 
     private void startCountdown() {
-
+        //do countdown timer; at the end, call doRound() to kick off the game
     }
 
     private void resetCountdown() {
-
+        //reset countdown timer
     }
 
-    private void start() {
-        if(state == ZombiesArenaState.COUNTDOWN) {
-            //display start message to all players
-            state = ZombiesArenaState.STARTED;
+    private void doRound() {
+        Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
+        int currentRoundIndex = currentRoundProperty.get(this);
+
+        List<RoundData> rounds = map.getRounds();
+        if(currentRoundIndex < rounds.size()) {
+            RoundData currentRound = rounds.get(currentRoundIndex);
 
             long cumulativeDelay = 0;
+            for (WaveData wave : currentRound.getWaves()) {
+                cumulativeDelay += wave.getWaveLength();
 
-            for(RoundData round : map.getRounds()) {
-                for(WaveData wave : round.getWaves()) {
-                    cumulativeDelay += wave.getWaveLength();
+                waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
+                    spawnWave(wave);
+                    waveSpawnerTasks.remove(0);
+                }, cumulativeDelay));
+            }
 
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
-                        //TODO: broadcast wave start
+            currentRoundProperty.set(this, currentRoundIndex + 1);
+        }
+        else {
+            //game just finished, do win condition
 
-                        for(RoomData room : map.getRooms()) {
-                            if(room.isSpawn() || room.getOpenProperty().get(this)) {
-                                List<MythicMob> mobs = wave.getMobs();
+            close();
+        }
+    }
 
-                                do {
-                                    boolean spawned = false;
+    private void spawnWave(WaveData wave) {
+        for(RoomData room : map.getRooms()) {
+            if(room.isSpawn() || room.getOpenProperty().get(this)) {
+                List<MythicMob> mobs = wave.getMobs();
 
-                                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
-                                        for(int i = mobs.size() - 1; i >= 0; i--) {
-                                            MythicMob mob = mobs.get(i);
+                do {
+                    boolean spawned = false;
 
-                                            if(spawner.canSpawn(this, spawnpoint, mob)) {
-                                                spawner.spawnAt(this, spawnpoint, mob);
-                                                spawned = true;
-                                                break;
-                                            }
-                                        }
-                                    }
+                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
+                        for(int i = mobs.size() - 1; i >= 0; i--) {
+                            MythicMob mob = mobs.get(i);
 
-                                    if(!spawned) {
-                                        Zombies.warning("A wave occured, but no zombies were spawned! Skipping it.");
-                                        break;
-                                    }
+                            if(spawner.canSpawn(this, spawnpoint, mob)) {
+                                Entity entity = spawner.spawnAt(this, spawnpoint, mob);
+
+                                if(entity != null) {
+                                    this.mobs.add(entity.getUniqueId());
+                                    spawned = true;
+                                    break;
                                 }
-                                while(mobs.size() > 0);
                             }
                         }
-                    }, cumulativeDelay);
+                    }
+
+                    if(!spawned) {
+                        Zombies.warning("A wave occurred, but no zombies were spawned! Skipping it.");
+                        break;
+                    }
                 }
+                while(mobs.size() > 0);
             }
         }
     }
