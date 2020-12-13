@@ -71,6 +71,8 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private LocalizationManager localizationManager;
 
+    public static final String ARENA_METADATA_NAME = "zombies_arena";
+
     @Override
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();

@@ -24,8 +24,6 @@ import java.util.*;
         description = "Special goal that only cares about players in the current game and has an infinite range."
 )
 public class PathfinderGoalTargetPlayerUnbounded extends Pathfinder implements PathfindingGoal {
-    private static final String ARENA_METADATA_NAME = "zombies_arena";
-
     private final EntityCreature nmsEntity;
     private int tickCount;
     private ZombiesArena arena = null;
@@ -41,9 +39,10 @@ public class PathfinderGoalTargetPlayerUnbounded extends Pathfinder implements P
     }
 
     private void loadMetadata() {
-        if(entity.hasMetadata(ARENA_METADATA_NAME) && entity.getMetadata(ARENA_METADATA_NAME).isPresent()) {
-            arena = (ZombiesArena) entity.getMetadata(ARENA_METADATA_NAME).get();
+        if(entity.getMetadata(Zombies.ARENA_METADATA_NAME).isPresent()) {
+            arena = (ZombiesArena) entity.getMetadata(Zombies.ARENA_METADATA_NAME).get();
             loadedMetadata = true;
+
             MapData map = arena.getMap();
             mobRetargetTicks = map.getMobRetargetTicks();
             shouldRetarget = map.getMobRetargetTicks() != -1;
@@ -99,6 +98,8 @@ public class PathfinderGoalTargetPlayerUnbounded extends Pathfinder implements P
      * or who are not in survival or adventure mode.
      */
     private void retarget() {
+        //TODO: pass NMS calls through proxy interface
+
         NavigationAbstract navigator = nmsEntity.getNavigation();
         Map<BlockPosition, List<ZombiesPlayer>> positionMappings = new HashMap<>();
 
@@ -130,7 +131,8 @@ public class PathfinderGoalTargetPlayerUnbounded extends Pathfinder implements P
                 }
             }
             else {
-                Zombies.warning("PathEntity#getFinalPoint() returned null. Player may be out of bounds.");
+                Zombies.info("PathEntity#getFinalPoint() returned null, meaning the navigator was unable to find a" +
+                        " valid path to any player. This may be indicative of an out-of-bounds exploit!");
             }
         }
         else {

@@ -15,7 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 @MythicMechanic(
         author = "NoVegetals",
@@ -37,15 +37,16 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
         if(target != null && entity.hasLineOfSight(target)) {
             BukkitWorld world = (BukkitWorld)target.getLocation().getWorld();
             AbstractLocation targetLocation = target.getLocation();
-            Block targetBlock = world.getBukkitWorld().getBlockAt(targetLocation.getBlockX(), targetLocation.getBlockY(), targetLocation.getBlockZ());
+            Block targetBlock = world.getBukkitWorld().getBlockAt(targetLocation.getBlockX(),
+                    targetLocation.getBlockY(), targetLocation.getBlockZ());
 
             if(targetBlock.getType().isAir()) {
                 placeCobweb(targetBlock);
             }
             else {
-                targetBlock = WorldUtils.up(world.getBukkitWorld(), targetBlock);
+                targetBlock = WorldUtils.blockRelative(targetBlock, new Vector(0, 1, 0)); //check block above
 
-                if(targetBlock.getType().isAir()) {
+                if(targetBlock.getType().isAir()) { //place block at player's head, if it isn't air
                     placeCobweb(targetBlock);
                 }
             }

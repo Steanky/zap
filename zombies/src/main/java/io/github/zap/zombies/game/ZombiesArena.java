@@ -8,6 +8,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -43,13 +44,14 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
     private final long emptyTimeout;
 
+    @Getter
     private final Spawner spawner = new RangelessSpawner();
-    private int timeoutTaskId = -1;
-
-    private final List<Integer> waveSpawnerTasks = new ArrayList<>();
 
     @Getter
     private final Set<UUID> mobs = new HashSet<>();
+
+    private int timeoutTaskId = -1;
+    private final List<Integer> waveSpawnerTasks = new ArrayList<>();
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
@@ -168,6 +170,48 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         //game loss code here
     }
 
+    public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
+        List<ActiveMob> activeMobs = new ArrayList<>();
+
+        for(RoomData room : map.getRooms()) {
+            if(room.isSpawn() || room.getOpenProperty().get(this)) {
+                do {
+                    boolean spawned = false;
+
+                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
+                        for(int i = mobs.size() - 1; i >= 0; i--) {
+                            MythicMob mythicMob = mobs.get(i);
+
+                            if(spawner.canSpawn(this, spawnpoint, mythicMob)) {
+                                ActiveMob activeMob = spawner.spawnAt(this, spawnpoint, mythicMob);
+                                mobs.remove(i);
+
+                                if(activeMob != null) {
+                                    this.mobs.add(activeMob.getUniqueId());
+                                    activeMobs.add(activeMob);
+                                    spawned = true;
+                                    break;
+                                }
+
+                                if(mobs.size() == 0) { //avoid redundant iteration with empty mobs list
+                                    return activeMobs;
+                                }
+                            }
+                        }
+                    }
+
+                    if(!spawned) {
+                        Zombies.warning("Some enemies could not be spawned.");
+                        return activeMobs;
+                    }
+                }
+                while(mobs.size() > 0);
+            }
+        }
+
+        return activeMobs;
+    }
+
     @EventHandler
     private void onMobDeath(EntityDeathEvent event) {
         if(mobs.remove(event.getEntity().getUniqueId())) {
@@ -268,7 +312,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                 cumulativeDelay += wave.getWaveLength();
 
                 waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
-                    spawnWave(wave);
+                    spawnMobs(wave.getMobs(), spawner);
                     waveSpawnerTasks.remove(0);
                 }, cumulativeDelay));
             }
@@ -279,46 +323,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             //game just finished, do win condition
 
             close();
-        }
-    }
-
-    private void spawnWave(WaveData wave) {
-        for(RoomData room : map.getRooms()) {
-            if(room.isSpawn() || room.getOpenProperty().get(this)) {
-                List<MythicMob> mobs = wave.getMobs();
-
-                spawnpointLoop:
-                do {
-                    boolean spawned = false;
-
-                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
-                        for(int i = mobs.size() - 1; i >= 0; i--) {
-                            MythicMob mob = mobs.get(i);
-
-                            if(spawner.canSpawn(this, spawnpoint, mob)) {
-                                Entity entity = spawner.spawnAt(this, spawnpoint, mob);
-                                mobs.remove(i);
-
-                                if(entity != null) {
-                                    this.mobs.add(entity.getUniqueId());
-                                    spawned = true;
-                                    break;
-                                }
-
-                                if(mobs.size() == 0) { //avoid redundant iteration with empty mobs list
-                                    break spawnpointLoop;
-                                }
-                            }
-                        }
-                    }
-
-                    if(!spawned) {
-                        Zombies.warning("A wave occurred, but no zombies were spawned! Skipping it.");
-                        break;
-                    }
-                }
-                while(mobs.size() > 0);
-            }
         }
     }
 }

@@ -41,7 +41,7 @@ public final class WorldUtils {
         return new Location(world, vector.getX(), vector.getY(), vector.getZ());
     }
 
-    public static Block up(World world, Block block) {
-        return world.getBlockAt(block.getLocation().add(new Vector(0, 1, 0)));
+    public static Block blockRelative(Block origin, Vector offset) {
+        return origin.getWorld().getBlockAt(origin.getLocation().add(offset));
     }
 }
