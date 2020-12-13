@@ -8,8 +8,6 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
-import io.github.zap.zombies.game.mob.RangelessSpawner;
-import io.github.zap.zombies.game.mob.Spawner;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;

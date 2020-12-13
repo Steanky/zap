@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.mob.ai;
+package io.github.zap.zombies.game.mob;
 
 import net.minecraft.server.v1_16_R3.*;
 

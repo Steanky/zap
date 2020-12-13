@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.mob;
+package io.github.zap.zombies.game;
 
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.SpawnpointData;
