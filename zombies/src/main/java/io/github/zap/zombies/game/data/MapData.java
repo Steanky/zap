@@ -87,11 +87,6 @@ public class MapData extends DataSerializable {
     int coinsOnRepair;
 
     /**
-     * Whether or not this map should be joinable by other players after it has started
-     */
-    boolean joinableStarted;
-
-    /**
      * Whether or not spectators are allowed here
      */
     boolean spectatorAllowed;

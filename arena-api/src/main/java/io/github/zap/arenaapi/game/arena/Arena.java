@@ -63,7 +63,7 @@ public abstract class Arena<T extends Arena<T>> implements Unique {
     public abstract void handleLeave(LeaveInformation leaveInformation);
 
     /**
-     * Terminates the arena, regardless of its state.
+     * Cleans up resources and removes the arena from the manager.
      */
-    public abstract void terminate();
+    public abstract void close();
 }

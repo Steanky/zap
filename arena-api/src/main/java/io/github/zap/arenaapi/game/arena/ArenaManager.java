@@ -40,7 +40,7 @@ public abstract class ArenaManager<T extends Arena<T>> {
     public abstract void handleJoin(JoinInformation joinAttempt, Consumer<ImmutablePair<Boolean, String>> onCompletion);
 
     /**
-     * Whether or not this manager accepts players. Can be used to effectively "turn off" an arena.
+     * Whether or not this manager accepts players. Can be used to effectively "turn off" an ArenaManager.
      * @return True if this manager can accept join requests at the current time; false otherwise
      */
     public abstract boolean acceptsPlayers();

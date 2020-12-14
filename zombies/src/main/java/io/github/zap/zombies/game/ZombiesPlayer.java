@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
@@ -22,15 +23,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.Vector;
 
-public class ZombiesPlayer implements Listener {
+public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
     @Getter
     private final ZombiesArena arena;
-
-    @Getter
-    private final Player player;
 
     @Getter
     @Setter
@@ -58,17 +55,16 @@ public class ZombiesPlayer implements Listener {
      * @param coins The number of coins this player starts with
      */
     public ZombiesPlayer(ZombiesArena arena, Player player, int coins) {
+        super(arena, player);
         this.arena = arena;
-        this.player = player;
         this.coins = coins;
 
-        Zombies zombiesPlugin = Zombies.getInstance();
-        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
+        init();
     }
 
     @EventHandler
     private void onPlayerInteract(PlayerInteractEvent event) {
-        if(event.getPlayer().getUniqueId().equals(player.getUniqueId()) && isAlive()) {
+        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId()) && isAlive()) {
             if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
                 Block block = event.getClickedBlock();
 
@@ -92,7 +88,7 @@ public class ZombiesPlayer implements Listener {
 
     @EventHandler
     private void onPlayerSneak(PlayerToggleSneakEvent event) {
-        if(event.getPlayer().getUniqueId().equals(player.getUniqueId()) && isAlive()) {
+        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId()) && isAlive()) {
             if(event.isSneaking()) {
                 if(windowRepairTaskId == -1) {
                     MapData map = arena.getMap();
@@ -109,7 +105,7 @@ public class ZombiesPlayer implements Listener {
 
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
-        if(event.getEntity().getUniqueId().equals(player.getUniqueId()) && isAlive()) {
+        if(event.getEntity().getUniqueId().equals(getPlayer().getUniqueId()) && isAlive()) {
             event.setCancelled(true); //we don't want them to respawn normally
             state = ZombiesPlayerState.KNOCKED;
 
@@ -121,16 +117,48 @@ public class ZombiesPlayer implements Listener {
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
-        if(event.getPlayer().getUniqueId().equals(player.getUniqueId()) && isInGame()) {
+        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId()) && isInGame()) {
             quit();
         }
     }
 
+    public void addCoins(int amount) {
+        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.ADD_GOLD, amount);
+        coins += amount;
+    }
+
+    public void subtractCoins(int amount) {
+        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.SUBTRACT_GOLD, amount);
+        coins -= amount;
+    }
+
+    public boolean isAlive() {
+        return state == ZombiesPlayerState.ALIVE;
+    }
+
+    @Override
+    public void close() {
+        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+        PlayerInteractEvent.getHandlerList().unregister(this);
+        PlayerToggleSneakEvent.getHandlerList().unregister(this);
+        PlayerDeathEvent.getHandlerList().unregister(this);
+        PlayerQuitEvent.getHandlerList().unregister(this);
+    }
+
+    @Override
+    public void init() {
+        Zombies zombiesPlugin = Zombies.getInstance();
+        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
+    }
+
+    /**
+     * Tries to find and repair a window.
+     */
     private void checkForWindow() {
         MapData map = arena.getMap();
 
         if(targetWindow == null) { //our target window is null, so look for one
-            WindowData window = map.windowAtRange(player.getLocation().toVector(), map.getWindowRepairRadius());
+            WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius());
 
             if(window != null) {
                 targetWindow = window;
@@ -138,7 +166,7 @@ public class ZombiesPlayer implements Listener {
             }
         }
         else { //we already have a target window - make sure it's still in range
-            if(targetWindow.inRange(player.getLocation().toVector(), map.getWindowRepairRadius())) {
+            if(targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius())) {
                 tryRepairWindow(targetWindow);
             }
             else {
@@ -154,11 +182,11 @@ public class ZombiesPlayer implements Listener {
     private boolean tryOpenDoor(Vector targetBlock) {
         MapData map = arena.getMap();
 
-        if(ItemStackUtils.isEmpty(player.getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
+        if(ItemStackUtils.isEmpty(getPlayer().getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
             DoorData door = map.doorAt(targetBlock);
 
             if(door != null) {
-                DoorSide side = door.sideAt(player.getLocation().toVector());
+                DoorSide side = door.sideAt(getPlayer().getLocation().toVector());
 
                 if(side != null) {
                     if(coins >= side.getCost()) {
@@ -168,7 +196,7 @@ public class ZombiesPlayer implements Listener {
                         return true;
                     }
                     else { //can't afford door
-                        Zombies.sendLocalizedMessage(player, MessageKey.CANT_AFFORD);
+                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANT_AFFORD);
                     }
                 }
             }
@@ -207,61 +235,12 @@ public class ZombiesPlayer implements Listener {
             }
             else {
                 //can't repair because someone else already is, send message to player about that
-                Zombies.sendLocalizedMessage(player, MessageKey.WINDOW_REPAIR_FAIL_PLAYER);
+                Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_PLAYER);
             }
         }
         else {
             //can't repair because there is a something attacking the window, send message to player about that
-            Zombies.sendLocalizedMessage(player, MessageKey.WINDOW_REPAIR_FAIL_MOB);
+            Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_MOB);
         }
-    }
-
-    public void addCoins(int amount) {
-        Zombies.sendLocalizedMessage(player, MessageKey.ADD_GOLD, amount);
-        coins += amount;
-    }
-
-    public void subtractCoins(int amount) {
-        Zombies.sendLocalizedMessage(player, MessageKey.SUBTRACT_GOLD, amount);
-        coins -= amount;
-    }
-
-    /**
-     * Called when the player rejoins the game
-     */
-    public void rejoin() {
-        inGame = true;
-
-        Zombies zombiesPlugin = Zombies.getInstance();
-        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
-
-        /*
-        may or may not need to give the player their items and such back
-         */
-    }
-
-    /**
-     * Called when the player leaves the game
-     */
-    public void quit() {
-        state = ZombiesPlayerState.DEAD;
-        inGame = false;
-
-        close(); //turn off events and tasks
-    }
-
-    /**
-     * Unregisters all events and cancels all tasks managed by this player.
-     */
-    public void close() {
-        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-        PlayerInteractEvent.getHandlerList().unregister(this);
-        PlayerToggleSneakEvent.getHandlerList().unregister(this);
-        PlayerDeathEvent.getHandlerList().unregister(this);
-        PlayerQuitEvent.getHandlerList().unregister(this);
-    }
-
-    public boolean isAlive() {
-        return state == ZombiesPlayerState.ALIVE;
     }
 }

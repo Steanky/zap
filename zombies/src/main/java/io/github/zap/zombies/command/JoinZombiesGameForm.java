@@ -33,7 +33,8 @@ public class JoinZombiesGameForm extends CommandForm {
 
     @Override
     public String execute(Context context, Object[] arguments) {
-        Player player = (Player) context.getSender();
+        /*
+                Player player = (Player) context.getSender();
         ArenaApi api = Zombies.getInstance().getArenaApi();
         JoinInformation testInformation = new JoinInformation(player.getUniqueId(), ImmutableSet.of(player.getUniqueId()), false,
                 "zombies", "test_map", null);
@@ -43,6 +44,7 @@ public class JoinZombiesGameForm extends CommandForm {
                 player.sendMessage(pair.right);
             }
         });
+        */
 
         return ">green{Attemping to join a game...}";
     }

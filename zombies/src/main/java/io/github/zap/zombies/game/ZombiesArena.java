@@ -1,11 +1,9 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.game.arena.Arena;
+import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
-import io.github.zap.arenaapi.game.arena.LeaveInformation;
-import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.MessageKey;
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
@@ -13,8 +11,6 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -25,16 +21,7 @@ import java.util.*;
 /**
  * Encapsulates an active Zombies game and handles most related logic.
  */
-public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
-    @Getter
-    private final Map<UUID, ZombiesPlayer> zombiesPlayerMap = new HashMap<>();
-
-    @Getter
-    private final Collection<ZombiesPlayer> zombiesPlayers = zombiesPlayerMap.values();
-
-    @Getter
-    private final Set<UUID> spectators = new HashSet<>();
-
+public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> implements Listener {
     @Getter
     private final MapData map;
 
@@ -60,114 +47,42 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(manager, world);
+        super(manager, world, (arena, player) -> new ZombiesPlayer(arena, player, arena.getMap().getStartingCoins()));
         this.map = map;
         this.emptyTimeout = emptyTimeout;
 
         Bukkit.getPluginManager().registerEvents(this, Zombies.getInstance());
+        playerJoinEvent.registerHandler(this::onPlayerJoin);
+        playerLeaveEvent.registerHandler(this::onPlayerLeave);
     }
 
-    public boolean handleJoin(JoinInformation joinAttempt) {
-        Set<UUID> joiningPlayers = joinAttempt.getPlayers();
-
-        if(joinAttempt.isSpectator()) {
-            if(map.isSpectatorAllowed()) {
-                spectators.addAll(joiningPlayers);
-                return true;
-            }
-        }
-        else {
-            int newSize = zombiesPlayerMap.size() + joiningPlayers.size();
-
-            if(newSize <= map.getMaximumCapacity()) { //we can fit the players
-                switch (state) {
-                    case PREGAME:
-                        if(newSize >= map.getMinimumCapacity()) {
-                            startCountdown(); //we have enough to start
-                        }
-                        break;
-                    case STARTED:
-                        if(!map.isJoinableStarted()) { //support players joining midgame..?
-                            return false;
-                        }
-                        break;
-                }
-
-                resetTimeout(); //reset timeout task
-                addPlayers(joiningPlayers);
-                return true;
-            }
-        }
-
+    @Override
+    public boolean joinAllowed(JoinInformation attempt) {
         return false;
     }
 
     @Override
-    public void handleLeave(LeaveInformation leaveAttempt) {
-        Set<UUID> leavingPlayers = leaveAttempt.getPlayers();
-
-        if(leaveAttempt.isSpectator()) {
-            spectators.removeAll(leavingPlayers);
-        }
-        else {
-            removePlayers(leavingPlayers);
-            int currentSize = zombiesPlayerMap.size();
-
-            switch(state) {
-                case PREGAME:
-                    if(currentSize == 0) {
-                        startTimeout();
-                    }
-                    break;
-                case COUNTDOWN:
-                    if(currentSize == 0) {
-                        startTimeout();
-                    }
-
-                    if(currentSize < map.getMinimumCapacity()) { //cancel countdown if too many people left
-                        resetCountdown();
-                    }
-                    break;
-                case STARTED:
-                    if(currentSize == 0) {
-                        if(!map.isJoinableStarted()) {
-                            close(); //close immediately if nobody can rejoin
-                        }
-                        else {
-                            startTimeout(); //otherwise, wait
-                        }
-                    }
-                    break;
-            }
-
-        }
+    public ZombiesArena getArena() {
+        return this;
     }
 
     @Override
-    public void terminate() { //non-graceful termination; might happen mid game, sends error messages
-        Zombies.warning(String.format("Arena '%s', belonging to manager '%s', was terminated.", id.toString(),
-                manager.getGameName()));
+    public void close() {
+        super.close();
 
-        for(ZombiesPlayer zombiesPlayer : zombiesPlayers) {
-            if(zombiesPlayer.isInGame()) {
-                Zombies.sendLocalizedMessage(zombiesPlayer.getPlayer(), MessageKey.ARENA_TERMINATION);
-            }
+        //unregister events
+        EntityDeathEvent.getHandlerList().unregister(this);
+
+        //unregister tasks
+        BukkitScheduler scheduler = Bukkit.getScheduler();
+        scheduler.cancelTask(timeoutTaskId);
+
+        for(int taskId : waveSpawnerTasks) { //usually won't get run unless we just terminated
+            scheduler.cancelTask(taskId);
         }
 
-        close();
-    }
-
-    /**
-     * Whenever a death occurs, check player state (we may have a fail condition)
-     */
-    public void checkPlayerState() {
-        for(ZombiesPlayer zombiesPlayer : zombiesPlayers) {
-            if(zombiesPlayer.isAlive()) {
-                return;
-            }
-        }
-
-        //game loss code here
+        //cleanup mappings and remove arena from manager
+        Property.removeMappingsFor(this);
     }
 
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
@@ -220,82 +135,12 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
     }
 
-    /**
-     * Used internally to "gracefully" shut down the arena — without sending error messages to the player.
-     */
-    private void close() {
-        //unregister events
-        EntityDeathEvent.getHandlerList().unregister(this);
+    private void onPlayerJoin(Event<PlayerJoinEventArgs> caller, PlayerJoinEventArgs args) {
 
-        //unregister tasks
-        BukkitScheduler scheduler = Bukkit.getScheduler();
-        scheduler.cancelTask(timeoutTaskId);
-
-        for(int taskId : waveSpawnerTasks) { //usually won't get run unless we just terminated
-            scheduler.cancelTask(taskId);
-        }
-
-        //close players
-        for(ZombiesPlayer player : zombiesPlayers) {
-            player.close();
-        }
-
-        //cleanup mappings and remove arena from manager
-        Property.removeMappingsFor(this);
-        manager.removeArena(this);
     }
 
-    private void addPlayers(Collection<UUID> players) {
-        for(UUID player : players) {
-            Player bukkitPlayer = Bukkit.getPlayer(player);
+    private void onPlayerLeave(Event<PlayerLeaveEventArgs> caller, PlayerLeaveEventArgs args) {
 
-            if(bukkitPlayer != null) {
-                if(!zombiesPlayerMap.containsKey(player)) {
-                    zombiesPlayerMap.put(player, new ZombiesPlayer(this, bukkitPlayer, map.getStartingCoins()));
-                }
-                else {
-                    ZombiesPlayer zombiesPlayer = zombiesPlayerMap.get(player);
-                    zombiesPlayer.rejoin();
-                }
-
-                bukkitPlayer.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
-            }
-            else {
-                Zombies.getInstance().getLogger().warning(String.format("When attempting to add players to " +
-                        "ZombiesArena, UUID %s was not found.", player.toString()));
-            }
-        }
-    }
-
-    private void removePlayers(Collection<UUID> players) {
-        for(UUID player : players) {
-            ZombiesPlayer zombiesPlayer = zombiesPlayerMap.get(player);
-            zombiesPlayer.quit();
-
-            //teleport player to destination lobby
-        }
-    }
-
-    private void startTimeout() {
-        if(timeoutTaskId == -1) {
-            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::close,
-                    emptyTimeout);
-        }
-    }
-
-    private void resetTimeout() {
-        if(timeoutTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(timeoutTaskId);
-            timeoutTaskId = -1;
-        }
-    }
-
-    private void startCountdown() {
-        //do countdown timer; at the end, call doRound() to kick off the game
-    }
-
-    private void resetCountdown() {
-        //reset countdown timer
     }
 
     private void doRound() {
@@ -320,8 +165,29 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
         else {
             //game just finished, do win condition
-
             close();
         }
+    }
+
+    private void startTimeout() {
+        if(timeoutTaskId == -1) {
+            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::close,
+                    emptyTimeout);
+        }
+    }
+
+    private void resetTimeout() {
+        if(timeoutTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(timeoutTaskId);
+            timeoutTaskId = -1;
+        }
+    }
+
+    private void startCountdown() {
+        //do countdown timer; at the end, call doRound() to kick off the game
+    }
+
+    private void resetCountdown() {
+        //reset countdown timer
     }
 }

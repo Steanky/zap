@@ -8,14 +8,9 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -73,9 +68,8 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
-        for(UUID player : information.getPlayers()) {
-            Player bukkitPlayer = Bukkit.getPlayer(player);
-            if(bukkitPlayer != null && !bukkitPlayer.isOnline()) {
+        for(Player player : information.getJoinable().getPlayers()) {
+            if(!player.isOnline()) {
                 onCompletion.accept(ImmutablePair.of(false, MessageKey.OFFLINE_ARENA_REJECTION.getKey()));
                 return;
             }
@@ -152,7 +146,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     @Override
     public void terminate() {
         for(ZombiesArena arena : arenas) {
-            arena.terminate();
+            arena.close();
         }
     }
 }

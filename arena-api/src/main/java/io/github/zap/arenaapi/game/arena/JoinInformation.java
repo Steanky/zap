@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.game.Joinable;
+import io.github.zap.arenaapi.game.Metadata;
 import lombok.Value;
 import org.bukkit.entity.Player;
 
@@ -12,10 +14,9 @@ import java.util.UUID;
  */
 @Value
 public class JoinInformation {
-    UUID leader;
-    Set<UUID> players;
-    boolean spectator;
+    Joinable joinable;
     String gameName;
     String mapName;
     UUID targetArena;
+    Metadata metadata;
 }
