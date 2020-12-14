@@ -1,6 +1,5 @@
 package io.github.zap.zombies;
 
-import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -18,11 +17,14 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -37,6 +39,9 @@ import java.util.logging.Level;
 public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private static Zombies instance; //singleton for our main plugin class
+
+    @Getter
+    private ZombiesNMSProxy nmsProxy;
 
     @Getter
     private ArenaApi arenaApi;
@@ -81,6 +86,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
             initConfig();
+            initProxy();
             initDependencies();
             initSerialization();
             initPlayerDataManager();
@@ -113,6 +119,17 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         config.options().copyDefaults(true);
         saveConfig();
+    }
+
+    private void initProxy() throws LoadFailureException {
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (Bukkit.getBukkitVersion()) {
+            case "1.16.4-R0.1-SNAPSHOT":
+                nmsProxy = new ZombiesNMSProxy_v1_16_R3();
+                break;
+            default:
+                throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));
+        }
     }
 
     private void initDependencies() throws LoadFailureException {
