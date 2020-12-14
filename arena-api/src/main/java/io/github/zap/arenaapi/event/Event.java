@@ -3,20 +3,36 @@ package io.github.zap.arenaapi.event;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Event<T extends Event<T>> {
-    private final List<EventHandler<T>> handlerList = new ArrayList<>();
+/**
+ * Encapsulates an event, which is capable of calling a list of EventHandlers.
+ * @param <T> The type of the object that will be passed to the EventHandler
+ */
+public class Event<T> {
+    private final List<EventHandler<T>> handlers = new ArrayList<>();
 
+    /**
+     * Registers a handler with this event.
+     * @param handler The handler to register
+     */
     public void registerHandler(EventHandler<T> handler) {
-        handlerList.add(handler);
+        handlers.add(handler);
     }
 
+    /**
+     * Removes a handler from this event.
+     * @param handler The handler to remove
+     */
     public void removeHandler(EventHandler<T> handler) {
-        handlerList.remove(handler);
+        handlers.remove(handler);
     }
 
-    protected void callEvent(EventArgs<T> arguments) {
-        for(EventHandler<T> handler : handlerList) {
-            handler.handleEvent(arguments);
+    /**
+     * Calls all handlers for this event using the specified arguments.
+     * @param args The arguments
+     */
+    public void callEvent(T args) {
+        for(EventHandler<T> handler : handlers) {
+            handler.handleEvent(this, args);
         }
     }
 }
