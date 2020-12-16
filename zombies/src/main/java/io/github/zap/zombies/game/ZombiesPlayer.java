@@ -16,11 +16,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
@@ -62,64 +60,47 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         init();
     }
 
-    @EventHandler
-    private void onPlayerInteract(PlayerInteractEvent event) {
-        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId()) && isAlive()) {
-            if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
-                Block block = event.getClickedBlock();
+    protected void onPlayerInteract(PlayerInteractEvent event) {
+        if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
+            Block block = event.getClickedBlock();
 
-                if(block != null) {
-                    Vector clickedVector = block.getLocation().toVector();
-                    if(!tryOpenDoor(clickedVector)) {
+            if(block != null) {
+                Vector clickedVector = block.getLocation().toVector();
+                if(!tryOpenDoor(clickedVector)) {
                         /*
                         if a door wasn't opened, see if there are other right-click actions we can perform gun
                         shooting/inventory item activation/possibly shop activation
                          */
-                    }
-                }
-                else {
-                    /*
-                    air was clicked, so we also need gun shooting/other inventory item activation code here
-                     */
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    private void onPlayerSneak(PlayerToggleSneakEvent event) {
-        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId()) && isAlive()) {
-            if(event.isSneaking()) {
-                if(windowRepairTaskId == -1) {
-                    MapData map = arena.getMap();
-                    windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                            this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
                 }
             }
             else {
-                Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-                windowRepairTaskId = -1;
+                    /*
+                    air was clicked, so we also need gun shooting/other inventory item activation code here
+                     */
             }
         }
     }
 
-    @EventHandler
-    private void onPlayerDeath(PlayerDeathEvent event) {
-        if(event.getEntity().getUniqueId().equals(getPlayer().getUniqueId()) && isAlive()) {
-            event.setCancelled(true); //we don't want them to respawn normally
-            state = ZombiesPlayerState.KNOCKED;
-
-            /*
-            downed player code here. if timeout ends, set state to dead and call arena.checkPlayerState()
-             */
+    protected void onPlayerSneak(PlayerToggleSneakEvent event) {
+        if(event.isSneaking()) {
+            if(windowRepairTaskId == -1) {
+                MapData map = arena.getMap();
+                windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+                        this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
+            }
+        }
+        else {
+            Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+            windowRepairTaskId = -1;
         }
     }
 
-    @EventHandler
-    private void onPlayerQuit(PlayerQuitEvent event) {
-        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId()) && isInGame()) {
-            quit();
-        }
+    protected void onPlayerDeath(PlayerDeathEvent event) {
+        state = ZombiesPlayerState.KNOCKED;
+
+        /*
+        downed player code here. if timeout ends, set state to dead and call arena.checkPlayerState()
+        */
     }
 
     public void addCoins(int amount) {
@@ -139,16 +120,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Override
     public void close() {
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-        PlayerInteractEvent.getHandlerList().unregister(this);
-        PlayerToggleSneakEvent.getHandlerList().unregister(this);
-        PlayerDeathEvent.getHandlerList().unregister(this);
-        PlayerQuitEvent.getHandlerList().unregister(this);
-    }
-
-    @Override
-    public void init() {
-        Zombies zombiesPlugin = Zombies.getInstance();
-        zombiesPlugin.getServer().getPluginManager().registerEvents(this, zombiesPlugin);
     }
 
     /**

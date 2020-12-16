@@ -2,7 +2,6 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
-import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
@@ -11,6 +10,7 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -53,14 +53,27 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.map = map;
         this.emptyTimeout = emptyTimeout;
 
-        Bukkit.getPluginManager().registerEvents(this, Zombies.getInstance());
         playerJoinEvent.registerHandler(this::onPlayerJoin);
         playerLeaveEvent.registerHandler(this::onPlayerLeave);
     }
 
     @Override
-    public boolean joinAllowed(JoinInformation attempt) {
-        return false;
+    public boolean canAcceptNew(Player player) {
+        return state == ZombiesArenaState.COUNTDOWN || state == ZombiesArenaState.PREGAME &&
+                getManagedPlayerMap().size() <= map.getMaximumCapacity();
+    }
+
+    @Override
+    public boolean canAcceptExisting(ZombiesPlayer player) {
+        return state == ZombiesArenaState.STARTED;
+    }
+
+    private void onPlayerJoin(Event<PlayerListArgs> caller, PlayerListArgs args) {
+
+    }
+
+    private void onPlayerLeave(Event<PlayerListArgs> caller, PlayerListArgs args) {
+
     }
 
     @Override
@@ -130,19 +143,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @EventHandler
     private void onMobDeath(EntityDeathEvent event) {
-        if(mobs.remove(event.getEntity().getUniqueId())) {
+        if(state == ZombiesArenaState.STARTED && mobs.remove(event.getEntity().getUniqueId())) {
             if(mobs.size() == 0) { //round ended, begin next one
                 doRound();
             }
         }
-    }
-
-    private void onPlayerJoin(Event<PlayerListArgs> caller, PlayerListArgs args) {
-
-    }
-
-    private void onPlayerLeave(Event<PlayerListArgs> caller, PlayerListArgs args) {
-
     }
 
     private void doRound() {
@@ -167,6 +172,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
         else {
             //game just finished, do win condition
+            state = ZombiesArenaState.ENDED;
             close();
         }
     }

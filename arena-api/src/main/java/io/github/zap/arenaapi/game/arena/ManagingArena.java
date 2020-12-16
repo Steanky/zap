@@ -1,19 +1,18 @@
 package io.github.zap.arenaapi.game.arena;
 
 import io.github.zap.arenaapi.event.Event;
-import io.github.zap.arenaapi.game.Joinable;
 import lombok.Getter;
 import lombok.Value;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T>
         implements Listener {
@@ -54,81 +53,83 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     @EventHandler
     private void onPlayerInteract(PlayerInteractEvent event) {
-        filterPlayerEvent(event, playerInteractEvent);
+        proxyEvent(event, event.getPlayer(), playerInteractEvent, (managed) -> managed.onPlayerInteract(event));
     }
 
     @EventHandler
     private void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
-        filterPlayerEvent(event, playerInteractAtEntityEvent);
+        proxyEvent(event, event.getPlayer(), playerInteractAtEntityEvent, (managed) ->
+                managed.onPlayerInteractAtEntity(event));
     }
 
     @EventHandler
     private void onPlayerSneak(PlayerToggleSneakEvent event) {
-        filterPlayerEvent(event, playerSneakEvent);
+        proxyEvent(event, event.getPlayer(), playerSneakEvent, (managed) -> managed.onPlayerSneak(event));
     }
 
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
-        filterEntityEvent(event, playerDeathEvent);
+        proxyEvent(event, event.getEntity(), playerDeathEvent, (managed) -> managed.onPlayerDeath(event));
     }
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
-        S managedPlayer = managedPlayerMap.get(event.getPlayer().getUniqueId());
 
-        if(validatePlayer(managedPlayer)) {
-            //TODO: construct default LeaveInformation and call handleLeave()
-        }
     }
 
-    private <U extends EntityEvent> void filterEntityEvent(U bukkit, Event<BukkitProxyArgs<U>> arenaapi) {
-        S managedPlayer = managedPlayerMap.get(bukkit.getEntity().getUniqueId());
-
-        if(validatePlayer(managedPlayer)) {
-            arenaapi.callEvent(new BukkitProxyArgs<>(bukkit, managedPlayer));
-        }
+    private S getManagedIfValid(Player player) {
+        S managedPlayer = managedPlayerMap.get(player.getUniqueId());
+        return managedPlayer != null ? (managedPlayer.isInGame() ? managedPlayer : null) : null;
     }
 
-    private <U extends PlayerEvent> void filterPlayerEvent(U bukkit, Event<BukkitProxyArgs<U>> arenaapi) {
-        S managedPlayer = managedPlayerMap.get(bukkit.getPlayer().getUniqueId());
+    private <U extends org.bukkit.event.Event> void proxyEvent(U event, Player player,
+                                                               Event<BukkitProxyArgs<U>> proxyEvent,
+                                                               Consumer<S> postCall) {
+        S managedPlayer = getManagedIfValid(player);
 
-        if(validatePlayer(managedPlayer)) {
-            arenaapi.callEvent(new BukkitProxyArgs<>(bukkit, managedPlayer));
+        if(managedPlayer != null) {
+            proxyEvent.callEvent(new BukkitProxyArgs<>(event, managedPlayer));
+
+            if(postCall != null) {
+                postCall.accept(managedPlayer);
+            }
         }
-    }
-
-    private boolean validatePlayer(S player) {
-        return player != null && player.isInGame();
     }
 
     @Override
     public boolean handleJoin(JoinInformation joinAttempt) {
-        if(joinAllowed(joinAttempt)) {
-            List<S> joiningPlayers = new ArrayList<>();
+        List<S> joiningPlayers = new ArrayList<>();
 
-            for(Player player : joinAttempt.getJoinable().getPlayers()) {
-                UUID uuid = player.getUniqueId();
-                S managedPlayer = managedPlayerMap.get(uuid);
+        for(Player player : joinAttempt.getJoinable().getPlayers()) {
+            UUID uuid = player.getUniqueId();
+            S managedPlayer = managedPlayerMap.get(uuid);
 
-                if(managedPlayer != null) {
+            if(managedPlayer != null) {
+                if(canAcceptExisting(managedPlayer)) {
                     managedPlayer.rejoin();
                 }
                 else {
+                    return false;
+                }
+            }
+            else {
+                if(canAcceptNew(player)) {
                     managedPlayer = playerWrapper.wrapPlayer(getArena(), player);
                     managedPlayerMap.put(uuid, managedPlayer);
                 }
-
-                joiningPlayers.add(managedPlayer);
+                else {
+                    return false;
+                }
             }
 
-            if(joiningPlayers.size() > 0) {
-                playerJoinEvent.callEvent(new PlayerListArgs(joiningPlayers));
-            }
-
-            return true;
+            joiningPlayers.add(managedPlayer);
         }
 
-        return false;
+        if(joiningPlayers.size() > 0) {
+            playerJoinEvent.callEvent(new PlayerListArgs(joiningPlayers));
+        }
+
+        return true;
     }
 
     @Override
@@ -151,21 +152,22 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     @Override
     public void close() {
-        //close players
-        for(S player : managedPlayerMap.values()) {
+        for(S player : managedPlayerMap.values()) { //close players
             player.close();
         }
 
-        manager.removeArena(getArena());
-
         PlayerInteractEvent.getHandlerList().unregister(this);
-        PlayerDeathEvent.getHandlerList().unregister(this);
-        PlayerToggleSneakEvent.getHandlerList().unregister(this);
         PlayerInteractAtEntityEvent.getHandlerList().unregister(this);
+        PlayerToggleSneakEvent.getHandlerList().unregister(this);
+        PlayerDeathEvent.getHandlerList().unregister(this);
         PlayerQuitEvent.getHandlerList().unregister(this);
+
+        manager.removeArena(getArena());
     }
 
-    public abstract boolean joinAllowed(JoinInformation attempt);
+    public abstract boolean canAcceptNew(Player player);
+
+    public abstract boolean canAcceptExisting(S player);
 
     protected abstract T getArena();
 }

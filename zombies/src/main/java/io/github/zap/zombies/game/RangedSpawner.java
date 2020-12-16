@@ -12,9 +12,9 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 public class RangedSpawner implements Spawner {
     @Override
     public boolean canSpawn(ZombiesArena arena, SpawnpointData spawnpoint, MythicMob mob) {
-        int minRangeSq = arena.getMap().getSpawnRadiusSquared();
-
         if(spawnpoint.getWhitelist().contains(mob)) {
+            int minRangeSq = arena.getMap().getSpawnRadiusSquared();
+
             for(ZombiesPlayer player : arena.getManagedPlayerMap().values()) {
                 if(player.isInGame() && player.isAlive()) {
                     //mimics Hypixel's range check on zombie spawns

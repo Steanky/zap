@@ -4,6 +4,10 @@ import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import java.util.UUID;
 
@@ -65,12 +69,38 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     }
 
     /**
-     * Performs cleanup tasks
+     * Performs cleanup tasks. This is called when the arena shuts down or the player quits the game. The actions
+     * performed by this function generally should be reversible, as the player may rejoin the game at a later date.
      */
-    public abstract void close();
+    public void close() {}
 
     /**
-     * Performs initialization tasks (reverses the effects of close())
+     * Performs initialization tasks. This should fully reverse the effects of close() unless the game is designed
+     * such that rejoining is penalized somehow.
      */
-    public abstract void init();
+    public void init() {}
+
+    /**
+     * Called when this player interacts with a block or air.
+     * @param event The PlayerInteractEvent
+     */
+    protected void onPlayerInteract(PlayerInteractEvent event) {}
+
+    /**
+     * Called when this player interacts with an entity.
+     * @param event The PlayerInteractAtEntityEvent
+     */
+    protected void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {}
+
+    /**
+     * Called when this player sneaks.
+     * @param event The PlayerToggleSneakEvent
+     */
+    protected void onPlayerSneak(PlayerToggleSneakEvent event) {}
+
+    /**
+     * Called when this player dies.
+     * @param event The PlayerDeathEvent
+     */
+    protected void onPlayerDeath(PlayerDeathEvent event) {}
 }
