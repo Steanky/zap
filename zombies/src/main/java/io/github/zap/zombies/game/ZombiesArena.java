@@ -47,7 +47,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(manager, world, (arena, player) -> new ZombiesPlayer(arena, player, arena.getMap().getStartingCoins()));
+        super(Zombies.getInstance(), manager, world, (arena, player) ->
+                new ZombiesPlayer(arena, player, arena.getMap().getStartingCoins()));
+
         this.map = map;
         this.emptyTimeout = emptyTimeout;
 
@@ -62,7 +64,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     @Override
-    public ZombiesArena getArena() {
+    protected ZombiesArena getArena() {
         return this;
     }
 
@@ -135,11 +137,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onPlayerJoin(Event<PlayerJoinEventArgs> caller, PlayerJoinEventArgs args) {
+    private void onPlayerJoin(Event<PlayerListArgs> caller, PlayerListArgs args) {
 
     }
 
-    private void onPlayerLeave(Event<PlayerLeaveEventArgs> caller, PlayerLeaveEventArgs args) {
+    private void onPlayerLeave(Event<PlayerListArgs> caller, PlayerListArgs args) {
 
     }
 

@@ -11,6 +11,14 @@ public class Event<T> {
     private final List<EventHandler<T>> handlers = new ArrayList<>();
 
     /**
+     * Returns the number of handlers registered.
+     * @return The number of handlers registered
+     */
+    public int handlerCount() {
+        return handlers.size();
+    }
+
+    /**
      * Registers a handler with this event.
      * @param handler The handler to register
      */
@@ -24,6 +32,13 @@ public class Event<T> {
      */
     public void removeHandler(EventHandler<T> handler) {
         handlers.remove(handler);
+    }
+
+    /**
+     * Removes all handlers from this event.
+     */
+    public void clearHandlers() {
+        handlers.clear();
     }
 
     /**
