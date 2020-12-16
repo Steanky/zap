@@ -34,9 +34,9 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     protected final Event<PlayerListArgs> playerLeaveEvent = new Event<>();
 
     protected final Event<BukkitProxyArgs<PlayerInteractEvent>> playerInteractEvent = new Event<>();
-    protected final Event<BukkitProxyArgs<PlayerDeathEvent>> playerDeathEvent = new Event<>();
-    protected final Event<BukkitProxyArgs<PlayerToggleSneakEvent>> playerSneakEvent = new Event<>();
     protected final Event<BukkitProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent = new Event<>();
+    protected final Event<BukkitProxyArgs<PlayerToggleSneakEvent>> playerSneakEvent = new Event<>();
+    protected final Event<BukkitProxyArgs<PlayerDeathEvent>> playerDeathEvent = new Event<>();
 
     @Getter
     private final Map<UUID, S> managedPlayerMap = new HashMap<>();
@@ -58,8 +58,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     @EventHandler
-    private void onPlayerDeath(PlayerDeathEvent event) {
-        filterEntityEvent(event, playerDeathEvent);
+    private void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+        filterPlayerEvent(event, playerInteractAtEntityEvent);
     }
 
     @EventHandler
@@ -68,8 +68,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     @EventHandler
-    private void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
-        filterPlayerEvent(event, playerInteractAtEntityEvent);
+    private void onPlayerDeath(PlayerDeathEvent event) {
+        filterEntityEvent(event, playerDeathEvent);
     }
 
     @EventHandler
