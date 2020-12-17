@@ -33,6 +33,8 @@ public class JoinZombiesGameForm extends CommandForm {
 
     @Override
     public String execute(Context context, Object[] arguments) {
+        //TODO: uncomment this after finishing arena rework
+
         /*
                 Player player = (Player) context.getSender();
         ArenaApi api = Zombies.getInstance().getArenaApi();

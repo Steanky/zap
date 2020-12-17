@@ -57,6 +57,15 @@ public class BukkitProxyEvent<T extends org.bukkit.event.Event> extends Predicat
         super.removeHandler(handler);
 
         if(handlerCount() == 0 && eventRegistered) {
+            /*
+            TODO: find a faster way to unregister, as even a janky reflection hack would probably be significantly
+             faster than what this cursed function does. seriously, this piece of work should come with a warning that
+             calling it will result in a massive performance hit. my sanity is slowly declining and it's all because of
+             you, Bukkit. why did you have to do this to me? don't you understand? it's not OKAY to iterate through
+             every. single. listener that has ever been registered by every single plugin, every single time you want
+             to remove a specific listener. USE A HASHMAP FOR THE LOVE OF NOTCH
+             */
+
             HandlerList.unregisterAll(this);
             eventRegistered = false;
         }

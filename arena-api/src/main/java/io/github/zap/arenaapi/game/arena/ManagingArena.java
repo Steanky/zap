@@ -43,14 +43,14 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         this.plugin = plugin;
         this.wrapper = wrapper;
 
-        playerInteractEvent = buildProxyEvent(PlayerInteractEvent.class);
-        playerInteractAtEntityEvent = buildProxyEvent(PlayerInteractAtEntityEvent.class);
-        playerToggleSneakEvent = buildProxyEvent(PlayerToggleSneakEvent.class);
+        playerInteractEvent = buildPlayerEvent(PlayerInteractEvent.class);
+        playerInteractAtEntityEvent = buildPlayerEvent(PlayerInteractAtEntityEvent.class);
+        playerToggleSneakEvent = buildPlayerEvent(PlayerToggleSneakEvent.class);
         playerDeathEvent = new BukkitProxyEvent<>(plugin, event -> validateUUID(event.getEntity().getUniqueId()),
-                PlayerDeathEvent.class);
+                PlayerDeathEvent.class); //PlayerDeathEvent does not extend PlayerEvent because bukkit makes questionable design choices sometimes
     }
 
-    private <U extends PlayerEvent> BukkitProxyEvent<U> buildProxyEvent(Class<U> eventClass) {
+    private <U extends PlayerEvent> BukkitProxyEvent<U> buildPlayerEvent(Class<U> eventClass) {
         return new BukkitProxyEvent<>(plugin, event -> validateUUID(event.getPlayer().getUniqueId()), eventClass);
     }
 
