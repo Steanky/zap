@@ -1,18 +1,20 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.event.BukkitProxyEvent;
 import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 import lombok.Value;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T>
         implements Listener {
@@ -21,79 +23,40 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         List<S> players;
     }
 
-    @Value
-    public class BukkitProxyArgs<U extends org.bukkit.event.Event> {
-        U event;
-        S player;
-    }
-
     protected final Plugin plugin;
 
     protected final Event<PlayerListArgs> playerJoinEvent = new Event<>();
     protected final Event<PlayerListArgs> playerLeaveEvent = new Event<>();
 
-    protected final Event<BukkitProxyArgs<PlayerInteractEvent>> playerInteractEvent = new Event<>();
-    protected final Event<BukkitProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent = new Event<>();
-    protected final Event<BukkitProxyArgs<PlayerToggleSneakEvent>> playerSneakEvent = new Event<>();
-    protected final Event<BukkitProxyArgs<PlayerDeathEvent>> playerDeathEvent = new Event<>();
+    //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
+    protected final Event<PlayerInteractEvent> playerInteractEvent;
+    protected final Event<PlayerInteractAtEntityEvent> playerInteractAtEntityEvent;
+    protected final Event<PlayerToggleSneakEvent> playerToggleSneakEvent;
+    protected final Event<PlayerDeathEvent> playerDeathEvent;
 
     @Getter
     private final Map<UUID, S> managedPlayerMap = new HashMap<>();
-
-    private final ManagedPlayerBuilder<S, T> playerWrapper;
+    private final ManagedPlayerBuilder<S, T> wrapper;
 
     public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {
         super(manager, world);
-
         this.plugin = plugin;
-        playerWrapper = wrapper;
+        this.wrapper = wrapper;
 
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        playerInteractEvent = buildProxyEvent(PlayerInteractEvent.class);
+        playerInteractAtEntityEvent = buildProxyEvent(PlayerInteractAtEntityEvent.class);
+        playerToggleSneakEvent = buildProxyEvent(PlayerToggleSneakEvent.class);
+        playerDeathEvent = new BukkitProxyEvent<>(plugin, event -> validateUUID(event.getEntity().getUniqueId()),
+                PlayerDeathEvent.class);
     }
 
-    @EventHandler
-    private void onPlayerInteract(PlayerInteractEvent event) {
-        proxyEvent(event, event.getPlayer(), playerInteractEvent, (managed) -> managed.onPlayerInteract(event));
+    private <U extends PlayerEvent> BukkitProxyEvent<U> buildProxyEvent(Class<U> eventClass) {
+        return new BukkitProxyEvent<>(plugin, event -> validateUUID(event.getPlayer().getUniqueId()), eventClass);
     }
 
-    @EventHandler
-    private void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
-        proxyEvent(event, event.getPlayer(), playerInteractAtEntityEvent, (managed) ->
-                managed.onPlayerInteractAtEntity(event));
-    }
-
-    @EventHandler
-    private void onPlayerSneak(PlayerToggleSneakEvent event) {
-        proxyEvent(event, event.getPlayer(), playerSneakEvent, (managed) -> managed.onPlayerSneak(event));
-    }
-
-    @EventHandler
-    private void onPlayerDeath(PlayerDeathEvent event) {
-        proxyEvent(event, event.getEntity(), playerDeathEvent, (managed) -> managed.onPlayerDeath(event));
-    }
-
-    @EventHandler
-    private void onPlayerQuit(PlayerQuitEvent event) {
-
-    }
-
-    private S getManagedIfValid(Player player) {
-        S managedPlayer = managedPlayerMap.get(player.getUniqueId());
-        return managedPlayer != null ? (managedPlayer.isInGame() ? managedPlayer : null) : null;
-    }
-
-    private <U extends org.bukkit.event.Event> void proxyEvent(U event, Player player,
-                                                               Event<BukkitProxyArgs<U>> proxyEvent,
-                                                               Consumer<S> postCall) {
-        S managedPlayer = getManagedIfValid(player);
-
-        if(managedPlayer != null) {
-            proxyEvent.callEvent(new BukkitProxyArgs<>(event, managedPlayer));
-
-            if(postCall != null) {
-                postCall.accept(managedPlayer);
-            }
-        }
+    private boolean validateUUID(UUID uuid) {
+        S managedPlayer = managedPlayerMap.get(uuid);
+        return managedPlayer != null && managedPlayer.isInGame();
     }
 
     @Override
@@ -114,7 +77,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
             }
             else {
                 if(canAcceptNew(player)) {
-                    managedPlayer = playerWrapper.wrapPlayer(getArena(), player);
+                    managedPlayer = wrapper.wrapPlayer(getArena(), player);
                     managedPlayerMap.put(uuid, managedPlayer);
                 }
                 else {
@@ -155,12 +118,6 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         for(S player : managedPlayerMap.values()) { //close players
             player.close();
         }
-
-        PlayerInteractEvent.getHandlerList().unregister(this);
-        PlayerInteractAtEntityEvent.getHandlerList().unregister(this);
-        PlayerToggleSneakEvent.getHandlerList().unregister(this);
-        PlayerDeathEvent.getHandlerList().unregister(this);
-        PlayerQuitEvent.getHandlerList().unregister(this);
 
         manager.removeArena(getArena());
     }

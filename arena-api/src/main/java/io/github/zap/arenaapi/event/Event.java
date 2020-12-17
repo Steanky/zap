@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.event;
 
+import org.bukkit.event.HandlerList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +37,9 @@ public class Event<T> {
     }
 
     /**
-     * Removes all handlers from this event.
+     * Performs cleanup tasks.
      */
-    public void clearHandlers() {
+    public void close() {
         handlers.clear();
     }
 

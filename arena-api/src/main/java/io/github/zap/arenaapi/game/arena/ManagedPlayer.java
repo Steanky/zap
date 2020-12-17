@@ -4,10 +4,6 @@ import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import java.util.UUID;
 
@@ -79,28 +75,4 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
      * such that rejoining is penalized somehow.
      */
     public void init() {}
-
-    /**
-     * Called when this player interacts with a block or air.
-     * @param event The PlayerInteractEvent
-     */
-    protected void onPlayerInteract(PlayerInteractEvent event) {}
-
-    /**
-     * Called when this player interacts with an entity.
-     * @param event The PlayerInteractAtEntityEvent
-     */
-    protected void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {}
-
-    /**
-     * Called when this player sneaks.
-     * @param event The PlayerToggleSneakEvent
-     */
-    protected void onPlayerSneak(PlayerToggleSneakEvent event) {}
-
-    /**
-     * Called when this player dies.
-     * @param event The PlayerDeathEvent
-     */
-    protected void onPlayerDeath(PlayerDeathEvent event) {}
 }

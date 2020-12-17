@@ -56,8 +56,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         super(arena, player);
         this.arena = arena;
         this.coins = coins;
-
-        init();
     }
 
     protected void onPlayerInteract(PlayerInteractEvent event) {
