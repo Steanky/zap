@@ -63,7 +63,9 @@ public class BukkitProxyEvent<T extends org.bukkit.event.Event> extends Predicat
              calling it will result in a massive performance hit. my sanity is slowly declining and it's all because of
              you, Bukkit. why did you have to do this to me? don't you understand? it's not OKAY to iterate through
              every. single. listener that has ever been registered by every single plugin, every single time you want
-             to remove a specific listener. USE A HASHMAP FOR THE LOVE OF NOTCH
+             to remove a specific listener. USE A HASHMAP FOR THE LOVE OF NOTCH. oh, and it also enters a monitor on
+             the arraylist used to store handlers. so it's probably going to block not ONLY the main thread, but ALSO
+             potentially some async tasks too. great job! :D :D :D
              */
 
             HandlerList.unregisterAll(this);

@@ -1,7 +1,5 @@
 package io.github.zap.arenaapi.event;
 
-import org.bukkit.event.HandlerList;
-
 import java.util.ArrayList;
 import java.util.List;
 
