@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 
 /**
  * Class that proxies Bukkit events to ArenaApi ones for better encapsulation and control. Event registration with
- * Bukkit occurs as-necessary — simply creating these objects will not impact performance.
+ * Bukkit occurs as-necessary — simply creating these objects will not result in anything.
  *
  * Currently only supports synchronous events.
  * @param <T> The type of Bukkit event we're wrapping
@@ -24,31 +24,18 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
     private final Plugin plugin;
     private final boolean ignoreCancelled;
 
-    @Getter
     private boolean eventRegistered = false;
-
-    @Getter
-    private final HandlerList handlerList;
+    private HandlerList handlerList;
+    private boolean reflectionFailed = false;
 
     public ProxyEvent(Plugin plugin, Predicate<T> predicate, Class<T> bukkitEventClass, EventPriority priority,
                       boolean ignoreCancelled) {
         super(predicate);
 
-        HandlerList list;
         this.plugin = plugin;
         this.bukkitEventClass = bukkitEventClass;
         this.priority = priority;
         this.ignoreCancelled = ignoreCancelled;
-
-        try {
-            list = (HandlerList)bukkitEventClass.getMethod("getHandlers").invoke(null);
-        }
-        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
-            ArenaApi.warning("Failed to construct ProxyEvent due to a reflection-related exception.");
-            list = null;
-        }
-
-        handlerList = list;
     }
 
     public ProxyEvent(Plugin plugin, Predicate<T> predicate, Class<T> bukkitEventClass) {
@@ -91,23 +78,33 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
         }
     }
 
-    @Override
-    public void callEvent(T args) {
-        throw new UnsupportedOperationException("Events cannot be directly called on this instance.");
-    }
-
-    private void callHandlers(T event) {
-        super.callEvent(event);
-    }
-
     private void unregister() {
+        if(handlerList == null && !reflectionFailed) {
+            getHandlerList();
+        }
+
         if(handlerList != null) {
             handlerList.unregister(this);
         }
         else {
-            ArenaApi.warning("Tried to unregister event to which we have no HandlerList reference. Using " +
-                    "HandlerList#unregisterAll instead. This is slow.");
+            ArenaApi.warning("Tried to unregister event to which we have no HandlerList reference. Using HandlerList#" +
+                    "unregisterAll instead.");
             HandlerList.unregisterAll(this);
         }
+    }
+
+    private void getHandlerList() {
+        HandlerList list;
+
+        try {
+            list = (HandlerList)bukkitEventClass.getMethod("getHandlers").invoke(null);
+        }
+        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+            ArenaApi.warning("Failed to construct ProxyEvent due to a reflection-related exception.");
+            list = null;
+            reflectionFailed = true;
+        }
+
+        handlerList = list;
     }
 }

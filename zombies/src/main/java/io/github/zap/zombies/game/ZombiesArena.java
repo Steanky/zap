@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
+import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
@@ -11,7 +12,6 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -40,6 +40,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private int timeoutTaskId = -1;
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
 
+    private final Event<EntityDeathEvent> entityDeathEvent;
+
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      * @param map The map to use
@@ -52,6 +54,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         this.map = map;
         this.emptyTimeout = emptyTimeout;
+
+         entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), (event) -> state == ZombiesArenaState.STARTED &&
+                 mobs.contains(event.getEntity().getUniqueId()), EntityDeathEvent.class);
+         entityDeathEvent.registerHandler(this::onMobDeath);
     }
 
     @Override
@@ -63,8 +69,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void close() {
         super.close();
 
-        //unregister events
-        EntityDeathEvent.getHandlerList().unregister(this);
+        //close events
+        entityDeathEvent.close();
 
         //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
@@ -93,6 +99,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     protected boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
         return (state != ZombiesArenaState.ENDED) && getOnlineCount() + players.size() > map.getMaximumCapacity();
     }
+
 
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
         List<ActiveMob> activeMobs = new ArrayList<>();
@@ -135,12 +142,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         return activeMobs;
     }
 
-    @EventHandler
-    private void onMobDeath(EntityDeathEvent event) {
-        if(state == ZombiesArenaState.STARTED && mobs.remove(event.getEntity().getUniqueId())) {
-            if(mobs.size() == 0) { //round ended, begin next one
-                doRound();
-            }
+    private void onMobDeath(Event<EntityDeathEvent> caller, EntityDeathEvent args) {
+        if(mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
+            doRound();
         }
     }
 
