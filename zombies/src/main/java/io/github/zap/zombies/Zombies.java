@@ -13,6 +13,7 @@ import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.DataSerializable;
 import io.github.zap.arenaapi.serialize.ValueConverter;
+import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
@@ -31,6 +32,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.util.*;
@@ -47,7 +49,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private ArenaApi arenaApi;
 
     @Getter
-    private SWMPlugin SWM; //access SWM through this proxy interface
+    private SWMPlugin SWM;
 
     @Getter
     private File slimeWorldDirectory;
@@ -59,13 +61,13 @@ public final class Zombies extends JavaPlugin implements Listener {
     private SlimeLoader slimeLoader;
 
     @Getter
-    private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
+    private MythicMobs mythicMobs;
 
     @Getter
-    private DataLoader dataLoader; //used to save/load data from custom serialization framework
+    private DataLoader dataLoader;
 
     @Getter
-    private WorldLoader worldLoader; //responsible for loading worlds
+    private WorldLoader worldLoader;
 
     @Getter
     private CommandManager commandManager;
@@ -154,7 +156,8 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     private void initArenaManagers() {
         FileConfiguration config = getConfig();
-        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
+        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(
+                Bukkit.getWorld("world"), new Vector(0, 0, 0)), new File(String.format("plugins/%s/maps",
                 getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
         arenaApi.registerArenaManager(zombiesArenaManager);
     }
@@ -165,8 +168,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
          */
 
-        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class, ShopData.class,
-                SpawnpointData.class, WindowData.class, RoundData.class, WaveData.class);
+        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class,
+                RoundData.class, ShopData.class, SpawnpointData.class, WaveData.class, WindowData.class);
 
         DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<>() {
             @Override

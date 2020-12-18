@@ -8,6 +8,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -35,8 +36,8 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Map<String, MapData> maps = new HashMap<>();
 
-    public ZombiesArenaManager(File dataFolder, int arenaCapacity, int arenaTimeout) {
-        super(NAME);
+    public ZombiesArenaManager(Location hubLocation, File dataFolder, int arenaCapacity, int arenaTimeout) {
+        super(NAME, hubLocation);
         this.dataFolder = dataFolder;
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
@@ -47,13 +48,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         File[] files = dataFolder.listFiles();
         DataLoader loader = Zombies.getInstance().getDataLoader();
 
-        /*
-        MapData data = new MapData("test_world", "Test World", new BoundingBox(), new Vector(),
-                1, 4, 10, 0, 10, false,
-                false, true, true, 4, 0,
-                20, 20, Material.AIR);
-        loader.save(data, Paths.get(dataFolder.getPath(), "test_map.yml").toFile(), DATA_KEY);
-        */
         if(files != null) {
             for(File file : files) {
                 MapData map = loader.load(file, DATA_KEY);
@@ -68,11 +62,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
-        for(Player player : information.getJoinable().getPlayers()) {
-            if(!player.isOnline()) {
-                onCompletion.accept(ImmutablePair.of(false, MessageKey.OFFLINE_ARENA_REJECTION.getKey()));
-                return;
-            }
+        if(!information.getJoinable().validate()) {
+            onCompletion.accept(ImmutablePair.of(false, MessageKey.OFFLINE_ARENA_REJECTION.getKey()));
+            return;
         }
 
         String mapName = information.getMapName();
@@ -123,7 +115,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                 return;
             }
             else {
-                Zombies.warning(String.format("Requested arena '%s' does not exist.", targetArena));
+                Zombies.warning(String.format("Specific requested arena '%s' does not exist.", targetArena));
             }
         }
 

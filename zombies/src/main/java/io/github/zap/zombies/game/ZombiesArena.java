@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
@@ -75,7 +76,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         BukkitScheduler scheduler = Bukkit.getScheduler();
         scheduler.cancelTask(timeoutTaskId);
 
-        for(int taskId : waveSpawnerTasks) { //usually won't get run unless we just terminated
+        for(int taskId : waveSpawnerTasks) {
             scheduler.cancelTask(taskId);
         }
 
@@ -103,6 +104,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         if(state == ZombiesArenaState.PREGAME && getOnlineCount() >= map.getMinimumCapacity()) {
             state = ZombiesArenaState.COUNTDOWN;
             startCountdown();
+        }
+
+        for(Player player : args.getPlayers()) {
+            player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
         }
     }
 
@@ -137,6 +142,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     }
                 }
                 break;
+        }
+
+        for(ZombiesPlayer player : args.getPlayers()) {
+            player.getPlayer().teleport(manager.getHubLocation());
         }
     }
 

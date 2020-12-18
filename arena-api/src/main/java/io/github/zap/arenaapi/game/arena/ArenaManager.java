@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.game.arena;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.Location;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +19,9 @@ import java.util.function.Consumer;
 public abstract class ArenaManager<T extends Arena<T>> {
     @Getter
     private final String gameName;
+
+    @Getter
+    private final Location hubLocation;
 
     protected Map<UUID, T> managedArenas = new HashMap<>();
 

@@ -62,8 +62,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         this.wrapper = wrapper;
 
         //quit events are fully handled by this class
-        Event<PlayerQuitEvent> playerQuitEvent = new FilteredEvent<>(PlayerQuitEvent.class);
-        playerQuitEvent.registerHandler(this::onPlayerQuit);
+        new FilteredEvent<>(PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
     }
 
     private boolean validateEvent(org.bukkit.event.Event event) {

@@ -27,8 +27,9 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
     private final boolean ignoreCancelled;
 
     private boolean eventRegistered = false;
-    private HandlerList handlerList;
     private boolean reflectionFailed = false;
+
+    private HandlerList handlerList;
 
     private static final Map<UUID, List<ProxyEvent<?>>> proxies = new HashMap<>();
 
