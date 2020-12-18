@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.ArenaApi;
+import lombok.Getter;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -17,17 +18,20 @@ import java.util.function.Predicate;
  * Currently only supports synchronous events.
  * @param <T> The type of Bukkit event we're wrapping
  */
-public class BukkitProxyEvent<T extends Event> extends PredicatedEvent<T> implements Listener {
+public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements Listener {
     private final Class<T> bukkitEventClass;
     private final EventPriority priority;
     private final Plugin plugin;
     private final boolean ignoreCancelled;
 
+    @Getter
     private boolean eventRegistered = false;
+
+    @Getter
     private final HandlerList handlerList;
 
-    public BukkitProxyEvent(Plugin plugin, Predicate<T> predicate, Class<T> bukkitEventClass, EventPriority priority,
-                            boolean ignoreCancelled) {
+    public ProxyEvent(Plugin plugin, Predicate<T> predicate, Class<T> bukkitEventClass, EventPriority priority,
+                      boolean ignoreCancelled) {
         super(predicate);
 
         HandlerList list;
@@ -40,14 +44,14 @@ public class BukkitProxyEvent<T extends Event> extends PredicatedEvent<T> implem
             list = (HandlerList)bukkitEventClass.getMethod("getHandlers").invoke(null);
         }
         catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
-            ArenaApi.severe("Failed to construct BukkitProxyEvent due to a reflection-related exception.");
+            ArenaApi.warning("Failed to construct ProxyEvent due to a reflection-related exception.");
             list = null;
         }
 
         handlerList = list;
     }
 
-    public BukkitProxyEvent(Plugin plugin, Predicate<T> predicate, Class<T> bukkitEventClass) {
+    public ProxyEvent(Plugin plugin, Predicate<T> predicate, Class<T> bukkitEventClass) {
         this(plugin, predicate, bukkitEventClass, EventPriority.NORMAL, true);
     }
 
@@ -87,13 +91,22 @@ public class BukkitProxyEvent<T extends Event> extends PredicatedEvent<T> implem
         }
     }
 
+    @Override
+    public void callEvent(T args) {
+        throw new UnsupportedOperationException("Events cannot be directly called on this instance.");
+    }
+
+    private void callHandlers(T event) {
+        super.callEvent(event);
+    }
+
     private void unregister() {
         if(handlerList != null) {
             handlerList.unregister(this);
         }
         else {
             ArenaApi.warning("Tried to unregister event to which we have no HandlerList reference. Using " +
-                    "HandlerList#unregisterAll instead, which has performance problems.");
+                    "HandlerList#unregisterAll instead. This is slow.");
             HandlerList.unregisterAll(this);
         }
     }

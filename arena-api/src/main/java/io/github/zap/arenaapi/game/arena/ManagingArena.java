@@ -1,17 +1,17 @@
 package io.github.zap.arenaapi.game.arena;
 
-import io.github.zap.arenaapi.event.BukkitProxyEvent;
+import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.event.EventHandler;
+import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 import lombok.Value;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
@@ -19,112 +19,212 @@ import java.util.*;
 public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T>
         implements Listener {
     @Value
-    public class PlayerListArgs {
+    public static class PlayerListArgs {
+        List<Player> players;
+    }
+
+    @Value
+    public class ManagedPlayerListArgs {
         List<S> players;
     }
 
-    protected final Plugin plugin;
+    /**
+     * Used internally to route events
+     * @param <U> The type of Bukkit event
+     */
+    private class FilteredEvent<U extends org.bukkit.event.Event> extends ProxyEvent<U> {
+        public FilteredEvent(Class<U> bukkitEventClass) {
+            super(plugin, ManagingArena.this::validateEvent, bukkitEventClass, EventPriority.NORMAL, true);
+        }
+
+        @Override
+        public void registerHandler(EventHandler<U> handler) {
+            super.registerHandler(handler);
+            activeProxies.add(this);
+        }
+
+        @Override
+        public void removeHandler(EventHandler<U> handler) {
+            super.removeHandler(handler);
+
+            if(!isEventRegistered()) {
+                activeProxies.remove(this);
+            }
+        }
+    }
 
     protected final Event<PlayerListArgs> playerJoinEvent = new Event<>();
-    protected final Event<PlayerListArgs> playerLeaveEvent = new Event<>();
+    protected final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
+    protected final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
 
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
-    protected final Event<PlayerInteractEvent> playerInteractEvent;
-    protected final Event<PlayerInteractAtEntityEvent> playerInteractAtEntityEvent;
-    protected final Event<PlayerToggleSneakEvent> playerToggleSneakEvent;
-    protected final Event<PlayerDeathEvent> playerDeathEvent;
+    protected final Event<PlayerInteractEvent> playerInteractEvent = new FilteredEvent<>(PlayerInteractEvent.class);
+    protected final Event<PlayerInteractAtEntityEvent> playerInteractAtEntityEvent = new FilteredEvent<>(PlayerInteractAtEntityEvent.class);
+    protected final Event<PlayerToggleSneakEvent> playerToggleSneakEvent = new FilteredEvent<>(PlayerToggleSneakEvent.class);
+    protected final Event<PlayerDeathEvent> playerDeathEvent = new FilteredEvent<>(PlayerDeathEvent.class);
+
+    private final Plugin plugin;
+    private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
+
+    //holds proxy events so they can be easily closed. this set will only contain proxies that have at least one handler
+    private final Set<ProxyEvent<?>> activeProxies = new HashSet<>();
+
+    private final Map<UUID, S> playerMap = new HashMap<>(); //holds managed player instances
 
     @Getter
-    private final Map<UUID, S> managedPlayerMap = new HashMap<>();
-    private final ManagedPlayerBuilder<S, T> wrapper;
+    private int onlineCount;
 
     public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {
         super(manager, world);
         this.plugin = plugin;
         this.wrapper = wrapper;
 
-        playerInteractEvent = buildPlayerEvent(PlayerInteractEvent.class);
-        playerInteractAtEntityEvent = buildPlayerEvent(PlayerInteractAtEntityEvent.class);
-        playerToggleSneakEvent = buildPlayerEvent(PlayerToggleSneakEvent.class);
-        playerDeathEvent = new BukkitProxyEvent<>(plugin, event -> validateUUID(event.getEntity().getUniqueId()),
-                PlayerDeathEvent.class); //PlayerDeathEvent does not extend PlayerEvent because bukkit makes questionable design choices sometimes
+        //quit events are fully handled by this class
+        Event<PlayerQuitEvent> playerQuitEvent = new FilteredEvent<>(PlayerQuitEvent.class);
+        playerQuitEvent.registerHandler(this::onPlayerQuit);
     }
 
-    private <U extends PlayerEvent> BukkitProxyEvent<U> buildPlayerEvent(Class<U> eventClass) {
-        return new BukkitProxyEvent<>(plugin, event -> validateUUID(event.getPlayer().getUniqueId()), eventClass);
-    }
-
-    private boolean validateUUID(UUID uuid) {
-        S managedPlayer = managedPlayerMap.get(uuid);
-        return managedPlayer != null && managedPlayer.isInGame();
-    }
-
-    @Override
-    public boolean handleJoin(JoinInformation joinAttempt) {
-        List<S> joiningPlayers = new ArrayList<>();
-
-        for(Player player : joinAttempt.getJoinable().getPlayers()) {
-            UUID uuid = player.getUniqueId();
-            S managedPlayer = managedPlayerMap.get(uuid);
-
-            if(managedPlayer != null) {
-                if(canAcceptExisting(managedPlayer)) {
-                    managedPlayer.rejoin();
-                }
-                else {
-                    return false;
-                }
-            }
-            else {
-                if(canAcceptNew(player)) {
-                    managedPlayer = wrapper.wrapPlayer(getArena(), player);
-                    managedPlayerMap.put(uuid, managedPlayer);
-                }
-                else {
-                    return false;
-                }
-            }
-
-            joiningPlayers.add(managedPlayer);
+    private boolean validateEvent(org.bukkit.event.Event event) {
+        UUID uuid = null;
+        if(event instanceof PlayerEvent) {
+            uuid = ((PlayerEvent) event).getPlayer().getUniqueId();
+        }
+        else if(event instanceof PlayerDeathEvent) {
+            uuid = ((PlayerDeathEvent) event).getEntity().getUniqueId();
         }
 
-        if(joiningPlayers.size() > 0) {
-            playerJoinEvent.callEvent(new PlayerListArgs(joiningPlayers));
+        if(uuid != null) {
+            S managedPlayer = playerMap.get(uuid);
+            return managedPlayer != null && managedPlayer.isInGame();
         }
 
         return true;
     }
 
+    private void onPlayerQuit(Event<PlayerQuitEvent> caller, PlayerQuitEvent args) {
+        handleLeave(Lists.newArrayList(args.getPlayer()));
+    }
+
+    /**
+     * Removes a managed player from the internal map, if they exist.
+     * @param id The UUID of the managed player
+     */
+    public void removePlayer(UUID id) {
+        S managedPlayer = playerMap.remove(id);
+
+        if(managedPlayer != null) {
+            managedPlayer.close();
+        }
+    }
+
     @Override
-    public void handleLeave(LeaveInformation leaveInformation) {
-        List<S> leavingPlayers = new ArrayList<>();
+    public boolean handleJoin(List<Player> joining) {
+        if(allowPlayers()) { //arena can deny all join requests
+            List<Player> newPlayers = new ArrayList<>();
+            List<S> rejoiningPlayers = new ArrayList<>();
 
-        for(Player player : leaveInformation.getJoinable().getPlayers()) {
-            S managedPlayer = managedPlayerMap.get(player.getUniqueId());
+            for(Player player : joining) { //sort joining players
+                UUID id = player.getUniqueId();
+                S managedPlayer = playerMap.get(id);
 
-            if(managedPlayer != null) {
+                if(managedPlayer != null) {
+                    if(!managedPlayer.isInGame()) { //don't rejoin redundantly
+                        rejoiningPlayers.add(managedPlayer);
+                    }
+                }
+                else {
+                    newPlayers.add(player);
+                }
+            }
+
+            //perform checks on new/rejoining players
+            if(newPlayers.size() > 0 && !allowPlayerJoin(newPlayers)) {
+                return false;
+            }
+
+            if(rejoiningPlayers.size() > 0 && !allowPlayerRejoin(rejoiningPlayers)) {
+                return false;
+            }
+
+            //if both succeeded, update onlineCount
+            onlineCount += newPlayers.size() + rejoiningPlayers.size();
+
+            if(newPlayers.size() > 0) { //wrap players, call event
+                T arena = getArena();
+                for(Player player : newPlayers) {
+                    playerMap.put(player.getUniqueId(), wrapper.wrapPlayer(arena, player));
+                }
+
+                playerJoinEvent.callEvent(new PlayerListArgs(newPlayers));
+            }
+
+            if(rejoiningPlayers.size() > 0) { //rejoin players, call event
+                for(S rejoiningPlayer : rejoiningPlayers) {
+                    rejoiningPlayer.rejoin();
+                }
+
+                playerRejoinEvent.callEvent(new ManagedPlayerListArgs(rejoiningPlayers));
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void handleLeave(List<Player> leaving) {
+        List<S> leftPlayers = new ArrayList<>();
+        for(Player player : leaving) {
+            S managedPlayer = playerMap.get(player.getUniqueId());
+
+            if(managedPlayer != null && managedPlayer.isInGame()) {
+                leftPlayers.add(managedPlayer);
                 managedPlayer.quit();
-                leavingPlayers.add(managedPlayer);
             }
         }
 
-        if(leavingPlayers.size() > 0) {
-            playerLeaveEvent.callEvent(new PlayerListArgs(leavingPlayers));
+        onlineCount -= leftPlayers.size();
+
+        if(leftPlayers.size() > 0) {
+            playerLeaveEvent.callEvent(new ManagedPlayerListArgs(leftPlayers));
         }
     }
 
     @Override
     public void close() {
-        for(S player : managedPlayerMap.values()) { //close players
+        for(S player : playerMap.values()) { //close players
             player.close();
         }
 
-        manager.removeArena(getArena());
+        for(ProxyEvent<?> proxy : activeProxies) { //close events
+            proxy.close();
+        }
     }
 
-    public abstract boolean canAcceptNew(Player player);
+    /**
+     * Returns true if this arena is in a state to allow players to join or rejoin the game. Returns false otherwise.
+     * @return True if joining/rejoining is allowed, false otherwise
+     */
+    protected abstract boolean allowPlayers();
 
-    public abstract boolean canAcceptExisting(S player);
+    /**
+     * Returns true if the provided list of new players should ALL be allowed to join the game.
+     * @param players The players that are trying to join
+     * @return True if they can join, false otherwise
+     */
+    protected abstract boolean allowPlayerJoin(List<Player> players);
 
+    /**
+     * Returns true if the provided list of players should be able to rejoin the game.
+     * @param players The players that are trying to rejoin
+     * @return True if they can rejoin, false otherwise
+     */
+    protected abstract boolean allowPlayerRejoin(List<S> players);
+
+    /**
+     * Helper method; gets the implementing arena
+     * @return The implementing arena
+     */
     protected abstract T getArena();
 }

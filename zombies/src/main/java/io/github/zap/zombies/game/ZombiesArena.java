@@ -52,28 +52,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         this.map = map;
         this.emptyTimeout = emptyTimeout;
-
-        playerJoinEvent.registerHandler(this::onPlayerJoin);
-        playerLeaveEvent.registerHandler(this::onPlayerLeave);
-    }
-
-    @Override
-    public boolean canAcceptNew(Player player) {
-        return state == ZombiesArenaState.COUNTDOWN || state == ZombiesArenaState.PREGAME &&
-                getManagedPlayerMap().size() <= map.getMaximumCapacity();
-    }
-
-    @Override
-    public boolean canAcceptExisting(ZombiesPlayer player) {
-        return state == ZombiesArenaState.STARTED;
-    }
-
-    private void onPlayerJoin(Event<PlayerListArgs> caller, PlayerListArgs args) {
-
-    }
-
-    private void onPlayerLeave(Event<PlayerListArgs> caller, PlayerListArgs args) {
-
     }
 
     @Override
@@ -98,6 +76,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
+    }
+
+    @Override
+    protected boolean allowPlayers() {
+        return state != ZombiesArenaState.ENDED;
+    }
+
+    @Override
+    protected boolean allowPlayerJoin(List<Player> players) {
+        return (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) &&
+                getOnlineCount() + players.size() > map.getMaximumCapacity();
+    }
+
+    @Override
+    protected boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
+        return (state != ZombiesArenaState.ENDED) && getOnlineCount() + players.size() > map.getMaximumCapacity();
     }
 
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {

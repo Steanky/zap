@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.game;
 
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,5 +19,5 @@ public interface Joinable {
      * Gets the players contained in this instance.
      * @return The players contained in this instance
      */
-    Set<Player> getPlayers();
+    List<Player> getPlayers();
 }

@@ -55,7 +55,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     }
 
     /**
-     * Called when the player rejoins the arena
+     * Called when the player rejoins the arena. This occurs before playerRejoinEvent is fired.
      */
     public void rejoin() {
         if(!inGame) {
@@ -71,8 +71,8 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void close() {}
 
     /**
-     * Performs initialization tasks. This should fully reverse the effects of close() unless the game is designed
-     * such that rejoining is penalized somehow.
+     * Performs initialization tasks. This could reverse some of the effects of close(). This is called when the
+     * player rejoins the game.
      */
     public void init() {}
 }

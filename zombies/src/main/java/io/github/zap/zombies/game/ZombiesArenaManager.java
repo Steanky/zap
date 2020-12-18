@@ -80,7 +80,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
         if(mapName != null) {
             for(ZombiesArena arena : arenas) {
-                if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information)) {
+                if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information.getJoinable().getPlayers())) {
                     onCompletion.accept(ImmutablePair.of(true, null));
                     return;
                 }
@@ -94,7 +94,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                     managedArenas.put(arena.getId(), arena);
 
-                    if(arena.handleJoin(information)) {
+                    if(arena.handleJoin(information.getJoinable().getPlayers())) {
                         onCompletion.accept(ImmutablePair.of(true, null));
                     }
                     else {
@@ -113,7 +113,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             ZombiesArena arena = managedArenas.get(targetArena);
 
             if(arena != null) {
-                if(arena.handleJoin(information)) {
+                if(arena.handleJoin(information.getJoinable().getPlayers())) {
                     onCompletion.accept(ImmutablePair.of(true, null));
                 }
                 else {
