@@ -100,6 +100,16 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         }
     }
 
+    public void removePlayer(S player) {
+        removePlayer(player.getId());
+    }
+
+    public void removePlayers(Iterable<S> players) {
+        for(S player : players) {
+            removePlayer(player);
+        }
+    }
+
     @Override
     public boolean handleJoin(List<Player> joining) {
         if(allowPlayers()) { //arena can deny all join requests

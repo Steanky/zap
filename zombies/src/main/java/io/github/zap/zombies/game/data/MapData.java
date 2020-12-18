@@ -101,6 +101,11 @@ public class MapData extends DataSerializable {
      */
     boolean forceStart;
 
+    /**
+     * Whether this map allows players to rejoin after the game has started
+     */
+    boolean allowRejoin;
+
 
     /**
      * The squared distance in blocks from which zombies *must* spawn from a player

@@ -57,6 +57,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 (event) -> state == ZombiesArenaState.STARTED && mobs.contains(event.getEntity().getUniqueId()),
                 EntityDeathEvent.class);
         entityDeathEvent.registerHandler(this::onMobDeath);
+
+        playerJoinEvent.registerHandler(this::onPlayerJoin);
+        playerLeaveEvent.registerHandler(this::onPlayerLeave);
     }
 
     @Override
@@ -66,7 +69,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Override
     public void close() {
-        super.close(); //any events we register will get un-registered by the superclass
+        super.close(); //any events we register will get un-registered by the superclass. it's magic :)
 
         //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
@@ -88,14 +91,62 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     protected boolean allowPlayerJoin(List<Player> players) {
         return (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) &&
-                getOnlineCount() + players.size() > map.getMaximumCapacity();
+                getOnlineCount() + players.size() <= map.getMaximumCapacity();
     }
 
     @Override
     protected boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
-        return (state != ZombiesArenaState.ENDED) && getOnlineCount() + players.size() > map.getMaximumCapacity();
+        return state == ZombiesArenaState.STARTED && map.isAllowRejoin();
     }
 
+    private void onPlayerJoin(Event<PlayerListArgs> caller, PlayerListArgs args) {
+        if(state == ZombiesArenaState.PREGAME && getOnlineCount() >= map.getMinimumCapacity()) {
+            state = ZombiesArenaState.COUNTDOWN;
+            startCountdown();
+        }
+    }
+
+    private void onPlayerLeave(Event<ManagedPlayerListArgs> caller, ManagedPlayerListArgs args) {
+        switch (state) {
+            case PREGAME:
+                if(getOnlineCount() == 0) {
+                    startTimeout();
+                }
+
+                removePlayers(args.getPlayers());
+                break;
+            case COUNTDOWN:
+                if(getOnlineCount() == 0) {
+                    startTimeout();
+                }
+
+                if(getOnlineCount() < map.getMinimumCapacity()) {
+                    state = ZombiesArenaState.PREGAME;
+                    stopCountdown();
+                }
+
+                removePlayers(args.getPlayers());
+                break;
+            case STARTED:
+                if(getOnlineCount() == 0) {
+                    if(map.isAllowRejoin()) {
+                        startTimeout(); //if people can rejoin, wait a bit before closing
+                    }
+                    else {
+                        close(); //otherwise, just close
+                    }
+                }
+                break;
+        }
+    }
+
+    private void onMobDeath(Event<EntityDeathEvent> caller, EntityDeathEvent args) {
+        mobs.remove(args.getEntity().getUniqueId());
+
+        if(mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
+            doRound();
+        }
+    }
 
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
         List<ActiveMob> activeMobs = new ArrayList<>();
@@ -136,12 +187,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
 
         return activeMobs;
-    }
-
-    private void onMobDeath(Event<EntityDeathEvent> caller, EntityDeathEvent args) {
-        if(mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
-            doRound();
-        }
     }
 
     private void doRound() {
@@ -189,7 +234,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         //do countdown timer; at the end, call doRound() to kick off the game
     }
 
-    private void resetCountdown() {
+    private void stopCountdown() {
         //reset countdown timer
     }
 }
