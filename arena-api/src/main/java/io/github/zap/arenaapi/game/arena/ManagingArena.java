@@ -15,6 +15,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 
+@Getter
 public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T>
         implements Listener {
     @Value
@@ -38,23 +39,21 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         }
     }
 
-    protected final Event<PlayerListArgs> playerJoinEvent = new Event<>();
-    protected final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
-    protected final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
+    private final Event<PlayerListArgs> playerJoinEvent = new Event<>();
+    private final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
+    private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
 
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
-    protected final Event<PlayerInteractEvent> playerInteractEvent = new FilteredEvent<>(PlayerInteractEvent.class);
-    protected final Event<PlayerInteractAtEntityEvent> playerInteractAtEntityEvent = new FilteredEvent<>(PlayerInteractAtEntityEvent.class);
-    protected final Event<PlayerToggleSneakEvent> playerToggleSneakEvent = new FilteredEvent<>(PlayerToggleSneakEvent.class);
-    protected final Event<PlayerDeathEvent> playerDeathEvent = new FilteredEvent<>(PlayerDeathEvent.class);
+    private final Event<PlayerInteractEvent> playerInteractEvent = new FilteredEvent<>(PlayerInteractEvent.class);
+    private final Event<PlayerInteractAtEntityEvent> playerInteractAtEntityEvent = new FilteredEvent<>(PlayerInteractAtEntityEvent.class);
+    private final Event<PlayerToggleSneakEvent> playerToggleSneakEvent = new FilteredEvent<>(PlayerToggleSneakEvent.class);
+    private final Event<PlayerDeathEvent> playerDeathEvent = new FilteredEvent<>(PlayerDeathEvent.class);
 
     private final Plugin plugin;
     private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
 
-    @Getter
     private final Map<UUID, S> playerMap = new HashMap<>(); //holds managed player instances
 
-    @Getter
     private int onlineCount;
 
     public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {

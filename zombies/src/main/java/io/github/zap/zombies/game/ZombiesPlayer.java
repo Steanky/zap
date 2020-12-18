@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -56,57 +57,67 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         super(arena, player);
         this.arena = arena;
         this.coins = coins;
+
+        arena.getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
+        arena.getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
+        arena.getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
     }
 
-    protected void onPlayerInteract(PlayerInteractEvent event) {
-        if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
-            Block block = event.getClickedBlock();
+    private void onPlayerInteract(Event<PlayerInteractEvent> caller, PlayerInteractEvent event) {
+        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId())) {
+            if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
+                Block block = event.getClickedBlock();
 
-            if(block != null) {
-                Vector clickedVector = block.getLocation().toVector();
-                if(!tryOpenDoor(clickedVector)) {
+                if(block != null) {
+                    Vector clickedVector = block.getLocation().toVector();
+                    if(!tryOpenDoor(clickedVector)) {
                         /*
                         if a door wasn't opened, see if there are other right-click actions we can perform gun
                         shooting/inventory item activation/possibly shop activation
                          */
+                    }
                 }
-            }
-            else {
+                else {
                     /*
                     air was clicked, so we also need gun shooting/other inventory item activation code here
                      */
+                }
             }
         }
     }
 
-    protected void onPlayerSneak(PlayerToggleSneakEvent event) {
-        if(event.isSneaking()) {
-            if(windowRepairTaskId == -1) {
-                MapData map = arena.getMap();
-                windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                        this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
+    private void onPlayerSneak(Event<PlayerToggleSneakEvent> caller, PlayerToggleSneakEvent event) {
+        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId())) {
+            if(event.isSneaking()) {
+                if(windowRepairTaskId == -1) {
+                    MapData map = arena.getMap();
+                    windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+                            this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
+                }
             }
-        }
-        else {
-            Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-            windowRepairTaskId = -1;
+            else {
+                Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+                windowRepairTaskId = -1;
+            }
         }
     }
 
-    protected void onPlayerDeath(PlayerDeathEvent event) {
-        state = ZombiesPlayerState.KNOCKED;
+    private void onPlayerDeath(Event<PlayerDeathEvent> caller, PlayerDeathEvent event) {
+        if(event.getEntity().getUniqueId().equals(getPlayer().getUniqueId())) {
+            state = ZombiesPlayerState.KNOCKED;
 
         /*
         downed player code here. if timeout ends, set state to dead and call arena.checkPlayerState()
         */
+        }
     }
 
-    public void addCoins(int amount) {
+    private void addCoins(int amount) {
         Zombies.sendLocalizedMessage(getPlayer(), MessageKey.ADD_GOLD, amount);
         coins += amount;
     }
 
-    public void subtractCoins(int amount) {
+    private void subtractCoins(int amount) {
         Zombies.sendLocalizedMessage(getPlayer(), MessageKey.SUBTRACT_GOLD, amount);
         coins -= amount;
     }

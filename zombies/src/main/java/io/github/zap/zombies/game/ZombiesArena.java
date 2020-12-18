@@ -58,8 +58,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 EntityDeathEvent.class);
         entityDeathEvent.registerHandler(this::onMobDeath);
 
-        playerJoinEvent.registerHandler(this::onPlayerJoin);
-        playerLeaveEvent.registerHandler(this::onPlayerLeave);
+        getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
     }
 
     @Override

@@ -92,8 +92,7 @@ public class PathfinderGoalTargetPlayerUnbounded extends Pathfinder implements P
     public void end() { }
 
     /**
-     * Sets the closest valid player as this entity's target. Cannot target players who are not participating in a game,
-     * or who are not in survival or adventure mode.
+     * Sets the closest valid player as this entity's target.
      */
     private void retarget() {
         target = navigationProxy.findClosest(arena);
