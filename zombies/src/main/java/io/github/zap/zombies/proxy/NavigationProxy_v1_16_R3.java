@@ -24,7 +24,7 @@ public class NavigationProxy_v1_16_R3 implements NavigationProxy {
     public ZombiesPlayer findClosest(ZombiesArena arena) {
         Map<BlockPosition, List<ZombiesPlayer>> positionMappings = new HashMap<>();
 
-        for(ZombiesPlayer player : arena.getManagedPlayerMap().values()) {
+        for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             Player bukkitPlayer = player.getPlayer();
             Location location = bukkitPlayer.getLocation();
             BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(),

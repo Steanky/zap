@@ -51,6 +51,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Plugin plugin;
     private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
 
+    @Getter
     private final Map<UUID, S> playerMap = new HashMap<>(); //holds managed player instances
 
     @Getter
