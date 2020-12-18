@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
-import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;

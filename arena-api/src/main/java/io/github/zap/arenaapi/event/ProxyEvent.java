@@ -48,6 +48,10 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
         this(plugin, handlingInstance, predicate, bukkitEventClass, EventPriority.NORMAL, true);
     }
 
+    public ProxyEvent(Plugin plugin, Unique handlingInstance, Class<T> bukkitEventClass) {
+        this(plugin, handlingInstance, (ignored) -> true, bukkitEventClass);
+    }
+
     /**
      * Closes all ProxyEvent instances associated with the provided Unique, and removes the Unique's mapping from
      * the internal map.
@@ -131,7 +135,7 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
             handlerList.unregister(this);
         }
         else {
-            ArenaApi.warning("Using slow method of handler un-registration.");
+            ArenaApi.warning("Used slow method of handler un-registration due to a reflection-related exception.");
             HandlerList.unregisterAll(this);
         }
 

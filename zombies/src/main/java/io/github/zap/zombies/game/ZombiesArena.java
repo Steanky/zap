@@ -40,8 +40,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private int timeoutTaskId = -1;
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
 
-    private final Event<EntityDeathEvent> entityDeathEvent;
-
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      * @param map The map to use
@@ -49,15 +47,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(Zombies.getInstance(), manager, world, (arena, player) ->
-                new ZombiesPlayer(arena, player, arena.getMap().getStartingCoins()));
+        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, player,
+                arena.getMap().getStartingCoins()));
 
         this.map = map;
         this.emptyTimeout = emptyTimeout;
 
-         entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this, (event) -> state ==
-                 ZombiesArenaState.STARTED && mobs.contains(event.getEntity().getUniqueId()), EntityDeathEvent.class);
-         entityDeathEvent.registerHandler(this::onMobDeath);
+        Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
+                (event) -> state == ZombiesArenaState.STARTED && mobs.contains(event.getEntity().getUniqueId()),
+                EntityDeathEvent.class);
+        entityDeathEvent.registerHandler(this::onMobDeath);
     }
 
     @Override
@@ -67,7 +66,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Override
     public void close() {
-        super.close();
+        super.close(); //any events we register will get un-registered by the superclass
 
         //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
