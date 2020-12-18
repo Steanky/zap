@@ -34,22 +34,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      */
     private class FilteredEvent<U extends org.bukkit.event.Event> extends ProxyEvent<U> {
         public FilteredEvent(Class<U> bukkitEventClass) {
-            super(plugin, ManagingArena.this::validateEvent, bukkitEventClass, EventPriority.NORMAL, true);
-        }
-
-        @Override
-        public void registerHandler(EventHandler<U> handler) {
-            super.registerHandler(handler);
-            activeProxies.add(this);
-        }
-
-        @Override
-        public void removeHandler(EventHandler<U> handler) {
-            super.removeHandler(handler);
-
-            if(!isEventRegistered()) {
-                activeProxies.remove(this);
-            }
+            super(plugin, ManagingArena.this, ManagingArena.this::validateEvent, bukkitEventClass,
+                    EventPriority.NORMAL, true);
         }
     }
 
@@ -65,9 +51,6 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     private final Plugin plugin;
     private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
-
-    //holds proxy events so they can be easily closed. this set will only contain proxies that have at least one handler
-    private final Set<ProxyEvent<?>> activeProxies = new HashSet<>();
 
     private final Map<UUID, S> playerMap = new HashMap<>(); //holds managed player instances
 
@@ -197,9 +180,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
             player.close();
         }
 
-        for(ProxyEvent<?> proxy : activeProxies) { //close events
-            proxy.close();
-        }
+        ProxyEvent.closeAll(this); //closes proxy events
     }
 
     /**

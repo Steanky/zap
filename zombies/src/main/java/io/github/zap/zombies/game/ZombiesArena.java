@@ -55,8 +55,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.map = map;
         this.emptyTimeout = emptyTimeout;
 
-         entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), (event) -> state == ZombiesArenaState.STARTED &&
-                 mobs.contains(event.getEntity().getUniqueId()), EntityDeathEvent.class);
+         entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this, (event) -> state ==
+                 ZombiesArenaState.STARTED && mobs.contains(event.getEntity().getUniqueId()), EntityDeathEvent.class);
          entityDeathEvent.registerHandler(this::onMobDeath);
     }
 
@@ -68,9 +68,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void close() {
         super.close();
-
-        //close events
-        entityDeathEvent.close();
 
         //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
