@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.game;
 
-import io.github.zap.arenaapi.serialize.DataSerializable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -10,7 +9,7 @@ import java.util.List;
 /**
  * Encapsulates a bounding box made up of any number of axis-aligned bounding boxes.
  */
-public class MultiBoundingBox extends DataSerializable {
+public class MultiBoundingBox {
     private final List<BoundingBox> boundingBoxes = new ArrayList<>();
 
     /**

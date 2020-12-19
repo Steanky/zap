@@ -1,8 +1,6 @@
 package io.github.zap.zombies.game.data;
 
 import io.github.zap.arenaapi.game.MultiBoundingBox;
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,8 +15,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("ZombiesDoorSide")
-public class DoorSide extends DataSerializable {
+public class DoorSide {
     /**
      * What it will cost to open the door from this side.
      */
@@ -27,7 +24,7 @@ public class DoorSide extends DataSerializable {
     /**
      * The names of the rooms this DoorSide will open, when it is purchased.
      */
-    ArrayList<String> opensTo;
+    List<String> opensTo;
 
     /**
      * The bounds in which the player must stand in order to open the door from this side.

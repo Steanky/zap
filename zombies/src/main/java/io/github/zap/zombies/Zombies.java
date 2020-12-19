@@ -1,6 +1,5 @@
 package io.github.zap.zombies;
 
-import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -10,10 +9,8 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
-import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.ValueConverter;
+import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
@@ -31,6 +28,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -71,7 +69,11 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private LocalizationManager localizationManager;
 
+    public static final String DEFAULT_LOCALE = "en_US";
     public static final String ARENA_METADATA_NAME = "zombies_arena";
+    public static final String LOCALIZATION_FOLDER_NAME = "localization";
+    public static final String MAP_FOLDER_NAME = "maps";
+    public static final String PLAYER_DATA_FILE_NAME = "playerdata.json";
 
     @Override
     public void onEnable() {
@@ -107,9 +109,9 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
         config.addDefault(ConfigNames.ARENA_TIMEOUT, 300000);
         config.addDefault(ConfigNames.DATA_CACHE_CAPACITY, 2048);
-        config.addDefault(ConfigNames.DEFAULT_LOCALE, "en_US");
-        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, String.format("plugins/%s/localization",
-                PluginNames.ZOMBIES));
+        config.addDefault(ConfigNames.DEFAULT_LOCALE, DEFAULT_LOCALE);
+        config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
+                LOCALIZATION_FOLDER_NAME));
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -137,8 +139,9 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     private void initArenaManagers() {
         FileConfiguration config = getConfig();
-        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(new File(String.format("plugins/%s/maps",
-                getName())), config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(Path.of(getDataFolder().getPath(),
+                MAP_FOLDER_NAME).toFile(), config.getInt(ConfigNames.MAX_WORLDS),
+                config.getInt(ConfigNames.ARENA_TIMEOUT));
         arenaApi.registerArenaManager(zombiesArenaManager);
     }
 
@@ -148,25 +151,16 @@ public final class Zombies extends JavaPlugin implements Listener {
         (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
          */
 
-        dataLoader = new BukkitDataLoader(DoorData.class, DoorSide.class, MapData.class, RoomData.class, ShopData.class,
-                SpawnpointData.class, WindowData.class, RoundData.class, WaveData.class);
+        dataLoader = new JacksonDataLoader();
 
-        DataSerializable.registerGlobalConverter(MythicMob.class, String.class, new ValueConverter<>() {
-            @Override
-            public String serialize(MythicMob object) {
-                return object.getInternalName();
-            }
+        dataLoader.save(new TestData("This is a third test."), new File("test.json"), "test3");
 
-            @Override
-            public MythicMob deserialize(String object) {
-                return MythicMobs.inst().getAPIHelper().getMythicMob(object);
-            }
-        });
+        TestData data = dataLoader.load(new File("test.json"), TestData.class, "test3");
     }
 
     private void initPlayerDataManager() {
-        playerDataManager = new FilePlayerDataManager(new File(String.format("plugins/%s/playerdata.yml",
-                PluginNames.ZOMBIES)), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
+        playerDataManager = new FilePlayerDataManager(Path.of(getDataFolder().getPath(), PLAYER_DATA_FILE_NAME)
+                .toFile(), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
     }
 
     private void initLocalization() throws LoadFailureException {

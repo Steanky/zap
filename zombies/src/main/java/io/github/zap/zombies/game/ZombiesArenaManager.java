@@ -61,7 +61,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         */
         if(files != null) {
             for(File file : files) {
-                MapData map = loader.load(file, DATA_KEY);
+                MapData map = loader.load(file, MapData.class, DATA_KEY);
                 maps.put(map.getName(), map);
             }
         }

@@ -36,7 +36,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
 
         String name = id.toString();
         try { //data was not cached; try to load the playerdata from a file
-            data = loader.load(playerFile, name);
+            data = loader.load(playerFile, FilePlayerData.class, name);
         }
         catch (ClassCastException e) { //there's some kind of invalid data there
             ArenaApi.warning(String.format("Tried to load non-PlayerData object at name %s in the playerdata file",

@@ -1,7 +1,5 @@
 package io.github.zap.zombies.game.data;
 
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,8 +12,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("ZombiesShop")
-public class ShopData extends DataSerializable {
+public class ShopData {
     ShopType type;
 
     private ShopData() {}
