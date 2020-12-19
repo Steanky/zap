@@ -153,9 +153,9 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         dataLoader = new JacksonDataLoader();
 
-        dataLoader.save(new TestData("This is a third test."), new File("test.json"), "test3");
+        dataLoader.save(new TestData("This is a third test."), new File("test.json"));
 
-        TestData data = dataLoader.load(new File("test.json"), TestData.class, "test3");
+        TestData data = dataLoader.load(new File("test.json"), TestData.class);
     }
 
     private void initPlayerDataManager() {

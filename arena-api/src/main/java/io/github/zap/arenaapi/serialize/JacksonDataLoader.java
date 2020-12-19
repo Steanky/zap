@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.serialize;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -18,29 +17,18 @@ public class JacksonDataLoader implements DataLoader {
     private final ObjectReader reader = objectMapper.reader();
 
     @Override
-    public void save(Object data, File file, String name) {
+    public void save(Object data, File file) {
         try {
-            ObjectNode node = (ObjectNode)objectMapper.readTree(file);
-            node.set(name, JsonNodeFactory.instance.pojoNode(data));
-
-            writer.writeValue(file, node);
+            writer.writeValue(file, data);
         } catch (IOException e) {
             ArenaApi.warning("IOException when writing data to file.");
         }
     }
 
     @Override
-    public <T> T load(File file, Class<T> objectClass, String name) {
+    public <T> T load(File file, Class<T> objectClass) {
         try {
-            JsonNode node = objectMapper.readTree(file);
-            JsonNode target = node.findValue(name);
-
-            if(target != null) {
-                return reader.readValue(target, objectClass);
-            }
-            else {
-                ArenaApi.warning(String.format("Node key %s does not exist.", name));
-            }
+            return reader.readValue(file, objectClass);
         } catch (IOException e) {
             ArenaApi.warning("IOException when reading data from file.");
         }

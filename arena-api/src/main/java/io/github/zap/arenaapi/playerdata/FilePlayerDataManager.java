@@ -3,14 +3,13 @@ package io.github.zap.arenaapi.playerdata;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.util.*;
 
 public class FilePlayerDataManager implements PlayerDataManager {
     @Getter
-    private final File playerFile;
+    private final File dataFolder;
 
     @Getter
     private final DataLoader loader;
@@ -20,14 +19,15 @@ public class FilePlayerDataManager implements PlayerDataManager {
 
     private final Map<UUID, FilePlayerData> cache = new LinkedHashMap<>();
 
-    public FilePlayerDataManager(File playerFile, DataLoader loader, int memoryCacheLength) {
-        this.playerFile = playerFile;
+    public FilePlayerDataManager(File dataFolder, DataLoader loader, int memoryCacheLength) {
+        this.dataFolder = dataFolder;
         this.loader = loader;
         this.memoryCacheLength = memoryCacheLength;
     }
 
     @Override
     public PlayerData getPlayerData(UUID id) {
+        //TODO: update to properly support new serialization API
         FilePlayerData data = cache.get(id);
 
         if(data != null) { //data was cached so just retrieve it
@@ -36,7 +36,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
 
         String name = id.toString();
         try { //data was not cached; try to load the playerdata from a file
-            data = loader.load(playerFile, FilePlayerData.class, name);
+            data = loader.load(dataFolder, FilePlayerData.class);
         }
         catch (ClassCastException e) { //there's some kind of invalid data there
             ArenaApi.warning(String.format("Tried to load non-PlayerData object at name %s in the playerdata file",
@@ -62,7 +62,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
             FilePlayerData removedValue = cache.remove(cache.keySet().iterator().next()); //get the value so we can save it if needed
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
-                loader.save(removedValue, playerFile, id.toString());
+                loader.save(removedValue, dataFolder);
             }
         }
     }
