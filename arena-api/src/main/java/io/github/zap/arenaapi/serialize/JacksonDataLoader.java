@@ -1,11 +1,8 @@
 package io.github.zap.arenaapi.serialize;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.zap.arenaapi.ArenaApi;
 
 import java.io.File;
@@ -15,6 +12,8 @@ public class JacksonDataLoader implements DataLoader {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ObjectWriter writer = objectMapper.writerWithDefaultPrettyPrinter();
     private final ObjectReader reader = objectMapper.reader();
+
+    private static final String EXTENSION = "json";
 
     @Override
     public void save(Object data, File file) {
@@ -34,5 +33,10 @@ public class JacksonDataLoader implements DataLoader {
         }
 
         return null;
+    }
+
+    @Override
+    public String getExtension() {
+        return EXTENSION;
     }
 }

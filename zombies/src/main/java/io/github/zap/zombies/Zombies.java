@@ -103,6 +103,11 @@ public final class Zombies extends JavaPlugin implements Listener {
         info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
+    @Override
+    public void onDisable() {
+        playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
+    }
+
     private void initConfig() {
         FileConfiguration config = getConfig();
 

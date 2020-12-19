@@ -11,4 +11,9 @@ public interface PlayerDataManager {
      * @return The player's PlayerData
      */
     PlayerData getPlayerData(UUID id);
+
+    /**
+     * Saves all PlayerData that is stored in memory.
+     */
+    void flushAll();
 }
