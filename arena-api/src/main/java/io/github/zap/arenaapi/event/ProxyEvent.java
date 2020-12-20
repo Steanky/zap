@@ -52,43 +52,6 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
         this(plugin, handlingInstance, (ignored) -> true, bukkitEventClass);
     }
 
-    /**
-     * Closes all ProxyEvent instances associated with the provided Unique, and removes the Unique's mapping from
-     * the internal map.
-     * @param instance The instance to clear values for
-     */
-    public static void closeAll(Unique instance) {
-        UUID id = instance.getId();
-        List<ProxyEvent<?>> proxyEvents = proxies.get(id);
-
-        if(proxyEvents != null) {
-            for(ProxyEvent<?> event : proxyEvents) {
-                event.close();
-            }
-
-            proxies.remove(id);
-        }
-    }
-
-    private static void addProxy(Unique instance, ProxyEvent<?> event) {
-        UUID id = instance.getId();
-        List<ProxyEvent<?>> list = proxies.computeIfAbsent(id, ignored -> new ArrayList<>());
-        list.add(event);
-    }
-
-    private static void removeProxy(Unique instance, ProxyEvent<?> event) {
-        UUID id = instance.getId();
-        List<ProxyEvent<?>> list = proxies.get(id);
-
-        if(list != null) {
-            list.remove(event);
-
-            if(list.size() == 0) {
-                proxies.remove(id);
-            }
-        }
-    }
-
     @Override
     public void registerHandler(EventHandler<T> handler) {
         super.registerHandler(handler);
@@ -123,6 +86,43 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
         if(eventRegistered) {
             eventRegistered = false;
             unregister();
+        }
+    }
+
+    /**
+     * Closes all ProxyEvent instances associated with the provided Unique, and removes the Unique's mapping from
+     * the internal map.
+     * @param instance The instance to clear values for
+     */
+    public static void closeAll(Unique instance) {
+        UUID id = instance.getId();
+        List<ProxyEvent<?>> proxyEvents = proxies.get(id);
+
+        if(proxyEvents != null) {
+            for(ProxyEvent<?> event : proxyEvents) {
+                event.close();
+            }
+
+            proxies.remove(id);
+        }
+    }
+
+    private static void addProxy(Unique instance, ProxyEvent<?> event) {
+        UUID id = instance.getId();
+        List<ProxyEvent<?>> list = proxies.computeIfAbsent(id, ignored -> new ArrayList<>());
+        list.add(event);
+    }
+
+    private static void removeProxy(Unique instance, ProxyEvent<?> event) {
+        UUID id = instance.getId();
+        List<ProxyEvent<?>> list = proxies.get(id);
+
+        if(list != null) {
+            list.remove(event);
+
+            if(list.size() == 0) {
+                proxies.remove(id);
+            }
         }
     }
 

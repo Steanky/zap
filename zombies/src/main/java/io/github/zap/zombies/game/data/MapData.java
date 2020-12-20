@@ -141,6 +141,33 @@ public class MapData {
      */
     Material doorFillMaterial;
 
+    //perk stuff below
+
+    /**
+     * Whether or not perks should be lost when a player quits the game.
+     */
+    boolean perksLostOnQuit;
+
+    /**
+     * The strength of the speed effect given by the speed perk.
+     */
+    int speedPerkLevel;
+
+    /**
+     * The duration of the effect given by the speed perk.
+     */
+    int speedPerkDuration;
+
+    /**
+     * The interval at which speed from the speed perk is applied to the player.
+     */
+    int speedPerkReapplyInterval;
+
+    /**
+     * The amount of ticks subtracted from weapon delay when quick fire is active.
+     */
+    int quickFireDelayReduction;
+
     /**
      * All the rounds in the game
      */

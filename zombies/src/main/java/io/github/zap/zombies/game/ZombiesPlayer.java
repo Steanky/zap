@@ -2,6 +2,8 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
+import io.github.zap.arenaapi.event.FilteredEvent;
+import io.github.zap.arenaapi.event.RepeatingEvent;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -24,6 +26,10 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
     @Getter
     private final ZombiesArena arena;
@@ -41,11 +47,16 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private int repairIncrement = 1;
 
     @Getter
-    private boolean inGame = true;
+    private final Event<ZombiesPlayer> playerQuitEvent;
+
+    @Getter
+    private final Event<ZombiesPlayer> playerRejoinEvent;
+
+    @Getter
+    private final ZombiesPerks perks;
 
     private WindowData targetWindow;
     private int windowRepairTaskId = -1;
-    private int reviveTaskId = -1;
 
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
@@ -58,9 +69,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         this.arena = arena;
         this.coins = coins;
 
+
+        playerQuitEvent = new FilteredEvent<>(arena.getPlayerLeaveEvent(),
+                (managedPlayerListArgs -> managedPlayerListArgs.getPlayers().contains(this)),
+                (managedPlayerListArgs) -> this);
+
+        playerRejoinEvent = new FilteredEvent<>(arena.getPlayerRejoinEvent(),
+                managedPlayerListArgs -> managedPlayerListArgs.getPlayers().contains(this),
+                managedPlayerListArgs -> this);
+
         arena.getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         arena.getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         arena.getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
+
+        perks = new ZombiesPerks(this);
     }
 
     private void onPlayerInteract(Event<PlayerInteractEvent> caller, PlayerInteractEvent event) {
