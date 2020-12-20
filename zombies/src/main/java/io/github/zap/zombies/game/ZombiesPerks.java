@@ -22,4 +22,12 @@ public class ZombiesPerks {
 
         quickFire = new QuickFire(player, map.getQuickFireMaxLevel(), map.getQuickFireDelayReduction());
     }
+
+    /**
+     * Performs cleanup tasks.
+     */
+    public void close() {
+        speedPerk.close();
+        quickFire.close();
+    }
 }

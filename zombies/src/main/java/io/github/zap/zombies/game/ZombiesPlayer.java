@@ -149,8 +149,15 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     }
 
     @Override
+    public void quit() {
+        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+        super.quit();
+    }
+
+    @Override
     public void close() {
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+        perks.close();
     }
 
     /**

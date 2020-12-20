@@ -43,20 +43,31 @@ public abstract class Perk<T> {
      * @param args The player who quit
      */
     private void onPlayerQuit(Event<ZombiesPlayer> caller, ZombiesPlayer args) {
-        if(currentLevel != 0) {
+        if(currentLevel != 0) { //don't deactivate the perk if it isn't active to begin with
             deactivate();
 
-            if(!args.getArena().getMap().isPerksLostOnQuit()) { //perk restoration is optional
-                activateOnRejoin = true; //perks are not lost on quitting
+            if(!args.getArena().getMap().isPerksLostOnQuit()) { //perks are not lost on quitting
+                activateOnRejoin = true;
+            }
+            else { //if they ARE lost, remove them
+                currentLevel = 0;
             }
         }
     }
 
     private void onPlayerRejoin(Event<ZombiesPlayer> caller, ZombiesPlayer args) {
-        if(activateOnRejoin) {
+        if(activateOnRejoin) { //activate the perk
             activate();
             activateOnRejoin = false;
         }
+    }
+
+    /**
+     * Returns whether or not this perk can activate.
+     * @return True if the current level is less than the maximum level, false otherwise
+     */
+    public boolean canActivate() {
+        return currentLevel < maxLevel;
     }
 
     /**

@@ -50,7 +50,6 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void quit() {
         if(inGame) {
             inGame = false;
-            close();
         }
     }
 
@@ -60,19 +59,11 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void rejoin() {
         if(!inGame) {
             inGame = true;
-            init();
         }
     }
 
     /**
-     * Performs cleanup tasks. This is called when the arena shuts down or the player quits the game. The actions
-     * performed by this function generally should be reversible, as the player may rejoin the game at a later date.
+     * Performs cleanup tasks. This is called when the arena shuts down, and is not reversible.
      */
     public void close() {}
-
-    /**
-     * Performs initialization tasks. This could reverse some of the effects of close(). This is called when the
-     * player rejoins the game.
-     */
-    public void init() {}
 }
