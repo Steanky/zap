@@ -1,8 +1,5 @@
 package io.github.zap.zombies.game.data;
 
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.Serialize;
-import io.github.zap.arenaapi.serialize.TypeAlias;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -11,13 +8,11 @@ import lombok.experimental.FieldDefaults;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("ZombiesSpawnpoint")
-public class SpawnpointData extends DataSerializable {
+public class SpawnpointData {
     /**
      * The location of this spawnpoint
      */
@@ -31,7 +26,6 @@ public class SpawnpointData extends DataSerializable {
     /**
      * This represents all of the mobs that can be spawned here
      */
-    @Serialize(isAggregation = true)
     HashSet<MythicMob> whitelist;
 
     private SpawnpointData() {}

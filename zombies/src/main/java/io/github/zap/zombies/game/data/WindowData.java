@@ -3,9 +3,6 @@ package io.github.zap.zombies.game.data;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.Serialize;
-import io.github.zap.arenaapi.serialize.TypeAlias;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.AccessLevel;
@@ -25,26 +22,22 @@ import java.util.ArrayList;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("ZombiesWindow")
-public class WindowData extends DataSerializable {
+public class WindowData {
     /**
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
-    @Serialize(isAggregation = true)
     ArrayList<Material> repairedMaterials;
 
     /**
      * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
      * this at a later date as I'm not exactly sure of its utility
      */
-    @Serialize(isAggregation = true)
     ArrayList<Material> brokenMaterials;
 
     /**
      * A list of vectors corresponding to the blocks of window face
      */
-    @Serialize(isAggregation = true)
     ArrayList<Vector> faceVectors;
 
     /**
@@ -65,33 +58,28 @@ public class WindowData extends DataSerializable {
     /**
      * The center of the window's face, used for distance checking. This value is calculated once and cached.
      */
-    @Serialize(skip = true)
     Vector center;
 
     /**
      * The volume of the window's face. This is calculated once and cached.
      */
-    @Serialize(skip = true)
     int volume = -1;
 
     /**
      * Arena specific state: the current index at which the window is being repaired or broken. This points to the index
      * of the current repaired block; thus, if the window is fully broken, it will == -1
      */
-    @Serialize(skip = true)
-    final Property<Integer> currentIndexProperty = new Property<>(getVolume() - 1);
+    transient final Property<Integer> currentIndexProperty = new Property<>(getVolume() - 1);
 
     /**
      * Arena specific state: the player who is currently repairing the window
      */
-    @Serialize(skip = true)
-    final Property<ZombiesPlayer> repairingPlayerProperty = new Property<>(null);
+    transient final Property<ZombiesPlayer> repairingPlayerProperty = new Property<>(null);
 
     /**
      * Arena specific state: the entity that is currently attacking the window
      */
-    @Serialize(skip = true)
-    final Property<Entity> attackingEntityProperty = new Property<>(null);
+    transient final Property<Entity> attackingEntityProperty = new Property<>(null);
 
     private WindowData() {}
 

@@ -34,6 +34,7 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
     public boolean castAtEntity(SkillMetadata skillMetadata, AbstractEntity target) {
         SkillCaster caster = skillMetadata.getCaster();
         AbstractEntity entity = caster.getEntity();
+
         if(target != null && entity.hasLineOfSight(target)) {
             BukkitWorld world = (BukkitWorld)target.getLocation().getWorld();
             AbstractLocation targetLocation = target.getLocation();
@@ -42,12 +43,14 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
 
             if(targetBlock.getType().isAir()) {
                 placeCobweb(targetBlock);
+                return true;
             }
             else {
                 targetBlock = WorldUtils.blockRelative(targetBlock, new Vector(0, 1, 0)); //check block above
 
                 if(targetBlock.getType().isAir()) { //place block at player's head, if it isn't air
                     placeCobweb(targetBlock);
+                    return true;
                 }
             }
         }

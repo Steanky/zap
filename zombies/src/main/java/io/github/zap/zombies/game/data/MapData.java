@@ -1,16 +1,11 @@
 package io.github.zap.zombies.game.data;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.Unique;
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.Serialize;
-import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -24,8 +19,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("ZombiesMap")
-public class MapData extends DataSerializable {
+public class MapData {
     /**
      * The unique name of this map that need not be user friendly
      */
@@ -64,17 +58,17 @@ public class MapData extends DataSerializable {
     /**
      * The list of rooms managed by this map
      */
-    final ArrayList<RoomData> rooms = new ArrayList<>();
+    final List<RoomData> rooms = new ArrayList<>();
 
     /**
      * All the doors managed by this map
      */
-    final ArrayList<DoorData> doors = new ArrayList<>();
+    final List<DoorData> doors = new ArrayList<>();
 
     /**
      * All the shops managed by this map
      */
-    final ArrayList<ShopData> shops = new ArrayList<>();
+    final List<ShopData> shops = new ArrayList<>();
 
     /**
      * The number of coins each player should start with
@@ -150,10 +144,9 @@ public class MapData extends DataSerializable {
     /**
      * All the rounds in the game
      */
-    final ArrayList<RoundData> rounds = new ArrayList<>();
+    transient final ArrayList<RoundData> rounds = new ArrayList<>();
 
-    @Serialize(skip = true)
-    final Property<Integer> currentRoundProperty = new Property<>(0);
+    transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
     private MapData() { }
 

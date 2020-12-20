@@ -23,7 +23,6 @@ import java.util.function.Consumer;
  */
 public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private static final String NAME = "zombies";
-    private static final String DATA_KEY = "map";
 
     @Getter
     private final File dataFolder;
@@ -50,7 +49,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
         if(files != null) {
             for(File file : files) {
-                MapData map = loader.load(file, DATA_KEY);
+                MapData map = loader.load(file, MapData.class);
                 maps.put(map.getName(), map);
             }
         }

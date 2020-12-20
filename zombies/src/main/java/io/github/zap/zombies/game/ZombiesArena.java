@@ -7,6 +7,7 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
+import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
@@ -43,8 +44,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
-     * @param map The map to use
-     * @param world The world to use
+     *
+     * @param map          The map to use
+     * @param world        The world to use
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
@@ -79,7 +81,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         for(int taskId : waveSpawnerTasks) {
             scheduler.cancelTask(taskId);
         }
-
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
     }
@@ -95,7 +96,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 getOnlineCount() + players.size() <= map.getMaximumCapacity();
     }
 
-    @Override
     protected boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
         return state == ZombiesArenaState.STARTED && map.isAllowRejoin();
     }
@@ -114,18 +114,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerLeave(Event<ManagedPlayerListArgs> caller, ManagedPlayerListArgs args) {
         switch (state) {
             case PREGAME:
-                if(getOnlineCount() == 0) {
+                if (getOnlineCount() == 0) {
                     startTimeout();
                 }
 
                 removePlayers(args.getPlayers());
                 break;
             case COUNTDOWN:
-                if(getOnlineCount() == 0) {
+                if (getOnlineCount() == 0) {
                     startTimeout();
                 }
-
-                if(getOnlineCount() < map.getMinimumCapacity()) {
+                if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
                     stopCountdown();
                 }
@@ -133,26 +132,25 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 removePlayers(args.getPlayers());
                 break;
             case STARTED:
-                if(getOnlineCount() == 0) {
-                    if(map.isAllowRejoin()) {
+                if (getOnlineCount() == 0) {
+                    if (map.isAllowRejoin()) {
                         startTimeout(); //if people can rejoin, wait a bit before closing
-                    }
-                    else {
+                    } else {
                         close(); //otherwise, just close
                     }
                 }
                 break;
         }
 
-        for(ZombiesPlayer player : args.getPlayers()) {
+        for (ZombiesPlayer player : args.getPlayers()) {
             player.getPlayer().teleport(manager.getHubLocation());
         }
     }
 
+
     private void onMobDeath(Event<EntityDeathEvent> caller, EntityDeathEvent args) {
         mobs.remove(args.getEntity().getUniqueId());
-
-        if(mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
+        if (mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
             doRound();
         }
     }
@@ -209,9 +207,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             long cumulativeDelay = 0;
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
+                List<MythicMob> mobs = new ArrayList<>();
+
+                for(String mobName : wave.getMobs()) {
+                    mobs.add(MythicMobs.inst().getMobManager().getMythicMob(mobName));
+                }
 
                 waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
-                    spawnMobs(wave.getMobs(), spawner);
+                    spawnMobs(mobs, spawner);
                     waveSpawnerTasks.remove(0);
                 }, cumulativeDelay));
             }

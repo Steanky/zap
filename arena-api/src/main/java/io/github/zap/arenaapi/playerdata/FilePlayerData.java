@@ -1,9 +1,6 @@
 package io.github.zap.arenaapi.playerdata;
 
 import com.google.common.collect.ImmutableSet;
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.Serialize;
-import io.github.zap.arenaapi.serialize.TypeAlias;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,8 +10,7 @@ import java.util.*;
 
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TypeAlias("PlayerData")
-public class FilePlayerData extends DataSerializable implements PlayerData {
+public class FilePlayerData implements PlayerData {
     @Getter
     String locale;
 
@@ -33,7 +29,6 @@ public class FilePlayerData extends DataSerializable implements PlayerData {
     RequestLevel directMessageLevel = RequestLevel.EVERYONE;
 
     @Getter
-    @Serialize(skip = true)
     boolean isDirty = false;
 
     public FilePlayerData() {}
