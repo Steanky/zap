@@ -87,11 +87,6 @@ public class MapData extends DataSerializable {
     int coinsOnRepair;
 
     /**
-     * Whether or not this map should be joinable by other players after it has started
-     */
-    boolean joinableStarted;
-
-    /**
      * Whether or not spectators are allowed here
      */
     boolean spectatorAllowed;
@@ -105,6 +100,11 @@ public class MapData extends DataSerializable {
      * Whether or not the players should be allowed to forcibly start the game regardless of the minimum player limit
      */
     boolean forceStart;
+
+    /**
+     * Whether this map allows players to rejoin after the game has started
+     */
+    boolean allowRejoin;
 
 
     /**
