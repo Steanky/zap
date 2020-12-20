@@ -7,6 +7,7 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
+import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
@@ -63,6 +64,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
     }
+
     @Override
     protected ZombiesArena getArena() {
         return this;
@@ -87,10 +89,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     protected boolean allowPlayers() {
         return state != ZombiesArenaState.ENDED;
     }
+
     @Override
     protected boolean allowPlayerJoin(List<Player> players) {
         return (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) &&
                 getOnlineCount() + players.size() <= map.getMaximumCapacity();
+    }
+
     protected boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
         return state == ZombiesArenaState.STARTED && map.isAllowRejoin();
     }
@@ -100,23 +105,26 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.COUNTDOWN;
             startCountdown();
         }
+
         for(Player player : args.getPlayers()) {
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
+        }
     }
+
     private void onPlayerLeave(Event<ManagedPlayerListArgs> caller, ManagedPlayerListArgs args) {
         switch (state) {
             case PREGAME:
-                if(getOnlineCount() == 0) {
+                if (getOnlineCount() == 0) {
                     startTimeout();
                 }
 
                 removePlayers(args.getPlayers());
                 break;
             case COUNTDOWN:
-                if(getOnlineCount() == 0) {
+                if (getOnlineCount() == 0) {
                     startTimeout();
                 }
-                if(getOnlineCount() < map.getMinimumCapacity()) {
+                if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
                     stopCountdown();
                 }
@@ -124,22 +132,28 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 removePlayers(args.getPlayers());
                 break;
             case STARTED:
-                if(getOnlineCount() == 0) {
-                    if(map.isAllowRejoin()) {
+                if (getOnlineCount() == 0) {
+                    if (map.isAllowRejoin()) {
                         startTimeout(); //if people can rejoin, wait a bit before closing
-                    }
-                    else {
+                    } else {
                         close(); //otherwise, just close
                     }
                 }
                 break;
         }
-        for(ZombiesPlayer player : args.getPlayers()) {
+
+        for (ZombiesPlayer player : args.getPlayers()) {
             player.getPlayer().teleport(manager.getHubLocation());
+        }
+    }
+
+
     private void onMobDeath(Event<EntityDeathEvent> caller, EntityDeathEvent args) {
         mobs.remove(args.getEntity().getUniqueId());
-        if(mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
+        if (mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
             doRound();
+        }
+    }
 
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
         List<ActiveMob> activeMobs = new ArrayList<>();
@@ -212,5 +226,27 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.ENDED;
             close();
         }
+    }
+
+    private void startTimeout() {
+        if(timeoutTaskId == -1) {
+            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::close,
+                    emptyTimeout);
+        }
+    }
+
+    private void resetTimeout() {
+        if(timeoutTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(timeoutTaskId);
+            timeoutTaskId = -1;
+        }
+    }
+
+    private void startCountdown() {
+        //do countdown timer; at the end, call doRound() to kick off the game
+    }
+
+    private void stopCountdown() {
+        //reset countdown timer
     }
 }

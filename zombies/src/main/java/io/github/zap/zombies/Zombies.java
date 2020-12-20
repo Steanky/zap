@@ -1,6 +1,5 @@
 package io.github.zap.zombies;
 
-import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -10,19 +9,20 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
-import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import io.github.zap.arenaapi.serialize.DataSerializable;
-import io.github.zap.arenaapi.serialize.ValueConverter;
+import io.github.zap.arenaapi.serialize.JacksonDataLoader;
+import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -33,7 +33,7 @@ import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Locale;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -163,7 +163,8 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     private void initArenaManagers() {
         FileConfiguration config = getConfig();
-        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(Path.of(getDataFolder().getPath(),
+        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(
+                Bukkit.getWorld("world"), new Vector(0, 0, 0)), Path.of(getDataFolder().getPath(),
                 MAP_FOLDER_NAME).toFile(), config.getInt(ConfigNames.MAX_WORLDS),
                 config.getInt(ConfigNames.ARENA_TIMEOUT));
         arenaApi.registerArenaManager(zombiesArenaManager);
