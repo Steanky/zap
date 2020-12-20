@@ -82,7 +82,7 @@ public abstract class Perk<T> {
     }
 
     /**
-     * Performs cleanup tasks (deactivates and closes associated event).
+     * Performs cleanup tasks (deactivates perk and closes associated event).
      */
     public void close() {
         deactivate();

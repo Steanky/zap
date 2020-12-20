@@ -151,22 +151,27 @@ public class MapData {
     /**
      * The maximum level of the speed perk (how many times it can be bought)
      */
-    int speedPerkMaxLevel;
+    int speedMaxLevel;
 
     /**
      * The strength of the speed effect given by the speed perk.
      */
-    int speedPerkAmplifier;
+    int speedAmplifier;
 
     /**
      * The duration of the effect given by the speed perk.
      */
-    int speedPerkDuration;
+    int speedDuration;
 
     /**
      * The interval at which speed from the speed perk is applied to the player.
      */
-    int speedPerkReapplyInterval;
+    int speedReapplyInterval;
+
+    /**
+     * Gets the maximum quick fire level supported by this map.
+     */
+    int quickFireMaxLevel;
 
     /**
      * The amount of ticks subtracted from weapon delay when quick fire is active. Actual value scales

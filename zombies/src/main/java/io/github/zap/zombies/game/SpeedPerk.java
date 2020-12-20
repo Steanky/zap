@@ -11,7 +11,8 @@ public class SpeedPerk extends Perk<EmptyEventArgs> {
     private final int effectDuration;
     private final int amplifier;
 
-    public SpeedPerk(ZombiesPlayer owner, RepeatingEvent actionTriggerEvent, int maxLevel, int effectDuration, int amplifier) {
+    public SpeedPerk(ZombiesPlayer owner, RepeatingEvent actionTriggerEvent, int maxLevel, int effectDuration,
+                     int amplifier) {
         super(owner, actionTriggerEvent, maxLevel);
 
         event = actionTriggerEvent;
