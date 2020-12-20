@@ -8,6 +8,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.*;
+import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
@@ -308,9 +309,14 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             long cumulativeDelay = 0;
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
+                List<MythicMob> mobs = new ArrayList<>();
+
+                for(String mobName : wave.getMobs()) {
+                    mobs.add(MythicMobs.inst().getMobManager().getMythicMob(mobName));
+                }
 
                 waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
-                    spawnMobs(wave.getMobs(), spawner);
+                    spawnMobs(mobs, spawner);
                     waveSpawnerTasks.remove(0);
                 }, cumulativeDelay));
             }
@@ -319,7 +325,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
         else {
             //game just finished, do win condition
-
             close();
         }
     }

@@ -1,12 +1,12 @@
 package io.github.zap.zombies.game.data;
 
-import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -20,7 +20,7 @@ public class WaveData {
     /**
      * A list of the mobs that should be spawned during this wave
      */
-    transient final ArrayList<MythicMob> mobs = new ArrayList<>();
+    final List<String> mobs = new ArrayList<>();
 
     private WaveData() {}
 }
