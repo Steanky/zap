@@ -17,7 +17,9 @@ public class ZombiesPerks {
         MapData map = player.getArena().getMap();
 
         speedPerk = new SpeedPerk(player, new RepeatingEvent(Zombies.getInstance(), 0,
-                map.getSpeedPerkReapplyInterval()), map.getSpeedPerkDuration(), map.getSpeedPerkLevel());
-        quickFire = new QuickFire(player, map.getQuickFireDelayReduction());
+                map.getSpeedPerkReapplyInterval()), map.getSpeedPerkMaxLevel(), map.getSpeedPerkDuration(),
+                map.getSpeedPerkAmplifier());
+
+        quickFire = new QuickFire(player, 0, map.getQuickFireDelayReduction());
     }
 }

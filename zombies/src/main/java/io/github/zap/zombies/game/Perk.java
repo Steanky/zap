@@ -12,16 +12,26 @@ public abstract class Perk<T> {
     @Getter
     private final ZombiesPlayer owner;
 
-    @Getter
-    private boolean active = false;
-
     private final Event<T> actionTriggerEvent;
+
+    @Getter
+    private final int maxLevel;
+
+    @Getter
+    private int currentLevel;
 
     private boolean activateOnRejoin = false;
 
-    public Perk(ZombiesPlayer owner, Event<T> actionTriggerEvent) {
+    /**
+     * Creates a new perk instance for this player.
+     * @param owner The player to whom the perk applies
+     * @param actionTriggerEvent The event that triggers this perk's effects (can be null)
+     * @param maxLevel How many levels the perk has
+     */
+    public Perk(ZombiesPlayer owner, Event<T> actionTriggerEvent, int maxLevel) {
         this.owner = owner;
         this.actionTriggerEvent = actionTriggerEvent;
+        this.maxLevel = maxLevel;
 
         owner.getPlayerQuitEvent().registerHandler(this::onPlayerQuit);
         owner.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
@@ -33,7 +43,7 @@ public abstract class Perk<T> {
      * @param args The player who quit
      */
     private void onPlayerQuit(Event<ZombiesPlayer> caller, ZombiesPlayer args) {
-        if(active) {
+        if(currentLevel != 0) {
             deactivate();
 
             if(!args.getArena().getMap().isPerksLostOnQuit()) { //perk restoration is optional
@@ -53,12 +63,10 @@ public abstract class Perk<T> {
      * Activates this perk (and registers the execute handler with this event, if present).
      */
     public void activate() {
-        if(!active) {
-            if(actionTriggerEvent != null) {
+        if(currentLevel < maxLevel) {
+            if(++currentLevel == 1) {
                 actionTriggerEvent.registerHandler(this::execute);
             }
-
-            active = true;
         }
     }
 
@@ -66,12 +74,10 @@ public abstract class Perk<T> {
      * Deactivates this perk (and unregisters the execute handler, if present).
      */
     public void deactivate() {
-        if(active) {
-            if(actionTriggerEvent != null) {
+        if(currentLevel > 0) {
+            if(--currentLevel == 0) {
                 actionTriggerEvent.removeHandler(this::execute);
             }
-
-            active = false;
         }
     }
 

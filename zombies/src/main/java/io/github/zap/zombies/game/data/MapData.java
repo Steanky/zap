@@ -149,9 +149,14 @@ public class MapData {
     boolean perksLostOnQuit;
 
     /**
+     * The maximum level of the speed perk (how many times it can be bought)
+     */
+    int speedPerkMaxLevel;
+
+    /**
      * The strength of the speed effect given by the speed perk.
      */
-    int speedPerkLevel;
+    int speedPerkAmplifier;
 
     /**
      * The duration of the effect given by the speed perk.
@@ -164,7 +169,8 @@ public class MapData {
     int speedPerkReapplyInterval;
 
     /**
-     * The amount of ticks subtracted from weapon delay when quick fire is active.
+     * The amount of ticks subtracted from weapon delay when quick fire is active. Actual value scales
+     * according to xy, where x is the delay reduction and y is the number of levels.
      */
     int quickFireDelayReduction;
 

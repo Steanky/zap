@@ -1,13 +1,14 @@
 package io.github.zap.zombies.game;
 
-import lombok.Getter;
-
 public class QuickFire extends MarkerPerk {
-    @Getter
-    private final int delayReduction;
+    private final int baseDelayReduction;
 
-    public QuickFire(ZombiesPlayer owner, int delayReduction) {
-        super(owner);
-        this.delayReduction = delayReduction;
+    public QuickFire(ZombiesPlayer owner, int maxLevel, int delayReduction) {
+        super(owner, maxLevel);
+        this.baseDelayReduction = delayReduction;
+    }
+
+    public int getDelayReduction() {
+        return baseDelayReduction * getCurrentLevel();
     }
 }

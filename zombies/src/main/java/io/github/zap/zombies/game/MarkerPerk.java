@@ -4,12 +4,11 @@ import io.github.zap.arenaapi.event.EmptyEventArgs;
 import io.github.zap.arenaapi.event.Event;
 
 /**
- * Represents a perk that performs no actions. Rather, its 'active' state is queried by the ZombiesPlayer at certain
- * times.
+ * Represents a perk that performs no actions.
  */
 public abstract class MarkerPerk extends Perk<EmptyEventArgs> {
-    public MarkerPerk(ZombiesPlayer owner) {
-        super(owner, null);
+    public MarkerPerk(ZombiesPlayer owner, int maxLevel) {
+        super(owner, null, maxLevel);
     }
 
     @Override
