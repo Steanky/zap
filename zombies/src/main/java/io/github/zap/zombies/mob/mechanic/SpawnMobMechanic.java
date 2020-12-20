@@ -29,7 +29,7 @@ public class SpawnMobMechanic extends SkillMechanic implements INoTargetSkill {
     private final int amountMax;
     private final int spawnCap;
 
-    private final Map<ZombiesArena, List<ActiveMob>> spawnCounts = new HashMap<>();
+    private final Map<ZombiesArena, List<ActiveMob>> activeSpawns = new HashMap<>();
     private final Spawner spawner = new RangelessSpawner();
 
     public SpawnMobMechanic(String skill, MythicLineConfig mlc) {
@@ -52,9 +52,9 @@ public class SpawnMobMechanic extends SkillMechanic implements INoTargetSkill {
             if(arenaMetadata.isPresent() && caster instanceof ActiveMob) {
                 ZombiesArena arena = (ZombiesArena)arenaMetadata.get();
 
-                spawnCounts.putIfAbsent(arena, new ArrayList<>());
+                activeSpawns.putIfAbsent(arena, new ArrayList<>());
 
-                List<ActiveMob> current = spawnCounts.get(arena);
+                List<ActiveMob> current = activeSpawns.get(arena);
                 List<MythicMob> newMobs = new ArrayList<>();
 
                 for(int i = current.size() - 1; i >= 0; i--) {

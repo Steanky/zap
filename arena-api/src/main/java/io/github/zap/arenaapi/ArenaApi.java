@@ -36,7 +36,6 @@ public final class ArenaApi extends JavaPlugin {
         instance = this;
 
         try {
-            initProxy();
             initDependencies();
         }
         catch(LoadFailureException exception)
@@ -50,6 +49,7 @@ public final class ArenaApi extends JavaPlugin {
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
+
 
     private void initProxy() throws LoadFailureException {
         //noinspection SwitchStatementWithTooFewBranches

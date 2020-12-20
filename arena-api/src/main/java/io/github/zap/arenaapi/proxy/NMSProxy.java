@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.proxy;
 
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 
 import java.util.UUID;

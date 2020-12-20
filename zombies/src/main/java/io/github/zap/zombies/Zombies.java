@@ -1,5 +1,6 @@
 package io.github.zap.zombies;
 
+import com.google.common.collect.Lists;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -9,8 +10,10 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
+import io.github.zap.arenaapi.serialize.BukkitDataLoader;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import io.github.zap.arenaapi.serialize.JacksonDataLoader;
+import io.github.zap.arenaapi.serialize.DataSerializable;
+import io.github.zap.arenaapi.serialize.ValueConverter;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
@@ -26,6 +29,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -35,6 +39,9 @@ import java.util.logging.Level;
 public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private static Zombies instance; //singleton for our main plugin class
+
+    @Getter
+    private ZombiesNMSProxy nmsProxy;
 
     @Getter
     private ArenaApi arenaApi;
@@ -83,6 +90,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
             initConfig();
+            initProxy();
             initDependencies();
             initSerialization();
             initPlayerDataManager();
@@ -120,6 +128,17 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         config.options().copyDefaults(true);
         saveConfig();
+    }
+
+    private void initProxy() throws LoadFailureException {
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (Bukkit.getBukkitVersion()) {
+            case "1.16.4-R0.1-SNAPSHOT":
+                nmsProxy = new ZombiesNMSProxy_v1_16_R3();
+                break;
+            default:
+                throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));
+        }
     }
 
     private void initDependencies() throws LoadFailureException {

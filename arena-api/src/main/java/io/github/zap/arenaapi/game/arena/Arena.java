@@ -3,8 +3,10 @@ package io.github.zap.arenaapi.game.arena;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -48,22 +50,24 @@ public abstract class Arena<T extends Arena<T>> implements Unique {
     }
 
     /**
-     * Attempts to add the players to arena. This should also teleport them to the arena's world.
-     * @param joinAttempt The JoinInformation object to handle
+     * Attempts to add the players to arena. This should also teleport them to the arena's world. This list of players
+     * may include some players who are already in the arena in addition to players who are elsewhere, including other
+     * arenas. It may not include offline players; these must be filtered out by the ArenaManager.
+     * @param joining The players to attempt to add
      * @return If all of the players are added, this should return true. If not all are added for any reason, this
      * should return false.
      */
-    public abstract boolean handleJoin(JoinInformation joinAttempt);
+    public abstract boolean handleJoin(List<Player> joining);
 
     /**
-     * Removes the players from the arena. This method must always successfully remove the players. It should also
-     * teleport them elsewhere.
-     * @param leaveInformation The LeaveInformation object to handle
+     * Removes the players from the arena. This method must always successfully remove any players present in the arena;
+     * ignoring ones that aren't.
+     * @param leaving The leaving players
      */
-    public abstract void handleLeave(LeaveInformation leaveInformation);
+    public abstract void handleLeave(List<Player> leaving);
 
     /**
-     * Terminates the arena, regardless of its state.
+     * Cleans up resources and removes the arena from the manager.
      */
-    public abstract void terminate();
+    public abstract void close();
 }
