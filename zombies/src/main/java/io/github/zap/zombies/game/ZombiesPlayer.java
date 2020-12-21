@@ -62,6 +62,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         super.quit();
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         windowRepairTaskId = -1;
+
+        perks.disableAll();
     }
 
     @Override

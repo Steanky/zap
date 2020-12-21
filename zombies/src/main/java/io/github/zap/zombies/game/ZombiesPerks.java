@@ -37,4 +37,17 @@ public class ZombiesPerks implements Disposable {
             perk.dispose();
         }
     }
+
+    /**
+     * Disables all perks.
+     */
+    public void disableAll() {
+        for(Perk<?> perk : perks.values()) {
+            perk.disable();
+        }
+    }
+
+    public Perk<?> getPerk(PerkType type) {
+        return perks.get(type);
+    }
 }

@@ -77,9 +77,6 @@ public abstract class Perk<T> implements Disposable {
      */
     public void disable() { }
 
-    /**
-     * Performs cleanup tasks (deactivates perk and closes associated event).
-     */
     @Override
     public void dispose() {
         disable();
