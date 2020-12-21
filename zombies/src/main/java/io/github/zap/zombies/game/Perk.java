@@ -72,7 +72,7 @@ public abstract class Perk<T> implements Disposable {
     @Override
     public void dispose() {
         if(actionTriggerEvent != null) {
-            actionTriggerEvent.close();
+            actionTriggerEvent.dispose();
         }
     }
 

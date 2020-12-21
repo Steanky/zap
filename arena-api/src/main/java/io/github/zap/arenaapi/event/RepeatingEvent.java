@@ -44,8 +44,9 @@ public class RepeatingEvent extends Event<EmptyEventArgs> {
     /**
      * Performs cleanup tasks.
      */
-    public void close() {
-        super.close();
+    @Override
+    public void dispose() {
+        super.dispose();
         stop();
     }
 }

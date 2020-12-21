@@ -70,11 +70,10 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
     }
 
     @Override
-    public void close() {
-        super.close();
+    public void dispose() {
+        super.dispose();
 
         if(eventRegistered) {
-            eventRegistered = false;
             unregister();
         }
     }
@@ -90,7 +89,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
 
         if(proxyEvents != null) {
             for(ProxyEvent<?> event : proxyEvents) {
-                event.close();
+                event.dispose();
             }
 
             proxies.remove(id);

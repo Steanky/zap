@@ -135,9 +135,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void terminate() {
+    public void dispose() {
         for(ZombiesArena arena : arenas) {
-            arena.close();
+            arena.dispose();
         }
     }
 }

@@ -121,7 +121,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         S managedPlayer = playerMap.remove(id);
 
         if(managedPlayer != null) {
-            managedPlayer.close();
+            managedPlayer.dispose();
         }
     }
 
@@ -212,7 +212,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     @Override
     public void dispose() {
         for(S player : playerMap.values()) { //close players
-            player.close();
+            player.dispose();
         }
 
         ProxyEvent.closeAll(this); //closes proxy events

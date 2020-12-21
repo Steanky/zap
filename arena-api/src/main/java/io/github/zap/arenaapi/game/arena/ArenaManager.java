@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.Disposable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
  * @param <T> The type of arena this instance manages
  */
 @RequiredArgsConstructor
-public abstract class ArenaManager<T extends Arena<T>> {
+public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
     @Getter
     private final String gameName;
 
@@ -55,9 +56,4 @@ public abstract class ArenaManager<T extends Arena<T>> {
      * @param arena The arena to remove
      */
     public abstract void removeArena(T arena);
-
-    /**
-     * Closes this ArenaManager instance and forcefully terminates all of its managed arenas.
-     */
-    public abstract void terminate();
 }
