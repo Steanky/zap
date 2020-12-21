@@ -1,6 +1,7 @@
-package io.github.zap.zombies.game;
+package io.github.zap.zombies.game.perk;
 
 import io.github.zap.arenaapi.event.EmptyEventArgs;
+import io.github.zap.zombies.game.ZombiesPlayer;
 
 /**
  * Represents a perk that does not involve a recurring event.

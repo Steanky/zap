@@ -91,6 +91,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
 
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
+    //more will be added as needed
     private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
     private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
     private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);

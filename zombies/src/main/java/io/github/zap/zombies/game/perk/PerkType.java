@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game;
+package io.github.zap.zombies.game.perk;
 
 /**
  * Defines valid kinds of perks.

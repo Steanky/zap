@@ -1,4 +1,6 @@
-package io.github.zap.zombies.game;
+package io.github.zap.zombies.game.perk;
+
+import io.github.zap.zombies.game.ZombiesPlayer;
 
 public class ExtraHealth extends MarkerPerk {
     private static final int BASE_HP = 20;
