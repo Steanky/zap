@@ -1,35 +1,45 @@
 package io.github.zap.arenaapi.serialize;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.github.zap.arenaapi.ArenaApi;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.IOException;
 
 public class JacksonDataLoader implements DataLoader {
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ObjectWriter writer = objectMapper.writerWithDefaultPrettyPrinter();
-    private final ObjectReader reader = objectMapper.reader();
+    private final ObjectWriter writer;
+    private final ObjectReader reader;
 
     private static final String EXTENSION = "json";
 
     public JacksonDataLoader() {
+        ObjectMapper objectMapper = new ObjectMapper();
+
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(Vector.class, new VectorDeserializerModifier());
-        module.addSerializer(Vector.class, new VectorSerializerModifier());
+        module.addSerializer(Vector.class, new VectorSerializer());
+        module.addDeserializer(Vector.class, new VectorDeserializer());
 
-        objectMapper.registerModule(module);
+        module.addSerializer(BoundingBox.class, new BoundingBoxSerializer());
+        module.addDeserializer(BoundingBox.class, new BoundingBoxDeserializer());
 
-        try {
-            objectMapper.writeValueAsString(new Vector());
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        objectMapper.registerModule(module); //register our serializers
+
+        //these settings work better for misc bukkit objects
+        objectMapper.setVisibility(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE));
+
+        writer = objectMapper.writerWithDefaultPrettyPrinter();
+        reader = objectMapper.reader();
     }
 
     @Override

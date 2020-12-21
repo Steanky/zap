@@ -55,21 +55,6 @@ public class MapData {
     int countdownSeconds = 10;
 
     /**
-     * The list of rooms managed by this map
-     */
-    final List<RoomData> rooms = new ArrayList<>();
-
-    /**
-     * All the doors managed by this map
-     */
-    final List<DoorData> doors = new ArrayList<>();
-
-    /**
-     * All the shops managed by this map
-     */
-    final List<ShopData> shops = new ArrayList<>();
-
-    /**
      * The number of coins each player should start with
      */
     int startingCoins = 0;
@@ -199,9 +184,24 @@ public class MapData {
     int fastReviveMaxLevel = 1;
 
     /**
+     * The list of rooms managed by this map
+     */
+    final List<RoomData> rooms = new ArrayList<>();
+
+    /**
+     * All the doors managed by this map
+     */
+    final List<DoorData> doors = new ArrayList<>();
+
+    /**
+     * All the shops managed by this map
+     */
+    final List<ShopData> shops = new ArrayList<>();
+
+    /**
      * All the rounds in the game
      */
-    transient final ArrayList<RoundData> rounds = new ArrayList<>();
+    final ArrayList<RoundData> rounds = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
