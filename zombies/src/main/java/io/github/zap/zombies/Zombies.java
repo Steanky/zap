@@ -161,8 +161,10 @@ public final class Zombies extends JavaPlugin implements Listener {
         info(String.format("Done preloading worlds; ~%sms elapsed.", timer.getTime()));
     }
 
-    private void initArenaManagers() {
+    private void initArenaManagers() throws LoadFailureException {
         FileConfiguration config = getConfig();
+        dataLoader.save(new MapData(), new File("plugins/zombies/maps/test_map.json"));
+
         ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(
                 Bukkit.getWorld("world"), new Vector(0, 0, 0)), Path.of(getDataFolder().getPath(),
                 MAP_FOLDER_NAME).toFile(), config.getInt(ConfigNames.MAX_WORLDS),

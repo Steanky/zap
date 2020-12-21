@@ -17,43 +17,42 @@ import java.util.List;
  * retrieving and manipulating its own data values.
  */
 @Getter
-@AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class MapData {
     /**
      * The unique name of this map that need not be user friendly
      */
-    String name;
+    String name = "default_map";
 
     /**
      * The resource key of the map name
      */
-    String mapNameKey;
+    String mapNameKey = "map.default_map.name";
 
     /**
      * The bounds of the map, inside which every component should exist
      */
-    BoundingBox mapBounds;
+    BoundingBox mapBounds = new BoundingBox();
 
     /**
      * The spawn vector of this map.
      */
-    Vector spawn;
+    Vector spawn = new Vector();
 
     /**
      * The minimum required number of players that this map can start with
      */
-    int minimumCapacity;
+    int minimumCapacity = 4;
 
     /**
      * The maximum number of players this map can hold
      */
-    int maximumCapacity;
+    int maximumCapacity = 4;
 
     /**
      * The duration of the game start countdown timer, in seconds
      */
-    int countdownSeconds;
+    int countdownSeconds = 10;
 
     /**
      * The list of rooms managed by this map
@@ -73,131 +72,131 @@ public class MapData {
     /**
      * The number of coins each player should start with
      */
-    int startingCoins;
+    int startingCoins = 0;
 
     /**
      * The number of coins you get for repairing a window
      */
-    int coinsOnRepair;
+    int coinsOnRepair = 20;
 
     /**
      * Whether or not spectators are allowed here
      */
-    boolean spectatorAllowed;
+    boolean spectatorAllowed = true;
 
     /**
      * If this is true, players will be required to be holding nothing in order to open doors
      */
-    boolean handRequiredToOpenDoors;
+    boolean handRequiredToOpenDoors = false;
 
     /**
      * Whether or not the players should be allowed to forcibly start the game regardless of the minimum player limit
      */
-    boolean forceStart;
+    boolean forceStart = false;
 
     /**
      * Whether this map allows players to rejoin after the game has started
      */
-    boolean allowRejoin;
+    boolean allowRejoin = true;
 
 
     /**
      * The squared distance in blocks from which zombies *must* spawn from a player
      */
-    int spawnRadiusSquared;
+    int spawnRadiusSquared = 1600;
 
     /**
      * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
      */
-    int windowRepairRadius;
+    int windowRepairRadius = 3;
 
     /**
      * The initial delay (in Minecraft server ticks) before the window will be first repaired, after the player crouches
      */
-    int initialRepairDelay;
+    int initialRepairDelay = 20;
 
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
      */
-    int windowRepairTicks;
+    int windowRepairTicks = 20;
 
     /**
      * The base rate at which mobs break through windows, in server ticks
      */
-    int windowBreakTicks;
+    int windowBreakTicks = 40;
 
     /**
      * The MythicMobs mob level that mobs will spawn at
      */
-    int mobSpawnLevel;
+    int mobSpawnLevel = 1;
 
     /**
      * The number of ticks mobs will wait before switching to a closer target. Set to -1 to disable retargeting.
      */
-    int mobRetargetTicks;
+    int mobRetargetTicks = -1;
 
     /**
      * The material that should replace door blocks when they are opened.
      */
-    Material doorFillMaterial;
+    Material doorFillMaterial = Material.AIR;
 
     //perk stuff below
 
     /**
      * Whether or not perks should be lost when a player quits the game.
      */
-    boolean perksLostOnQuit;
+    boolean perksLostOnQuit = false;
 
     /**
      * The maximum level of the speed perk (how many times it can be bought)
      */
-    int speedMaxLevel;
+    int speedMaxLevel = 1;
 
     /**
      * The strength of the speed effect given by the speed perk.
      */
-    int speedAmplifier;
+    int speedAmplifier = 2;
 
     /**
      * The duration of the effect given by the speed perk.
      */
-    int speedDuration;
+    int speedDuration = 500;
 
     /**
      * The interval at which speed from the speed perk is applied to the player.
      */
-    int speedReapplyInterval;
+    int speedReapplyInterval = 500;
 
     /**
      * Gets the maximum quick fire level supported by this map.
      */
-    int quickFireMaxLevel;
+    int quickFireMaxLevel = 1;
 
     /**
      * The amount of ticks subtracted from base weapon fire delay when quick fire is active. Actual value scales
      * according to xy, where x is the delay reduction and y is the number of levels.
      */
-    int quickFireDelayReduction;
+    int quickFireDelayReduction = 5;
 
     /**
      * The maximum level of extra health
      */
-    int extraHealthMaxLevel;
+    int extraHealthMaxLevel = 1;
 
     /**
      * The amount of HP extra health grants, per level
      */
-    int extraHealthHpPerLevel;
+    int extraHealthHpPerLevel = 10;
 
     /**
      * The maximum level of extra weapon
      */
-    int extraWeaponMaxLevel;
+    int extraWeaponMaxLevel = 1;
 
     /**
      * The maximum level of fast revive
      */
-    int fastReviveMaxLevel;
+    int fastReviveMaxLevel = 1;
 
     /**
      * All the rounds in the game
@@ -206,7 +205,12 @@ public class MapData {
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
-    private MapData() { }
+    /**
+     * Creates a new MapData instance with default values.
+     */
+    public MapData() {
+
+    }
 
     /**
      * Gets the window whose face contains the provided vector, or null if the vector is not inside any windows.

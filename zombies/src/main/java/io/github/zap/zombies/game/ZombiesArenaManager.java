@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
@@ -35,7 +36,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Map<String, MapData> maps = new HashMap<>();
 
-    public ZombiesArenaManager(Location hubLocation, File dataFolder, int arenaCapacity, int arenaTimeout) {
+    public ZombiesArenaManager(Location hubLocation, File dataFolder, int arenaCapacity, int arenaTimeout) throws LoadFailureException {
         super(NAME, hubLocation);
         this.dataFolder = dataFolder;
         this.arenaCapacity = arenaCapacity;
@@ -50,7 +51,13 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         if(files != null) {
             for(File file : files) {
                 MapData map = loader.load(file, MapData.class);
-                maps.put(map.getName(), map);
+
+                if(map != null) {
+                    maps.put(map.getName(), map);
+                }
+                else {
+                    throw new LoadFailureException("Unable to properly load some of the provided map data.");
+                }
             }
         }
     }
