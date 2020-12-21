@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 /**
- * Used for testing purposes; actually Joinable implemenations will probably be parties
+ * Used for testing purposes; actual Joinable implementations will probably be parties
  */
 @RequiredArgsConstructor
 public class SimpleJoinable implements Joinable {

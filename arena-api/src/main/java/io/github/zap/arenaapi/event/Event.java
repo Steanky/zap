@@ -47,7 +47,7 @@ public class Event<T> {
      */
     public void callEvent(T args) {
         for(EventHandler<T> handler : handlers) {
-            handler.handleEvent(this, args);
+            handler.handleEvent(args);
         }
     }
 }

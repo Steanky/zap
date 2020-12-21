@@ -13,10 +13,16 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -57,12 +63,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.emptyTimeout = emptyTimeout;
 
         Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
-                (event) -> state == ZombiesArenaState.STARTED && mobs.contains(event.getEntity().getUniqueId()),
                 EntityDeathEvent.class);
         entityDeathEvent.registerHandler(this::onMobDeath);
 
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
+        getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
+        getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
+        getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
     }
 
     @Override
@@ -81,6 +89,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         for(int taskId : waveSpawnerTasks) {
             scheduler.cancelTask(taskId);
         }
+
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
     }
@@ -100,7 +109,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         return state == ZombiesArenaState.STARTED && map.isAllowRejoin();
     }
 
-    private void onPlayerJoin(Event<PlayerListArgs> caller, PlayerListArgs args) {
+    private void onPlayerJoin(PlayerListArgs args) {
         if(state == ZombiesArenaState.PREGAME && getOnlineCount() >= map.getMinimumCapacity()) {
             state = ZombiesArenaState.COUNTDOWN;
             startCountdown();
@@ -111,7 +120,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onPlayerLeave(Event<ManagedPlayerListArgs> caller, ManagedPlayerListArgs args) {
+    private void onPlayerLeave(ManagedPlayerListArgs args) {
         switch (state) {
             case PREGAME:
                 if (getOnlineCount() == 0) {
@@ -133,25 +142,69 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 break;
             case STARTED:
                 if (getOnlineCount() == 0) {
-                    if (map.isAllowRejoin()) {
-                        startTimeout(); //if people can rejoin, wait a bit before closing
-                    } else {
-                        close(); //otherwise, just close
-                    }
+                    state = ZombiesArenaState.ENDED;
+                    close(); //shut down immediately if everyone leaves
                 }
                 break;
         }
 
         for (ZombiesPlayer player : args.getPlayers()) {
             player.getPlayer().teleport(manager.getHubLocation());
+
+            if(!map.isAllowRejoin()) { //since they can't rejoin, remove the managedplayer entirely
+                super.removePlayer(player);
+            }
         }
     }
 
-
-    private void onMobDeath(Event<EntityDeathEvent> caller, EntityDeathEvent args) {
+    private void onMobDeath(EntityDeathEvent args) {
         mobs.remove(args.getEntity().getUniqueId());
         if (mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
             doRound();
+        }
+    }
+
+    private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+        managedPlayer.knock();
+
+        for(ZombiesPlayer player : getPlayerMap().values()) {
+            if(player.isAlive()) {
+                return; //return if there are any players still alive
+            }
+        }
+
+        doLoss();
+    }
+
+    private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
+        PlayerInteractEvent event = args.getEvent();
+        ZombiesPlayer player = args.getManagedPlayer();
+
+        if(event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+            Block block = args.getEvent().getClickedBlock();
+
+            if(block != null) {
+                Vector clickedVector = block.getLocation().toVector();
+                if(!player.tryOpenDoor(clickedVector)) {
+                    //TODO: perform other actions involving right-clicking on a block
+                }
+            }
+            else {
+                //TODO: perform actions involving rightclick on air
+            }
+        }
+    }
+
+    private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
+        PlayerToggleSneakEvent event = args.getEvent();
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+
+        if(event.isSneaking()) {
+            managedPlayer.activateRepair();
+        }
+        else {
+            managedPlayer.disableRepair();
         }
     }
 
@@ -209,8 +262,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 cumulativeDelay += wave.getWaveLength();
                 List<MythicMob> mobs = new ArrayList<>();
 
-                for(String mobName : wave.getMobs()) {
-                    mobs.add(MythicMobs.inst().getMobManager().getMythicMob(mobName));
+                for(String mobName : wave.getMobs()) { //convert mob names to MythicMob instances
+                    MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
+                    if(mob != null) {
+                        mobs.add(mob);
+                    }
+                    else {
+                        Zombies.warning(String.format("Tried to spawn non-existant MythicMob with name %s.", mobName));
+                    }
                 }
 
                 waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
@@ -224,7 +283,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         else {
             //game just finished, do win condition
             state = ZombiesArenaState.ENDED;
-            close();
+            doVictory();
         }
     }
 
@@ -248,5 +307,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void stopCountdown() {
         //reset countdown timer
+    }
+
+    /**
+     * Win code here
+     */
+    private void doVictory() {
+
+    }
+
+    /**
+     * Loss code here
+     */
+    private void doLoss() {
+
     }
 }

@@ -2,8 +2,6 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
-import io.github.zap.arenaapi.event.FilteredEvent;
-import io.github.zap.arenaapi.event.RepeatingEvent;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -16,19 +14,13 @@ import io.github.zap.zombies.game.data.WindowData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
     @Getter
@@ -47,12 +39,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private int repairIncrement = 1;
 
     @Getter
-    private final Event<ZombiesPlayer> playerQuitEvent;
-
-    @Getter
-    private final Event<ZombiesPlayer> playerRejoinEvent;
-
-    @Getter
     private final ZombiesPerks perks;
 
     private WindowData targetWindow;
@@ -69,69 +55,19 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         this.arena = arena;
         this.coins = coins;
 
-
-        playerQuitEvent = new FilteredEvent<>(arena.getPlayerLeaveEvent(),
-                (managedPlayerListArgs -> managedPlayerListArgs.getPlayers().contains(this)),
-                (managedPlayerListArgs) -> this);
-
-        playerRejoinEvent = new FilteredEvent<>(arena.getPlayerRejoinEvent(),
-                managedPlayerListArgs -> managedPlayerListArgs.getPlayers().contains(this),
-                managedPlayerListArgs -> this);
-
-        arena.getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
-        arena.getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
-        arena.getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
-
         perks = new ZombiesPerks(this);
     }
 
-    private void onPlayerInteract(Event<PlayerInteractEvent> caller, PlayerInteractEvent event) {
-        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId())) {
-            if(event.getHand() == EquipmentSlot.HAND && state == ZombiesPlayerState.ALIVE) {
-                Block block = event.getClickedBlock();
-
-                if(block != null) {
-                    Vector clickedVector = block.getLocation().toVector();
-                    if(!tryOpenDoor(clickedVector)) {
-                        /*
-                        if a door wasn't opened, see if there are other right-click actions we can perform gun
-                        shooting/inventory item activation/possibly shop activation
-                         */
-                    }
-                }
-                else {
-                    /*
-                    air was clicked, so we also need gun shooting/other inventory item activation code here
-                     */
-                }
-            }
-        }
+    public void quit() {
+        super.quit();
+        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+        windowRepairTaskId = -1;
     }
 
-    private void onPlayerSneak(Event<PlayerToggleSneakEvent> caller, PlayerToggleSneakEvent event) {
-        if(event.getPlayer().getUniqueId().equals(getPlayer().getUniqueId())) {
-            if(event.isSneaking()) {
-                if(windowRepairTaskId == -1) {
-                    MapData map = arena.getMap();
-                    windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                            this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
-                }
-            }
-            else {
-                Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-                windowRepairTaskId = -1;
-            }
-        }
-    }
-
-    private void onPlayerDeath(Event<PlayerDeathEvent> caller, PlayerDeathEvent event) {
-        if(event.getEntity().getUniqueId().equals(getPlayer().getUniqueId())) {
-            state = ZombiesPlayerState.KNOCKED;
-
-        /*
-        downed player code here. if timeout ends, set state to dead and call arena.checkPlayerState()
-        */
-        }
+    @Override
+    public void close() {
+        super.close();
+        perks.close();
     }
 
     private void addCoins(int amount) {
@@ -148,16 +84,66 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         return state == ZombiesPlayerState.ALIVE;
     }
 
-    @Override
-    public void quit() {
-        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-        super.quit();
+    /**
+     * Puts the player into a window repairing state.
+     */
+    public void activateRepair() {
+        if(windowRepairTaskId == -1) {
+            MapData map = arena.getMap();
+            windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+                    this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
+        }
     }
 
-    @Override
-    public void close() {
-        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-        perks.close();
+    /**
+     * Disables window repair state.
+     */
+    public void disableRepair() {
+        if(windowRepairTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+            windowRepairTaskId = -1;
+        }
+    }
+
+    /**
+     * Attempts to open the door that may be at the provided vector.
+     * @param targetBlock The block to target
+     */
+    public boolean tryOpenDoor(Vector targetBlock) {
+        MapData map = arena.getMap();
+
+        if(ItemStackUtils.isEmpty(getPlayer().getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
+            DoorData door = map.doorAt(targetBlock);
+
+            if(door != null) {
+                DoorSide side = door.sideAt(getPlayer().getLocation().toVector());
+
+                if(side != null) {
+                    if(coins >= side.getCost()) {
+                        WorldUtils.fillBounds(arena.getWorld(), door.getDoorBounds(), map.getDoorFillMaterial());
+                        subtractCoins(side.getCost());
+                        door.getOpenProperty().set(arena, true);
+                        return true;
+                    }
+                    else { //can't afford door
+                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANT_AFFORD);
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Knocks down this player.
+     */
+    public void knock() {
+        if(state == ZombiesPlayerState.ALIVE) {
+            state = ZombiesPlayerState.KNOCKED;
+
+            //TODO: player knockdown code
+        }
     }
 
     /**
@@ -182,36 +168,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 targetWindow = null;
             }
         }
-    }
-
-    /**
-     * Attempts to open the door that may be at the provided vector.
-     * @param targetBlock The block to target
-     */
-    private boolean tryOpenDoor(Vector targetBlock) {
-        MapData map = arena.getMap();
-
-        if(ItemStackUtils.isEmpty(getPlayer().getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
-            DoorData door = map.doorAt(targetBlock);
-
-            if(door != null) {
-                DoorSide side = door.sideAt(getPlayer().getLocation().toVector());
-
-                if(side != null) {
-                    if(coins >= side.getCost()) {
-                        WorldUtils.fillBounds(arena.getWorld(), door.getDoorBounds(), map.getDoorFillMaterial());
-                        subtractCoins(side.getCost());
-                        door.getOpenProperty().set(arena, true);
-                        return true;
-                    }
-                    else { //can't afford door
-                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANT_AFFORD);
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -243,12 +199,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 }
             }
             else {
-                //can't repair because someone else already is, send message to player about that
+                //can't repair because someone else already is
                 Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_PLAYER);
             }
         }
         else {
-            //can't repair because there is a something attacking the window, send message to player about that
+            //can't repair because there is a something attacking the window
             Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_MOB);
         }
     }

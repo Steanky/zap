@@ -63,7 +63,9 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     }
 
     /**
-     * Performs cleanup tasks. This is called when the arena shuts down, and is not reversible.
+     * Performs cleanup tasks. This is called when the arena shuts down, and is not reversible. Should also call quit().
      */
-    public void close() {}
+    public void close() {
+        quit();
+    }
 }
