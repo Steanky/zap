@@ -9,7 +9,6 @@ import lombok.Value;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
@@ -17,8 +16,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.*;
 
 @Getter
-public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T>
-        implements Listener {
+public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T> {
     @Value
     public static class PlayerListArgs {
         List<Player> players;
@@ -31,6 +29,9 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     @Value
     public class ProxyArgs<U extends org.bukkit.event.Event> {
+        /**
+         * The Bukkit event wrapped by this instance.
+         */
         U event;
 
         /**
@@ -77,26 +78,24 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         }
     }
 
-    private final Event<PlayerListArgs> playerJoinEvent = new Event<>();
-    private final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
-    private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
-
-    //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
-    private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent =
-            new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
-    private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent =
-            new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
-    private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent =
-            new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
-    private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent = new AdaptedPlayerDeathEvent();
-    private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
-
     private final Plugin plugin;
     private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
 
     private final Map<UUID, S> playerMap = new HashMap<>(); //holds managed player instances
 
     private int onlineCount;
+
+    //events
+    private final Event<PlayerListArgs> playerJoinEvent = new Event<>();
+    private final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
+    private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
+
+    //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
+    private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
+    private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
+    private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
+    private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent = new AdaptedPlayerDeathEvent();
+    private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
 
     public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {
         super(manager, world);
@@ -106,6 +105,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerQuitEvent.registerHandler(this::onPlayerQuit);
     }
 
+    /**
+     * Basically just makes it so that players exiting the server are treated as if they simply quit the game.
+     * @param args The PlayerQuitEvent and associated ManagedPlayer instance
+     */
     private void onPlayerQuit(ProxyArgs<PlayerQuitEvent> args) {
         handleLeave(Lists.newArrayList(args.managedPlayer.getPlayer()));
     }
@@ -207,7 +210,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     @Override
-    public void close() {
+    public void dispose() {
         for(S player : playerMap.values()) { //close players
             player.close();
         }

@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.event.EmptyEventArgs;
-import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.RepeatingEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -9,34 +8,47 @@ import org.bukkit.potion.PotionEffectType;
 public class SpeedPerk extends Perk<EmptyEventArgs> {
     private final RepeatingEvent event;
     private final int effectDuration;
-    private final int amplifier;
+    private final int baseAmplifier;
 
     public SpeedPerk(ZombiesPlayer owner, RepeatingEvent actionTriggerEvent, int maxLevel, int effectDuration,
-                     int amplifier) {
+                     int baseAmplifier) {
         super(owner, actionTriggerEvent, maxLevel);
 
         event = actionTriggerEvent;
         this.effectDuration = effectDuration;
-        this.amplifier = amplifier;
+        this.baseAmplifier = baseAmplifier;
     }
 
     @Override
-    public void execute(Event<EmptyEventArgs> event, EmptyEventArgs args) {
-        getOwner().getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, effectDuration, amplifier,
-                true, false, false));
+    public void execute(EmptyEventArgs args) {
+        getOwner().getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, effectDuration,
+                baseAmplifier * getCurrentLevel(), true, false, false));
     }
 
     @Override
-    public void activate() {
-        super.activate();
-        event.start();
+    public boolean upgrade() {
+        if(super.upgrade()) {
+            if(getCurrentLevel() == 1) {
+                event.start();
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override
-    public void deactivate() {
-        super.deactivate();
-        event.stop();
+    public boolean downgrade() {
+        if(super.downgrade()) {
+            if(getCurrentLevel() == 0) {
+                event.stop();
+                getOwner().getPlayer().removePotionEffect(PotionEffectType.SPEED);
+            }
 
-        getOwner().getPlayer().removePotionEffect(PotionEffectType.SPEED);
+            return true;
+        }
+
+        return false;
     }
 }

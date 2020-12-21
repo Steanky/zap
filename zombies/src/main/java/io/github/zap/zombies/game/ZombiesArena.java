@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.ProxyEvent;
@@ -45,8 +46,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Set<UUID> mobs = new HashSet<>();
 
-    private int timeoutTaskId = -1;
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
+    private int timeoutTaskId = -1;
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
@@ -79,8 +80,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     @Override
-    public void close() {
-        super.close(); //any events we register will get un-registered by the superclass. it's magic :)
+    public void dispose() {
+        super.dispose(); //dispose of superclass-specific resources
 
         //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
@@ -96,7 +97,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Override
     protected boolean allowPlayers() {
-        return state != ZombiesArenaState.ENDED;
+        return state != ZombiesArenaState.ENDED && (state != ZombiesArenaState.STARTED || map.isAllowRejoin());
     }
 
     @Override
@@ -118,6 +119,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         for(Player player : args.getPlayers()) {
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
         }
+
+        resetTimeout(); //if arena was in timeout state, reset that
     }
 
     private void onPlayerLeave(ManagedPlayerListArgs args) {
@@ -143,15 +146,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             case STARTED:
                 if (getOnlineCount() == 0) {
                     state = ZombiesArenaState.ENDED;
-                    close(); //shut down immediately if everyone leaves
+                    dispose(); //shut everything down immediately if everyone leaves mid-game
                 }
                 break;
         }
 
-        for (ZombiesPlayer player : args.getPlayers()) {
-            player.getPlayer().teleport(manager.getHubLocation());
-
-            if(!map.isAllowRejoin()) { //since they can't rejoin, remove the managedplayer entirely
+        if(!map.isAllowRejoin()) {
+            for(ZombiesPlayer player : args.getPlayers()) {
                 super.removePlayer(player);
             }
         }
@@ -289,7 +290,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void startTimeout() {
         if(timeoutTaskId == -1) {
-            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::close,
+            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::dispose,
                     emptyTimeout);
         }
     }

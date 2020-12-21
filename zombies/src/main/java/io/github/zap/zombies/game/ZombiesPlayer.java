@@ -65,9 +65,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     }
 
     @Override
-    public void close() {
-        super.close();
-        perks.close();
+    public void dispose() {
+        perks.dispose();
     }
 
     private void addCoins(int amount) {

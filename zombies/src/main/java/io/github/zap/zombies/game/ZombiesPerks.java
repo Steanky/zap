@@ -1,33 +1,37 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.event.RepeatingEvent;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.MapData;
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Container class; each instance holds all perks for a specific player.
  */
 @Getter
-public class ZombiesPerks {
-    private final SpeedPerk speedPerk;
-    private final QuickFire quickFire;
+public class ZombiesPerks implements Disposable {
+    private final Map<PerkType, Perk<?>> perks = new HashMap<>();
 
     public ZombiesPerks(ZombiesPlayer player) {
         MapData map = player.getArena().getMap();
 
-        speedPerk = new SpeedPerk(player, new RepeatingEvent(Zombies.getInstance(), 0,
+        perks.put(PerkType.SPEED, new SpeedPerk(player, new RepeatingEvent(Zombies.getInstance(), 0,
                 map.getSpeedReapplyInterval()), map.getSpeedMaxLevel(), map.getSpeedDuration(),
-                map.getSpeedAmplifier());
-
-        quickFire = new QuickFire(player, map.getQuickFireMaxLevel(), map.getQuickFireDelayReduction());
+                map.getSpeedAmplifier()));
+        perks.put(PerkType.QUICK_FIRE, new QuickFire(player, map.getQuickFireMaxLevel()));
     }
 
     /**
      * Performs cleanup tasks.
      */
-    public void close() {
-        speedPerk.close();
-        quickFire.close();
+    @Override
+    public void dispose() {
+        for(Perk<?> perk : perks.values()) {
+            perk.dispose();
+        }
     }
 }

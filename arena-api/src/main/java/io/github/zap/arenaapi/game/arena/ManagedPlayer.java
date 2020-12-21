@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,8 @@ import java.util.UUID;
  */
 @RequiredArgsConstructor
 @Getter
-public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique {
+public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
+        Disposable {
     private final V arena;
     private final Player player;
     private boolean inGame = true;
@@ -45,7 +47,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     }
 
     /**
-     * Called when the player leaves the arena
+     * Called when the player leaves the arena.
      */
     public void quit() {
         if(inGame) {
@@ -60,12 +62,5 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
         if(!inGame) {
             inGame = true;
         }
-    }
-
-    /**
-     * Performs cleanup tasks. This is called when the arena shuts down, and is not reversible. Should also call quit().
-     */
-    public void close() {
-        quit();
     }
 }

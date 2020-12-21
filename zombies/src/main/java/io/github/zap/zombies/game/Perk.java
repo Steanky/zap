@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 
@@ -8,7 +9,7 @@ import lombok.Getter;
  * perks do not require any kind of action, the event can be set to null.
  * @param <T> The type of arguments the event passes to the perk executor.
  */
-public abstract class Perk<T> {
+public abstract class Perk<T> implements Disposable {
     @Getter
     private final ZombiesPlayer owner;
 
@@ -20,8 +21,6 @@ public abstract class Perk<T> {
     @Getter
     private int currentLevel;
 
-    private boolean activateOnRejoin = false;
-
     /**
      * Creates a new perk instance for this player.
      * @param owner The player to whom the perk applies
@@ -32,81 +31,54 @@ public abstract class Perk<T> {
         this.owner = owner;
         this.actionTriggerEvent = actionTriggerEvent;
         this.maxLevel = maxLevel;
-
-        owner.getPlayerQuitEvent().registerHandler(this::onPlayerQuit);
-        owner.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
     }
 
     /**
-     * Ensure perks are properly deactivated if the player leaves the arena.
-     * @param caller The event
-     * @param args The player who quit
+     * Upgrades this perk (and registers the execute handler with this event, if present). Can be called multiple
+     * times to increase the perk level.
+     * @return True if the perk level changed as a result of this call; false otherwise
      */
-    private void onPlayerQuit(Event<ZombiesPlayer> caller, ZombiesPlayer args) {
-        if(currentLevel != 0) { //don't deactivate the perk if it isn't active to begin with
-            deactivate();
-
-            if(!args.getArena().getMap().isPerksLostOnQuit()) { //perks are not lost on quitting
-                activateOnRejoin = true;
-            }
-            else { //if they ARE lost, remove them
-                currentLevel = 0;
-            }
-        }
-    }
-
-    private void onPlayerRejoin(Event<ZombiesPlayer> caller, ZombiesPlayer args) {
-        if(activateOnRejoin) { //activate the perk
-            activate();
-            activateOnRejoin = false;
-        }
-    }
-
-    /**
-     * Returns whether or not this perk can activate.
-     * @return True if the current level is less than the maximum level, false otherwise
-     */
-    public boolean canActivate() {
-        return currentLevel < maxLevel;
-    }
-
-    /**
-     * Activates this perk (and registers the execute handler with this event, if present).
-     */
-    public void activate() {
+    public boolean upgrade() {
         if(currentLevel < maxLevel) {
             if(++currentLevel == 1) {
                 actionTriggerEvent.registerHandler(this::execute);
             }
+
+            return true;
         }
+
+        return false;
     }
 
     /**
-     * Deactivates this perk (and unregisters the execute handler, if present).
+     * Downgrades this perk (and unregisters the execute handler, if present).
+     * @return True if the perk level changed as a result of this call, false otherwise
      */
-    public void deactivate() {
+    public boolean downgrade() {
         if(currentLevel > 0) {
             if(--currentLevel == 0) {
                 actionTriggerEvent.removeHandler(this::execute);
             }
+
+            return true;
         }
+
+        return false;
     }
 
     /**
      * Performs cleanup tasks (deactivates perk and closes associated event).
      */
-    public void close() {
-        deactivate();
-
+    @Override
+    public void dispose() {
         if(actionTriggerEvent != null) {
             actionTriggerEvent.close();
         }
     }
 
     /**
-     * Performs the action associated with the perk event.
-     * @param event The event that called this handler
+     * Performs the action associated with the perk. This is called automatically.
      * @param args The args passed by the event
      */
-    public abstract void execute(Event<T> event, T args);
+    public abstract void execute(T args);
 }
