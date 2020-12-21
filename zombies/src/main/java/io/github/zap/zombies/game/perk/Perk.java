@@ -19,6 +19,8 @@ public abstract class Perk<T> implements Disposable {
     @Getter
     private final int maxLevel;
 
+    private final boolean resetLevelOnDisable;
+
     @Getter
     private int currentLevel;
 
@@ -28,10 +30,11 @@ public abstract class Perk<T> implements Disposable {
      * @param actionTriggerEvent The event that triggers this perk's effects (can be null)
      * @param maxLevel How many levels the perk has
      */
-    public Perk(ZombiesPlayer owner, Event<T> actionTriggerEvent, int maxLevel) {
+    public Perk(ZombiesPlayer owner, Event<T> actionTriggerEvent, int maxLevel, boolean resetLevelOnDisable) {
         this.owner = owner;
         this.actionTriggerEvent = actionTriggerEvent;
         this.maxLevel = maxLevel;
+        this.resetLevelOnDisable = resetLevelOnDisable;
     }
 
     /**
@@ -60,8 +63,11 @@ public abstract class Perk<T> implements Disposable {
         if(currentLevel > 0) {
             if(--currentLevel == 0) {
                 actionTriggerEvent.removeHandler(this::execute);
+                disable();
+                return true;
             }
 
+            activate();
             return true;
         }
 
@@ -69,14 +75,21 @@ public abstract class Perk<T> implements Disposable {
     }
 
     /**
-     * Applies the perk's effects. This is called every time the perk is upgraded.
+     * Applies the perk's effects. This is called every time the perk is upgraded or downgraded (if the downgrade
+     * brings the perk down one level but is still not 0). It is also called when perks should be re-activated, such
+     * as when the player rejoins the game.
      */
     public void activate() { }
 
     /**
-     * Disables any effects applied by the perk.
+     * Disables any effects applied by the perk. Called once by downgrade() if the downgrade brought this perk to 0, or
+     * externally when the player leaves the game.
      */
-    public void disable() { }
+    public void disable() {
+        if(resetLevelOnDisable) {
+            currentLevel = 0;
+        }
+    }
 
     @Override
     public void dispose() {

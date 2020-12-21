@@ -11,9 +11,9 @@ public class SpeedPerk extends Perk<EmptyEventArgs> {
     private final int effectDuration;
     private final int baseAmplifier;
 
-    public SpeedPerk(ZombiesPlayer owner, RepeatingEvent actionTriggerEvent, int maxLevel, int effectDuration,
-                     int baseAmplifier) {
-        super(owner, actionTriggerEvent, maxLevel);
+    public SpeedPerk(ZombiesPlayer owner, RepeatingEvent actionTriggerEvent, boolean resetOnQuit, int maxLevel,
+                     int effectDuration, int baseAmplifier) {
+        super(owner, actionTriggerEvent, maxLevel, resetOnQuit);
 
         event = actionTriggerEvent;
         this.effectDuration = effectDuration;
@@ -27,29 +27,12 @@ public class SpeedPerk extends Perk<EmptyEventArgs> {
     }
 
     @Override
-    public boolean upgrade() {
-        if(super.upgrade()) {
-            if(getCurrentLevel() == 1) {
-                event.start();
-            }
-
-            return true;
-        }
-
-        return false;
+    public void activate() {
+        event.start(); //redundant calls to start() are fine
     }
 
     @Override
-    public boolean downgrade() {
-        if(super.downgrade()) {
-            if(getCurrentLevel() == 0) {
-                event.stop();
-                getOwner().getPlayer().removePotionEffect(PotionEffectType.SPEED);
-            }
-
-            return true;
-        }
-
-        return false;
+    public void disable() {
+        event.stop();
     }
 }

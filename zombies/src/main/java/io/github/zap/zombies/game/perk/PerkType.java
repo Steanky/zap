@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.perk;
 
 /**
- * Defines valid kinds of perks.
+ * Defines a list of perk types.
  */
 public enum PerkType {
     SPEED,

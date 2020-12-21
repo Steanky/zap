@@ -19,14 +19,15 @@ public class ZombiesPerks implements Disposable {
 
     public ZombiesPerks(ZombiesPlayer player) {
         MapData map = player.getArena().getMap();
+        boolean resetOnQuit = map.isPerksLostOnQuit();
 
         perks.put(PerkType.SPEED, new SpeedPerk(player, new RepeatingEvent(Zombies.getInstance(), 0,
-                map.getSpeedReapplyInterval()), map.getSpeedMaxLevel(), map.getSpeedDuration(),
+                map.getSpeedReapplyInterval()), resetOnQuit, map.getSpeedMaxLevel(), map.getSpeedDuration(),
                 map.getSpeedAmplifier()));
-        perks.put(PerkType.QUICK_FIRE, new QuickFire(player, map.getQuickFireMaxLevel()));
-        perks.put(PerkType.EXTRA_HEALTH, new ExtraHealth(player, map.getExtraHealthMaxLevel(), map.getExtraHealthHpPerLevel()));
-        perks.put(PerkType.EXTRA_WEAPON, new ExtraWeapon(player, map.getExtraHealthMaxLevel()));
-        perks.put(PerkType.FAST_REVIVE, new FastRevive(player, map.getFastReviveMaxLevel()));
+        perks.put(PerkType.QUICK_FIRE, new QuickFire(player, map.getQuickFireMaxLevel(), resetOnQuit));
+        perks.put(PerkType.EXTRA_HEALTH, new ExtraHealth(player, map.getExtraHealthMaxLevel(), map.getExtraHealthHpPerLevel(), resetOnQuit));
+        perks.put(PerkType.EXTRA_WEAPON, new ExtraWeapon(player, map.getExtraHealthMaxLevel(), resetOnQuit));
+        perks.put(PerkType.FAST_REVIVE, new FastRevive(player, map.getFastReviveMaxLevel(), resetOnQuit));
     }
 
     /**

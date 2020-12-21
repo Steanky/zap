@@ -7,8 +7,8 @@ public class ExtraHealth extends MarkerPerk {
 
     private final int healthIncrement;
 
-    public ExtraHealth(ZombiesPlayer owner, int maxLevel, int healthIncrement) {
-        super(owner, maxLevel);
+    public ExtraHealth(ZombiesPlayer owner, int maxLevel, int healthIncrement, boolean resetLevelOnDisable) {
+        super(owner, maxLevel, resetLevelOnDisable);
         this.healthIncrement = healthIncrement;
     }
 
@@ -19,8 +19,7 @@ public class ExtraHealth extends MarkerPerk {
 
     @Override
     public void disable() {
-        if(getCurrentLevel() > 0) {
-            getOwner().getPlayer().setHealth(BASE_HP);
-        }
+        super.disable();
+        getOwner().getPlayer().setHealth(BASE_HP);
     }
 }
