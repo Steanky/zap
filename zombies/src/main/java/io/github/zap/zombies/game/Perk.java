@@ -44,6 +44,7 @@ public abstract class Perk<T> implements Disposable {
                 actionTriggerEvent.registerHandler(this::execute);
             }
 
+            activate();
             return true;
         }
 
@@ -67,10 +68,22 @@ public abstract class Perk<T> implements Disposable {
     }
 
     /**
+     * Applies the perk's effects. This is called every time the perk is upgraded.
+     */
+    public void activate() { }
+
+    /**
+     * Disables any effects applied by the perk.
+     */
+    public void disable() { }
+
+    /**
      * Performs cleanup tasks (deactivates perk and closes associated event).
      */
     @Override
     public void dispose() {
+        disable();
+
         if(actionTriggerEvent != null) {
             actionTriggerEvent.dispose();
         }

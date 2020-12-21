@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data;
 
+import io.github.zap.zombies.game.ShopType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

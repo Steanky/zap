@@ -174,10 +174,30 @@ public class MapData {
     int quickFireMaxLevel;
 
     /**
-     * The amount of ticks subtracted from weapon delay when quick fire is active. Actual value scales
+     * The amount of ticks subtracted from base weapon fire delay when quick fire is active. Actual value scales
      * according to xy, where x is the delay reduction and y is the number of levels.
      */
     int quickFireDelayReduction;
+
+    /**
+     * The maximum level of extra health
+     */
+    int extraHealthMaxLevel;
+
+    /**
+     * The amount of HP extra health grants, per level
+     */
+    int extraHealthHpPerLevel;
+
+    /**
+     * The maximum level of extra weapon
+     */
+    int extraWeaponMaxLevel;
+
+    /**
+     * The maximum level of fast revive
+     */
+    int fastReviveMaxLevel;
 
     /**
      * All the rounds in the game
