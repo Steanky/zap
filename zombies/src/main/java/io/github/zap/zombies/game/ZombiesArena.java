@@ -212,11 +212,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
         List<ActiveMob> activeMobs = new ArrayList<>();
 
-        for(RoomData room : map.getRooms()) {
-            if(room.isSpawn() || room.getOpenProperty().get(this)) {
-                while(true) {
-                    boolean spawned = false;
+        while(true) {
+            boolean spawned = false;
 
+            for(RoomData room : map.getRooms()) { //iterate through all rooms
+                if(room.isSpawn() || room.getOpenProperty().get(this)) { //only try to spawn in open rooms
                     for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
                         for(int i = mobs.size() - 1; i >= 0; i--) {
                             MythicMob mythicMob = mobs.get(i);
@@ -238,19 +238,23 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                             }
                         }
                     }
-
-                    if(!spawned) {
-                        Zombies.warning("Some enemies could not be spawned.");
-                        return activeMobs;
-                    }
                 }
             }
-        }
 
-        return activeMobs;
+            if(!spawned) {
+                Zombies.warning("Some enemies could not be spawned.");
+                return activeMobs;
+            }
+        }
     }
 
     private void doRound() {
+        for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
+            if(!player.isAlive()) {
+                player.respawn();
+            }
+        }
+
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
         int currentRoundIndex = currentRoundProperty.get(this);
 

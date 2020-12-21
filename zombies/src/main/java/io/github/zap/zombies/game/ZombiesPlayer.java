@@ -14,6 +14,7 @@ import io.github.zap.zombies.game.data.WindowData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -60,10 +61,19 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     public void quit() {
         super.quit();
+
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         windowRepairTaskId = -1;
 
         perks.disableAll();
+    }
+
+    @Override
+    public void rejoin() {
+        super.rejoin();
+
+        state = ZombiesPlayerState.DEAD;
+        getPlayer().setGameMode(GameMode.SPECTATOR);
     }
 
     @Override
@@ -145,6 +155,26 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             //TODO: player knockdown code
         }
+    }
+
+    /**
+     * Revives this player.
+     */
+    public void revive() {
+        if(state == ZombiesPlayerState.KNOCKED) {
+            state = ZombiesPlayerState.ALIVE;
+
+            //TODO: dead body removal code
+        }
+    }
+
+    /**
+     * Respawns the player at the map spawn. Also revives them, if they were knocked down.
+     */
+    public void respawn() {
+        revive();
+        state = ZombiesPlayerState.ALIVE;
+        getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
     }
 
     /**
