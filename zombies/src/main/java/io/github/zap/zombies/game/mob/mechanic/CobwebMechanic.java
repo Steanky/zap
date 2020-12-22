@@ -1,4 +1,4 @@
-package io.github.zap.zombies.mob.mechanic;
+package io.github.zap.zombies.game.mob.mechanic;
 
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;

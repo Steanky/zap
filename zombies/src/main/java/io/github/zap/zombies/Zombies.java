@@ -80,7 +80,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String ARENA_METADATA_NAME = "zombies_arena";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
-    public static final String PLAYER_DATA_FILE_NAME = "playerdata.json";
+    public static final String PLAYER_DATA_FILE_NAME = "playerdata";
 
     @Override
     public void onEnable() {
@@ -179,10 +179,6 @@ public final class Zombies extends JavaPlugin implements Listener {
          */
 
         dataLoader = new JacksonDataLoader();
-
-        dataLoader.save(new TestData("This is a third test."), new File("test.json"));
-
-        TestData data = dataLoader.load(new File("test.json"), TestData.class);
     }
 
     private void initPlayerDataManager() {

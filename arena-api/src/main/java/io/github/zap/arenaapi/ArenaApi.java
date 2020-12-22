@@ -36,6 +36,7 @@ public final class ArenaApi extends JavaPlugin {
         instance = this;
 
         try {
+            initProxy();
             initDependencies();
         }
         catch(LoadFailureException exception)
