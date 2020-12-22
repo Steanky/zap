@@ -30,6 +30,11 @@ public class MapData {
     String mapNameKey = "map.default_map.name";
 
     /**
+     * The name of the world corresponding to this map
+     */
+    String worldName = "default_world";
+
+    /**
      * The bounds of the map, inside which every component should exist
      */
     BoundingBox mapBounds = new BoundingBox();
@@ -204,13 +209,6 @@ public class MapData {
     final ArrayList<RoundData> rounds = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
-
-    /**
-     * Creates a new MapData instance with default values.
-     */
-    public MapData() {
-
-    }
 
     /**
      * Gets the window whose face contains the provided vector, or null if the vector is not inside any windows.

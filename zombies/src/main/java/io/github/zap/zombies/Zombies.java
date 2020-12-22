@@ -80,7 +80,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String ARENA_METADATA_NAME = "zombies_arena";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
-    public static final String PLAYER_DATA_FILE_NAME = "playerdata";
+    public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     @Override
     public void onEnable() {
@@ -182,7 +182,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initPlayerDataManager() {
-        playerDataManager = new FilePlayerDataManager(Path.of(getDataFolder().getPath(), PLAYER_DATA_FILE_NAME)
+        playerDataManager = new FilePlayerDataManager(Path.of(getDataFolder().getPath(), PLAYER_DATA_FOLDER_NAME)
                 .toFile(), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
     }
 

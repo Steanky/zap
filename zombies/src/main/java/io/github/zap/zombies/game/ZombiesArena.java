@@ -13,6 +13,7 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -118,6 +119,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         for(Player player : args.getPlayers()) {
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
+            player.setGameMode(GameMode.ADVENTURE);
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
@@ -166,6 +168,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
+        args.getEvent().setCancelled(true); //cancel death event
+
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
         managedPlayer.knock();
 

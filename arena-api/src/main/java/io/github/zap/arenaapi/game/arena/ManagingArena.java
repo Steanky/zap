@@ -9,6 +9,7 @@ import lombok.Value;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
@@ -67,9 +68,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      */
     private class AdaptedPlayerDeathEvent extends AdaptingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
         public AdaptedPlayerDeathEvent() {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class, EventPriority.NORMAL,
-                    true), event -> {
+            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
+                    EventPriority.NORMAL, true), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
+
                 if(managedPlayer != null) {
                     return managedPlayer.isInGame();
                 }
@@ -92,16 +94,22 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
     //more will be added as needed
-    private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
-    private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
-    private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
-    private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent = new AdaptedPlayerDeathEvent();
-    private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
+    private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent;
+    private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent;
+    private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent;
+    private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent;
+    private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent;
 
     public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {
         super(manager, world);
         this.plugin = plugin;
         this.wrapper = wrapper;
+
+        playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
+        playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
+        playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
+        playerDeathEvent = new AdaptedPlayerDeathEvent();
+        playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
 
         playerQuitEvent.registerHandler(this::onPlayerQuit);
     }

@@ -73,6 +73,10 @@ public final class ArenaApi extends JavaPlugin {
                 "a manager for game type '%s' has already been registered");
     }
 
+    public ArenaManager<?> getArenaManager(String name) {
+        return arenaManagers.get(name);
+    }
+
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
         String gameName = information.getGameName();
         ArenaManager<?> arenaManager = arenaManagers.get(gameName);
