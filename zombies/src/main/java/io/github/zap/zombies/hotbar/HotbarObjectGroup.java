@@ -13,6 +13,8 @@ public class HotbarObjectGroup {
 
     protected final Map<Integer, HotbarObject> hotbarObjectMap = new HashMap<>();
 
+    protected boolean visible;
+
     /**
      * Creates a hotbar object group
      * @param player The player the hotbar object group belongs to
@@ -34,6 +36,7 @@ public class HotbarObjectGroup {
                 hotbarObject.setVisible(visible);
             }
         }
+        this.visible = visible;
     }
 
     /**
@@ -77,6 +80,10 @@ public class HotbarObjectGroup {
     public void setHotbarObject(int slotId, HotbarObject hotbarObject) {
         if (hotbarObjectMap.containsKey(slotId)) {
             hotbarObjectMap.put(slotId, hotbarObject);
+
+            if (visible) {
+                hotbarObject.setVisible(true);
+            }
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not contain slotId %d!", slotId));
         }

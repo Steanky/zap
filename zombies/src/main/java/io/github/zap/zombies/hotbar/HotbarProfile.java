@@ -28,9 +28,11 @@ public class HotbarProfile {
     public HotbarProfile(Player player) {
         this.player = player;
 
-        defaultHotbarObjectGroup = new MutableHotbarObjectGroup(player, new HashSet<>(){
-            // TODO: Don't know what the default slots are
-        });
+        defaultHotbarObjectGroup = new MutableHotbarObjectGroup(player, new HashSet<>(){{
+            for (int i = 0; i <= 8; i++) {
+                add(i);
+            }
+        }});
         hotbarObjectGroupMap.put(DEFAULT_HOTBAR_OBJECT_GROUP_KEY, defaultHotbarObjectGroup);
     }
 

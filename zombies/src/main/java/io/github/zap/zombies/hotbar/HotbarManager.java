@@ -17,7 +17,7 @@ public class HotbarManager {
 
     private final Player player;
 
-    private HotbarProfile current;
+    private HotbarProfile current = null;
 
     /**
      * Creates the hotbar manager of a player

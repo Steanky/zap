@@ -12,8 +12,6 @@ public class MutableHotbarObjectGroup extends HotbarObjectGroup {
 
     private final Player player;
 
-    private boolean visible;
-
     public MutableHotbarObjectGroup(Player player, Set<Integer> slots) {
         super(player, slots);
 
@@ -44,9 +42,4 @@ public class MutableHotbarObjectGroup extends HotbarObjectGroup {
         }
     }
 
-    @Override
-    public void setVisible(boolean visible) {
-        super.setVisible(visible);
-        this.visible = visible;
-    }
 }
