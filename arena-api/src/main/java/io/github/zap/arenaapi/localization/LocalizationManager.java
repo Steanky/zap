@@ -126,4 +126,16 @@ public class LocalizationManager {
                     player.getUniqueId().toString(), messageKey));
         }
     }
+
+    public Locale getPlayerLocale(Player player) {
+        PlayerData data = dataManager.getPlayerData(player.getUniqueId());
+
+        if (data != null) {
+            return Locale.forLanguageTag(data.getLocale());
+        } else {
+            ArenaApi.warning(String.format("An attempt was made to get the locale of a player for whom no PlayerData object could be retrieved: player UUID %s", player.getUniqueId().toString()));
+            return null;
+        }
+    }
+
 }

@@ -1,4 +1,4 @@
-package io.github.zap.zombies.hotbar;
+package io.github.zap.zombies.game.hotbar;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,18 +10,21 @@ import org.bukkit.inventory.ItemStack;
  */
 public class HotbarObject {
 
-    protected final Player player;
-
-    @Setter
-    protected int slotId;
-
-    @Setter
     @Getter
-    protected ItemStack representingItemStack = null;
+    private final Player player;
 
-    protected boolean visible = false;
+    @Getter
+    @Setter
+    private int slotId;
 
-    protected boolean removed = false;
+    @Getter
+    private ItemStack representingItemStack = null;
+
+    @Getter
+    private boolean visible = false;
+
+    @Getter
+    private boolean removed = false;
 
     /**
      * Creates a hotbar object that is invisible
@@ -34,10 +37,10 @@ public class HotbarObject {
     }
 
     /**
-     * Creates a hotbar object that is invisible that would display an itemstack
+     * Creates a hotbar object that is invisible that would display an item stack
      * @param player The player the hotbar object belongs to
      * @param slotId The slot of the hotbar object
-     * @param representingItemStack The itemstack to display
+     * @param representingItemStack The item stack to display
      */
     public HotbarObject(Player player, int slotId, ItemStack representingItemStack) {
         this(player, slotId);
@@ -48,21 +51,9 @@ public class HotbarObject {
      * Sets the item stack in the hotbar object slot
      * @param itemStack The item stack to display
      */
-    public void setStack(ItemStack itemStack) {
-        if (!removed) {
-            player.getInventory().setItem(slotId, itemStack);
-        }
-    }
-
-    /**
-     * Sets the item stack in the hotbar object slot
-     * @return The item stack, or null if the hotbar object is not visible or removed
-     */
-    public ItemStack getStack() {
+    private void setStack(ItemStack itemStack) {
         if (!removed && visible) {
-            return player.getInventory().getItem(slotId);
-        } else {
-            return null;
+            player.getInventory().setItem(slotId, itemStack);
         }
     }
 
@@ -78,6 +69,18 @@ public class HotbarObject {
      */
     public void onSlotDeselected() {
 
+    }
+
+    /**
+     * Sets the representing item stack of the hotbar
+     * @param representingItemStack The item stack to represent
+     */
+    public void setRepresentingItemStack(ItemStack representingItemStack) {
+        this.representingItemStack = representingItemStack;
+
+        if (visible) {
+            setVisible(true);
+        }
     }
 
     /**

@@ -1,5 +1,6 @@
-package io.github.zap.zombies.hotbar;
+package io.github.zap.zombies.game.hotbar;
 
+import lombok.Getter;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -11,9 +12,11 @@ import java.util.Set;
  */
 public class HotbarObjectGroup {
 
-    protected final Map<Integer, HotbarObject> hotbarObjectMap = new HashMap<>();
+    @Getter
+    private final Map<Integer, HotbarObject> hotbarObjectMap = new HashMap<>();
 
-    protected boolean visible;
+    @Getter
+    private boolean visible = false;
 
     /**
      * Creates a hotbar object group

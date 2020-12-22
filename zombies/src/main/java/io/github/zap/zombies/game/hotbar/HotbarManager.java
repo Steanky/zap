@@ -1,4 +1,4 @@
-package io.github.zap.zombies.hotbar;
+package io.github.zap.zombies.game.hotbar;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -45,7 +45,7 @@ public class HotbarManager {
     /**
      * Adds an item to the current profile
      * @param slotId The slot to add the item to
-     * @param itemStack The itemstack to add
+     * @param itemStack The item stack to add
      */
     public void addItem(int slotId, ItemStack itemStack) {
         addItem(current, slotId, itemStack);
@@ -55,7 +55,7 @@ public class HotbarManager {
      * Adds an item to a hotbar profile
      * @param hotbarProfile The hotbar profile to add the item to
      * @param slotId The slot to add the item to
-     * @param itemStack The itemstack to add
+     * @param itemStack The item stack to add
      */
     public void addItem(HotbarProfile hotbarProfile, int slotId, ItemStack itemStack) {
         hotbarProfile.addItem(slotId, itemStack);

@@ -1,7 +1,8 @@
-package io.github.zap.zombies.hotbar;
+package io.github.zap.zombies.game.hotbar;
 
 import org.bukkit.entity.Player;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,9 +35,10 @@ public class MutableHotbarObjectGroup extends HotbarObjectGroup {
      * @param hotbarObject The hotbar object to add
      */
     public void addObject(int slotId, HotbarObject hotbarObject) {
+        Map<Integer, HotbarObject> hotbarObjectMap = getHotbarObjectMap();
         if (!hotbarObjectMap.containsKey(slotId)) {
             hotbarObjectMap.put(slotId, hotbarObject);
-            hotbarObject.setVisible(visible);
+            hotbarObject.setVisible(isVisible());
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup already contains slotId %d! (Did you mean to use setHotbarObject?)", slotId));
         }
