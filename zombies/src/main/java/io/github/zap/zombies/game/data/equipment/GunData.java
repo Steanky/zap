@@ -1,6 +1,6 @@
-package io.github.zap.zombies.data.equipment;
+package io.github.zap.zombies.game.data.equipment;
 
-import io.github.zap.zombies.data.level.GunLevel;
+import io.github.zap.zombies.game.data.level.GunLevel;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.Particle;

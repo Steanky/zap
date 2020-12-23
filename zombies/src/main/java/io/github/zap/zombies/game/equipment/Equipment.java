@@ -1,6 +1,6 @@
-package io.github.zap.zombies.equipment;
+package io.github.zap.zombies.game.equipment;
 
-import io.github.zap.zombies.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.hotbar.HotbarObject;
 import lombok.Getter;
 import org.bukkit.entity.Player;

@@ -1,8 +1,8 @@
-package io.github.zap.zombies.data.equipment;
+package io.github.zap.zombies.game.data.equipment;
 
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.data.CustomData;
+import io.github.zap.zombies.game.data.CustomData;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

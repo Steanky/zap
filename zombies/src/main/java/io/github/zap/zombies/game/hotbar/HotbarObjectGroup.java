@@ -10,15 +10,13 @@ import java.util.Set;
 /**
  * A group of hotbar object managed together
  */
+@Getter
 public class HotbarObjectGroup {
 
-    @Getter
     private final Map<Integer, HotbarObject> hotbarObjectMap = new HashMap<>();
 
-    @Getter
     private final Player player;
 
-    @Getter
     private boolean visible = false;
 
     /**

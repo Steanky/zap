@@ -8,22 +8,17 @@ import org.bukkit.inventory.ItemStack;
 /**
  * A single object in a hotbar
  */
+@Getter
 public class HotbarObject {
 
-    @Getter
     private final Player player;
 
-    @Getter
-    @Setter
     private int slotId;
 
-    @Getter
     private ItemStack representingItemStack = null;
 
-    @Getter
     private boolean visible = false;
 
-    @Getter
     private boolean removed = false;
 
     /**

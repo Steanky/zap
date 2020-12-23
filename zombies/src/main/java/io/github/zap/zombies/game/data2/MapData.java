@@ -1,10 +1,9 @@
-package io.github.zap.zombies.game.data;
+package io.github.zap.zombies.game.data2;
 
 import io.github.zap.arenaapi.Property;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;

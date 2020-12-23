@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data;
+package io.github.zap.zombies.game.data2;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.MultiBoundingBox;

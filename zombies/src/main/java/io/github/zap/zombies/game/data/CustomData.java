@@ -1,4 +1,4 @@
-package io.github.zap.zombies.data;
+package io.github.zap.zombies.game.data;
 
 import java.util.HashMap;
 import java.util.Map;

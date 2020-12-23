@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.zombies.game.data.SpawnpointData;
+import io.github.zap.zombies.game.data2.SpawnpointData;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 
