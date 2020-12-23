@@ -8,19 +8,50 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.regularcommands.validator.ValidationStep;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
+import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArenaManager;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
 public class JoinZombiesGameForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(joinarena)$", "joinarena")
+            new Parameter("^(join)$", "join"),
+            new Parameter("^([a-zA-Z0-9_]+)$", "[arena-name]"),
+            new Parameter("^([a-zA-Z0-9_]+)$", "[map-name]")
     };
+
+    private static final CommandValidator validator;
+
+    static {
+        validator = new CommandValidator((context, arguments) -> {
+            String managerName = (String)arguments[1];
+            String mapName = (String)arguments[2];
+
+            ArenaManager<?> arenaManager = ArenaApi.getInstance().getArenaManager(managerName);
+
+            if(arenaManager == null) {
+                return new ImmutablePair<>(false, String.format("An ArenaManager named '%s' does not exist.",
+                        managerName));
+            }
+
+            if(!arenaManager.hasMap(mapName)) {
+                return new ImmutablePair<>(false, String.format("A map named '%s' does not exist for " +
+                        "ArenaManager '%s'", mapName, managerName));
+            }
+
+            return new ImmutablePair<>(true, null);
+        });
+
+        validator.chain(Validators.PLAYER_EXECUTOR);
+    }
 
     public JoinZombiesGameForm() {
         super("Joins a Zombies game.", Permissions.OPERATOR, parameters);
@@ -33,7 +64,7 @@ public class JoinZombiesGameForm extends CommandForm {
 
     @Override
     public CommandValidator getValidator(Context context, Object[] arguments) {
-        return Validators.PLAYER_EXECUTOR;
+        return validator;
     }
 
     @Override
@@ -41,7 +72,7 @@ public class JoinZombiesGameForm extends CommandForm {
         Player player = (Player) context.getSender();
         ArenaApi api = Zombies.getInstance().getArenaApi();
         JoinInformation testInformation = new JoinInformation(new SimpleJoinable(Lists.newArrayList(player)),
-                "zombies", "test_map", null, null);
+                (String)arguments[1], (String)arguments[2], null, null);
 
         api.handleJoin(testInformation, (pair) -> {
             if(!pair.left) {

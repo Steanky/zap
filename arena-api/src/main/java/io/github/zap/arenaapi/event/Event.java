@@ -1,5 +1,8 @@
 package io.github.zap.arenaapi.event;
 
+import io.github.zap.arenaapi.Disposable;
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +10,7 @@ import java.util.List;
  * Encapsulates an event, which is capable of calling a list of EventHandlers.
  * @param <T> The type of the object that will be passed to the EventHandler
  */
-public class Event<T> {
+public class Event<T> implements Disposable {
     private final List<EventHandler<T>> handlers = new ArrayList<>();
 
     /**
@@ -34,10 +37,8 @@ public class Event<T> {
         handlers.remove(handler);
     }
 
-    /**
-     * Performs cleanup tasks.
-     */
-    public void close() {
+    @Override
+    public void dispose() {
         handlers.clear();
     }
 
@@ -47,7 +48,7 @@ public class Event<T> {
      */
     public void callEvent(T args) {
         for(EventHandler<T> handler : handlers) {
-            handler.handleEvent(this, args);
+            handler.handleEvent(args);
         }
     }
 }

@@ -23,6 +23,7 @@ import io.lumine.xikage.mythicmobs.MythicMobs;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -80,7 +81,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String ARENA_METADATA_NAME = "zombies_arena";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
-    public static final String PLAYER_DATA_FILE_NAME = "playerdata.json";
+    public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     @Override
     public void onEnable() {
@@ -125,6 +126,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.DEFAULT_LOCALE, DEFAULT_LOCALE);
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
                 LOCALIZATION_FOLDER_NAME));
+        config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
+        config.addDefault(ConfigNames.LOBBY_WORLD,"world");
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -161,13 +164,27 @@ public final class Zombies extends JavaPlugin implements Listener {
         info(String.format("Done preloading worlds; ~%sms elapsed.", timer.getTime()));
     }
 
-    private void initArenaManagers() {
+    private void initArenaManagers() throws LoadFailureException {
         FileConfiguration config = getConfig();
-        ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(
-                Bukkit.getWorld("world"), new Vector(0, 0, 0)), Path.of(getDataFolder().getPath(),
-                MAP_FOLDER_NAME).toFile(), config.getInt(ConfigNames.MAX_WORLDS),
-                config.getInt(ConfigNames.ARENA_TIMEOUT));
-        arenaApi.registerArenaManager(zombiesArenaManager);
+        Vector spawn = config.getVector(ConfigNames.WORLD_SPAWN);
+        String worldName = config.getString(ConfigNames.LOBBY_WORLD);
+
+        if(spawn != null && worldName != null) {
+            World world = Bukkit.getWorld(worldName);
+
+            if(world != null) {
+                ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
+                        Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(), config.getInt(ConfigNames.MAX_WORLDS),
+                        config.getInt(ConfigNames.ARENA_TIMEOUT));
+                arenaApi.registerArenaManager(zombiesArenaManager);
+            }
+            else {
+                throw new LoadFailureException(String.format("Specified lobby world '%s' does not exist.", worldName));
+            }
+        }
+        else {
+            throw new LoadFailureException("Unable to load required configuration information for ZombiesArenaManager.");
+        }
     }
 
     private void initSerialization() throws LoadFailureException {
@@ -177,14 +194,10 @@ public final class Zombies extends JavaPlugin implements Listener {
          */
 
         dataLoader = new JacksonDataLoader();
-
-        dataLoader.save(new TestData("This is a third test."), new File("test.json"));
-
-        TestData data = dataLoader.load(new File("test.json"), TestData.class);
     }
 
     private void initPlayerDataManager() {
-        playerDataManager = new FilePlayerDataManager(Path.of(getDataFolder().getPath(), PLAYER_DATA_FILE_NAME)
+        playerDataManager = new FilePlayerDataManager(Path.of(getDataFolder().getPath(), PLAYER_DATA_FOLDER_NAME)
                 .toFile(), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
     }
 

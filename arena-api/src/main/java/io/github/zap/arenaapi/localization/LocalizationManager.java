@@ -109,7 +109,7 @@ public class LocalizationManager {
 
             if(formatArguments.length > 0) {
                 try {
-                    player.sendRawMessage(String.format(localizedMessage, formatArguments));
+                    player.sendRawMessage(String.format(playerLocale, localizedMessage, formatArguments));
                 }
                 catch(IllegalFormatException exception) {
                     ArenaApi.warning(String.format("Illegal format string %s for MessageKey %s", localizedMessage,

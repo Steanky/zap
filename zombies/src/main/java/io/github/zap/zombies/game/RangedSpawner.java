@@ -17,7 +17,7 @@ public class RangedSpawner implements Spawner {
 
             for(ZombiesPlayer player : arena.getPlayerMap().values()) {
                 if(player.isInGame() && player.isAlive()) {
-                    //mimics Hypixel's range check on zombie spawns
+                    //sla
                     if(spawnpoint.getSpawn().distanceSquared(player.getPlayer().getLocation().toVector()) <= minRangeSq) {
                         return true;
                     }

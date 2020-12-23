@@ -39,20 +39,24 @@ public class Hologram {
     static {
         ArenaApi arenaApi = ArenaApi.getInstance();
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-        manager.addPacketListener(new PacketAdapter(arenaApi, ListenerPriority.NORMAL, PacketType.Play.Client.USE_ENTITY) {
+        manager.addPacketListener(new PacketAdapter(arenaApi, ListenerPriority.NORMAL, PacketType.Play.Client
+                .USE_ENTITY) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 if (event.getPacketType() == PacketType.Play.Client.USE_ENTITY) {
                     PacketContainer packetContainer = event.getPacket();
 
-                    if (packetContainer.getEntityUseActions().read(0) == EnumWrappers.EntityUseAction.INTERACT_AT) {
+                    if (packetContainer.getEntityUseActions().read(0) == EnumWrappers.EntityUseAction
+                            .INTERACT_AT) {
                         int id = packetContainer.getIntegers().read(0);
 
                         if (ID_SET.contains(id)) {
                             event.setCancelled(true);
 
-                            PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client.BLOCK_PLACE);
-                            fakePacketContainer.getHands().write(0, packetContainer.getHands().read(0));
+                            PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client
+                                    .BLOCK_PLACE);
+                            fakePacketContainer.getHands().write(0, packetContainer.getHands()
+                                    .read(0));
 
                             try {
                                 manager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
@@ -103,8 +107,7 @@ public class Hologram {
      * Creates an empty line
      */
     public void addLine() {
-        PacketContainer packetContainer = createHologramLine(location.clone().subtract(0D, hologramLines.size() * LINE_SPACE, 0D));
-        sendToAll(packetContainer);
+        sendToAll(createHologramLine(location.clone().subtract(0D, hologramLines.size() * LINE_SPACE, 0D)));
     }
 
     /**
@@ -115,6 +118,7 @@ public class Hologram {
      */
     public void setLineFor(Player player, int index, String line) {
         PacketContainer packetContainer = createSetLinePacket(index, line);
+
         if (packetContainer != null) {
             sendTo(player, packetContainer);
         }
@@ -127,6 +131,7 @@ public class Hologram {
      */
     public void setLine(int index, String line) {
         PacketContainer packetContainer = createSetLinePacket(index, line);
+
         if (packetContainer != null) {
             sendToAll(packetContainer);
         }
@@ -178,8 +183,8 @@ public class Hologram {
             try {
                 protocolManager.sendServerPacket(player, packetContainer);
             } catch (InvocationTargetException exception) {
-                ArenaApi.warning(String.format("Error sending packet of type '%s' to player '%s'.",
-                        packetContainer.getType().name(), player.getName()));
+                ArenaApi.warning(String.format("Error sending packet of type '%s' to player '%s'.", packetContainer
+                        .getType().name(), player.getName()));
             }
         }
     }

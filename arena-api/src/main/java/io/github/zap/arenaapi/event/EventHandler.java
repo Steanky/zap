@@ -7,8 +7,7 @@ package io.github.zap.arenaapi.event;
 public interface EventHandler<T> {
     /**
      * Handles the actual event.
-     * @param caller The Event object that invoked this function
-     * @param event The object received as an argument
+     * @param args The object received as an argument
      */
-    void handleEvent(Event<T> caller, T event);
+    void handleEvent(T args);
 }

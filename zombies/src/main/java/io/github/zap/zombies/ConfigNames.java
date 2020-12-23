@@ -9,4 +9,6 @@ public final class ConfigNames {
     public static final String DATA_CACHE_CAPACITY = "dataCacheCapacity";
     public static final String MAX_WORLDS = "maxWorlds";
     public static final String ARENA_TIMEOUT = "arenaTimeout";
+    public static final String WORLD_SPAWN = "worldSpawn";
+    public static final String LOBBY_WORLD = "lobbyWorld";
 }

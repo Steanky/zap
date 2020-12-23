@@ -2,6 +2,8 @@ package io.github.zap.arenaapi.game;
 
 import org.apache.commons.lang3.Validate;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
