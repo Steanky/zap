@@ -16,6 +16,9 @@ public class HotbarObjectGroup {
     private final Map<Integer, HotbarObject> hotbarObjectMap = new HashMap<>();
 
     @Getter
+    private final Player player;
+
+    @Getter
     private boolean visible = false;
 
     /**
@@ -24,6 +27,7 @@ public class HotbarObjectGroup {
      * @param slots The slots that the hotbar object group manages
      */
     public HotbarObjectGroup(Player player, Set<Integer> slots) {
+        this.player = player;
         for (Integer slot : slots) {
             hotbarObjectMap.put(slot, new HotbarObject(player, slot));
         }
@@ -43,10 +47,11 @@ public class HotbarObjectGroup {
     }
 
     /**
-     * Removes and no longer manages a slot in a hotbar object group
+     * Removes a slot in a hotbar object group
      * @param slotId The slot to remove
+     * @param replace Whether or not the hotbar object group should replace the object in the slot and still manage it
      */
-    public void remove(int slotId) {
+    public void remove(int slotId, boolean replace) {
         if (hotbarObjectMap.containsKey(slotId)) {
             HotbarObject remove = hotbarObjectMap.remove(slotId);
             remove.remove();
@@ -63,6 +68,31 @@ public class HotbarObjectGroup {
             if (hotbarObject != null) {
                 hotbarObject.remove();
             }
+        }
+    }
+
+    /**
+     * Adds a new empty hotbar object to a new slot.
+     * This should not be used to set hotbar objects
+     * @param slotId The slot to add the empty hotbar object to
+     */
+    public void addHotbarObject(int slotId) {
+        addHotbarObject(slotId, new HotbarObject(player, slotId));
+    }
+
+    /**
+     * Adds a new hotbar object to a new slot.
+     * This should not be used to set hotbar objects
+     * @param slotId The slot to add the hotbar object to
+     * @param hotbarObject The hotbar object to add
+     */
+    public void addHotbarObject(int slotId, HotbarObject hotbarObject) {
+        Map<Integer, HotbarObject> hotbarObjectMap = getHotbarObjectMap();
+        if (!hotbarObjectMap.containsKey(slotId)) {
+            hotbarObjectMap.put(slotId, hotbarObject);
+            hotbarObject.setVisible(isVisible());
+        } else {
+            throw new IllegalArgumentException(String.format("The HotbarObjectGroup already contains slotId %d! (Did you mean to use setHotbarObject?)", slotId));
         }
     }
 
@@ -88,7 +118,7 @@ public class HotbarObjectGroup {
                 hotbarObject.setVisible(true);
             }
         } else {
-            throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not contain slotId %d!", slotId));
+            throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not contain slotId %d! (Did you mean to use addHotbarObject?)", slotId));
         }
     }
 
