@@ -15,6 +15,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a window.
@@ -27,18 +28,18 @@ public class WindowData {
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
-    ArrayList<Material> repairedMaterials;
+    List<Material> repairedMaterials;
 
     /**
      * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
      * this at a later date as I'm not exactly sure of its utility
      */
-    ArrayList<Material> brokenMaterials;
+    List<Material> brokenMaterials;
 
     /**
      * A list of vectors corresponding to the blocks of window face
      */
-    ArrayList<Vector> faceVectors;
+    List<Vector> faceVectors;
 
     /**
      * A BoundingBox containing the face of the window

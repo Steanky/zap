@@ -20,7 +20,7 @@ public class WaveData {
     /**
      * A list of the mobs that should be spawned during this wave
      */
-    final List<String> mobs = new ArrayList<>();
+    List<String> mobs = new ArrayList<>();
 
     private WaveData() {}
 }

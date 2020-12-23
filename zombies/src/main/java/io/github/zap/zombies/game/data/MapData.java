@@ -16,8 +16,9 @@ import java.util.List;
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
  * retrieving and manipulating its own data values.
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class MapData {
     /**
      * The unique name of this map that need not be user friendly
@@ -191,22 +192,22 @@ public class MapData {
     /**
      * The list of rooms managed by this map
      */
-    final List<RoomData> rooms = new ArrayList<>();
+    List<RoomData> rooms = new ArrayList<>();
 
     /**
      * All the doors managed by this map
      */
-    final List<DoorData> doors = new ArrayList<>();
+    List<DoorData> doors = new ArrayList<>();
 
     /**
      * All the shops managed by this map
      */
-    final List<ShopData> shops = new ArrayList<>();
+    List<ShopData> shops = new ArrayList<>();
 
     /**
      * All the rounds in the game
      */
-    final ArrayList<RoundData> rounds = new ArrayList<>();
+    ArrayList<RoundData> rounds = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
