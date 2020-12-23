@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -11,6 +10,7 @@ import io.github.zap.zombies.game.data.DoorData;
 import io.github.zap.zombies.game.data.DoorSide;
 import io.github.zap.zombies.game.data.MapData;
 import io.github.zap.zombies.game.data.WindowData;
+import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -18,9 +18,6 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.util.Vector;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
@@ -220,8 +217,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 //advance repair state
                 int previousIndex = targetWindow.getCurrentIndexProperty().get(arena);
                 int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
-                if(blocksRepaired > 0) {
-                    for(int i = previousIndex; i <= previousIndex + blocksRepaired; i++) { //break the actual blocks
+                if(blocksRepaired > 0) { //break the actual blocks
+                    for(int i = previousIndex; i <= previousIndex + blocksRepaired; i++) {
                         WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i))
                                 .setType(targetWindow.getRepairedMaterials().get(i));
                     }

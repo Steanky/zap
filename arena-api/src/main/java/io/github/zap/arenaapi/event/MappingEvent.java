@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.event;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -9,11 +11,12 @@ import java.util.function.Predicate;
  * @param <T> The argument type of the event we are wrapping
  * @param <U> The argument type of this event
  */
-public class AdaptingEvent<T, U> extends Event<U> {
-    public AdaptingEvent(Event<T> event, Predicate<T> predicate, Function<T, U> mapper) {
+public class MappingEvent<T, U> extends Event<U> {
+    public MappingEvent(Event<T> event, MappingPredicate<T, U> mapper) {
         event.registerHandler((args) -> {
-            if(predicate.test(args)) {
-                callEvent(mapper.apply(args));
+            ImmutablePair<Boolean, U> result = mapper.tryMap(args);
+            if(result.left) {
+                callEvent(result.right);
             }
         });
     }

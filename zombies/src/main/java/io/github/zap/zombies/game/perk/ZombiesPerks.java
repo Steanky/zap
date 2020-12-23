@@ -1,8 +1,9 @@
-package io.github.zap.zombies.game;
+package io.github.zap.zombies.game.perk;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.event.RepeatingEvent;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.MapData;
 import io.github.zap.zombies.game.perk.*;
 import lombok.Getter;

@@ -1,16 +1,19 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
-import io.github.zap.arenaapi.event.AdaptingEvent;
+import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 import lombok.Value;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.World;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
 
@@ -27,6 +30,20 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     public class ManagedPlayerListArgs {
         List<S> players;
     }
+
+    @Value
+    public class ManagedInventoryEventArgs<U extends InventoryEvent> {
+        /**
+         * The original Bukkit event
+         */
+        U event;
+
+        /**
+         * The managed players involved in the event. This will always be non-null and size > 0
+         */
+        List<S> players;
+    }
+
 
     @Value
     public class ProxyArgs<U extends org.bukkit.event.Event> {
@@ -48,17 +65,46 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * managed player and the Bukkit event. For non-player events, the managed player will be null.
      * @param <U> The type of Bukkit event
      */
-    private class AdaptedPlayerEvent<U extends PlayerEvent> extends AdaptingEvent<U, ProxyArgs<U>> {
+    private class AdaptedPlayerEvent<U extends PlayerEvent> extends MappingEvent<U, ProxyArgs<U>> {
         public AdaptedPlayerEvent(Class<U> bukkitEventClass) {
             super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
                     true), event -> {
                 S managedPlayer = playerMap.get(event.getPlayer().getUniqueId());
 
-                if(managedPlayer != null) {
-                    return managedPlayer.isInGame();
+                if(managedPlayer != null && managedPlayer.isInGame()) {
+                    return new ImmutablePair<>(true, new ProxyArgs<>(event, managedPlayer));
                 }
-                return false;
-            }, event -> new ProxyArgs<>(event, playerMap.get(event.getPlayer().getUniqueId())));
+
+                return new ImmutablePair<>(false, null);
+            });
+        }
+    }
+
+    /**
+     * Wraps inventory events in the same way as player events.
+     * @param <U>
+     */
+    private class AdaptedInventoryEvent<U extends InventoryEvent> extends MappingEvent<U, ManagedInventoryEventArgs<U>> {
+        public AdaptedInventoryEvent(Class<U> bukkitEventClass) {
+            super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
+                    true), event -> {
+                List<HumanEntity> viewers = event.getViewers();
+                List<S> managedViewers = new ArrayList<>();
+
+                for(HumanEntity human : viewers) {
+                    S managedViewer = playerMap.get(human.getUniqueId());
+
+                    if(managedViewer != null && managedViewer.isInGame()) {
+                        managedViewers.add(managedViewer);
+                    }
+                }
+
+                if(managedViewers.size() > 0) {
+                    return ImmutablePair.of(true, new ManagedInventoryEventArgs<>(event, managedViewers));
+                }
+
+                return ImmutablePair.of(false, null); //no ingame managed players are involved
+            });
         }
     }
 
@@ -66,17 +112,18 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * This class is necessary because PlayerDeathEvent does not extent PlayerEvent for reasons that escape me. Yet
      * another anime betrayal.
      */
-    private class AdaptedPlayerDeathEvent extends AdaptingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
+    private class AdaptedPlayerDeathEvent extends MappingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
         public AdaptedPlayerDeathEvent() {
             super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
                     EventPriority.NORMAL, true), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
-                if(managedPlayer != null) {
-                    return managedPlayer.isInGame();
+                if(managedPlayer != null && managedPlayer.isInGame()) {
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
                 }
-                return false;
-            }, event -> new ProxyArgs<>(event, playerMap.get(event.getEntity().getUniqueId())));
+
+                return ImmutablePair.of(false, null);
+            });
         }
     }
 
@@ -100,6 +147,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent;
     private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent;
 
+    private final Event<ManagedInventoryEventArgs<InventoryOpenEvent>> inventoryOpenEvent;
+
     public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {
         super(manager, world);
         this.plugin = plugin;
@@ -110,6 +159,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
         playerDeathEvent = new AdaptedPlayerDeathEvent();
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
+
+        inventoryOpenEvent = new AdaptedInventoryEvent<>(InventoryOpenEvent.class);
 
         playerQuitEvent.registerHandler(this::onPlayerQuit);
     }

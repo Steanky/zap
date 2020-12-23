@@ -20,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -73,6 +74,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
+        getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
     }
 
     @Override
@@ -211,6 +213,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         else {
             managedPlayer.disableRepair();
         }
+    }
+
+    private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {
+        args.getEvent().setCancelled(true);
     }
 
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
