@@ -16,5 +16,5 @@ import lombok.experimental.FieldDefaults;
 public class ShopData {
     ShopType type;
 
-    private ShopData() {}
+    public ShopData() {}
 }

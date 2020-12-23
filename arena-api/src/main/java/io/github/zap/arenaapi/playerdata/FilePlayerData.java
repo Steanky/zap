@@ -8,13 +8,14 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.*;
 
+@SuppressWarnings("FieldMayBeFinal")
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FilePlayerData implements PlayerData {
     @Getter
     String locale;
 
-    final Set<UUID> friends = new HashSet<>();
+    Set<UUID> friends = new HashSet<>();
 
     @Getter
     Date lastLogin = new Date();

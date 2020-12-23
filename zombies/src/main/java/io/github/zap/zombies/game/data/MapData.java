@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.Property;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
@@ -19,6 +20,7 @@ import java.util.List;
 @SuppressWarnings("FieldMayBeFinal")
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class MapData {
     /**
      * The unique name of this map that need not be user friendly
@@ -210,6 +212,8 @@ public class MapData {
     ArrayList<RoundData> rounds = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
+
+    public MapData() {}
 
     /**
      * Gets the window whose face contains the provided vector, or null if the vector is not inside any windows.

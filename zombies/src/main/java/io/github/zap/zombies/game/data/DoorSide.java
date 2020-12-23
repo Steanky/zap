@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * Represents a DoorSide, which can be defined as "a place from which the door may be opened".
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -19,17 +20,17 @@ public class DoorSide {
     /**
      * What it will cost to open the door from this side.
      */
-    int cost;
+    int cost = 69420;
 
     /**
      * The names of the rooms this DoorSide will open, when it is purchased.
      */
-    List<String> opensTo;
+    List<String> opensTo = new ArrayList<>();
 
     /**
      * The bounds in which the player must stand in order to open the door from this side.
      */
-    MultiBoundingBox triggerBounds;
+    MultiBoundingBox triggerBounds = new MultiBoundingBox();
 
-    private DoorSide() {}
+    public DoorSide() {}
 }
