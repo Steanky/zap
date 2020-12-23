@@ -162,4 +162,11 @@ public class HotbarManager {
         return current.getHotbarObject(player.getInventory().getHeldItemSlot());
     }
 
+    /**
+     * Method to call when a slot is right clicked in the hotbar
+     */
+    public void rightClick() {
+        current.rightClick();
+    }
+
 }

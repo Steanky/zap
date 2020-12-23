@@ -21,7 +21,7 @@ import java.util.Locale;
 public abstract class EquipmentData<T> extends CustomData {
 
     @Getter
-    private final LocalizationManager localizationManager;
+    private transient final LocalizationManager localizationManager;
 
     @Getter
     private final String name;
@@ -30,7 +30,7 @@ public abstract class EquipmentData<T> extends CustomData {
     private final String displayName;
 
     @Getter
-    private final String materialName;
+    private final Material material;
 
     @Getter
     private final List<String> lore;
@@ -38,10 +38,10 @@ public abstract class EquipmentData<T> extends CustomData {
     @Getter
     private final List<T> levels;
 
-    public EquipmentData(String name, String displayName, String materialName, List<String> lore, List<T> levels) {
+    public EquipmentData(String name, String displayName, Material material, List<String> lore, List<T> levels) {
         this.name = name;
         this.displayName = displayName;
-        this.materialName = materialName;
+        this.material = material;
         this.lore = lore;
         this.levels = levels;
 
@@ -56,7 +56,6 @@ public abstract class EquipmentData<T> extends CustomData {
      */
     public ItemStack createItemStack(Player player, int level) {
         if (0 <= level && level < levels.size()) {
-            Material material = Material.valueOf(materialName);
             ItemStack itemStack = new ItemStack(material);
             ItemMeta itemMeta = itemStack.getItemMeta();
 

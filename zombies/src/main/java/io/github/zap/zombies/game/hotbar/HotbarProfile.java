@@ -149,4 +149,17 @@ public class HotbarProfile {
         return null;
     }
 
+    /**
+     * Method to call when a slot is right clicked in the hotbar
+     */
+    public void rightClick() {
+        int slotId = player.getInventory().getHeldItemSlot();
+        for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
+            if (hotbarObjectGroup.getSlots().contains(slotId)) {
+                hotbarObjectGroup.rightClick(slotId);
+                return;
+            }
+        }
+    }
+
 }

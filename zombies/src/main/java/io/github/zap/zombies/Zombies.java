@@ -14,6 +14,7 @@ import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
+import io.github.zap.zombies.data.equipment.GunData;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -23,6 +24,8 @@ import io.lumine.xikage.mythicmobs.MythicMobs;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -33,7 +36,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.logging.Level;
 
@@ -99,8 +104,13 @@ public final class Zombies extends JavaPlugin implements Listener {
             initWorldLoader();
             initArenaManagers();
             initCommands();
+            File file = new File("./data/sb.json");
+            file.createNewFile();
+
+            dataLoader.save(new GunData("Pistol", "zombies.game.weapon.pistol", Collections.singletonList("does stuff"), null, Material.WOODEN_HOE,
+                    Particle.CRIT, null), file);
         }
-        catch(LoadFailureException exception)
+        catch(LoadFailureException | IOException exception)
         {
             severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));

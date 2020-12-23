@@ -5,7 +5,7 @@ import lombok.Getter;
 /**
  * A level of a gun that contains all of its numerical statistics
  */
-public class GunLevel extends CostLevel {
+public class GunLevel  {
 
     @Getter
     private final int damage;
@@ -22,9 +22,7 @@ public class GunLevel extends CostLevel {
     @Getter
     private final float reloadRate;
 
-    public GunLevel(int cost, int damage, int ammo, int clipAmmo, int fireRate, int reloadRate) {
-        super(cost);
-
+    public GunLevel(int damage, int ammo, int clipAmmo, int fireRate, int reloadRate) {
         this.damage = damage;
         this.ammo = ammo;
         this.clipAmmo = clipAmmo;

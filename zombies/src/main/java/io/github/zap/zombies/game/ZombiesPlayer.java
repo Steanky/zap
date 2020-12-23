@@ -10,6 +10,7 @@ import io.github.zap.zombies.game.data.DoorData;
 import io.github.zap.zombies.game.data.DoorSide;
 import io.github.zap.zombies.game.data.MapData;
 import io.github.zap.zombies.game.data.WindowData;
+import io.github.zap.zombies.game.hotbar.HotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +38,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private int repairIncrement = 1;
 
     @Getter
+    private final HotbarManager hotbarManager;
+
+    @Getter
     private final ZombiesPerks perks;
 
     private WindowData targetWindow;
@@ -53,6 +57,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         this.arena = arena;
         this.coins = coins;
 
+        hotbarManager = new HotbarManager(player);
         perks = new ZombiesPerks(this);
     }
 

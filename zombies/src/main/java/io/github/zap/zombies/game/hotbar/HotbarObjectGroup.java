@@ -130,4 +130,16 @@ public class HotbarObjectGroup {
         return hotbarObjectMap.keySet();
     }
 
+    /**
+     * Method to call when a slot is right clicked in the hotbar
+     * @param slotId The slot of the clicked object
+     */
+    public void rightClick(int slotId) {
+        HotbarObject hotbarObject = hotbarObjectMap.get(slotId);
+
+        if (hotbarObject != null) {
+            hotbarObject.onRightClick();
+        }
+    }
+
 }

@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.ProxyEvent;
@@ -198,7 +197,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
             }
             else {
-                //TODO: perform actions involving rightclick on air
+                player.getHotbarManager().rightClick();
             }
         }
     }

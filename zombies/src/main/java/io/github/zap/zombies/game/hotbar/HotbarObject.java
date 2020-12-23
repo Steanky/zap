@@ -72,6 +72,13 @@ public class HotbarObject {
     }
 
     /**
+     * Method to call when the slot is right clicked in the hotbar
+     */
+    public void onRightClick() {
+
+    }
+
+    /**
      * Sets the representing item stack of the hotbar
      * @param representingItemStack The item stack to represent
      */
