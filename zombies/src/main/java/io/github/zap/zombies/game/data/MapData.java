@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.Property;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
@@ -16,139 +17,203 @@ import java.util.List;
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
  * retrieving and manipulating its own data values.
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
-@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class MapData {
     /**
      * The unique name of this map that need not be user friendly
      */
-    String name;
+    String name = "default_map";
 
     /**
      * The resource key of the map name
      */
-    String mapNameKey;
+    String mapNameKey = "map.default_map.name";
+
+    /**
+     * The name of the world corresponding to this map
+     */
+    String worldName = "default_world";
 
     /**
      * The bounds of the map, inside which every component should exist
      */
-    BoundingBox mapBounds;
+    BoundingBox mapBounds = new BoundingBox();
 
     /**
      * The spawn vector of this map.
      */
-    Vector spawn;
+    Vector spawn = new Vector();
 
     /**
      * The minimum required number of players that this map can start with
      */
-    int minimumCapacity;
+    int minimumCapacity = 4;
 
     /**
      * The maximum number of players this map can hold
      */
-    int maximumCapacity;
+    int maximumCapacity = 4;
 
     /**
      * The duration of the game start countdown timer, in seconds
      */
-    int countdownSeconds;
-
-    /**
-     * The list of rooms managed by this map
-     */
-    final List<RoomData> rooms = new ArrayList<>();
-
-    /**
-     * All the doors managed by this map
-     */
-    final List<DoorData> doors = new ArrayList<>();
-
-    /**
-     * All the shops managed by this map
-     */
-    final List<ShopData> shops = new ArrayList<>();
+    int countdownSeconds = 10;
 
     /**
      * The number of coins each player should start with
      */
-    int startingCoins;
+    int startingCoins = 0;
 
     /**
      * The number of coins you get for repairing a window
      */
-    int coinsOnRepair;
+    int coinsOnRepair = 20;
 
     /**
      * Whether or not spectators are allowed here
      */
-    boolean spectatorAllowed;
+    boolean spectatorAllowed = true;
 
     /**
      * If this is true, players will be required to be holding nothing in order to open doors
      */
-    boolean handRequiredToOpenDoors;
+    boolean handRequiredToOpenDoors = false;
 
     /**
      * Whether or not the players should be allowed to forcibly start the game regardless of the minimum player limit
      */
-    boolean forceStart;
+    boolean forceStart = false;
 
     /**
      * Whether this map allows players to rejoin after the game has started
      */
-    boolean allowRejoin;
+    boolean allowRejoin = true;
 
 
     /**
      * The squared distance in blocks from which zombies *must* spawn from a player
      */
-    int spawnRadiusSquared;
+    int spawnRadiusSquared = 1600;
 
     /**
      * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
      */
-    int windowRepairRadius;
+    int windowRepairRadius = 3;
 
     /**
      * The initial delay (in Minecraft server ticks) before the window will be first repaired, after the player crouches
      */
-    int initialRepairDelay;
+    int initialRepairDelay = 20;
 
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
      */
-    int windowRepairTicks;
+    int windowRepairTicks = 20;
 
     /**
      * The base rate at which mobs break through windows, in server ticks
      */
-    int windowBreakTicks;
+    int windowBreakTicks = 40;
 
     /**
      * The MythicMobs mob level that mobs will spawn at
      */
-    int mobSpawnLevel;
+    int mobSpawnLevel = 1;
 
     /**
      * The number of ticks mobs will wait before switching to a closer target. Set to -1 to disable retargeting.
      */
-    int mobRetargetTicks;
+    int mobRetargetTicks = -1;
 
     /**
      * The material that should replace door blocks when they are opened.
      */
-    Material doorFillMaterial;
+    Material doorFillMaterial = Material.AIR;
+
+    //perk stuff below
+
+    /**
+     * Whether or not perks should be lost when a player quits the game.
+     */
+    boolean perksLostOnQuit = false;
+
+    /**
+     * The maximum level of the speed perk (how many times it can be bought)
+     */
+    int speedMaxLevel = 1;
+
+    /**
+     * The strength of the speed effect given by the speed perk.
+     */
+    int speedAmplifier = 2;
+
+    /**
+     * The duration of the effect given by the speed perk.
+     */
+    int speedDuration = 500;
+
+    /**
+     * The interval at which speed from the speed perk is applied to the player.
+     */
+    int speedReapplyInterval = 500;
+
+    /**
+     * Gets the maximum quick fire level supported by this map.
+     */
+    int quickFireMaxLevel = 1;
+
+    /**
+     * The amount of ticks subtracted from base weapon fire delay when quick fire is active. Actual value scales
+     * according to xy, where x is the delay reduction and y is the number of levels.
+     */
+    int quickFireDelayReduction = 5;
+
+    /**
+     * The maximum level of extra health
+     */
+    int extraHealthMaxLevel = 1;
+
+    /**
+     * The amount of HP extra health grants, per level
+     */
+    int extraHealthHpPerLevel = 10;
+
+    /**
+     * The maximum level of extra weapon
+     */
+    int extraWeaponMaxLevel = 1;
+
+    /**
+     * The maximum level of fast revive
+     */
+    int fastReviveMaxLevel = 1;
+
+    /**
+     * The list of rooms managed by this map
+     */
+    List<RoomData> rooms = new ArrayList<>();
+
+    /**
+     * All the doors managed by this map
+     */
+    List<DoorData> doors = new ArrayList<>();
+
+    /**
+     * All the shops managed by this map
+     */
+    List<ShopData> shops = new ArrayList<>();
 
     /**
      * All the rounds in the game
      */
-    transient final ArrayList<RoundData> rounds = new ArrayList<>();
+    ArrayList<RoundData> rounds = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
-    private MapData() { }
+    public MapData() {}
 
     /**
      * Gets the window whose face contains the provided vector, or null if the vector is not inside any windows.

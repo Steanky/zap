@@ -13,6 +13,7 @@ import java.util.List;
 /**
  * Defines a room.
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -20,37 +21,37 @@ public class RoomData {
     /**
      * The unique, non-user-friendly name of this room.
      */
-    String name;
+    String name = "new_room";
 
     /**
      * The message key of the room name
      */
-    String roomNameKey;
+    String roomNameKey = "room.new_room.name";
 
     /**
      * The bounds of this room, used for knockdown messages and other things
      */
-    MultiBoundingBox bounds;
+    MultiBoundingBox bounds = new MultiBoundingBox();
 
     /**
      * All of the windows contained in this room
      */
-    List<WindowData> windows;
+    List<WindowData> windows = new ArrayList<>();
 
     /**
      * All of the spawnpoints contained in this room
      */
-    List<SpawnpointData> spawnpoints;
+    List<SpawnpointData> spawnpoints = new ArrayList<>();
 
     /**
      * Whether or not this room is the 'spawn' room; where the players start off in
      */
-    boolean isSpawn;
+    boolean isSpawn = false;
 
     /**
      * Arena specific state: whether or not this room has been opened.
      */
     transient final Property<Boolean> openProperty = new Property<>(false);
 
-    private RoomData() {}
+    public RoomData() {}
 }

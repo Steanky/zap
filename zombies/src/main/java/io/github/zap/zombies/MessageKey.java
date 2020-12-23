@@ -11,8 +11,6 @@ public enum MessageKey {
     OFFLINE_ARENA_REJECTION("zombies.arena.reject.offline"), //one or more of the players joining are offline
     UNKNOWN_ARENA_REJECTION("zombies.arena.reject.unknown"), //nonspecific error message
 
-    ARENA_TERMINATION("zombies.arena.terminate"), //displayed when an arena is not gracefully terminated
-
     WINDOW_REPAIR_FAIL_MOB("zombies.game.window.fail.mob"), //shown when a mob blocks window repair
     WINDOW_REPAIR_FAIL_PLAYER("zombies.game.window.fail.player"), //shown when a player blocks window repair
 

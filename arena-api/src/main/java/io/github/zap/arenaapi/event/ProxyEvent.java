@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Unique;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -10,16 +9,13 @@ import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * Class that proxies Bukkit events to ArenaApi ones for better encapsulation and control. Event registration with
- * Bukkit occurs as-necessary — simply creating these objects will not result in anything.
- *
- * Currently only supports synchronous events.
+ * Bukkit occurs as-necessary — simply creating these objects will not result in any performance issues.
  * @param <T> The type of Bukkit event we're wrapping
  */
-public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements Listener {
+public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> implements Listener {
     private final Unique handlingInstance;
     private final Class<T> bukkitEventClass;
     private final EventPriority priority;
@@ -33,10 +29,8 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
 
     private static final Map<UUID, List<ProxyEvent<?>>> proxies = new HashMap<>();
 
-    public ProxyEvent(Plugin plugin, Unique handlingInstance, Predicate<T> predicate, Class<T> bukkitEventClass,
-                      EventPriority priority, boolean ignoreCancelled) {
-        super(predicate);
-
+    public ProxyEvent(Plugin plugin, Unique handlingInstance, Class<T> bukkitEventClass, EventPriority priority,
+                      boolean ignoreCancelled) {
         this.handlingInstance = handlingInstance;
         this.plugin = plugin;
         this.bukkitEventClass = bukkitEventClass;
@@ -44,49 +38,8 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
         this.ignoreCancelled = ignoreCancelled;
     }
 
-    public ProxyEvent(Plugin plugin, Unique handlingInstance, Predicate<T> predicate, Class<T> bukkitEventClass) {
-        this(plugin, handlingInstance, predicate, bukkitEventClass, EventPriority.NORMAL, true);
-    }
-
     public ProxyEvent(Plugin plugin, Unique handlingInstance, Class<T> bukkitEventClass) {
-        this(plugin, handlingInstance, (ignored) -> true, bukkitEventClass);
-    }
-
-    /**
-     * Closes all ProxyEvent instances associated with the provided Unique, and removes the Unique's mapping from
-     * the internal map.
-     * @param instance The instance to clear values for
-     */
-    public static void closeAll(Unique instance) {
-        UUID id = instance.getId();
-        List<ProxyEvent<?>> proxyEvents = proxies.get(id);
-
-        if(proxyEvents != null) {
-            for(ProxyEvent<?> event : proxyEvents) {
-                event.close();
-            }
-
-            proxies.remove(id);
-        }
-    }
-
-    private static void addProxy(Unique instance, ProxyEvent<?> event) {
-        UUID id = instance.getId();
-        List<ProxyEvent<?>> list = proxies.computeIfAbsent(id, ignored -> new ArrayList<>());
-        list.add(event);
-    }
-
-    private static void removeProxy(Unique instance, ProxyEvent<?> event) {
-        UUID id = instance.getId();
-        List<ProxyEvent<?>> list = proxies.get(id);
-
-        if(list != null) {
-            list.remove(event);
-
-            if(list.size() == 0) {
-                proxies.remove(id);
-            }
-        }
+        this(plugin, handlingInstance, bukkitEventClass, EventPriority.NORMAL, true);
     }
 
     @Override
@@ -117,12 +70,48 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
     }
 
     @Override
-    public void close() {
-        super.close();
+    public void dispose() {
+        super.dispose();
 
         if(eventRegistered) {
-            eventRegistered = false;
             unregister();
+        }
+    }
+
+    /**
+     * Closes all ProxyEvent instances associated with the provided Unique, and removes the Unique's mapping from
+     * the internal map.
+     * @param instance The instance to clear values for
+     */
+    public static void closeAll(Unique instance) {
+        UUID id = instance.getId();
+        List<ProxyEvent<?>> proxyEvents = proxies.get(id);
+
+        if(proxyEvents != null) {
+            for(ProxyEvent<?> event : proxyEvents) {
+                event.dispose();
+            }
+
+            proxies.remove(id);
+        }
+    }
+
+    private static void addProxy(Unique instance, ProxyEvent<?> event) {
+        UUID id = instance.getId();
+        List<ProxyEvent<?>> list = proxies.computeIfAbsent(id, ignored -> new ArrayList<>());
+        list.add(event);
+    }
+
+    private static void removeProxy(Unique instance, ProxyEvent<?> event) {
+        UUID id = instance.getId();
+        List<ProxyEvent<?>> list = proxies.get(id);
+
+        if(list != null) {
+            list.remove(event);
+
+            if(list.size() == 0) {
+                proxies.remove(id);
+            }
         }
     }
 
@@ -135,7 +124,7 @@ public class ProxyEvent<T extends Event> extends PredicatedEvent<T> implements L
             handlerList.unregister(this);
         }
         else {
-            ArenaApi.warning("Used slow method of handler un-registration due to a reflection-related exception.");
+            ArenaApi.warning("Using slow method of handler un-registration due to a reflection-related exception.");
             HandlerList.unregisterAll(this);
         }
 

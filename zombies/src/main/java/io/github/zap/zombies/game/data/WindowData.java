@@ -15,10 +15,12 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a window.
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -27,38 +29,38 @@ public class WindowData {
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
-    ArrayList<Material> repairedMaterials;
+    List<Material> repairedMaterials = new ArrayList<>();
 
     /**
      * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
      * this at a later date as I'm not exactly sure of its utility
      */
-    ArrayList<Material> brokenMaterials;
+    List<Material> brokenMaterials = new ArrayList<>();
 
     /**
      * A list of vectors corresponding to the blocks of window face
      */
-    ArrayList<Vector> faceVectors;
+    List<Vector> faceVectors = new ArrayList<>();
 
     /**
      * A BoundingBox containing the face of the window
      */
-    BoundingBox faceBounds;
+    BoundingBox faceBounds = new BoundingBox();
 
     /**
      * The bounds of the window interior - used for player position checking
      */
-    MultiBoundingBox interiorBounds;
+    MultiBoundingBox interiorBounds = new MultiBoundingBox();
 
     /**
      * The coordinate considered the 'base' of the window, to which players are teleported if they enter the interior
      */
-    Vector base;
+    Vector base = new Vector();
 
     /**
      * The center of the window's face, used for distance checking. This value is calculated once and cached.
      */
-    Vector center;
+    Vector center = new Vector();
 
     /**
      * The volume of the window's face. This is calculated once and cached.
@@ -81,7 +83,7 @@ public class WindowData {
      */
     transient final Property<Entity> attackingEntityProperty = new Property<>(null);
 
-    private WindowData() {}
+    public WindowData() {}
 
     /**
      * Gets the center of the window's face (its breakable/repairable blocks)

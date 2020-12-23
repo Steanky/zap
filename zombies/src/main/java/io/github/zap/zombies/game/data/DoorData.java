@@ -14,6 +14,7 @@ import java.util.List;
 /**
  * Represents a door.
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -21,19 +22,19 @@ public class DoorData {
     /**
      * The bounds of the door, any of which may be right-clicked in attempt to open it
      */
-    MultiBoundingBox doorBounds;
+    MultiBoundingBox doorBounds = new MultiBoundingBox();
 
     /**
      * The list of DoorSide objects. Doors typically contain 2 sides but may contain any number
      */
-    List<DoorSide> sides;
+    List<DoorSide> sides = new ArrayList<>();
 
     /**
      * Arena-specific state information: whether or not the door is open
      */
     transient final Property<Boolean> openProperty = new Property<>(false);
 
-    private DoorData() { }
+    public DoorData() { }
 
     /**
      * Returns the DoorSide object whose trigger bounds contain the provided vector.

@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data;
 
+import io.github.zap.zombies.game.ShopType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,5 +16,5 @@ import lombok.experimental.FieldDefaults;
 public class ShopData {
     ShopType type;
 
-    private ShopData() {}
+    public ShopData() {}
 }

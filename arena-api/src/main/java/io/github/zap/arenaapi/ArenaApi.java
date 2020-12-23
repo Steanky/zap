@@ -36,6 +36,7 @@ public final class ArenaApi extends JavaPlugin {
         instance = this;
 
         try {
+            initProxy();
             initDependencies();
         }
         catch(LoadFailureException exception)
@@ -70,6 +71,10 @@ public final class ArenaApi extends JavaPlugin {
         Validate.notNull(manager, "manager cannot be null");
         Validate.isTrue(arenaManagers.putIfAbsent(manager.getGameName(), manager) == null,
                 "a manager for game type '%s' has already been registered");
+    }
+
+    public ArenaManager<?> getArenaManager(String name) {
+        return arenaManagers.get(name);
     }
 
     public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {

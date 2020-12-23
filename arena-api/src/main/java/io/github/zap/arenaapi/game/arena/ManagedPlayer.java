@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,8 @@ import java.util.UUID;
  */
 @RequiredArgsConstructor
 @Getter
-public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique {
+public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
+        Disposable {
     private final V arena;
     private final Player player;
     private boolean inGame = true;
@@ -45,12 +47,11 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     }
 
     /**
-     * Called when the player leaves the arena
+     * Called when the player leaves the arena.
      */
     public void quit() {
         if(inGame) {
             inGame = false;
-            close();
         }
     }
 
@@ -60,19 +61,6 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void rejoin() {
         if(!inGame) {
             inGame = true;
-            init();
         }
     }
-
-    /**
-     * Performs cleanup tasks. This is called when the arena shuts down or the player quits the game. The actions
-     * performed by this function generally should be reversible, as the player may rejoin the game at a later date.
-     */
-    public void close() {}
-
-    /**
-     * Performs initialization tasks. This could reverse some of the effects of close(). This is called when the
-     * player rejoins the game.
-     */
-    public void init() {}
 }

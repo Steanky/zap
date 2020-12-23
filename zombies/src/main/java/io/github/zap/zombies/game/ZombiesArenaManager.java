@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
@@ -33,9 +34,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     @Getter
     private final int arenaTimeout;
 
+    @Getter
     private final Map<String, MapData> maps = new HashMap<>();
 
-    public ZombiesArenaManager(Location hubLocation, File dataFolder, int arenaCapacity, int arenaTimeout) {
+    public ZombiesArenaManager(Location hubLocation, File dataFolder, int arenaCapacity, int arenaTimeout) throws LoadFailureException {
         super(NAME, hubLocation);
         this.dataFolder = dataFolder;
         this.arenaCapacity = arenaCapacity;
@@ -50,7 +52,13 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         if(files != null) {
             for(File file : files) {
                 MapData map = loader.load(file, MapData.class);
-                maps.put(map.getName(), map);
+
+                if(map != null) {
+                    maps.put(map.getName(), map);
+                }
+                else {
+                    throw new LoadFailureException("Unable to properly load some of the provided map data.");
+                }
             }
         }
     }
@@ -70,34 +78,41 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         UUID targetArena = information.getTargetArena();
 
         if(mapName != null) {
-            for(ZombiesArena arena : arenas) {
-                if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information.getJoinable().getPlayers())) {
-                    onCompletion.accept(ImmutablePair.of(true, null));
+            MapData mapData = maps.get(mapName);
+
+            if(mapData != null) {
+                for(ZombiesArena arena : arenas) {
+                    if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information.getJoinable().getPlayers())) {
+                        onCompletion.accept(ImmutablePair.of(true, null));
+                        return;
+                    }
+                }
+
+                if(managedArenas.size() < arenaCapacity) {
+                    Zombies.info(String.format("Loading arena for map '%s'.", mapName));
+                    Zombies.info(String.format("JoinInformation that triggered this load: '%s'.", information));
+
+                    Zombies.getInstance().getWorldLoader().loadWorld(mapData.getWorldName(), (world) -> {
+                        ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
+                        managedArenas.put(arena.getId(), arena);
+
+                        if(arena.handleJoin(information.getJoinable().getPlayers())) {
+                            onCompletion.accept(ImmutablePair.of(true, null));
+                        }
+                        else {
+                            Zombies.warning(String.format("Newly created arena rejected join request '%s'.", information));
+                            onCompletion.accept(ImmutablePair.of(false, MessageKey.NEW_ARENA_REJECTION.getKey()));
+                        }
+                    });
+
                     return;
                 }
-            }
-
-            if(managedArenas.size() < arenaCapacity) {
-                Zombies.info(String.format("Loading arena for map '%s'.", mapName));
-                Zombies.info(String.format("JoinInformation that triggered this load: '%s'.", information));
-
-                Zombies.getInstance().getWorldLoader().loadWorld(mapName, (world) -> {
-                    ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
-                    managedArenas.put(arena.getId(), arena);
-
-                    if(arena.handleJoin(information.getJoinable().getPlayers())) {
-                        onCompletion.accept(ImmutablePair.of(true, null));
-                    }
-                    else {
-                        Zombies.warning(String.format("Newly created arena rejected join request '%s'.", information));
-                        onCompletion.accept(ImmutablePair.of(false, MessageKey.NEW_ARENA_REJECTION.getKey()));
-                    }
-                });
-
-                return;
+                else {
+                    Zombies.info("A JoinAttempt was rejected, as we have reached arena capacity.");
+                }
             }
             else {
-                Zombies.info("A JoinAttempt was rejected, as we have reached arena capacity.");
+                Zombies.warning(String.format("A map named '%s' does not exist.", mapName));
             }
         }
         else {
@@ -135,9 +150,14 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void terminate() {
+    public boolean hasMap(String mapName) {
+        return maps.containsKey(mapName);
+    }
+
+    @Override
+    public void dispose() {
         for(ZombiesArena arena : arenas) {
-            arena.close();
+            arena.dispose();
         }
     }
 }

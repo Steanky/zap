@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import org.bukkit.World;
@@ -14,7 +15,7 @@ import java.util.UUID;
  * This abstract class contains some basic functionality all Arena objects share. This is not necessarily
  * Zombies-specific and could be used for other minigames, lobbies, etc.
  */
-public abstract class Arena<T extends Arena<T>> implements Unique {
+public abstract class Arena<T extends Arena<T>> implements Unique, Disposable {
     @Getter
     protected final ArenaManager<T> manager;
 
@@ -65,9 +66,4 @@ public abstract class Arena<T extends Arena<T>> implements Unique {
      * @param leaving The leaving players
      */
     public abstract void handleLeave(List<Player> leaving);
-
-    /**
-     * Cleans up resources and removes the arena from the manager.
-     */
-    public abstract void close();
 }

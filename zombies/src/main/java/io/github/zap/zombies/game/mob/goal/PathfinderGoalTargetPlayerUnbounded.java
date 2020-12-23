@@ -1,4 +1,4 @@
-package io.github.zap.zombies.mob.goal;
+package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;

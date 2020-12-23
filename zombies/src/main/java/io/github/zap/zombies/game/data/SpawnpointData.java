@@ -8,7 +8,9 @@ import lombok.experimental.FieldDefaults;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
+import java.util.Set;
 
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -16,17 +18,17 @@ public class SpawnpointData {
     /**
      * The location of this spawnpoint
      */
-    Vector spawn;
+    Vector spawn = new Vector();
 
     /**
      * this is the vector to which mobs should pathfind after being spawned. if == to spawn, no pathfinding will occur
      */
-    Vector target;
+    Vector target = new Vector();
 
     /**
      * This represents all of the mobs that can be spawned here
      */
-    HashSet<MythicMob> whitelist;
+    Set<MythicMob> whitelist = new HashSet<>();
 
-    private SpawnpointData() {}
+    public SpawnpointData() {}
 }
