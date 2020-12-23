@@ -125,7 +125,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.DATA_CACHE_CAPACITY, 2048);
         config.addDefault(ConfigNames.DEFAULT_LOCALE, DEFAULT_LOCALE);
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
-                LOCALIZATION_FOLDER_NAME));
+                LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
         config.addDefault(ConfigNames.LOBBY_WORLD,"world");
 
