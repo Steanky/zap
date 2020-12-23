@@ -2,7 +2,6 @@ package io.github.zap.zombies.data.equipment;
 
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.data.levels.Levels;
 import io.github.zap.zombies.data.CustomData;
 import lombok.Getter;
 import org.bukkit.ChatColor;
@@ -12,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -30,26 +30,18 @@ public class EquipmentData<T> extends CustomData {
     private final String displayName;
 
     @Getter
-    private final String description;
-
-    @Getter
-    private final String particleName;
-
-    @Getter
-    private final Object particleData;
+    private final List<String> lore;
 
     @Getter
     private final String materialName;
 
     @Getter
-    private final Levels<T> levels;
+    private final List<T> levels;
 
-    public EquipmentData(String name, String displayName, String description, String particleName, Object particleData, String materialName, Levels<T> levels) {
+    public EquipmentData(String name, String displayName, List<String> lore, String particleName, Object particleData, String materialName, List<T> levels) {
         this.name = name;
         this.displayName = displayName;
-        this.description = description;
-        this.particleName = particleName;
-        this.particleData = particleData;
+        this.lore = lore;
         this.materialName = materialName;
         this.levels = levels;
 
@@ -74,6 +66,7 @@ public class EquipmentData<T> extends CustomData {
             if (level > 0) {
                 itemMeta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1, true);
             }
+            itemStack.setLore(lore);
             itemStack.setItemMeta(itemMeta);
 
             return itemStack;
