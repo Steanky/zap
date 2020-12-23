@@ -1,4 +1,4 @@
-package io.github.zap.zombies.data.levels;
+package io.github.zap.zombies.data.level;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

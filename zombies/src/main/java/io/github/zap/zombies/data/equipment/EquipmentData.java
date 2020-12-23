@@ -18,7 +18,7 @@ import java.util.Locale;
  * Data for a piece of generic equipment
  * @param <T> The type of the equipment levels
  */
-public class EquipmentData<T> extends CustomData {
+public abstract class EquipmentData<T> extends CustomData {
 
     @Getter
     private final LocalizationManager localizationManager;
@@ -30,19 +30,19 @@ public class EquipmentData<T> extends CustomData {
     private final String displayName;
 
     @Getter
-    private final List<String> lore;
+    private final String materialName;
 
     @Getter
-    private final String materialName;
+    private final List<String> lore;
 
     @Getter
     private final List<T> levels;
 
-    public EquipmentData(String name, String displayName, List<String> lore, String particleName, Object particleData, String materialName, List<T> levels) {
+    public EquipmentData(String name, String displayName, String materialName, List<String> lore, List<T> levels) {
         this.name = name;
         this.displayName = displayName;
-        this.lore = lore;
         this.materialName = materialName;
+        this.lore = lore;
         this.levels = levels;
 
         localizationManager = Zombies.getInstance().getLocalizationManager();
