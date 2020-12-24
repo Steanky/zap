@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +11,9 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
@@ -209,6 +212,11 @@ public class MapData {
      * All the rounds in the game
      */
     List<RoundData> rounds = new ArrayList<>();
+
+    /**
+     * All possible equipments that are used by the map
+     */
+    transient final Map<String, EquipmentData<?>> equipments = new HashMap<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 

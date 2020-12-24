@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.level.GunLevel;
-import lombok.Getter;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
