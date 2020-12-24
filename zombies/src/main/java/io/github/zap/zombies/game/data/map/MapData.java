@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data2;
+package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
 import lombok.AccessLevel;

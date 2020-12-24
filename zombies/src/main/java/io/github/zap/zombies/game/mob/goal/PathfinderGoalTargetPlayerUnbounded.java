@@ -5,7 +5,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.ZombiesPlayerState;
-import io.github.zap.zombies.game.data2.MapData;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.proxy.NavigationProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
