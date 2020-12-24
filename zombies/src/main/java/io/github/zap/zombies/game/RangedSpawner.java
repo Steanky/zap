@@ -2,7 +2,7 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data2.SpawnpointData;
+import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import io.lumine.xikage.mythicmobs.api.exceptions.InvalidMobTypeException;
