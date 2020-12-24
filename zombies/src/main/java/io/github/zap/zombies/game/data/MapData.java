@@ -11,7 +11,9 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
@@ -209,7 +211,7 @@ public class MapData {
     /**
      * All the rounds in the game
      */
-    ArrayList<RoundData> rounds = new ArrayList<>();
+    List<RoundData> rounds = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 

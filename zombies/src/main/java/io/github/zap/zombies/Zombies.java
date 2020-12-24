@@ -15,7 +15,6 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.data.*;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -78,10 +77,13 @@ public final class Zombies extends JavaPlugin implements Listener {
     private LocalizationManager localizationManager;
 
     public static final String DEFAULT_LOCALE = "en_US";
-    public static final String ARENA_METADATA_NAME = "zombies_arena";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
+
+    public static final String ARENA_METADATA_NAME = "zombies_arena";
+    public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
+    public static final String WINDOW_METADATA_NAME = "window_metadata";
 
     @Override
     public void onEnable() {

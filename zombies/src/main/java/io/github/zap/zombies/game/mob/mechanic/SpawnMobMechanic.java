@@ -19,7 +19,6 @@ import org.apache.commons.lang3.RandomUtils;
 import java.util.*;
 
 @MythicMechanic(
-        author = "NoVegetals",
         name = "spawnMob",
         description = "Spawns mobs in the context of a Zombies game (spawns at spawnpoints)."
 )
@@ -71,6 +70,7 @@ public class SpawnMobMechanic extends SkillMechanic implements INoTargetSkill {
                     }
 
                     List<ActiveMob> spawnedMobs = arena.spawnMobs(newMobs, spawner);
+
                     if(spawnedMobs.size() > 0) {
                         current.addAll(arena.spawnMobs(newMobs, spawner));
                     }

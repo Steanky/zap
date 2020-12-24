@@ -258,6 +258,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    public void breakWindow(WindowData data, int by) {
+
+    }
+
     private void doRound() {
         for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
             if(!player.isAlive()) {
@@ -302,39 +306,39 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void startTimeout() {
+    public void startTimeout() {
         if(timeoutTaskId == -1) {
             timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::dispose,
                     emptyTimeout);
         }
     }
 
-    private void resetTimeout() {
+    public void resetTimeout() {
         if(timeoutTaskId != -1) {
             Bukkit.getScheduler().cancelTask(timeoutTaskId);
             timeoutTaskId = -1;
         }
     }
 
-    private void startCountdown() {
+    public void startCountdown() {
         //do countdown timer; at the end, call doRound() to kick off the game
     }
 
-    private void stopCountdown() {
+    public void stopCountdown() {
         //reset countdown timer
     }
 
     /**
      * Win code here
      */
-    private void doVictory() {
+    public void doVictory() {
 
     }
 
     /**
      * Loss code here
      */
-    private void doLoss() {
+    public void doLoss() {
 
     }
 }
