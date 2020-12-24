@@ -24,27 +24,30 @@ public abstract class EquipmentData<T> extends CustomData {
     private transient final LocalizationManager localizationManager;
 
     @Getter
-    private final String name;
+    private String name;
 
     @Getter
-    private final String displayName;
+    private String displayName;
 
     @Getter
-    private final Material material;
+    private Material material;
 
     @Getter
-    private final List<String> lore;
+    private List<String> lore;
 
     @Getter
-    private final List<T> levels;
+    private List<T> levels;
 
     public EquipmentData(String name, String displayName, Material material, List<String> lore, List<T> levels) {
+        this();
         this.name = name;
         this.displayName = displayName;
         this.material = material;
         this.lore = lore;
         this.levels = levels;
+    }
 
+    protected EquipmentData() {
         localizationManager = Zombies.getInstance().getLocalizationManager();
     }
 

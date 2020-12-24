@@ -10,15 +10,19 @@ import java.util.List;
 public class LinearGunData extends GunData {
 
     @Getter
-    private final Particle particle;
+    private Particle particle;
 
     @Getter
-    private final Object particleData;
+    private Object particleData;
 
     public LinearGunData(String name, String displayName, List<String> lore, List<GunLevel> levels, Material material, Particle particle, Object particleData) {
-        super(name, displayName, lore, levels, material);
+        super("linear", name, displayName, lore, levels, material);
 
         this.particle = particle;
         this.particleData = particleData;
+    }
+
+    private LinearGunData() {
+
     }
 }

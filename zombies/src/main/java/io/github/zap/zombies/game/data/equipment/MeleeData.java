@@ -9,4 +9,7 @@ public class MeleeData extends EquipmentData<MeleeLevel> {
     public MeleeData(String name, String displayName, Material material, List<String> lore, List<MeleeLevel> levels) {
         super(name, displayName, material, lore, levels);
     }
+    private MeleeData() {
+
+    }
 }

@@ -208,7 +208,7 @@ public class MapData {
     /**
      * All the rounds in the game
      */
-    ArrayList<RoundData> rounds = new ArrayList<>();
+    List<RoundData> rounds = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 

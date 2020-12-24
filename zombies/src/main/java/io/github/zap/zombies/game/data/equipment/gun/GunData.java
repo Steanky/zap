@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.level.GunLevel;
 import lombok.Getter;
@@ -13,10 +15,21 @@ import java.util.List;
 /**
  * Data for a gun
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = LinearGunData.class, name = "linear")
+})
 public class GunData extends EquipmentData<GunLevel> {
 
-    public GunData(String name, String displayName, List<String> lore, List<GunLevel> levels, Material material) {
+    private String type;
+
+    public GunData(String type, String name, String displayName, List<String> lore, List<GunLevel> levels, Material material) {
         super(name, displayName, material, lore, levels);
+        this.type = type;
+    }
+
+    protected GunData() {
+
     }
 
     @Override

@@ -13,4 +13,8 @@ public class PerkData extends EquipmentData<PerkLevel> {
     public PerkData(String name, String displayName, List<String> lore, List<PerkLevel> levels, Material material, PerkType perkType) {
         super(name, displayName, material, lore, levels);
     }
+
+    private PerkData() {
+
+    }
 }
