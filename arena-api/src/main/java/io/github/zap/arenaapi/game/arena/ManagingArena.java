@@ -146,6 +146,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent;
     private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent;
     private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent;
+    private final Event<ProxyArgs<PlayerItemHeldEvent>> playerItemHeldEvent;
 
     private final Event<ManagedInventoryEventArgs<InventoryOpenEvent>> inventoryOpenEvent;
 
@@ -159,6 +160,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
         playerDeathEvent = new AdaptedPlayerDeathEvent();
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
+        playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
 
         inventoryOpenEvent = new AdaptedInventoryEvent<>(InventoryOpenEvent.class);
 

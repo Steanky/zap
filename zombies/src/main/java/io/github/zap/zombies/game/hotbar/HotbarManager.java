@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.hotbar;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
@@ -163,10 +164,24 @@ public class HotbarManager {
     }
 
     /**
-     * Method to call when a slot is right clicked in the hotbar
+     * Method to call when different slot is selected in the hotbar
+     * @param slotId The selected slot
      */
-    public void rightClick() {
-        current.rightClick();
+    public void setSelectedSlot(int slotId) {
+        getSelectedObject().onSlotDeselected();
+        getHotbarObject(slotId).onSlotSelected();
+    }
+
+    /**
+     * Method to call when the slot is clicked in the hotbar
+     */
+    public void click(Action action) {
+        HotbarObject hotbarObject = getSelectedObject();
+        if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
+            hotbarObject.onLeftClick();
+        } else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+            hotbarObject.onRightClick();
+        }
     }
 
 }

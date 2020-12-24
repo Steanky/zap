@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.hotbar;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -13,11 +12,13 @@ public class HotbarObject {
 
     private final Player player;
 
-    private int slotId;
+    private final int slotId;
 
     private ItemStack representingItemStack = null;
 
     private boolean visible = false;
+
+    private boolean selected = false;
 
     private boolean removed = false;
 
@@ -56,13 +57,20 @@ public class HotbarObject {
      * Method to call when the slot is selected in the hotbar
      */
     public void onSlotSelected() {
-
+        selected = true;
     }
 
     /**
      * Method to call when the slot is unselected in the hotbar
      */
     public void onSlotDeselected() {
+        selected = false;
+    }
+
+    /**
+     * Method to call when the slot is left clicked in the hotbar
+     */
+    public void onLeftClick() {
 
     }
 

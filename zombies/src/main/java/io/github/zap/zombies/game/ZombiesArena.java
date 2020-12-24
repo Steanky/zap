@@ -6,7 +6,7 @@ import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.*;
+import io.github.zap.zombies.game.data2.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -17,10 +17,12 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -73,6 +75,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
+        getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
     }
 
@@ -197,7 +200,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
             }
             else {
-                player.getHotbarManager().rightClick();
+                player.getHotbarManager().click(event.getAction());
             }
         }
     }
@@ -212,6 +215,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         else {
             managedPlayer.disableRepair();
         }
+    }
+
+    private void onPlayerItemHeld(ProxyArgs<PlayerItemHeldEvent> args) {
+        PlayerItemHeldEvent event = args.getEvent();
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+
+        managedPlayer.getHotbarManager().setSelectedSlot(event.getNewSlot());
     }
 
     private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {

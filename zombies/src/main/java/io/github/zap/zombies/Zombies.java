@@ -14,7 +14,6 @@ import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
-import io.github.zap.zombies.data.equipment.GunData;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -104,13 +103,8 @@ public final class Zombies extends JavaPlugin implements Listener {
             initWorldLoader();
             initArenaManagers();
             initCommands();
-            File file = new File("./data/sb.json");
-            file.createNewFile();
-
-            dataLoader.save(new GunData("Pistol", "zombies.game.weapon.pistol", Collections.singletonList("does stuff"), null, Material.WOODEN_HOE,
-                    Particle.CRIT, null), file);
         }
-        catch(LoadFailureException | IOException exception)
+        catch(LoadFailureException exception)
         {
             severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));

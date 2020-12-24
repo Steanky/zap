@@ -1,5 +1,6 @@
-package io.github.zap.zombies.game.data.equipment;
+package io.github.zap.zombies.game.data.equipment.gun;
 
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.level.GunLevel;
 import lombok.Getter;
 import org.bukkit.Material;
@@ -14,17 +15,8 @@ import java.util.List;
  */
 public class GunData extends EquipmentData<GunLevel> {
 
-    @Getter
-    private final Particle particle;
-
-    @Getter
-    private final Object particleData;
-
-    public GunData(String name, String displayName, List<String> lore, List<GunLevel> levels, Material material, Particle particle, Object particleData) {
+    public GunData(String name, String displayName, List<String> lore, List<GunLevel> levels, Material material) {
         super(name, displayName, material, lore, levels);
-
-        this.particle = particle;
-        this.particleData = particleData;
     }
 
     @Override

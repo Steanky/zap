@@ -6,11 +6,10 @@ import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.MapData;
+import io.github.zap.zombies.game.data2.MapData;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.HashMap;
