@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.data.equipment;
 
 import io.github.zap.zombies.game.data.level.PerkLevel;
 import lombok.Getter;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 import java.util.List;
@@ -24,4 +25,8 @@ public class SkillData extends EquipmentData<PerkLevel> {
 
     }
 
+    @Override
+    public ChatColor getDisplayNameChatColor() {
+        return ChatColor.AQUA;
+    }
 }

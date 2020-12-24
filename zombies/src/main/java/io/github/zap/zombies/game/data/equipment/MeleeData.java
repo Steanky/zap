@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data.equipment;
 
 import io.github.zap.zombies.game.data.level.MeleeLevel;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 import java.util.List;
@@ -11,5 +12,10 @@ public class MeleeData extends EquipmentData<MeleeLevel> {
     }
     private MeleeData() {
 
+    }
+
+    @Override
+    public ChatColor getDisplayNameChatColor() {
+        return ChatColor.GREEN;
     }
 }
