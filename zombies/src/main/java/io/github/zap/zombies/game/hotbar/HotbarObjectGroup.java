@@ -27,8 +27,18 @@ public class HotbarObjectGroup {
     public HotbarObjectGroup(Player player, Set<Integer> slots) {
         this.player = player;
         for (Integer slot : slots) {
-            hotbarObjectMap.put(slot, new HotbarObject(player, slot));
+            hotbarObjectMap.put(slot, createDefaultHotbarObject(player, slot));
         }
+    }
+
+    /**
+     * Creates a default hotbar object to insert into new slots
+     * @param player The player the hotbar object belogns to
+     * @param slotId The slot of the hotbar object
+     * @return The new hotbar object
+     */
+    public HotbarObject createDefaultHotbarObject(Player player, int slotId) {
+        return new HotbarObject(player, slotId);
     }
 
     /**
@@ -114,6 +124,10 @@ public class HotbarObjectGroup {
      */
     public void setHotbarObject(int slotId, HotbarObject hotbarObject) {
         if (hotbarObjectMap.containsKey(slotId)) {
+            if (hotbarObject.getSlotId() != slotId) {
+                throw new IllegalArgumentException(String.format("Attempted to put a hotbar object that goes in slot %d in slot %d!", hotbarObject.getSlotId(), slotId));
+            }
+
             hotbarObjectMap.put(slotId, hotbarObject);
 
             if (visible) {
@@ -122,6 +136,13 @@ public class HotbarObjectGroup {
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not contain slotId %d! (Did you mean to use addHotbarObject?)", slotId));
         }
+    }
+
+    /**
+     * Gets the next available slot to put an object in according to the hotbar object group's functionality
+     */
+    public Integer getNextEmptySlot() {
+        return null;
     }
 
     /**

@@ -21,6 +21,8 @@ public class HotbarProfile {
 
     private final HotbarObjectGroup defaultHotbarObjectGroup;
 
+    private boolean visible;
+
     /**
      * Creates a hotbar profile based on a player
      * @param player The player to manage
@@ -41,6 +43,7 @@ public class HotbarProfile {
      * @param visible Whether or not the profile should be visible
      */
     public void setVisible(boolean visible) {
+        this.visible = visible;
         for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
             hotbarObjectGroup.setVisible(visible);
         }
@@ -107,7 +110,8 @@ public class HotbarProfile {
             for (Integer slot : newHotbarObjectGroupSlots) {
                 defaultHotbarObjectGroup.remove(slot, false);
             }
-            hotbarObjectGroup.setVisible(true);
+            hotbarObjectGroupMap.put(name, hotbarObjectGroup);
+            hotbarObjectGroup.setVisible(visible);
         } else {
             throw new IllegalArgumentException(String.format("HotbarObjectGroup %s already exists!", name));
         }
@@ -131,6 +135,15 @@ public class HotbarProfile {
         } else {
             throw new IllegalArgumentException("Cannot remove the default HotbarObjectGroup of a HotbarProfile!");
         }
+    }
+
+    /**
+     * Gets a hotbar object group
+     * @param name The name of the hotbar object group
+     * @return The hotbar object group
+     */
+    public HotbarObjectGroup getHotbarObjectGroup(String name) {
+        return hotbarObjectGroupMap.get(name);
     }
 
     /**

@@ -16,6 +16,10 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.*;
+import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
+import io.github.zap.zombies.game.hotbar.HotbarManager;
+import io.github.zap.zombies.game.hotbar.HotbarObject;
+import io.github.zap.zombies.game.hotbar.HotbarObjectGroup;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -26,18 +30,24 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.logging.Level;
 
@@ -223,6 +233,23 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initCommands() {
         CommandManager commandManager = new CommandManager(this);
         commandManager.registerCommand(new DebugCommand());
+        getCommand("tahmid").setExecutor((commandSender, command, s, strings) -> {
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+
+                HotbarManager hotbarManager = new HotbarManager(player);
+                hotbarManager.addHotbarObjectGroup("guns", new GunObjectGroup(player, new HashSet<>(){{
+                    add(1);
+                    add(2);
+                    add(3);
+                }}));
+
+                HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup("guns");
+                hotbarManager.setHotbarObject(hotbarObjectGroup.getNextEmptySlot(), new HotbarObject(player, hotbarObjectGroup.getNextEmptySlot(), new ItemStack(Material.WOODEN_HOE)));
+            }
+
+            return true;
+        });
     }
 
     /*

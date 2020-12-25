@@ -21,6 +21,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -76,6 +77,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
+        getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
     }
 
     @Override
@@ -221,6 +223,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
         managedPlayer.getHotbarManager().setSelectedSlot(event.getNewSlot());
+    }
+
+    private void onPlayerItemConsume(ProxyArgs<PlayerItemConsumeEvent> args) {
+        args.getEvent().setCancelled(true); // TODO: might need to change this one day
     }
 
     private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {

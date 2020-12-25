@@ -146,6 +146,15 @@ public class HotbarManager {
     }
 
     /**
+     * Gets a hotbar object group in the current profile
+     * @param name The name of the hotbar object group
+     * @return The hotbar object group
+     */
+    public HotbarObjectGroup getHotbarObjectGroup(String name) {
+        return current.getHotbarObjectGroup(name);
+    }
+
+    /**
      * Gets a hotbar object in a hotbar profile
      * @param hotbarProfile The hotbar profile to get the hotbar object from
      * @param slotId The slot to get the hotbar object from

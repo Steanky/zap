@@ -101,18 +101,7 @@ public class GunData extends EquipmentData<GunLevel> {
 
     @Override
     public String getFormattedDisplayName(int level, String displayName) {
-        String prefix = ChatColor.GOLD.toString();
-
-        if (level > 0) {
-            prefix += ChatColor.BOLD.toString();
-            displayName += " Ultimate";
-
-            if (level > 1) {
-                displayName += " " + RomanNumber.toRoman(level);
-            }
-        }
-
-        return prefix + displayName;
+        return ChatColor.GOLD.toString() + super.getFormattedDisplayName(level, displayName);
     }
 
 }
