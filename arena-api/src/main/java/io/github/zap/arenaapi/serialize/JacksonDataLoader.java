@@ -32,11 +32,12 @@ public class JacksonDataLoader implements DataLoader {
 
         objectMapper.registerModule(module); //register our serializers
 
-        //these settings work better for misc bukkit objects
+        //these settings work better for misc bukkit objects and our own custom data files
         objectMapper.setVisibility(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
                 .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
                 .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
-                .withSetterVisibility(JsonAutoDetect.Visibility.NONE));
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE));
 
         writer = objectMapper.writerWithDefaultPrettyPrinter();
         reader = objectMapper.reader();

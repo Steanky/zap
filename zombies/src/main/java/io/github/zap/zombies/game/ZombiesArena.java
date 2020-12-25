@@ -11,6 +11,7 @@ import io.github.zap.zombies.game.data.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
+import io.lumine.xikage.mythicmobs.utils.config.properties.PropertyType;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -262,7 +263,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     }
 
-    private void doRound() {
+    public void doRound() {
         for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
             if(!player.isAlive()) {
                 player.respawn();
@@ -287,7 +288,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         mobs.add(mob);
                     }
                     else {
-                        Zombies.warning(String.format("Tried to spawn non-existant MythicMob with name %s.", mobName));
+                        Zombies.warning(String.format("Tried to spawn non-existant MythicMob with name '%s'.", mobName));
                     }
                 }
 

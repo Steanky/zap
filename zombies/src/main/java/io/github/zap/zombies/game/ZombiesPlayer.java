@@ -147,7 +147,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Knocks down this player.
      */
     public void knock() {
-        if(state == ZombiesPlayerState.ALIVE) {
+        if(state == ZombiesPlayerState.ALIVE && isInGame()) {
             state = ZombiesPlayerState.KNOCKED;
 
             //TODO: player knockdown code
@@ -158,7 +158,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Revives this player.
      */
     public void revive() {
-        if(state == ZombiesPlayerState.KNOCKED) {
+        if(state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.ALIVE;
 
             //TODO: dead body removal code
@@ -169,9 +169,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Respawns the player at the map spawn. Also revives them, if they were knocked down.
      */
     public void respawn() {
-        revive();
-        state = ZombiesPlayerState.ALIVE;
-        getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
+        if(isInGame()) {
+            revive();
+            state = ZombiesPlayerState.ALIVE;
+            getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
+        }
     }
 
     /**

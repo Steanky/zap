@@ -38,7 +38,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
             return data;
         }
 
-        String name = id.toString() + loader.getExtension();
+        String name = id.toString() + '.' + loader.getExtension();
         File dataFile = Path.of(dataFolder.getPath(), name).toFile();
 
         if(!dataFile.exists()) { //create playerdata file if missing

@@ -34,6 +34,7 @@ public class SpawnMobMechanic extends SkillMechanic implements INoTargetSkill {
     public SpawnMobMechanic(String skill, MythicLineConfig mlc) {
         super(skill, mlc);
         spawnedMob = MythicMobs.inst().getAPIHelper().getMythicMob(mlc.getString("mob"));
+
         amountMin = mlc.getInteger("amountMin", 0);
         amountMax = mlc.getInteger("amountMax", 69);
         spawnCap = mlc.getInteger("spawnCap", 5);
