@@ -7,6 +7,9 @@ import org.bukkit.Particle;
 
 import java.util.List;
 
+/**
+ * Data for a linear gun
+ */
 public class LinearGunData extends GunData {
 
     @Getter

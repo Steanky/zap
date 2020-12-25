@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.data.equipment;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.CustomData;
-import io.github.zap.zombies.game.data.util.RomanNumber;
+import io.github.zap.zombies.game.data.util.RomanNumeral;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -92,7 +92,7 @@ public abstract class EquipmentData<T> extends CustomData {
             displayName += " Ultimate";
 
             if (level > 1) {
-                displayName += " " + RomanNumber.toRoman(level);
+                displayName += " " + RomanNumeral.toRoman(level);
             }
         }
 

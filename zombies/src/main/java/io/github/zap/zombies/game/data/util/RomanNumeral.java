@@ -2,7 +2,11 @@ package io.github.zap.zombies.game.data.util;
 
 import java.util.TreeMap;
 
-public class RomanNumber {
+/**
+ * Util class to convert numbers to Roman numeral strings
+ * SPQR
+ */
+public class RomanNumeral {
 
     private final static TreeMap<Integer, String> map = new TreeMap<>();
 
@@ -22,6 +26,11 @@ public class RomanNumber {
         map.put(1, "I");
     }
 
+    /**
+     * Converts decimal number to Roman numeral
+     * @param number The decimal number
+     * @return The Roman numeral
+     */
     public static String toRoman(int number) {
         int l = map.floorKey(number);
         if (number == l) {

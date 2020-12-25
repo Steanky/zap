@@ -15,18 +15,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 /**
  * Represents a basic gun
  */
+@Getter
 public abstract class Gun<T extends GunData> extends UpgradeableEquipment<T> {
 
-    @Getter
     private int currentClipAmmo;
 
-    @Getter
     private int currentAmmo;
 
-    @Getter
     private boolean canReload = true;
 
-    @Getter
     private boolean canShoot = true;
 
     public Gun(Player player, int slotId, T equipmentData) {
