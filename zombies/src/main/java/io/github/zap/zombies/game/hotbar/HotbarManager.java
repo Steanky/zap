@@ -181,11 +181,40 @@ public class HotbarManager {
     }
 
     /**
+     * Gets an equipment object group in the current profile
+     * @param equipmentType The type of the equipment of the equipment object group
+     * @return The equipment object group
+     */
+    public HotbarObjectGroup getEquipmentObjectGroup(EquipmentType equipmentType) {
+        return getEquipmentGroup(current, equipmentType);
+    }
+
+    /**
+     * Gets an equipment object group in a hotbar profile
+     * @param hotbarProfile The hotbar profile to get the equipment object group from
+     * @param equipmentType type of the equipment of the equipment object group
+     * @return The equipment object group
+     */
+    public HotbarObjectGroup getEquipmentGroup(HotbarProfile hotbarProfile, EquipmentType equipmentType) {
+        return hotbarProfile.getHotbarObjectGroup(equipmentType.toString());
+    }
+
+    /**
      * Gets a hotbar object group in the current profile
      * @param name The name of the hotbar object group
      * @return The hotbar object group
      */
     public HotbarObjectGroup getHotbarObjectGroup(String name) {
+        return getHotbarObjectGroup(current, name);
+    }
+
+    /**
+     * Gets a hotbar object group in a hotbar profile
+     * @param hotbarProfile The hotbar profile to get the hotbar object group from
+     * @param name The name of the hotbar object group
+     * @return The hotbar object group
+     */
+    public HotbarObjectGroup getHotbarObjectGroup(HotbarProfile hotbarProfile, String name) {
         return current.getHotbarObjectGroup(name);
     }
 

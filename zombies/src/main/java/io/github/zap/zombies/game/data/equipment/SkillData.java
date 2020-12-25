@@ -26,7 +26,8 @@ public class SkillData extends EquipmentData<PerkLevel> {
     }
 
     @Override
-    public String getFormattedDisplayName(int level, String displayName) {
-        return ChatColor.AQUA.toString() + super.getFormattedDisplayName(level, displayName);
+    public ChatColor getDefaultChatColor() {
+        return ChatColor.AQUA;
     }
+
 }

@@ -20,7 +20,7 @@ public class PerkData extends EquipmentData<PerkLevel> {
     }
 
     @Override
-    public String getFormattedDisplayName(int level, String displayName) {
-        return ChatColor.BLUE.toString() + super.getFormattedDisplayName(level, displayName);
+    public ChatColor getDefaultChatColor() {
+        return ChatColor.BLUE;
     }
 }

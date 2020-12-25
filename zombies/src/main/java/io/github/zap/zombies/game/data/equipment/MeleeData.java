@@ -29,7 +29,7 @@ public class MeleeData extends EquipmentData<MeleeLevel> {
     }
 
     @Override
-    public String getFormattedDisplayName(int level, String displayName) {
-        return ChatColor.BLUE.toString() + super.getFormattedDisplayName(level, displayName);
+    public ChatColor getDefaultChatColor() {
+        return ChatColor.GREEN;
     }
 }

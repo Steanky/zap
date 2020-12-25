@@ -54,6 +54,11 @@ public class GunData extends EquipmentData<GunLevel> {
         return lore;
     }
 
+    @Override
+    public ChatColor getDefaultChatColor() {
+        return ChatColor.GOLD;
+    }
+
     private List<String> getStatsLore(int level) {
         List<String> statsLore = new ArrayList<>();
         GunLevel current = getLevels().get(level);
@@ -96,11 +101,6 @@ public class GunData extends EquipmentData<GunLevel> {
         }
 
         return statsLore;
-    }
-
-    @Override
-    public String getFormattedDisplayName(int level, String displayName) {
-        return ChatColor.GOLD.toString() + super.getFormattedDisplayName(level, displayName);
     }
 
 }

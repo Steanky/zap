@@ -14,7 +14,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Data for a piece of generic equipment
@@ -60,8 +59,7 @@ public abstract class EquipmentData<T> extends CustomData {
             ItemStack itemStack = new ItemStack(material);
             ItemMeta itemMeta = itemStack.getItemMeta();
 
-            Locale locale = localizationManager.getPlayerLocale(player);
-            itemMeta.setDisplayName(getFormattedDisplayName(level, localizationManager.getLocalizedMessage(locale, displayName)));
+            itemMeta.setDisplayName(getFormattedDisplayName(player, level));
 
             if (level > 0) {
                 itemMeta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1, true);
@@ -83,20 +81,40 @@ public abstract class EquipmentData<T> extends CustomData {
     }
 
     /**
-     * Gets the formatted version of the display name with any add-ons
+     * Gets the formatted version of the display name
+     * @param player The player for which the equipment is given to
+     * @param level The level of the equipment display
      * @return The formatted version of the display name
      */
-    public String getFormattedDisplayName(int level, String displayName) {
+    public String getFormattedDisplayName(Player player, int level) {
+        return getFormattedDisplayNameWithChatColor(getDefaultChatColor(), player, level);
+    }
+
+    /**
+     * Gets the formatted version of the display name with a certain chat color
+     * @param chatColor The prefix chat color
+     * @param player The player for which the equipment is given to
+     * @param level The level of the equipment display
+     * @return The formatted version of the display name with a certain chat color
+     */
+    public String getFormattedDisplayNameWithChatColor(ChatColor chatColor, Player player, int level) {
+        String formattedDisplayName = localizationManager.getLocalizedMessage(localizationManager.getPlayerLocale(player), displayName);
         if (level > 0) {
-            displayName = ChatColor.BOLD.toString() + displayName;
-            displayName += " Ultimate";
+            formattedDisplayName = ChatColor.BOLD.toString() + formattedDisplayName;
+            formattedDisplayName += " Ultimate";
 
             if (level > 1) {
-                displayName += " " + RomanNumeral.toRoman(level);
+                formattedDisplayName += " " + RomanNumeral.toRoman(level);
             }
         }
 
-        return displayName;
+        return chatColor + formattedDisplayName;
     }
+
+    /**
+     * Get the default chat color of the equipment
+     * @return The default chat color of the equipment
+     */
+    public abstract ChatColor getDefaultChatColor();
 
 }
