@@ -51,7 +51,12 @@ public class HotbarObjectGroup {
      */
     public void remove(int slotId, boolean replace) {
         if (hotbarObjectMap.containsKey(slotId)) {
-            HotbarObject remove = hotbarObjectMap.remove(slotId);
+            HotbarObject remove;
+            if (!replace) {
+                remove = hotbarObjectMap.remove(slotId);
+            } else {
+                remove = hotbarObjectMap.get(slotId);
+            }
             remove.remove();
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not manage slot %s!", slotId));
@@ -62,10 +67,9 @@ public class HotbarObjectGroup {
      * Removes all hotbar objects and no longer manages any
      */
     public void remove() {
-        for (HotbarObject hotbarObject : hotbarObjectMap.values()) {
-            if (hotbarObject != null) {
-                hotbarObject.remove();
-            }
+        for (Map.Entry<Integer, HotbarObject> slotId : hotbarObjectMap.entrySet()) {
+            slotId.getValue().remove();
+            hotbarObjectMap.remove(slotId.getKey());
         }
     }
 

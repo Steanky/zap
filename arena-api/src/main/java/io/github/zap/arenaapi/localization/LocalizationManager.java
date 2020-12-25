@@ -39,6 +39,7 @@ public class LocalizationManager {
         }
 
         this.dataManager = dataManager;
+        loadTranslations();
     }
 
     public String getLocalizedMessage(Locale locale, String messageKey) {

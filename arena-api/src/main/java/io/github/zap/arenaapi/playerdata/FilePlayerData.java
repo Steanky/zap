@@ -30,7 +30,7 @@ public class FilePlayerData implements PlayerData {
     RequestLevel directMessageLevel = RequestLevel.EVERYONE;
 
     @Getter
-    boolean isDirty = false;
+    transient boolean isDirty = false;
 
     public FilePlayerData() {}
 

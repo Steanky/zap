@@ -11,8 +11,8 @@ import java.util.List;
  * Data for a perk
  */
 public class PerkData extends EquipmentData<PerkLevel> {
-    public PerkData(String name, String displayName, List<String> lore, List<PerkLevel> levels, Material material, PerkType perkType) {
-        super(name, displayName, material, lore, levels);
+    public PerkData(String displayName, List<String> lore, List<PerkLevel> levels, Material material, PerkType perkType) {
+        super(displayName, material, lore, levels);
     }
 
     private PerkData() {
@@ -20,7 +20,7 @@ public class PerkData extends EquipmentData<PerkLevel> {
     }
 
     @Override
-    public ChatColor getDisplayNameChatColor() {
-        return ChatColor.BLUE;
+    public String getFormattedDisplayName(int level, String displayName) {
+        return ChatColor.BLUE.toString() + super.getFormattedDisplayName(level, displayName);
     }
 }

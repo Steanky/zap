@@ -7,15 +7,15 @@ import org.bukkit.Material;
 import java.util.List;
 
 public class MeleeData extends EquipmentData<MeleeLevel> {
-    public MeleeData(String name, String displayName, Material material, List<String> lore, List<MeleeLevel> levels) {
-        super(name, displayName, material, lore, levels);
+    public MeleeData(String displayName, Material material, List<String> lore, List<MeleeLevel> levels) {
+        super(displayName, material, lore, levels);
     }
     private MeleeData() {
 
     }
 
     @Override
-    public ChatColor getDisplayNameChatColor() {
-        return ChatColor.GREEN;
+    public String getFormattedDisplayName(int level, String displayName) {
+        return ChatColor.GREEN.toString() + super.getFormattedDisplayName(level, displayName);
     }
 }

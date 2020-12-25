@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,9 +25,6 @@ public abstract class EquipmentData<T> extends CustomData {
     private transient final LocalizationManager localizationManager;
 
     @Getter
-    private String name;
-
-    @Getter
     private String displayName;
 
     @Getter
@@ -38,9 +36,8 @@ public abstract class EquipmentData<T> extends CustomData {
     @Getter
     private List<T> levels;
 
-    public EquipmentData(String name, String displayName, Material material, List<String> lore, List<T> levels) {
+    public EquipmentData(String displayName, Material material, List<String> lore, List<T> levels) {
         this();
-        this.name = name;
         this.displayName = displayName;
         this.material = material;
         this.lore = lore;
@@ -63,12 +60,12 @@ public abstract class EquipmentData<T> extends CustomData {
             ItemMeta itemMeta = itemStack.getItemMeta();
 
             Locale locale = localizationManager.getPlayerLocale(player);
-            itemMeta.setDisplayName(getDisplayNameChatColor() + localizationManager.getLocalizedMessage(locale, displayName));
+            itemMeta.setDisplayName(getFormattedDisplayName(level, localizationManager.getLocalizedMessage(locale, displayName)));
 
             if (level > 0) {
                 itemMeta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1, true);
             }
-            itemStack.setLore(lore);
+            itemMeta.setLore(getLore(player, level));
             itemStack.setItemMeta(itemMeta);
 
             return itemStack;
@@ -77,11 +74,18 @@ public abstract class EquipmentData<T> extends CustomData {
         }
     }
 
+    public List<String> getLore(Player player, int level) {
+        List<String> lore = new ArrayList<>(getLore());
+        lore.set(0, ChatColor.RESET.toString() + ChatColor.GRAY.toString() + lore.get(0));
+
+        return lore;
+    }
+
     /**
-     * Gets the chat color of the display name
-     * @return The chat color of the display name
+     * Gets the formatted version of the display name with any add-ons
+     * @return The formatted version of the display name
      */
-    public ChatColor getDisplayNameChatColor() {
-        return ChatColor.RESET;
+    public String getFormattedDisplayName(int level, String displayName) {
+        return displayName;
     }
 }

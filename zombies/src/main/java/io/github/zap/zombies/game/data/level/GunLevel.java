@@ -8,26 +8,30 @@ import lombok.Getter;
 public class GunLevel  {
 
     @Getter
-    private final int damage;
+    private float damage;
 
     @Getter
-    private final int ammo;
+    private int ammo;
 
     @Getter
-    private final int clipAmmo;
+    private int clipAmmo;
 
     @Getter
-    private final float fireRate;
+    private float fireRate;
 
     @Getter
-    private final float reloadRate;
+    private float reloadRate;
 
-    public GunLevel(int damage, int ammo, int clipAmmo, int fireRate, int reloadRate) {
+    public GunLevel(float damage, int ammo, int clipAmmo, float fireRate, float reloadRate) {
         this.damage = damage;
         this.ammo = ammo;
         this.clipAmmo = clipAmmo;
         this.fireRate = fireRate;
         this.reloadRate = reloadRate;
+    }
+
+    private GunLevel() {
+
     }
 
 }

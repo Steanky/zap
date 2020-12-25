@@ -63,21 +63,21 @@ public class HotbarManager {
     }
 
     /**
-     * Adds a hotbar object to the current profile
-     * @param slotId The slot to add the hotbar object to
+     * Sets a hotbar object in the current profile
+     * @param slotId The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to add
      */
-    public void addHotbarObject(int slotId, HotbarObject hotbarObject) {
-        addHotbarObject(current, slotId, hotbarObject);
+    public void setHotbarObject(int slotId, HotbarObject hotbarObject) {
+        setHotbarObject(current, slotId, hotbarObject);
     }
 
     /**
-     * Adds a hotbar object to a hotbar profile
-     * @param hotbarProfile The hotbar profile to add the hotbar object to
-     * @param slotId The slot to add the item to
+     * Sets a hotbar object in a hotbar profile
+     * @param hotbarProfile The hotbar profile to set the hotbar object in
+     * @param slotId The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to add
      */
-    public void addHotbarObject(HotbarProfile hotbarProfile, int slotId, HotbarObject hotbarObject) {
+    public void setHotbarObject(HotbarProfile hotbarProfile, int slotId, HotbarObject hotbarObject) {
         hotbarProfile.addHotbarObject(slotId, hotbarObject);
     }
 

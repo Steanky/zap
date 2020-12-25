@@ -15,8 +15,8 @@ public class SkillData extends EquipmentData<PerkLevel> {
     @Getter
     private int delay;
 
-    public SkillData(String name, String displayName, Material material, List<String> lore, List<PerkLevel> levels, int delay) {
-        super(name, displayName, material, lore, levels);
+    public SkillData(String displayName, Material material, List<String> lore, List<PerkLevel> levels, int delay) {
+        super(displayName, material, lore, levels);
 
         this.delay = delay;
     }
@@ -26,7 +26,7 @@ public class SkillData extends EquipmentData<PerkLevel> {
     }
 
     @Override
-    public ChatColor getDisplayNameChatColor() {
-        return ChatColor.AQUA;
+    public String getFormattedDisplayName(int level, String displayName) {
+        return ChatColor.AQUA.toString() + super.getFormattedDisplayName(level, displayName);
     }
 }

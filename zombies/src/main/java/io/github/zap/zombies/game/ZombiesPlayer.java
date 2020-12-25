@@ -139,7 +139,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         return true;
                     }
                     else { //can't afford door
-                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANT_AFFORD);
+                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANNOT_AFFORD);
                     }
                 }
             }
