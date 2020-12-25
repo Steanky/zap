@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game.hotbar;
 
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
@@ -101,6 +103,22 @@ public class HotbarManager {
     }
 
     /**
+     * Adds an equipment object group to the current profile
+     * @param equipmentObjectGroup The equipment object group to add
+     */
+    public void addEquipmentObjectGroup(EquipmentObjectGroup equipmentObjectGroup) {
+        addEquipmentObjectGroup(current, equipmentObjectGroup);
+    }
+
+    /**
+     * Adds an equipment object group to a hotbar profile
+     * @param equipmentObjectGroup The equipment object group to add
+     */
+    public void addEquipmentObjectGroup(HotbarProfile hotbarProfile, EquipmentObjectGroup equipmentObjectGroup) {
+        hotbarProfile.addHotbarObjectGroup(equipmentObjectGroup.getEquipmentType().toString(), equipmentObjectGroup);
+    }
+
+    /**
      * Adds a hotbar object group to the current profile
      * @param name The associated name of the hotbar object group
      * @param hotbarObjectGroup The hotbar object group to add
@@ -117,6 +135,23 @@ public class HotbarManager {
      */
     public void addHotbarObjectGroup(HotbarProfile hotbarProfile, String name, HotbarObjectGroup hotbarObjectGroup) {
         hotbarProfile.addHotbarObjectGroup(name, hotbarObjectGroup);
+    }
+
+    /**
+     * Removes an equipment object group from the current profile
+     * @param equipmentType The type of equipment group to remove
+     */
+    public void removeHotbarObjectGroup(EquipmentType equipmentType) {
+        removeHotbarObjectGroup(current, equipmentType);
+    }
+
+    /**
+     * Removes an equipment object group from a hotbar profile
+     * @param hotbarProfile The hotbar profile to remove the hotbar object group from
+     * @param equipmentType The type of equipment group to remove
+     */
+    public void removeHotbarObjectGroup(HotbarProfile hotbarProfile, EquipmentType equipmentType) {
+        hotbarProfile.removeHotbarObjectGroup(equipmentType.toString());
     }
 
     /**

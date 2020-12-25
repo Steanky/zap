@@ -10,6 +10,11 @@ import io.github.zap.zombies.game.data.map.DoorData;
 import io.github.zap.zombies.game.data.map.DoorSide;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
+import io.github.zap.zombies.game.equipment.melee.MeleeObjectGroup;
+import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
+import io.github.zap.zombies.game.equipment.skill.SkillObjectGroup;
 import io.github.zap.zombies.game.hotbar.HotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
@@ -20,6 +25,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
+
+import java.util.HashSet;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
     @Getter
@@ -50,14 +57,19 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
-     * @param coins The number of coins this player starts with
+     * @param mapData The map the player starts in
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player, int coins) {
+    public ZombiesPlayer(ZombiesArena arena, Player player, MapData mapData) {
         super(arena, player);
         this.arena = arena;
-        this.coins = coins;
+        this.coins = mapData.getStartingCoins();
 
         hotbarManager = new HotbarManager(player);
+        hotbarManager.addEquipmentObjectGroup(new MeleeObjectGroup(player, new HashSet<>(mapData.getMeleeSlots())));
+        hotbarManager.addEquipmentObjectGroup(new GunObjectGroup(player, new HashSet<>(mapData.getGunSlots())));
+        hotbarManager.addEquipmentObjectGroup(new SkillObjectGroup(player, new HashSet<>(mapData.getSkillSlots())));
+        hotbarManager.addEquipmentObjectGroup(new PerkObjectGroup(player, new HashSet<>(mapData.getPerkSlots())));
+
         perks = new ZombiesPerks(this);
     }
 

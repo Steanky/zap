@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.equipment.perk;
 
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.hotbar.HotbarObject;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -23,5 +24,10 @@ public class PerkObjectGroup extends EquipmentObjectGroup {
     @Override
     public boolean isObjectRecommendedEquipment(HotbarObject hotbarObject) {
         return hotbarObject instanceof PerkEquipment;
+    }
+
+    @Override
+    public EquipmentType getEquipmentType() {
+        return EquipmentType.PERK;
     }
 }

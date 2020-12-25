@@ -214,6 +214,26 @@ public class MapData {
     List<RoundData> rounds = new ArrayList<>();
 
     /**
+     * Slots allocated for the melee hotbar object group
+     */
+    List<Integer> meleeSlots = new ArrayList<>();
+
+    /**
+     * Slots allocated for the gun hotbar object group
+     */
+    List<Integer> gunSlots = new ArrayList<>();
+
+    /**
+     * Slots allocated for the skill hotbar object group
+     */
+    List<Integer> skillSlots = new ArrayList<>();
+
+    /**
+     * Slots allocated for the perk hotbar object group
+     */
+    List<Integer> perkSlots = new ArrayList<>();
+
+    /**
      * All possible equipments that are used by the map
      */
     transient final Map<String, EquipmentData<?>> equipments = new HashMap<>();

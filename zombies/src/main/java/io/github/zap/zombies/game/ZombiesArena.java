@@ -61,7 +61,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
         super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, player, arena.getMap()
-                .getStartingCoins()));
+                ));
 
         this.map = map;
         this.emptyTimeout = emptyTimeout;
