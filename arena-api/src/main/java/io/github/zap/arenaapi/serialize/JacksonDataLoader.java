@@ -1,8 +1,7 @@
 package io.github.zap.arenaapi.serialize;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -18,26 +17,26 @@ public class JacksonDataLoader implements DataLoader {
     private final ObjectWriter writer;
     private final ObjectReader reader;
 
+    private final SimpleModule module = new SimpleModule();
+
     private static final String EXTENSION = "json";
 
     public JacksonDataLoader() {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        SimpleModule module = new SimpleModule();
         module.addSerializer(Vector.class, new VectorSerializer());
         module.addDeserializer(Vector.class, new VectorDeserializer());
 
         module.addSerializer(BoundingBox.class, new BoundingBoxSerializer());
         module.addDeserializer(BoundingBox.class, new BoundingBoxDeserializer());
 
+        ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(module); //register our serializers
 
-        //these settings work better for misc bukkit objects and our own custom data files
+        //these settings work better for misc bukkit objects
         objectMapper.setVisibility(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
                 .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
                 .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
-                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
-                .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE));
+                .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE));
 
         writer = objectMapper.writerWithDefaultPrettyPrinter();
         reader = objectMapper.reader();
@@ -61,6 +60,16 @@ public class JacksonDataLoader implements DataLoader {
         }
 
         return null;
+    }
+
+    /**
+     * Adds a deserializer to the module
+     * @param type The type of the class to deserialize
+     * @param deserializer The deserializer itself
+     * @param <T> The type of the deserializer
+     */
+    public <T> void addDeserializer(Class<T> type, JsonDeserializer<? extends T> deserializer) {
+        module.addDeserializer(type, deserializer);
     }
 
     @Override

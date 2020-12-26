@@ -1,13 +1,12 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.*;
+import io.github.zap.zombies.game.data.map.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -23,6 +22,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -60,8 +61,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, player, arena.getMap()
-                .getStartingCoins()));
+        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, player,
+                manager.getEquipmentManager()));
 
         this.map = map;
         this.emptyTimeout = emptyTimeout;
@@ -75,7 +76,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
+        getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
+        getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
     }
 
     @Override
@@ -199,7 +202,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
             }
             else {
-                //TODO: perform actions involving rightclick on air
+                player.getHotbarManager().click(event.getAction());
             }
         }
     }
@@ -214,6 +217,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         else {
             managedPlayer.disableRepair();
         }
+    }
+
+    private void onPlayerItemHeld(ProxyArgs<PlayerItemHeldEvent> args) {
+        PlayerItemHeldEvent event = args.getEvent();
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+
+        managedPlayer.getHotbarManager().setSelectedSlot(event.getNewSlot());
+    }
+
+    private void onPlayerItemConsume(ProxyArgs<PlayerItemConsumeEvent> args) {
+        args.getEvent().setCancelled(true); // TODO: might need to change this one day
     }
 
     private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {

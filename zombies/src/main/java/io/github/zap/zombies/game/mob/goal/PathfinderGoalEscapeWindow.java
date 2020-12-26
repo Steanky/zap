@@ -2,8 +2,8 @@ package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.SpawnpointData;
-import io.github.zap.zombies.game.data.WindowData;
+import io.github.zap.zombies.game.data.map.SpawnpointData;
+import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;

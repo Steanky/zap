@@ -6,10 +6,13 @@ import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.DoorData;
-import io.github.zap.zombies.game.data.DoorSide;
-import io.github.zap.zombies.game.data.MapData;
-import io.github.zap.zombies.game.data.WindowData;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.map.DoorData;
+import io.github.zap.zombies.game.data.map.DoorSide;
+import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +22,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
+
+import java.util.Map;
+import java.util.Set;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
     @Getter
@@ -37,6 +43,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private int repairIncrement = 1;
 
     @Getter
+    private final ZombiesHotbarManager hotbarManager;
+
+    @Getter
     private final ZombiesPerks perks;
 
     private WindowData targetWindow;
@@ -46,12 +55,29 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
-     * @param coins The number of coins this player starts with
+     * @param equipmentManager The equipment manager for the map equipment
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player, int coins) {
+    public ZombiesPlayer(ZombiesArena arena, Player player, EquipmentManager equipmentManager) {
         super(arena, player);
         this.arena = arena;
-        this.coins = coins;
+        this.coins = arena.getMap().getStartingCoins();
+
+        hotbarManager = new ZombiesHotbarManager(player);
+
+        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap().getHotbarObjectGroupSlots().entrySet()) {
+            hotbarManager.addEquipmentObjectGroup(equipmentManager
+                    .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,
+                    hotbarObjectGroupSlot.getValue()));
+        }
+
+        for (String equipment : arena.getMap().getDefaultEquipments()) {
+            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(equipment);
+            Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
+
+            if (slot != null) {
+                hotbarManager.setHotbarObject(slot, equipmentManager.createEquipment(player, slot, equipmentData));
+            }
+        }
 
         perks = new ZombiesPerks(this);
     }
@@ -134,7 +160,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         return true;
                     }
                     else { //can't afford door
-                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANT_AFFORD);
+                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANNOT_AFFORD);
                     }
                 }
             }
@@ -150,6 +176,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(state == ZombiesPlayerState.ALIVE && isInGame()) {
             state = ZombiesPlayerState.KNOCKED;
 
+            hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
+
             //TODO: player knockdown code
         }
     }
@@ -160,6 +188,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     public void revive() {
         if(state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.ALIVE;
+
+            hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
 
             //TODO: dead body removal code
         }
