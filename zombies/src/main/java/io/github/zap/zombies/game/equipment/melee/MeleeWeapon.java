@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
  * Represents a weapon that uses melee combat
  */
 public class MeleeWeapon extends UpgradeableEquipment<MeleeData, MeleeLevel> {
-    public MeleeWeapon(Player player, int slotId, MeleeData equipmentData) {
-        super(player, slotId, equipmentData);
+    public MeleeWeapon(Player player, int slot, MeleeData equipmentData) {
+        super(player, slot, equipmentData);
     }
 }

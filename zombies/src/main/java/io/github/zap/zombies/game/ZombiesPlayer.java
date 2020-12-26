@@ -6,10 +6,13 @@ import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.DoorData;
 import io.github.zap.zombies.game.data.map.DoorSide;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import io.github.zap.zombies.game.equipment.melee.MeleeObjectGroup;
@@ -27,6 +30,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
     @Getter
@@ -65,10 +70,22 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         this.coins = mapData.getStartingCoins();
 
         hotbarManager = new HotbarManager(player);
-        hotbarManager.addEquipmentObjectGroup(new MeleeObjectGroup(player, new HashSet<>(mapData.getMeleeSlots())));
-        hotbarManager.addEquipmentObjectGroup(new GunObjectGroup(player, new HashSet<>(mapData.getGunSlots())));
-        hotbarManager.addEquipmentObjectGroup(new SkillObjectGroup(player, new HashSet<>(mapData.getSkillSlots())));
-        hotbarManager.addEquipmentObjectGroup(new PerkObjectGroup(player, new HashSet<>(mapData.getPerkSlots())));
+
+        EquipmentManager equipmentManager = Zombies.getInstance().getEquipmentManager();
+        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : mapData.getHotbarObjectGroupSlots().entrySet()) {
+            hotbarManager.addEquipmentObjectGroup(equipmentManager
+                    .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,
+                    hotbarObjectGroupSlot.getValue()));
+        }
+
+        for (String equipment : mapData.getDefaultEquipments()) {
+            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(equipment);
+            Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
+
+            if (slot != null) {
+                hotbarManager.setHotbarObject(slot, equipmentManager.createEquipment(player, slot, equipmentData));
+            }
+        }
 
         perks = new ZombiesPerks(this);
     }

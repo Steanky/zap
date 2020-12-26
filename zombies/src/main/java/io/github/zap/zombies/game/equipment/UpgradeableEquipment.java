@@ -14,8 +14,8 @@ public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipme
     @Getter
     private int level = 0;
 
-    public UpgradeableEquipment(Player player, int slotId, D equipmentData) {
-        super(player, slotId, equipmentData);
+    public UpgradeableEquipment(Player player, int slot, D equipmentData) {
+        super(player, slot, equipmentData);
     }
 
     /**

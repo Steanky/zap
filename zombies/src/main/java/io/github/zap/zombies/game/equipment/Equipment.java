@@ -15,8 +15,8 @@ public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
     @Getter
     private final D equipmentData;
 
-    public Equipment(Player player, int slotId, D equipmentData) {
-        super(player, slotId);
+    public Equipment(Player player, int slot, D equipmentData) {
+        super(player, slot);
 
         this.equipmentData = equipmentData;
         setRepresentingItemStack(equipmentData.createItemStack(player, 0));

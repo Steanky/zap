@@ -24,11 +24,11 @@ public class EquipmentCreator {
         /**
          * Creates a new piece of equipment
          * @param player The player to create the equipment for
-         * @param slotId The slot the equipment will go in
+         * @param slot The slot the equipment will go in
          * @param equipmentData The equipment data to create the equipment with
          * @return The new equipment
          */
-        Equipment<D, L> createEquipment(Player player, int slotId, D equipmentData);
+        Equipment<D, L> createEquipment(Player player, int slot, D equipmentData);
     }
 
 }

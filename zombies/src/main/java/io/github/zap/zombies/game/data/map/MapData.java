@@ -10,10 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
@@ -214,29 +211,14 @@ public class MapData {
     List<RoundData> rounds = new ArrayList<>();
 
     /**
-     * Slots allocated for the melee hotbar object group
+     * Map of hotbar object group names to the slots allocated for them
      */
-    List<Integer> meleeSlots = new ArrayList<>();
+    Map<String, Set<Integer>> hotbarObjectGroupSlots = new HashMap<>();
 
     /**
-     * Slots allocated for the gun hotbar object group
+     * Equipments given at the start of the game by their name
      */
-    List<Integer> gunSlots = new ArrayList<>();
-
-    /**
-     * Slots allocated for the skill hotbar object group
-     */
-    List<Integer> skillSlots = new ArrayList<>();
-
-    /**
-     * Slots allocated for the perk hotbar object group
-     */
-    List<Integer> perkSlots = new ArrayList<>();
-
-    /**
-     * All possible equipments that are used by the map
-     */
-    transient final Map<String, EquipmentData<?>> equipments = new HashMap<>();
+    List<String> defaultEquipments = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 

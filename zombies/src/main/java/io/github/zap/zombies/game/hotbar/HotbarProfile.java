@@ -51,48 +51,48 @@ public class HotbarProfile {
 
     /**
      * Adds an item
-     * @param slotId The slot to add the item to
+     * @param slot The slot to add the item to
      * @param itemStack The item stack to add
      */
-    public void addItem(int slotId, ItemStack itemStack) {
-        addHotbarObject(slotId, new HotbarObject(player, slotId, itemStack));
+    public void addItem(int slot, ItemStack itemStack) {
+        addHotbarObject(slot, new HotbarObject(player, slot, itemStack));
     }
 
     /**
      * Adds a hotbar object
-     * @param slotId The slot to add the hotbar object to
+     * @param slot The slot to add the hotbar object to
      * @param hotbarObject The hotbar object to add
      */
-    public void addHotbarObject(int slotId, HotbarObject hotbarObject) {
+    public void addHotbarObject(int slot, HotbarObject hotbarObject) {
         for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
-            if (hotbarObjectGroup.getSlots().contains(slotId)) {
-                hotbarObjectGroup.setHotbarObject(slotId, hotbarObject);
+            if (hotbarObjectGroup.getSlots().contains(slot)) {
+                hotbarObjectGroup.setHotbarObject(slot, hotbarObject);
                 return;
             }
         }
 
         throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't add " +
-                "a hotbar object!", slotId));
+                "a hotbar object!", slot));
     }
 
     /**
      * Removes a hotbar object
-     * @param slotId The slot of the hotbar object
+     * @param slot The slot of the hotbar object
      * @param replace Whether or not the hotbar object group should replace the object in the slot and still manage it
      */
-    public void removeHotbarObject(int slotId, boolean replace) {
+    public void removeHotbarObject(int slot, boolean replace) {
         for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
-            if (hotbarObjectGroup.getSlots().contains(slotId)) {
-                hotbarObjectGroup.remove(slotId, replace);
+            if (hotbarObjectGroup.getSlots().contains(slot)) {
+                hotbarObjectGroup.remove(slot, replace);
                 if (!replace) {
-                    defaultHotbarObjectGroup.addHotbarObject(slotId);
+                    defaultHotbarObjectGroup.addHotbarObject(slot);
                 }
                 return;
             }
         }
 
         throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't " +
-                "remove a hotbar object!", slotId));
+                "remove a hotbar object!", slot));
     }
 
     /**
@@ -104,10 +104,10 @@ public class HotbarProfile {
         if (!hotbarObjectGroupMap.containsKey(name)) {
             Set<Integer> defaultHotbarObjectGroupSlots = defaultHotbarObjectGroup.getSlots(),
                     newHotbarObjectGroupSlots = hotbarObjectGroup.getSlots();
-            for (Integer slotId : newHotbarObjectGroupSlots) {
-                if (!defaultHotbarObjectGroupSlots.contains(slotId)) {
-                    throw new IllegalArgumentException(String.format("Cannot add HotbarObjectGroup to slotId %d " +
-                            "because of a preexisting HotbarObjectGroup", slotId));
+            for (Integer slot : newHotbarObjectGroupSlots) {
+                if (!defaultHotbarObjectGroupSlots.contains(slot)) {
+                    throw new IllegalArgumentException(String.format("Cannot add HotbarObjectGroup to slot %d " +
+                            "because of a preexisting HotbarObjectGroup", slot));
                 }
             }
 
@@ -130,8 +130,8 @@ public class HotbarProfile {
             if (hotbarObjectGroupMap.containsKey(name)) {
                 HotbarObjectGroup hotbarObjectGroup = hotbarObjectGroupMap.remove(name);
                 hotbarObjectGroup.remove();
-                for (Integer slotId : hotbarObjectGroup.getSlots()) {
-                    defaultHotbarObjectGroup.addHotbarObject(slotId);
+                for (Integer slot : hotbarObjectGroup.getSlots()) {
+                    defaultHotbarObjectGroup.addHotbarObject(slot);
                 }
             } else {
                 throw new IllegalArgumentException(String.format("The HotbarProfile does not contain the " +
@@ -153,12 +153,12 @@ public class HotbarProfile {
 
     /**
      * Gets a hotbar object
-     * @param slotId The slot to get the hotbar object from
+     * @param slot The slot to get the hotbar object from
      * @return The hotbar object
      */
-    public HotbarObject getHotbarObject(int slotId) {
+    public HotbarObject getHotbarObject(int slot) {
         for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
-            HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slotId);
+            HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
             if (hotbarObject != null) {
                 return hotbarObject;
             }

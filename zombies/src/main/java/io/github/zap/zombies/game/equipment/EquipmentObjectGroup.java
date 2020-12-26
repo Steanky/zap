@@ -20,18 +20,18 @@ public abstract class EquipmentObjectGroup extends HotbarObjectGroup {
     }
 
     @Override
-    public HotbarObject createDefaultHotbarObject(Player player, int slotId) {
+    public HotbarObject createDefaultHotbarObject(Player player, int slot) {
         Set<Integer> slots = getSlots().stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new));
         int placeholderNumber = 1;
-        for (Integer slot : slots) {
-            if (slot == slotId) {
+        for (Integer selfSlot : slots) {
+            if (selfSlot == slot) {
                 break;
             } else {
                 placeholderNumber++;
             }
         }
 
-        return new HotbarObject(player, slotId, createPlaceholderItemStack(placeholderNumber));
+        return new HotbarObject(player, slot, createPlaceholderItemStack(placeholderNumber));
     }
 
     /**
@@ -60,10 +60,19 @@ public abstract class EquipmentObjectGroup extends HotbarObjectGroup {
     public abstract boolean isObjectRecommendedEquipment(HotbarObject hotbarObject);
 
     @Override
-    public void remove(int slotId, boolean replace) {
-        super.remove(slotId, replace);
+    public void setHotbarObject(int slot, HotbarObject hotbarObject) {
+        if (isObjectRecommendedEquipment(hotbarObject)) {
+            super.setHotbarObject(slot, hotbarObject);
+        } else {
+            throw new IllegalArgumentException(String.format("Attempted to place hotbar object in slot %d of wrong type!", slot));
+        }
+    }
+
+    @Override
+    public void remove(int slot, boolean replace) {
+        super.remove(slot, replace);
         if (replace) {
-            setHotbarObject(slotId, createDefaultHotbarObject(getPlayer(), slotId));
+            super.setHotbarObject(slot, createDefaultHotbarObject(getPlayer(), slot));
         }
     }
 

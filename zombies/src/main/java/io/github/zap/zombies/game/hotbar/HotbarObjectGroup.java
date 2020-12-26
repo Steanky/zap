@@ -34,11 +34,11 @@ public class HotbarObjectGroup {
     /**
      * Creates a default hotbar object to insert into new slots
      * @param player The player the hotbar object belogns to
-     * @param slotId The slot of the hotbar object
+     * @param slot The slot of the hotbar object
      * @return The new hotbar object
      */
-    public HotbarObject createDefaultHotbarObject(Player player, int slotId) {
-        return new HotbarObject(player, slotId);
+    public HotbarObject createDefaultHotbarObject(Player player, int slot) {
+        return new HotbarObject(player, slot);
     }
 
     /**
@@ -56,20 +56,20 @@ public class HotbarObjectGroup {
 
     /**
      * Removes a slot in a hotbar object group
-     * @param slotId The slot to remove
+     * @param slot The slot to remove
      * @param replace Whether or not the hotbar object group should replace the object in the slot and still manage it
      */
-    public void remove(int slotId, boolean replace) {
-        if (hotbarObjectMap.containsKey(slotId)) {
+    public void remove(int slot, boolean replace) {
+        if (hotbarObjectMap.containsKey(slot)) {
             HotbarObject remove;
             if (!replace) {
-                remove = hotbarObjectMap.remove(slotId);
+                remove = hotbarObjectMap.remove(slot);
             } else {
-                remove = hotbarObjectMap.get(slotId);
+                remove = hotbarObjectMap.get(slot);
             }
             remove.remove();
         } else {
-            throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not manage slot %s!", slotId));
+            throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not manage slot %s!", slot));
         }
     }
 
@@ -77,67 +77,67 @@ public class HotbarObjectGroup {
      * Removes all hotbar objects and no longer manages any
      */
     public void remove() {
-        for (Map.Entry<Integer, HotbarObject> slotId : hotbarObjectMap.entrySet()) {
-            slotId.getValue().remove();
-            hotbarObjectMap.remove(slotId.getKey());
+        for (Map.Entry<Integer, HotbarObject> slot : hotbarObjectMap.entrySet()) {
+            slot.getValue().remove();
+            hotbarObjectMap.remove(slot.getKey());
         }
     }
 
     /**
      * Adds a new empty hotbar object to a new slot.
      * This should not be used to set hotbar objects
-     * @param slotId The slot to add the empty hotbar object to
+     * @param slot The slot to add the empty hotbar object to
      */
-    public void addHotbarObject(int slotId) {
-        addHotbarObject(slotId, new HotbarObject(player, slotId));
+    public void addHotbarObject(int slot) {
+        addHotbarObject(slot, new HotbarObject(player, slot));
     }
 
     /**
      * Adds a new hotbar object to a new slot.
      * This should not be used to set hotbar objects
-     * @param slotId The slot to add the hotbar object to
+     * @param slot The slot to add the hotbar object to
      * @param hotbarObject The hotbar object to add
      */
-    public void addHotbarObject(int slotId, HotbarObject hotbarObject) {
+    public void addHotbarObject(int slot, HotbarObject hotbarObject) {
         Map<Integer, HotbarObject> hotbarObjectMap = getHotbarObjectMap();
-        if (!hotbarObjectMap.containsKey(slotId)) {
-            hotbarObjectMap.put(slotId, hotbarObject);
+        if (!hotbarObjectMap.containsKey(slot)) {
+            hotbarObjectMap.put(slot, hotbarObject);
             hotbarObject.setVisible(isVisible());
         } else {
-            throw new IllegalArgumentException(String.format("The HotbarObjectGroup already contains slotId " +
-                    "%d! (Did you mean to use setHotbarObject?)", slotId));
+            throw new IllegalArgumentException(String.format("The HotbarObjectGroup already contains slot " +
+                    "%d! (Did you mean to use setHotbarObject?)", slot));
         }
     }
 
     /**
      * Gets the hotbar object in a slot
-     * @param slotId The slot to get the hotbar object from
+     * @param slot The slot to get the hotbar object from
      * @return The hotbar object
      */
-    public HotbarObject getHotbarObject(int slotId) {
-        return hotbarObjectMap.get(slotId);
+    public HotbarObject getHotbarObject(int slot) {
+        return hotbarObjectMap.get(slot);
     }
 
     /**
      * Sets the hotbar object in a slot
-     * @param slotId The slot to set the hotbar object in
+     * @param slot The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to set
      */
-    public void setHotbarObject(int slotId, HotbarObject hotbarObject) {
-        if (hotbarObjectMap.containsKey(slotId)) {
-            if (hotbarObject.getSlotId() != slotId) {
+    public void setHotbarObject(int slot, HotbarObject hotbarObject) {
+        if (hotbarObjectMap.containsKey(slot)) {
+            if (hotbarObject.getslot() != slot) {
                 throw new IllegalArgumentException(String.format("Attempted to put a hotbar object that goes in slot " +
-                        "%d in slot %d!", hotbarObject.getSlotId(), slotId));
+                        "%d in slot %d!", hotbarObject.getslot(), slot));
             }
 
-            hotbarObjectMap.put(slotId, hotbarObject);
+            hotbarObjectMap.put(slot, hotbarObject);
 
             if (visible) {
                 hotbarObject.setVisible(true);
             }
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not contain slot " +
-                    "%d! (Did you mean to use addHotbarObject?)", slotId));
+                    "%d! (Did you mean to use addHotbarObject?)", slot));
         }
     }
 

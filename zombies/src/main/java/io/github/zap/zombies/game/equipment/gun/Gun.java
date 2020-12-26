@@ -28,8 +28,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     private boolean canShoot = true;
 
-    public Gun(Player player, int slotId, D equipmentData) {
-        super(player, slotId, equipmentData);
+    public Gun(Player player, int slot, D equipmentData) {
+        super(player, slot, equipmentData);
     }
 
     /**

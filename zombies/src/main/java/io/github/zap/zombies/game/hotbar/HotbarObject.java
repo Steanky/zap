@@ -12,7 +12,7 @@ public class HotbarObject {
 
     private final Player player;
 
-    private final int slotId;
+    private final int slot;
 
     private ItemStack representingItemStack = null;
 
@@ -25,21 +25,21 @@ public class HotbarObject {
     /**
      * Creates a hotbar object that is invisible
      * @param player The player the hotbar object belongs to
-     * @param slotId The slot of the hotbar object
+     * @param slot The slot of the hotbar object
      */
-    public HotbarObject(Player player, int slotId) {
+    public HotbarObject(Player player, int slot) {
         this.player = player;
-        this.slotId = slotId;
+        this.slot = slot;
     }
 
     /**
      * Creates a hotbar object that is invisible that would display an item stack
      * @param player The player the hotbar object belongs to
-     * @param slotId The slot of the hotbar object
+     * @param slot The slot of the hotbar object
      * @param representingItemStack The item stack to display
      */
-    public HotbarObject(Player player, int slotId, ItemStack representingItemStack) {
-        this(player, slotId);
+    public HotbarObject(Player player, int slot, ItemStack representingItemStack) {
+        this(player, slot);
         this.representingItemStack = representingItemStack;
     }
 
@@ -49,7 +49,7 @@ public class HotbarObject {
      */
     private void setStack(ItemStack itemStack) {
         if (!removed && visible) {
-            player.getInventory().setItem(slotId, itemStack);
+            player.getInventory().setItem(slot, itemStack);
         }
     }
 
@@ -101,7 +101,7 @@ public class HotbarObject {
         this.visible = visible;
         if (visible) {
             setStack(representingItemStack);
-            if (player.getInventory().getHeldItemSlot() == slotId) {
+            if (player.getInventory().getHeldItemSlot() == slot) {
                 onSlotSelected();
             }
         }

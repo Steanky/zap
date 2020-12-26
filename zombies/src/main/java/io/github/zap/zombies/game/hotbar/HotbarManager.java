@@ -49,61 +49,61 @@ public class HotbarManager {
 
     /**
      * Adds an item to the current profile
-     * @param slotId The slot to add the item to
+     * @param slot The slot to add the item to
      * @param itemStack The item stack to add
      */
-    public void addItem(int slotId, ItemStack itemStack) {
-        addItem(current, slotId, itemStack);
+    public void addItem(int slot, ItemStack itemStack) {
+        addItem(current, slot, itemStack);
     }
 
     /**
      * Adds an item to a hotbar profile
      * @param hotbarProfile The hotbar profile to add the item to
-     * @param slotId The slot to add the item to
+     * @param slot The slot to add the item to
      * @param itemStack The item stack to add
      */
-    public void addItem(HotbarProfile hotbarProfile, int slotId, ItemStack itemStack) {
-        hotbarProfile.addItem(slotId, itemStack);
+    public void addItem(HotbarProfile hotbarProfile, int slot, ItemStack itemStack) {
+        hotbarProfile.addItem(slot, itemStack);
     }
 
     /**
      * Sets a hotbar object in the current profile
-     * @param slotId The slot to set the hotbar object in
+     * @param slot The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to add
      */
-    public void setHotbarObject(int slotId, HotbarObject hotbarObject) {
-        setHotbarObject(current, slotId, hotbarObject);
+    public void setHotbarObject(int slot, HotbarObject hotbarObject) {
+        setHotbarObject(current, slot, hotbarObject);
     }
 
     /**
      * Sets a hotbar object in a hotbar profile
      * @param hotbarProfile The hotbar profile to set the hotbar object in
-     * @param slotId The slot to set the hotbar object in
+     * @param slot The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to add
      */
-    public void setHotbarObject(HotbarProfile hotbarProfile, int slotId, HotbarObject hotbarObject) {
-        hotbarProfile.addHotbarObject(slotId, hotbarObject);
+    public void setHotbarObject(HotbarProfile hotbarProfile, int slot, HotbarObject hotbarObject) {
+        hotbarProfile.addHotbarObject(slot, hotbarObject);
     }
 
     /**
      * Removes a hotbar object from the current profile
-     * @param slotId The slot of the hotbar object
+     * @param slot The slot of the hotbar object
      * @param replace Whether or not the internal hotbar object group should replace the object in the slot and still
      *                manage it
      */
-    public void removeHotbarObject(int slotId, boolean replace) {
-        removeHotbarObject(current, slotId, replace);
+    public void removeHotbarObject(int slot, boolean replace) {
+        removeHotbarObject(current, slot, replace);
     }
 
     /**
      * Removes a hotbar object from a hotbar profile
      * @param hotbarProfile The hotbar profile to remove the hotbar object from
-     * @param slotId The slot of the hotbar object
+     * @param slot The slot of the hotbar object
      * @param replace Whether or not the internal hotbar object group should replace the object in the slot and still
      *                manage it
      */
-    public void removeHotbarObject(HotbarProfile hotbarProfile, int slotId, boolean replace) {
-        hotbarProfile.removeHotbarObject(slotId, replace);
+    public void removeHotbarObject(HotbarProfile hotbarProfile, int slot, boolean replace) {
+        hotbarProfile.removeHotbarObject(slot, replace);
     }
 
     /**
@@ -177,11 +177,11 @@ public class HotbarManager {
 
     /**
      * Gets a hotbar object in the current profile
-     * @param slotId The slot to get the hotbar object from
+     * @param slot The slot to get the hotbar object from
      * @return The hotbar object
      */
-    public HotbarObject getHotbarObject(int slotId) {
-        return getHotbarObject(current, slotId);
+    public HotbarObject getHotbarObject(int slot) {
+        return getHotbarObject(current, slot);
     }
 
     /**
@@ -225,11 +225,11 @@ public class HotbarManager {
     /**
      * Gets a hotbar object in a hotbar profile
      * @param hotbarProfile The hotbar profile to get the hotbar object from
-     * @param slotId The slot to get the hotbar object from
+     * @param slot The slot to get the hotbar object from
      * @return The hotbar object
      */
-    public HotbarObject getHotbarObject(HotbarProfile hotbarProfile, int slotId) {
-        return hotbarProfile.getHotbarObject(slotId);
+    public HotbarObject getHotbarObject(HotbarProfile hotbarProfile, int slot) {
+        return hotbarProfile.getHotbarObject(slot);
     }
 
     /**
@@ -242,11 +242,11 @@ public class HotbarManager {
 
     /**
      * Method to call when different slot is selected in the hotbar
-     * @param slotId The selected slot
+     * @param slot The selected slot
      */
-    public void setSelectedSlot(int slotId) {
+    public void setSelectedSlot(int slot) {
         getSelectedObject().onSlotDeselected();
-        getHotbarObject(slotId).onSlotSelected();
+        getHotbarObject(slot).onSlotSelected();
     }
 
     /**

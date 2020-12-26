@@ -19,8 +19,8 @@ import java.util.Set;
  */
 public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
 
-    public LinearGun(Player player, int slotId, LinearGunData equipmentData) {
-        super(player, slotId, equipmentData);
+    public LinearGun(Player player, int slot, LinearGunData equipmentData) {
+        super(player, slot, equipmentData);
     }
 
     @Override

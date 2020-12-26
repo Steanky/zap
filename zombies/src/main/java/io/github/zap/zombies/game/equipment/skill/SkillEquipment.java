@@ -18,8 +18,8 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
 
     boolean usable = true;
 
-    public SkillEquipment(Player player, int slotId, SkillData equipmentData) {
-        super(player, slotId, equipmentData);
+    public SkillEquipment(Player player, int slot, SkillData equipmentData) {
+        super(player, slot, equipmentData);
     }
 
     @Override
