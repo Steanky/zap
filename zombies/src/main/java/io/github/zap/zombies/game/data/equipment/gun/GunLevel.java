@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.level;
+package io.github.zap.zombies.game.data.equipment.gun;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class GunLevel  {
 
     private float reloadRate;
 
-    private GunLevel() {
+    protected GunLevel() {
 
     }
 

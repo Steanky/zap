@@ -14,7 +14,9 @@ import java.util.Map;
  */
 public class HotbarManager {
 
-    private final static String DEFAULT_PROFILE_NAME = "Default";
+    public final static String DEFAULT_PROFILE_NAME = "Default";
+
+    public final static String KNOCKED_DOWN_PROFILE_NAME = "Knocked";
 
     private final Map<String, HotbarProfile> profiles = new HashMap<>();
 
@@ -86,7 +88,8 @@ public class HotbarManager {
     /**
      * Removes a hotbar object from the current profile
      * @param slotId The slot of the hotbar object
-     * @param replace Whether or not the internal hotbar object group should replace the object in the slot and still manage it
+     * @param replace Whether or not the internal hotbar object group should replace the object in the slot and still
+     *                manage it
      */
     public void removeHotbarObject(int slotId, boolean replace) {
         removeHotbarObject(current, slotId, replace);
@@ -96,7 +99,8 @@ public class HotbarManager {
      * Removes a hotbar object from a hotbar profile
      * @param hotbarProfile The hotbar profile to remove the hotbar object from
      * @param slotId The slot of the hotbar object
-     * @param replace Whether or not the internal hotbar object group should replace the object in the slot and still manage it
+     * @param replace Whether or not the internal hotbar object group should replace the object in the slot and still
+     *                manage it
      */
     public void removeHotbarObject(HotbarProfile hotbarProfile, int slotId, boolean replace) {
         hotbarProfile.removeHotbarObject(slotId, replace);

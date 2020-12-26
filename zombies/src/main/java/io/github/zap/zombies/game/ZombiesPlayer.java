@@ -167,6 +167,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(state == ZombiesPlayerState.ALIVE) {
             state = ZombiesPlayerState.KNOCKED;
 
+            hotbarManager.switchProfile(HotbarManager.KNOCKED_DOWN_PROFILE_NAME);
+
             //TODO: player knockdown code
         }
     }
@@ -177,6 +179,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     public void revive() {
         if(state == ZombiesPlayerState.KNOCKED) {
             state = ZombiesPlayerState.ALIVE;
+
+            hotbarManager.switchProfile(HotbarManager.DEFAULT_PROFILE_NAME);
 
             //TODO: dead body removal code
         }

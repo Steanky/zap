@@ -24,7 +24,8 @@ public class LinearBeam {
     private final int maxHitEntities;
     private final Particle particle;
 
-    public LinearBeam(World world, Particle particle, Vector eyeLocation, Vector directionVector, Vector targetBlockVector, int maxHitEntities) {
+    public LinearBeam(World world, Particle particle, Vector eyeLocation, Vector directionVector,
+                      Vector targetBlockVector, int maxHitEntities) {
         this.distance = eyeLocation.distance(targetBlockVector);
 
         this.world = world;
@@ -44,7 +45,8 @@ public class LinearBeam {
             if (hitEntities.size() == maxHitEntities) {
                 break;
             } else {
-                world.spawnParticle(particle, particleVector.getX(), particleVector.getY(), particleVector.getZ(), 0, 0, 0, 0);
+                world.spawnParticle(particle, particleVector.getX(), particleVector.getY(), particleVector.getZ(),
+                        0, 0, 0, 0);
                 findEntitiesInLineOfSight();
                 particleVector.add(directionVector);
             }
@@ -63,7 +65,8 @@ public class LinearBeam {
             if (entity instanceof Mob) { //TODO: Change requirement
                 final BoundingBox boundingBox = entity.getBoundingBox();
 
-                if (boundingBox.rayTrace(particleVector, directionVector.clone().normalize(), 1) != null && hitEntities.size() < maxHitEntities) {
+                if (boundingBox.rayTrace(particleVector, directionVector.clone().normalize(), 1) != null
+                        && hitEntities.size() < maxHitEntities) {
                     hitEntities.add(entity);
                     // TODO: Damaging the entities
                 }

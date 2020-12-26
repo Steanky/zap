@@ -71,7 +71,8 @@ public class HotbarProfile {
             }
         }
 
-        throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't add a hotbar object!", slotId));
+        throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't add " +
+                "a hotbar object!", slotId));
     }
 
     /**
@@ -90,7 +91,8 @@ public class HotbarProfile {
             }
         }
 
-        throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't remove a hotbar object!", slotId));
+        throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't " +
+                "remove a hotbar object!", slotId));
     }
 
     /**
@@ -100,10 +102,12 @@ public class HotbarProfile {
      */
     public void addHotbarObjectGroup(String name, HotbarObjectGroup hotbarObjectGroup) {
         if (!hotbarObjectGroupMap.containsKey(name)) {
-            Set<Integer> defaultHotbarObjectGroupSlots = defaultHotbarObjectGroup.getSlots(), newHotbarObjectGroupSlots = hotbarObjectGroup.getSlots();
+            Set<Integer> defaultHotbarObjectGroupSlots = defaultHotbarObjectGroup.getSlots(),
+                    newHotbarObjectGroupSlots = hotbarObjectGroup.getSlots();
             for (Integer slotId : newHotbarObjectGroupSlots) {
                 if (!defaultHotbarObjectGroupSlots.contains(slotId)) {
-                    throw new IllegalArgumentException(String.format("Cannot add HotbarObjectGroup to slotId %d because of a preexisting HotbarObjectGroup", slotId));
+                    throw new IllegalArgumentException(String.format("Cannot add HotbarObjectGroup to slotId %d " +
+                            "because of a preexisting HotbarObjectGroup", slotId));
                 }
             }
 
@@ -130,7 +134,8 @@ public class HotbarProfile {
                     defaultHotbarObjectGroup.addHotbarObject(slotId);
                 }
             } else {
-                throw new IllegalArgumentException(String.format("The HotbarProfile does not contain the HotbarObjectGroup %s!", name));
+                throw new IllegalArgumentException(String.format("The HotbarProfile does not contain the " +
+                        "HotbarObjectGroup %s!", name));
             }
         } else {
             throw new IllegalArgumentException("Cannot remove the default HotbarObjectGroup of a HotbarProfile!");

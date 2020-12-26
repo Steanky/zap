@@ -20,7 +20,8 @@ public class EquipmentDeserializer extends JsonDeserializer<EquipmentData<?>> {
     private final Map<String, Class<? extends EquipmentData<?>>> equipmentClassMappings = new HashMap<>();
 
     @Override
-    public EquipmentData<?> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+    public EquipmentData<?> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
+            throws IOException {
         ObjectMapper objectMapper = (ObjectMapper) jsonParser.getCodec();
         JsonNode jsonNode = objectMapper.readTree(jsonParser);
 

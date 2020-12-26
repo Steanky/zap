@@ -99,9 +99,11 @@ public class HotbarObject {
      */
     public void setVisible(boolean visible) {
         this.visible = visible;
-        setStack(representingItemStack);
-        if (visible && player.getInventory().getHeldItemSlot() == slotId) {
-            this.onSlotSelected();
+        if (visible) {
+            setStack(representingItemStack);
+            if (player.getInventory().getHeldItemSlot() == slotId) {
+                onSlotSelected();
+            }
         }
     }
 

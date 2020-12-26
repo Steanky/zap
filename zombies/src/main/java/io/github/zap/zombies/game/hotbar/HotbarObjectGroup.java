@@ -104,7 +104,8 @@ public class HotbarObjectGroup {
             hotbarObjectMap.put(slotId, hotbarObject);
             hotbarObject.setVisible(isVisible());
         } else {
-            throw new IllegalArgumentException(String.format("The HotbarObjectGroup already contains slotId %d! (Did you mean to use setHotbarObject?)", slotId));
+            throw new IllegalArgumentException(String.format("The HotbarObjectGroup already contains slotId " +
+                    "%d! (Did you mean to use setHotbarObject?)", slotId));
         }
     }
 
@@ -125,7 +126,8 @@ public class HotbarObjectGroup {
     public void setHotbarObject(int slotId, HotbarObject hotbarObject) {
         if (hotbarObjectMap.containsKey(slotId)) {
             if (hotbarObject.getSlotId() != slotId) {
-                throw new IllegalArgumentException(String.format("Attempted to put a hotbar object that goes in slot %d in slot %d!", hotbarObject.getSlotId(), slotId));
+                throw new IllegalArgumentException(String.format("Attempted to put a hotbar object that goes in slot " +
+                        "%d in slot %d!", hotbarObject.getSlotId(), slotId));
             }
 
             hotbarObjectMap.put(slotId, hotbarObject);
@@ -134,7 +136,8 @@ public class HotbarObjectGroup {
                 hotbarObject.setVisible(true);
             }
         } else {
-            throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not contain slotId %d! (Did you mean to use addHotbarObject?)", slotId));
+            throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not contain slot " +
+                    "%d! (Did you mean to use addHotbarObject?)", slotId));
         }
     }
 

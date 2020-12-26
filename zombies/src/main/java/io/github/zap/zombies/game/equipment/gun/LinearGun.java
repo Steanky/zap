@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
-import io.github.zap.zombies.game.equipment.gun.Gun;
+import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.equipment.gun.logic.LinearBeam;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,7 +17,7 @@ import java.util.Set;
 /**
  * Represents a gun which shoots a line of particles
  */
-public class LinearGun extends Gun<LinearGunData> {
+public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
 
     public LinearGun(Player player, int slotId, LinearGunData equipmentData) {
         super(player, slotId, equipmentData);
@@ -42,7 +42,8 @@ public class LinearGun extends Gun<LinearGunData> {
      * @param targetBlockVector A vector to the targeted block
      */
     private void sendShot(World world, Vector particleLocation, Vector particleDirection, Vector targetBlockVector) {
-        LinearBeam beam = new LinearBeam(world, getEquipmentData().getParticle(), particleLocation, particleDirection, targetBlockVector, /* max hit entities */1);
+        LinearBeam beam = new LinearBeam(world, getEquipmentData().getParticle(), particleLocation, particleDirection,
+                targetBlockVector, getEquipmentData().getLevels().get(getLevel()).getMaxPierceableEntities());
         beam.send();
     }
 
@@ -64,11 +65,13 @@ public class LinearGun extends Gun<LinearGunData> {
 
         if (materials.contains(targetBlock.getType())) {
             Location location = targetBlock.getLocation();
-            boundingBox = new BoundingBox(location.getX(), targetBlock.getY(), targetBlock.getZ(), location.getX() + 1, location.getY() + 1, targetBlock.getZ() + 1);
+            boundingBox = new BoundingBox(location.getX(), targetBlock.getY(), targetBlock.getZ(),
+                    location.getX() + 1, location.getY() + 1, targetBlock.getZ() + 1);
         } else {
             boundingBox = targetBlock.getBoundingBox();
         }
 
-        return boundingBox.rayTrace(player.getEyeLocation().toVector(), player.getEyeLocation().getDirection(), range + 1.74).getHitPosition();
+        return boundingBox.rayTrace(player.getEyeLocation().toVector(), player.getEyeLocation().getDirection(),
+                range + 1.74).getHitPosition();
     }
 }

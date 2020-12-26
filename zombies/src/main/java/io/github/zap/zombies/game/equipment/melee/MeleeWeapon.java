@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.equipment.melee;
 
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
-import io.github.zap.zombies.game.data.level.MeleeLevel;
+import io.github.zap.zombies.game.data.equipment.melee.MeleeLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import org.bukkit.entity.Player;
 

@@ -2,9 +2,8 @@ package io.github.zap.zombies.game.data.equipment;
 
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.CustomData;
 import io.github.zap.zombies.game.data.util.RomanNumeral;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,10 +17,11 @@ import java.util.List;
 
 /**
  * Data for a piece of generic equipment
- * @param <T> The type of the equipment levels
+ * @param <L> The type of the equipment levels
  */
+@AllArgsConstructor
 @Getter
-public abstract class EquipmentData<T> extends CustomData {
+public abstract class EquipmentData<L> {
 
     private transient final LocalizationManager localizationManager;
 
@@ -33,16 +33,7 @@ public abstract class EquipmentData<T> extends CustomData {
 
     private List<String> lore;
 
-    private List<T> levels;
-
-    public EquipmentData(String name, String displayName, Material material, List<String> lore, List<T> levels) {
-        this();
-        this.name = name;
-        this.displayName = displayName;
-        this.material = material;
-        this.lore = lore;
-        this.levels = levels;
-    }
+    private List<L> levels;
 
     protected EquipmentData() {
         localizationManager = Zombies.getInstance().getLocalizationManager();
@@ -69,7 +60,8 @@ public abstract class EquipmentData<T> extends CustomData {
 
             return itemStack;
         } else {
-            throw new IndexOutOfBoundsException(String.format("Level %d is not within the level bounds of [0, %d)!", level, levels.size()));
+            throw new IndexOutOfBoundsException(String.format("Level %d is not within the level bounds of [0, %d)!",
+                    level, levels.size()));
         }
     }
 
@@ -98,7 +90,8 @@ public abstract class EquipmentData<T> extends CustomData {
      * @return The formatted version of the display name with a certain chat color
      */
     public String getFormattedDisplayNameWithChatColor(ChatColor chatColor, Player player, int level) {
-        String formattedDisplayName = localizationManager.getLocalizedMessage(localizationManager.getPlayerLocale(player), displayName);
+        String formattedDisplayName = localizationManager
+                .getLocalizedMessage(localizationManager.getPlayerLocale(player), displayName);
         if (level > 0) {
             formattedDisplayName = ChatColor.BOLD.toString() + formattedDisplayName;
             formattedDisplayName += " Ultimate";

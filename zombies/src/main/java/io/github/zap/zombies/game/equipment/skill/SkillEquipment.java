@@ -2,7 +2,7 @@ package io.github.zap.zombies.game.equipment.skill;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
-import io.github.zap.zombies.game.data.level.SkillLevel;
+import io.github.zap.zombies.game.data.equipment.skill.SkillLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -31,7 +31,8 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
             final int[] timeRemaining = {getEquipmentData().getDelay()};
             ItemStack itemStack = new ItemStack(Material.GRAY_DYE);
             ItemMeta itemMeta = itemStack.getItemMeta();
-            itemMeta.setDisplayName(getEquipmentData().getFormattedDisplayNameWithChatColor(ChatColor.RED, getPlayer(), getLevel()));
+            itemMeta.setDisplayName(getEquipmentData().getFormattedDisplayNameWithChatColor(ChatColor.RED, getPlayer(),
+                    getLevel()));
             itemStack.setItemMeta(itemMeta);
             itemStack.setAmount(timeRemaining[0]);
             setRepresentingItemStack(itemStack);

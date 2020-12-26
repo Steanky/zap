@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.data.equipment.skill;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.data.level.SkillLevel;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import lombok.Getter;
 import org.bukkit.ChatColor;
@@ -17,7 +16,8 @@ public class SkillData extends EquipmentData<SkillLevel> {
     @Getter
     private int delay;
 
-    public SkillData(String name, String displayName, Material material, List<String> lore, List<SkillLevel> levels, int delay) {
+    public SkillData(String name, String displayName, Material material, List<String> lore, List<SkillLevel> levels,
+                     int delay) {
         super(name, displayName, material, lore, levels);
 
         this.delay = delay;

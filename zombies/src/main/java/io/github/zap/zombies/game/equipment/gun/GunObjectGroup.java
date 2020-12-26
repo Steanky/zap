@@ -24,7 +24,7 @@ public class GunObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public boolean isObjectRecommendedEquipment(HotbarObject hotbarObject) {
-        return hotbarObject instanceof Gun<?>;
+        return hotbarObject instanceof Gun<?, ?>;
     }
 
     @Override

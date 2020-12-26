@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.level;
+package io.github.zap.zombies.game.data.equipment.skill;
 
 /**
  * Level of a skill

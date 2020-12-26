@@ -2,7 +2,7 @@ package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
-import io.github.zap.zombies.game.data.level.GunLevel;
+import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import lombok.Getter;
 import org.bukkit.Sound;
@@ -14,9 +14,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Represents a basic gun
+ * @param <D> The gun data type
+ * @param <L> The gun level type
  */
 @Getter
-public abstract class Gun<T extends GunData> extends UpgradeableEquipment<T, GunLevel> {
+public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends UpgradeableEquipment<D, L> {
 
     private int currentClipAmmo;
 
@@ -26,7 +28,7 @@ public abstract class Gun<T extends GunData> extends UpgradeableEquipment<T, Gun
 
     private boolean canShoot = true;
 
-    public Gun(Player player, int slotId, T equipmentData) {
+    public Gun(Player player, int slotId, D equipmentData) {
         super(player, slotId, equipmentData);
     }
 
@@ -160,6 +162,11 @@ public abstract class Gun<T extends GunData> extends UpgradeableEquipment<T, Gun
             // TODO: work around for item not updating meta twice in 1 server thread iteration
             getPlayer().updateInventory();
         }
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
     }
 
     @Override

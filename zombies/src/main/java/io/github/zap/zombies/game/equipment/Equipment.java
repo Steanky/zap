@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 /**
  * A piece of equipment in the hotbar
  * @param <D> The type of equipment data the equipment uses
+ * @param <L> The type of level the equipment uses
  */
 public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
 
