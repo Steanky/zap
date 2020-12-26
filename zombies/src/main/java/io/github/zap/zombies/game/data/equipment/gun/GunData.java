@@ -17,10 +17,6 @@ import java.util.Locale;
 /**
  * Data for a gun
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = LinearGunData.class, name = "linear")
-})
 public class GunData extends EquipmentData<GunLevel> {
 
     private String type;
