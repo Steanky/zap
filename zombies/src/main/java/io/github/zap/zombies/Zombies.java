@@ -16,6 +16,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
+import io.github.zap.zombies.game.data.equipment.EquipmentCreator;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentDeserializer;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
@@ -23,7 +24,16 @@ import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.perk.PerkData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
+import io.github.zap.zombies.game.data.level.GunLevel;
+import io.github.zap.zombies.game.data.level.MeleeLevel;
+import io.github.zap.zombies.game.data.level.PerkLevel;
+import io.github.zap.zombies.game.data.level.SkillLevel;
+import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.gun.LinearGun;
+import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
+import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
+import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -203,11 +213,17 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initSerialization() throws LoadFailureException {
         equipmentManager = new EquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile());
 
-        Map<String, Class<? extends EquipmentData<?>>> mappings = equipmentManager.getEquipmentDeserializer().getEquipmentClassMappings();
-        mappings.put(EquipmentType.MELEE.toString(), MeleeData.class);
-        mappings.put(EquipmentType.SKILL.toString(), SkillData.class);
-        mappings.put(EquipmentType.PERK.toString(), PerkData.class);
-        mappings.put(EquipmentType.LINEAR_GUN.toString(), LinearGunData.class);
+        Map<String, EquipmentCreator.EquipmentMapping<?, ?>> equipmentMappings = equipmentManager.getEquipmentCreator().getEquipmentMappings();
+        equipmentMappings.put(EquipmentType.MELEE.toString(), (EquipmentCreator.EquipmentMapping<MeleeData, MeleeLevel>) MeleeWeapon::new);
+        equipmentMappings.put(EquipmentType.SKILL.toString(), (EquipmentCreator.EquipmentMapping<SkillData, SkillLevel>) SkillEquipment::new);
+        equipmentMappings.put(EquipmentType.PERK.toString(), (EquipmentCreator.EquipmentMapping<PerkData, PerkLevel>) PerkEquipment::new);
+        equipmentMappings.put(EquipmentType.LINEAR_GUN.toString(), (EquipmentCreator.EquipmentMapping<LinearGunData, GunLevel>) LinearGun::new);
+
+        Map<String, Class<? extends EquipmentData<?>>> equipmentClassMappings = equipmentManager.getEquipmentDeserializer().getEquipmentClassMappings();
+        equipmentClassMappings.put(EquipmentType.MELEE.toString(), MeleeData.class);
+        equipmentClassMappings.put(EquipmentType.SKILL.toString(), SkillData.class);
+        equipmentClassMappings.put(EquipmentType.PERK.toString(), PerkData.class);
+        equipmentClassMappings.put(EquipmentType.LINEAR_GUN.toString(), LinearGunData.class);
 
         dataLoader = new JacksonDataLoader(new SimpleModule() {
             {
