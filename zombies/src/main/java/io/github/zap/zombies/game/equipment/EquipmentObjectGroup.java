@@ -68,9 +68,9 @@ public abstract class EquipmentObjectGroup extends HotbarObjectGroup {
     }
 
     /**
-     * Gets the associated equipment type of this equipment object group
-     * @return The associated equipment type
+     * Gets the string representation of the type of the equipment object group
+     * @return The type of the equipment
      */
-    public abstract EquipmentType getEquipmentType();
+    public abstract String getEquipmentType();
 
 }

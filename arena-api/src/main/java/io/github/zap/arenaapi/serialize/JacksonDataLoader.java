@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.serialize;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -20,16 +19,14 @@ public class JacksonDataLoader implements DataLoader {
 
     private static final String EXTENSION = "json";
 
-    public JacksonDataLoader() {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        SimpleModule module = new SimpleModule();
+    public JacksonDataLoader(SimpleModule module) {
         module.addSerializer(Vector.class, new VectorSerializer());
         module.addDeserializer(Vector.class, new VectorDeserializer());
 
         module.addSerializer(BoundingBox.class, new BoundingBoxSerializer());
         module.addDeserializer(BoundingBox.class, new BoundingBoxDeserializer());
 
+        ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(module); //register our serializers
 
         //these settings work better for misc bukkit objects
@@ -41,6 +38,10 @@ public class JacksonDataLoader implements DataLoader {
 
         writer = objectMapper.writerWithDefaultPrettyPrinter();
         reader = objectMapper.reader();
+    }
+
+    public JacksonDataLoader() {
+        this(new SimpleModule());
     }
 
     @Override

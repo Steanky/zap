@@ -27,7 +27,7 @@ public class PerkObjectGroup extends EquipmentObjectGroup {
     }
 
     @Override
-    public EquipmentType getEquipmentType() {
-        return EquipmentType.PERK;
+    public String getEquipmentType() {
+        return EquipmentType.PERK.toString();
     }
 }

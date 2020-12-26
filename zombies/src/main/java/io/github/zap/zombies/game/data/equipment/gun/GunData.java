@@ -29,8 +29,8 @@ public class GunData extends EquipmentData<GunLevel> {
 
     private final transient String changedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: " + ChatColor.DARK_GRAY + "%s ➔ " + ChatColor.GREEN + "%s";
 
-    public GunData(String type, String displayName, List<String> lore, List<GunLevel> levels, Material material) {
-        super(displayName, material, lore, levels);
+    public GunData(String name, String displayName, List<String> lore, List<GunLevel> levels, Material material, String type) {
+        super(name, displayName, material, lore, levels);
         this.type = type;
     }
 
@@ -52,11 +52,6 @@ public class GunData extends EquipmentData<GunLevel> {
         lore.add(ChatColor.YELLOW + localizationManager.getLocalizedMessage(locale, MessageKey.RIGHT_CLICK.getKey()) + " " + ChatColor.GRAY + localizationManager.getLocalizedMessage(locale, MessageKey.TO_SHOOT.getKey()) + ".");
 
         return lore;
-    }
-
-    @Override
-    public ChatColor getDefaultChatColor() {
-        return ChatColor.GOLD;
     }
 
     private List<String> getStatsLore(int level) {
@@ -101,6 +96,16 @@ public class GunData extends EquipmentData<GunLevel> {
         }
 
         return statsLore;
+    }
+
+    @Override
+    public ChatColor getDefaultChatColor() {
+        return ChatColor.GOLD;
+    }
+
+    @Override
+    public String getEquipmentType() {
+        return type;
     }
 
 }

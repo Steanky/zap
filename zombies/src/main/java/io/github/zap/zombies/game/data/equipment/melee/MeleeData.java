@@ -1,6 +1,8 @@
-package io.github.zap.zombies.game.data.equipment;
+package io.github.zap.zombies.game.data.equipment.melee;
 
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.level.MeleeLevel;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -10,8 +12,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 
 public class MeleeData extends EquipmentData<MeleeLevel> {
-    public MeleeData(String displayName, Material material, List<String> lore, List<MeleeLevel> levels) {
-        super(displayName, material, lore, levels);
+    public MeleeData(String name, String displayName, Material material, List<String> lore, List<MeleeLevel> levels) {
+        super(name, displayName, material, lore, levels);
     }
     private MeleeData() {
 
@@ -31,5 +33,10 @@ public class MeleeData extends EquipmentData<MeleeLevel> {
     @Override
     public ChatColor getDefaultChatColor() {
         return ChatColor.GREEN;
+    }
+
+    @Override
+    public String getEquipmentType() {
+        return EquipmentType.MELEE.toString();
     }
 }

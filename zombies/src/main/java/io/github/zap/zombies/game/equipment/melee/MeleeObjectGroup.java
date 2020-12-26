@@ -27,7 +27,7 @@ public class MeleeObjectGroup extends EquipmentObjectGroup {
     }
 
     @Override
-    public EquipmentType getEquipmentType() {
-        return EquipmentType.MELEE;
+    public String getEquipmentType() {
+        return EquipmentType.MELEE.toString();
     }
 }

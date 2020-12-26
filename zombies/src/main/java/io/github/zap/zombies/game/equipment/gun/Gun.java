@@ -16,7 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
  * Represents a basic gun
  */
 @Getter
-public abstract class Gun<T extends GunData> extends UpgradeableEquipment<T> {
+public abstract class Gun<T extends GunData> extends UpgradeableEquipment<T, GunLevel> {
 
     private int currentClipAmmo;
 

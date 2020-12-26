@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.playerdata;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
-import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.io.File;
 import java.nio.file.Path;

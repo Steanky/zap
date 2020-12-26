@@ -115,7 +115,7 @@ public class HotbarManager {
      * @param equipmentObjectGroup The equipment object group to add
      */
     public void addEquipmentObjectGroup(HotbarProfile hotbarProfile, EquipmentObjectGroup equipmentObjectGroup) {
-        hotbarProfile.addHotbarObjectGroup(equipmentObjectGroup.getEquipmentType().toString(), equipmentObjectGroup);
+        hotbarProfile.addHotbarObjectGroup(equipmentObjectGroup.getEquipmentType(), equipmentObjectGroup);
     }
 
     /**

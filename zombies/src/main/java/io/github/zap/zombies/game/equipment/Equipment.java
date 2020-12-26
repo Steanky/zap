@@ -7,14 +7,14 @@ import org.bukkit.entity.Player;
 
 /**
  * A piece of equipment in the hotbar
- * @param <T> The type of equipment data the equipment uses
+ * @param <D> The type of equipment data the equipment uses
  */
-public class Equipment<T extends EquipmentData<?>> extends HotbarObject {
+public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
 
     @Getter
-    private final T equipmentData;
+    private final D equipmentData;
 
-    public Equipment(Player player, int slotId, T equipmentData) {
+    public Equipment(Player player, int slotId, D equipmentData) {
         super(player, slotId);
 
         this.equipmentData = equipmentData;

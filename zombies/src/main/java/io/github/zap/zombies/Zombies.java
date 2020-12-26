@@ -1,5 +1,6 @@
 package io.github.zap.zombies;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -15,11 +16,14 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.data.*;
-import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
-import io.github.zap.zombies.game.hotbar.HotbarManager;
-import io.github.zap.zombies.game.hotbar.HotbarObject;
-import io.github.zap.zombies.game.hotbar.HotbarObjectGroup;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.data.equipment.EquipmentDeserializer;
+import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
+import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
+import io.github.zap.zombies.game.data.equipment.perk.PerkData;
+import io.github.zap.zombies.game.data.equipment.skill.SkillData;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -39,6 +43,7 @@ import org.bukkit.util.Vector;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -81,10 +86,14 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private LocalizationManager localizationManager;
 
+    @Getter
+    private EquipmentManager equipmentManager;
+
     public static final String DEFAULT_LOCALE = "en_US";
     public static final String ARENA_METADATA_NAME = "zombies_arena";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
+    public static final String EQUIPMENT_FOLDER_NAME = "equipments";
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     @Override
@@ -192,12 +201,19 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initSerialization() throws LoadFailureException {
-        /*
-        include all classes you want to be serialized as arguments to BukkitDataLoader
-        (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
-         */
+        equipmentManager = new EquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile());
 
-        dataLoader = new JacksonDataLoader();
+        Map<String, Class<? extends EquipmentData<?>>> mappings = equipmentManager.getEquipmentDeserializer().getEquipmentClassMappings();
+        mappings.put(EquipmentType.MELEE.toString(), MeleeData.class);
+        mappings.put(EquipmentType.SKILL.toString(), SkillData.class);
+        mappings.put(EquipmentType.PERK.toString(), PerkData.class);
+        mappings.put(EquipmentType.LINEAR_GUN.toString(), LinearGunData.class);
+
+        dataLoader = new JacksonDataLoader(new SimpleModule() {
+            {
+                addDeserializer(EquipmentData.class, equipmentManager.getEquipmentDeserializer());
+            }
+        });
     }
 
     private void initPlayerDataManager() {

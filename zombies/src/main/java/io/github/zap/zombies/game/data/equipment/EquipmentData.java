@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.CustomData;
 import io.github.zap.zombies.game.data.util.RomanNumeral;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -19,25 +20,24 @@ import java.util.List;
  * Data for a piece of generic equipment
  * @param <T> The type of the equipment levels
  */
+@Getter
 public abstract class EquipmentData<T> extends CustomData {
 
-    @Getter
     private transient final LocalizationManager localizationManager;
 
-    @Getter
+    private String name;
+
     private String displayName;
 
-    @Getter
     private Material material;
 
-    @Getter
     private List<String> lore;
 
-    @Getter
     private List<T> levels;
 
-    public EquipmentData(String displayName, Material material, List<String> lore, List<T> levels) {
+    public EquipmentData(String name, String displayName, Material material, List<String> lore, List<T> levels) {
         this();
+        this.name = name;
         this.displayName = displayName;
         this.material = material;
         this.lore = lore;
@@ -116,5 +116,11 @@ public abstract class EquipmentData<T> extends CustomData {
      * @return The default chat color of the equipment
      */
     public abstract ChatColor getDefaultChatColor();
+
+    /**
+     * Gets the string representation of the type of the equipment
+     * @return The type of the equipment
+     */
+    public abstract String getEquipmentType();
 
 }

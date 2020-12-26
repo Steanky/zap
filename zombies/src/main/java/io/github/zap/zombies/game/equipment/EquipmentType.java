@@ -1,14 +1,16 @@
 package io.github.zap.zombies.game.equipment;
 
 /**
- * Utility enum to represent types of equipment
+ * Utility enum to represent types of equipment packaged with the plugin
  */
 public enum EquipmentType {
 
     MELEE("melee"),
     GUN("gun"),
     SKILL("skill"),
-    PERK("perk");
+    PERK("perk"),
+
+    LINEAR_GUN("linear");
 
     private final String name;
 

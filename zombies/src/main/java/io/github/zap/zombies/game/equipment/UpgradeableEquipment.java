@@ -6,14 +6,14 @@ import org.bukkit.entity.Player;
 
 /**
  * A piece of equipment that can be upgraded
- * @param <T> The type of equipment data the equipment uses
+ * @param <D> The type of equipment data the equipment uses
  */
-public class UpgradeableEquipment<T extends EquipmentData<?>> extends Equipment<T> {
+public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipment<D, L> {
 
     @Getter
     private int level = 0;
 
-    public UpgradeableEquipment(Player player, int slotId, T equipmentData) {
+    public UpgradeableEquipment(Player player, int slotId, D equipmentData) {
         super(player, slotId, equipmentData);
     }
 

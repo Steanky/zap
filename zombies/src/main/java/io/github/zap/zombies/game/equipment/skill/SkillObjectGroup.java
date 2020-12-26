@@ -23,11 +23,11 @@ public class SkillObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public boolean isObjectRecommendedEquipment(HotbarObject hotbarObject) {
-        return hotbarObject instanceof Skill;
+        return hotbarObject instanceof SkillEquipment;
     }
 
     @Override
-    public EquipmentType getEquipmentType() {
-        return EquipmentType.SKILL;
+    public String getEquipmentType() {
+        return EquipmentType.SKILL.toString();
     }
 }
