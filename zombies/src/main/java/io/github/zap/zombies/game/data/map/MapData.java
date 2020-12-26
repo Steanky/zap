@@ -1,17 +1,16 @@
-package io.github.zap.zombies.game.data;
+package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
@@ -209,7 +208,17 @@ public class MapData {
     /**
      * All the rounds in the game
      */
-    ArrayList<RoundData> rounds = new ArrayList<>();
+    List<RoundData> rounds = new ArrayList<>();
+
+    /**
+     * Map of hotbar object group names to the slots allocated for them
+     */
+    Map<String, Set<Integer>> hotbarObjectGroupSlots = new HashMap<>();
+
+    /**
+     * Equipments given at the start of the game by their name
+     */
+    List<String> defaultEquipments = new ArrayList<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 

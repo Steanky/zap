@@ -15,7 +15,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.data.*;
+import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -81,6 +81,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String ARENA_METADATA_NAME = "zombies_arena";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
+    public static final String EQUIPMENT_FOLDER_NAME = "equipments";
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     @Override
@@ -173,8 +174,11 @@ public final class Zombies extends JavaPlugin implements Listener {
             World world = Bukkit.getWorld(worldName);
 
             if(world != null) {
+
                 ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
-                        Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(), config.getInt(ConfigNames.MAX_WORLDS),
+                        new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
+                        Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
+                        config.getInt(ConfigNames.MAX_WORLDS),
                         config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaApi.registerArenaManager(zombiesArenaManager);
             }
@@ -188,11 +192,6 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initSerialization() throws LoadFailureException {
-        /*
-        include all classes you want to be serialized as arguments to BukkitDataLoader
-        (it uses a reflection hack to make ConfigurationSerialization behave in a way that is not completely stupid)
-         */
-
         dataLoader = new JacksonDataLoader();
     }
 

@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data;
+package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.zombies.game.ShopType;
 import lombok.AccessLevel;

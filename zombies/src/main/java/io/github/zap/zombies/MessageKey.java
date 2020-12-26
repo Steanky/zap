@@ -17,7 +17,13 @@ public enum MessageKey {
     ADD_GOLD("zombies.game.gold.add"), //shown when gold is given to the player
     SUBTRACT_GOLD("zombies.game.gold.subtract"), //shown when gold is given to the player
 
-    CANT_AFFORD("zombies.game.gold.unaffordable"); //generic message shown when something is too expensive to purchase
+    CANNOT_AFFORD("zombies.game.gold.unaffordable"), //generic message shown when something is too expensive to purchase
+
+    LEFT_CLICK("zombies.tutorial.click.left"),
+    RIGHT_CLICK("zombies.tutorial.click.right"),
+
+    TO_RELOAD("zombies.tutorial.reload"),
+    TO_SHOOT("zombies.tutorial.shoot");
 
     @Getter
     private String key;

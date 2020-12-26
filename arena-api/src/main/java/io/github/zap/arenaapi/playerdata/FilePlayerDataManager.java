@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.playerdata;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
-import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -38,7 +37,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
             return data;
         }
 
-        String name = id.toString() + loader.getExtension();
+        String name = id.toString() + "." + loader.getExtension();
         File dataFile = Path.of(dataFolder.getPath(), name).toFile();
 
         if(!dataFile.exists()) { //create playerdata file if missing
