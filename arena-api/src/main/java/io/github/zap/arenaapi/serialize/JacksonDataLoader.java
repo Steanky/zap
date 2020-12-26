@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.serialize;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -14,12 +14,15 @@ import java.io.File;
 import java.io.IOException;
 
 public class JacksonDataLoader implements DataLoader {
+
     private final ObjectWriter writer;
     private final ObjectReader reader;
 
+    private final SimpleModule module = new SimpleModule();
+
     private static final String EXTENSION = "json";
 
-    public JacksonDataLoader(SimpleModule module) {
+    public JacksonDataLoader() {
         module.addSerializer(Vector.class, new VectorSerializer());
         module.addDeserializer(Vector.class, new VectorDeserializer());
 
@@ -40,10 +43,6 @@ public class JacksonDataLoader implements DataLoader {
         reader = objectMapper.reader();
     }
 
-    public JacksonDataLoader() {
-        this(new SimpleModule());
-    }
-
     @Override
     public void save(Object data, File file) {
         try {
@@ -62,6 +61,16 @@ public class JacksonDataLoader implements DataLoader {
         }
 
         return null;
+    }
+
+    /**
+     * Adds a deserializer to the module
+     * @param type The type of the class to deserialize
+     * @param deserializer The deserializer itself
+     * @param <T> The type of the deserializer
+     */
+    public <T> void addDeserializer(Class<T> type, JsonDeserializer<? extends T> deserializer) {
+        module.addDeserializer(type, deserializer);
     }
 
     @Override

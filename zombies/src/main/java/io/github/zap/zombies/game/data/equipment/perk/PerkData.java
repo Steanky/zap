@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class PerkData extends EquipmentData<PerkLevel> {
     public PerkData(String name, String displayName, List<String> lore, List<PerkLevel> levels, Material material) {
-        super(name, displayName, material, lore, levels);
+        super(EquipmentType.PERK.toString(), name, displayName, material, lore, levels);
     }
 
     private PerkData() {

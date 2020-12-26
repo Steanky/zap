@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.data.equipment;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.util.RomanNumeral;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -19,11 +18,12 @@ import java.util.List;
  * Data for a piece of generic equipment
  * @param <L> The type of the equipment levels
  */
-@AllArgsConstructor
 @Getter
 public abstract class EquipmentData<L> {
 
     private transient final LocalizationManager localizationManager;
+
+    private String type;
 
     private String name;
 
@@ -34,6 +34,17 @@ public abstract class EquipmentData<L> {
     private List<String> lore;
 
     private List<L> levels;
+
+    public EquipmentData(String type, String name, String displayName, Material material, List<String> lore, List<L> levels) {
+        this.type = type;
+        this.name = name;
+        this.displayName = displayName;
+        this.material = material;
+        this.lore = lore;
+        this.levels = levels;
+
+        localizationManager = Zombies.getInstance().getLocalizationManager();
+    }
 
     protected EquipmentData() {
         localizationManager = Zombies.getInstance().getLocalizationManager();
@@ -114,6 +125,8 @@ public abstract class EquipmentData<L> {
      * Gets the string representation of the type of the equipment
      * @return The type of the equipment
      */
-    public abstract String getEquipmentType();
+    public String getEquipmentType() {
+        return type;
+    }
 
 }

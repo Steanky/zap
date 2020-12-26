@@ -17,18 +17,14 @@ import java.util.Locale;
  */
 public class GunData<L extends GunLevel> extends EquipmentData<L> {
 
-    private String type;
-
     private final transient String unchangedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
             + ChatColor.GREEN + "%s";
 
     private final transient String changedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
             + ChatColor.DARK_GRAY + "%s ➔ " + ChatColor.GREEN + "%s";
 
-    public GunData(String name, String displayName, List<String> lore, List<L> levels, Material material,
-                   String type) {
-        super(name, displayName, material, lore, levels);
-        this.type = type;
+    public GunData(String type, String name, String displayName, List<String> lore, List<L> levels, Material material) {
+        super(type, name, displayName, material, lore, levels);
     }
 
     protected GunData() {
@@ -105,11 +101,6 @@ public class GunData<L extends GunLevel> extends EquipmentData<L> {
     @Override
     public ChatColor getDefaultChatColor() {
         return ChatColor.GOLD;
-    }
-
-    @Override
-    public String getEquipmentType() {
-        return type;
     }
 
 }

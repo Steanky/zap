@@ -125,9 +125,9 @@ public class HotbarObjectGroup {
      */
     public void setHotbarObject(int slot, HotbarObject hotbarObject) {
         if (hotbarObjectMap.containsKey(slot)) {
-            if (hotbarObject.getslot() != slot) {
+            if (hotbarObject.getSlot() != slot) {
                 throw new IllegalArgumentException(String.format("Attempted to put a hotbar object that goes in slot " +
-                        "%d in slot %d!", hotbarObject.getslot(), slot));
+                        "%d in slot %d!", hotbarObject.getSlot(), slot));
             }
 
             hotbarObjectMap.put(slot, hotbarObject);

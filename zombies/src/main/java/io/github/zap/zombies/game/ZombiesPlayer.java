@@ -8,16 +8,11 @@ import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.DoorData;
 import io.github.zap.zombies.game.data.map.DoorSide;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
-import io.github.zap.zombies.game.equipment.Equipment;
-import io.github.zap.zombies.game.equipment.EquipmentType;
-import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
-import io.github.zap.zombies.game.equipment.melee.MeleeObjectGroup;
-import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
-import io.github.zap.zombies.game.equipment.skill.SkillObjectGroup;
 import io.github.zap.zombies.game.hotbar.HotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
@@ -29,7 +24,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -63,15 +57,15 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
      * @param mapData The map the player starts in
+     * @param equipmentManager The equipment manager for the map equipment
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player, MapData mapData) {
+    public ZombiesPlayer(ZombiesArena arena, Player player, MapData mapData, EquipmentManager equipmentManager) {
         super(arena, player);
         this.arena = arena;
         this.coins = mapData.getStartingCoins();
 
         hotbarManager = new HotbarManager(player);
 
-        EquipmentManager equipmentManager = Zombies.getInstance().getEquipmentManager();
         for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : mapData.getHotbarObjectGroupSlots().entrySet()) {
             hotbarManager.addEquipmentObjectGroup(equipmentManager
                     .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,

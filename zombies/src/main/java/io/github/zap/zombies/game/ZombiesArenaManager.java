@@ -6,6 +6,7 @@ import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -25,6 +26,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private static final String NAME = "zombies";
 
     @Getter
+    private final EquipmentManager equipmentManager;
+
+    @Getter
     private final File dataFolder;
 
     @Getter
@@ -36,8 +40,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     @Getter
     private final Map<String, MapData> maps = new HashMap<>();
 
-    public ZombiesArenaManager(Location hubLocation, File dataFolder, int arenaCapacity, int arenaTimeout) throws LoadFailureException {
+    public ZombiesArenaManager(Location hubLocation, EquipmentManager equipmentManager, File dataFolder,
+                               int arenaCapacity, int arenaTimeout) throws LoadFailureException {
         super(NAME, hubLocation);
+        this.equipmentManager = equipmentManager;
         this.dataFolder = dataFolder;
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
