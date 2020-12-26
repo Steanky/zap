@@ -19,6 +19,12 @@ import java.util.Set;
  */
 public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
 
+    private static final Set<Material> AIR_MATERIALS = new HashSet<>(){{
+        add(Material.AIR);
+        add(Material.CAVE_AIR);
+        add(Material.VOID_AIR);
+    }};
+
     public LinearGun(Player player, int slot, LinearGunData equipmentData) {
         super(player, slot, equipmentData);
     }
@@ -53,17 +59,11 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
      * @return The target block vector
      */
     private Vector getTargetBlockVector(Player player) {
-        Set<Material> materials = new HashSet<>(){{
-           add(Material.AIR);
-           add(Material.CAVE_AIR);
-           add(Material.VOID_AIR);
-        }};
-
         int range = /* max range */ 50;
-        Block targetBlock = player.getTargetBlock(materials, range);
+        Block targetBlock = player.getTargetBlock(AIR_MATERIALS, range);
         BoundingBox boundingBox;
 
-        if (materials.contains(targetBlock.getType())) {
+        if (AIR_MATERIALS.contains(targetBlock.getType())) {
             Location location = targetBlock.getLocation();
             boundingBox = new BoundingBox(location.getX(), targetBlock.getY(), targetBlock.getZ(),
                     location.getX() + 1, location.getY() + 1, targetBlock.getZ() + 1);

@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.hotbar;
+package io.github.zap.arenaapi.hotbar;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

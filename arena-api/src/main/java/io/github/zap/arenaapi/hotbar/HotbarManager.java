@@ -1,7 +1,6 @@
-package io.github.zap.zombies.game.hotbar;
+package io.github.zap.arenaapi.hotbar;
 
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
@@ -10,18 +9,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Manages the Hotbar of a player
+ * Manages the hotbar of a player
  */
 public class HotbarManager {
 
     public final static String DEFAULT_PROFILE_NAME = "Default";
 
-    public final static String KNOCKED_DOWN_PROFILE_NAME = "Knocked";
-
     private final Map<String, HotbarProfile> profiles = new HashMap<>();
 
     private final Player player;
 
+    @Getter
     private HotbarProfile current = null;
 
     /**
@@ -107,22 +105,6 @@ public class HotbarManager {
     }
 
     /**
-     * Adds an equipment object group to the current profile
-     * @param equipmentObjectGroup The equipment object group to add
-     */
-    public void addEquipmentObjectGroup(EquipmentObjectGroup equipmentObjectGroup) {
-        addEquipmentObjectGroup(current, equipmentObjectGroup);
-    }
-
-    /**
-     * Adds an equipment object group to a hotbar profile
-     * @param equipmentObjectGroup The equipment object group to add
-     */
-    public void addEquipmentObjectGroup(HotbarProfile hotbarProfile, EquipmentObjectGroup equipmentObjectGroup) {
-        hotbarProfile.addHotbarObjectGroup(equipmentObjectGroup.getEquipmentType(), equipmentObjectGroup);
-    }
-
-    /**
      * Adds a hotbar object group to the current profile
      * @param name The associated name of the hotbar object group
      * @param hotbarObjectGroup The hotbar object group to add
@@ -139,23 +121,6 @@ public class HotbarManager {
      */
     public void addHotbarObjectGroup(HotbarProfile hotbarProfile, String name, HotbarObjectGroup hotbarObjectGroup) {
         hotbarProfile.addHotbarObjectGroup(name, hotbarObjectGroup);
-    }
-
-    /**
-     * Removes an equipment object group from the current profile
-     * @param equipmentType The type of equipment group to remove
-     */
-    public void removeHotbarObjectGroup(EquipmentType equipmentType) {
-        removeHotbarObjectGroup(current, equipmentType);
-    }
-
-    /**
-     * Removes an equipment object group from a hotbar profile
-     * @param hotbarProfile The hotbar profile to remove the hotbar object group from
-     * @param equipmentType The type of equipment group to remove
-     */
-    public void removeHotbarObjectGroup(HotbarProfile hotbarProfile, EquipmentType equipmentType) {
-        hotbarProfile.removeHotbarObjectGroup(equipmentType.toString());
     }
 
     /**
@@ -182,25 +147,6 @@ public class HotbarManager {
      */
     public HotbarObject getHotbarObject(int slot) {
         return getHotbarObject(current, slot);
-    }
-
-    /**
-     * Gets an equipment object group in the current profile
-     * @param equipmentType The type of the equipment of the equipment object group
-     * @return The equipment object group
-     */
-    public HotbarObjectGroup getEquipmentObjectGroup(EquipmentType equipmentType) {
-        return getEquipmentGroup(current, equipmentType);
-    }
-
-    /**
-     * Gets an equipment object group in a hotbar profile
-     * @param hotbarProfile The hotbar profile to get the equipment object group from
-     * @param equipmentType type of the equipment of the equipment object group
-     * @return The equipment object group
-     */
-    public HotbarObjectGroup getEquipmentGroup(HotbarProfile hotbarProfile, EquipmentType equipmentType) {
-        return hotbarProfile.getHotbarObjectGroup(equipmentType.toString());
     }
 
     /**

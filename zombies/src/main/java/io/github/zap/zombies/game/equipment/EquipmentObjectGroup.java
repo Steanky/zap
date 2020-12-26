@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.equipment;
 
-import io.github.zap.zombies.game.hotbar.HotbarObject;
-import io.github.zap.zombies.game.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

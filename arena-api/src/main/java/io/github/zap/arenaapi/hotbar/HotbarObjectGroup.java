@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.hotbar;
+package io.github.zap.arenaapi.hotbar;
 
 import lombok.Getter;
 import org.bukkit.entity.Player;

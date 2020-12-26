@@ -1,6 +1,5 @@
 package io.github.zap.zombies;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -16,23 +15,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.data.equipment.EquipmentCreator;
-import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
-import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
-import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
-import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
-import io.github.zap.zombies.game.data.equipment.perk.PerkData;
-import io.github.zap.zombies.game.data.equipment.skill.SkillData;
-import io.github.zap.zombies.game.data.equipment.melee.MeleeLevel;
-import io.github.zap.zombies.game.data.equipment.perk.PerkLevel;
-import io.github.zap.zombies.game.data.equipment.skill.SkillLevel;
-import io.github.zap.zombies.game.equipment.EquipmentType;
-import io.github.zap.zombies.game.equipment.gun.LinearGun;
-import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
-import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
-import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -52,7 +35,6 @@ import org.bukkit.util.Vector;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Map;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -183,31 +165,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         info(String.format("Done preloading worlds; ~%sms elapsed.", timer.getTime()));
     }
 
-    private EquipmentManager createEquipmentManager() {
-        JacksonEquipmentManager jacksonEquipmentManager =
-                new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile());
-
-        Map<String, EquipmentCreator.EquipmentMapping<?, ?>> equipmentMappings
-                = jacksonEquipmentManager.getEquipmentCreator().getEquipmentMappings();
-        equipmentMappings.put(EquipmentType.MELEE.toString(),
-                (EquipmentCreator.EquipmentMapping<MeleeData, MeleeLevel>) MeleeWeapon::new);
-        equipmentMappings.put(EquipmentType.SKILL.toString(),
-                (EquipmentCreator.EquipmentMapping<SkillData, SkillLevel>) SkillEquipment::new);
-        equipmentMappings.put(EquipmentType.PERK.toString(),
-                (EquipmentCreator.EquipmentMapping<PerkData, PerkLevel>) PerkEquipment::new);
-        equipmentMappings.put(EquipmentType.LINEAR_GUN.toString(),
-                (EquipmentCreator.EquipmentMapping<LinearGunData, LinearGunLevel>) LinearGun::new);
-
-        Map<String, Class<? extends EquipmentData<?>>> equipmentClassMappings =
-                jacksonEquipmentManager.getEquipmentDeserializer().getEquipmentClassMappings();
-        equipmentClassMappings.put(EquipmentType.MELEE.toString(), MeleeData.class);
-        equipmentClassMappings.put(EquipmentType.SKILL.toString(), SkillData.class);
-        equipmentClassMappings.put(EquipmentType.PERK.toString(), PerkData.class);
-        equipmentClassMappings.put(EquipmentType.LINEAR_GUN.toString(), LinearGunData.class);
-
-        return jacksonEquipmentManager;
-    }
-
     private void initArenaManagers() throws LoadFailureException {
         FileConfiguration config = getConfig();
         Vector spawn = config.getVector(ConfigNames.WORLD_SPAWN);
@@ -219,7 +176,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             if(world != null) {
 
                 ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
-                        createEquipmentManager(),
+                        new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
                         Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
                         config.getInt(ConfigNames.MAX_WORLDS),
                         config.getInt(ConfigNames.ARENA_TIMEOUT));

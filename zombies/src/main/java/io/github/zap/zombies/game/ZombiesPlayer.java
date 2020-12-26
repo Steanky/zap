@@ -8,12 +8,11 @@ import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
-import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.DoorData;
 import io.github.zap.zombies.game.data.map.DoorSide;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
-import io.github.zap.zombies.game.hotbar.HotbarManager;
+import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,7 +43,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private int repairIncrement = 1;
 
     @Getter
-    private final HotbarManager hotbarManager;
+    private final ZombiesHotbarManager hotbarManager;
 
     @Getter
     private final ZombiesPerks perks;
@@ -56,23 +55,22 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
-     * @param mapData The map the player starts in
      * @param equipmentManager The equipment manager for the map equipment
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player, MapData mapData, EquipmentManager equipmentManager) {
+    public ZombiesPlayer(ZombiesArena arena, Player player, EquipmentManager equipmentManager) {
         super(arena, player);
         this.arena = arena;
-        this.coins = mapData.getStartingCoins();
+        this.coins = arena.getMap().getStartingCoins();
 
-        hotbarManager = new HotbarManager(player);
+        hotbarManager = new ZombiesHotbarManager(player);
 
-        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : mapData.getHotbarObjectGroupSlots().entrySet()) {
+        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap().getHotbarObjectGroupSlots().entrySet()) {
             hotbarManager.addEquipmentObjectGroup(equipmentManager
                     .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,
                     hotbarObjectGroupSlot.getValue()));
         }
 
-        for (String equipment : mapData.getDefaultEquipments()) {
+        for (String equipment : arena.getMap().getDefaultEquipments()) {
             EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(equipment);
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
@@ -178,7 +176,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(state == ZombiesPlayerState.ALIVE) {
             state = ZombiesPlayerState.KNOCKED;
 
-            hotbarManager.switchProfile(HotbarManager.KNOCKED_DOWN_PROFILE_NAME);
+            hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
             //TODO: player knockdown code
         }
@@ -191,7 +189,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(state == ZombiesPlayerState.KNOCKED) {
             state = ZombiesPlayerState.ALIVE;
 
-            hotbarManager.switchProfile(HotbarManager.DEFAULT_PROFILE_NAME);
+            hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
 
             //TODO: dead body removal code
         }
