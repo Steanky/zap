@@ -64,14 +64,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         hotbarManager = new ZombiesHotbarManager(player);
 
-        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap().getHotbarObjectGroupSlots().entrySet()) {
+        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap()
+                .getHotbarObjectGroupSlots().entrySet()) {
             hotbarManager.addEquipmentObjectGroup(equipmentManager
                     .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,
                     hotbarObjectGroupSlot.getValue()));
         }
 
         for (String equipment : arena.getMap().getDefaultEquipments()) {
-            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(equipment);
+            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(
+                    arena.getMap().getMapNameKey(), equipment
+            );
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {

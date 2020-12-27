@@ -14,7 +14,6 @@ import io.github.zap.zombies.game.equipment.gun.LinearGun;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
@@ -35,38 +34,39 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
     private final EquipmentObjectGroupCreator equipmentObjectGroupCreator = new EquipmentObjectGroupCreator();
 
-    private final Map<String, EquipmentData<?>> equipmentDataMap = new HashMap<>();
+    private final Map<String, Map<String, EquipmentData<?>>> equipmentDataMap = new HashMap<>();
 
     private final File dataFolder;
 
     private boolean loaded = false;
 
     {
-        addEquipment(EquipmentType.MELEE.name(), MeleeData.class, MeleeWeapon::new);
-        addEquipment(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new);
-        addEquipment(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new);
-        addEquipment(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
+        addEquipmentType(EquipmentType.MELEE.name(), MeleeData.class, MeleeWeapon::new);
+        addEquipmentType(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new);
+        addEquipmentType(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new);
+        addEquipmentType(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
     }
 
-    public <D extends EquipmentData<L>, L> void addEquipment(String equipmentType, Class<D> dataClass,
-                                                             EquipmentCreator.EquipmentMapping<D, L> equipmentMapping) {
+    public <D extends EquipmentData<L>, L> void  addEquipmentType(String equipmentType, Class<D> dataClass,
+                     EquipmentCreator.EquipmentMapping<D, L> equipmentMapping) {
         equipmentDataDeserializer.getEquipmentDataClassMappings().put(equipmentType, dataClass);
         equipmentCreator.getEquipmentMappings().put(equipmentType, equipmentMapping);
     }
 
     @Override
-    public EquipmentData<?> getEquipmentData(String name) {
+    public EquipmentData<?> getEquipmentData(String mapName, String name) {
         if (!loaded) {
             load();
         }
 
-        return equipmentDataMap.get(name);
+        return equipmentDataMap.get(mapName).get(name);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, String name) {
-        return createEquipment(player, slot, (D) getEquipmentData(name));
+    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, String mapName,
+                                                                           String name) {
+        return createEquipment(player, slot, (D) getEquipmentData(mapName, name));
     }
 
     @Override
@@ -98,10 +98,14 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
             if (files != null) {
                 for (File file : files) {
-                    EquipmentData<?> equipmentData = dataLoader.load(file, EquipmentData.class);
+                    EquipmentDataMap newEquipmentDataMapping = dataLoader.load(file, EquipmentDataMap.class);
 
-                    if (equipmentData != null) {
-                        equipmentDataMap.put(equipmentData.getName(), equipmentData);
+                    if (newEquipmentDataMapping != null) {
+                        for (Map.Entry<String, EquipmentData<?>> mapping :
+                                newEquipmentDataMapping.getMap().entrySet()) {
+                            EquipmentData<?> equipmentData = mapping.getValue();
+                            equipmentDataMap.get(mapping.getKey()).put(equipmentData.getName(), equipmentData);
+                        }
                     }
                 }
             }

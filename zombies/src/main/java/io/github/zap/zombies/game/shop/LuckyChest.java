@@ -25,8 +25,9 @@ public class LuckyChest extends ArmorStandShop<LuckyChestData> {
         super(zombiesArena, shopData);
 
         EquipmentManager equipmentManager = zombiesArena.getEquipmentManager();
+        String mapNameKey = getZombiesArena().getMap().getMapNameKey();
         for (String equipmentName : shopData.getEquipments()) {
-            equipments.add(equipmentManager.getEquipmentData(equipmentName));
+            equipments.add(equipmentManager.getEquipmentData(mapNameKey, equipmentName));
         }
     }
 

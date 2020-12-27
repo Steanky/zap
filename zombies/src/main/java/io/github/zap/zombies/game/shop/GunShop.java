@@ -36,7 +36,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             Location location = getShopData().getBlockLocation().add(blockFace.getDirection()).toLocation(world);
 
             ItemStack itemStack = new ItemStack(
-                    getZombiesArena().getEquipmentManager().getEquipmentData(getShopData().getGunName()).getMaterial()
+                    getZombiesArena().getEquipmentManager().getEquipmentData(
+                            getZombiesArena().getMap().getMapNameKey(), getShopData().getGunName()
+                    ).getMaterial()
             );
             item = world.dropItem(location.clone().add(0.5, 0.48125, 0.5), itemStack);
             item.setGravity(false);
@@ -135,8 +137,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             gunObjectGroup.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
                     zombiesPlayer.getPlayer(),
                     slot,
-                    gunShopData.getGunName()
-            ));
+                    getZombiesArena().getMap().getMapNameKey(),
+                    gunShopData.getGunName()));
             displayTo(player);
             return true;
         }
