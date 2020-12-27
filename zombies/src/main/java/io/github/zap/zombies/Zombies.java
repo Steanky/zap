@@ -16,6 +16,8 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
+import io.github.zap.zombies.game.data.map.shop.GunShopData;
+import io.github.zap.zombies.game.shop.GunShop;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -24,13 +26,20 @@ import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -218,6 +227,23 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initCommands() {
         CommandManager commandManager = new CommandManager(this);
         commandManager.registerCommand(new DebugCommand());
+        getCommand("tahmid").setExecutor((commandSender, command, s, strings) -> {
+
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+
+                new GunShop(null, new GunShopData(player.getTargetBlock(10).getLocation().toVector(), BlockFace.NORTH));
+            }
+
+            return true;
+        });
+        getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onItemPickup(PlayerAttemptPickupItemEvent event) {
+                event.setCancelled(true);
+            }
+
+        }, this);
     }
 
     /*

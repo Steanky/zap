@@ -6,6 +6,7 @@ import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
@@ -20,10 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
@@ -36,6 +34,9 @@ import java.util.*;
 public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> implements Listener {
     @Getter
     private final MapData map;
+
+    @Getter
+    private final EquipmentManager equipmentManager;
 
     @Getter
     protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
@@ -64,6 +65,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 manager.getEquipmentManager()));
 
         this.map = map;
+        this.equipmentManager = manager.getEquipmentManager();
         this.emptyTimeout = emptyTimeout;
 
         Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
@@ -74,6 +76,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
+        getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
@@ -204,6 +207,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.getHotbarManager().click(event.getAction());
             }
         }
+    }
+
+    private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
+
     }
 
     private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {

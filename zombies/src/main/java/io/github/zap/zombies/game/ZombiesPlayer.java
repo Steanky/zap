@@ -104,12 +104,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         perks.dispose();
     }
 
-    private void addCoins(int amount) {
+    public void addCoins(int amount) {
         Zombies.sendLocalizedMessage(getPlayer(), MessageKey.ADD_GOLD, amount);
         coins += amount;
     }
 
-    private void subtractCoins(int amount) {
+    public void subtractCoins(int amount) {
         Zombies.sendLocalizedMessage(getPlayer(), MessageKey.SUBTRACT_GOLD, amount);
         coins -= amount;
     }
