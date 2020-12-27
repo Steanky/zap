@@ -1,16 +1,22 @@
 package io.github.zap.zombies.game.data.map.shop;
 
+import io.github.zap.arenaapi.serialize.JacksonDataLoader;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.shop.Shop;
 import lombok.Getter;
 
+@Getter
 public class JacksonShopManager implements ShopManager {
 
-    @Getter
     private final ShopDataDeserializer shopDataDeserializer = new ShopDataDeserializer();
 
-    @Getter
     private final ShopCreator shopCreator = new ShopCreator();
+
+    public JacksonShopManager() {
+        JacksonDataLoader jacksonDataLoader = (JacksonDataLoader) Zombies.getInstance().getDataLoader();
+        jacksonDataLoader.addDeserializer(ShopData.class, shopDataDeserializer);
+    }
 
     @Override
     public <D extends ShopData> void addShop(String shopType, Class<D> dataClass,

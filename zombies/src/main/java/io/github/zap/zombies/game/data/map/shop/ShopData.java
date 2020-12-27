@@ -15,5 +15,7 @@ public class ShopData {
 
     String type;
 
+    boolean requiresPower;
+
     protected ShopData() {}
 }

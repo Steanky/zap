@@ -17,13 +17,6 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public void power() {
-        if (isVisible()) {
-            display();
-        }
-    }
-
-    @Override
     public void displayTo(Player player) {
         Hologram hologram = getHologram();
         hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Ultimate Machine");
@@ -36,7 +29,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public Boolean purchase(ZombiesPlayer zombiesPlayer) {
+    public boolean purchase(ZombiesPlayer zombiesPlayer) {
         if (isPowered()) {
             if (zombiesPlayer.getCoins() < getShopData().getCost()) {
                 // TODO: poor
@@ -60,5 +53,10 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
             // TODO: needs powa
         }
         return false;
+    }
+
+    @Override
+    public String getShopType() {
+        return ShopType.ULTIMATE_MACHINE.name();
     }
 }

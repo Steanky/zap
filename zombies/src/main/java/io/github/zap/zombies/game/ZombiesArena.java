@@ -214,8 +214,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 if(!player.tryOpenDoor(clickedVector)) {
                     //TODO: perform other actions involving right-clicking on a block
                     for (Shop<?> shop : shops) {
-                        if (shop.shouldInteractWith(event.getClickedBlock())) {
-                            shop.purchase(player);
+                        if (shop.shouldInteractWith(event.getClickedBlock()) && shop.purchase(player)) {
+                            for (Shop<?> affectedShop : shops) {
+                                affectedShop.onOtherShopPurchase(shop.getShopType());
+                            }
                             break;
                         }
                     }
@@ -232,8 +234,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer player = args.getManagedPlayer();
 
         for (Shop<?> shop : shops) {
-            if (shop.shouldInteractWith(event.getRightClicked())) {
-                shop.purchase(player);
+            if (shop.shouldInteractWith(event.getRightClicked()) && shop.purchase(player)) {
+                for (Shop<?> affectedShop : shops) {
+                    affectedShop.onOtherShopPurchase(shop.getShopType());
+                }
                 break;
             }
         }
@@ -272,12 +276,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {
         args.getEvent().setCancelled(true);
-    }
-
-    public void power() {
-        for (Shop<?> shop : shops) {
-            shop.power();
-        }
     }
 
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {

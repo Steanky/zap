@@ -16,8 +16,9 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    public void power() {
-        if (isVisible()) {
+    public void onOtherShopPurchase(String shopType) {
+        super.onOtherShopPurchase(shopType);
+        if (shopType.equals(getShopType())) {
             display();
         }
     }
@@ -35,17 +36,21 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    public Boolean purchase(ZombiesPlayer zombiesPlayer) {
+    public boolean purchase(ZombiesPlayer zombiesPlayer) {
         if (isPowered()) {
             // TODO: already powered
         } else if (zombiesPlayer.getCoins() < getShopData().getCost()) {
             // TODO: poor
         } else {
-            getZombiesArena().power();
             // TODO: success
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    public String getShopType() {
+        return ShopType.POWER_SWITCH.name();
     }
 }

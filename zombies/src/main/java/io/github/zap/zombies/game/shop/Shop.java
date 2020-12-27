@@ -26,14 +26,19 @@ public abstract class Shop<D extends ShopData> {
         }
     }
 
-    public void power() {
-        this.powered = true;
+    public void onOtherShopPurchase(String shopType) {
+        if (shopType.equals(ShopType.POWER_SWITCH.name()) && shopData.isRequiresPower()) {
+            powered = true;
+            display();
+        }
     }
 
     public abstract void displayTo(Player player);
 
-    public abstract Boolean purchase(ZombiesPlayer zombiesPlayer);
+    public abstract boolean purchase(ZombiesPlayer zombiesPlayer);
 
     public abstract boolean shouldInteractWith(Object object);
+
+    public abstract String getShopType();
 
 }

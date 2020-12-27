@@ -42,10 +42,10 @@ public class JacksonEquipmentManager implements EquipmentManager {
     private boolean loaded = false;
 
     {
-        addEquipment(EquipmentType.MELEE.toString(), MeleeData.class, MeleeWeapon::new);
-        addEquipment(EquipmentType.SKILL.toString(), SkillData.class, SkillEquipment::new);
-        addEquipment(EquipmentType.PERK.toString(), PerkData.class, PerkEquipment::new);
-        addEquipment(EquipmentType.LINEAR_GUN.toString(), LinearGunData.class, LinearGun::new);
+        addEquipment(EquipmentType.MELEE.name(), MeleeData.class, MeleeWeapon::new);
+        addEquipment(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new);
+        addEquipment(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new);
+        addEquipment(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
     }
 
     public <D extends EquipmentData<L>, L> void addEquipment(String equipmentType, Class<D> dataClass,

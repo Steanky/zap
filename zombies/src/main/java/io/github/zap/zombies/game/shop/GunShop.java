@@ -38,7 +38,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             ItemStack itemStack = new ItemStack(
                     getZombiesArena().getEquipmentManager().getEquipmentData(getShopData().getGunName()).getMaterial()
             );
-            Item item = world.dropItem(location.clone().add(0.5, 0.48125, 0.5), itemStack);
+            item = world.dropItem(location.clone().add(0.5, 0.48125, 0.5), itemStack);
             item.setGravity(false);
             item.setVelocity(new Vector(0, 0, 0));
         }
@@ -55,7 +55,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
         if (zombiesPlayer != null) {
             GunObjectGroup gunObjectGroup = (GunObjectGroup) zombiesPlayer.getHotbarManager()
-                    .getHotbarObjectGroup(EquipmentType.GUN.toString());
+                    .getHotbarObjectGroup(EquipmentType.GUN.name());
             for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
                 if (hotbarObject instanceof Gun<?, ?>) {
                     Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
@@ -77,11 +77,16 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public Boolean purchase(ZombiesPlayer zombiesPlayer) {
+    public boolean purchase(ZombiesPlayer zombiesPlayer) {
         HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-        GunObjectGroup gunObjectGroup = (GunObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.toString());
+        GunObjectGroup gunObjectGroup = (GunObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
 
         return Objects.requireNonNullElseGet(tryRefill(zombiesPlayer, gunObjectGroup), () -> tryBuy(zombiesPlayer, gunObjectGroup));
+    }
+
+    @Override
+    public String getShopType() {
+        return ShopType.GUN_SHOP.name();
     }
 
     private Boolean tryRefill(ZombiesPlayer zombiesPlayer, GunObjectGroup gunObjectGroup) {

@@ -29,7 +29,7 @@ public class GunObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public String getEquipmentType() {
-        return EquipmentType.GUN.toString();
+        return EquipmentType.GUN.name();
     }
 
 }

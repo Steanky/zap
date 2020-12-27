@@ -14,6 +14,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,14 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorStand armorStand = getArmorStand();
         armorStand.teleport(getArmorStand().getLocation().clone().add(0, 1.5, 0));
         armorStand.setSmall(true);
+    }
+
+    @Override
+    public void onOtherShopPurchase(String shopType) {
+        super.onOtherShopPurchase(shopType);
+        if (shopType.equals(getShopType())) {
+            display();
+        }
     }
 
     @Override
@@ -69,11 +78,17 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
             packetContainer.getIntegers().write(0, armorStandId);
             packetContainer.getItemSlots().write(0, ITEM_SLOT_MAP.get(i + 2));
             packetContainer.getItemModifier().write(0, itemStack);
+
+            try {
+                protocolManager.sendServerPacket(player, packetContainer);
+            } catch (InvocationTargetException exception) {
+                exception.printStackTrace();
+            }
         }
     }
 
     @Override
-    public Boolean purchase(ZombiesPlayer zombiesPlayer) {
+    public boolean purchase(ZombiesPlayer zombiesPlayer) {
         Player player = zombiesPlayer.getPlayer();
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
         if (armorLevel == null) {
@@ -100,6 +115,11 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
             return true;
         }
+    }
+
+    @Override
+    public String getShopType() {
+        return ShopType.ARMOR_SHOP.name();
     }
 
     private ArmorShopData.ArmorLevel determineArmorLevel(Player player) {

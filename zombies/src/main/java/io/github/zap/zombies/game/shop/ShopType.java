@@ -4,13 +4,11 @@ import lombok.Getter;
 
 public enum ShopType {
 
-    GUN_SHOP("GUN_SHOP");
-
-    @Getter
-    private final String name;
-
-    ShopType(String name) {
-        this.name = name;
-    }
+    GUN_SHOP,
+    ARMOR_SHOP,
+    ULTIMATE_MACHINE,
+    TEAM_MACHINE,
+    POWER_SWITCH,
+    LUCKY_CHEST
 
 }
