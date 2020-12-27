@@ -14,10 +14,10 @@ import java.util.Map;
 /**
  * Deserializer for equipment data based on a type field
  */
-public class EquipmentDeserializer extends JsonDeserializer<EquipmentData<?>> {
+public class EquipmentDataDeserializer extends JsonDeserializer<EquipmentData<?>> {
 
     @Getter
-    private final Map<String, Class<? extends EquipmentData<?>>> equipmentClassMappings = new HashMap<>();
+    private final Map<String, Class<? extends EquipmentData<?>>> equipmentDataClassMappings = new HashMap<>();
 
     @Override
     public EquipmentData<?> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
@@ -26,8 +26,9 @@ public class EquipmentDeserializer extends JsonDeserializer<EquipmentData<?>> {
         JsonNode jsonNode = objectMapper.readTree(jsonParser);
 
         if (jsonNode.has("type")) {
-            return objectMapper.treeToValue(jsonNode, equipmentClassMappings.get(jsonNode.get("type").asText()));
+            return objectMapper.treeToValue(jsonNode, equipmentDataClassMappings.get(jsonNode.get("type").asText()));
         }
+
         return null;
     }
 }

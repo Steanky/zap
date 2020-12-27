@@ -29,13 +29,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class JacksonEquipmentManager implements EquipmentManager {
 
-    @Getter
-    private final EquipmentDeserializer equipmentDeserializer = new EquipmentDeserializer();
+    private final EquipmentDataDeserializer equipmentDataDeserializer = new EquipmentDataDeserializer();
 
-    @Getter
     private final EquipmentCreator equipmentCreator = new EquipmentCreator();
 
-    @Getter
     private final EquipmentObjectGroupCreator equipmentObjectGroupCreator = new EquipmentObjectGroupCreator();
 
     private final Map<String, EquipmentData<?>> equipmentDataMap = new HashMap<>();
@@ -51,10 +48,10 @@ public class JacksonEquipmentManager implements EquipmentManager {
         addEquipment(EquipmentType.LINEAR_GUN.toString(), LinearGunData.class, LinearGun::new);
     }
 
-    public <D extends EquipmentData<L>, L> void addEquipment(String name, Class<D> dataClass,
+    public <D extends EquipmentData<L>, L> void addEquipment(String equipmentType, Class<D> dataClass,
                                                              EquipmentCreator.EquipmentMapping<D, L> equipmentMapping) {
-        equipmentDeserializer.getEquipmentClassMappings().put(name, dataClass);
-        equipmentCreator.getEquipmentMappings().put(name, equipmentMapping);
+        equipmentDataDeserializer.getEquipmentDataClassMappings().put(equipmentType, dataClass);
+        equipmentCreator.getEquipmentMappings().put(equipmentType, equipmentMapping);
     }
 
     @Override
@@ -97,7 +94,7 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
             File[] files = dataFolder.listFiles();
             JacksonDataLoader dataLoader = (JacksonDataLoader) Zombies.getInstance().getDataLoader();
-            dataLoader.addDeserializer(EquipmentData.class, getEquipmentDeserializer());
+            dataLoader.addDeserializer(EquipmentData.class, equipmentDataDeserializer);
 
             if (files != null) {
                 for (File file : files) {

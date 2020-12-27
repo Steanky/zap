@@ -8,6 +8,9 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
+import io.github.zap.zombies.game.data.map.shop.ShopData;
+import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.shop.Shop;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -39,6 +42,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final EquipmentManager equipmentManager;
 
     @Getter
+    private final ShopManager shopManager;
+
+    @Getter
     protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
 
     @Getter
@@ -49,6 +55,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private final Set<UUID> mobs = new HashSet<>();
+
+    @Getter
+    private final List<Shop<?>> shops = new ArrayList<>();
 
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
@@ -66,6 +75,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();
+        this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
 
         Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
@@ -339,6 +349,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void startCountdown() {
         //do countdown timer; at the end, call doRound() to kick off the game
+        for (ShopData shopData : map.getShops()) {
+            shops.add(shopManager.createShop(this, shopData));
+        }
     }
 
     private void stopCountdown() {

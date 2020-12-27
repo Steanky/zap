@@ -13,18 +13,18 @@ public interface EquipmentManager {
 
     /**
      * Adds a piece of equipment mapping
-     * @param name The name key of the equipment
+     * @param equipmentType The equipmentType key of the equipment type
      * @param dataClass The class of the data used to create the equipment
      * @param equipmentMapping A mapping class used to create the equipment from a data instance
      * @param <D> The type of the data used for the equipment
      * @param <L> The type of the levels used by the equipment
      */
-    <D extends EquipmentData<L>, L> void addEquipment(String name, Class<D> dataClass,
+    <D extends EquipmentData<L>, L> void addEquipment(String equipmentType, Class<D> dataClass,
                                                              EquipmentCreator.EquipmentMapping<D, L> equipmentMapping);
 
     /**
      * Gets a piece of equipment data
-     * @param name The name that the equipment dat belongs to
+     * @param name The name that the equipment data belongs to
      * @return The equipment data
      */
     EquipmentData<?> getEquipmentData(String name);

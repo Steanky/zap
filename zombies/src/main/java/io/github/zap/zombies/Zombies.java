@@ -17,6 +17,7 @@ import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.shop.GunShopData;
+import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.game.shop.GunShop;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
@@ -186,6 +187,7 @@ public final class Zombies extends JavaPlugin implements Listener {
 
                 ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
                         new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
+                        new JacksonShopManager(),
                         Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
                         config.getInt(ConfigNames.MAX_WORLDS),
                         config.getInt(ConfigNames.ARENA_TIMEOUT));
