@@ -69,6 +69,11 @@ public abstract class EquipmentObjectGroup extends HotbarObjectGroup {
     }
 
     @Override
+    public void addHotbarObject(int slot) {
+        addHotbarObject(slot, createDefaultHotbarObject(getPlayer(), slot));
+    }
+
+    @Override
     public void remove(int slot, boolean replace) {
         super.remove(slot, replace);
         if (replace) {
