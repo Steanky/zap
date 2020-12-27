@@ -8,18 +8,22 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
 @RequiredArgsConstructor
+@Getter
 public abstract class Shop<D extends ShopData> {
 
-    @Getter
     private final ZombiesArena zombiesArena;
 
-    @Getter
     private final D shopData;
 
+    public void display() {
+        for (Player player : zombiesArena.getWorld().getPlayers()) {
+            displayTo(player);
+        }
+    }
 
     public abstract void displayTo(Player player);
 
-    public abstract boolean purchase(ZombiesPlayer zombiesPlayer);
+    public abstract Boolean purchase(ZombiesPlayer zombiesPlayer);
 
     public abstract boolean shouldInteractWith(Object object);
 

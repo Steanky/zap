@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ShopData {
 
-    private String type;
+    String type;
 
-    public ShopData() {}
+    protected ShopData() {}
 }

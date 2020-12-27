@@ -38,6 +38,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -230,22 +231,14 @@ public final class Zombies extends JavaPlugin implements Listener {
         CommandManager commandManager = new CommandManager(this);
         commandManager.registerCommand(new DebugCommand());
         getCommand("tahmid").setExecutor((commandSender, command, s, strings) -> {
-
             if (commandSender instanceof Player) {
                 Player player = (Player) commandSender;
-
-                new GunShop(null, new GunShopData(player.getTargetBlock(10).getLocation().toVector(), BlockFace.NORTH));
+                ItemStack[] itemStacks = player.getEquipment().getArmorContents();
+                System.out.println();
             }
 
             return true;
         });
-        getServer().getPluginManager().registerEvents(new Listener() {
-            @EventHandler
-            public void onItemPickup(PlayerAttemptPickupItemEvent event) {
-                event.setCancelled(true);
-            }
-
-        }, this);
     }
 
     /*

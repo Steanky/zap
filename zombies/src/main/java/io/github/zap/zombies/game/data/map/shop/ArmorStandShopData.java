@@ -9,18 +9,12 @@ import org.bukkit.util.Vector;
 @AllArgsConstructor
 public class ArmorStandShopData extends ShopData {
 
-    public ArmorStandShopData(String type) {
-        super(type);
-    }
-
-    protected ArmorStandShopData(String type, Vector blockLocation, BlockFace blockFace) {
-        super(type);
-        this.blockLocation = blockLocation;
-        this.blockFace = blockFace;
-    }
-
     Vector blockLocation;
 
     BlockFace blockFace;
+
+    protected ArmorStandShopData() {
+
+    }
 
 }

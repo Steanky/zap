@@ -91,6 +91,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
         getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
+        getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
+        getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
     }
 
     @Override
@@ -211,6 +213,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 Vector clickedVector = block.getLocation().toVector();
                 if(!player.tryOpenDoor(clickedVector)) {
                     //TODO: perform other actions involving right-clicking on a block
+                    for (Shop<?> shop : shops) {
+                        if (shop.shouldInteractWith(event.getClickedBlock())) {
+                            shop.purchase(player);
+                            break;
+                        }
+                    }
                 }
             }
             else {
@@ -220,7 +228,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
+        PlayerInteractAtEntityEvent event = args.getEvent();
+        ZombiesPlayer player = args.getManagedPlayer();
 
+        for (Shop<?> shop : shops) {
+            if (shop.shouldInteractWith(event.getRightClicked())) {
+                shop.purchase(player);
+                break;
+            }
+        }
     }
 
     private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
@@ -244,6 +260,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerItemConsume(ProxyArgs<PlayerItemConsumeEvent> args) {
         args.getEvent().setCancelled(true); // TODO: might need to change this one day
+    }
+
+    private void onPlayerAttemptPickupItem(ProxyArgs<PlayerAttemptPickupItemEvent> args) {
+        args.getEvent().setCancelled(true);
+    }
+
+    private void onPlayerArmorStandManipulate(ProxyArgs<PlayerArmorStandManipulateEvent> args) {
+        args.getEvent().setCancelled(true);
     }
 
     private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {
