@@ -10,7 +10,6 @@ import io.github.zap.zombies.game.data.map.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
-import io.lumine.xikage.mythicmobs.utils.config.properties.PropertyType;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;

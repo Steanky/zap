@@ -37,13 +37,12 @@ public class FilePlayerDataManager implements PlayerDataManager {
             return data;
         }
 
-        String name = id.toString() + '.' + loader.getExtension();
-        File dataFile = Path.of(dataFolder.getPath(), name).toFile();
+        File dataFile = Path.of(dataFolder.getPath(), id.toString() + '.' + loader.getExtension()).toFile();
 
         if(!dataFile.exists()) { //create playerdata file if missing
             FilePlayerData newData = new FilePlayerData();
             cacheMapping(id, newData);
-            loader.save(newData, dataFile);
+            saveData(newData, id);
             return newData;
         }
         else {
@@ -66,8 +65,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
             FilePlayerData value = entry.getValue();
 
             if(value.isDirty()) {
-                loader.save(value, Path.of(dataFolder.getPath(), entry.getKey().toString() + '.' +
-                        loader.getExtension()).toFile());
+                saveData(value, entry.getKey());
             }
         }
     }
@@ -79,8 +77,12 @@ public class FilePlayerDataManager implements PlayerDataManager {
             FilePlayerData removedValue = cache.remove(cache.keySet().iterator().next()); //get the value so we can save it if needed
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
-                loader.save(removedValue, dataFolder);
+                saveData(removedValue, id);
             }
         }
+    }
+
+    private void saveData(FilePlayerData data, UUID id) {
+        loader.save(data, Path.of(dataFolder.getPath(), id.toString() + '.' + loader.getExtension()).toFile());
     }
 }
