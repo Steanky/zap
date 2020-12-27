@@ -274,6 +274,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         args.getEvent().setCancelled(true);
     }
 
+    public void power() {
+        for (Shop<?> shop : shops) {
+            shop.power();
+        }
+    }
+
     public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
         List<ActiveMob> activeMobs = new ArrayList<>();
 

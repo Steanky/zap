@@ -15,12 +15,14 @@ public abstract class Shop<D extends ShopData> {
 
     private final D shopData;
 
-    @Getter
+    private boolean visible = false;
+
     private boolean powered = false;
 
     public void display() {
         for (Player player : zombiesArena.getWorld().getPlayers()) {
             displayTo(player);
+            visible = true;
         }
     }
 

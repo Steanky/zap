@@ -17,14 +17,21 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
+    public void power() {
+        if (isVisible()) {
+            display();
+        }
+    }
+
+    @Override
     public void displayTo(Player player) {
         Hologram hologram = getHologram();
-        hologram.setLine(0, ChatColor.GREEN + "Ultimate Machine");
+        hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Ultimate Machine");
 
         hologram.setLine(1,
                 isPowered() ?
-                        ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!" :
-                        ChatColor.GOLD.toString() + getShopData().getCost() + " Gold"
+                        ChatColor.GOLD.toString() + getShopData().getCost() + " Gold" :
+                        ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
         );
     }
 
