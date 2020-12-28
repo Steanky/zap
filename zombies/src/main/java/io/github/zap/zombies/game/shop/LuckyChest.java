@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -8,11 +7,9 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.shop.LuckyChestData;
+import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
@@ -23,6 +20,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -30,23 +28,13 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
     private final List<EquipmentData<?>> equipments = new ArrayList<>();
 
-    private final Random random = new Random();
-
     private final Block left, right;
+
+    private final Roller roller;
 
     private int rolls = 0;
 
-    private int rollIndex;
-
-    private int sittingTask;
-
     private Hologram hologram;
-
-    private Item rollingItem = null;
-
-    private Player rollingPlayer = null;
-
-    private boolean doneRolling = true;
 
     public LuckyChest(ZombiesArena zombiesArena, LuckyChestData shopData) {
         super(zombiesArena, shopData);
@@ -65,6 +53,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
         DoubleChestInventory doubleChestInventory = (DoubleChestInventory) Objects.requireNonNull(doubleChest).getInventory();
         left = world.getBlockAt(Objects.requireNonNull(doubleChestInventory.getLeftSide().getLocation()));
         right = world.getBlockAt(Objects.requireNonNull(doubleChestInventory.getRightSide().getLocation()));
+
+        roller = new Roller(this, chestLocation, equipments);
     }
 
     @Override
@@ -74,84 +64,25 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
     @Override
     public boolean purchase(ZombiesPlayer zombiesPlayer) {
-        if (zombiesPlayer.getId().equals(rollingPlayer.getUniqueId())) {
-            if (doneRolling) {
-                // TODO: buy
-                return true;
-            } else {
-                // TODO: not done
-            }
-        } else if (rollingPlayer == null) {
-            if (zombiesPlayer.getCoins() < getShopData().getCost()) {
+        LuckyChestData luckyChestData = getShopData();
+        if (roller.getRoller() == null) {
+            if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
                 // TODO: poor
             } else {
-                // TODO: start the chest
-                recursiveGunSwap(0);
-
-                rollingPlayer = zombiesPlayer.getPlayer();
-                rolls++;
-                doneRolling = false;
-
+                roller.start(zombiesPlayer.getPlayer());
+            }
+        } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
+            if (roller.isCollectable()) {
+                roller.cancelSitting();
                 return true;
+            } else {
+                // TODO: still rolling
             }
         } else {
-            // TODO: someone else rolling
+            // TODO: you're not the roller
         }
+
         return false;
-    }
-
-    private void recursiveGunSwap(int level) {
-        Zombies zombies = Zombies.getInstance();
-        LuckyChestData luckyChestData = getShopData();
-        List<ImmutableTriple<Sound, Float, Long>> jingle = luckyChestData.getJingle();
-
-        if (level == jingle.size()) {
-            doneRolling = true;
-            sittingTask = new BukkitRunnable() {
-
-                private float sittingTime = luckyChestData.getSittingTime();
-
-                @Override
-                public void run() {
-                    sittingTime -= 0.1;
-                    if (sittingTime == 0) {
-                        cancel();
-                    }
-                }
-            }.runTaskTimer(zombies, 0L, 2L).getTaskId();
-        } else {
-            World world = getZombiesArena().getWorld();
-            if (level == 0) {
-                rollingItem = world.dropItem(
-                        luckyChestData.getChestLocation().toLocation(world).add(0, 0.5, 0),
-                        new ItemStack(Material.AIR)
-                );
-            }
-
-            ImmutableTriple<Sound, Float, Long> jingleSound = jingle.get(level);
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    World world = getZombiesArena().getWorld();
-                    world.playSound(
-                            luckyChestData.getChestLocation().toLocation(world),
-                            jingleSound.left,
-                            jingleSound.middle,
-                            1.0F
-                    );
-                    rollIndex = random.nextInt(jingle.size());
-                    rollingItem.getItemStack().setType(equipments.get(rollIndex).getMaterial());
-
-                    recursiveGunSwap(level + 1);
-                }
-            }.runTaskLater(zombies, 20 * jingleSound.right);
-        }
-
-    }
-
-    private void cleanupSitting() {
-        hologram.destroy();
-        rollingItem.remove();
     }
 
     @Override
@@ -172,6 +103,120 @@ public class LuckyChest extends Shop<LuckyChestData> {
     @Override
     public String getShopType() {
         return ShopType.LUCKY_CHEST.name();
+    }
+
+    private static class Roller {
+
+        private final LuckyChest luckyChest;
+
+        private final Random random = new Random();
+
+        private final Zombies zombies;
+
+        private final World world;
+
+        private final Location chestLocation;
+
+        private final List<ImmutableTriple<Sound, Float, Long>> jingle;
+
+        private final long sittingTime;
+
+        private final List<EquipmentData<?>> equipments;
+
+        @Getter
+        private Player roller;
+
+        private Hologram timeRemaining;
+
+        private Hologram rightClickToClaim;
+
+        private Hologram gunName;
+
+        private Item rollingItem;
+
+        private int rollIndex;
+
+        @Getter
+        private boolean collectable = false;
+
+        private int sittingTaskId;
+
+        public Roller(LuckyChest luckyChest, Location chestLocation,  List<EquipmentData<?>> equipments) {
+            this.luckyChest = luckyChest;
+            this.zombies = Zombies.getInstance();
+            this.world = chestLocation.getWorld();
+            this.chestLocation = chestLocation;
+            this.equipments = equipments;
+
+            LuckyChestData luckyChestData = luckyChest.getShopData();
+            this.jingle = luckyChestData.getJingle();
+            this.sittingTime = luckyChestData.getSittingTime();
+        }
+
+        public void start(Player roller) {
+            this.roller = roller;
+            gunSwap(0);
+        }
+
+        private void gunSwap(int occurrence) {
+            if (occurrence < jingle.size()) {
+                if (occurrence == 0) {
+                    rollingItem = world.dropItem(
+                            chestLocation.clone().add(0, 0.981250, 0),
+                            new ItemStack(Material.AIR)
+                    );
+                    rollingItem.setGravity(false);
+                    rollingItem.setVelocity(new Vector(0, 0, 0));
+
+                    gunName = new Hologram(chestLocation.clone(), 1);
+                }
+
+                ImmutableTriple<Sound, Float, Long> sound = jingle.get(occurrence);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        rollingItem.getItemStack().setType(equipments.get(
+                                rollIndex = random.nextInt(jingle.size())
+                        ).getMaterial());
+                        world.playSound(rollingItem.getLocation(), sound.getLeft(), sound.getMiddle(), 1.0F);
+
+                        gunSwap(occurrence + 1);
+                    }
+                }.runTaskLater(zombies, 20 * sound.getRight());
+            } else {
+                timeRemaining = new Hologram(chestLocation.clone().add(0, 1, 0), 2);
+                String format = ChatColor.RED + "%ds";
+                timeRemaining.setLine(0, String.format(format, sittingTime));
+
+                rightClickToClaim = new Hologram(chestLocation.clone().add(0, 0.25, 0), 1);
+
+                collectable = true;
+                sittingTaskId = new BukkitRunnable() {
+
+                    private long sittingTime = Roller.this.sittingTime;
+
+                    @Override
+                    public void run() {
+                        timeRemaining.setLine(0, String.format(format, sittingTime -= 0.1));
+                        if (sittingTime <= 0) {
+                            cancelSitting();
+                        }
+                    }
+                }.runTaskTimer(zombies, 0, 2).getTaskId();
+            }
+        }
+
+        public void cancelSitting() {
+            timeRemaining.destroy();
+            rightClickToClaim.destroy();
+            gunName.destroy();
+            rollingItem.remove();
+
+            Bukkit.getScheduler().cancelTask(sittingTaskId);
+            roller = null;
+            collectable = false;
+        }
+
     }
 
 }
