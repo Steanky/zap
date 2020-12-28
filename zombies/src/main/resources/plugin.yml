@@ -6,5 +6,3 @@ depend: [ ArenaApi, SlimeWorldManager, MythicMobs ]
 commands:
   zap_debug:
     description: "ZAP debugging utility command."
-  tahmid:
-    description: "t"

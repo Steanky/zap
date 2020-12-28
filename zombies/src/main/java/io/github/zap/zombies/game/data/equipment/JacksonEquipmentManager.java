@@ -104,7 +104,9 @@ public class JacksonEquipmentManager implements EquipmentManager {
                         for (Map.Entry<String, EquipmentData<?>> mapping :
                                 newEquipmentDataMapping.getMap().entrySet()) {
                             EquipmentData<?> equipmentData = mapping.getValue();
-                            equipmentDataMap.get(mapping.getKey()).put(equipmentData.getName(), equipmentData);
+                            equipmentDataMap.computeIfAbsent(
+                                    mapping.getKey(),(String unused) -> new HashMap<>()
+                            ).put(equipmentData.getName(), equipmentData);
                         }
                     }
                 }
