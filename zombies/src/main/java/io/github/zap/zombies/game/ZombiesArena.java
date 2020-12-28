@@ -214,7 +214,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 if(!player.tryOpenDoor(clickedVector)) {
                     //TODO: perform other actions involving right-clicking on a block
                     for (Shop<?> shop : shops) {
-                        if (shop.shouldInteractWith(event.getClickedBlock()) && shop.purchase(player)) {
+                        if (shop.tryInteractWith(args) && shop.purchase(player)) {
                             for (Shop<?> affectedShop : shops) {
                                 affectedShop.onOtherShopPurchase(shop.getShopType());
                             }
@@ -234,7 +234,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer player = args.getManagedPlayer();
 
         for (Shop<?> shop : shops) {
-            if (shop.shouldInteractWith(event.getRightClicked()) && shop.purchase(player)) {
+            if (shop.tryInteractWith(args) && shop.purchase(player)) {
                 for (Shop<?> affectedShop : shops) {
                     affectedShop.onOtherShopPurchase(shop.getShopType());
                 }

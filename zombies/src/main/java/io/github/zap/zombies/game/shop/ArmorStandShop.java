@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
@@ -7,6 +8,8 @@ import lombok.Getter;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
 @Getter
 public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<D> {
@@ -30,7 +33,12 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
     }
 
     @Override
-    public boolean shouldInteractWith(Object object) {
-        return armorStand.equals(object);
+    public boolean tryInteractWith(ZombiesArena.ProxyArgs<? extends Event> args) {
+        Event event = args.getEvent();
+        if (event instanceof PlayerInteractAtEntityEvent) {
+            return armorStand.equals(((PlayerInteractAtEntityEvent) event).getRightClicked());
+        }
+
+        return false;
     }
 }

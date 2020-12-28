@@ -1,11 +1,13 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 
 @RequiredArgsConstructor
 @Getter
@@ -37,7 +39,7 @@ public abstract class Shop<D extends ShopData> {
 
     public abstract boolean purchase(ZombiesPlayer zombiesPlayer);
 
-    public abstract boolean shouldInteractWith(Object object);
+    public abstract boolean tryInteractWith(ZombiesArena.ProxyArgs<? extends Event> args);
 
     public abstract String getShopType();
 
