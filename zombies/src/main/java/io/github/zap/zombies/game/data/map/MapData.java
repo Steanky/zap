@@ -206,6 +206,11 @@ public class MapData {
     List<ShopData> shops = new ArrayList<>();
 
     /**
+     * Number of rolls before a chest moves to a new location
+     */
+    int rollsPerChest = 5;
+
+    /**
      * All the rounds in the game
      */
     List<RoundData> rounds = new ArrayList<>();

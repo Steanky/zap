@@ -33,11 +33,12 @@ public class LuckyChest extends Shop<LuckyChestData> {
     @Getter
     private final List<EquipmentData<?>> equipments = new ArrayList<>();
 
+    @Getter
+    private final Location chestLocation;
+
     private final Block left, right;
 
     private final Roller roller;
-
-    private int rolls = 0;
 
     private Hologram hologram;
 
@@ -54,7 +55,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         }
 
         World world = zombiesArena.getWorld();
-        Location chestLocation = getShopData().getChestLocation().toLocation(world);
+        chestLocation = getShopData().getChestLocation().toLocation(world);
         Block block = world.getBlockAt(chestLocation);
         Chest chest = (Chest) block.getState();
         DoubleChest doubleChest = (DoubleChest) chest.getInventory().getHolder();
@@ -62,8 +63,18 @@ public class LuckyChest extends Shop<LuckyChestData> {
         left = world.getBlockAt(Objects.requireNonNull(doubleChestInventory.getLeftSide().getLocation()));
         right = world.getBlockAt(Objects.requireNonNull(doubleChestInventory.getRightSide().getLocation()));
 
-        roller = new Roller(this, chestLocation);
+        roller = new Roller(this);
     }
+
+    public void toggle(boolean show) {
+        if (show) {
+            hologram = new Hologram(chestLocation.clone().add(0, 0.5, 0));
+        } else if (hologram != null) {
+            hologram.destroy();
+            hologram = null;
+        }
+    }
+
     @Override
     public void displayTo(Player player) {
         if (hologram != null) {
@@ -130,12 +141,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
         return ShopType.LUCKY_CHEST.name();
     }
 
-    private void incrementRolls() {
-        if (++rolls == getShopData().getRollsUntilMove()) {
-            rolls = 0;
-        }
-    }
-
     private static class Roller {
 
         private final Random random = new Random();
@@ -182,11 +187,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private final LuckyChest luckyChest;
 
-        public Roller(LuckyChest luckyChest, Location chestLocation) {
+        public Roller(LuckyChest luckyChest) {
             this.luckyChest = luckyChest;
             this.zombies = Zombies.getInstance();
+            this.chestLocation = luckyChest.getChestLocation();
             this.world = chestLocation.getWorld();
-            this.chestLocation = chestLocation;
             this.equipments = luckyChest.getEquipments();
 
             LuckyChestData luckyChestData = luckyChest.getShopData();
@@ -272,7 +277,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem = null;
 
             Bukkit.getScheduler().cancelTask(sittingTaskId);
-            luckyChest.incrementRolls();
             roller = null;
             collectable = false;
         }

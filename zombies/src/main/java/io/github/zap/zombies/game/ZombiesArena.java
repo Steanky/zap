@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
+import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -10,8 +11,10 @@ import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.shop.LuckyChest;
 import io.github.zap.zombies.game.shop.Shop;
 import io.github.zap.zombies.game.shop.ShopEventArgs;
+import io.github.zap.zombies.game.shop.ShopType;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -59,6 +62,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private final List<Shop<?>> shops = new ArrayList<>();
+
+    @Getter
+    private final Map<String, List<Shop<?>>> shopMap = new HashMap<>();
 
     @Getter
     private final Map<String, Event<ShopEventArgs>> shopEvents = new HashMap<>();
@@ -374,8 +380,34 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         //do countdown timer; at the end, call doRound() to kick off the game
         // TODO: do this at the end
         for (ShopData shopData : map.getShops()) {
-            shops.add(shopManager.createShop(this, shopData));
+            Shop<?> shop = shopManager.createShop(this, shopData);
+            shops.add(shop);
+            shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
             shopEvents.computeIfAbsent(shopData.getType(), (String type) -> new Event<>());
+        }
+        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
+        if (chestEvent != null) {
+            chestEvent.registerHandler(new EventHandler<>() {
+
+                private final Random random = new Random();
+
+                int rolls = 0;
+
+                @Override
+                public void handleEvent(ShopEventArgs args) {
+                    if (++rolls == map.getRollsPerChest()) {
+                        LuckyChest luckyChest = (LuckyChest) args.getShop();
+                        luckyChest.toggle(false);
+                        List<Shop<?>> chests = new ArrayList<>(shopMap.get(luckyChest.getShopType()));
+                        chests.remove(luckyChest);
+
+                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).toggle(true);
+                        // TODO: set where the chest is
+
+                        rolls = 0;
+                    }
+                }
+            });
         }
     }
 
