@@ -29,17 +29,6 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
-
-        Hologram hologram = getHologram();
-        for (Player player : args.getPlayers()) {
-            hologram.renderTo(player);
-        }
-
-        super.onPlayerJoin(args);
-    }
-
-    @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();

@@ -25,27 +25,17 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
         hologram.setLineFor(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Ultimate Machine");
 
         hologram.setLineFor(player, 1,
-                isPowered()
-                        ? ChatColor.GOLD.toString() + getShopData().getCost() + " Gold"
-                        : ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                getShopData().isRequiresPower() && !isPowered()
+                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                        : ChatColor.GOLD.toString() + getShopData().getCost() + " Gold"
         );
-    }
-
-    @Override
-    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
-        Hologram hologram = getHologram();
-        for (Player player : args.getPlayers()) {
-            hologram.renderTo(player);
-        }
-
-        super.onPlayerJoin(args);
     }
 
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            if (isPowered()) {
+            if (!getShopData().isRequiresPower() || isPowered()) {
                 if (zombiesPlayer.getCoins() < getShopData().getCost()) {
                     // TODO: poor
                 } else {

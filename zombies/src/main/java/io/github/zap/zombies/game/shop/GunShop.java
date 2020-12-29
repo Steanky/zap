@@ -66,7 +66,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                         hologram.setLineFor(player, 0,
                                 ChatColor.GREEN + gunName + " Ammo");
                         hologram.setLineFor(player, 1,
-                                ChatColor.GOLD.toString() + gunShopData.getRefillCost() + " Gold");
+                                gunShopData.isRequiresPower() && !isPowered()
+                                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                                        : ChatColor.GOLD.toString() + gunShopData.getRefillCost() + " Gold");
 
                         return;
                     }
@@ -75,21 +77,27 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         }
 
         hologram.setLineFor(player, 0, ChatColor.GREEN + gunName);
-        hologram.setLineFor(player, 1, ChatColor.GOLD + String.valueOf(gunShopData.getRefillCost()));
+        hologram.setLineFor(player, 1,
+                gunShopData.isRequiresPower() && !isPowered()
+                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                        : ChatColor.GOLD + String.valueOf(gunShopData.getRefillCost()));
     }
 
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-            GunObjectGroup gunObjectGroup = (GunObjectGroup)
-                    hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
+            if (!getShopData().isRequiresPower() || isPowered()) {
+                ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+                HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                GunObjectGroup gunObjectGroup = (GunObjectGroup)
+                        hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
 
-            if (tryRefill(zombiesPlayer, gunObjectGroup) != null || tryBuy(zombiesPlayer, gunObjectGroup)) {
-                onPurchaseSuccess(zombiesPlayer);
-                // TODO: ye
+                if (tryRefill(zombiesPlayer, gunObjectGroup) != null || tryBuy(zombiesPlayer, gunObjectGroup)) {
+                    onPurchaseSuccess(zombiesPlayer);
+                    // TODO: ye
+                }
             }
+
             return true;
         }
 

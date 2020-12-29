@@ -92,45 +92,50 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     || right.equals(playerInteractEvent.getClickedBlock())) {
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
                 Player player = zombiesPlayer.getPlayer();
-                if (active) {
-                    LuckyChestData luckyChestData = getShopData();
-                    if (roller.getRoller() == null) {
-                        if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                            // TODO: poor
-                        } else {
-                            roller.start(player);
-                        }
-                    } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
-                        if (roller.isCollectable()) {
-                            EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
-                            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
-                                    .getHotbarObjectGroup(equipmentData.getName());
-                            Integer slot = equipmentObjectGroup.getNextEmptySlot();
-                            if (slot == null) {
-                                // TODO: choose a slot
+                if (!getShopData().isRequiresPower() && isPowered()) {
+                    if (active) {
+                        LuckyChestData luckyChestData = getShopData();
+                        if (roller.getRoller() == null) {
+                            if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
+                                // TODO: poor
                             } else {
-                                hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
-                                        player,
-                                        slot,
-                                        equipmentData
-                                ));
-                                roller.cancelSitting();
+                                roller.start(player);
+                            }
+                        } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
+                            if (roller.isCollectable()) {
+                                EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
+                                HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                                EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
+                                        .getHotbarObjectGroup(equipmentData.getName());
+                                Integer slot = equipmentObjectGroup.getNextEmptySlot();
+                                if (slot == null) {
+                                    // TODO: choose a slot
+                                } else {
+                                    hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
+                                            player,
+                                            slot,
+                                            equipmentData
+                                    ));
+                                    roller.cancelSitting();
 
-                                onPurchaseSuccess(zombiesPlayer);
+                                    onPurchaseSuccess(zombiesPlayer);
+                                }
+                            } else {
+                                // TODO: still rolling
                             }
                         } else {
-                            // TODO: still rolling
+                            // TODO: you're not the roller
                         }
                     } else {
-                        // TODO: you're not the roller
+                        // TODO: not active rn
                     }
                 } else {
-                    // TODO: not active rn
+                    // TODO: needs power
                 }
-            }
 
-            return true;
+
+                return true;
+            }
         }
 
         return false;

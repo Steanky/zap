@@ -52,8 +52,12 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
         hologram.setLineFor(player, 1,
-                ChatColor.GOLD + ((armorLevel == null) ? "UNLOCKED" : armorLevel.getCost() + " Gold")
-                );
+                (armorLevel == null)
+                        ? "UNLOCKED"
+                        : getShopData().isRequiresPower() && !isPowered()
+                            ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                            : ChatColor.GOLD.toString() + armorLevel.getCost() + " Gold"
+        );
 
         List<ArmorShopData.ArmorLevel> armorLevels = getShopData().getArmorLevels();
         if (armorLevel == null) armorLevel = armorLevels.get(armorLevels.size() - 1);
@@ -89,32 +93,38 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
-            ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
-            if (armorLevel == null) {
-                // TODO: ya done now
-            } else {
-                Material[] materials = armorLevel.getMaterials();
-                ItemStack[] current = player.getEquipment().getArmorContents();
-                for (int i = 0; i < 4; i++) {
-                    Material material = materials[i];
-                    ItemStack itemStack = current[i];
+            if (!getShopData().isRequiresPower() || isPowered()) {
+                ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+                Player player = zombiesPlayer.getPlayer();
+                ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
+                if (armorLevel == null) {
+                    // TODO: ya done now
+                } else {
+                    Material[] materials = armorLevel.getMaterials();
+                    ItemStack[] current = player.getEquipment().getArmorContents();
+                    for (int i = 0; i < 4; i++) {
+                        Material material = materials[i];
+                        ItemStack itemStack = current[i];
 
-                    if (material != null) {
-                        if (itemStack != null && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
-                            itemStack.setType(material);
-                        } else {
-                            current[i] = new ItemStack(material);
+                        if (material != null) {
+                            if (itemStack != null && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
+                                itemStack.setType(material);
+                            } else {
+                                current[i] = new ItemStack(material);
+                            }
                         }
+
                     }
+                    player.getEquipment().setArmorContents(current);
+                    displayTo(player);
 
+                    onPurchaseSuccess(zombiesPlayer);
                 }
-                player.getEquipment().setArmorContents(current);
-                displayTo(player);
 
-                onPurchaseSuccess(zombiesPlayer);
+            } else {
+                // TODO: power
             }
+
 
             return true;
         }
