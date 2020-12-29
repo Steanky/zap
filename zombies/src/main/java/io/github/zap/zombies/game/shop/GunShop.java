@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
@@ -15,10 +16,9 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-
-import java.util.Objects;
 
 public class GunShop extends ArmorStandShop<GunShopData> {
 
@@ -29,7 +29,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public void display(boolean firstTime) {
+    public void display() {
         if (item == null) {
             World world = getZombiesArena().getWorld();
             BlockFace blockFace = getShopData().getBlockFace();
@@ -45,11 +45,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             item.setVelocity(new Vector(0, 0, 0));
         }
 
-        super.display(firstTime);
+        super.display();
     }
 
     @Override
-    public void displayTo(Player player, boolean firstTime) {
+    public void displayTo(Player player) {
         ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
         Hologram hologram = getHologram();
         GunShopData gunShopData = getShopData();
@@ -74,16 +74,26 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             }
         }
 
-        getHologram().setLineFor(player, 0, ChatColor.GREEN + gunName);
-        getHologram().setLineFor(player, 1, ChatColor.GOLD + String.valueOf(gunShopData.getRefillCost()));
+        hologram.setLineFor(player, 0, ChatColor.GREEN + gunName);
+        hologram.setLineFor(player, 1, ChatColor.GOLD + String.valueOf(gunShopData.getRefillCost()));
     }
 
     @Override
-    public boolean purchase(ZombiesPlayer zombiesPlayer) {
-        HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-        GunObjectGroup gunObjectGroup = (GunObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.purchase(args)) {
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+            GunObjectGroup gunObjectGroup = (GunObjectGroup)
+                    hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
 
-        return Objects.requireNonNullElseGet(tryRefill(zombiesPlayer, gunObjectGroup), () -> tryBuy(zombiesPlayer, gunObjectGroup));
+            if (tryRefill(zombiesPlayer, gunObjectGroup) != null || tryBuy(zombiesPlayer, gunObjectGroup)) {
+                onPurchaseSuccess(zombiesPlayer);
+                // TODO: ye
+            }
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -139,7 +149,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     slot,
                     getZombiesArena().getMap().getMapNameKey(),
                     gunShopData.getGunName()));
-            displayTo(player, false);
+            displayTo(player);
             return true;
         }
     }

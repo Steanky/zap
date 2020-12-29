@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.zombies.Zombies;
@@ -63,9 +64,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         roller = new Roller(this, chestLocation);
     }
-
     @Override
-    public void displayTo(Player player, boolean firstTime) {
+    public void displayTo(Player player) {
         if (hologram != null) {
             hologram.renderTo(player);
         }
@@ -73,57 +73,53 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    public boolean purchase(ZombiesPlayer zombiesPlayer) {
-        Player player = zombiesPlayer.getPlayer();
-        if (active) {
-            LuckyChestData luckyChestData = getShopData();
-            if (roller.getRoller() == null) {
-                if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                    // TODO: poor
-                } else {
-                    roller.start(player);
-                }
-            } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
-                if (roller.isCollectable()) {
-                    EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
-                    HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                    EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
-                            .getHotbarObjectGroup(equipmentData.getName());
-                    Integer slot = equipmentObjectGroup.getNextEmptySlot();
-                    if (slot == null) {
-                        // TODO: choose a slot
-                    } else {
-                        hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
-                                player,
-                                slot,
-                                equipmentData
-                        ));
-                        roller.cancelSitting();
-                        return true;
-                    }
-                } else {
-                    // TODO: still rolling
-                }
-            } else {
-                // TODO: you're not the roller
-            }
-        } else {
-            // TODO: not active rn
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean tryInteractWith(ZombiesArena.ProxyArgs<? extends Event> object) {
-        Event event = object.getEvent();
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        Event event = args.getEvent();
         if (event instanceof PlayerInteractEvent) {
             PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) event;
-            Block block = playerInteractEvent.getClickedBlock();
-            if (left.equals(block) || right.equals(block)) {
-                playerInteractEvent.setCancelled(true);
-                return true;
+            if (left.equals(playerInteractEvent.getClickedBlock())
+                    || right.equals(playerInteractEvent.getClickedBlock())) {
+                ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+                Player player = zombiesPlayer.getPlayer();
+                if (active) {
+                    LuckyChestData luckyChestData = getShopData();
+                    if (roller.getRoller() == null) {
+                        if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
+                            // TODO: poor
+                        } else {
+                            roller.start(player);
+                        }
+                    } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
+                        if (roller.isCollectable()) {
+                            EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
+                            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
+                                    .getHotbarObjectGroup(equipmentData.getName());
+                            Integer slot = equipmentObjectGroup.getNextEmptySlot();
+                            if (slot == null) {
+                                // TODO: choose a slot
+                            } else {
+                                hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
+                                        player,
+                                        slot,
+                                        equipmentData
+                                ));
+                                roller.cancelSitting();
+
+                                onPurchaseSuccess(zombiesPlayer);
+                            }
+                        } else {
+                            // TODO: still rolling
+                        }
+                    } else {
+                        // TODO: you're not the roller
+                    }
+                } else {
+                    // TODO: not active rn
+                }
             }
+
+            return true;
         }
 
         return false;
@@ -168,7 +164,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private Hologram rightClickToClaim;
 
-        private final static String rightClickToClaimString = "";
+        private String rightClickToClaimString = "";
 
         private Hologram gunName;
 

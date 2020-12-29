@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -13,6 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
@@ -40,31 +42,22 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorStand armorStand = getArmorStand();
         armorStand.teleport(getArmorStand().getLocation().clone().add(0, 1.5, 0));
         armorStand.setSmall(true);
+
+        zombiesArena.getShopEvents().get(getShopType()).registerHandler(args -> display());
     }
 
     @Override
-    public void onOtherShopPurchase(String shopType) {
-        super.onOtherShopPurchase(shopType);
-        if (shopType.equals(getShopType())) {
-            display(false);
-        }
-    }
-
-    @Override
-    public void displayTo(Player player, boolean firstTime) {
+    public void displayTo(Player player) {
         Hologram hologram = getHologram();
-        if (firstTime) {
-            hologram.renderTo(player);
-        }
-
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
-        getHologram().setLineFor(player, 1,
+        hologram.setLineFor(player, 1,
                 ChatColor.GOLD + ((armorLevel == null) ? "UNLOCKED" : armorLevel.getCost() + " Gold")
                 );
 
         List<ArmorShopData.ArmorLevel> armorLevels = getShopData().getArmorLevels();
         if (armorLevel == null) armorLevel = armorLevels.get(armorLevels.size() - 1);
+        hologram.setLineFor(player, 0, ChatColor.GREEN + armorLevel.getName());
 
 
         ItemStack[] equipment = player.getEquipment().getArmorContents();
@@ -94,33 +87,38 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
-    public boolean purchase(ZombiesPlayer zombiesPlayer) {
-        Player player = zombiesPlayer.getPlayer();
-        ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
-        if (armorLevel == null) {
-            // TODO: ya done now
-            return false;
-        } else {
-            Material[] materials = armorLevel.getMaterials();
-            ItemStack[] current = player.getEquipment().getArmorContents();
-            for (int i = 0; i < 4; i++) {
-                Material material = materials[i];
-                ItemStack itemStack = current[i];
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.purchase(args)) {
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            Player player = zombiesPlayer.getPlayer();
+            ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
+            if (armorLevel == null) {
+                // TODO: ya done now
+            } else {
+                Material[] materials = armorLevel.getMaterials();
+                ItemStack[] current = player.getEquipment().getArmorContents();
+                for (int i = 0; i < 4; i++) {
+                    Material material = materials[i];
+                    ItemStack itemStack = current[i];
 
-                if (material != null) {
-                    if (itemStack != null && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
-                        itemStack.setType(material);
-                    } else {
-                        current[i] = new ItemStack(material);
+                    if (material != null) {
+                        if (itemStack != null && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
+                            itemStack.setType(material);
+                        } else {
+                            current[i] = new ItemStack(material);
+                        }
                     }
-                }
 
+                }
+                player.getEquipment().setArmorContents(current);
+                displayTo(player);
+
+                onPurchaseSuccess(zombiesPlayer);
             }
-            player.getEquipment().setArmorContents(current);
-            displayTo(player, false);
 
             return true;
         }
+        return false;
     }
 
     @Override

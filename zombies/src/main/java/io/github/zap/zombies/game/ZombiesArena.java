@@ -11,6 +11,7 @@ import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.shop.Shop;
+import io.github.zap.zombies.game.shop.ShopEventArgs;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -58,6 +59,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private final List<Shop<?>> shops = new ArrayList<>();
+
+    @Getter
+    private final Map<String, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
@@ -214,10 +218,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 if(!player.tryOpenDoor(clickedVector)) {
                     //TODO: perform other actions involving right-clicking on a block
                     for (Shop<?> shop : shops) {
-                        if (shop.tryInteractWith(args) && shop.purchase(player)) {
-                            for (Shop<?> affectedShop : shops) {
-                                affectedShop.onOtherShopPurchase(shop.getShopType());
-                            }
+                        if (shop.purchase(args)) {
                             break;
                         }
                     }
@@ -230,14 +231,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
-        PlayerInteractAtEntityEvent event = args.getEvent();
-        ZombiesPlayer player = args.getManagedPlayer();
-
         for (Shop<?> shop : shops) {
-            if (shop.tryInteractWith(args) && shop.purchase(player)) {
-                for (Shop<?> affectedShop : shops) {
-                    affectedShop.onOtherShopPurchase(shop.getShopType());
-                }
+            if (shop.purchase(args)) {
                 break;
             }
         }
@@ -377,8 +372,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void startCountdown() {
         //do countdown timer; at the end, call doRound() to kick off the game
+        // TODO: do this at the end
         for (ShopData shopData : map.getShops()) {
             shops.add(shopManager.createShop(this, shopData));
+            shopEvents.computeIfAbsent(shopData.getType(), (String type) -> new Event<>());
         }
     }
 

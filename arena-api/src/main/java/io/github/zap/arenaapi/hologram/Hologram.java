@@ -81,7 +81,6 @@ public class Hologram {
 
     public Hologram(Location location, int lineCount) {
         this(location);
-        lines = lineCount;
         addLines(lineCount);
     }
 

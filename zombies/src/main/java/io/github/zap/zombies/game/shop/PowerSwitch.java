@@ -1,33 +1,23 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 
 public class PowerSwitch extends BlockShop<PowerSwitchData> {
-    
+
     public PowerSwitch(ZombiesArena zombiesArena, PowerSwitchData shopData) {
         super(zombiesArena, shopData);
     }
 
     @Override
-    public void onOtherShopPurchase(String shopType) {
-        super.onOtherShopPurchase(shopType);
-        if (shopType.equals(getShopType())) {
-            display(false);
-        }
-    }
-
-    @Override
-    public void displayTo(Player player, boolean firstTime) {
+    public void displayTo(Player player) {
         Hologram hologram = getHologram();
-
-        if (firstTime) {
-            hologram.renderTo(player);
-        }
 
         hologram.setLine(0, ChatColor.GOLD.toString() + ChatColor.BOLD.toString() + "Power Switch");
 
@@ -39,13 +29,28 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    public boolean purchase(ZombiesPlayer zombiesPlayer) {
-        if (isPowered()) {
-            // TODO: already powered
-        } else if (zombiesPlayer.getCoins() < getShopData().getCost()) {
-            // TODO: poor
-        } else {
-            // TODO: success
+    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
+
+        Hologram hologram = getHologram();
+        for (Player player : args.getPlayers()) {
+            hologram.renderTo(player);
+        }
+
+        super.onPlayerJoin(args);
+    }
+
+    @Override
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.purchase(args)) {
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            if (isPowered()) {
+                // TODO: already powered
+            } else if (zombiesPlayer.getCoins() < getShopData().getCost()) {
+                // TODO: poor
+            } else {
+                onPurchaseSuccess(zombiesPlayer);
+                // TODO: success
+            }
             return true;
         }
 

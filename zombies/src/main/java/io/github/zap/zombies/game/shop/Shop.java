@@ -1,44 +1,49 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.event.EventHandler;
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
-@RequiredArgsConstructor
 @Getter
 public abstract class Shop<D extends ShopData> {
 
     private final ZombiesArena zombiesArena;
 
     private final D shopData;
-
-    private boolean visible = false;
-
     private boolean powered = false;
 
-    public void display(boolean firstTime) {
+    public Shop(ZombiesArena zombiesArena, D shopData) {
+        this.zombiesArena = zombiesArena;
+        this.shopData = shopData;
+
+        zombiesArena.getShopEvents().get(ShopType.POWER_SWITCH.name()).registerHandler(args -> powered = true);
+        zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+    }
+
+    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
+        for (Player player : args.getPlayers()) {
+            displayTo(player);
+        }
+    }
+
+    protected void onPurchaseSuccess(ZombiesPlayer zombiesPlayer) {
+        zombiesArena.getShopEvents().get(getShopType()).callEvent(new ShopEventArgs(this, zombiesPlayer));
+    }
+
+    public void display() {
         for (Player player : zombiesArena.getWorld().getPlayers()) {
-            displayTo(player, firstTime);
-            visible = true;
+            displayTo(player);
         }
     }
 
-    public void onOtherShopPurchase(String shopType) {
-        if (shopType.equals(ShopType.POWER_SWITCH.name()) && shopData.isRequiresPower()) {
-            powered = true;
-            display(false);
-        }
-    }
+    public abstract void displayTo(Player player);
 
-    public abstract void displayTo(Player player, boolean firstTime);
-
-    public abstract boolean purchase(ZombiesPlayer zombiesPlayer);
-
-    public abstract boolean tryInteractWith(ZombiesArena.ProxyArgs<? extends Event> args);
+    public abstract boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args);
 
     public abstract String getShopType();
 
