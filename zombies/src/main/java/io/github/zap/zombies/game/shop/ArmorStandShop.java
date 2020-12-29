@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;

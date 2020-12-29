@@ -17,8 +17,13 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public void displayTo(Player player) {
+    public void displayTo(Player player, boolean firstTime) {
         Hologram hologram = getHologram();
+
+        if (firstTime) {
+            hologram.renderTo(player);
+        }
+
         hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Ultimate Machine");
 
         hologram.setLine(1,

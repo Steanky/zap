@@ -29,7 +29,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public void display() {
+    public void display(boolean firstTime) {
         if (item == null) {
             World world = getZombiesArena().getWorld();
             BlockFace blockFace = getShopData().getBlockFace();
@@ -45,11 +45,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             item.setVelocity(new Vector(0, 0, 0));
         }
 
-        super.display();
+        super.display(firstTime);
     }
 
     @Override
-    public void displayTo(Player player) {
+    public void displayTo(Player player, boolean firstTime) {
         ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
         Hologram hologram = getHologram();
         GunShopData gunShopData = getShopData();
@@ -139,7 +139,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     slot,
                     getZombiesArena().getMap().getMapNameKey(),
                     gunShopData.getGunName()));
-            displayTo(player);
+            displayTo(player, false);
             return true;
         }
     }

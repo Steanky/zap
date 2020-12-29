@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
@@ -45,12 +46,17 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     public void onOtherShopPurchase(String shopType) {
         super.onOtherShopPurchase(shopType);
         if (shopType.equals(getShopType())) {
-            display();
+            display(false);
         }
     }
 
     @Override
-    public void displayTo(Player player) {
+    public void displayTo(Player player, boolean firstTime) {
+        Hologram hologram = getHologram();
+        if (firstTime) {
+            hologram.renderTo(player);
+        }
+
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
         getHologram().setLineFor(player, 1,
@@ -111,7 +117,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
             }
             player.getEquipment().setArmorContents(current);
-            displayTo(player);
+            displayTo(player, false);
 
             return true;
         }

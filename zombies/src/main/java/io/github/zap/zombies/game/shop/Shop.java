@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
@@ -21,9 +20,9 @@ public abstract class Shop<D extends ShopData> {
 
     private boolean powered = false;
 
-    public void display() {
+    public void display(boolean firstTime) {
         for (Player player : zombiesArena.getWorld().getPlayers()) {
-            displayTo(player);
+            displayTo(player, firstTime);
             visible = true;
         }
     }
@@ -31,11 +30,11 @@ public abstract class Shop<D extends ShopData> {
     public void onOtherShopPurchase(String shopType) {
         if (shopType.equals(ShopType.POWER_SWITCH.name()) && shopData.isRequiresPower()) {
             powered = true;
-            display();
+            display(false);
         }
     }
 
-    public abstract void displayTo(Player player);
+    public abstract void displayTo(Player player, boolean firstTime);
 
     public abstract boolean purchase(ZombiesPlayer zombiesPlayer);
 
