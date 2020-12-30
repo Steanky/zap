@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -21,7 +20,14 @@ public abstract class Shop<D extends ShopData> {
         this.zombiesArena = zombiesArena;
         this.shopData = shopData;
 
-        zombiesArena.getShopEvents().get(ShopType.POWER_SWITCH.name()).registerHandler(args -> powered = true);
+        registerArenaEvents();
+    }
+
+    protected void registerArenaEvents() {
+        zombiesArena.getShopEvents().get(ShopType.POWER_SWITCH.name()).registerHandler(args -> {
+            powered = true;
+            display();
+        });
         zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
     }
 
@@ -41,9 +47,9 @@ public abstract class Shop<D extends ShopData> {
         }
     }
 
-    public abstract void displayTo(Player player);
+    protected abstract void displayTo(Player player);
 
-    public abstract boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args);
+    protected abstract boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args);
 
     public abstract String getShopType();
 

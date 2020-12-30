@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -16,7 +15,7 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    public void displayTo(Player player) {
+    protected void displayTo(Player player) {
         Hologram hologram = getHologram();
 
         hologram.setLine(0, ChatColor.GOLD.toString() + ChatColor.BOLD.toString() + "Power Switch");
@@ -29,7 +28,7 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             if (isPowered()) {

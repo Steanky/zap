@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
@@ -49,7 +48,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public void displayTo(Player player) {
+    protected void displayTo(Player player) {
         ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
         Hologram hologram = getHologram();
         GunShopData gunShopData = getShopData();
@@ -84,7 +83,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             if (!getShopData().isRequiresPower() || isPowered()) {
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
@@ -139,7 +138,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         Integer slot = gunObjectGroup.getNextEmptySlot();
         if (slot == null) {
             int selectedSlot = player.getInventory().getHeldItemSlot();
-            if (gunObjectGroup.getSlots().contains(selectedSlot)) {
+            if (gunObjectGroup.getHotbarObjectMap().containsKey(selectedSlot)) {
                 slot = selectedSlot;
             } else {
                 // TODO: choose a slot to put it in

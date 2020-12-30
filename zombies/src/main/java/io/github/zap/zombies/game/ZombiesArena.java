@@ -99,7 +99,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
-        getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
         getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
         getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
         getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
@@ -223,11 +222,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 Vector clickedVector = block.getLocation().toVector();
                 if(!player.tryOpenDoor(clickedVector)) {
                     //TODO: perform other actions involving right-clicking on a block
-                    for (Shop<?> shop : shops) {
-                        if (shop.purchase(args)) {
-                            break;
-                        }
-                    }
                 }
             }
             else {
@@ -237,11 +231,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
-        for (Shop<?> shop : shops) {
-            if (shop.purchase(args)) {
-                break;
-            }
-        }
+
     }
 
     private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
@@ -272,10 +262,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerArmorStandManipulate(ProxyArgs<PlayerArmorStandManipulateEvent> args) {
-        args.getEvent().setCancelled(true);
-    }
-
-    private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {
         args.getEvent().setCancelled(true);
     }
 

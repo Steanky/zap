@@ -5,7 +5,6 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -42,12 +41,16 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorStand armorStand = getArmorStand();
         armorStand.teleport(getArmorStand().getLocation().clone().add(0, 1.5, 0));
         armorStand.setSmall(true);
-
-        zombiesArena.getShopEvents().get(getShopType()).registerHandler(args -> display());
     }
 
     @Override
-    public void displayTo(Player player) {
+    protected void registerArenaEvents() {
+        super.registerArenaEvents();
+        getZombiesArena().getShopEvents().get(getShopType()).registerHandler(args -> display());
+    }
+
+    @Override
+    protected void displayTo(Player player) {
         Hologram hologram = getHologram();
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
@@ -91,7 +94,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             if (!getShopData().isRequiresPower() || isPowered()) {
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();

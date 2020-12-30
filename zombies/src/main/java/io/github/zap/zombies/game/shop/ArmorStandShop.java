@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
 import lombok.Getter;
 import org.bukkit.*;
@@ -35,6 +34,12 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
     }
 
     @Override
+    protected void registerArenaEvents() {
+        super.registerArenaEvents();
+        getZombiesArena().getPlayerInteractAtEntityEvent().registerHandler(this::purchase);
+    }
+
+    @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
         Hologram hologram = getHologram();
         for (Player player : args.getPlayers()) {
@@ -45,12 +50,7 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        Event event = args.getEvent();
-        return (
-                event instanceof PlayerInteractAtEntityEvent
-                &&
-                ((PlayerInteractAtEntityEvent) event).getRightClicked().equals(armorStand)
-        );
+    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        return ((PlayerInteractAtEntityEvent) args.getEvent()).getRightClicked().equals(armorStand);
     }
 }

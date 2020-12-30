@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.zombies.Zombies;
@@ -76,7 +75,13 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    public void displayTo(Player player) {
+    protected void registerArenaEvents() {
+        super.registerArenaEvents();
+        getZombiesArena().getPlayerInteractEvent().registerHandler(this::purchase);
+    }
+
+    @Override
+    protected void displayTo(Player player) {
         if (hologram != null) {
             hologram.renderTo(player);
         }
@@ -84,7 +89,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         Event event = args.getEvent();
         if (event instanceof PlayerInteractEvent) {
             PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) event;

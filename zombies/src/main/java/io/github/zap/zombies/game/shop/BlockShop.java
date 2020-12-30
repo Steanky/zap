@@ -28,6 +28,12 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
     }
 
     @Override
+    protected void registerArenaEvents() {
+        super.registerArenaEvents();
+        getZombiesArena().getPlayerInteractEvent().registerHandler(this::purchase);
+    }
+
+    @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
         Hologram hologram = getHologram();
         for (Player player : args.getPlayers()) {
@@ -37,12 +43,8 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        Event event = args.getEvent();
-        return (
-                event instanceof PlayerInteractEvent
-                &&
-                block.equals(((PlayerInteractEvent) event).getClickedBlock())
-        );
+    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        return block.equals(((PlayerInteractEvent) args.getEvent()).getClickedBlock());
     }
+
 }

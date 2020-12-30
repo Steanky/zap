@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
@@ -19,7 +18,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public void displayTo(Player player) {
+    protected void displayTo(Player player) {
         Hologram hologram = getHologram();
 
         hologram.setLineFor(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Ultimate Machine");
@@ -32,7 +31,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             if (!getShopData().isRequiresPower() || isPowered()) {

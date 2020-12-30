@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.data.map.shop;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTaskDeserializer;
 import io.github.zap.zombies.game.shop.*;
 import lombok.Getter;
 
@@ -16,6 +18,7 @@ public class JacksonShopManager implements ShopManager {
     public JacksonShopManager() {
         JacksonDataLoader jacksonDataLoader = (JacksonDataLoader) Zombies.getInstance().getDataLoader();
         jacksonDataLoader.addDeserializer(ShopData.class, shopDataDeserializer);
+        jacksonDataLoader.addDeserializer(TeamMachineTask.class, new TeamMachineTaskDeserializer());
 
         addShop(ShopType.GUN_SHOP.name(), GunShopData.class, GunShop::new);
         addShop(ShopType.ARMOR_SHOP.name(), ArmorShopData.class, ArmorShop::new);

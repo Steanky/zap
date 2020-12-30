@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
@@ -24,7 +23,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     }
 
     @Override
-    public void displayTo(Player player) {
+    protected void displayTo(Player player) {
         Hologram hologram = getHologram();
 
         hologram.setLineFor(

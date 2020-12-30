@@ -21,7 +21,8 @@ public abstract class EquipmentObjectGroup extends HotbarObjectGroup {
 
     @Override
     public HotbarObject createDefaultHotbarObject(Player player, int slot) {
-        Set<Integer> slots = getSlots().stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<Integer> slots = getHotbarObjectMap().keySet()
+                .stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new));
         int placeholderNumber = 1;
         for (Integer selfSlot : slots) {
             if (selfSlot == slot) {

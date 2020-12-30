@@ -12,6 +12,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
@@ -152,6 +153,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerArmorStandManipulateEvent>> playerArmorStandManipulateEvent;
 
     private final Event<ManagedInventoryEventArgs<InventoryOpenEvent>> inventoryOpenEvent;
+    private final Event<ManagedInventoryEventArgs<InventoryClickEvent>> inventoryClickEvent;
 
     public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {
         super(manager, world);
@@ -169,6 +171,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerArmorStandManipulateEvent = new AdaptedPlayerEvent<>(PlayerArmorStandManipulateEvent.class);
 
         inventoryOpenEvent = new AdaptedInventoryEvent<>(InventoryOpenEvent.class);
+        inventoryClickEvent = new AdaptedInventoryEvent<>(InventoryClickEvent.class);
 
         playerQuitEvent.registerHandler(this::onPlayerQuit);
     }
