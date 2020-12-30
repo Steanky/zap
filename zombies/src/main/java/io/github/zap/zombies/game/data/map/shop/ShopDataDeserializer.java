@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.data.map.shop;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,6 +11,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Deserializer for shop data based on a type field
+ */
 public class ShopDataDeserializer extends JsonDeserializer<ShopData> {
 
     @Getter

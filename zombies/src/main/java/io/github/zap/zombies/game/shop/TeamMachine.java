@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
@@ -17,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Machine with various tasks helpful for teams
+ */
 public class TeamMachine extends BlockShop<TeamMachineData> {
 
     private final Inventory inventory;
@@ -69,12 +73,24 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     @Override
     protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            args.getManagedPlayer().getPlayer().openInventory(inventory);
+            Player player = args.getManagedPlayer().getPlayer();
+
+            if (!getShopData().isRequiresPower() || isPowered()) {
+                player.openInventory(inventory);
+            } else {
+                getLocalizationManager().sendLocalizedMessage(player,
+                        ChatColor.RED + MessageKey.NO_POWER.getKey());
+            }
         }
 
         return false;
     }
 
+    /**
+     * Uses magic from TachibanaYui to choose the slots which correspond
+     * to team machine tasks within the team machine GUI
+     * @return The resulting inventory
+     */
     private Inventory prepareInventory() {
         List<TeamMachineTask> teamMachineTasks = getShopData().getTeamMachineTasks();
 

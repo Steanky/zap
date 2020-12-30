@@ -23,7 +23,9 @@ public enum MessageKey {
     RIGHT_CLICK("zombies.tutorial.click.right"),
 
     TO_RELOAD("zombies.tutorial.reload"),
-    TO_SHOOT("zombies.tutorial.shoot");
+    TO_SHOOT("zombies.tutorial.shoot"),
+
+    NO_POWER("zombies.game.power.off");
 
     @Getter
     private String key;

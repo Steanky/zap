@@ -8,6 +8,9 @@ import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTaskDeserializ
 import io.github.zap.zombies.game.shop.*;
 import lombok.Getter;
 
+/**
+ * Class for storing and managing shop data using Jackson's data loader
+ */
 @Getter
 public class JacksonShopManager implements ShopManager {
 

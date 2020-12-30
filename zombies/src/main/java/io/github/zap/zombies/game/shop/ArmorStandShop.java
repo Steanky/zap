@@ -12,6 +12,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
+/**
+ * Shop which interacts with a single invisible armor stand
+ * @param <D> The data type of the shop
+ */
 @Getter
 public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<D> {
 

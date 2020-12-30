@@ -5,11 +5,17 @@ import org.bukkit.Material;
 
 import java.util.List;
 
+/**
+ * Data for an armor shop
+ */
 public class ArmorShopData extends ArmorStandShopData {
 
     @Getter
     private List<ArmorLevel> armorLevels;
 
+    /**
+     * A level of an armor shop's available armor levels
+     */
     @Getter
     public static class ArmorLevel {
 

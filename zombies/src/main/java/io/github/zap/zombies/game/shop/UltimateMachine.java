@@ -3,14 +3,20 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
+import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
+/**
+ * Machine for upgrading designated upgradeable equipment
+ */
 public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
     public UltimateMachine(ZombiesArena zombiesArena, UltimateMachineData shopData) {
@@ -33,16 +39,19 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     @Override
     protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
+            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            Player player = zombiesPlayer.getPlayer();
 
             if (!getShopData().isRequiresPower() || isPowered()) {
                 if (zombiesPlayer.getCoins() < getShopData().getCost()) {
-                    // TODO: poor
+                    localizationManager.sendLocalizedMessage(player,
+                            ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
                 } else {
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
 
                     HotbarObject hotbarObject = hotbarManager.getSelectedObject();
-                    if (hotbarObject instanceof UpgradeableEquipment<?, ?>) {
+                    if (hotbarObject instanceof Ultimateable && hotbarObject instanceof UpgradeableEquipment<?, ?>) {
                         UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
                         if (upgradeableEquipment.getLevel()
                                 < upgradeableEquipment.getEquipmentData().getLevels().size()) {
@@ -57,7 +66,8 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                     }
                 }
             } else {
-                // TODO: needs power
+                localizationManager.sendLocalizedMessage(player,
+                        ChatColor.RED + MessageKey.NO_POWER.getKey());
             }
 
             return true;

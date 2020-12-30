@@ -11,6 +11,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+/**
+ * Shop which interacts with a single block
+ * @param <D> The data type of the shop
+ */
 public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
 
     @Getter

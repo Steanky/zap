@@ -6,6 +6,8 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -22,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Shop for purchasing pieces of armor at a time
+ */
 public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
     private static final Map<Integer, EnumWrappers.ItemSlot> ITEM_SLOT_MAP = new HashMap<>() {
@@ -78,42 +83,51 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     @Override
     protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-                Player player = zombiesPlayer.getPlayer();
+            LocalizationManager localizationManager = getLocalizationManager();
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            Player player = zombiesPlayer.getPlayer();
 
+            if (!getShopData().isRequiresPower() || isPowered()) {
                 ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
                 if (armorLevel == null) {
                     // TODO: ya done now
                 } else {
-                    // Choose the best equipments
-                    Material[] materials = armorLevel.getMaterials();
-                    ItemStack[] current = player.getEquipment().getArmorContents();
-                    for (int i = 0; i < 4; i++) {
-                        Material material = materials[i];
-                        ItemStack itemStack = current[i];
+                    int cost = armorLevel.getCost();
 
-                        if (material != null) {
-                            if (itemStack != null
-                                    && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
-                                itemStack.setType(material);
-                            } else {
-                                current[i] = new ItemStack(material);
+                    if (zombiesPlayer.getCoins() < cost) {
+                        localizationManager.sendLocalizedMessage(player,
+                                ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                    } else {
+                        // Choose the best equipments
+                        Material[] materials = armorLevel.getMaterials();
+                        ItemStack[] current = player.getEquipment().getArmorContents();
+                        for (int i = 0; i < 4; i++) {
+                            Material material = materials[i];
+                            ItemStack itemStack = current[i];
+
+                            if (material != null) {
+                                if (itemStack != null
+                                        && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
+                                    itemStack.setType(material);
+                                } else {
+                                    current[i] = new ItemStack(material);
+                                }
                             }
+
                         }
 
+                        player.getEquipment().setArmorContents(current);
+                        zombiesPlayer.subtractCoins(cost);
+
+                        displayTo(player);
+                        onPurchaseSuccess(zombiesPlayer);
                     }
-
-                    player.getEquipment().setArmorContents(current);
-                    displayTo(player);
-
-                    onPurchaseSuccess(zombiesPlayer);
                 }
 
             } else {
-                // TODO: power
+                localizationManager.sendLocalizedMessage(player,
+                        ChatColor.RED + MessageKey.NO_POWER.getKey());
             }
-
 
             return true;
         }
@@ -125,6 +139,11 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         return ShopType.ARMOR_SHOP.name();
     }
 
+    /**
+     * Determines the relevant armor level of the player
+     * @param player The player to determine the armor level for
+     * @return The armor level of the player, or null if the player's armor is better than the shop can provide
+     */
     private ArmorShopData.ArmorLevel determineArmorLevel(Player player) {
         ItemStack[] equipment = player.getEquipment().getArmorContents();
         for (ArmorShopData.ArmorLevel armorLevel : getShopData().getArmorLevels()) {
@@ -145,6 +164,11 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         return null;
     }
 
+    /**
+     * Sends packets relating to a player's current armor and the armor shop itself
+     * @param player The player to send the packets to
+     * @param armorLevel The armor level to compare the player's armor against
+     */
     private void sendArmorStandUpdatePackets(Player player, ArmorShopData.ArmorLevel armorLevel) {
         ItemStack[] equipment = player.getEquipment().getArmorContents();
         Material[] materials = armorLevel.getMaterials();

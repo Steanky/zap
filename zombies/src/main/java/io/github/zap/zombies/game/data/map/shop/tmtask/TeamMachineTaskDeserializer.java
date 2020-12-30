@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Deserializer for team machine tasks based on a type field
+ */
 public class TeamMachineTaskDeserializer extends JsonDeserializer<TeamMachineTask> {
 
     @Getter

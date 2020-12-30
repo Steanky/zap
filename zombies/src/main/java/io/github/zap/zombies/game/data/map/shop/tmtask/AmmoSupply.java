@@ -7,6 +7,9 @@ import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 
+/**
+ * Task which refills all gun ammo in a player team
+ */
 public class AmmoSupply extends TeamMachineTask {
 
     public AmmoSupply() {

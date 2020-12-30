@@ -8,6 +8,9 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data for a lucky chest
+ */
 @Getter
 public class LuckyChestData extends ShopData {
 

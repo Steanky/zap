@@ -3,6 +3,7 @@ package io.github.zap.zombies.game.equipment.gun;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
+import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import lombok.Getter;
 import org.bukkit.Sound;
@@ -18,7 +19,8 @@ import org.bukkit.scheduler.BukkitRunnable;
  * @param <L> The gun level type
  */
 @Getter
-public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends UpgradeableEquipment<D, L> {
+public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends UpgradeableEquipment<D, L>
+        implements Ultimateable {
 
     private int currentClipAmmo;
 

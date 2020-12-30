@@ -8,6 +8,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
+/**
+ * Switch used to turn on the power in the arena permanently
+ */
 public class PowerSwitch extends BlockShop<PowerSwitchData> {
 
     public PowerSwitch(ZombiesArena zombiesArena, PowerSwitchData shopData) {

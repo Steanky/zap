@@ -6,6 +6,9 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data for a team machine
+ */
 @Getter
 public class TeamMachineData extends BlockShopData {
 

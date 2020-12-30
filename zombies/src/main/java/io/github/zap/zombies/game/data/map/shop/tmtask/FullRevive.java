@@ -3,6 +3,9 @@ package io.github.zap.zombies.game.data.map.shop.tmtask;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 
+/**
+ * Task which revives all knocked down players in an arena
+ */
 public class FullRevive extends TeamMachineTask {
 
     public FullRevive() {

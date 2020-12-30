@@ -5,6 +5,9 @@ import lombok.Getter;
 
 import java.util.List;
 
+/**
+ * Data for a perk machine
+ */
 @Getter
 public class PerkMachineData extends BlockShopData {
 

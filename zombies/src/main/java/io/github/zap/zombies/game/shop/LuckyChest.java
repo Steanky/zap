@@ -2,6 +2,8 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -27,6 +29,10 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
+// TODO: protocollib
+/**
+ * Chest used to randomly generate a weapon from a predefined set of weapons to present to the player
+ */
 public class LuckyChest extends Shop<LuckyChestData> {
 
     @Getter
@@ -65,12 +71,20 @@ public class LuckyChest extends Shop<LuckyChestData> {
         roller = new Roller(this);
     }
 
-    public void toggle(boolean show) {
-        if (show) {
+    /**
+     * Enables or disables the lucky chest
+     * @param enable Whether or not to enable the lucky chest
+     */
+    public void toggle(boolean enable) {
+        if (enable) {
             hologram = new Hologram(chestLocation.clone().add(0, 0.5, 0));
+
+            active = true;
         } else if (hologram != null) {
             hologram.destroy();
             hologram = null;
+
+            active = false;
         }
     }
 
@@ -83,7 +97,17 @@ public class LuckyChest extends Shop<LuckyChestData> {
     @Override
     protected void displayTo(Player player) {
         if (hologram != null) {
+            LuckyChestData luckyChestData = getShopData();
+
             hologram.renderTo(player);
+
+            hologram.setLineFor(player, 0, ChatColor.DARK_PURPLE + "Lucky Chest");
+            hologram.setLineFor(player, 1,
+                    luckyChestData.isRequiresPower() && !isPowered()
+                            ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                            : ChatColor.YELLOW.toString() + ChatColor.BOLD.toString()
+                            + luckyChestData.getCost() + " Gold"
+            );
         }
         roller.displayTo(player);
     }
@@ -93,6 +117,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
 
         if (left.equals(playerInteractEvent.getClickedBlock()) || right.equals(playerInteractEvent.getClickedBlock())) {
+            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
 
@@ -102,7 +127,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
                     if (roller.getRoller() == null) {
                         if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                            // TODO: poor
+                            localizationManager.sendLocalizedMessage(player,
+                                    ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
                         } else {
                             roller.start(player);
                         }
@@ -141,7 +167,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     // TODO: not active rn
                 }
             } else {
-                // TODO: needs power
+                localizationManager.sendLocalizedMessage(player,
+                        ChatColor.RED + MessageKey.NO_POWER.getKey());
             }
 
             return true;
@@ -155,6 +182,9 @@ public class LuckyChest extends Shop<LuckyChestData> {
         return ShopType.LUCKY_CHEST.name();
     }
 
+    /**
+     * Utility class to roll the guns in the chest's display
+     */
     private static class Roller {
 
         private final Random random = new Random();
@@ -213,6 +243,10 @@ public class LuckyChest extends Shop<LuckyChestData> {
             this.sittingTime = luckyChestData.getSittingTime();
         }
 
+        /**
+         * Displays all relevant holograms to a player
+         * @param player The player to display the holograms to
+         */
         private void displayTo(Player player) {
             if (timeRemaining != null) {
                 timeRemaining.renderTo(player);
@@ -230,11 +264,19 @@ public class LuckyChest extends Shop<LuckyChestData> {
             }
         }
 
+        /**
+         * Starts the rolling
+         * @param roller The player that initiated the rolling
+         */
         public void start(Player roller) {
             this.roller = roller;
             gunSwap(0);
         }
 
+        /**
+         * Recursively swaps guns until the jingle has ended
+         * @param occurrence The number of times the gun has swapped
+         */
         private void gunSwap(int occurrence) {
             if (occurrence < jingle.size()) {
                 if (occurrence == 0) {
@@ -283,6 +325,9 @@ public class LuckyChest extends Shop<LuckyChestData> {
             }
         }
 
+        /**
+         * Stops the gun from sitting in the lucky chest's display
+         */
         public void cancelSitting() {
             timeRemaining.destroy();
             timeRemaining = null;

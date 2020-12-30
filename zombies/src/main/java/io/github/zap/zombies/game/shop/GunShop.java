@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.GunShopData;
@@ -19,6 +21,9 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
+/**
+ * Shop used to purchase guns
+ */
 public class GunShop extends ArmorStandShop<GunShopData> {
 
     private Item item = null;
@@ -98,8 +103,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
+            LocalizationManager localizationManager = getLocalizationManager();
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            Player player = zombiesPlayer.getPlayer();
+
             if (!getShopData().isRequiresPower() || isPowered()) {
-                ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
                 HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                 GunObjectGroup gunObjectGroup = (GunObjectGroup)
                         hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
@@ -109,7 +117,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     // TODO: ye
                 }
             } else {
-                // TODO: need power
+                localizationManager.sendLocalizedMessage(player,
+                        ChatColor.RED + MessageKey.NO_POWER.getKey());
             }
 
             return true;
@@ -133,11 +142,14 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
                     int refillCost = gunShopData.getRefillCost();
                     if (zombiesPlayer.getCoins() < refillCost) {
-                        // TODO: cannot refill
+                        getLocalizationManager().sendLocalizedMessage(zombiesPlayer.getPlayer(),
+                                ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+
                         return false;
                     } else {
                         zombiesPlayer.subtractCoins(refillCost);
                         gun.refill();
+
                         return true;
                     }
                 }
@@ -164,7 +176,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
         int cost = gunShopData.getCost();
         if (zombiesPlayer.getCoins() < cost) {
-            // TODO: cannot buy
+            getLocalizationManager().sendLocalizedMessage(player,
+                    ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+
             return false;
         } else {
             zombiesPlayer.subtractCoins(getShopData().getCost());
