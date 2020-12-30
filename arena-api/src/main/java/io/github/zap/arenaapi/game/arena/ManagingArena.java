@@ -134,7 +134,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     private int onlineCount;
 
-    //events
+    //custom events that aren't just wrapping Bukkit ones somehow
     private final Event<PlayerListArgs> playerJoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
@@ -170,7 +170,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     /**
-     * Basically just makes it so that players exiting the server are treated as if they simply quit the game.
+     * Basically just makes it so that players exiting the server while in an arena are treated as if they simply quit
+     * the game.
      * @param args The PlayerQuitEvent and associated ManagedPlayer instance
      */
     private void onPlayerQuit(ProxyArgs<PlayerQuitEvent> args) {

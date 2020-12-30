@@ -78,6 +78,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private LocalizationManager localizationManager;
 
     public static final String DEFAULT_LOCALE = "en_US";
+    public static final String DEFAULT_LOBBY_WORLD = "world";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
@@ -131,7 +132,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
-        config.addDefault(ConfigNames.LOBBY_WORLD,"world");
+        config.addDefault(ConfigNames.LOBBY_WORLD, DEFAULT_LOBBY_WORLD);
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -179,9 +180,8 @@ public final class Zombies extends JavaPlugin implements Listener {
             if(world != null) {
                 ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
                         new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
-                        Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
-                        config.getInt(ConfigNames.MAX_WORLDS),
-                        config.getInt(ConfigNames.ARENA_TIMEOUT));
+                        Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(), config.getInt(
+                                ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaApi.registerArenaManager(zombiesArenaManager);
             }
             else {

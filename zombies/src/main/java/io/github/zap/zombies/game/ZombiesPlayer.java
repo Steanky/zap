@@ -97,6 +97,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         state = ZombiesPlayerState.DEAD;
         getPlayer().setGameMode(GameMode.SPECTATOR);
+
+        perks.activateAll();
     }
 
     @Override

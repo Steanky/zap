@@ -295,6 +295,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 cumulativeDelay += wave.getWaveLength();
                 List<MythicMob> mobs = new ArrayList<>();
 
+                //TODO: remove this and add a custom serializer and deserializer
                 for(String mobName : wave.getMobs()) { //convert mob names to MythicMob instances
                     MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
                     if(mob != null) {
