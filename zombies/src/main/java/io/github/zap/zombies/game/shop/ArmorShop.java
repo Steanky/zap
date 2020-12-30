@@ -6,6 +6,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
@@ -52,45 +53,26 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     @Override
     protected void displayTo(Player player) {
         Hologram hologram = getHologram();
+        ArmorShopData armorShopData = getShopData();
+
+        List<ArmorShopData.ArmorLevel> armorLevels = armorShopData.getArmorLevels();
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
-        hologram.setLineFor(player, 1,
-                (armorLevel == null)
-                        ? "UNLOCKED"
-                        : getShopData().isRequiresPower() && !isPowered()
-                            ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                            : ChatColor.GOLD.toString() + armorLevel.getCost() + " Gold"
-        );
-
-        List<ArmorShopData.ArmorLevel> armorLevels = getShopData().getArmorLevels();
-        if (armorLevel == null) armorLevel = armorLevels.get(armorLevels.size() - 1);
-        hologram.setLineFor(player, 0, ChatColor.GREEN + armorLevel.getName());
-
-
-        ItemStack[] equipment = player.getEquipment().getArmorContents();
-        Material[] materials = armorLevel.getMaterials();
-        int armorStandId = getArmorStand().getEntityId();
-        for (int i = 0; i < 4; i++) {
-            Material material = materials[i];
-            ItemStack itemStack = equipment[i];
-            if (material != null) {
-                if (itemStack != null) {
-                    itemStack.setType(material);
-                } else {
-                    itemStack = new ItemStack(material);
-                }
-            }
-            PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_EQUIPMENT);
-            packetContainer.getIntegers().write(0, armorStandId);
-            packetContainer.getItemSlots().write(0, ITEM_SLOT_MAP.get(i + 2));
-            packetContainer.getItemModifier().write(0, itemStack);
-
-            try {
-                protocolManager.sendServerPacket(player, packetContainer);
-            } catch (InvocationTargetException exception) {
-                exception.printStackTrace();
-            }
+        // Display the hologram
+        String secondHologramLine;
+        if (armorLevel == null) {
+            armorLevel = armorLevels.get(armorLevels.size() - 1);
+            secondHologramLine = "UNLOCKED";
+        } else {
+            secondHologramLine = (armorShopData.isRequiresPower() && !isPowered())
+                    ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                    : ChatColor.GOLD.toString() + armorLevel.getCost() + " Gold";
         }
+
+        sendArmorStandUpdatePackets(player, armorLevel);
+
+        hologram.setLineFor(player, 0, ChatColor.GREEN + armorLevel.getName());
+        hologram.setLineFor(player, 1, secondHologramLine);
     }
 
     @Override
@@ -99,10 +81,12 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
             if (!getShopData().isRequiresPower() || isPowered()) {
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
                 Player player = zombiesPlayer.getPlayer();
+
                 ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
                 if (armorLevel == null) {
                     // TODO: ya done now
                 } else {
+                    // Choose the best equipments
                     Material[] materials = armorLevel.getMaterials();
                     ItemStack[] current = player.getEquipment().getArmorContents();
                     for (int i = 0; i < 4; i++) {
@@ -110,7 +94,8 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                         ItemStack itemStack = current[i];
 
                         if (material != null) {
-                            if (itemStack != null && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
+                            if (itemStack != null
+                                    && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
                                 itemStack.setType(material);
                             } else {
                                 current[i] = new ItemStack(material);
@@ -118,6 +103,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                         }
 
                     }
+
                     player.getEquipment().setArmorContents(current);
                     displayTo(player);
 
@@ -146,22 +132,50 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
             for (int i = 0; i < 4; i++) {
                 Material material = materials[i];
                 ItemStack itemStack = equipment[i];
-                if (material != null) {
-                    if (itemStack != null) {
-                        int currentDurability = itemStack.getType().getMaxDurability();
-                        int armorDurability = material.getMaxDurability();
 
-                        if (armorDurability > currentDurability) {
-                            return armorLevel;
-                        }
-                    } else {
-                        return armorLevel;
-                    }
+                // Accept any material that overrides a current item stack's durability or lack thereof
+                if (material != null
+                        &&
+                        (itemStack == null || material.getMaxDurability() > itemStack.getType().getMaxDurability())) {
+                    return armorLevel;
                 }
             }
         }
 
         return null;
+    }
+
+    private void sendArmorStandUpdatePackets(Player player, ArmorShopData.ArmorLevel armorLevel) {
+        ItemStack[] equipment = player.getEquipment().getArmorContents();
+        Material[] materials = armorLevel.getMaterials();
+
+        int armorStandId = getArmorStand().getEntityId();
+        for (int i = 0; i < 4; i++) {
+            Material material = materials[i];
+            ItemStack itemStack = equipment[i];
+
+            if (material != null) {
+                if (itemStack != null) {
+                    itemStack.setType(material);
+                } else {
+                    itemStack = new ItemStack(material);
+                }
+            }
+
+
+            PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_EQUIPMENT);
+            packetContainer.getIntegers().write(0, armorStandId);
+            packetContainer.getItemSlots().write(0, ITEM_SLOT_MAP.get(i + 2));
+            packetContainer.getItemModifier().write(0, itemStack);
+
+            try {
+                protocolManager.sendServerPacket(player, packetContainer);
+            } catch (InvocationTargetException exception) {
+                Zombies.getInstance().getLogger().warning(
+                        String.format("Error creating armor shop equipment packets for entity id %d", armorStandId)
+                );
+            }
+        }
     }
 
 }

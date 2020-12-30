@@ -34,18 +34,20 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+
             if (!getShopData().isRequiresPower() || isPowered()) {
                 if (zombiesPlayer.getCoins() < getShopData().getCost()) {
                     // TODO: poor
                 } else {
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+
                     HotbarObject hotbarObject = hotbarManager.getSelectedObject();
                     if (hotbarObject instanceof UpgradeableEquipment<?, ?>) {
                         UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
-                        if (upgradeableEquipment.getLevel() < upgradeableEquipment.getEquipmentData().getLevels().size()) {
-                            upgradeableEquipment.upgrade();
-                            // TODO: send confirmation messages
+                        if (upgradeableEquipment.getLevel()
+                                < upgradeableEquipment.getEquipmentData().getLevels().size()) {
 
+                            upgradeableEquipment.upgrade();
                             onPurchaseSuccess(zombiesPlayer);
                         } else {
                             // TODO: max level
@@ -55,8 +57,9 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                     }
                 }
             } else {
-                // TODO: needs powa
+                // TODO: needs power
             }
+
             return true;
         }
         return false;

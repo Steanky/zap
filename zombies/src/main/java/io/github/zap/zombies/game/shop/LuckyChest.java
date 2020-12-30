@@ -90,28 +90,33 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
     @Override
     protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        Event event = args.getEvent();
-        if (event instanceof PlayerInteractEvent) {
-            PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) event;
-            if (left.equals(playerInteractEvent.getClickedBlock())
-                    || right.equals(playerInteractEvent.getClickedBlock())) {
-                ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-                Player player = zombiesPlayer.getPlayer();
-                if (!getShopData().isRequiresPower() && isPowered()) {
-                    if (active) {
-                        LuckyChestData luckyChestData = getShopData();
-                        if (roller.getRoller() == null) {
-                            if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                                // TODO: poor
+        PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
+
+        if (left.equals(playerInteractEvent.getClickedBlock()) || right.equals(playerInteractEvent.getClickedBlock())) {
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            Player player = zombiesPlayer.getPlayer();
+
+            if (!getShopData().isRequiresPower() || isPowered()) {
+                if (active) {
+                    LuckyChestData luckyChestData = getShopData();
+
+                    if (roller.getRoller() == null) {
+                        if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
+                            // TODO: poor
+                        } else {
+                            roller.start(player);
+                        }
+                    } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
+                        if (roller.isCollectable()) {
+                            EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
+
+                            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
+                                    .getHotbarObjectGroup(equipmentData.getName());
+
+                            if (equipmentObjectGroup == null) {
+                                // TODO: uncollectable
                             } else {
-                                roller.start(player);
-                            }
-                        } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
-                            if (roller.isCollectable()) {
-                                EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
-                                HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                                EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
-                                        .getHotbarObjectGroup(equipmentData.getName());
                                 Integer slot = equipmentObjectGroup.getNextEmptySlot();
                                 if (slot == null) {
                                     // TODO: choose a slot
@@ -125,22 +130,21 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
                                     onPurchaseSuccess(zombiesPlayer);
                                 }
-                            } else {
-                                // TODO: still rolling
                             }
                         } else {
-                            // TODO: you're not the roller
+                            // TODO: still rolling
                         }
                     } else {
-                        // TODO: not active rn
+                        // TODO: you're not the roller
                     }
                 } else {
-                    // TODO: needs power
+                    // TODO: not active rn
                 }
-
-
-                return true;
+            } else {
+                // TODO: needs power
             }
+
+            return true;
         }
 
         return false;
@@ -214,10 +218,12 @@ public class LuckyChest extends Shop<LuckyChestData> {
                 timeRemaining.renderTo(player);
                 timeRemaining.setLineFor(player, 0, timeRemainingString);
             }
+
             if (rightClickToClaim != null) {
                 rightClickToClaim.renderTo(player);
                 rightClickToClaim.setLineFor(player, 0, rightClickToClaimString);
             }
+
             if (gunName != null) {
                 gunName.renderTo(player);
                 gunName.setLineFor(player, 0, gunNameString);
@@ -247,6 +253,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     @Override
                     public void run() {
                         EquipmentData<?> equipmentData = equipments.get(rollIndex = random.nextInt(jingle.size()));
+
                         rollingItem.getItemStack().setType(equipmentData.getMaterial());
                         gunName.setLine(0, gunNameString = equipmentData.getName());
                         world.playSound(rollingItem.getLocation(), sound.getLeft(), sound.getMiddle(), 1.0F);
@@ -279,16 +286,20 @@ public class LuckyChest extends Shop<LuckyChestData> {
         public void cancelSitting() {
             timeRemaining.destroy();
             timeRemaining = null;
+
             rightClickToClaim.destroy();
             rightClickToClaim = null;
+
             gunName.destroy();
             gunName = null;
+
             rollingItem.remove();
             rollingItem = null;
 
-            Bukkit.getScheduler().cancelTask(sittingTaskId);
             roller = null;
             collectable = false;
+
+            Bukkit.getScheduler().cancelTask(sittingTaskId);
         }
 
     }

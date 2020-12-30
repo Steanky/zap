@@ -1,10 +1,12 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -34,13 +36,16 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
         ZombiesArena zombiesArena = getZombiesArena();
         zombiesArena.getInventoryClickEvent().registerHandler(args -> {
             InventoryClickEvent inventoryClickEvent = args.getEvent();
+
             if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
                 ZombiesPlayer zombiesPlayer = zombiesArena.getPlayerMap()
                         .get(inventoryClickEvent.getWhoClicked().getUniqueId());
 
                 if (zombiesPlayer != null) {
                     TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
+
                     if (teamMachineTask != null && teamMachineTask.execute(zombiesArena, zombiesPlayer)) {
+                        inventoryClickEvent.setCancelled(true);
                         onPurchaseSuccess(zombiesPlayer);
                     }
                 }
@@ -50,7 +55,15 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
 
     @Override
     protected void displayTo(Player player) {
+        Hologram hologram = getHologram();
 
+        hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Team Machine");
+
+        hologram.setLine(1,
+                getShopData().isRequiresPower() && !isPowered()
+                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                        : ChatColor.GREEN + "rc to open"
+        );
     }
 
     @Override
@@ -81,7 +94,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
         }
 
         int guiSize = 9 * Math.min(6, height + 2);
-        Inventory inventory = Bukkit.createInventory(null, guiSize);
+        Inventory inventory = Bukkit.createInventory(null, guiSize, "Team Machine");
 
         int index = 0;
 

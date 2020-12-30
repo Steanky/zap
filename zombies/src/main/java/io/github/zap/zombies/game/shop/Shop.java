@@ -14,6 +14,7 @@ public abstract class Shop<D extends ShopData> {
     private final ZombiesArena zombiesArena;
 
     private final D shopData;
+
     private boolean powered = false;
 
     public Shop(ZombiesArena zombiesArena, D shopData) {

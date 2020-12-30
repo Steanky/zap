@@ -19,6 +19,7 @@ public class AmmoSupply extends TeamMachineTask {
             for (ZombiesPlayer otherZombiesPlayer : zombiesArena.getPlayerMap().values()) {
                 GunObjectGroup gunObjectGroup = (GunObjectGroup)
                         otherZombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+
                 if (gunObjectGroup != null) {
                     for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
                         if (hotbarObject instanceof Gun<?, ?>) {

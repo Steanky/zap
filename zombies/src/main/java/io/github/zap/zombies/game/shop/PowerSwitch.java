@@ -31,14 +31,21 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+
             if (isPowered()) {
                 // TODO: already powered
-            } else if (zombiesPlayer.getCoins() < getShopData().getCost()) {
-                // TODO: poor
             } else {
-                onPurchaseSuccess(zombiesPlayer);
-                // TODO: success
+                int cost = getShopData().getCost();
+
+                if (zombiesPlayer.getCoins() < cost) {
+                    // TODO: poor
+                } else {
+                    // TODO: success
+                    zombiesPlayer.subtractCoins(cost);
+                    onPurchaseSuccess(zombiesPlayer);
+                }
             }
+
             return true;
         }
 

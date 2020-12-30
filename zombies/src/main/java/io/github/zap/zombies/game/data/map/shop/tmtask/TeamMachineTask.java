@@ -21,10 +21,13 @@ public abstract class TeamMachineTask {
     }
 
     public boolean execute(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        if (zombiesPlayer.getCoins() < getCost()) {
+        int cost = getCost();
+        if (zombiesPlayer.getCoins() < cost) {
             // TODO: poor
         } else {
             timesUsed++;
+            zombiesPlayer.subtractCoins(cost);
+
             return true;
         }
 

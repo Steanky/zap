@@ -28,6 +28,16 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
+    protected void registerArenaEvents() {
+        super.registerArenaEvents();
+        getZombiesArena().getShopEvents().get(getShopType()).registerHandler(args -> {
+            if (args.getShop().equals(this)) {
+                displayTo(args.getZombiesPlayer().getPlayer());
+            }
+        });
+    }
+
+    @Override
     public void display() {
         if (item == null) {
             World world = getZombiesArena().getWorld();
@@ -50,36 +60,39 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     protected void displayTo(Player player) {
         ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
-        Hologram hologram = getHologram();
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
 
-        if (zombiesPlayer != null) {
-            GunObjectGroup gunObjectGroup = (GunObjectGroup) zombiesPlayer.getHotbarManager()
-                    .getHotbarObjectGroup(EquipmentType.GUN.name());
-            for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
-                if (hotbarObject instanceof Gun<?, ?>) {
-                    Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
-                    if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
-                        // TODO: localization
-                        hologram.setLineFor(player, 0,
-                                ChatColor.GREEN + gunName + " Ammo");
-                        hologram.setLineFor(player, 1,
-                                gunShopData.isRequiresPower() && !isPowered()
-                                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                                        : ChatColor.GOLD.toString() + gunShopData.getRefillCost() + " Gold");
+        String firstHologramLine = ChatColor.GREEN.toString();
+        String secondHologramLine = (gunShopData.isRequiresPower() && !isPowered())
+                ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                : ChatColor.GOLD.toString() + gunShopData.getRefillCost() + " Gold";
 
-                        return;
+        if (zombiesPlayer != null) {
+            GunObjectGroup gunObjectGroup
+                    = (GunObjectGroup) zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+            if (gunObjectGroup != null) {
+                for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
+                    if (hotbarObject instanceof Gun<?, ?>) {
+                        Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
+
+                        if (gun.getEquipmentData().getName().equals(gunName)) {
+                            firstHologramLine += gunName + " Ammo";
+                            break;
+                        }
                     }
                 }
             }
         }
 
-        hologram.setLineFor(player, 0, ChatColor.GREEN + gunName);
-        hologram.setLineFor(player, 1,
-                gunShopData.isRequiresPower() && !isPowered()
-                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                        : ChatColor.GOLD + String.valueOf(gunShopData.getRefillCost()));
+        if (firstHologramLine.equals(ChatColor.GREEN.toString())) {
+            firstHologramLine += gunName;
+        }
+
+        Hologram hologram = getHologram();
+
+        hologram.setLineFor(player, 0, firstHologramLine);
+        hologram.setLineFor(player, 1, secondHologramLine);
     }
 
     @Override
@@ -95,6 +108,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     onPurchaseSuccess(zombiesPlayer);
                     // TODO: ye
                 }
+            } else {
+                // TODO: need power
             }
 
             return true;
@@ -110,6 +125,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
     private Boolean tryRefill(ZombiesPlayer zombiesPlayer, GunObjectGroup gunObjectGroup) {
         GunShopData gunShopData = getShopData();
+
         for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
             if (hotbarObject instanceof Gun<?, ?>) {
                 Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
@@ -145,6 +161,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 return false;
             }
         }
+
         int cost = gunShopData.getCost();
         if (zombiesPlayer.getCoins() < cost) {
             // TODO: cannot buy
@@ -156,7 +173,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     slot,
                     getZombiesArena().getMap().getMapNameKey(),
                     gunShopData.getGunName()));
-            displayTo(player);
+
             return true;
         }
     }
