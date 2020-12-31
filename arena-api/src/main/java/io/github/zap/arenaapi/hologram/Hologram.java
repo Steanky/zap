@@ -146,11 +146,13 @@ public class Hologram {
      * Removes all hologram entities
      */
     public void destroy() {
-        PacketContainer packetContainer = removeHologramLines();
-        sendToAll(packetContainer);
+        if (!active) {
+            PacketContainer packetContainer = removeHologramLines();
+            sendToAll(packetContainer);
 
-        hologramLines.clear();
-        active = false;
+            hologramLines.clear();
+            active = false;
+        }
     }
 
     /**
@@ -158,14 +160,16 @@ public class Hologram {
      * @param player The player to render the hologram to
      */
     public void renderTo(Player player) {
-        for (int i = 0; i < hologramLines.size(); i++) {
-            sendTo(player, createHologramLine(
-                    location.clone().subtract(0D, i * LINE_SPACE, 0D)
-            ));
-        }
+        if (active) {
+            for (int i = 0; i < hologramLines.size(); i++) {
+                sendTo(player, createHologramLine(
+                        location.clone().subtract(0D, i * LINE_SPACE, 0D)
+                ));
+            }
 
-        for (int i = 0; i < defaultLines.size(); i++) {
-            setLineFor(player, i, defaultLines.get(i));
+            for (int i = 0; i < defaultLines.size(); i++) {
+                setLineFor(player, i, defaultLines.get(i));
+            }
         }
     }
 

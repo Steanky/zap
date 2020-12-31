@@ -51,6 +51,10 @@ public abstract class TeamMachineTask {
         return false;
     }
 
+    /**
+     * Gets the current cost of the team machine task to purchase
+     * @return The current cost
+     */
     protected abstract int getCost();
 
 }

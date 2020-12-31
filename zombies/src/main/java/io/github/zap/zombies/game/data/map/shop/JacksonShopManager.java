@@ -1,10 +1,10 @@
 package io.github.zap.zombies.game.data.map.shop;
 
+import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
-import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTaskDeserializer;
 import io.github.zap.zombies.game.shop.*;
 import lombok.Getter;
 
@@ -14,16 +14,18 @@ import lombok.Getter;
 @Getter
 public class JacksonShopManager implements ShopManager {
 
-    private final ShopDataDeserializer shopDataDeserializer = new ShopDataDeserializer();
+    private final FieldTypeDeserializer<ShopData> shopDataDeserializer
+            = new FieldTypeDeserializer<>("type");
 
     private final ShopCreator shopCreator = new ShopCreator();
 
     public JacksonShopManager() {
         JacksonDataLoader jacksonDataLoader = (JacksonDataLoader) Zombies.getInstance().getDataLoader();
         jacksonDataLoader.addDeserializer(ShopData.class, shopDataDeserializer);
-        jacksonDataLoader.addDeserializer(TeamMachineTask.class, new TeamMachineTaskDeserializer());
+        jacksonDataLoader.addDeserializer(TeamMachineTask.class, new FieldTypeDeserializer<>("type"));
 
         addShop(ShopType.ARMOR_SHOP.name(), ArmorShopData.class, ArmorShop::new);
+        addShop(ShopType.DOOR.name(), DoorData.class, Door::new);
         addShop(ShopType.GUN_SHOP.name(), GunShopData.class, GunShop::new);
         addShop(ShopType.LUCKY_CHEST.name(), LuckyChestData.class, LuckyChest::new);
         addShop(ShopType.PERK_MACHINE.name(), PerkMachineData.class, PerkMachine::new);
@@ -35,7 +37,7 @@ public class JacksonShopManager implements ShopManager {
     @Override
     public <D extends ShopData> void addShop(String shopType, Class<D> dataClass,
                                              ShopCreator.ShopMapping<D> shopMapping) {
-        shopDataDeserializer.getShopDataClassMappings().put(shopType, dataClass);
+        shopDataDeserializer.getMappings().put(shopType, dataClass);
         shopCreator.getShopMappings().put(shopType, shopMapping);
     }
 

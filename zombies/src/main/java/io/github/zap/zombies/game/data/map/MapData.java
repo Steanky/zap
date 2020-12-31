@@ -196,11 +196,6 @@ public class MapData {
     List<RoomData> rooms = new ArrayList<>();
 
     /**
-     * All the doors managed by this map
-     */
-    List<DoorData> doors = new ArrayList<>();
-
-    /**
      * All the shops managed by this map
      */
     List<ShopData> shops = new ArrayList<>();
@@ -263,23 +258,6 @@ public class MapData {
                     if(window.inRange(standing, distance)) {
                         return window;
                     }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets the door containing the specified vector.
-     * @param target The vector to search for
-     * @return The door whose bounds contains the specified vector, or null
-     */
-    public DoorData doorAt(Vector target) {
-        if(mapBounds.contains(target)) {
-            for(DoorData door : doors) {
-                if(door.getDoorBounds().contains(target)) {
-                    return door;
                 }
             }
         }

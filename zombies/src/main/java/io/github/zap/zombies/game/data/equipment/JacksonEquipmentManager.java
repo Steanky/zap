@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.equipment;
 
+import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +30,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class JacksonEquipmentManager implements EquipmentManager {
 
-    private final EquipmentDataDeserializer equipmentDataDeserializer = new EquipmentDataDeserializer();
+    private final FieldTypeDeserializer<EquipmentData<?>> equipmentDataDeserializer
+            = new FieldTypeDeserializer<>("type");
 
     private final EquipmentCreator equipmentCreator = new EquipmentCreator();
 
@@ -49,7 +52,7 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
     public <D extends EquipmentData<L>, L> void  addEquipmentType(String equipmentType, Class<D> dataClass,
                      EquipmentCreator.EquipmentMapping<D, L> equipmentMapping) {
-        equipmentDataDeserializer.getEquipmentDataClassMappings().put(equipmentType, dataClass);
+        equipmentDataDeserializer.getMappings().put(equipmentType, dataClass);
         equipmentCreator.getEquipmentMappings().put(equipmentType, equipmentMapping);
     }
 
