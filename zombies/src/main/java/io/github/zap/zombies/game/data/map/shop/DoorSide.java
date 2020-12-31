@@ -6,6 +6,9 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
+/**
+ * Data for a side of a door
+ */
 @Getter
 public class DoorSide {
 

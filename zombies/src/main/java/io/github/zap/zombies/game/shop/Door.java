@@ -53,7 +53,6 @@ public class Door extends Shop<DoorData> {
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        getZombiesArena().getPlayerInteractEvent().registerHandler(this::purchase);
     }
 
     @Override
@@ -68,42 +67,45 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    protected boolean purchase(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
-        DoorData doorData = getShopData();
-        ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-        Player player = zombiesPlayer.getPlayer();
+    public boolean purchase(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
+        Event event = args.getEvent();
+        if (event instanceof PlayerInteractEvent) {
+            DoorData doorData = getShopData();
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            Player player = zombiesPlayer.getPlayer();
 
-        PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
-        Block block = playerInteractEvent.getClickedBlock();
+            PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
+            Block block = playerInteractEvent.getClickedBlock();
 
-        if (block != null && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
-            for (DoorSide doorSide : doorData.getDoorSides()) {
-                if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
-                    int cost = doorSide.getCost();
-                    if (zombiesPlayer.getCoins() < cost) {
-                        // TODO: poor
-                    } else {
-                        ZombiesArena zombiesArena = getZombiesArena();
-                        WorldUtils.fillBounds(
-                                zombiesArena.getWorld(),
-                                doorData.getDoorBounds(),
-                                zombiesArena.getMap().getDoorFillMaterial()
-                        );
-                        zombiesPlayer.subtractCoins(cost);
+            if (block != null && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
+                for (DoorSide doorSide : doorData.getDoorSides()) {
+                    if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
+                        int cost = doorSide.getCost();
+                        if (zombiesPlayer.getCoins() < cost) {
+                            // TODO: poor
+                        } else {
+                            ZombiesArena zombiesArena = getZombiesArena();
+                            WorldUtils.fillBounds(
+                                    zombiesArena.getWorld(),
+                                    doorData.getDoorBounds(),
+                                    zombiesArena.getMap().getDoorFillMaterial()
+                            );
+                            zombiesPlayer.subtractCoins(cost);
 
-                        for (Hologram hologram : doorSideHologramMap.values()) {
-                            hologram.destroy();
+                            for (Hologram hologram : doorSideHologramMap.values()) {
+                                hologram.destroy();
+                            }
+                            opened = true;
+
+                            onPurchaseSuccess(zombiesPlayer);
                         }
-                        opened = true;
 
-                        onPurchaseSuccess(zombiesPlayer);
+                        break;
                     }
-
-                    break;
                 }
-            }
 
-            return true;
+                return true;
+            }
         }
 
         return false;

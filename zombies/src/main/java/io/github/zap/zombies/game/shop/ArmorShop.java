@@ -81,7 +81,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
-    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();

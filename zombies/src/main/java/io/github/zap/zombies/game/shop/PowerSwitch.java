@@ -31,7 +31,7 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
 

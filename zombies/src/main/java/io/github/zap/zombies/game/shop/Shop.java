@@ -82,7 +82,7 @@ public abstract class Shop<D extends ShopData> {
      * @param args The event called that could cause a shop's interaction
      * @return Whether the purchase was successful
      */
-    protected abstract boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args);
+    public abstract boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args);
 
     /**
      * Gets the type of the shop

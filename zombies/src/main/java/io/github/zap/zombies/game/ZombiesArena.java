@@ -25,13 +25,12 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -216,22 +215,35 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer player = args.getManagedPlayer();
 
         if(event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
-            Block block = args.getEvent().getClickedBlock();
-
-            if(block != null) {
-                Vector clickedVector = block.getLocation().toVector();
-                if(!player.tryOpenDoor(clickedVector)) {
-                    //TODO: perform other actions involving right-clicking on a block
+            boolean noPurchases = true;
+            for (Shop<?> shop : shops) {
+                if (shop.purchase(args)) {
+                    noPurchases = false;
+                    break;
                 }
             }
-            else {
+            if (noPurchases) {
                 player.getHotbarManager().click(event.getAction());
             }
         }
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
+        PlayerInteractAtEntityEvent event = args.getEvent();
+        ZombiesPlayer player = args.getManagedPlayer();
 
+        if (event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+            boolean noPurchases = true;
+            for (Shop<?> shop : shops) {
+                if (shop.purchase(args)) {
+                    noPurchases = false;
+                    break;
+                }
+            }
+            if (noPurchases) {
+                player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
+            }
+        }
     }
 
     private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {

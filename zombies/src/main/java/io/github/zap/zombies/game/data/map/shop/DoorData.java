@@ -5,6 +5,9 @@ import lombok.Getter;
 
 import java.util.List;
 
+/**
+ * Data for a door
+ */
 @Getter
 public class DoorData extends ShopData {
 

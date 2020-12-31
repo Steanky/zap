@@ -38,12 +38,6 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
     }
 
     @Override
-    protected void registerArenaEvents() {
-        super.registerArenaEvents();
-        getZombiesArena().getPlayerInteractAtEntityEvent().registerHandler(this::purchase);
-    }
-
-    @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
         Hologram hologram = getHologram();
         for (Player player : args.getPlayers()) {
@@ -54,7 +48,13 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
     }
 
     @Override
-    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        return ((PlayerInteractAtEntityEvent) args.getEvent()).getRightClicked().equals(armorStand);
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        Event event = args.getEvent();
+        if (event instanceof PlayerInteractAtEntityEvent) {
+            PlayerInteractAtEntityEvent playerInteractAtEntityEvent = (PlayerInteractAtEntityEvent) event;
+            return playerInteractAtEntityEvent.getRightClicked().equals(armorStand);
+        }
+
+        return false;
     }
 }

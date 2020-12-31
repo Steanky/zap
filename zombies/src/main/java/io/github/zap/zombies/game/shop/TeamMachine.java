@@ -71,12 +71,13 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     }
 
     @Override
-    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             Player player = args.getManagedPlayer().getPlayer();
 
             if (!getShopData().isRequiresPower() || isPowered()) {
                 player.openInventory(inventory);
+                return true;
             } else {
                 getLocalizationManager().sendLocalizedMessage(player,
                         ChatColor.RED + MessageKey.NO_POWER.getKey());

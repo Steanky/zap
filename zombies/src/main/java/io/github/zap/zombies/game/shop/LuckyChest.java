@@ -89,12 +89,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    protected void registerArenaEvents() {
-        super.registerArenaEvents();
-        getZombiesArena().getPlayerInteractEvent().registerHandler(this::purchase);
-    }
-
-    @Override
     protected void displayTo(Player player) {
         if (hologram != null) {
             LuckyChestData luckyChestData = getShopData();
@@ -113,65 +107,68 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    protected boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
+    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+        Event event = args.getEvent();
 
-        if (left.equals(playerInteractEvent.getClickedBlock()) || right.equals(playerInteractEvent.getClickedBlock())) {
-            LocalizationManager localizationManager = getLocalizationManager();
-            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
+        if (event instanceof PlayerInteractEvent) {
+            PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
+            if (left.equals(playerInteractEvent.getClickedBlock()) || right.equals(playerInteractEvent.getClickedBlock())) {
+                LocalizationManager localizationManager = getLocalizationManager();
+                ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+                Player player = zombiesPlayer.getPlayer();
 
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                if (active) {
-                    LuckyChestData luckyChestData = getShopData();
+                if (!getShopData().isRequiresPower() || isPowered()) {
+                    if (active) {
+                        LuckyChestData luckyChestData = getShopData();
 
-                    if (roller.getRoller() == null) {
-                        if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                            localizationManager.sendLocalizedMessage(player,
-                                    ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
-                        } else {
-                            roller.start(player);
-                        }
-                    } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
-                        if (roller.isCollectable()) {
-                            EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
-
-                            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
-                                    .getHotbarObjectGroup(equipmentData.getName());
-
-                            if (equipmentObjectGroup == null) {
-                                // TODO: uncollectable
+                        if (roller.getRoller() == null) {
+                            if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
+                                localizationManager.sendLocalizedMessage(player,
+                                        ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
                             } else {
-                                Integer slot = equipmentObjectGroup.getNextEmptySlot();
-                                if (slot == null) {
-                                    // TODO: choose a slot
-                                } else {
-                                    hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
-                                            player,
-                                            slot,
-                                            equipmentData
-                                    ));
-                                    roller.cancelSitting();
+                                roller.start(player);
+                            }
+                        } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
+                            if (roller.isCollectable()) {
+                                EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
 
-                                    onPurchaseSuccess(zombiesPlayer);
+                                HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                                EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup) hotbarManager
+                                        .getHotbarObjectGroup(equipmentData.getName());
+
+                                if (equipmentObjectGroup == null) {
+                                    // TODO: uncollectable
+                                } else {
+                                    Integer slot = equipmentObjectGroup.getNextEmptySlot();
+                                    if (slot == null) {
+                                        // TODO: choose a slot
+                                    } else {
+                                        hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
+                                                player,
+                                                slot,
+                                                equipmentData
+                                        ));
+                                        roller.cancelSitting();
+
+                                        onPurchaseSuccess(zombiesPlayer);
+                                    }
                                 }
+                            } else {
+                                // TODO: still rolling
                             }
                         } else {
-                            // TODO: still rolling
+                            // TODO: you're not the roller
                         }
                     } else {
-                        // TODO: you're not the roller
+                        // TODO: not active rn
                     }
                 } else {
-                    // TODO: not active rn
+                    localizationManager.sendLocalizedMessage(player,
+                            ChatColor.RED + MessageKey.NO_POWER.getKey());
                 }
-            } else {
-                localizationManager.sendLocalizedMessage(player,
-                        ChatColor.RED + MessageKey.NO_POWER.getKey());
-            }
 
-            return true;
+                return true;
+            }
         }
 
         return false;
