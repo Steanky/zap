@@ -13,7 +13,8 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
-import io.github.zap.zombies.command.DebugCommand;
+import io.github.zap.zombies.command.ZombiesCommand;
+import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -31,6 +32,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -48,7 +50,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private ArenaApi arenaApi;
 
     @Getter
-    private SWMPlugin SWM; //access SWM through this proxy interface
+    private SWMPlugin SWM;
 
     @Getter
     private File slimeWorldDirectory;
@@ -60,16 +62,16 @@ public final class Zombies extends JavaPlugin implements Listener {
     private SlimeLoader slimeLoader;
 
     @Getter
-    private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
+    private MythicMobs mythicMobs;
 
     @Getter
-    private DataLoader dataLoader; //used to save/load data from custom serialization framework
+    private DataLoader dataLoader;
 
     @Getter
-    private WorldLoader worldLoader; //responsible for loading worlds
+    private WorldLoader worldLoader;
 
     @Getter
-    private CommandManager commandManager;
+    private ContextManager contextManager;
 
     @Getter
     private PlayerDataManager playerDataManager;
@@ -219,7 +221,9 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     private void initCommands() {
         CommandManager commandManager = new CommandManager(this);
-        commandManager.registerCommand(new DebugCommand());
+        commandManager.registerCommand(new ZombiesCommand());
+
+        contextManager = new ContextManager();
     }
 
     /*
