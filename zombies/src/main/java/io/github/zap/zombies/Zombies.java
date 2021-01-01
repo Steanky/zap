@@ -71,6 +71,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     private WorldLoader worldLoader;
 
     @Getter
+    private ZombiesArenaManager arenaManager;
+
+    @Getter
     private ContextManager contextManager;
 
     @Getter
@@ -180,11 +183,11 @@ public final class Zombies extends JavaPlugin implements Listener {
             World world = Bukkit.getWorld(worldName);
 
             if(world != null) {
-                ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
+                arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
                         new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
                         Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(), config.getInt(
                                 ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
-                arenaApi.registerArenaManager(zombiesArenaManager);
+                arenaApi.registerArenaManager(arenaManager);
             }
             else {
                 throw new LoadFailureException(String.format("Specified lobby world '%s' does not exist.", worldName));

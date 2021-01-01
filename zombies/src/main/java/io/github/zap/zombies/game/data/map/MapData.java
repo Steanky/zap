@@ -224,6 +224,10 @@ public class MapData {
 
     public MapData() {}
 
+    public MapData(String name) {
+        this.name = name;
+    }
+
     /**
      * Gets the window whose face contains the provided vector, or null if the vector is not inside any windows.
      * @param target The vector that may be inside of a window
