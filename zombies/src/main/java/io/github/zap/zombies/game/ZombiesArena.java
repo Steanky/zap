@@ -196,8 +196,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
             if(block != null) {
                 Vector clickedVector = block.getLocation().toVector();
-                if(!player.tryOpenDoor(clickedVector)) {
-                    //TODO: perform other actions involving right-clicking on a block
+                if(!player.tryOpenDoor(clickedVector)) { //don't shoot if we're opening a door
+                    player.getHotbarManager().click(event.getAction());
                 }
             }
             else {

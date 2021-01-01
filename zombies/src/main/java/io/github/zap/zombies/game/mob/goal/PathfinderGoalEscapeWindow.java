@@ -28,6 +28,7 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
 
     private final double breakReachSquared;
     private final int breakIncrement;
+    private final int breakTicks;
 
     private WindowData targetWindow = null;
     private AbstractLocation windowCenter;
@@ -48,9 +49,10 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
 
         breakReachSquared = mlc.getInteger("breakReachSquared", 4);
         breakIncrement = mlc.getInteger("breakIncrement", 1);
+        breakTicks = mlc.getInteger("breakTicks", 20);
     }
 
-    private void loadMetadata() { //TODO: see if loading metadata in this way is necessary
+    private void loadMetadata() {
         Optional<Object> optManager = entity.getMetadata(Zombies.ARENA_METADATA_NAME);
         Optional<Object> optSpawnpoint = entity.getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
         Optional<Object> optWindow = entity.getMetadata(Zombies.WINDOW_METADATA_NAME);
@@ -81,7 +83,8 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
 
     public boolean shouldStart() {
         if(!loadedMetadata) {
-            loadMetadata();
+            loadMetadata(); //several ticks will pass from when the mob is spawned and when metadata is applied
+            return false;
         }
 
         return true;
@@ -97,7 +100,7 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
     @Override
     public void tick() {
         if(hasWindow) {
-            if(++tickCounter == 20) {
+            if(++tickCounter == breakTicks) {
                 tryBreak();
                 tickCounter = 0;
             }

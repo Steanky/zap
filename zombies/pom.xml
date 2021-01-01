@@ -47,7 +47,7 @@
                                 <artifactItem>
                                     <groupId>io.lumine.xikage</groupId>
                                     <artifactId>mythicmobs</artifactId>
-                                    <version>4.10.1</version>
+                                    <version>${mythicmobs.version}</version>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -210,7 +210,7 @@
         <dependency>
             <groupId>io.lumine.xikage</groupId>
             <artifactId>mythicmobs</artifactId>
-            <version>4.10.1</version>
+            <version>${mythicmobs.version}</version>
             <scope>provided</scope>
         </dependency>
 
