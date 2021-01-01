@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -50,6 +51,17 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
 
                     if (teamMachineTask != null && teamMachineTask.execute(zombiesArena, zombiesPlayer)) {
                         inventoryClickEvent.setCancelled(true);
+
+                        LocalizationManager localizationManager = getLocalizationManager();
+                        for (Player player : zombiesArena.getWorld().getPlayers()) {
+                            localizationManager.sendLocalizedMessage(
+                                    player,
+                                    MessageKey.TEAM_MACHINE_PURCHASE.getKey(),
+                                    player.getDisplayName(),
+                                    teamMachineTask.getDisplayName()
+                            );
+                        }
+
                         onPurchaseSuccess(zombiesPlayer);
                     }
                 }
@@ -79,8 +91,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                 player.openInventory(inventory);
                 return true;
             } else {
-                getLocalizationManager().sendLocalizedMessage(player,
-                        ChatColor.RED + MessageKey.NO_POWER.getKey());
+                getLocalizationManager().sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
             }
         }
 

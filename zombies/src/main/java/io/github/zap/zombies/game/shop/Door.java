@@ -2,7 +2,9 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
@@ -70,6 +72,7 @@ public class Door extends Shop<DoorData> {
     public boolean purchase(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
         Event event = args.getEvent();
         if (event instanceof PlayerInteractEvent) {
+            LocalizationManager localizationManager = getLocalizationManager();
             DoorData doorData = getShopData();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
@@ -82,7 +85,7 @@ public class Door extends Shop<DoorData> {
                     if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
                         int cost = doorSide.getCost();
                         if (zombiesPlayer.getCoins() < cost) {
-                            // TODO: poor
+                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.toString());
                         } else {
                             ZombiesArena zombiesArena = getZombiesArena();
                             WorldUtils.fillBounds(

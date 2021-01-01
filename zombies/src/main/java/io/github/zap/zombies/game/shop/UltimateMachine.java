@@ -45,8 +45,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
             if (!getShopData().isRequiresPower() || isPowered()) {
                 if (zombiesPlayer.getCoins() < getShopData().getCost()) {
-                    localizationManager.sendLocalizedMessage(player,
-                            ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                    localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
                 } else {
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
 
@@ -59,15 +58,14 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                             upgradeableEquipment.upgrade();
                             onPurchaseSuccess(zombiesPlayer);
                         } else {
-                            // TODO: max level
+                            localizationManager.sendLocalizedMessage(player, MessageKey.MAXED_OUT.getKey());
                         }
                     } else {
-                        // TODO: swap to an upgradeable weapon
+                        localizationManager.sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
                     }
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player,
-                        ChatColor.RED + MessageKey.NO_POWER.getKey());
+                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
             }
 
             return true;

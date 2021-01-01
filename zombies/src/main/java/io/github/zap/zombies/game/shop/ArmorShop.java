@@ -95,8 +95,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                     int cost = armorLevel.getCost();
 
                     if (zombiesPlayer.getCoins() < cost) {
-                        localizationManager.sendLocalizedMessage(player,
-                                ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                        localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
                     } else {
                         // Choose the best equipments
                         Material[] materials = armorLevel.getMaterials();
@@ -125,8 +124,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                 }
 
             } else {
-                localizationManager.sendLocalizedMessage(player,
-                        ChatColor.RED + MessageKey.NO_POWER.getKey());
+                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
             }
 
             return true;

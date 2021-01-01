@@ -72,8 +72,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                         int cost = costs.get(0);
 
                         if (zombiesPlayer.getCoins() < cost) {
-                            localizationManager.sendLocalizedMessage(player,
-                                    ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
                         } else {
                             HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                             PerkObjectGroup perkObjectGroup =
@@ -111,8 +110,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                         int cost = costs.get(level);
 
                         if (zombiesPlayer.getCoins() < cost) {
-                            localizationManager.sendLocalizedMessage(player,
-                                    ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
                         } else {
                             zombiesPlayer.subtractCoins(cost);
                             perkEquipment.upgrade();
@@ -124,8 +122,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                     }
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player,
-                        ChatColor.RED + MessageKey.NO_POWER.getKey());
+                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
             }
 
             return true;

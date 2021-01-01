@@ -14,6 +14,7 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -45,6 +46,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
     private final Block left, right;
 
     private final Roller roller;
+
+    private UUID rollingPlayerId = null;
 
     private Hologram hologram;
 
@@ -122,14 +125,14 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     if (active) {
                         LuckyChestData luckyChestData = getShopData();
 
-                        if (roller.getRoller() == null) {
+                        if (rollingPlayerId == null) {
                             if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                                localizationManager.sendLocalizedMessage(player,
-                                        ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                                localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
                             } else {
-                                roller.start(player);
+                                Jingle.play(luckyChestData.getJingle(), roller, chestLocation);
+                                rollingPlayerId = zombiesPlayer.getPlayer().getUniqueId();
                             }
-                        } else if (zombiesPlayer.getId().equals(roller.getRoller().getUniqueId())) {
+                        } else if (zombiesPlayer.getId().equals(rollingPlayerId)) {
                             if (roller.isCollectable()) {
                                 EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
 
@@ -150,6 +153,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                                 equipmentData
                                         ));
                                         roller.cancelSitting();
+                                        rollingPlayerId = null;
 
                                         onPurchaseSuccess(zombiesPlayer);
                                     }
@@ -164,8 +168,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                         // TODO: not active rn
                     }
                 } else {
-                    localizationManager.sendLocalizedMessage(player,
-                            ChatColor.RED + MessageKey.NO_POWER.getKey());
+                    localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
                 }
 
                 return true;
@@ -183,7 +186,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
     /**
      * Utility class to roll the guns in the chest's display
      */
-    private static class Roller extends Jingle {
+    private static class Roller implements Jingle.JingleListener {
 
         private final Random random = new Random();
 
@@ -192,8 +195,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
         private final World world;
 
         private final Location chestLocation;
-
-        private final List<ImmutableTriple<Sound, Float, Long>> jingle;
 
         private final long sittingTime;
 
@@ -227,18 +228,14 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private int sittingTaskId;
 
-        private final LuckyChest luckyChest;
-
         public Roller(LuckyChest luckyChest) {
             super();
-            this.luckyChest = luckyChest;
             this.zombies = Zombies.getInstance();
             this.chestLocation = luckyChest.getChestLocation();
             this.world = chestLocation.getWorld();
             this.equipments = luckyChest.getEquipments();
 
             LuckyChestData luckyChestData = luckyChest.getShopData();
-            this.jingle = luckyChestData.getJingle();
             this.sittingTime = luckyChestData.getSittingTime();
         }
 
@@ -263,33 +260,21 @@ public class LuckyChest extends Shop<LuckyChestData> {
             }
         }
 
-        /**
-         * Starts the rolling
-         * @param roller The player that initiated the rolling
-         */
-        public void start(Player roller) {
-            this.roller = roller;
-            play(chestLocation);
+        @Override
+        public void onStart(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
+            rollingItem = world.dropItem(
+                    chestLocation.clone().add(0, 0.981250, 0),
+                    new ItemStack(Material.AIR)
+            );
+            rollingItem.setGravity(false);
+            rollingItem.setVelocity(new Vector(0, 0, 0));
+
+            gunName = new Hologram(chestLocation.clone(), 1);
         }
 
-        @Override
-        public void playAt(Location location, int noteNumber) {
-            if (noteNumber == 0) {
-                rollingItem = world.dropItem(
-                        chestLocation.clone().add(0, 0.981250, 0),
-                        new ItemStack(Material.AIR)
-                );
-                rollingItem.setGravity(false);
-                rollingItem.setVelocity(new Vector(0, 0, 0));
-
-                gunName = new Hologram(chestLocation.clone(), 1);
-            }
-            super.playAt(location, noteNumber);
-        }
 
         @Override
-        protected void onEnd() {
-            super.onEnd();
+        public void onEnd(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
             timeRemaining = new Hologram(chestLocation.clone().add(0, 1, 0), 2);
             timeRemaining.setLine(0, timeRemainingString = String.format(format, sittingTime));
 
@@ -311,8 +296,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         }
 
         @Override
-        protected void onNotePlayed() {
-            super.onNotePlayed();
+        public void onNotePlayed(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
             EquipmentData<?> equipmentData = equipments.get(rollIndex = random.nextInt(jingle.size()));
 
             rollingItem.getItemStack().setType(equipmentData.getMaterial());

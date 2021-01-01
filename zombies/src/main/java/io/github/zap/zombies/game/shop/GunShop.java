@@ -117,8 +117,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     // TODO: ye
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player,
-                        ChatColor.RED + MessageKey.NO_POWER.getKey());
+                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
             }
 
             return true;
@@ -143,7 +142,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     int refillCost = gunShopData.getRefillCost();
                     if (zombiesPlayer.getCoins() < refillCost) {
                         getLocalizationManager().sendLocalizedMessage(zombiesPlayer.getPlayer(),
-                                ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                                MessageKey.CANNOT_AFFORD.getKey());
 
                         return false;
                     } else {
@@ -169,7 +168,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             if (gunObjectGroup.getHotbarObjectMap().containsKey(selectedSlot)) {
                 slot = selectedSlot;
             } else {
-                // TODO: choose a slot to put it in
+                getLocalizationManager().sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
                 return false;
             }
         }
@@ -177,7 +176,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         int cost = gunShopData.getCost();
         if (zombiesPlayer.getCoins() < cost) {
             getLocalizationManager().sendLocalizedMessage(player,
-                    ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+                    MessageKey.CANNOT_AFFORD.getKey());
 
             return false;
         } else {

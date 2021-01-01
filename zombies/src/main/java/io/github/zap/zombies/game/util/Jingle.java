@@ -11,21 +11,29 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.List;
 
 /**
- * Class that represents a set of game sounds as a playable jingle
+ * Utility class to play sets of notes
  */
 @Getter
 public class Jingle {
 
-    private final transient Zombies zombies;
+    private final static Zombies zombies;
 
-    private List<ImmutablePair<List<Note>, Long>> notePairs;
+    static {
+        zombies = Zombies.getInstance();
+    }
+
+    private Jingle() {
+
+    }
 
     /**
-     * Plays the jingle
+     * Plays a set of notes
+     * @param jingle The notes to play
      * @param location The location to play the jingle at
      */
-    public void play(Location location) {
-        playAt(location, 0);
+    public static void play(List<ImmutablePair<List<Note>, Long>> jingle, JingleListener jingleListener,
+                            Location location) {
+        playAt(jingle, jingleListener, location, 0);
     }
 
     /**
@@ -33,10 +41,15 @@ public class Jingle {
      * @param location The location to play the note at
      * @param noteNumber The note number in the jingle
      */
-    public void playAt(Location location, int noteNumber) {
-        if (noteNumber < notePairs.size()) {
+    public static void playAt(List<ImmutablePair<List<Note>, Long>> jingle, JingleListener jingleListener,
+                              Location location, int noteNumber) {
+        if (noteNumber < jingle.size()) {
+            if (noteNumber == 0) {
+                jingleListener.onStart(jingle);
+            }
+
             World world = location.getWorld();
-            ImmutablePair<List<Note>, Long> notePair = notePairs.get(noteNumber);
+            ImmutablePair<List<Note>, Long> notePair = jingle.get(noteNumber);
 
             new BukkitRunnable() {
                 @Override
@@ -49,39 +62,21 @@ public class Jingle {
                                 note.getPitch()
                         );
                     }
-                    playAt(location, noteNumber + 1);
+                    playAt(jingle, jingleListener, location, noteNumber + 1);
 
-                    onNotePlayed();
+                    jingleListener.onNotePlayed(jingle);
                 }
             }.runTaskLater(zombies, 20 * notePair.getRight());
         } else {
-            onEnd();
+            jingleListener.onEnd(jingle);
         }
-    }
-
-    /**
-     * Method called when a note of the jingle is played
-     */
-    protected void onNotePlayed() {
-
-    }
-
-    /**
-     * Method called upon jingle completion
-     */
-    protected void onEnd() {
-
-    }
-
-    protected Jingle() {
-        zombies = Zombies.getInstance();
     }
 
     /**
      * A single note of a jingle
      */
     @Getter
-    private static class Note {
+    public static class Note {
 
         private Sound sound;
 
@@ -93,6 +88,30 @@ public class Jingle {
 
         }
 
+    }
+
+    public interface JingleListener {
+
+        /**
+         * Method called when the jingle playing begins
+         */
+        default void onStart(List<ImmutablePair<List<Note>, Long>> jingle) {
+
+        }
+
+        /**
+         * Method called when a note of the jingle is played
+         */
+        default void onNotePlayed(List<ImmutablePair<List<Note>, Long>> jingle) {
+
+        }
+
+        /**
+         * Method called upon jingle completion
+         */
+        default void onEnd(List<ImmutablePair<List<Note>, Long>> jingle) {
+
+        }
     }
 
 }

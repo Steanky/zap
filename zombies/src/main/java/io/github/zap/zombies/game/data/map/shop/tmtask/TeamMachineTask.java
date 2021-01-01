@@ -6,7 +6,6 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.Getter;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 /**
@@ -18,6 +17,8 @@ public abstract class TeamMachineTask {
     private final transient LocalizationManager localizationManager;
 
     private String type;
+
+    private String displayName;
 
     private Material displayMaterial;
 
@@ -39,8 +40,7 @@ public abstract class TeamMachineTask {
     public boolean execute(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
         int cost = getCost();
         if (zombiesPlayer.getCoins() < cost) {
-            localizationManager.sendLocalizedMessage(zombiesPlayer.getPlayer(),
-                    ChatColor.RED + MessageKey.CANNOT_AFFORD.getKey());
+            localizationManager.sendLocalizedMessage(zombiesPlayer.getPlayer(), MessageKey.CANNOT_AFFORD.getKey());
         } else {
             timesUsed++;
             zombiesPlayer.subtractCoins(cost);
