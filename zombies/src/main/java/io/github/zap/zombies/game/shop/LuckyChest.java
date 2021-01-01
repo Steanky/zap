@@ -11,6 +11,7 @@ import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.shop.LuckyChestData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
+import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -182,7 +183,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
     /**
      * Utility class to roll the guns in the chest's display
      */
-    private static class Roller {
+    private static class Roller extends Jingle {
 
         private final Random random = new Random();
 
@@ -229,6 +230,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         private final LuckyChest luckyChest;
 
         public Roller(LuckyChest luckyChest) {
+            super();
             this.luckyChest = luckyChest;
             this.zombies = Zombies.getInstance();
             this.chestLocation = luckyChest.getChestLocation();
@@ -267,59 +269,54 @@ public class LuckyChest extends Shop<LuckyChestData> {
          */
         public void start(Player roller) {
             this.roller = roller;
-            gunSwap(0);
+            play(chestLocation);
         }
 
-        /**
-         * Recursively swaps guns until the jingle has ended
-         * @param occurrence The number of times the gun has swapped
-         */
-        private void gunSwap(int occurrence) {
-            if (occurrence < jingle.size()) {
-                if (occurrence == 0) {
-                    rollingItem = world.dropItem(
-                            chestLocation.clone().add(0, 0.981250, 0),
-                            new ItemStack(Material.AIR)
-                    );
-                    rollingItem.setGravity(false);
-                    rollingItem.setVelocity(new Vector(0, 0, 0));
+        @Override
+        public void playAt(Location location, int noteNumber) {
+            if (noteNumber == 0) {
+                rollingItem = world.dropItem(
+                        chestLocation.clone().add(0, 0.981250, 0),
+                        new ItemStack(Material.AIR)
+                );
+                rollingItem.setGravity(false);
+                rollingItem.setVelocity(new Vector(0, 0, 0));
 
-                    gunName = new Hologram(chestLocation.clone(), 1);
-                }
-
-                ImmutableTriple<Sound, Float, Long> sound = jingle.get(occurrence);
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        EquipmentData<?> equipmentData = equipments.get(rollIndex = random.nextInt(jingle.size()));
-
-                        rollingItem.getItemStack().setType(equipmentData.getMaterial());
-                        gunName.setLine(0, gunNameString = equipmentData.getName());
-                        world.playSound(rollingItem.getLocation(), sound.getLeft(), sound.getMiddle(), 1.0F);
-
-                        gunSwap(occurrence + 1);
-                    }
-                }.runTaskLater(zombies, 20 * sound.getRight());
-            } else {
-                timeRemaining = new Hologram(chestLocation.clone().add(0, 1, 0), 2);
-                timeRemaining.setLine(0, timeRemainingString = String.format(format, sittingTime));
-
-                rightClickToClaim = new Hologram(chestLocation.clone().add(0, 0.25, 0), 1);
-
-                collectable = true;
-                sittingTaskId = new BukkitRunnable() {
-
-                    private long sittingTime = Roller.this.sittingTime;
-
-                    @Override
-                    public void run() {
-                        timeRemaining.setLine(0, String.format(format, sittingTime -= 0.1));
-                        if (sittingTime <= 0) {
-                            cancelSitting();
-                        }
-                    }
-                }.runTaskTimer(zombies, 0, 2).getTaskId();
+                gunName = new Hologram(chestLocation.clone(), 1);
             }
+            super.playAt(location, noteNumber);
+        }
+
+        @Override
+        protected void onEnd() {
+            super.onEnd();
+            timeRemaining = new Hologram(chestLocation.clone().add(0, 1, 0), 2);
+            timeRemaining.setLine(0, timeRemainingString = String.format(format, sittingTime));
+
+            rightClickToClaim = new Hologram(chestLocation.clone().add(0, 0.25, 0), 1);
+
+            collectable = true;
+            sittingTaskId = new BukkitRunnable() {
+
+                private long sittingTime = Roller.this.sittingTime;
+
+                @Override
+                public void run() {
+                    timeRemaining.setLine(0, String.format(format, sittingTime -= 0.1));
+                    if (sittingTime <= 0) {
+                        cancelSitting();
+                    }
+                }
+            }.runTaskTimer(zombies, 0, 2).getTaskId();
+        }
+
+        @Override
+        protected void onNotePlayed() {
+            super.onNotePlayed();
+            EquipmentData<?> equipmentData = equipments.get(rollIndex = random.nextInt(jingle.size()));
+
+            rollingItem.getItemStack().setType(equipmentData.getMaterial());
+            gunName.setLine(0, gunNameString = equipmentData.getName());
         }
 
         /**
