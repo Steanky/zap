@@ -12,6 +12,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -33,24 +34,33 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
     public void shoot() {
         Player player = getPlayer();
         World world = player.getWorld();
-        Vector eyeLocation = player.getEyeLocation().toVector().clone();
-        Vector eyeDirection = player.getEyeLocation().getDirection().clone();
+
+        Location eyeLocation = player.getEyeLocation();
+        Vector eyeDirection = player.getEyeLocation().getDirection();
         Vector targetBlockVector = getTargetBlockVector(player);
 
-        sendShot(world, eyeLocation, eyeDirection, targetBlockVector);
+        sendShot(world, eyeLocation.clone(), eyeDirection, targetBlockVector);
     }
 
     /**
      * Sends the shot
      * @param world The world the player is located in
-     * @param particleLocation The start of the shot
+     * @param eyeLocation The start of the shot
      * @param particleDirection The direction of the shot
      * @param targetBlockVector A vector to the targeted block
      */
-    private void sendShot(World world, Vector particleLocation, Vector particleDirection, Vector targetBlockVector) {
-        LinearBeam beam = new LinearBeam(world, getEquipmentData().getParticle(), particleLocation, particleDirection,
-                targetBlockVector, getEquipmentData().getLevels().get(getLevel()).getMaxPierceableEntities());
-        beam.send();
+    private void sendShot(World world, Location eyeLocation, Vector particleDirection, Vector targetBlockVector) {
+        LinearGunData linearGunData = getEquipmentData();
+
+        new LinearBeam(
+                world,
+                eyeLocation,
+                particleDirection,
+                eyeLocation.toVector().distance(targetBlockVector),
+                linearGunData.getParticle(),
+                linearGunData.getMaxPierceableEntities(),
+                linearGunData.getDamage()
+        ).send();
     }
 
     /**
@@ -71,7 +81,11 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
             boundingBox = targetBlock.getBoundingBox();
         }
 
-        return boundingBox.rayTrace(player.getEyeLocation().toVector(), player.getEyeLocation().getDirection(),
-                range + 1.74).getHitPosition();
+        return Objects.requireNonNull(
+                boundingBox.rayTrace(
+                        player.getEyeLocation().toVector(),
+                        player.getEyeLocation().getDirection(),
+                range + 1.74)
+        ).getHitPosition();
     }
 }

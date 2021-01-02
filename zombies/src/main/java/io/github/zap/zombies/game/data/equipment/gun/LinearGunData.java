@@ -17,13 +17,7 @@ public class LinearGunData extends GunData<LinearGunLevel> {
 
     private Object particleData;
 
-    public LinearGunData(String name, String displayName, List<String> lore, List<LinearGunLevel> levels,
-                         Material material, Particle particle, Object particleData) {
-        super(EquipmentType.LINEAR_GUN.toString(), name, displayName, lore, levels, material);
-
-        this.particle = particle;
-        this.particleData = particleData;
-    }
+    private int maxPierceableEntities;
 
     private LinearGunData() {
 

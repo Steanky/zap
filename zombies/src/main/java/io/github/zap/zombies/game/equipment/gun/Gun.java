@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun;
 
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
@@ -36,7 +37,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * Refills the gun completely
      */
     public void refill() {
-        GunLevel gunLevel = getEquipmentData().getLevels().get(getLevel());
+        GunLevel gunLevel = getCurrentLevel();
         setAmmo(gunLevel.getAmmo());
         setClipAmmo(gunLevel.getClipAmmo());
     }
@@ -46,12 +47,13 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      */
     public void reload() {
         if (canReload) {
-            GunLevel level = getEquipmentData().getLevels().get(getLevel());
+            GunLevel level = getCurrentLevel();
             int clipAmmo = level.getClipAmmo();
 
             if (currentClipAmmo < clipAmmo && clipAmmo <= currentAmmo) {
                 canReload = false;
-                getPlayer().playSound(getPlayer().getLocation(), Sound.ENTITY_HORSE_GALLOP, 1F, 0.5F);
+                Player player = getPlayer();
+                player.playSound(player.getLocation(), Sound.ENTITY_HORSE_GALLOP, 1F, 0.5F);
 
                 new BukkitRunnable() {
                     private final float reloadRate = level.getReloadRate();
@@ -62,9 +64,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
                     @Override
                     public void run() {
-                        if(step < (int) (reloadRate * 20)) {
-                            setItemDamage((int)(maxVal - (step + 1) * stepVal));
-                            step++;
+                        if (step < (int) (reloadRate * 20)) {
+                            setItemDamage((int) (maxVal - ++step * stepVal));
                         } else {
                             setItemDamage(0);
                             setClipAmmo(Math.min(clipAmmo, currentAmmo));
@@ -87,6 +88,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         setAmmo(currentAmmo - 1);
         setClipAmmo(currentClipAmmo - 1);
 
+        Player player = getPlayer();
         if (currentClipAmmo > 0) {
             // Animate xp bar
             new BukkitRunnable() {
@@ -95,16 +97,14 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 private final float stepVal = 1 / (fireRate * 20);
 
                 private int step = 0;
-
-
+                
                 @Override
                 public void run() {
-                    if(step < goal && isSelected()) {
-                        getPlayer().setExp((step + 1) * stepVal);
-                        step++;
+                    if (step < goal && isSelected()) {
+                        player.setExp(++step * stepVal);
                     } else {
                         if (isSelected()) {
-                            getPlayer().setExp(1);
+                            player.setExp(1);
                         }
 
                         cancel();
@@ -115,7 +115,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
             if (currentAmmo > 0) {
                 reload();
             } else {
-                // TODO: not enough ammo!
+                getLocalizationManager().sendLocalizedMessage(player, MessageKey.NO_AMMO.getKey());
             }
         }
     }
@@ -171,16 +171,20 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     @Override
     public void onSlotSelected() {
-        getPlayer().setLevel(currentAmmo);
-        getPlayer().setExp(1);
+        super.onSlotSelected();
+        Player player = getPlayer();
+
+        player.setLevel(currentAmmo);
+        player.setExp(1);
     }
 
     @Override
     public void onSlotDeselected() {
         super.onSlotDeselected();
+        Player player = getPlayer();
 
-        getPlayer().setLevel(0);
-        getPlayer().setExp(0);
+        player.setLevel(0);
+        player.setExp(0);
     }
 
     @Override

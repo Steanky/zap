@@ -25,4 +25,8 @@ public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipme
         setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), ++level));
     }
 
+    @Override
+    public L getCurrentLevel() {
+        return getEquipmentData().getLevels().get(level);
+    }
 }

@@ -1,85 +1,115 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
+import lombok.RequiredArgsConstructor;
+import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Sends lines of particles from guns
  */
+@RequiredArgsConstructor
 public class LinearBeam {
 
-    private final double distance;
-    private final List<Entity> hitEntities = new ArrayList<>();
+    private final static int PARTICLE_NUMBER = 4; // TODO: check
+
+    private final double VELOCITY_FACTOR = 0.5;
+
+    private final Set<Mob> hitMobs = new HashSet<>();
 
     private final World world;
-    private final Vector particleVector;
+    private final Location root;
     private final Vector directionVector;
-    private final int maxHitEntities;
+    private final double distance;
     private final Particle particle;
-
-    public LinearBeam(World world, Particle particle, Vector eyeLocation, Vector directionVector,
-                      Vector targetBlockVector, int maxHitEntities) {
-        this.distance = eyeLocation.distance(targetBlockVector);
-
-        this.world = world;
-        this.particle = particle;
-        this.particleVector = eyeLocation.clone();
-        this.directionVector = directionVector.clone();
-        this.maxHitEntities = maxHitEntities;
-    }
+    private final int maxHitEntities;
+    private final double damage;
 
     /**
-     * Sends the line of particles
+     * Sends the bullet
      */
     public void send() {
-        final int particleCount = (int) Math.floor(distance);
+        hitScan();
+        spawnParticles();
+    }
 
-        for (int i = 0; i < particleCount; i++) {
-            if (hitEntities.size() == maxHitEntities) {
+    /**
+     * Performs a hitscan calculations on the entities to target
+     */
+    private void hitScan() {
+        while (hitMobs.size() != maxHitEntities) {
+            RayTraceResult rayTraceResult = world.rayTraceEntities(
+                    root,
+                    directionVector,
+                    distance,
+                    (Entity entity) -> (entity instanceof Mob && !hitMobs.contains(entity))
+            );
+
+            if (rayTraceResult == null) {
                 break;
             } else {
-                world.spawnParticle(particle, particleVector.getX(), particleVector.getY(), particleVector.getZ(),
-                        0, 0, 0, 0);
-                findEntitiesInLineOfSight();
-                particleVector.add(directionVector);
+                damageEntity(rayTraceResult);
             }
-        }
-
-        for (Entity entity : hitEntities) {
-            damageEntity(entity);
         }
     }
 
     /**
-     * Gets all entities within the shooting player's line of sight
+     * Damages an entity from a ray trace
+     * @param rayTraceResult The ray trace result to get the entity from
      */
-    private void findEntitiesInLineOfSight() {
-        for (Entity entity : world.getNearbyEntities(particleVector.toLocation(world), 1, 1 , 1)) {
-            if (entity instanceof Mob) { //TODO: Change requirement
-                final BoundingBox boundingBox = entity.getBoundingBox();
+    private void damageEntity(RayTraceResult rayTraceResult) {
+        Mob mob = (Mob) rayTraceResult.getHitEntity();
 
-                if (boundingBox.rayTrace(particleVector, directionVector.clone().normalize(), 1) != null
-                        && hitEntities.size() < maxHitEntities) {
-                    hitEntities.add(entity);
-                    // TODO: Damaging the entities
-                }
+        if (mob != null) {
+            if (determineIfHeadshot(rayTraceResult, mob)) {
+                mob.setHealth(mob.getHealth() - damage);
+            } else {
+                mob.damage(damage);
             }
-        }
+            mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(VELOCITY_FACTOR)));
 
+            hitMobs.add(mob);
+        }
     }
 
     /**
-     * Damages an actual entity
-     * @param entity The entity to damage
+     * Determines whether or not a bullet was a headshot
+     * @param rayTraceResult The ray trace of the bullet
+     * @param mob The targeted mob
+     * @return Whether or not the shot was a headshot
      */
-    private void damageEntity(Entity entity) {
-        // TODO: Damaging the entities
+    private boolean determineIfHeadshot(RayTraceResult rayTraceResult, Mob mob) {
+        double mobY = mob.getLocation().getY();
+        double eyeY = mobY + mob.getEyeHeight();
+        double heightY = mobY + mob.getHeight();
+
+        Vector hitPosition = rayTraceResult.getHitPosition();
+        double yPos = hitPosition.getY();
+
+        return  (2 * eyeY - heightY <= yPos && yPos <= heightY);
     }
+
+    /**
+     * Spawns the bullet's particles in a line
+     */
+    private void spawnParticles() {
+        for (int i = 0; i < PARTICLE_NUMBER; i++) {
+            world.spawnParticle(
+                    particle,
+                    root,
+                    0,
+                    0,
+                    0,
+                    0
+            );
+            root.add(directionVector);
+        }
+    }
+
 }
