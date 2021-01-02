@@ -17,6 +17,7 @@ import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
+import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
