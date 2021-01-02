@@ -80,7 +80,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     /**
      * Updates the item stack after shooting the gun
-     * (you win the award for the longest method name in the plugin, congratulations)
+     * (you win the award for the longest method name in the plugin, congratulations) --Steank
      */
     protected void updateRepresentingItemStackAfterShooting() {
         canShoot = false;
