@@ -13,32 +13,34 @@ public interface EquipmentManager {
 
     /**
      * Adds a piece of equipment mapping
-     * @param name The name key of the equipment
+     * @param equipmentType The equipmentType key of the equipment type
      * @param dataClass The class of the data used to create the equipment
      * @param equipmentMapping A mapping class used to create the equipment from a data instance
      * @param <D> The type of the data used for the equipment
      * @param <L> The type of the levels used by the equipment
      */
-    <D extends EquipmentData<L>, L> void addEquipment(String name, Class<D> dataClass,
-                                                             EquipmentCreator.EquipmentMapping<D, L> equipmentMapping);
+    <D extends EquipmentData<L>, L> void addEquipmentType(String equipmentType, Class<D> dataClass,
+                                                          EquipmentCreator.EquipmentMapping<D, L> equipmentMapping);
 
     /**
      * Gets a piece of equipment data
-     * @param name The name that the equipment dat belongs to
+     * @param mapName
+     * @param name The name that the equipment data belongs to
      * @return The equipment data
      */
-    EquipmentData<?> getEquipmentData(String name);
+    EquipmentData<?> getEquipmentData(String mapName, String name);
 
     /**
      * Creates a piece of equipment
-     * @param player The player to create the equipment for
-     * @param slot The slot the equipment will go in
-     * @param name The name key of the equipment
      * @param <D> The type of the data used for the equipment
      * @param <L> The type of the levels used for the equipment
+     * @param player The player to create the equipment for
+     * @param slot The slot the equipment will go in
+     * @param mapName
+     * @param name The name key of the equipment
      * @return The new piece of equipment
      */
-    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, String name);
+    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, String mapName, String name);
 
     /**
      * Creates a piece of equipment

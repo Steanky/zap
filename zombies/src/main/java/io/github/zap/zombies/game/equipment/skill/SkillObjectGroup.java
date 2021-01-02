@@ -28,6 +28,6 @@ public class SkillObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public String getEquipmentType() {
-        return EquipmentType.SKILL.toString();
+        return EquipmentType.SKILL.name();
     }
 }
