@@ -52,7 +52,7 @@ public class EditMapForm extends CommandForm {
         String name = (String)arguments[2];
         Player player = (Player)context.getSender();
         Zombies.getInstance().getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(
-                Zombies.getInstance().getArenaManager().getMaps().get(name)));
+                player, Zombies.getInstance().getArenaManager().getMaps().get(name)));
 
         return String.format("Editing map '%s'.", name);
     }
