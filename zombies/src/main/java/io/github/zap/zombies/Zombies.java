@@ -16,6 +16,9 @@ import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.DebugCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
+import io.github.zap.zombies.game.data.map.shop.GunShopData;
+import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
+import io.github.zap.zombies.game.shop.GunShop;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -24,13 +27,21 @@ import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -177,6 +188,7 @@ public final class Zombies extends JavaPlugin implements Listener {
 
                 ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
                         new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
+                        new JacksonShopManager(),
                         Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
                         config.getInt(ConfigNames.MAX_WORLDS),
                         config.getInt(ConfigNames.ARENA_TIMEOUT));
@@ -218,6 +230,15 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initCommands() {
         CommandManager commandManager = new CommandManager(this);
         commandManager.registerCommand(new DebugCommand());
+        getCommand("tahmid").setExecutor((commandSender, command, s, strings) -> {
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                ItemStack[] itemStacks = player.getEquipment().getArmorContents();
+                System.out.println();
+            }
+
+            return true;
+        });
     }
 
     /*

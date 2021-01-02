@@ -2,14 +2,11 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.util.ItemStackUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
-import io.github.zap.zombies.game.data.map.DoorData;
-import io.github.zap.zombies.game.data.map.DoorSide;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
@@ -21,7 +18,6 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.Set;
@@ -64,14 +60,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         hotbarManager = new ZombiesHotbarManager(player);
 
-        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap().getHotbarObjectGroupSlots().entrySet()) {
+        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap()
+                .getHotbarObjectGroupSlots().entrySet()) {
             hotbarManager.addEquipmentObjectGroup(equipmentManager
                     .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,
                     hotbarObjectGroupSlot.getValue()));
         }
 
         for (String equipment : arena.getMap().getDefaultEquipments()) {
-            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(equipment);
+            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(
+                    arena.getMap().getMapNameKey(), equipment
+            );
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {
@@ -104,12 +103,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         perks.dispose();
     }
 
-    private void addCoins(int amount) {
+    public void addCoins(int amount) {
         Zombies.sendLocalizedMessage(getPlayer(), MessageKey.ADD_GOLD, amount);
         coins += amount;
     }
 
-    private void subtractCoins(int amount) {
+    public void subtractCoins(int amount) {
         Zombies.sendLocalizedMessage(getPlayer(), MessageKey.SUBTRACT_GOLD, amount);
         coins -= amount;
     }
@@ -137,36 +136,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             Bukkit.getScheduler().cancelTask(windowRepairTaskId);
             windowRepairTaskId = -1;
         }
-    }
-
-    /**
-     * Attempts to open the door that may be at the provided vector.
-     * @param targetBlock The block to target
-     */
-    public boolean tryOpenDoor(Vector targetBlock) {
-        MapData map = arena.getMap();
-
-        if(ItemStackUtils.isEmpty(getPlayer().getInventory().getItemInMainHand()) || !map.isHandRequiredToOpenDoors()) {
-            DoorData door = map.doorAt(targetBlock);
-
-            if(door != null) {
-                DoorSide side = door.sideAt(getPlayer().getLocation().toVector());
-
-                if(side != null) {
-                    if(coins >= side.getCost()) {
-                        WorldUtils.fillBounds(arena.getWorld(), door.getDoorBounds(), map.getDoorFillMaterial());
-                        subtractCoins(side.getCost());
-                        door.getOpenProperty().set(arena, true);
-                        return true;
-                    }
-                    else { //can't afford door
-                        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.CANNOT_AFFORD);
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     /**

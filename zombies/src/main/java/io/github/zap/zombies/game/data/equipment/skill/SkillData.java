@@ -18,7 +18,7 @@ public class SkillData extends EquipmentData<SkillLevel> {
 
     public SkillData(String name, String displayName, Material material, List<String> lore, List<SkillLevel> levels,
                      int delay) {
-        super(EquipmentType.SKILL.toString(), name, displayName, material, lore, levels);
+        super(EquipmentType.SKILL.name(), name, displayName, material, lore, levels);
 
         this.delay = delay;
     }
@@ -34,7 +34,7 @@ public class SkillData extends EquipmentData<SkillLevel> {
 
     @Override
     public String getEquipmentType() {
-        return EquipmentType.SKILL.toString();
+        return EquipmentType.SKILL.name();
     }
 
 }
