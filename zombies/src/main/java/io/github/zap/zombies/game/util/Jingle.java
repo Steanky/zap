@@ -90,6 +90,9 @@ public class Jingle {
 
     }
 
+    /**
+     * Listener for parts of a jingle being played
+     */
     public interface JingleListener {
 
         /**

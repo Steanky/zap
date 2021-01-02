@@ -63,15 +63,19 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         List<ArmorShopData.ArmorLevel> armorLevels = armorShopData.getArmorLevels();
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
+        LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
+
         // Display the hologram
         String secondHologramLine;
         if (armorLevel == null) {
             armorLevel = armorLevels.get(armorLevels.size() - 1);
-            secondHologramLine = "UNLOCKED";
+            secondHologramLine = localizationManager.getLocalizedMessageFor(player, MessageKey.UNLOCKED.getKey());
         } else {
             secondHologramLine = (armorShopData.isRequiresPower() && !isPowered())
-                    ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                    : ChatColor.GOLD.toString() + armorLevel.getCost() + " Gold";
+                    ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
+                    + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
+                    : ChatColor.GOLD.toString() + armorLevel.getCost() + " "
+                    + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey());
         }
 
         sendArmorStandUpdatePackets(player, armorLevel);
@@ -90,7 +94,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
             if (!getShopData().isRequiresPower() || isPowered()) {
                 ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
                 if (armorLevel == null) {
-                    // TODO: ya done now
+                    localizationManager.sendLocalizedMessage(player, MessageKey.MAXED_OUT.getKey());
                 } else {
                     int cost = armorLevel.getCost();
 

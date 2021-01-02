@@ -73,12 +73,16 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     protected void displayTo(Player player) {
         Hologram hologram = getHologram();
 
-        hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Team Machine");
+        LocalizationManager localizationManager = getLocalizationManager();
+        hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() +
+                localizationManager.getLocalizedMessageFor(player, MessageKey.TEAM_MACHINE.getKey()));
 
         hologram.setLine(1,
                 getShopData().isRequiresPower() && !isPowered()
-                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                        : ChatColor.GREEN + "rc to open"
+                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
+                        + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
+                        : ChatColor.GREEN
+                        + localizationManager.getLocalizedMessageFor(player, MessageKey.RIGHT_CLICK_TO_OPEN.getKey())
         );
     }
 
@@ -122,6 +126,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
         }
 
         int guiSize = 9 * Math.min(6, height + 2);
+        // TODO: localization aaaaaaaaa
         Inventory inventory = Bukkit.createInventory(null, guiSize, "Team Machine");
 
         int index = 0;

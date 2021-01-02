@@ -25,12 +25,21 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     protected void displayTo(Player player) {
         Hologram hologram = getHologram();
 
-        hologram.setLine(0, ChatColor.GOLD.toString() + ChatColor.BOLD.toString() + "Power Switch");
+        LocalizationManager localizationManager = getLocalizationManager();
+        hologram.setLine(
+                0,
+                ChatColor.GOLD.toString() + ChatColor.BOLD.toString()
+                + localizationManager.getLocalizedMessageFor(player, MessageKey.POWER_SWITCH.getKey())
+        );
 
-        hologram.setLine(1,
+        hologram.setLineFor(
+                player,
+                1,
                 isPowered()
-                        ? ChatColor.GREEN + "ACTIVE"
-                        : ChatColor.GOLD.toString() + getShopData().getCost() + " Gold"
+                        ? ChatColor.GREEN
+                        + localizationManager.getLocalizedMessageFor(player, MessageKey.ACTIVE.getKey())
+                        : ChatColor.GOLD.toString() + getShopData().getCost() + " "
+                        + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
         );
     }
 
@@ -49,7 +58,6 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
                 if (zombiesPlayer.getCoins() < cost) {
                     localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
                 } else {
-                    // TODO: success
                     zombiesPlayer.subtractCoins(cost);
 
                     for (Player playerInWorld : getZombiesArena().getWorld().getPlayers()) {

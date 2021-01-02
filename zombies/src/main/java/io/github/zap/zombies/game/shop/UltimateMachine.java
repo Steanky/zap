@@ -27,12 +27,16 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     protected void displayTo(Player player) {
         Hologram hologram = getHologram();
 
-        hologram.setLineFor(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() + "Ultimate Machine");
+        LocalizationManager localizationManager = getLocalizationManager();
+        hologram.setLineFor(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString()
+                + localizationManager.getLocalizedMessageFor(player, MessageKey.ULTIMATE_MACHINE.getKey()));
 
         hologram.setLineFor(player, 1,
                 getShopData().isRequiresPower() && !isPowered()
-                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                        : ChatColor.GOLD.toString() + getShopData().getCost() + " Gold"
+                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
+                        + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
+                        : ChatColor.GOLD.toString() + getShopData().getCost() + " "
+                        + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
         );
     }
 

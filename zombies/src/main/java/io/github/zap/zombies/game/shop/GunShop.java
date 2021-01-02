@@ -68,10 +68,13 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
 
+        LocalizationManager localizationManager = getLocalizationManager();
         String firstHologramLine = ChatColor.GREEN.toString();
         String secondHologramLine = (gunShopData.isRequiresPower() && !isPowered())
-                ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                : ChatColor.GOLD.toString() + gunShopData.getRefillCost() + " Gold";
+                ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
+                + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
+                : ChatColor.GOLD.toString() + gunShopData.getRefillCost() + " "
+                + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey());
 
         if (zombiesPlayer != null) {
             GunObjectGroup gunObjectGroup
@@ -82,7 +85,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                         Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
                         if (gun.getEquipmentData().getName().equals(gunName)) {
-                            firstHologramLine += gunName + " Ammo";
+                            firstHologramLine += gunName + " "
+                                    + localizationManager.getLocalizedMessageFor(player, MessageKey.AMMO.getKey());
                             break;
                         }
                     }

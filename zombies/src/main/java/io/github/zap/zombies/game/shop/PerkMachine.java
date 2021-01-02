@@ -35,13 +35,17 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
         int level = (perkEquipment == null) ? 0 : perkEquipment.getLevel() + 1;
 
+        LocalizationManager localizationManager = getLocalizationManager();
         String secondHologramLine;
         if (perkEquipment == null || level < perkEquipment.getEquipmentData().getLevels().size()) {
             secondHologramLine = perkMachineData.isRequiresPower() && !isPowered()
-                    ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
-                    : ChatColor.GOLD.toString() + perkMachineData.getCosts().get(level) + " Gold";
+                    ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
+                    + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
+                    : ChatColor.GOLD.toString() + perkMachineData.getCosts().get(level) + " "
+                    + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey());
         } else {
-            secondHologramLine = ChatColor.GREEN + "ACTIVE";
+            secondHologramLine = ChatColor.GREEN
+                    + localizationManager.getLocalizedMessageFor(player, MessageKey.ACTIVE.getKey());
         }
 
 
@@ -49,7 +53,11 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
         hologram.setLineFor(
                 player,
                 0,
-                ChatColor.BLUE.toString() + ChatColor.BOLD.toString() + perkMachineData.getPerkType().name()
+                ChatColor.BLUE.toString() + ChatColor.BOLD.toString() +
+                        localizationManager.getLocalizedMessageFor(
+                                player,
+                                perkMachineData.getPerkType().name()
+                        )
         );
         hologram.setLineFor(player, 1, secondHologramLine);
     }
@@ -80,7 +88,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                             if (perkObjectGroup != null) {
                                 Integer slot = perkObjectGroup.getNextEmptySlot();
                                 if (slot != null) {
-                                    zombiesPlayer.getPerks(); // TODO: adding perks
+                                    zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
 
                                     ZombiesArena zombiesArena = getZombiesArena();
                                     hotbarManager.setHotbarObject(slot, zombiesArena.getEquipmentManager()
@@ -93,15 +101,12 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
                                     onPurchaseSuccess(zombiesPlayer);
                                 } else {
-                                    // We already know the player doesn't have the equipment
-                                    // TODO: choose a slot
+                                    localizationManager.sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
                                 }
                             } else {
-                                // TODO: can't buy perks
+                                localizationManager.sendLocalizedMessage(player, MessageKey.NO_GROUP.getKey());
                             }
                         }
-                    } else {
-                        // TODO: you can't buy anything!
                     }
                 } else {
                     level = perkEquipment.getLevel() + 1;
@@ -114,11 +119,12 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                         } else {
                             zombiesPlayer.subtractCoins(cost);
                             perkEquipment.upgrade();
+                            zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
 
                             onPurchaseSuccess(zombiesPlayer);
                         }
                     } else {
-                        // TODO: unlocked
+                        localizationManager.sendLocalizedMessage(player, MessageKey.UNLOCKED.getKey());
                     }
                 }
             } else {

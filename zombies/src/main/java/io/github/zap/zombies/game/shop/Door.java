@@ -34,21 +34,10 @@ public class Door extends Shop<DoorData> {
 
         World world = zombiesArena.getWorld();
         for (DoorSide doorSide : getShopData().getDoorSides()) {
-            List<String> opensTo = doorSide.getOpensTo();
-            if (opensTo.size() > 0) {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append(ChatColor.GREEN);
-                stringBuilder.append(opensTo.get(0));
-                for (int i = 1; i < opensTo.size(); i++) {
-                    stringBuilder.append(opensTo.get(i));
-                }
-
-                Hologram hologram
-                        = new Hologram(doorSide.getHologramLocation().toLocation(world), stringBuilder.toString());
-                hologram.addLine();
-                hologram.setLine(1, ChatColor.GOLD.toString() + doorSide.getCost() + " Gold");
-                doorSideHologramMap.put(doorSide, hologram);
-            }
+            doorSideHologramMap.put(
+                    doorSide,
+                    new Hologram(doorSide.getHologramLocation().toLocation(world), 2)
+            );
         }
     }
 
@@ -63,7 +52,29 @@ public class Door extends Shop<DoorData> {
             for (Map.Entry<DoorSide, Hologram> entry : doorSideHologramMap.entrySet()) {
                 Hologram hologram = entry.getValue();
                 hologram.renderTo(player);
-                hologram.setLine(1, ChatColor.GOLD.toString() + entry.getKey().getCost() + " Gold");
+
+                LocalizationManager localizationManager = getLocalizationManager();
+                StringBuilder stringBuilder = new StringBuilder(ChatColor.GREEN.toString());
+                List<String> opensTo = entry.getKey().getOpensTo();
+                if (opensTo.size() > 0) {
+                    stringBuilder.append(
+                            localizationManager.getLocalizedMessageFor(player, opensTo.get(0))
+                    );
+                    for (int i = 1; i < opensTo.size(); i++) {
+                        stringBuilder.append(" & ");
+                        stringBuilder.append(
+                                localizationManager.getLocalizedMessageFor(player, opensTo.get(i))
+                        );
+                    }
+                }
+
+                hologram.setLineFor(player, 0, stringBuilder.toString());
+                hologram.setLineFor(
+                        player,
+                        1,
+                        ChatColor.GOLD.toString() + entry.getKey().getCost() + " "
+                        + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
+                );
             }
         }
     }

@@ -14,19 +14,36 @@ public enum MessageKey {
     WINDOW_REPAIR_FAIL_MOB("zombies.game.window.fail.mob"), //shown when a mob blocks window repair
     WINDOW_REPAIR_FAIL_PLAYER("zombies.game.window.fail.player"), //shown when a player blocks window repair
 
+    GOLD("zombies.game.gold.name"),
     ADD_GOLD("zombies.game.gold.add"), //shown when gold is given to the player
     SUBTRACT_GOLD("zombies.game.gold.subtract"), //shown when gold is given to the player
     CANNOT_AFFORD("zombies.game.gold.unaffordable"), //generic message shown when something is too expensive to purchase
 
     CHOOSE_SLOT("zombies.game.hotbar.choose"),
+    NO_GROUP("zombies.game.hotbar.group.unavailable"),
 
     MAXED_OUT("zombies.game.shop.max"),
+    ACTIVE("zombies.game.shop.active"),
+    UNLOCKED("zombies.game.shop.unlocked"),
+    REQUIRES_POWER("zombies.game.shop.power"),
+
+    LUCKY_CHEST("zombies.game.shop.chest.name"),
+    POWER_SWITCH("zombies.game.shop.power.name"),
+    TEAM_MACHINE("zombies.game.shop.team_machine.name"),
+    ULTIMATE_MACHINE("zombies.game.shop.ultimate_machine.name"),
+
+    RIGHT_CLICK_TO_OPEN("zombies.game.shop.team_machine.open"),
 
     LEFT_CLICK("zombies.tutorial.click.left"),
     RIGHT_CLICK("zombies.tutorial.click.right"),
-
     TO_RELOAD("zombies.tutorial.reload"),
     TO_SHOOT("zombies.tutorial.shoot"),
+
+    AMMO("zombies.game.gun.ammo"),
+
+    OTHER_PERSON_ROLLING("zombies.game.chest.other"),
+    NOT_DONE_ROLLING("zombies.game.chest.unfinished"),
+    RIGHT_CLICK_TO_CLAIM("zombies.game.chest.claim"),
 
     ACTIVATED_POWER_TITLE("zombies.game.power.on.title"),
     ACTIVATED_POWER_SUBTITLE("zombies.game.power.on.subtitle"),

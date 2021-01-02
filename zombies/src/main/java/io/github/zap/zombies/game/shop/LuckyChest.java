@@ -1,5 +1,10 @@
 package io.github.zap.zombies.game.shop;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.BlockPosition;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.localization.LocalizationManager;
@@ -29,9 +34,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-// TODO: protocollib
 /**
  * Chest used to randomly generate a weapon from a predefined set of weapons to present to the player
  */
@@ -99,12 +104,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
             hologram.renderTo(player);
 
-            hologram.setLineFor(player, 0, ChatColor.DARK_PURPLE + "Lucky Chest");
+            LocalizationManager localizationManager = getLocalizationManager();
+            hologram.setLineFor(player, 0, ChatColor.DARK_PURPLE +
+                    localizationManager.getLocalizedMessageFor(player, MessageKey.LUCKY_CHEST.getKey()));
             hologram.setLineFor(player, 1,
                     luckyChestData.isRequiresPower() && !isPowered()
-                            ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString() + "Requires Power!"
+                            ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
+                            + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
                             : ChatColor.YELLOW.toString() + ChatColor.BOLD.toString()
-                            + luckyChestData.getCost() + " Gold"
+                            + luckyChestData.getCost() + " "
+                            + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
             );
         }
         roller.displayTo(player);
@@ -129,8 +138,9 @@ public class LuckyChest extends Shop<LuckyChestData> {
                             if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
                                 localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
                             } else {
-                                Jingle.play(luckyChestData.getJingle(), roller, chestLocation);
                                 rollingPlayerId = zombiesPlayer.getPlayer().getUniqueId();
+                                playerInteractEvent.setCancelled(true);
+                                Jingle.play(luckyChestData.getJingle(), roller, chestLocation);
                             }
                         } else if (zombiesPlayer.getId().equals(rollingPlayerId)) {
                             if (roller.isCollectable()) {
@@ -141,11 +151,12 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                         .getHotbarObjectGroup(equipmentData.getName());
 
                                 if (equipmentObjectGroup == null) {
-                                    // TODO: uncollectable
+                                    localizationManager.sendLocalizedMessage(player, MessageKey.NO_GROUP.getKey());
                                 } else {
                                     Integer slot = equipmentObjectGroup.getNextEmptySlot();
                                     if (slot == null) {
-                                        // TODO: choose a slot
+                                        localizationManager.sendLocalizedMessage(player,
+                                                MessageKey.CHOOSE_SLOT.getKey());
                                     } else {
                                         hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
                                                 player,
@@ -159,10 +170,10 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                     }
                                 }
                             } else {
-                                // TODO: still rolling
+                                localizationManager.sendLocalizedMessage(player, MessageKey.NOT_DONE_ROLLING.getKey());
                             }
                         } else {
-                            // TODO: you're not the roller
+                            localizationManager.sendLocalizedMessage(player, MessageKey.OTHER_PERSON_ROLLING.getKey());
                         }
                     } else {
                         // TODO: not active rn
@@ -192,6 +203,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private final Zombies zombies;
 
+        private final ProtocolManager protocolManager;
+
         private final World world;
 
         private final Location chestLocation;
@@ -203,16 +216,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private final static String format = ChatColor.RED + "%ds";
 
-        @Getter
-        private Player roller;
-
         private Hologram timeRemaining;
 
         private String timeRemainingString;
 
         private Hologram rightClickToClaim;
-
-        private String rightClickToClaimString = "";
 
         private Hologram gunName;
 
@@ -229,8 +237,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
         private int sittingTaskId;
 
         public Roller(LuckyChest luckyChest) {
-            super();
             this.zombies = Zombies.getInstance();
+            this.protocolManager = ProtocolLibrary.getProtocolManager();
             this.chestLocation = luckyChest.getChestLocation();
             this.world = chestLocation.getWorld();
             this.equipments = luckyChest.getEquipments();
@@ -251,13 +259,41 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
             if (rightClickToClaim != null) {
                 rightClickToClaim.renderTo(player);
-                rightClickToClaim.setLineFor(player, 0, rightClickToClaimString);
+
+                LocalizationManager localizationManager = zombies.getLocalizationManager();
+                rightClickToClaim.setLineFor(
+                        player,
+                        0,
+                        localizationManager.getLocalizedMessageFor(player, MessageKey.RIGHT_CLICK_TO_CLAIM.getKey()
+                        )
+                );
             }
 
             if (gunName != null) {
                 gunName.renderTo(player);
                 gunName.setLineFor(player, 0, gunNameString);
             }
+
+            try {
+                protocolManager.sendServerPacket(player, getChestPacket());
+            } catch (InvocationTargetException exception) {
+                zombies.getLogger().warning(
+                        String.format("Error sending chest packet to player %s", player.getName())
+                );
+            }
+        }
+
+        /**
+         * Creates a packet for displaying whether or not the chest is open
+         */
+        private PacketContainer getChestPacket() {
+            PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.BLOCK_ACTION);
+            packetContainer.getBlockPositionModifier().write(0, new BlockPosition(chestLocation.toVector()));
+            packetContainer.getIntegers()
+                    .write(0, 1)
+                    .write(1, (rollingItem == null) ? 0 : 1);
+
+            return packetContainer;
         }
 
         @Override
@@ -270,6 +306,17 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
             gunName = new Hologram(chestLocation.clone(), 1);
+
+            PacketContainer packetContainer = getChestPacket();
+            for (Player player : chestLocation.getWorld().getPlayers()) {
+                try {
+                    protocolManager.sendServerPacket(player, packetContainer);
+                } catch (InvocationTargetException exception) {
+                    zombies.getLogger().warning(
+                            String.format("Error sending chest packet to player %s", player.getName())
+                    );
+                }
+            }
         }
 
 
@@ -319,8 +366,18 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.remove();
             rollingItem = null;
 
-            roller = null;
             collectable = false;
+
+            PacketContainer packetContainer = getChestPacket();
+            for (Player player : chestLocation.getWorld().getPlayers()) {
+                try {
+                    protocolManager.sendServerPacket(player, packetContainer);
+                } catch (InvocationTargetException exception) {
+                    zombies.getLogger().warning(
+                            String.format("Error sending chest packet to player %s", player.getName())
+                    );
+                }
+            }
 
             Bukkit.getScheduler().cancelTask(sittingTaskId);
         }
