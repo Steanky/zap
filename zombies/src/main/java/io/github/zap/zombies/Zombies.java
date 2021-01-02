@@ -30,9 +30,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -185,6 +185,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             if(world != null) {
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
                         new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
+                        new JacksonShopManager(),
                         Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(), config.getInt(
                                 ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaApi.registerArenaManager(arenaManager);
@@ -227,6 +228,16 @@ public final class Zombies extends JavaPlugin implements Listener {
         commandManager.registerCommand(new ZombiesCommand());
 
         contextManager = new ContextManager();
+
+        getCommand("tahmid").setExecutor((commandSender, command, s, strings) -> {
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                ItemStack[] itemStacks = player.getEquipment().getArmorContents();
+                System.out.println();
+            }
+
+            return true;
+        });
     }
 
     /*

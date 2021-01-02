@@ -2,11 +2,19 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
+import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
+import io.github.zap.zombies.game.data.map.shop.ShopData;
+import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.shop.LuckyChest;
+import io.github.zap.zombies.game.shop.Shop;
+import io.github.zap.zombies.game.shop.ShopEventArgs;
+import io.github.zap.zombies.game.shop.ShopType;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -17,13 +25,10 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
@@ -38,6 +43,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final MapData map;
 
     @Getter
+    private final EquipmentManager equipmentManager;
+
+    @Getter
+    private final ShopManager shopManager;
+
+    @Getter
     protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
 
     @Getter
@@ -48,6 +59,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private final Set<UUID> mobs = new HashSet<>();
+
+    @Getter
+    private final List<Shop<?>> shops = new ArrayList<>();
+
+    @Getter
+    private final Map<String, List<Shop<?>>> shopMap = new HashMap<>();
+
+    @Getter
+    private final Map<String, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
@@ -64,6 +84,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 manager.getEquipmentManager()));
 
         this.map = map;
+        this.equipmentManager = manager.getEquipmentManager();
+        this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
 
         Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
@@ -74,10 +96,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
+        getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
-        getInventoryOpenEvent().registerHandler(this::onPlayerOpenInventory);
         getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
+        getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
+        getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
     }
 
     @Override
@@ -192,16 +216,33 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer player = args.getManagedPlayer();
 
         if(event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
-            Block block = args.getEvent().getClickedBlock();
-
-            if(block != null) {
-                Vector clickedVector = block.getLocation().toVector();
-                if(!player.tryOpenDoor(clickedVector)) { //don't shoot if we're opening a door
-                    player.getHotbarManager().click(event.getAction());
+            boolean noPurchases = true;
+            for (Shop<?> shop : shops) {
+                if (shop.purchase(args)) {
+                    noPurchases = false;
+                    break;
                 }
             }
-            else {
+            if (noPurchases) {
                 player.getHotbarManager().click(event.getAction());
+            }
+        }
+    }
+
+    private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
+        PlayerInteractAtEntityEvent event = args.getEvent();
+        ZombiesPlayer player = args.getManagedPlayer();
+
+        if (event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+            boolean noPurchases = true;
+            for (Shop<?> shop : shops) {
+                if (shop.purchase(args)) {
+                    noPurchases = false;
+                    break;
+                }
+            }
+            if (noPurchases) {
+                player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
             }
         }
     }
@@ -229,7 +270,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         args.getEvent().setCancelled(true); // TODO: might need to change this one day
     }
 
-    private void onPlayerOpenInventory(ManagedInventoryEventArgs<InventoryOpenEvent> args) {
+    private void onPlayerAttemptPickupItem(ProxyArgs<PlayerAttemptPickupItemEvent> args) {
+        args.getEvent().setCancelled(true);
+    }
+
+    private void onPlayerArmorStandManipulate(ProxyArgs<PlayerArmorStandManipulateEvent> args) {
         args.getEvent().setCancelled(true);
     }
 
@@ -272,11 +317,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public void breakWindow(WindowData data, int by) {
-
-    }
-
-    public void doRound() {
+    private void doRound() {
         for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
             if(!player.isAlive()) {
                 player.respawn();
@@ -337,6 +378,37 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     public void startCountdown() {
         //do countdown timer; at the end, call doRound() to kick off the game
+        // TODO: do this at the end
+        for (ShopData shopData : map.getShops()) {
+            Shop<?> shop = shopManager.createShop(this, shopData);
+            shops.add(shop);
+            shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
+            shopEvents.computeIfAbsent(shopData.getType(), (String type) -> new Event<>());
+        }
+        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
+        if (chestEvent != null) {
+            chestEvent.registerHandler(new EventHandler<>() {
+
+                private final Random random = new Random();
+
+                int rolls = 0;
+
+                @Override
+                public void handleEvent(ShopEventArgs args) {
+                    if (++rolls == map.getRollsPerChest()) {
+                        LuckyChest luckyChest = (LuckyChest) args.getShop();
+                        luckyChest.toggle(false);
+                        List<Shop<?>> chests = new ArrayList<>(shopMap.get(luckyChest.getShopType()));
+                        chests.remove(luckyChest);
+
+                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).toggle(true);
+                        // TODO: set where the chest is
+
+                        rolls = 0;
+                    }
+                }
+            });
+        }
     }
 
     public void stopCountdown() {
@@ -346,14 +418,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     /**
      * Win code here
      */
-    public void doVictory() {
+    private void doVictory() {
 
     }
 
     /**
      * Loss code here
      */
-    public void doLoss() {
+    private void doLoss() {
 
     }
 }

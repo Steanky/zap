@@ -19,7 +19,7 @@ public class LinearGunData extends GunData<LinearGunLevel> {
 
     public LinearGunData(String name, String displayName, List<String> lore, List<LinearGunLevel> levels,
                          Material material, Particle particle, Object particleData) {
-        super(EquipmentType.LINEAR_GUN.toString(), name, displayName, lore, levels, material);
+        super(EquipmentType.LINEAR_GUN.name(), name, displayName, lore, levels, material);
 
         this.particle = particle;
         this.particleData = particleData;

@@ -65,7 +65,7 @@ public class HotbarProfile {
      */
     public void addHotbarObject(int slot, HotbarObject hotbarObject) {
         for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
-            if (hotbarObjectGroup.getSlots().contains(slot)) {
+            if (hotbarObjectGroup.getHotbarObjectMap().containsKey(slot)) {
                 hotbarObjectGroup.setHotbarObject(slot, hotbarObject);
                 return;
             }
@@ -82,7 +82,7 @@ public class HotbarProfile {
      */
     public void removeHotbarObject(int slot, boolean replace) {
         for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
-            if (hotbarObjectGroup.getSlots().contains(slot)) {
+            if (hotbarObjectGroup.getHotbarObjectMap().containsKey(slot)) {
                 hotbarObjectGroup.remove(slot, replace);
                 if (!replace) {
                     defaultHotbarObjectGroup.addHotbarObject(slot);
@@ -102,8 +102,8 @@ public class HotbarProfile {
      */
     public void addHotbarObjectGroup(String name, HotbarObjectGroup hotbarObjectGroup) {
         if (!hotbarObjectGroupMap.containsKey(name)) {
-            Set<Integer> defaultHotbarObjectGroupSlots = defaultHotbarObjectGroup.getSlots(),
-                    newHotbarObjectGroupSlots = hotbarObjectGroup.getSlots();
+            Set<Integer> defaultHotbarObjectGroupSlots = defaultHotbarObjectGroup.getHotbarObjectMap().keySet(),
+                    newHotbarObjectGroupSlots = hotbarObjectGroup.getHotbarObjectMap().keySet();
             for (Integer slot : newHotbarObjectGroupSlots) {
                 if (!defaultHotbarObjectGroupSlots.contains(slot)) {
                     throw new IllegalArgumentException(String.format("Cannot add HotbarObjectGroup to slot %d " +
@@ -130,7 +130,7 @@ public class HotbarProfile {
             if (hotbarObjectGroupMap.containsKey(name)) {
                 HotbarObjectGroup hotbarObjectGroup = hotbarObjectGroupMap.remove(name);
                 hotbarObjectGroup.remove();
-                for (Integer slot : hotbarObjectGroup.getSlots()) {
+                for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
                     defaultHotbarObjectGroup.addHotbarObject(slot);
                 }
             } else {

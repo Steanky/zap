@@ -101,6 +101,12 @@ public class LocalizationManager {
         }
     }
 
+    public String getLocalizedMessageFor(Player player, String messageKey) {
+        Locale locale = getPlayerLocale(player);
+
+        return (locale != null) ? getLocalizedMessage(locale, messageKey) : null;
+    }
+
     public void sendLocalizedMessage(Player player, String messageKey, Object ... formatArguments) {
         PlayerData data = dataManager.getPlayerData(player.getUniqueId());
 
@@ -134,7 +140,8 @@ public class LocalizationManager {
         if (data != null) {
             return Locale.forLanguageTag(data.getLocale());
         } else {
-            ArenaApi.warning(String.format("An attempt was made to get the locale of a player for whom no PlayerData object could be retrieved: player UUID %s", player.getUniqueId().toString()));
+            ArenaApi.warning(String.format("An attempt was made to get the locale of a player for whom no " +
+                    "PlayerData object could be retrieved: player UUID %s", player.getUniqueId().toString()));
             return null;
         }
     }

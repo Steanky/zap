@@ -148,12 +148,4 @@ public class HotbarObjectGroup {
         return null;
     }
 
-    /**
-     * Gets all of the slots of the hotbar object group
-     * @return The set of slots
-     */
-    public Set<Integer> getSlots() {
-        return hotbarObjectMap.keySet();
-    }
-
 }
