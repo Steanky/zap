@@ -130,7 +130,7 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
 
     public void tryBreak() {
         if(entity.getEyeLocation().distanceSquared(windowCenter) <= breakReachSquared) {
-            arena.breakWindow(targetWindow, breakIncrement);
+            //TODO: break window
         }
     }
 }
