@@ -4,11 +4,13 @@ import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 @RequiredArgsConstructor
 @Getter
 public class EditorContext {
+    private final Player player;
     private final MapData editingMap;
 
     private Vector firstClicked = null;
@@ -25,5 +27,9 @@ public class EditorContext {
             firstClicked = secondClicked;
             secondClicked = at.getLocation().toVector();
         }
+    }
+
+    public void renderBounds() {
+
     }
 }

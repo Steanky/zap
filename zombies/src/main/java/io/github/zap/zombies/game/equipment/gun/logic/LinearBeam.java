@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;

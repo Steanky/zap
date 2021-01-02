@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Getter
-public final class ContextManager implements Listener {
+public class ContextManager implements Listener {
     private final Map<UUID, EditorContext> contextMap = new HashMap<>();
     private final Material itemType = Material.STICK;
     private final List<String> itemLore = Lists.newArrayList("ZombiesMapeditorTM");

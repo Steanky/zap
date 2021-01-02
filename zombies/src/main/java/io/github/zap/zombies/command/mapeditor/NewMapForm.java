@@ -19,21 +19,23 @@ public class NewMapForm extends CommandForm implements Listener {
             new Parameter("^(\\w+)$", "[map_name]")
     };
 
-    private static final CommandValidator validator = new CommandValidator((context, arguments) -> {
-        Player sender = (Player)context.getSender();
-
-        if(Zombies.getInstance().getContextManager().getContextMap().containsKey(sender.getUniqueId())) {
-            return new ImmutablePair<>(false, "You are already editing a map.");
-        }
-
-        if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
-            return new ImmutablePair<>(false, "A map with that name already exists.");
-        }
-
-        return new ImmutablePair<>(true, null);
-    });
+    private static final CommandValidator validator;
 
     static {
+        validator = new CommandValidator((context, arguments) -> {
+            Player sender = (Player)context.getSender();
+
+            if(Zombies.getInstance().getContextManager().getContextMap().containsKey(sender.getUniqueId())) {
+                return new ImmutablePair<>(false, "You are already editing a map.");
+            }
+
+            if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
+                return new ImmutablePair<>(false, "A map with that name already exists.");
+            }
+
+            return new ImmutablePair<>(true, null);
+        });
+
         validator.chain(Validators.PLAYER_EXECUTOR);
     }
 
