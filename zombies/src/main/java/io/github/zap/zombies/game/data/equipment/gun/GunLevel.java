@@ -10,6 +10,8 @@ import lombok.Getter;
 @Getter
 public class GunLevel  {
 
+    private int range;
+
     private float damage;
 
     private int ammo;

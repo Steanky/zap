@@ -1,15 +1,18 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Sends lines of particles from guns
@@ -43,19 +46,83 @@ public class LinearBeam {
      * Performs a hitscan calculations on the entities to target
      */
     private void hitScan() {
-        while (hitMobs.size() != maxHitEntities) {
-            RayTraceResult rayTraceResult = world.rayTraceEntities(
-                    root,
-                    directionVector,
-                    distance,
-                    (Entity entity) -> (entity instanceof Mob && !hitMobs.contains(entity))
+        for (ImmutablePair<RayTraceResult, Double> hit : rayTrace()) {
+            damageEntity(hit.getLeft());
+        }
+    }
+
+    /**
+     * Gets all the entities hit by the beam's ray trace
+     * Uses modified ray trace from
+     * {@link org.bukkit.craftbukkit.v1_16_R3.CraftWorld#rayTraceEntities(Location, Vector, double, double, Predicate)}
+     * @return The entities that should be hit by the bullet
+     */
+    private Iterable<ImmutablePair<RayTraceResult, Double>> rayTrace() {
+        if (maxHitEntities == 0) {
+            return Collections.emptySet();
+        } else {
+            Queue<ImmutablePair<RayTraceResult, Double>> queue = new PriorityQueue<>(
+                    maxHitEntities,
+                    Comparator.comparingDouble(ImmutablePair::getRight)
             );
 
-            if (rayTraceResult == null) {
-                break;
-            } else {
-                damageEntity(rayTraceResult);
+            Vector startPos = root.toVector();
+            Vector dir = directionVector.clone().normalize().multiply(distance);
+
+            BoundingBox aabb = BoundingBox.of(startPos, startPos).expandDirectional(dir);
+            Collection<Entity> entities = root.getWorld().getNearbyEntities(
+                    aabb,
+                    (Entity entity) -> entity instanceof Mob
+            );
+
+            Iterator<Entity> iterator = entities.iterator();
+
+            // Fill up queue until max entities reach
+            while (iterator.hasNext() && queue.size() < maxHitEntities) {
+                Entity entity = iterator.next();
+                BoundingBox boundingBox = entity.getBoundingBox();
+                RayTraceResult hitResult = boundingBox.rayTrace(startPos, directionVector, distance);
+
+                if (hitResult != null) {
+                    double distanceSq = startPos.distanceSquared(hitResult.getHitPosition());
+                    queue.add(
+                            ImmutablePair.of(
+                                    new RayTraceResult(hitResult.getHitPosition(), entity, hitResult.getHitBlockFace()),
+                                    distanceSq
+                            )
+                    );
+                }
             }
+
+            // Perform distance checks on proceeding entities
+            double maxDist = (queue.size() > 0) ? queue.peek().getRight() : 1.7976931348623157E308D;
+            while (iterator.hasNext()) {
+                Entity entity = iterator.next();
+                BoundingBox boundingBox = entity.getBoundingBox().expand(0.0D);
+                RayTraceResult hitResult = boundingBox.rayTrace(startPos, directionVector, distance);
+
+                if (hitResult != null) {
+                    double distanceSq = startPos.distanceSquared(hitResult.getHitPosition());
+                    if (distanceSq < maxDist) {
+                        queue.poll();
+                        queue.add(
+                                ImmutablePair.of(
+                                        new RayTraceResult(
+                                                hitResult.getHitPosition(),
+                                                entity, hitResult.getHitBlockFace()
+                                        ),
+                                        distanceSq
+                                )
+                        );
+
+                        ImmutablePair<RayTraceResult, Double> pair = queue.peek();
+                        assert pair != null;
+                        maxDist = pair.getRight();
+                    }
+                }
+            }
+
+            return queue;
         }
     }
 

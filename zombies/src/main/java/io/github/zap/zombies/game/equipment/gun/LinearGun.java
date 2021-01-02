@@ -59,7 +59,7 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
                 eyeLocation.toVector().distance(targetBlockVector),
                 linearGunData.getParticle(),
                 linearGunData.getMaxPierceableEntities(),
-                linearGunData.getDamage()
+                getCurrentLevel().getDamage()
         ).send();
     }
 
@@ -69,7 +69,7 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
      * @return The target block vector
      */
     private Vector getTargetBlockVector(Player player) {
-        int range = /* max range */ 50;
+        int range = getCurrentLevel().getRange();
         Block targetBlock = player.getTargetBlock(AIR_MATERIALS, range);
         BoundingBox boundingBox;
 
