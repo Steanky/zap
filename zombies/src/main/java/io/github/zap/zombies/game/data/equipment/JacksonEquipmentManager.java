@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.data.equipment;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
 import io.github.zap.zombies.game.data.equipment.gun.SprayGunData;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunData;
@@ -72,18 +74,21 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, String mapName,
-                                                                           String name) {
-        return createEquipment(player, slot, (D) getEquipmentData(mapName, name));
+    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena,
+                                                                           ZombiesPlayer zombiesPlayer, int slot,
+                                                                           String mapName, String name) {
+        return createEquipment(zombiesArena, zombiesPlayer, slot, (D) getEquipmentData(mapName, name));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, D equipmentData) {
+    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena,
+                                                                           ZombiesPlayer zombiesPlayer, int slot,
+                                                                           D equipmentData) {
         EquipmentCreator.EquipmentMapping<D, L> equipmentMapping = (EquipmentCreator.EquipmentMapping<D, L>)
                 equipmentCreator.getEquipmentMappings().get(equipmentData.getEquipmentType());
 
-        return equipmentMapping.createEquipment(player, slot, equipmentData);
+        return equipmentMapping.createEquipment(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
 
     @Override

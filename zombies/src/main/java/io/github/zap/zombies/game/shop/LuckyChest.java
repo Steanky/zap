@@ -20,7 +20,6 @@ import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -158,11 +157,14 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                         localizationManager.sendLocalizedMessage(player,
                                                 MessageKey.CHOOSE_SLOT.getKey());
                                     } else {
-                                        hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
-                                                player,
-                                                slot,
-                                                equipmentData
-                                        ));
+                                        hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager()
+                                                .createEquipment(
+                                                        getZombiesArena(),
+                                                        zombiesPlayer,
+                                                        slot,
+                                                        equipmentData
+                                                )
+                                        );
                                         roller.cancelSitting();
                                         rollingPlayerId = null;
 

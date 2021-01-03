@@ -1,12 +1,13 @@
 package io.github.zap.zombies.game.equipment.skill;
 
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -18,8 +19,8 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
 
     boolean usable = true;
 
-    public SkillEquipment(Player player, int slot, SkillData equipmentData) {
-        super(player, slot, equipmentData);
+    public SkillEquipment(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, SkillData equipmentData) {
+        super(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
 
     @Override

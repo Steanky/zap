@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game.equipment;
 
+import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.Getter;
 import org.bukkit.entity.Player;
@@ -14,8 +16,8 @@ public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipme
     @Getter
     private int level = 0;
 
-    public UpgradeableEquipment(Player player, int slot, D equipmentData) {
-        super(player, slot, equipmentData);
+    public UpgradeableEquipment(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
+        super(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
 
     /**

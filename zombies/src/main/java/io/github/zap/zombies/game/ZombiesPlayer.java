@@ -74,7 +74,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {
-                hotbarManager.setHotbarObject(slot, equipmentManager.createEquipment(player, slot, equipmentData));
+                hotbarManager.setHotbarObject(
+                        slot,
+                        equipmentManager.createEquipment(arena, this, slot, equipmentData)
+                );
             }
         }
 

@@ -2,6 +2,8 @@ package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
@@ -31,8 +33,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     private boolean canShoot = true;
 
-    public Gun(Player player, int slot, D equipmentData) {
-        super(player, slot, equipmentData);
+    public Gun(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
+        super(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
 
     /**
@@ -99,7 +101,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 private final float stepVal = 1 / (fireRate * 20);
 
                 private int step = 0;
-                
+
                 @Override
                 public void run() {
                     if (step < goal && isSelected()) {

@@ -1,10 +1,11 @@
 package io.github.zap.zombies.game.equipment.gun;
 
+import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.SprayGunData;
 import io.github.zap.zombies.game.data.equipment.gun.SprayGunLevel;
 import io.github.zap.zombies.game.equipment.gun.logic.LinearBeam;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import java.util.Random;
 
@@ -15,8 +16,8 @@ public class SprayGun extends Gun<SprayGunData, SprayGunLevel> {
 
     private static final Random RANDOM = new Random();
 
-    public SprayGun(Player player, int slot, SprayGunData equipmentData) {
-        super(player, slot, equipmentData);
+    public SprayGun(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, SprayGunData equipmentData) {
+        super(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
 
     @Override

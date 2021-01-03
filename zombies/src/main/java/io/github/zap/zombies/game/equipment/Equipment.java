@@ -2,6 +2,8 @@ package io.github.zap.zombies.game.equipment;
 
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import lombok.Getter;
@@ -15,16 +17,22 @@ import org.bukkit.entity.Player;
 @Getter
 public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
 
+    private final ZombiesArena zombiesArena;
+
+    private final ZombiesPlayer zombiesPlayer;
+
     private final LocalizationManager localizationManager;
 
     private final D equipmentData;
 
-    public Equipment(Player player, int slot, D equipmentData) {
-        super(player, slot);
+    public Equipment(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
+        super(zombiesPlayer.getPlayer(), slot);
 
+        this.zombiesArena = zombiesArena;
+        this.zombiesPlayer = zombiesPlayer;
         this.localizationManager = Zombies.getInstance().getLocalizationManager();
         this.equipmentData = equipmentData;
-        setRepresentingItemStack(equipmentData.createItemStack(player, 0));
+        setRepresentingItemStack(equipmentData.createItemStack(zombiesPlayer.getPlayer(), 0));
     }
 
     /**
