@@ -2,9 +2,12 @@ package io.github.zap.zombies.game.data.equipment.gun;
 
 import lombok.Getter;
 
+/**
+ * Level of a linear gun
+ */
+@Getter
 public class LinearGunLevel extends GunLevel {
 
-    @Getter
     private int maxPierceableEntities;
 
     public LinearGunLevel(int range, float damage, int ammo, int clipAmmo, float fireRate, float reloadRate, int maxPierceableEntities) {

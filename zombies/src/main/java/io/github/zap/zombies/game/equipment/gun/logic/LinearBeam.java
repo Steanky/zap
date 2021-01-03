@@ -1,12 +1,15 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
-import lombok.RequiredArgsConstructor;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
+import org.bukkit.util.BlockIterator;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -17,27 +20,95 @@ import java.util.function.Predicate;
 /**
  * Sends lines of particles from guns
  */
-@RequiredArgsConstructor
 public class LinearBeam {
 
-    private final static int PARTICLE_NUMBER = 4; // TODO: check
+    private final static int DEFAULT_PARTICLE_COUNT = 4; // TODO: check
+
+    private final static Set<Material> AIR_MATERIALS =
+            Sets.newHashSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
 
     private final double VELOCITY_FACTOR = 0.5;
 
-    private final Set<Mob> hitMobs = new HashSet<>();
-
     private final World world;
-    private final Location root;
+    private final Vector root;
     private final Vector directionVector;
     private final double distance;
     private final Particle particle;
     private final int maxHitEntities;
     private final double damage;
+    private final int range;
+    private final int particleCount;
+
+
+    public LinearBeam(Location root, Particle particle, int maxHitEntities, double damage,
+                      int range, int particleCount) {
+        this.world = root.getWorld();
+        this.root = root.toVector();
+        this.directionVector = root.getDirection();
+        this.distance = getDistance();
+        this.particle = particle;
+        this.maxHitEntities = maxHitEntities;
+        this.damage = damage;
+        this.range = Math.min(120, range);
+        this.particleCount = particleCount;
+
+        send();
+    }
+
+    public LinearBeam(Location root, Particle particle, int maxHitEntities,
+                      double damage, int range) {
+        this(root, particle, maxHitEntities, damage, range, DEFAULT_PARTICLE_COUNT);
+    }
+
+    /**
+     * Gets the distance to the shot's target block
+     * @return The distance to the shot's target block
+     */
+    private double getDistance() {
+        Block targetBlock = getTargetBlock();
+        BoundingBox boundingBox;
+
+        if (AIR_MATERIALS.contains(targetBlock.getType())) {
+            Location location = targetBlock.getLocation();
+            boundingBox = new BoundingBox(location.getX(), targetBlock.getY(), targetBlock.getZ(),
+                    location.getX() + 1, location.getY() + 1, targetBlock.getZ() + 1);
+        } else {
+            boundingBox = targetBlock.getBoundingBox();
+        }
+
+        return Objects.requireNonNull(
+                boundingBox.rayTrace(
+                        root,
+                        directionVector,
+                        range + 1.74) // sqrt(3) error to account for entire block
+        ).getHitPosition().distance(root);
+    }
+
+    /**
+     * Gets the targeted block of the shot
+     * Adapted from {@link org.bukkit.craftbukkit.v1_16_R3.entity.CraftLivingEntity#getTargetBlock(int)} nested calls
+     * @return The targeted block
+     */
+    private Block getTargetBlock() {
+        Block targetBlock = null;
+        Iterator<Block> iterator = new BlockIterator(world, root, directionVector, 0.0D, range);
+
+        while (iterator.hasNext()) {
+            targetBlock = iterator.next();
+
+            Material material = targetBlock.getType();
+            if (!AIR_MATERIALS.contains(material)) {
+                break;
+            }
+        }
+
+        return targetBlock;
+    }
 
     /**
      * Sends the bullet
      */
-    public void send() {
+    private void send() {
         hitScan();
         spawnParticles();
     }
@@ -66,63 +137,86 @@ public class LinearBeam {
                     Comparator.comparingDouble(ImmutablePair::getRight)
             );
 
-            Vector startPos = root.toVector();
-            Vector dir = directionVector.clone().normalize().multiply(distance);
+            Iterator<Entity> iterator = getEntitiesInPathIterator();
 
-            BoundingBox aabb = BoundingBox.of(startPos, startPos).expandDirectional(dir);
-            Collection<Entity> entities = root.getWorld().getNearbyEntities(
-                    aabb,
-                    (Entity entity) -> entity instanceof Mob
-            );
+            fillQueue(queue, iterator);
+            replaceFarthestEnqueuedEntities(queue, iterator);
 
-            Iterator<Entity> iterator = entities.iterator();
+            return queue;
+        }
+    }
 
-            // Fill up queue until max entities reach
-            while (iterator.hasNext() && queue.size() < maxHitEntities) {
-                Entity entity = iterator.next();
-                BoundingBox boundingBox = entity.getBoundingBox();
-                RayTraceResult hitResult = boundingBox.rayTrace(startPos, directionVector, distance);
+    /**
+     * Gets an iterator of all the entities within the bullet's path
+     * @return The iterator
+     */
+    private Iterator<Entity> getEntitiesInPathIterator() {
+        Vector dir = directionVector.clone().normalize().multiply(distance);
 
-                if (hitResult != null) {
-                    double distanceSq = startPos.distanceSquared(hitResult.getHitPosition());
+        BoundingBox aabb = BoundingBox.of(root, root).expandDirectional(dir);
+        return world.getNearbyEntities(
+                aabb,
+                (Entity entity) -> entity instanceof Mob
+        ).iterator();
+    }
+
+    /**
+     * Fills the queue up with entities until it has reached the maxmimum hit entities
+     * @param queue The queue to fill up
+     * @param iterator The entity iterable iterator
+     */
+    private void fillQueue(Queue<ImmutablePair<RayTraceResult, Double>> queue, Iterator<Entity> iterator) {
+        while (iterator.hasNext() && queue.size() < maxHitEntities) {
+            Entity entity = iterator.next();
+            BoundingBox boundingBox = entity.getBoundingBox();
+            RayTraceResult hitResult = boundingBox.rayTrace(root, directionVector, distance);
+
+            if (hitResult != null) {
+                double distanceSq = root.distanceSquared(hitResult.getHitPosition());
+                queue.add(
+                        ImmutablePair.of(
+                                new RayTraceResult(hitResult.getHitPosition(), entity, hitResult.getHitBlockFace()),
+                                distanceSq
+                        )
+                );
+            }
+        }
+    }
+
+    /**
+     * Replaces the farthest entities within the queue so that only the closest entities are shot
+     * @param queue The queue to replace entities within
+     * @param iterator The entity iterable iterator
+     */
+    private void replaceFarthestEnqueuedEntities(Queue<ImmutablePair<RayTraceResult, Double>> queue,
+                                                Iterator<Entity> iterator) {
+        double maxDist = (queue.size() > 0) ? queue.peek().getRight() : 1.7976931348623157E308D;
+
+        while (iterator.hasNext()) {
+            Entity entity = iterator.next();
+            BoundingBox boundingBox = entity.getBoundingBox().expand(0.0D);
+            RayTraceResult hitResult = boundingBox.rayTrace(root, directionVector, distance);
+
+            if (hitResult != null) {
+                double distanceSq = root.distanceSquared(hitResult.getHitPosition());
+                if (distanceSq < maxDist) {
+                    queue.poll(); // Remove entity farthest away in queue
                     queue.add(
                             ImmutablePair.of(
-                                    new RayTraceResult(hitResult.getHitPosition(), entity, hitResult.getHitBlockFace()),
+                                    new RayTraceResult(
+                                            hitResult.getHitPosition(),
+                                            entity, hitResult.getHitBlockFace()
+                                    ),
                                     distanceSq
                             )
                     );
+
+                    // Get the distance of the farthest mob so we don't have to check again
+                    ImmutablePair<RayTraceResult, Double> pair = queue.peek();
+                    assert pair != null;
+                    maxDist = pair.getRight();
                 }
             }
-
-            // Perform distance checks on proceeding entities
-            double maxDist = (queue.size() > 0) ? queue.peek().getRight() : 1.7976931348623157E308D;
-            while (iterator.hasNext()) {
-                Entity entity = iterator.next();
-                BoundingBox boundingBox = entity.getBoundingBox().expand(0.0D);
-                RayTraceResult hitResult = boundingBox.rayTrace(startPos, directionVector, distance);
-
-                if (hitResult != null) {
-                    double distanceSq = startPos.distanceSquared(hitResult.getHitPosition());
-                    if (distanceSq < maxDist) {
-                        queue.poll();
-                        queue.add(
-                                ImmutablePair.of(
-                                        new RayTraceResult(
-                                                hitResult.getHitPosition(),
-                                                entity, hitResult.getHitBlockFace()
-                                        ),
-                                        distanceSq
-                                )
-                        );
-
-                        ImmutablePair<RayTraceResult, Double> pair = queue.peek();
-                        assert pair != null;
-                        maxDist = pair.getRight();
-                    }
-                }
-            }
-
-            return queue;
         }
     }
 
@@ -140,8 +234,6 @@ public class LinearBeam {
                 mob.damage(damage);
             }
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(VELOCITY_FACTOR)));
-
-            hitMobs.add(mob);
         }
     }
 
@@ -166,16 +258,18 @@ public class LinearBeam {
      * Spawns the bullet's particles in a line
      */
     private void spawnParticles() {
-        for (int i = 0; i < PARTICLE_NUMBER; i++) {
+        Location rootLocation = root.toLocation(world);
+
+        for (int i = 0; i < particleCount; i++) {
             world.spawnParticle(
                     particle,
-                    root,
+                    rootLocation,
                     0,
                     0,
                     0,
                     0
             );
-            root.add(directionVector);
+            rootLocation.add(directionVector);
         }
     }
 

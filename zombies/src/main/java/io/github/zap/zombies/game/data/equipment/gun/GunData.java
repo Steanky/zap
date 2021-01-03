@@ -26,7 +26,7 @@ public class GunData<L extends GunLevel> extends EquipmentData<L> {
             + ChatColor.DARK_GRAY + "%s ➔ " + ChatColor.GREEN + "%s";
 
     public GunData(String type, String name, String displayName, List<String> lore, List<L> levels, Material material) {
-        super(type, name, displayName, material, lore, levels);
+        super(type, name, displayName, lore, levels, material);
     }
 
     protected GunData() {
