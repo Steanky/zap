@@ -14,6 +14,8 @@ public class GunLevel  {
 
     private float damage;
 
+    private double knockbackFactor;
+
     private int ammo;
 
     private int clipAmmo;

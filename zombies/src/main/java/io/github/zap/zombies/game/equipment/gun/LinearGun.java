@@ -22,9 +22,7 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
         new LinearBeam(
                 getPlayer().getEyeLocation(),
                 linearGunData.getParticle(),
-                currentLevel.getMaxPierceableEntities(),
-                currentLevel.getDamage(),
-                currentLevel.getRange()
+                currentLevel
         );
     }
 }

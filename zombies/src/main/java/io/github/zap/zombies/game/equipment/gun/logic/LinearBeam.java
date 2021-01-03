@@ -1,6 +1,8 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
 import com.google.common.collect.Sets;
+import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
+import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,14 +22,13 @@ import java.util.function.Predicate;
 /**
  * Sends lines of particles from guns
  */
+@Getter
 public class LinearBeam { // TODO: figuring out particle data
 
-    private final static int DEFAULT_PARTICLE_COUNT = 4; // TODO: check
+    public final static int DEFAULT_PARTICLE_COUNT = 4; // TODO: check
 
     private final static Set<Material> AIR_MATERIALS =
             Sets.newHashSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
-
-    private final double VELOCITY_FACTOR = 0.5;
 
     private final World world;
     private final Vector root;
@@ -35,28 +36,32 @@ public class LinearBeam { // TODO: figuring out particle data
     private final double distance;
     private final Particle particle;
     private final int maxPierceableEntities;
-    private final double damage;
     private final int range;
+    private final double damage;
+    private final double knockbackFactor;
     private final int particleCount;
 
 
-    public LinearBeam(Location root, Particle particle, int maxPierceableEntities,
-                      double damage, int range, int particleCount) {
+    public LinearBeam(Location root, Particle particle, LinearGunLevel level, int particleCount) {
         this.world = root.getWorld();
         this.root = root.toVector();
         this.directionVector = root.getDirection();
         this.distance = getDistance();
         this.particle = particle;
-        this.maxPierceableEntities = maxPierceableEntities;
-        this.damage = damage;
-        this.range = Math.min(120, range);
+
+
+        this.maxPierceableEntities = level.getMaxPierceableEntities();
+        this.range = Math.min(120, level.getRange());
+        this.damage = level.getDamage();
+        this.knockbackFactor = level.getKnockbackFactor();
+
         this.particleCount = particleCount;
 
         send();
     }
 
-    public LinearBeam(Location root, Particle particle, int maxPierceableEntities, double damage, int range) {
-        this(root, particle, maxPierceableEntities, damage, range, DEFAULT_PARTICLE_COUNT);
+    public LinearBeam(Location root, Particle particle, LinearGunLevel level) {
+        this(root, particle, level, DEFAULT_PARTICLE_COUNT);
     }
 
     /**
@@ -115,7 +120,7 @@ public class LinearBeam { // TODO: figuring out particle data
     /**
      * Performs a hitscan calculations on the entities to target
      */
-    private void hitScan() {
+    protected void hitScan() {
         for (ImmutablePair<RayTraceResult, Double> hit : rayTrace()) {
             damageEntity(hit.getLeft());
         }
@@ -223,7 +228,7 @@ public class LinearBeam { // TODO: figuring out particle data
      * Damages an entity from a ray trace
      * @param rayTraceResult The ray trace result to get the entity from
      */
-    private void damageEntity(RayTraceResult rayTraceResult) {
+    protected void damageEntity(RayTraceResult rayTraceResult) {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
         if (mob != null) {
@@ -232,7 +237,7 @@ public class LinearBeam { // TODO: figuring out particle data
             } else {
                 mob.damage(damage);
             }
-            mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(VELOCITY_FACTOR)));
+            mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
         }
     }
 
@@ -242,7 +247,7 @@ public class LinearBeam { // TODO: figuring out particle data
      * @param mob The targeted mob
      * @return Whether or not the shot was a headshot
      */
-    private boolean determineIfHeadshot(RayTraceResult rayTraceResult, Mob mob) {
+    protected boolean determineIfHeadshot(RayTraceResult rayTraceResult, Mob mob) {
         double mobY = mob.getLocation().getY();
         double eyeY = mobY + mob.getEyeHeight();
         double heightY = mobY + mob.getHeight();

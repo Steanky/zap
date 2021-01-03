@@ -4,6 +4,8 @@ import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
+import io.github.zap.zombies.game.data.equipment.gun.SprayGunData;
+import io.github.zap.zombies.game.data.equipment.gun.ZapperGunData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.perk.PerkData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
@@ -12,6 +14,8 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupCreator;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.LinearGun;
+import io.github.zap.zombies.game.equipment.gun.SprayGun;
+import io.github.zap.zombies.game.equipment.gun.ZapperGun;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
@@ -19,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +51,8 @@ public class JacksonEquipmentManager implements EquipmentManager {
         addEquipmentType(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new);
         addEquipmentType(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new);
         addEquipmentType(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
+        addEquipmentType(EquipmentType.SPRAY_GUN.name(), SprayGunData.class, SprayGun::new);
+        addEquipmentType(EquipmentType.ZAPPER.name(), ZapperGunData.class, ZapperGun::new);
     }
 
     public <D extends EquipmentData<L>, L> void  addEquipmentType(String equipmentType, Class<D> dataClass,

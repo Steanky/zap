@@ -37,9 +37,7 @@ public class SprayGun extends Gun<SprayGunData, SprayGunLevel> {
             new LinearBeam(
                     eyeLocationCopy,
                     sprayGunData.getParticle(),
-                    currentLevel.getMaxPierceableEntities(),
-                    currentLevel.getDamage(),
-                    currentLevel.getRange()
+                    currentLevel
             );
         }
     }
