@@ -6,16 +6,10 @@ import lombok.Getter;
  * Level of a spray gun
  */
 @Getter
-public class SprayGunLevel extends GunLevel {
+public class SprayGunLevel extends ParticleGunLevel {
 
     private float coneAngle;
 
     private int pellets;
-
-    private int maxPierceableEntities;
-
-    private SprayGunLevel() {
-
-    }
 
 }

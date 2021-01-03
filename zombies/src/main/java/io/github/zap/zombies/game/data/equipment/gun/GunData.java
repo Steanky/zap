@@ -25,14 +25,6 @@ public class GunData<L extends GunLevel> extends EquipmentData<L> {
     private final transient String changedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
             + ChatColor.DARK_GRAY + "%s ➔ " + ChatColor.GREEN + "%s";
 
-    public GunData(String type, String name, String displayName, List<String> lore, List<L> levels, Material material) {
-        super(type, name, displayName, lore, levels, material);
-    }
-
-    protected GunData() {
-
-    }
-
     @Override
     public List<String> getLore(Player player, int level) {
         List<String> lore = super.getLore(player, level);

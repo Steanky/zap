@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 /**
  * Sends lines of particles from guns
  */
-public class LinearBeam {
+public class LinearBeam { // TODO: figuring out particle data
 
     private final static int DEFAULT_PARTICLE_COUNT = 4; // TODO: check
 
@@ -34,20 +34,20 @@ public class LinearBeam {
     private final Vector directionVector;
     private final double distance;
     private final Particle particle;
-    private final int maxHitEntities;
+    private final int maxPierceableEntities;
     private final double damage;
     private final int range;
     private final int particleCount;
 
 
-    public LinearBeam(Location root, Particle particle, int maxHitEntities, double damage,
-                      int range, int particleCount) {
+    public LinearBeam(Location root, Particle particle, int maxPierceableEntities,
+                      double damage, int range, int particleCount) {
         this.world = root.getWorld();
         this.root = root.toVector();
         this.directionVector = root.getDirection();
         this.distance = getDistance();
         this.particle = particle;
-        this.maxHitEntities = maxHitEntities;
+        this.maxPierceableEntities = maxPierceableEntities;
         this.damage = damage;
         this.range = Math.min(120, range);
         this.particleCount = particleCount;
@@ -55,9 +55,8 @@ public class LinearBeam {
         send();
     }
 
-    public LinearBeam(Location root, Particle particle, int maxHitEntities,
-                      double damage, int range) {
-        this(root, particle, maxHitEntities, damage, range, DEFAULT_PARTICLE_COUNT);
+    public LinearBeam(Location root, Particle particle, int maxPierceableEntities, double damage, int range) {
+        this(root, particle, maxPierceableEntities, damage, range, DEFAULT_PARTICLE_COUNT);
     }
 
     /**
@@ -129,11 +128,11 @@ public class LinearBeam {
      * @return The entities that should be hit by the bullet
      */
     private Iterable<ImmutablePair<RayTraceResult, Double>> rayTrace() {
-        if (maxHitEntities == 0) {
+        if (maxPierceableEntities == 0) {
             return Collections.emptySet();
         } else {
             Queue<ImmutablePair<RayTraceResult, Double>> queue = new PriorityQueue<>(
-                    maxHitEntities,
+                    maxPierceableEntities,
                     Comparator.comparingDouble(ImmutablePair::getRight)
             );
 
@@ -166,7 +165,7 @@ public class LinearBeam {
      * @param iterator The entity iterable iterator
      */
     private void fillQueue(Queue<ImmutablePair<RayTraceResult, Double>> queue, Iterator<Entity> iterator) {
-        while (iterator.hasNext() && queue.size() < maxHitEntities) {
+        while (iterator.hasNext() && queue.size() < maxPierceableEntities) {
             Entity entity = iterator.next();
             BoundingBox boundingBox = entity.getBoundingBox();
             RayTraceResult hitResult = boundingBox.rayTrace(root, directionVector, distance);
