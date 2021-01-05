@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.data.map;
 
-import io.github.zap.zombies.game.SpawnMethod;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,5 +13,5 @@ public class SpawnEntryData {
 
     int mobCount;
 
-    private SpawnEntryData() {}
+    public SpawnEntryData() {}
 }

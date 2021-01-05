@@ -11,6 +11,8 @@ import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
@@ -113,9 +115,9 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * This class is necessary because PlayerDeathEvent does not extent PlayerEvent for reasons that escape me. Yet
      * another anime betrayal.
      */
-    private class AdaptedPlayerDeathEvent extends MappingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
-        public AdaptedPlayerDeathEvent() {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
+    private class AdaptedEntityEvent<U extends EntityEvent> extends MappingEvent<U, ProxyArgs<U>> {
+        public AdaptedEntityEvent(Class<U> eventClass) {
+            super(new ProxyEvent<>(plugin, ManagingArena.this, eventClass,
                     EventPriority.NORMAL, true), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
@@ -151,6 +153,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerItemConsumeEvent>> playerItemConsumeEvent;
     private final Event<ProxyArgs<PlayerAttemptPickupItemEvent>> playerAttemptPickupItemEvent;
     private final Event<ProxyArgs<PlayerArmorStandManipulateEvent>> playerArmorStandManipulateEvent;
+    private final Event<ProxyArgs<FoodLevelChangeEvent>> playerFoodLevelChangeEvent;
 
     private final Event<ManagedInventoryEventArgs<InventoryOpenEvent>> inventoryOpenEvent;
     private final Event<ManagedInventoryEventArgs<InventoryClickEvent>> inventoryClickEvent;
@@ -163,12 +166,13 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
         playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
-        playerDeathEvent = new AdaptedPlayerDeathEvent();
+        playerDeathEvent = new AdaptedEntityEvent<>(PlayerDeathEvent.class);
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
         playerItemConsumeEvent = new AdaptedPlayerEvent<>(PlayerItemConsumeEvent.class);
         playerAttemptPickupItemEvent = new AdaptedPlayerEvent<>(PlayerAttemptPickupItemEvent.class);
         playerArmorStandManipulateEvent = new AdaptedPlayerEvent<>(PlayerArmorStandManipulateEvent.class);
+        playerFoodLevelChangeEvent = new AdaptedEntityEvent<>(FoodLevelChangeEvent.class);
 
         inventoryOpenEvent = new AdaptedInventoryEvent<>(InventoryOpenEvent.class);
         inventoryClickEvent = new AdaptedInventoryEvent<>(InventoryClickEvent.class);

@@ -340,7 +340,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
         }
 
-        doLoss();
+        doLoss(); //there are no players alive, so end the game
     }
 
     private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
