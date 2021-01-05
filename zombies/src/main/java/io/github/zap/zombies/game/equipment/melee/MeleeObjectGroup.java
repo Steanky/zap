@@ -3,15 +3,20 @@ package io.github.zap.zombies.game.equipment.melee;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Object group of melee weapons
  */
-public class MeleeObjectGroup extends EquipmentObjectGroup {
+public class MeleeObjectGroup extends UpgradeableEquipmentObjectGroup {
+
     public MeleeObjectGroup(Player player, Set<Integer> slots) {
         super(player, slots);
     }
@@ -28,6 +33,6 @@ public class MeleeObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public String getEquipmentType() {
-        return EquipmentType.MELEE.toString();
+        return EquipmentType.MELEE.name();
     }
 }
