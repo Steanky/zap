@@ -26,9 +26,23 @@ public class SpawnpointData {
     Vector target = new Vector();
 
     /**
-     * This represents all of the mobs that can be spawned here
+     * Will be interpreted as either a whitelist or blacklist
      */
-    Set<MythicMob> whitelist = new HashSet<>();
+    Set<String> filter = new HashSet<>();
+
+    /**
+     * Whether or not filter is a whitelist
+     */
+    boolean isWhitelist;
 
     public SpawnpointData() {}
+
+    public boolean canSpawn(String mob) {
+        if(isWhitelist) {
+            return filter.contains(mob);
+        }
+        else {
+            return !filter.contains(mob);
+        }
+    }
 }

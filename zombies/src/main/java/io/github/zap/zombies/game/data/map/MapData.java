@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.zombies.game.SpawnMethod;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

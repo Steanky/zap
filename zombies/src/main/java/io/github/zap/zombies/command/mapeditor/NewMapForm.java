@@ -10,9 +10,8 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 
-public class NewMapForm extends CommandForm implements Listener {
+public class NewMapForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("^(map)$", "map"),
             new Parameter("^(create)$", "create"),
@@ -24,12 +23,13 @@ public class NewMapForm extends CommandForm implements Listener {
     static {
         validator = new CommandValidator((context, arguments) -> {
             Player sender = (Player)context.getSender();
+            Zombies zombies = Zombies.getInstance();
 
-            if(Zombies.getInstance().getContextManager().getContextMap().containsKey(sender.getUniqueId())) {
+            if(zombies.getContextManager().getContextMap().containsKey(sender.getUniqueId())) {
                 return new ImmutablePair<>(false, "You are already editing a map.");
             }
 
-            if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
+            if(zombies.getArenaManager().hasMap((String)arguments[2])) {
                 return new ImmutablePair<>(false, "A map with that name already exists.");
             }
 
@@ -41,9 +41,6 @@ public class NewMapForm extends CommandForm implements Listener {
 
     public NewMapForm() {
         super("Create a new Zombies map.", Permissions.OPERATOR, parameters);
-
-        Zombies plugin = Zombies.getInstance();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @Override

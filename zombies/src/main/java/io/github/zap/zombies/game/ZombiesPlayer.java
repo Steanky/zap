@@ -207,18 +207,18 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private void tryRepairWindow(WindowData targetWindow) {
         Property<Entity> attackingEntityProperty = targetWindow.getAttackingEntityProperty();
 
-        if(attackingEntityProperty.get(arena) == null) {
+        if(attackingEntityProperty.getValue(arena) == null) {
             Property<ZombiesPlayer> currentRepairerProperty = targetWindow.getRepairingPlayerProperty();
-            ZombiesPlayer currentRepairer = currentRepairerProperty.get(arena);
+            ZombiesPlayer currentRepairer = currentRepairerProperty.getValue(arena);
 
             if(currentRepairer == null) {
                 currentRepairer = this;
-                currentRepairerProperty.set(arena, this);
+                currentRepairerProperty.setValue(arena, this);
             }
 
             if(currentRepairer == this) {
                 //advance repair state
-                int previousIndex = targetWindow.getCurrentIndexProperty().get(arena);
+                int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
                 int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
                 if(blocksRepaired > 0) { //break the actual blocks
                     for(int i = previousIndex; i <= previousIndex + blocksRepaired; i++) {

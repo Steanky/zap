@@ -16,13 +16,16 @@ import io.github.zap.zombies.game.shop.Shop;
 import io.github.zap.zombies.game.shop.ShopEventArgs;
 import io.github.zap.zombies.game.shop.ShopType;
 import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
+import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitLocation;
+import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -34,11 +37,78 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
  */
 public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> implements Listener {
+    private interface Spawner {
+        /**
+         * Spawns a wave.
+         * @param waveData The wave data to spawn
+         */
+        void spawnWave(WaveData waveData);
+
+        /**
+         * Spawns mobs, outside of a wave.
+         * @param mobs
+         */
+        void spawnMobs(List<MythicMob> mobs);
+    }
+
+    @RequiredArgsConstructor
+    private class BasicSpawner implements Spawner {
+        @Override
+        public void spawnWave(WaveData wave) {
+            Stream<SpawnEntryData> spawnEntries = wave.getSpawnEntries().stream();
+
+            /*
+             * this very long expression filters only the spawnpoints that matter for this particular operation.
+             * spawnpoints that are in closed rooms, spawnpoints that can't spawn any of the mobs in this
+             * wave, and spawnpoints that are out of range are all filtered out, leaving only the important ones.
+             *
+             * we do all this filtering to minimize the set of spawnpoints that we have to shuffle
+             */
+            List<SpawnpointData> spawnpoints = map.getRooms().stream().filter(roomData -> roomData.isSpawn() ||
+                    roomData.getOpenProperty().getValue(ZombiesArena.this)).flatMap(roomData ->
+                    roomData.getSpawnpoints().stream()).filter(spawnpointData -> spawnEntries.anyMatch(
+                    spawnEntryData -> spawnpointData.canSpawn(spawnEntryData.getMobName()))).filter(
+                    spawnpointData -> getPlayerMap().values().stream().anyMatch(player ->
+                            wave.getMethod() != SpawnMethod.RANGED || player.getPlayer()
+                                    .getLocation().toVector().distanceSquared(spawnpointData
+                                            .getSpawn()) <= wave.getSlaSquared()))
+                    .collect(Collectors.toList());
+
+            if(wave.isRandomizeSpawnpoints()) {
+                Collections.shuffle(spawnpoints); //shuffle small candidate set of spawnpoints
+            }
+
+            for(SpawnEntryData spawnEntryData : wave.getSpawnEntries()) {
+                int amt = spawnEntryData.getMobCount();
+
+                for(SpawnpointData spawnpointData : spawnpoints) {
+                    if(spawnpointData.canSpawn(spawnEntryData.getMobName())) {
+                        spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn());
+                        amt--;
+                    }
+
+                    if(amt == 0) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void spawnMobs(List<MythicMob> mobs) {
+
+        }
+    }
+
+    private static final Random RNG = new Random();
+
     @Getter
     private final MapData map;
 
@@ -55,7 +125,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final long emptyTimeout;
 
     @Getter
-    private final Spawner spawner = new RangelessSpawner();
+    private final Spawner spawner;
 
     @Getter
     private final Set<UUID> mobs = new HashSet<>();
@@ -87,6 +157,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.equipmentManager = manager.getEquipmentManager();
         this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
+        this.spawner = new BasicSpawner();
 
         Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
                 EntityDeathEvent.class);
@@ -223,6 +294,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     break;
                 }
             }
+
             if (noPurchases) {
                 player.getHotbarManager().click(event.getAction());
             }
@@ -278,45 +350,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         args.getEvent().setCancelled(true);
     }
 
-    public List<ActiveMob> spawnMobs(List<MythicMob> mobs, Spawner spawner) {
-        List<ActiveMob> activeMobs = new ArrayList<>();
-
-        while(true) {
-            boolean spawned = false;
-
-            for(RoomData room : map.getRooms()) { //iterate through all rooms
-                if(room.isSpawn() || room.getOpenProperty().get(this)) { //only try to spawn in open rooms
-                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
-                        for(int i = mobs.size() - 1; i >= 0; i--) {
-                            MythicMob mythicMob = mobs.get(i);
-
-                            if(spawner.canSpawn(this, spawnpoint, mythicMob)) {
-                                ActiveMob activeMob = spawner.spawnAt(this, spawnpoint, mythicMob);
-                                mobs.remove(i);
-
-                                if(activeMob != null) {
-                                    this.mobs.add(activeMob.getUniqueId());
-                                    activeMobs.add(activeMob);
-                                    spawned = true;
-                                    break;
-                                }
-
-                                if(mobs.size() == 0) { //avoid redundant iteration when all mobs have been spawned
-                                    return activeMobs;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if(!spawned) {
-                Zombies.warning("Some enemies could not be spawned.");
-                return activeMobs;
-            }
-        }
-    }
-
     private void doRound() {
         for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
             if(!player.isAlive()) {
@@ -325,7 +358,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
 
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
-        int currentRoundIndex = currentRoundProperty.get(this);
+        int currentRoundIndex = currentRoundProperty.getValue(this);
 
         List<RoundData> rounds = map.getRounds();
         if(currentRoundIndex < rounds.size()) {
@@ -334,32 +367,42 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             long cumulativeDelay = 0;
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
-                List<MythicMob> mobs = new ArrayList<>();
-
-                //TODO: remove this and add a custom serializer and deserializer
-                for(String mobName : wave.getMobs()) { //convert mob names to MythicMob instances
-                    MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
-                    if(mob != null) {
-                        mobs.add(mob);
-                    }
-                    else {
-                        Zombies.warning(String.format("Tried to spawn non-existant MythicMob with name '%s'.", mobName));
-                    }
-                }
 
                 waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
-                    spawnMobs(mobs, spawner);
+                    spawner.spawnWave(wave);
                     waveSpawnerTasks.remove(0);
                 }, cumulativeDelay));
             }
 
-            currentRoundProperty.set(this, currentRoundIndex + 1);
+            currentRoundProperty.setValue(this, currentRoundIndex + 1);
         }
         else {
             //game just finished, do win condition
             state = ZombiesArenaState.ENDED;
             doVictory();
         }
+    }
+
+    public boolean spawnMob(String mobName, Vector at) {
+        MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
+
+        if(mob != null) {
+            ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX(), at.getY(),
+                    at.getZ()), map.getMobSpawnLevel());
+
+            if(activeMob != null) {
+                mobs.add(activeMob.getUniqueId());
+                return true;
+            }
+            else {
+                Zombies.warning(String.format("An error occurred while trying to spawn mob of type '%s'.", mobName));
+            }
+        }
+        else {
+            Zombies.warning(String.format("Mob type '%s' is not known.", mobName));
+        }
+
+        return false;
     }
 
     public void startTimeout() {

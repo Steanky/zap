@@ -127,12 +127,12 @@ public class WindowData {
      * @return The number of blocks that were actually repaired
      */
     public int advanceRepairState(Unique accessor, int by) {
-        int currentIndex = currentIndexProperty.get(accessor);
+        int currentIndex = currentIndexProperty.getValue(accessor);
         int max = getVolume() - 1;
 
         if(currentIndex < max) {
             int repaired = Math.min(currentIndex + by, max);
-            currentIndexProperty.set(accessor, repaired);
+            currentIndexProperty.setValue(accessor, repaired);
             return repaired;
         }
 
@@ -146,10 +146,10 @@ public class WindowData {
      * @return true if any number of breaks occurred, false otherwise
      */
     public boolean retractRepairState(Unique accessor, int by) {
-        int currentIndex = currentIndexProperty.get(accessor);
+        int currentIndex = currentIndexProperty.getValue(accessor);
 
         if(currentIndex > -1) {
-            currentIndexProperty.set(accessor, Math.max(currentIndex - by, -1));
+            currentIndexProperty.setValue(accessor, Math.max(currentIndex - by, -1));
             return true;
         }
 
