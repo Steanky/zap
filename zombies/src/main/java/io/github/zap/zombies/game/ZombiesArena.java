@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -32,12 +33,13 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
@@ -60,9 +62,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * Spawns a single mob at the provided vector.
          * @param mobName The name of the MythicMob to spawn
          * @param at The location to spawn it at
+         * @param postSpawn The routine to call after the entity is spawned; used for applying metadata
          * @return Whether or not it spawned successfully
          */
-        boolean spawnMob(String mobName, Vector at);
+        boolean spawnMob(String mobName, Vector at, Consumer<Entity> postSpawn);
     }
 
     /**
@@ -94,7 +97,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                 for(SpawnpointData spawnpointData : spawnpoints) {
                     if(spawnpointData.canSpawn(spawnEntryData.getMobName())) {
-                        spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn());
+                        spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
+                            Zombies zombies = Zombies.getInstance();
+
+                            //set necessary metadata for the AI to function
+                            entity.setMetadata(Zombies.ARENA_METADATA_NAME, new FixedMetadataValue(zombies,
+                                    ZombiesArena.this));
+
+                            entity.setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, new FixedMetadataValue(zombies,
+                                    spawnpointData));
+                        });
+
                         amt--;
                     }
 
@@ -109,10 +122,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * Spawns the mob at the specified vector.
          * @param mobName The name of the MythicMob to spawn
          * @param at The location to spawn the mob at, in this arena's world
+         * @param postSpawn The consumer to be called after the entity spawns (if it does). Useful for applying metadata.
          * @return Whether or not the mob was successfully spawned
          */
         @Override
-        public boolean spawnMob(String mobName, Vector at) {
+        public boolean spawnMob(String mobName, Vector at, Consumer<Entity> postSpawn) {
             MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
 
             if(mob != null) {
@@ -120,6 +134,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         at.getZ()), map.getMobSpawnLevel());
 
                 if(activeMob != null) {
+                    postSpawn.accept(activeMob.getEntity().getBukkitEntity());
                     mobs.add(activeMob.getUniqueId());
                     return true;
                 }
