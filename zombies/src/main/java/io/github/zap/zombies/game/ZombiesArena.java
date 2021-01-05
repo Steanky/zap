@@ -53,39 +53,36 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         /**
          * Spawns mobs, outside of a wave.
-         * @param mobs
+         * @param mobs The
          */
-        void spawnMobs(List<MythicMob> mobs);
+        void spawnMobs(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize);
     }
 
+    /**
+     * Basic spawner implementation.
+     */
     @RequiredArgsConstructor
     private class BasicSpawner implements Spawner {
         @Override
         public void spawnWave(WaveData wave) {
-            Stream<SpawnEntryData> spawnEntries = wave.getSpawnEntries().stream();
+            spawnMobs(wave.getSpawnEntries(), wave.getMethod(), wave.getSlaSquared(), wave.isRandomizeSpawnpoints());
+        }
 
-            /*
-             * this very long expression filters only the spawnpoints that matter for this particular operation.
-             * spawnpoints that are in closed rooms, spawnpoints that can't spawn any of the mobs in this
-             * wave, and spawnpoints that are out of range are all filtered out, leaving only the important ones.
-             *
-             * we do all this filtering to minimize the set of spawnpoints that we have to shuffle
-             */
-            List<SpawnpointData> spawnpoints = map.getRooms().stream().filter(roomData -> roomData.isSpawn() ||
-                    roomData.getOpenProperty().getValue(ZombiesArena.this)).flatMap(roomData ->
-                    roomData.getSpawnpoints().stream()).filter(spawnpointData -> spawnEntries.anyMatch(
-                    spawnEntryData -> spawnpointData.canSpawn(spawnEntryData.getMobName()))).filter(
-                    spawnpointData -> getPlayerMap().values().stream().anyMatch(player ->
-                            wave.getMethod() != SpawnMethod.RANGED || player.getPlayer()
-                                    .getLocation().toVector().distanceSquared(spawnpointData
-                                            .getSpawn()) <= wave.getSlaSquared()))
-                    .collect(Collectors.toList());
+        @Override
+        public void spawnMobs(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
+            List<SpawnpointData> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
 
-            if(wave.isRandomizeSpawnpoints()) {
+            if(spawnpoints.size() == 0) {
+                Zombies.warning("There are no available spawnpoints for this mob set. This likely indicates an error " +
+                        "in map configuration.");
+                return;
+            }
+
+            if(randomize) {
                 Collections.shuffle(spawnpoints); //shuffle small candidate set of spawnpoints
             }
 
-            for(SpawnEntryData spawnEntryData : wave.getSpawnEntries()) {
+            for(SpawnEntryData spawnEntryData : mobs) {
                 int amt = spawnEntryData.getMobCount();
 
                 for(SpawnpointData spawnpointData : spawnpoints) {
@@ -101,13 +98,26 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
         }
 
-        @Override
-        public void spawnMobs(List<MythicMob> mobs) {
-
+        /**
+         * This rather interesting function filters only the spawnpoints that matter for this particular operation.
+         * Spawnpoints that are in closed rooms, spawnpoints that can't spawn any of the mobs in this
+         * wave, and spawnpoints that are out of range are all filtered out, leaving only the important ones.
+         * we do all this filtering to minimize the set of spawnpoints that we have to shuffle
+         * @param mobs The mobs to spawn
+         * @param method The SpawnMethod to use
+         * @param slaSquared
+         * @return
+         */
+        private List<SpawnpointData> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
+            return map.getRooms().stream().filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE ||
+                    roomData.getOpenProperty().getValue(ZombiesArena.this))
+                    .flatMap(roomData -> roomData.getSpawnpoints().stream()).filter(spawnpointData -> mobs.stream()
+                            .anyMatch(spawnEntryData -> spawnpointData.canSpawn(spawnEntryData.getMobName())))
+                    .filter(spawnpointData -> getPlayerMap().values().stream().anyMatch(player -> method !=
+                            SpawnMethod.RANGED || player.getPlayer().getLocation().toVector().distanceSquared(
+                                    spawnpointData.getSpawn()) <= slaSquared)).collect(Collectors.toList());
         }
     }
-
-    private static final Random RNG = new Random();
 
     @Getter
     private final MapData map;
@@ -383,6 +393,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    /**
+     * Spawns the mob at the specified vector.
+     * @param mobName The name of the MythicMob to spawn
+     * @param at The location to spawn the mob at, in this arena's world
+     * @return Whether or not the mob was successfully spawned
+     */
     public boolean spawnMob(String mobName, Vector at) {
         MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
 

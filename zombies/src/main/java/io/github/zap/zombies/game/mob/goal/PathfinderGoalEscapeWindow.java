@@ -55,7 +55,6 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
     private void loadMetadata() {
         Optional<Object> optManager = entity.getMetadata(Zombies.ARENA_METADATA_NAME);
         Optional<Object> optSpawnpoint = entity.getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
-        Optional<Object> optWindow = entity.getMetadata(Zombies.WINDOW_METADATA_NAME);
 
         if(optManager.isPresent() && optSpawnpoint.isPresent()) {
             arena = (ZombiesArena) optManager.get();
@@ -67,14 +66,7 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
                 destination = new AbstractLocation(entity.getWorld(), target.getBlockX(), target.getBlockY(),
                         target.getBlockZ());
 
-                if(optWindow.isPresent()) {
-                    targetWindow = (WindowData)optWindow.get();
-                    hasWindow = true;
-
-                    Vector center = targetWindow.getCenter();
-                    windowCenter = new AbstractLocation(new BukkitWorld(arena.getWorld()), center.getX(), center.getY(),
-                            center.getZ());
-                }
+                targetWindow = arena.getMap().windowAt(spawnPoint.getWindowFace()); //get target window using lookup
             }
 
             loadedMetadata = true;

@@ -26,6 +26,12 @@ public class SpawnpointData {
     Vector target = new Vector();
 
     /**
+     * A vector corresponding to the location of the window to which this spawnpoint belongs. This will be ignored if
+     * the spawnpoint is not inside of a window.
+     */
+    Vector windowFace = new Vector();
+
+    /**
      * Will be interpreted as either a whitelist or blacklist
      */
     Set<String> filter = new HashSet<>();
