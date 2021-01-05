@@ -30,6 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
@@ -234,6 +235,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
         getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
         getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
+        getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
     }
 
     @Override
@@ -409,6 +411,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerArmorStandManipulate(ProxyArgs<PlayerArmorStandManipulateEvent> args) {
         args.getEvent().setCancelled(true);
+    }
+
+    private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
+        FoodLevelChangeEvent event = args.getEvent();
+        event.setCancelled(true);
+        event.setFoodLevel(20); //i am assuming this is not a recursive call, it might be, i have not tested
     }
 
     private void doRound() {
