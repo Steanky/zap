@@ -17,7 +17,6 @@ import io.github.zap.zombies.game.shop.ShopEventArgs;
 import io.github.zap.zombies.game.shop.ShopType;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -56,6 +55,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @param mobs The
          */
         void spawnMobs(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize);
+
+        /**
+         * Spawns a single mob at the provided vector.
+         * @param mobName The name of the MythicMob to spawn
+         * @param at The location to spawn it at
+         * @return Whether or not it spawned successfully
+         */
+        boolean spawnMob(String mobName, Vector at);
     }
 
     /**
@@ -99,14 +106,43 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
 
         /**
+         * Spawns the mob at the specified vector.
+         * @param mobName The name of the MythicMob to spawn
+         * @param at The location to spawn the mob at, in this arena's world
+         * @return Whether or not the mob was successfully spawned
+         */
+        @Override
+        public boolean spawnMob(String mobName, Vector at) {
+            MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
+
+            if(mob != null) {
+                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX(), at.getY(),
+                        at.getZ()), map.getMobSpawnLevel());
+
+                if(activeMob != null) {
+                    mobs.add(activeMob.getUniqueId());
+                    return true;
+                }
+                else {
+                    Zombies.warning(String.format("An error occurred while trying to spawn mob of type '%s'.", mobName));
+                }
+            }
+            else {
+                Zombies.warning(String.format("Mob type '%s' is not known.", mobName));
+            }
+
+            return false;
+        }
+
+        /**
          * This rather interesting function filters only the spawnpoints that matter for this particular operation.
          * Spawnpoints that are in closed rooms, spawnpoints that can't spawn any of the mobs in this
-         * wave, and spawnpoints that are out of range are all filtered out, leaving only the important ones.
-         * we do all this filtering to minimize the set of spawnpoints that we have to shuffle
+         * wave, and spawnpoints that are out of range are all filtered out, leaving only the ones that may be needed.
+         * We do all this filtering to minimize the set of spawnpoints that we have to shuffle/iterate through later
          * @param mobs The mobs to spawn
          * @param method The SpawnMethod to use
-         * @param slaSquared
-         * @return
+         * @param slaSquared The distance from the player that all mobs must spawn, squared
+         * @return A list of SpawnpointData objects that have been properly filtered.
          */
         private List<SpawnpointData> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
             return map.getRooms().stream().filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE ||
@@ -391,34 +427,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.ENDED;
             doVictory();
         }
-    }
-
-    /**
-     * Spawns the mob at the specified vector.
-     * @param mobName The name of the MythicMob to spawn
-     * @param at The location to spawn the mob at, in this arena's world
-     * @return Whether or not the mob was successfully spawned
-     */
-    public boolean spawnMob(String mobName, Vector at) {
-        MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
-
-        if(mob != null) {
-            ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX(), at.getY(),
-                    at.getZ()), map.getMobSpawnLevel());
-
-            if(activeMob != null) {
-                mobs.add(activeMob.getUniqueId());
-                return true;
-            }
-            else {
-                Zombies.warning(String.format("An error occurred while trying to spawn mob of type '%s'.", mobName));
-            }
-        }
-        else {
-            Zombies.warning(String.format("Mob type '%s' is not known.", mobName));
-        }
-
-        return false;
     }
 
     public void startTimeout() {
