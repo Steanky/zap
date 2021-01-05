@@ -24,6 +24,6 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
                 getPlayer().getEyeLocation(),
                 linearGunData.getParticle(),
                 currentLevel
-        );
+        ).send();
     }
 }

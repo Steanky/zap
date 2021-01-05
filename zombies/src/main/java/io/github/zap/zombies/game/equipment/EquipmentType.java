@@ -12,5 +12,6 @@ public enum EquipmentType {
 
     LINEAR_GUN,
     SPRAY_GUN,
-    ZAPPER
+    ZAPPER,
+    GUARDIAN
 }

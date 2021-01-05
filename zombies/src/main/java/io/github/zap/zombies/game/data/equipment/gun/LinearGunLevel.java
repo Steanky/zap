@@ -8,4 +8,6 @@ import lombok.Getter;
 @Getter
 public class LinearGunLevel extends ParticleGunLevel {
 
+    private int maxPierceableEntities;
+
 }

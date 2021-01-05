@@ -16,6 +16,8 @@ public class GunLevel  {
 
     private double knockbackFactor;
 
+    private Integer freezeTime;
+
     private int ammo;
 
     private int clipAmmo;

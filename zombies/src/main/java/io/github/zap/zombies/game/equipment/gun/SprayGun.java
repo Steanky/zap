@@ -39,7 +39,7 @@ public class SprayGun extends Gun<SprayGunData, SprayGunLevel> {
                     eyeLocationCopy,
                     sprayGunData.getParticle(),
                     currentLevel
-            );
+            ).send();
         }
     }
 
