@@ -2,11 +2,9 @@ package io.github.zap.arenaapi.particle;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Disposable;
-import io.github.zap.arenaapi.util.WorldUtils;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -17,56 +15,35 @@ public class ParticleRenderer implements Disposable {
     private final World world;
 
     @Getter
-    private final Player target;
-
-    @Getter
-    private final boolean isLocal;
-
-    @Getter
     private final int tickInterval;
 
     private final List<RenderComponent> components = new ArrayList<>();
 
     private int renderTask = -1;
 
-    public ParticleRenderer(Player target, int tickInterval) {
-        this.world = target.getWorld();
-        this.target = target;
-        this.isLocal = true;
-        this.tickInterval = tickInterval;
-    }
-
     public ParticleRenderer(World world, int tickInterval) {
         this.world = world;
-        this.target = null;
-        this.isLocal = false;
         this.tickInterval = tickInterval;
     }
 
-    private void start() {
+    private void startIfAny() {
         if(renderTask == -1 && components.size() > 0) {
             renderTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(ArenaApi.getInstance(), () -> {
                 for(RenderComponent component : components) {
                     ParticleSettings settings = component.particleData();
 
                     for(Vector vector : component.getFragments()) {
-                        if(isLocal) {
-                            target.spawnParticle(settings.getParticle(), vector.getX(), vector.getY(), vector.getZ(),
-                                    settings.getCount(), settings.getOffsetX(), settings.getOffsetY(),
-                                    settings.getOffsetZ(), settings.getExtra(), settings.getData());
-                        }
-                        else {
-                            world.spawnParticle(settings.getParticle(), vector.getX(), vector.getY(), vector.getZ(),
-                                    settings.getCount(), settings.getOffsetX(), settings.getOffsetY(),
-                                    settings.getOffsetZ(), settings.getExtra(), settings.getData());
-                        }
+                        world.spawnParticle(settings.getParticle(), component.renderTo(), null, vector.getX(),
+                                vector.getY(), vector.getZ(), settings.getCount(), settings.getOffsetX(),
+                                settings.getOffsetY(), settings.getOffsetZ(), settings.getExtra(), settings.getData(),
+                                settings.isForce());
                     }
                 }
             }, 0, tickInterval);
         }
     }
 
-    private void stop() {
+    private void stopIfEmpty() {
         if(renderTask != -1 && components.size() == 0) {
             Bukkit.getScheduler().cancelTask(renderTask);
             renderTask = -1;
@@ -75,17 +52,26 @@ public class ParticleRenderer implements Disposable {
 
     public void addComponent(RenderComponent component) {
         components.add(component);
-        start();
+        startIfAny();
     }
 
     public void removeComponent(RenderComponent component) {
         components.remove(component);
-        stop();
+        stopIfEmpty();
+    }
+
+    public void removeComponentAt(int index) {
+        components.remove(index);
+        stopIfEmpty();
+    }
+
+    public int componentSize() {
+        return components.size();
     }
 
     public void clearComponents() {
         components.clear();
-        stop();
+        stopIfEmpty();
     }
 
     @Override

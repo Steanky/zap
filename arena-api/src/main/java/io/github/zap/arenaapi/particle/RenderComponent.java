@@ -1,7 +1,10 @@
 package io.github.zap.arenaapi.particle;
 
 import org.bukkit.Particle;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
+import java.util.List;
 
 public interface RenderComponent {
     /**
@@ -15,4 +18,10 @@ public interface RenderComponent {
      * @return The particle used for this component
      */
     ParticleSettings particleData();
+
+    /**
+     * A list of players who will be able to see this RenderComponent.
+     * @return
+     */
+    List<Player> renderTo();
 }
