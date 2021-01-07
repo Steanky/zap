@@ -135,8 +135,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         at.getZ()), map.getMobSpawnLevel());
 
                 if(activeMob != null) {
-                    postSpawn.accept(activeMob.getEntity().getBukkitEntity());
                     mobs.add(activeMob.getUniqueId());
+                    postSpawn.accept(activeMob.getEntity().getBukkitEntity());
                     return true;
                 }
                 else {

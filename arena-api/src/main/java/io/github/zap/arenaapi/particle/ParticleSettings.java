@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.bukkit.Particle;
 
 /**
- * Encapsulates the arguments that may be passed to spawnParticle, with overloads for convenience.
+ * Encapsulates the arguments that may be passed to spawnParticle, with a few overloads for convenience.
  */
 @Getter
 public class ParticleSettings {

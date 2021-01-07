@@ -1,11 +1,13 @@
 package io.github.zap.arenaapi.particle;
 
-import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.List;
 
+/**
+ * Represents an object that can be visually rendered.
+ */
 public interface RenderComponent {
     /**
      * Gets all the vectors for this RenderComponent.
@@ -21,7 +23,7 @@ public interface RenderComponent {
 
     /**
      * A list of players who will be able to see this RenderComponent.
-     * @return
+     * @return The players who can see this object
      */
     List<Player> renderTo();
 }

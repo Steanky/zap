@@ -29,10 +29,10 @@ public class ParticleRenderer implements Disposable {
     private void startIfAny() {
         if(renderTask == -1 && components.size() > 0) {
             renderTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(ArenaApi.getInstance(), () -> {
-                for(RenderComponent component : components) {
+                for(RenderComponent component : components) { //iterate all components
                     ParticleSettings settings = component.particleData();
 
-                    for(Vector vector : component.getFragments()) {
+                    for(Vector vector : component.getFragments()) { //spawn each particle
                         world.spawnParticle(settings.getParticle(), component.renderTo(), null, vector.getX(),
                                 vector.getY(), vector.getZ(), settings.getCount(), settings.getOffsetX(),
                                 settings.getOffsetY(), settings.getOffsetZ(), settings.getExtra(), settings.getData(),

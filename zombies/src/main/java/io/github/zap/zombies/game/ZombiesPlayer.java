@@ -22,7 +22,7 @@ import org.bukkit.event.Listener;
 import java.util.Map;
 import java.util.Set;
 
-public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
+public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Getter
     private final ZombiesArena arena;
 

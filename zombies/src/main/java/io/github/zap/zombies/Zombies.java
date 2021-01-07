@@ -92,7 +92,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     public static final String ARENA_METADATA_NAME = "zombies_arena";
     public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
-    public static final String WINDOW_METADATA_NAME = "window_metadata";
 
     @Override
     public void onEnable() {
@@ -186,9 +185,8 @@ public final class Zombies extends JavaPlugin implements Listener {
             if(world != null) {
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
                         new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
-                        new JacksonShopManager(),
-                        Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(), config.getInt(
-                                ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+                        new JacksonShopManager(), Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
+                        config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaApi.registerArenaManager(arenaManager);
             }
             else {
