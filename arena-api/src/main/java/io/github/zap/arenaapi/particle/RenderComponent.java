@@ -14,11 +14,5 @@ public interface RenderComponent {
      * Get the particle used for this RenderComponent.
      * @return The particle used for this component
      */
-    Particle getParticle();
-
-    /**
-     * Gets the number of particles spawned for this component.
-     * @return The number of particles spawned for this component
-     */
-    int getParticleDensity();
+    ParticleSettings particleData();
 }

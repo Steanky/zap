@@ -46,18 +46,19 @@ public class ParticleRenderer implements Disposable {
     private void start() {
         if(renderTask == -1 && components.size() > 0) {
             renderTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(ArenaApi.getInstance(), () -> {
-                if(isLocal) {
-                    for(RenderComponent component : components) {
-                        for(Vector vector : component.getFragments()) {
-                            target.spawnParticle(component.getParticle(), WorldUtils.locationFrom(world, vector),
-                                    component.getParticleDensity());
+                for(RenderComponent component : components) {
+                    ParticleSettings settings = component.particleData();
+
+                    for(Vector vector : component.getFragments()) {
+                        if(isLocal) {
+                            target.spawnParticle(settings.getParticle(), vector.getX(), vector.getY(), vector.getZ(),
+                                    settings.getCount(), settings.getOffsetX(), settings.getOffsetY(),
+                                    settings.getOffsetZ(), settings.getExtra(), settings.getData());
                         }
-                    }
-                }
-                else {
-                    for(RenderComponent component : components) {
-                        for(Vector vector : component.getFragments()) {
-                            world.spawnParticle(component.getParticle(), null, null, vector.getX(), vector.getY(), vector.getZ(), component.getParticleDensity(), 0, 0, 0, 0, );
+                        else {
+                            world.spawnParticle(settings.getParticle(), vector.getX(), vector.getY(), vector.getZ(),
+                                    settings.getCount(), settings.getOffsetX(), settings.getOffsetY(),
+                                    settings.getOffsetZ(), settings.getExtra(), settings.getData());
                         }
                     }
                 }
