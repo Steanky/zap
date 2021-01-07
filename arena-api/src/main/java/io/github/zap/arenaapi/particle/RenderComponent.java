@@ -16,6 +16,11 @@ public interface RenderComponent {
     Vector[] getFragments();
 
     /**
+     * Updates the fragment array for this render component.
+     */
+    void updateFragments(Vector[] fragments);
+
+    /**
      * Get the particle used for this RenderComponent.
      * @return The particle used for this component
      */
@@ -26,4 +31,10 @@ public interface RenderComponent {
      * @return The players who can see this object
      */
     List<Player> renderTo();
+
+    /**
+     * The name of this component, used to uniquely identify it.
+     * @return The name of this component
+     */
+    String name();
 }

@@ -6,9 +6,9 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public class ParticleRenderer implements Disposable {
     @Getter
@@ -17,7 +17,7 @@ public class ParticleRenderer implements Disposable {
     @Getter
     private final int tickInterval;
 
-    private final List<RenderComponent> components = new ArrayList<>();
+    private final Map<String, RenderComponent> components = new HashMap<>();
 
     private int renderTask = -1;
 
@@ -29,7 +29,7 @@ public class ParticleRenderer implements Disposable {
     private void startIfAny() {
         if(renderTask == -1 && components.size() > 0) {
             renderTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(ArenaApi.getInstance(), () -> {
-                for(RenderComponent component : components) { //iterate all components
+                for(RenderComponent component : components.values()) { //iterate all components
                     ParticleSettings settings = component.particleData();
 
                     for(Vector vector : component.getFragments()) { //spawn each particle
@@ -51,22 +51,21 @@ public class ParticleRenderer implements Disposable {
     }
 
     public void addComponent(RenderComponent component) {
-        components.add(component);
+        components.put(component.name(), component);
         startIfAny();
     }
 
-    public void removeComponent(RenderComponent component) {
-        components.remove(component);
-        stopIfEmpty();
-    }
-
-    public void removeComponentAt(int index) {
-        components.remove(index);
+    public void removeComponent(String name) {
+        components.remove(name);
         stopIfEmpty();
     }
 
     public int componentCount() {
         return components.size();
+    }
+
+    public RenderComponent computeIfAbsent(String name, Function<? super String, ? extends RenderComponent> mapper) {
+        return components.computeIfAbsent(name, mapper);
     }
 
     public void clearComponents() {

@@ -10,11 +10,13 @@ import java.util.List;
  * RenderComponent implementation; renders to all players in a world.
  */
 public class GlobalRenderComponent implements RenderComponent {
-    private final Vector[] fragments;
+    private final String name;
+    private Vector[] fragments;
     private final ParticleSettings settings;
     private final World world;
 
-    public GlobalRenderComponent(ParticleSettings settings, World world, Vector... fragments) {
+    public GlobalRenderComponent(String name, ParticleSettings settings, World world, Vector... fragments) {
+        this.name = name;
         this.fragments = fragments;
         this.settings = settings;
         this.world = world;
@@ -26,6 +28,11 @@ public class GlobalRenderComponent implements RenderComponent {
     }
 
     @Override
+    public void updateFragments(Vector[] fragments) {
+        this.fragments = fragments;
+    }
+
+    @Override
     public ParticleSettings particleData() {
         return settings;
     }
@@ -33,5 +40,10 @@ public class GlobalRenderComponent implements RenderComponent {
     @Override
     public List<Player> renderTo() {
         return world.getPlayers();
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 }

@@ -1,18 +1,26 @@
 package io.github.zap.zombies.command.mapeditor;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.particle.GlobalRenderComponent;
 import io.github.zap.arenaapi.particle.ParticleRenderer;
+import io.github.zap.arenaapi.particle.ParticleSettings;
 import io.github.zap.arenaapi.particle.RenderComponent;
+import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 @Getter
-public class EditorContext {
+public class EditorContext implements Disposable {
+    private static final String BOUNDS_RENDER_NAME = "bounds";
+    private static final ParticleSettings PARTICLE_SETTINGS = new ParticleSettings(Particle.CRIT, 10);
+
     private final ParticleRenderer renderer;
 
     private final Player player;
@@ -38,9 +46,15 @@ public class EditorContext {
             firstClicked = secondClicked;
             secondClicked = at.getLocation().toVector();
         }
+
+        //update or create vectors
+        renderer.computeIfAbsent(BOUNDS_RENDER_NAME, mapper -> new GlobalRenderComponent(BOUNDS_RENDER_NAME,
+                PARTICLE_SETTINGS, Bukkit.getWorld(editingMap.getWorldName()))).updateFragments(
+                        VectorUtils.particleAabb(BoundingBox.of(firstClicked, secondClicked), 2));
     }
 
-    public void renderBounds() {
-
+    @Override
+    public void dispose() {
+        renderer.dispose();
     }
 }

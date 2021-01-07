@@ -10,23 +10,30 @@ import java.util.List;
  * Localized render component. Renders only to specified player(s).
  */
 public class LocalRenderComponent implements RenderComponent {
-    private final Vector[] fragments;
+    private final String name;
+    private Vector[] fragments;
     private final ParticleSettings settings;
     private final List<Player> players;
 
-    public LocalRenderComponent(ParticleSettings settings, List<Player> players, Vector... fragments) {
+    public LocalRenderComponent(String name, ParticleSettings settings, List<Player> players, Vector... fragments) {
+        this.name = name;
         this.fragments = fragments;
         this.settings = settings;
         this.players = players;
     }
 
-    public LocalRenderComponent(ParticleSettings settings, Player player, Vector... fragments) {
-        this(settings, Lists.newArrayList(player), fragments);
+    public LocalRenderComponent(String name, ParticleSettings settings, Player player, Vector... fragments) {
+        this(name, settings, Lists.newArrayList(player), fragments);
     }
 
     @Override
     public Vector[] getFragments() {
         return fragments;
+    }
+
+    @Override
+    public void updateFragments(Vector[] fragments) {
+        this.fragments = fragments;
     }
 
     @Override
@@ -37,5 +44,10 @@ public class LocalRenderComponent implements RenderComponent {
     @Override
     public List<Player> renderTo() {
         return players;
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 }

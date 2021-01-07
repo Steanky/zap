@@ -33,7 +33,6 @@ public final class VectorUtils {
         Vector origin = box.getMin();
         Vector limit = box.getMax();
 
-        //ignore the unintuitive numbering; i created these while looking at a poorly-constructed visual aid
         Vector one = new Vector(origin.getX(), origin.getY(), limit.getZ());
         Vector two = new Vector(limit.getX(), origin.getY(), limit.getZ());
         Vector three = new Vector(limit.getX(), origin.getY(), origin.getZ());

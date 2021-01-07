@@ -416,7 +416,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
-        event.setFoodLevel(20); //i am assuming this is not a recursive call, it might be, i have not tested
+        event.setFoodLevel(20); //TODO: check that this isn't recursive somehow!
     }
 
     private void doRound() {
