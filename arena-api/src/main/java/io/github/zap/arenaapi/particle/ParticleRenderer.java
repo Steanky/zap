@@ -65,7 +65,7 @@ public class ParticleRenderer implements Disposable {
         stopIfEmpty();
     }
 
-    public int componentSize() {
+    public int componentCount() {
         return components.size();
     }
 
