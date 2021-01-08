@@ -227,16 +227,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         commandManager.registerCommand(new ZombiesCommand());
 
         contextManager = new ContextManager();
-
-        getCommand("tahmid").setExecutor((commandSender, command, s, strings) -> {
-            if (commandSender instanceof Player) {
-                Player player = (Player) commandSender;
-                ItemStack[] itemStacks = player.getEquipment().getArmorContents();
-                System.out.println();
-            }
-
-            return true;
-        });
     }
 
     /*
@@ -285,13 +275,5 @@ public final class Zombies extends JavaPlugin implements Listener {
      */
     public static void severe(String message) {
         log(Level.SEVERE, message);
-    }
-
-    /**
-     * Calls the specified event for this plugin.
-     * @param event The event to call
-     */
-    public static void callEvent(Event event) {
-        instance.getServer().getPluginManager().callEvent(event);
     }
 }

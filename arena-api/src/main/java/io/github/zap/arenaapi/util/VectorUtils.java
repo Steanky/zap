@@ -31,7 +31,7 @@ public final class VectorUtils {
 
     public static Vector[] particleAabb(BoundingBox box, int density) {
         Vector origin = box.getMin();
-        Vector limit = box.getMax();
+        Vector limit = box.getMax().add(new Vector(1, 1, 1));
 
         Vector one = new Vector(origin.getX(), origin.getY(), limit.getZ());
         Vector two = new Vector(limit.getX(), origin.getY(), limit.getZ());
@@ -40,22 +40,11 @@ public final class VectorUtils {
         Vector five = new Vector(origin.getX(), limit.getY(), limit.getZ());
         Vector seven = new Vector(limit.getX(), limit.getY(), origin.getZ());
 
-        Vector[] lineOne = interpolateLine(origin, one, density);
-        Vector[] lineTwo = interpolateLine(one, two, density);
-        Vector[] lineThree = interpolateLine(two, three, density);
-        Vector[] lineFour = interpolateLine(three, origin, density);
-
-        Vector[] lineFive = interpolateLine(origin, four, density);
-        Vector[] lineSix = interpolateLine(one, five, density);
-        Vector[] lineSeven = interpolateLine(two, limit, density);
-        Vector[] lineEight = interpolateLine(three, seven, density);
-
-        Vector[] lineNine = interpolateLine(four, five, density);
-        Vector[] lineTen = interpolateLine(five, limit, density);
-        Vector[] lineEleven = interpolateLine(limit, seven, density);
-        Vector[] lineTwelve = interpolateLine(seven, four, density);
-
-        return ArrayUtils.combine(lineOne, lineTwo, lineThree, lineFour, lineFive, lineSix, lineSeven, lineEight,
-                lineNine, lineTen, lineEleven, lineTwelve);
+        return ArrayUtils.combine(interpolateLine(origin, one, density), interpolateLine(one, two, density),
+                interpolateLine(two, three, density), interpolateLine(three, origin, density),
+                interpolateLine(origin, four, density), interpolateLine(one, five, density),
+                interpolateLine(two, limit, density), interpolateLine(three, seven, density),
+                interpolateLine(four, five, density), interpolateLine(five, limit, density),
+                interpolateLine(limit, seven, density), interpolateLine(seven, four, density));
     }
 }

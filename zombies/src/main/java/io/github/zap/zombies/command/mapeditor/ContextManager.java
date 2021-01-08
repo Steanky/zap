@@ -21,11 +21,13 @@ import java.util.UUID;
 public class ContextManager implements Listener {
     private final Map<UUID, EditorContext> contextMap = new HashMap<>();
     private final Material itemType = Material.STICK;
-    private final List<String> itemLore = Lists.newArrayList("ZombiesMapeditorTM");
+    private final List<String> itemLore = Lists.newArrayList("Zombies Map Editor Wand[TM]");
+    private final ItemStack editorItem = new ItemStack(itemType);
 
     public ContextManager() {
         Zombies zombies = Zombies.getInstance();
         zombies.getServer().getPluginManager().registerEvents(this, zombies);
+        editorItem.setLore(itemLore);
     }
 
     @EventHandler

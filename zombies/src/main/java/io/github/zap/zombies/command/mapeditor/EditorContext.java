@@ -18,6 +18,7 @@ import org.bukkit.util.Vector;
 
 @Getter
 public class EditorContext implements Disposable {
+    private static final Vector UNIT_VECTOR = new Vector(1, 1, 1);
     private static final String BOUNDS_RENDER_NAME = "bounds";
     private static final ParticleSettings PARTICLE_SETTINGS = new ParticleSettings(Particle.CRIT, 10);
 
@@ -36,21 +37,24 @@ public class EditorContext implements Disposable {
     }
 
     public void handleClicked(Block at) {
+        Vector clickedVector = at.getLocation().toVector();
+
         if(firstClicked == null && secondClicked == null) {
-            firstClicked = at.getLocation().toVector();
+            firstClicked = clickedVector;
         }
         else if(firstClicked != null && secondClicked == null) {
-            secondClicked = at.getLocation().toVector();
+            secondClicked = clickedVector;
         }
         else if(firstClicked != null) {
             firstClicked = secondClicked;
-            secondClicked = at.getLocation().toVector();
+            secondClicked = clickedVector;
         }
 
         //update or create vectors
         renderer.computeIfAbsent(BOUNDS_RENDER_NAME, mapper -> new GlobalRenderComponent(BOUNDS_RENDER_NAME,
-                PARTICLE_SETTINGS, Bukkit.getWorld(editingMap.getWorldName()))).updateFragments(
-                        VectorUtils.particleAabb(BoundingBox.of(firstClicked, secondClicked), 2));
+                PARTICLE_SETTINGS, Bukkit.getWorld(editingMap.getWorldName())))
+                .updateFragments(VectorUtils.particleAabb(secondClicked == null ? BoundingBox.of(firstClicked,
+                        firstClicked) : BoundingBox.of(firstClicked, secondClicked), 2));
     }
 
     @Override

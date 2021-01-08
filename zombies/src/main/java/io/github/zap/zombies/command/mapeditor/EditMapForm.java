@@ -51,8 +51,8 @@ public class EditMapForm extends CommandForm {
     public String execute(Context context, Object[] arguments) {
         String name = (String)arguments[2];
         Player player = (Player)context.getSender();
-        Zombies.getInstance().getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(
-                player, Zombies.getInstance().getArenaManager().getMaps().get(name)));
+        Zombies.getInstance().getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(player,
+                Zombies.getInstance().getArenaManager().getMaps().get(name)));
 
         return String.format("Editing map '%s'.", name);
     }

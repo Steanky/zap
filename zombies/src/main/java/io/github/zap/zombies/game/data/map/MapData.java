@@ -225,8 +225,9 @@ public class MapData {
 
     public MapData() {}
 
-    public MapData(String name) {
-        this.name = name;
+    public MapData(String mapName, String worldName) {
+        this.name = mapName;
+        this.worldName = worldName;
     }
 
     /**

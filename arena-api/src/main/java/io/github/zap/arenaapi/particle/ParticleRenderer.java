@@ -65,7 +65,9 @@ public class ParticleRenderer implements Disposable {
     }
 
     public RenderComponent computeIfAbsent(String name, Function<? super String, ? extends RenderComponent> mapper) {
-        return components.computeIfAbsent(name, mapper);
+        RenderComponent renderComponent = components.computeIfAbsent(name, mapper);
+        startIfAny();
+        return renderComponent;
     }
 
     public void clearComponents() {

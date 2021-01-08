@@ -11,7 +11,7 @@ public final class ArrayUtils {
             size += array.length;
         }
 
-        //first call to ComponentType returns a type that is itself an array, so we call twice
+        //first call to getComponentType returns a type that is itself an array, so we call twice
         Object composite = Array.newInstance(arrays.getClass().getComponentType().getComponentType(), size);
 
         int destinationOffset = 0;
