@@ -1,6 +1,9 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.particle.ParticleSettings;
+import io.github.zap.arenaapi.particle.RenderComponent;
+import io.github.zap.zombies.command.mapeditor.Renderable;
 import io.github.zap.zombies.game.SpawnMethod;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
@@ -8,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -21,7 +25,36 @@ import java.util.*;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class MapData {
+public class MapData implements Renderable {
+    @Override
+    public RenderComponent getComponent() {
+        return new MapRenderer();
+    }
+
+    private class MapRenderer implements RenderComponent {
+        private static final String NAME = "map";
+
+        @Override
+        public Vector[] getFragments() {
+            return new Vector[0];
+        }
+
+        @Override
+        public ParticleSettings particleData() {
+            return null;
+        }
+
+        @Override
+        public List<Player> renderTo() {
+            return null;
+        }
+
+        @Override
+        public String name() {
+            return NAME;
+        }
+    }
+
     /**
      * The unique name of this map that need not be user friendly
      */
@@ -228,6 +261,7 @@ public class MapData {
     public MapData(String mapName, String worldName) {
         this.name = mapName;
         this.worldName = worldName;
+        this.mapNameKey = String.format("map.%s.name", mapName);
     }
 
     /**

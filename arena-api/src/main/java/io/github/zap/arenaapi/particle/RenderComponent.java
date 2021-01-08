@@ -6,7 +6,7 @@ import org.bukkit.util.Vector;
 import java.util.List;
 
 /**
- * Represents an object that can be visually rendered.
+ * Represents an object that is used by the particle renderer.
  */
 public interface RenderComponent {
     /**
@@ -16,9 +16,9 @@ public interface RenderComponent {
     Vector[] getFragments();
 
     /**
-     * Updates the fragment array for this render component.
+     * Updates the fragment array for this render component. Could be used for animations.
      */
-    void updateFragments(Vector[] fragments);
+    default void updateFragments(Vector[] fragments) { }
 
     /**
      * Get the particle used for this RenderComponent.
@@ -33,7 +33,7 @@ public interface RenderComponent {
     List<Player> renderTo();
 
     /**
-     * The name of this component, used to uniquely identify it.
+     * The name of this component, used by the ParticleRenderer to uniquely identify it.
      * @return The name of this component
      */
     String name();

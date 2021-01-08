@@ -4,11 +4,9 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.particle.GlobalRenderComponent;
 import io.github.zap.arenaapi.particle.ParticleRenderer;
 import io.github.zap.arenaapi.particle.ParticleSettings;
-import io.github.zap.arenaapi.particle.RenderComponent;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
@@ -18,9 +16,8 @@ import org.bukkit.util.Vector;
 
 @Getter
 public class EditorContext implements Disposable {
-    private static final Vector UNIT_VECTOR = new Vector(1, 1, 1);
     private static final String BOUNDS_RENDER_NAME = "bounds";
-    private static final ParticleSettings PARTICLE_SETTINGS = new ParticleSettings(Particle.CRIT, 10);
+    private static final ParticleSettings PARTICLE_SETTINGS = new ParticleSettings(Particle.CRIT, 1);
 
     private final ParticleRenderer renderer;
 
