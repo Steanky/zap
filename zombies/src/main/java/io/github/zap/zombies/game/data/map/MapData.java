@@ -1,19 +1,13 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.particle.BasicRenderComponent;
-import io.github.zap.arenaapi.particle.ParticleSettings;
-import io.github.zap.arenaapi.particle.RenderComponent;
-import io.github.zap.arenaapi.util.VectorUtils;
-import io.github.zap.zombies.command.mapeditor.Renderable;
+import io.github.zap.arenaapi.particle.Renderable;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -27,7 +21,7 @@ import java.util.*;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class MapData implements Renderable {
+public class MapData {
     /**
      * The unique name of this map that need not be user friendly
      */
@@ -293,33 +287,10 @@ public class MapData implements Renderable {
         return null;
     }
 
-    /*
-    stuff used for rendering this data object
-    VVV
+    /**
+     * Renders this map.
      */
+    private class MapRenderer {
 
-    private static final ParticleSettings MAP_BOUNDS_SETTINGS = new ParticleSettings(Particle.BARRIER);
-
-    private static final ParticleSettings ROOM_BOUNDS_SETTINGS = new ParticleSettings(Particle.REDSTONE, 1,
-            new Particle.DustOptions(Color.WHITE, 10));
-
-    private static final RenderComponent MAP_BOUNDS_COMPONENT = new BasicRenderComponent("map_bounds",
-            MAP_BOUNDS_SETTINGS);
-
-    @Override
-    public List<RenderComponent> getRenderComponents() {
-        List<RenderComponent> renderComponents = new ArrayList<>();
-        renderComponents.add(MAP_BOUNDS_COMPONENT);
-
-        MAP_BOUNDS_COMPONENT.updateFragments(VectorUtils.interpolateBounds(mapBounds, 2));
-
-        int i = 0;
-        for(RoomData room : this.rooms) {
-            renderComponents.add(new BasicRenderComponent("map_room_bounds_" + i, ROOM_BOUNDS_SETTINGS,
-                    VectorUtils.interpolateBounds(room.getBounds(), 1)));
-            i++;
-        }
-
-        return renderComponents;
     }
 }
