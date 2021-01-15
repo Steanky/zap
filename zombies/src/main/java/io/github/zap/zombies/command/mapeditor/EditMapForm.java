@@ -18,33 +18,13 @@ public class EditMapForm extends CommandForm {
             new Parameter("^(\\w+)$", "[map_name]")
     };
 
-    private static final CommandValidator validator;
-
-    static {
-        validator = new CommandValidator((context, arguments) -> {
-            Player sender = (Player)context.getSender();
-
-            if(Zombies.getInstance().getContextManager().getContextMap().containsKey(sender.getUniqueId())) {
-                return new ImmutablePair<>(false, "You are already editing a map.");
-            }
-
-            if(!Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
-                return new ImmutablePair<>(false, "A map with that name doesn't exist.");
-            }
-
-            return new ImmutablePair<>(true, null);
-        });
-
-        validator.chain(Validators.PLAYER_EXECUTOR);
-    }
-
     public EditMapForm() {
         super("Edit an existing Zombies map.", Permissions.OPERATOR, parameters);
     }
 
     @Override
     public CommandValidator getValidator(Context context, Object[] arguments) {
-        return validator;
+        return MapeditorValidators.NO_EDITOR_CONTEXT;
     }
 
     @Override
@@ -54,6 +34,6 @@ public class EditMapForm extends CommandForm {
         Zombies.getInstance().getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(player,
                 Zombies.getInstance().getArenaManager().getMaps().get(name)));
 
-        return String.format("Editing map '%s'.", name);
+        return String.format("Now editing map '%s'.", name);
     }
 }

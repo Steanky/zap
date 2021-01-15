@@ -1,14 +1,13 @@
 package io.github.zap.arenaapi.particle;
 
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-
-import java.util.List;
 
 /**
  * Represents an object that is used by the particle renderer.
  */
 public interface RenderComponent {
+    RenderComponent[] EMPTY_RENDER_COMPONENT_ARRAY = new RenderComponent[0];
+
     /**
      * Gets all the vectors for this RenderComponent.
      * @return An array of vectors to render
@@ -16,21 +15,15 @@ public interface RenderComponent {
     Vector[] getFragments();
 
     /**
-     * Updates the fragment array for this render component. Could be used for animations.
+     * Updates the fragment array for this render component.
      */
-    default void updateFragments(Vector[] fragments) { }
+    void updateFragments();
 
     /**
      * Get the particle used for this RenderComponent.
      * @return The particle used for this component
      */
     ParticleSettings particleData();
-
-    /**
-     * A list of players who will be able to see this RenderComponent.
-     * @return The players who can see this object
-     */
-    List<Player> renderTo();
 
     /**
      * The name of this component, used by the ParticleRenderer to uniquely identify it.

@@ -19,10 +19,16 @@ import java.util.UUID;
 
 @Getter
 public class ContextManager implements Listener {
+    @Getter
+    private static final Material itemType = Material.STICK;
+
+    @Getter
+    private static final List<String> itemLore = Lists.newArrayList("Zombies Map Editor Wand[TM]");
+
+    @Getter
+    private static final ItemStack editorItem = new ItemStack(itemType);
+
     private final Map<UUID, EditorContext> contextMap = new HashMap<>();
-    private final Material itemType = Material.STICK;
-    private final List<String> itemLore = Lists.newArrayList("Zombies Map Editor Wand[TM]");
-    private final ItemStack editorItem = new ItemStack(itemType);
 
     public ContextManager() {
         Zombies zombies = Zombies.getInstance();

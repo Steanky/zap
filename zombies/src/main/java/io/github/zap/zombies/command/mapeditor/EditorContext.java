@@ -1,7 +1,7 @@
 package io.github.zap.zombies.command.mapeditor;
 
 import io.github.zap.arenaapi.Disposable;
-import io.github.zap.arenaapi.particle.GlobalRenderComponent;
+import io.github.zap.arenaapi.particle.BasicRenderComponent;
 import io.github.zap.arenaapi.particle.ParticleRenderer;
 import io.github.zap.arenaapi.particle.ParticleSettings;
 import io.github.zap.arenaapi.util.VectorUtils;
@@ -27,8 +27,10 @@ public class EditorContext implements Disposable {
     private Vector firstClicked = null;
     private Vector secondClicked = null;
 
+    private Renderable renderTarget;
+
     public EditorContext(Player player, MapData editingMap) {
-        this.renderer = new ParticleRenderer(Bukkit.getWorld(editingMap.getWorldName()), 10);
+        this.renderer = new ParticleRenderer(Bukkit.getWorld(editingMap.getWorldName()), 10, player);
         this.player = player;
         this.editingMap = editingMap;
     }
@@ -48,10 +50,26 @@ public class EditorContext implements Disposable {
         }
 
         //update or create vectors
-        renderer.computeIfAbsent(BOUNDS_RENDER_NAME, mapper -> new GlobalRenderComponent(BOUNDS_RENDER_NAME,
-                PARTICLE_SETTINGS, Bukkit.getWorld(editingMap.getWorldName())))
-                .updateFragments(VectorUtils.particleAabb(secondClicked == null ? BoundingBox.of(firstClicked,
-                        firstClicked) : BoundingBox.of(firstClicked, secondClicked), 2));
+        renderer.computeIfAbsent(BOUNDS_RENDER_NAME, mapper -> new BasicRenderComponent(BOUNDS_RENDER_NAME,
+                PARTICLE_SETTINGS, this::boundsUpdate)).updateFragments();
+    }
+
+    private Vector[] boundsUpdate() {
+        return VectorUtils.interpolateBounds(secondClicked == null ? BoundingBox.of(firstClicked, firstClicked) :
+                BoundingBox.of(firstClicked, secondClicked), 2);
+    }
+
+    /**
+     * Called in order to recalculate the vectors for the current render target.
+     */
+    public void redraw() {
+        renderer.removeAllMatching((renderer) -> !renderer.name().equals(BOUNDS_RENDER_NAME));
+        renderer.addComponents(renderTarget.getRenderComponents());
+    }
+
+    public void setRenderTarget(Renderable target) {
+        renderTarget = target;
+        redraw();
     }
 
     @Override

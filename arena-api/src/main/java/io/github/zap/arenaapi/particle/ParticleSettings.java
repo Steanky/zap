@@ -17,7 +17,8 @@ public class ParticleSettings {
     private final Object data;
     private final boolean force;
 
-    public ParticleSettings(Particle particle, int count, double offsetX, double offsetY, double offsetZ, double extra, Object data, boolean force) {
+    public ParticleSettings(Particle particle, int count, double offsetX, double offsetY, double offsetZ, double extra,
+                            Object data, boolean force) {
         this.particle = particle;
         this.count = count;
         this.offsetX = offsetX;

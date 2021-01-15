@@ -1,9 +1,17 @@
 package io.github.zap.arenaapi.util;
 
+import io.github.zap.arenaapi.game.MultiBoundingBox;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class VectorUtils {
+    public static final Vector[] EMPTY_VECTOR_ARRAY = new Vector[0];
+
+    private static final Vector UNIT = new Vector(1, 1, 1);
+
     public static double manhattanDistance(Vector first, Vector second) {
         return Math.abs(first.getX() - second.getX()) + Math.abs(first.getY() - second.getY()) +
                 Math.abs(first.getZ() - second.getZ());
@@ -29,9 +37,9 @@ public final class VectorUtils {
         return vectors;
     }
 
-    public static Vector[] particleAabb(BoundingBox box, int density) {
+    public static Vector[] interpolateBounds(BoundingBox box, int density) {
         Vector origin = box.getMin();
-        Vector limit = box.getMax().add(new Vector(1, 1, 1));
+        Vector limit = box.getMax().add(UNIT);
 
         Vector one = new Vector(origin.getX(), origin.getY(), limit.getZ());
         Vector two = new Vector(limit.getX(), origin.getY(), limit.getZ());
@@ -46,5 +54,17 @@ public final class VectorUtils {
                 interpolateLine(two, limit, density), interpolateLine(three, seven, density),
                 interpolateLine(four, five, density), interpolateLine(five, limit, density),
                 interpolateLine(limit, seven, density), interpolateLine(seven, four, density));
+    }
+
+    public static Vector[] interpolateBounds(MultiBoundingBox box, int density) {
+        List<Vector[]> boundsVectors = new ArrayList<>();
+        int resultingSize = 0;
+        for(BoundingBox bounds : box.getBounds()) {
+            Vector[] vectors = interpolateBounds(bounds, density);
+            resultingSize += vectors.length;
+            boundsVectors.add(vectors);
+        }
+
+        return ArrayUtils.combine(boundsVectors, Vector.class);
     }
 }

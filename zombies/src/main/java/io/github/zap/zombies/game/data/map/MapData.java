@@ -1,17 +1,19 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.particle.BasicRenderComponent;
 import io.github.zap.arenaapi.particle.ParticleSettings;
 import io.github.zap.arenaapi.particle.RenderComponent;
+import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.zombies.command.mapeditor.Renderable;
-import io.github.zap.zombies.game.SpawnMethod;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
+import org.bukkit.Particle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -26,49 +28,20 @@ import java.util.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class MapData implements Renderable {
-    @Override
-    public RenderComponent getComponent() {
-        return new MapRenderer();
-    }
-
-    private class MapRenderer implements RenderComponent {
-        private static final String NAME = "map";
-
-        @Override
-        public Vector[] getFragments() {
-            return new Vector[0];
-        }
-
-        @Override
-        public ParticleSettings particleData() {
-            return null;
-        }
-
-        @Override
-        public List<Player> renderTo() {
-            return null;
-        }
-
-        @Override
-        public String name() {
-            return NAME;
-        }
-    }
-
     /**
      * The unique name of this map that need not be user friendly
      */
-    String name = "default_map";
+    String name;
 
     /**
      * The resource key of the map name
      */
-    String mapNameKey = "map.default_map.name";
+    String mapNameKey;
 
     /**
      * The name of the world corresponding to this map
      */
-    String worldName = "default_world";
+    String worldName;
 
     /**
      * The bounds of the map, inside which every component should exist
@@ -256,8 +229,6 @@ public class MapData implements Renderable {
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
-    public MapData() {}
-
     public MapData(String mapName, String worldName) {
         this.name = mapName;
         this.worldName = worldName;
@@ -320,5 +291,35 @@ public class MapData implements Renderable {
         }
 
         return null;
+    }
+
+    /*
+    stuff used for rendering this data object
+    VVV
+     */
+
+    private static final ParticleSettings MAP_BOUNDS_SETTINGS = new ParticleSettings(Particle.BARRIER);
+
+    private static final ParticleSettings ROOM_BOUNDS_SETTINGS = new ParticleSettings(Particle.REDSTONE, 1,
+            new Particle.DustOptions(Color.WHITE, 10));
+
+    private static final RenderComponent MAP_BOUNDS_COMPONENT = new BasicRenderComponent("map_bounds",
+            MAP_BOUNDS_SETTINGS);
+
+    @Override
+    public List<RenderComponent> getRenderComponents() {
+        List<RenderComponent> renderComponents = new ArrayList<>();
+        renderComponents.add(MAP_BOUNDS_COMPONENT);
+
+        MAP_BOUNDS_COMPONENT.updateFragments(VectorUtils.interpolateBounds(mapBounds, 2));
+
+        int i = 0;
+        for(RoomData room : this.rooms) {
+            renderComponents.add(new BasicRenderComponent("map_room_bounds_" + i, ROOM_BOUNDS_SETTINGS,
+                    VectorUtils.interpolateBounds(room.getBounds(), 1)));
+            i++;
+        }
+
+        return renderComponents;
     }
 }
