@@ -1,18 +1,19 @@
 package io.github.zap.zombies.command.mapeditor;
 
 import io.github.zap.arenaapi.Disposable;
-import io.github.zap.arenaapi.particle.ParticleSettings;
+import io.github.zap.arenaapi.particle.*;
+import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 @Getter
-public class EditorContext implements Disposable {
-    private static final String BOUNDS_RENDER_NAME = "bounds";
-    private static final ParticleSettings BOUNDS_PARTICLE_SETTINGS = new ParticleSettings(Particle.CRIT, 1);
+public class EditorContext implements Disposable, RenderableProvider {
+    private final ParticleRenderer renderer;
 
     private final Player player;
     private final MapData editingMap;
@@ -23,6 +24,9 @@ public class EditorContext implements Disposable {
     public EditorContext(Player player, MapData editingMap) {
         this.player = player;
         this.editingMap = editingMap;
+
+        renderer = new ParticleRenderer(player.getWorld(), player, 10);
+        renderer.addRenderable(getRenderable());
     }
 
     public void handleClicked(Block at) {
@@ -38,6 +42,19 @@ public class EditorContext implements Disposable {
             firstClicked = secondClicked;
             secondClicked = clickedVector;
         }
+    }
+
+    @Override
+    public Renderable getRenderable() {
+        Renderable renderable = new BasicRenderable("selection");
+        renderable.addComponent(new BasicRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
+            @Override
+            public void updateVectors() {
+                cache = VectorUtils.interpolateBounds(BoundingBox.of(firstClicked, secondClicked), 2);
+            }
+        });
+
+        return renderable;
     }
 
     @Override

@@ -1,13 +1,16 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.particle.Renderable;
+import io.github.zap.arenaapi.particle.*;
+import io.github.zap.arenaapi.util.ArrayUtils;
+import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -21,7 +24,7 @@ import java.util.*;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class MapData {
+public class MapData implements RenderableProvider {
     /**
      * The unique name of this map that need not be user friendly
      */
@@ -287,10 +290,30 @@ public class MapData {
         return null;
     }
 
-    /**
-     * Renders this map.
-     */
-    private class MapRenderer {
+    @Override
+    public Renderable getRenderable() {
+        Renderable renderable = new BasicRenderable("map");
 
+        renderable.addComponent(new BasicRenderComponent("map_bounds", new ParticleSettings(Particle.CRIT)) {
+            @Override
+            public void updateVectors() {
+                cache = VectorUtils.interpolateBounds(mapBounds, 2);
+            }
+        });
+
+        renderable.addComponent(new BasicRenderComponent("rooms", new ParticleSettings(Particle.FLAME)) {
+            @Override
+            public void updateVectors() {
+                List<Vector[]> arrays = new ArrayList<>();
+
+                for(RoomData room : rooms) {
+                    arrays.add(VectorUtils.interpolateBounds(room.getBounds(), 2));
+                }
+
+                cache = ArrayUtils.combine(arrays, Vector.class);
+            }
+        });
+
+        return renderable;
     }
 }

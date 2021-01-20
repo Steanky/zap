@@ -33,16 +33,14 @@ public final class ArrayUtils {
         return (T[])composite;
     }
 
-    public static <T> T[] combine(Collection<T[]> arrays, Class<T> elementType) {
+    public static <T> T[] combine(Iterable<T[]> arrays, Class<T> elementType) {
         int size = 0;
 
         for(T[] array : arrays) {
             size += array.length;
         }
 
-        //first call to getComponentType returns a type that is itself an array, so we call twice
         Object composite = Array.newInstance(elementType, size);
-
         int destinationOffset = 0;
         for (T[] sample : arrays) {
             //noinspection SuspiciousSystemArraycopy
