@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.particle;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.Disposable;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class ParticleRenderer {
+public class ParticleRenderer implements Disposable {
     private final World in;
     private final Player target;
     private final List<Player> viewers;
@@ -76,7 +77,21 @@ public class ParticleRenderer {
         renderables.put(renderable.getName(), renderable);
     }
 
+    public void addRenderable(RenderableProvider provider) {
+        Renderable renderable = provider.getRenderable();
+        renderables.put(renderable.getName(), renderable);
+    }
+
     public Renderable getRenderable(String name) {
         return renderables.get(name);
+    }
+
+    public Renderable removeRenderable(String name) {
+        return renderables.remove(name);
+    }
+
+    @Override
+    public void dispose() {
+        stop();
     }
 }

@@ -290,29 +290,33 @@ public class MapData implements RenderableProvider {
         return null;
     }
 
+    private transient Renderable renderable = null;
+
     @Override
     public Renderable getRenderable() {
-        Renderable renderable = new BasicRenderable("map");
+        if(renderable == null) {
+            renderable = new BasicRenderable("map");
 
-        renderable.addComponent(new BasicRenderComponent("map_bounds", new ParticleSettings(Particle.CRIT)) {
-            @Override
-            public void updateVectors() {
-                cache = VectorUtils.interpolateBounds(mapBounds, 2);
-            }
-        });
-
-        renderable.addComponent(new BasicRenderComponent("rooms", new ParticleSettings(Particle.FLAME)) {
-            @Override
-            public void updateVectors() {
-                List<Vector[]> arrays = new ArrayList<>();
-
-                for(RoomData room : rooms) {
-                    arrays.add(VectorUtils.interpolateBounds(room.getBounds(), 2));
+            renderable.addComponent(new BasicRenderComponent("map_bounds", new ParticleSettings(Particle.CRIT)) {
+                @Override
+                public void updateVectors() {
+                    cache = VectorUtils.interpolateBounds(mapBounds, 2);
                 }
+            });
 
-                cache = ArrayUtils.combine(arrays, Vector.class);
-            }
-        });
+            renderable.addComponent(new BasicRenderComponent("rooms", new ParticleSettings(Particle.FLAME)) {
+                @Override
+                public void updateVectors() {
+                    List<Vector[]> arrays = new ArrayList<>();
+
+                    for(RoomData room : rooms) {
+                        arrays.add(VectorUtils.interpolateBounds(room.getBounds(), 2));
+                    }
+
+                    cache = ArrayUtils.combine(arrays, Vector.class);
+                }
+            });
+        }
 
         return renderable;
     }

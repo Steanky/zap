@@ -161,13 +161,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @return A list of SpawnpointData objects that have been properly filtered.
          */
         private List<SpawnpointData> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
-            return map.getRooms().stream().filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE ||
-                    roomData.getOpenProperty().getValue(ZombiesArena.this))
-                    .flatMap(roomData -> roomData.getSpawnpoints().stream()).filter(spawnpointData -> mobs.stream()
+            return map.getRooms().stream()
+                    .filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE || roomData.getOpenProperty()
+                            .getValue(ZombiesArena.this))
+                    .flatMap(roomData -> roomData.getSpawnpoints()
+                            .stream()).filter(spawnpointData -> mobs.stream()
                             .anyMatch(spawnEntryData -> spawnpointData.canSpawn(spawnEntryData.getMobName())))
-                    .filter(spawnpointData -> getPlayerMap().values().stream().anyMatch(player -> method !=
-                            SpawnMethod.RANGED || player.getPlayer().getLocation().toVector().distanceSquared(
-                                    spawnpointData.getSpawn()) <= slaSquared)).collect(Collectors.toList());
+                    .filter(spawnpointData -> getPlayerMap()
+                            .values()
+                            .stream()
+                            .anyMatch(player -> method != SpawnMethod.RANGED || player.getPlayer()
+                                    .getLocation()
+                                    .toVector().distanceSquared(spawnpointData.getSpawn()) <= slaSquared))
+                    .collect(Collectors.toList());
         }
     }
 
@@ -416,7 +422,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
-        event.setFoodLevel(20); //TODO: check that this isn't recursive somehow!
+        event.setFoodLevel(20);
     }
 
     private void doRound() {

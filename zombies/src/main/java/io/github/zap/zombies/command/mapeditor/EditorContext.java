@@ -21,12 +21,31 @@ public class EditorContext implements Disposable, RenderableProvider {
     private Vector firstClicked = null;
     private Vector secondClicked = null;
 
+    private Renderable boundsRenderable;
+
+    private Renderable contextRenderable;
+
     public EditorContext(Player player, MapData editingMap) {
         this.player = player;
         this.editingMap = editingMap;
 
         renderer = new ParticleRenderer(player.getWorld(), player, 10);
-        renderer.addRenderable(getRenderable());
+        renderer.addRenderable(this);
+    }
+
+    public void addContextRenderable(RenderableProvider provider) {
+        if(contextRenderable != null) {
+            renderer.removeRenderable(contextRenderable.getName());
+        }
+
+        renderer.addRenderable(provider);
+    }
+
+    public void removeContextRenderable() {
+        if(contextRenderable != null) {
+            renderer.removeRenderable(contextRenderable.getName());
+            contextRenderable = null;
+        }
     }
 
     public void handleClicked(Block at) {
@@ -42,23 +61,27 @@ public class EditorContext implements Disposable, RenderableProvider {
             firstClicked = secondClicked;
             secondClicked = clickedVector;
         }
+
+        boundsRenderable.update();
     }
 
-    @Override
     public Renderable getRenderable() {
-        Renderable renderable = new BasicRenderable("selection");
-        renderable.addComponent(new BasicRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
-            @Override
-            public void updateVectors() {
-                cache = VectorUtils.interpolateBounds(BoundingBox.of(firstClicked, secondClicked), 2);
-            }
-        });
+        if(boundsRenderable == null) {
+            boundsRenderable = new BasicRenderable("selection");
 
-        return renderable;
+            boundsRenderable.addComponent(new BasicRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
+                @Override
+                public void updateVectors() {
+                    cache = VectorUtils.interpolateBounds(BoundingBox.of(firstClicked, secondClicked), 2);
+                }
+            });
+        }
+
+        return boundsRenderable;
     }
 
     @Override
     public void dispose() {
-
+        renderer.dispose();
     }
 }

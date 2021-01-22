@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.particle;
 
+import io.github.zap.arenaapi.Disposable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.World;
@@ -23,9 +24,12 @@ public abstract class Renderable {
     @Getter
     private final String name;
 
+    /**
+     * This exists because iterating an array is ~35% faster than map.values() and we iterate through RenderComponents
+     * a lot
+     */
     private void tryBakeAll() {
         if(shouldBake) {
-            //it is faster to iterate an array and worth converting when necessary seeing as we run this code very often
             baked = renderComponents.values().toArray(EMPTY_RENDER_COMPONENT_ARRAY);
             shouldBake = false;
         }
