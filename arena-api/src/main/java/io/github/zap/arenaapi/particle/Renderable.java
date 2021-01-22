@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public abstract class Renderable {
+public class Renderable {
     private static final RenderComponent[] EMPTY_RENDER_COMPONENT_ARRAY = new RenderComponent[0];
 
     private boolean shouldBake = false;
@@ -47,16 +47,21 @@ public abstract class Renderable {
     }
 
     /**
-     * Renders each of the RenderComponents in this Renderable object.
+     * Renders all visual components of this Renderable object, given the specified parameters.
+     * @param in The world that the particles should spawn in
+     * @param sender The sending player. May be null, which will cause the particles to not perform LoS checks and
+     *               send particles to all receiving players
+     * @param receivers The players receiving the particles. May be null, which will cause all players in World <i>in</i>
+     *                  to receive the particles
      */
-    public void draw(World in, Player to, List<Player> players) {
+    public void draw(World in, Player sender, List<Player> receivers) {
         tryBakeAll();
 
         for(RenderComponent component : baked) {
             ParticleSettings settings = component.getSettings();
 
             for(Vector vector : component.getVectors()) {
-                in.spawnParticle(settings.getParticle(), players, to, vector.getX(), vector.getY(), vector.getZ(),
+                in.spawnParticle(settings.getParticle(), receivers, sender, vector.getX(), vector.getY(), vector.getZ(),
                         settings.getCount(), settings.getOffsetX(), settings.getOffsetY(), settings.getOffsetZ(),
                         settings.getExtra(), settings.getData(), settings.isForce());
             }

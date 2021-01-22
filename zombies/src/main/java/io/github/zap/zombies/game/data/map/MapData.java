@@ -295,16 +295,16 @@ public class MapData implements RenderableProvider {
     @Override
     public Renderable getRenderable() {
         if(renderable == null) {
-            renderable = new BasicRenderable("map");
+            renderable = new Renderable("map");
 
-            renderable.addComponent(new BasicRenderComponent("map_bounds", new ParticleSettings(Particle.CRIT)) {
+            renderable.addComponent(new CachingRenderComponent("map_bounds", new ParticleSettings(Particle.CRIT)) {
                 @Override
                 public void updateVectors() {
                     cache = VectorUtils.interpolateBounds(mapBounds, 2);
                 }
             });
 
-            renderable.addComponent(new BasicRenderComponent("rooms", new ParticleSettings(Particle.FLAME)) {
+            renderable.addComponent(new CachingRenderComponent("rooms", new ParticleSettings(Particle.FLAME)) {
                 @Override
                 public void updateVectors() {
                     List<Vector[]> arrays = new ArrayList<>();

@@ -6,13 +6,13 @@ import org.bukkit.util.Vector;
  * Basic implementation of render component that caches its vectors; they will not be calculated with every call to
  * getVectors().
  */
-public abstract class BasicRenderComponent implements RenderComponent {
+public abstract class CachingRenderComponent implements RenderComponent {
     private final String name;
     private final ParticleSettings settings;
 
     protected Vector[] cache = null;
 
-    public BasicRenderComponent(String name, ParticleSettings settings) {
+    public CachingRenderComponent(String name, ParticleSettings settings) {
         this.name = name;
         this.settings = settings;
     }

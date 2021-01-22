@@ -69,7 +69,7 @@ public class EditorContext implements Disposable, RenderableProvider {
         if(boundsRenderable == null) {
             boundsRenderable = new BasicRenderable("selection");
 
-            boundsRenderable.addComponent(new BasicRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
+            boundsRenderable.addComponent(new CachingRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
                 @Override
                 public void updateVectors() {
                     cache = VectorUtils.interpolateBounds(BoundingBox.of(firstClicked, secondClicked), 2);

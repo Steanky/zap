@@ -12,31 +12,52 @@ public final class VectorUtils {
 
     private static final Vector UNIT = new Vector(1, 1, 1);
 
+    /**
+     * Calculates the Manhattan (taxicab) distance between two vectors. Created by taking the sum of the absolute values
+     * of the distances between each input vector's X, Y, and Z values.
+     * @param first The first vector
+     * @param second The second vector
+     * @return The Manhattan distance between the two vectors
+     */
     public static double manhattanDistance(Vector first, Vector second) {
         return Math.abs(first.getX() - second.getX()) + Math.abs(first.getY() - second.getY()) +
                 Math.abs(first.getZ() - second.getZ());
     }
 
-    public static Vector[] interpolateLine(Vector s, Vector e, int density) {
-        double distance = s.distance(e);
+    /**
+     * Produces an array of vectors along the 3-dimensional line specified by the given vectors.
+     * @param start The starting vector
+     * @param end The ending vector
+     * @param density The interpolation density, measured in particles per block (PPB)
+     * @return An array of vectors created by interpolating along the line bounded by start and end
+     */
+    public static Vector[] interpolateLine(Vector start, Vector end, int density) {
+        double distance = start.distance(end);
 
-        Vector start = s.clone();
-        Vector end = e.clone();
+        Vector startClone = start.clone();
+        Vector endClone = end.clone();
 
-        end.add(start.clone().multiply(-1)); //end is now a vector with the same angle as the vector formed from s to e
+        endClone.add(startClone.clone().multiply(-1)); //end is now a vector with the same angle as the vector formed from s to e
 
         int particles = (int)Math.round(distance * density);
         Vector[] vectors = new Vector[particles];
-        end.multiply(1D / particles); //end is now a vector with a length equaling the distance between particles
+        endClone.multiply(1D / particles); //end is now a vector with a length equaling the distance between particles
 
         for(int i = 0; i < particles; i++) {
-            vectors[i] = start.clone();
-            start.add(end);
+            vectors[i] = startClone.clone();
+            startClone.add(endClone);
         }
 
         return vectors;
     }
 
+    /**
+     * Returns an array of Vectors representing the result of interpolating each 3d line that comprises an edge of this
+     * BoundingBox.
+     * @param box The input bounding box
+     * @param density The density of the particles, measured in PPB (particles per block)
+     * @return
+     */
     public static Vector[] interpolateBounds(BoundingBox box, int density) {
         Vector origin = box.getMin();
         Vector limit = box.getMax().add(UNIT);
@@ -57,11 +78,10 @@ public final class VectorUtils {
     }
 
     public static Vector[] interpolateBounds(MultiBoundingBox box, int density) {
-        List<Vector[]> boundsVectors = new ArrayList<>();
-        int resultingSize = 0;
+        List<Vector[]> boundsVectors = new ArrayList<>(box.getBounds().size());
+
         for(BoundingBox bounds : box.getBounds()) {
             Vector[] vectors = interpolateBounds(bounds, density);
-            resultingSize += vectors.length;
             boundsVectors.add(vectors);
         }
 
