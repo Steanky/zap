@@ -13,6 +13,8 @@ import org.bukkit.util.Vector;
 
 @Getter
 public class EditorContext implements Disposable, RenderableProvider {
+    private static final String BOUNDS_COMPONENT_NAME = "bounds";
+
     private final ParticleRenderer renderer;
 
     private final Player player;
@@ -62,14 +64,19 @@ public class EditorContext implements Disposable, RenderableProvider {
             secondClicked = clickedVector;
         }
 
-        boundsRenderable.update();
+        RenderComponent component = getRenderable().getComponent(BOUNDS_COMPONENT_NAME);
+
+        if(component != null) {
+            component.updateVectors();
+        }
     }
 
     public Renderable getRenderable() {
         if(boundsRenderable == null) {
-            boundsRenderable = new BasicRenderable("selection");
+            boundsRenderable = new Renderable("selection");
 
-            boundsRenderable.addComponent(new CachingRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
+            boundsRenderable.addComponent(new CachingRenderComponent(BOUNDS_COMPONENT_NAME,
+                    new ParticleSettings(Particle.CRIT, 1)) {
                 @Override
                 public void updateVectors() {
                     cache = VectorUtils.interpolateBounds(BoundingBox.of(firstClicked, secondClicked), 2);
