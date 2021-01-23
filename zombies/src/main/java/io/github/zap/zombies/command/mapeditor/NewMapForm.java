@@ -39,10 +39,6 @@ public class NewMapForm extends CommandForm {
         ItemStack editor = ContextManager.getEditorItem();
         PlayerInventory inventory = player.getInventory();
 
-        if(inventory.contains(editor)) { //don't give players multiple editor wands
-            inventory.addItem(editor);
-        }
-
-        return String.format("Now editing new map '%s' for world '%s'", name, worldName);
+        return String.format("Now editing new map '%s' for world '%s'.", name, worldName);
     }
 }

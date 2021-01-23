@@ -7,11 +7,13 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 public class NewSessionForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(session)$", "session"),
-            new Parameter("^(start)$", "start")
+            new Parameter("^(map)$", "map"),
+            new Parameter("^(session)$", "session")
     };
 
     public NewSessionForm() {
@@ -27,8 +29,15 @@ public class NewSessionForm extends CommandForm {
     public String execute(Context context, Object[] arguments) {
         Zombies zombies = Zombies.getInstance();
         Player player = (Player)context.getSender();
+        PlayerInventory inventory = player.getInventory();
+        ItemStack editor = ContextManager.getEditorItem();
 
         zombies.getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(player));
+
+        if(inventory.contains(editor)) { //don't give players redundant editor wands
+            inventory.addItem(editor);
+        }
+
         return "Started a new mapeditor session.";
     }
 }

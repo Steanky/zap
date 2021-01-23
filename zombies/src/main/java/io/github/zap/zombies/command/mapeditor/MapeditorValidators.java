@@ -29,8 +29,16 @@ public final class MapeditorValidators {
         return new ImmutablePair<>(true, null);
     });
 
+    public static final CommandValidator BOUNDS_REQUIRED = new CommandValidator((context, arguments) -> {
+        Player sender = (Player)context.getSender();
+        Zombies zombies = Zombies.getInstance();
+
+        return new ImmutablePair<>(true, null);
+    });
+
     static {
         HAS_EDITOR_CONTEXT.chain(Validators.PLAYER_EXECUTOR);
         NO_EDITOR_CONTEXT.chain(Validators.PLAYER_EXECUTOR);
+        BOUNDS_REQUIRED.chain(HAS_EDITOR_CONTEXT);
     }
 }
