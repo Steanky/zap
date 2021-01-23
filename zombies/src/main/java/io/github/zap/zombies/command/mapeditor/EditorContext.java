@@ -13,29 +13,28 @@ import org.bukkit.util.Vector;
 
 @Getter
 public class EditorContext implements Disposable, RenderableProvider {
-    private static final String BOUNDS_COMPONENT_NAME = "bounds";
-
     private final ParticleRenderer renderer;
 
     private final Player player;
-    private final MapData editingMap;
+
+    private MapData editingMap;
 
     private Vector firstClicked = null;
     private Vector secondClicked = null;
 
     private Renderable boundsRenderable;
+    private RenderComponent boundsComponent;
 
     private Renderable contextRenderable;
 
-    public EditorContext(Player player, MapData editingMap) {
+    public EditorContext(Player player) {
         this.player = player;
-        this.editingMap = editingMap;
 
         renderer = new ParticleRenderer(player.getWorld(), player, 10);
         renderer.addRenderable(this);
     }
 
-    public void addContextRenderable(RenderableProvider provider) {
+    public void setContextRenderable(RenderableProvider provider) {
         if(contextRenderable != null) {
             renderer.removeRenderable(contextRenderable.getName());
         }
@@ -48,6 +47,10 @@ public class EditorContext implements Disposable, RenderableProvider {
             renderer.removeRenderable(contextRenderable.getName());
             contextRenderable = null;
         }
+    }
+
+    public void setEditingMap(MapData data) {
+        editingMap = data;
     }
 
     public void handleClicked(Block at) {
@@ -64,10 +67,8 @@ public class EditorContext implements Disposable, RenderableProvider {
             secondClicked = clickedVector;
         }
 
-        RenderComponent component = getRenderable().getComponent(BOUNDS_COMPONENT_NAME);
-
-        if(component != null) {
-            component.updateVectors();
+        if(boundsComponent != null) {
+            boundsComponent.updateVectors();
         }
     }
 
@@ -75,13 +76,14 @@ public class EditorContext implements Disposable, RenderableProvider {
         if(boundsRenderable == null) {
             boundsRenderable = new Renderable("selection");
 
-            boundsRenderable.addComponent(new CachingRenderComponent(BOUNDS_COMPONENT_NAME,
-                    new ParticleSettings(Particle.CRIT, 1)) {
+            boundsComponent = new CachingRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
                 @Override
                 public void updateVectors() {
                     cache = VectorUtils.interpolateBounds(BoundingBox.of(firstClicked, secondClicked), 2);
                 }
-            });
+            };
+
+            boundsRenderable.addComponent(boundsComponent);
         }
 
         return boundsRenderable;

@@ -8,6 +8,8 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 public class NewMapForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
@@ -22,7 +24,7 @@ public class NewMapForm extends CommandForm {
 
     @Override
     public CommandValidator getValidator(Context context, Object[] arguments) {
-        return MapeditorValidators.NO_EDITOR_CONTEXT;
+        return MapeditorValidators.HAS_EDITOR_CONTEXT;
     }
 
     @Override
@@ -32,10 +34,14 @@ public class NewMapForm extends CommandForm {
         String worldName = player.getWorld().getName();
 
         Zombies zombies = Zombies.getInstance();
-        zombies.getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(player,
-                new MapData(name, worldName)));
+        zombies.getContextManager().getContextMap().get(player.getUniqueId()).setEditingMap(new MapData(name, worldName));
 
-        player.getInventory().addItem(ContextManager.getEditorItem());
+        ItemStack editor = ContextManager.getEditorItem();
+        PlayerInventory inventory = player.getInventory();
+
+        if(inventory.contains(editor)) { //don't give players multiple editor wands
+            inventory.addItem(editor);
+        }
 
         return String.format("Now editing new map '%s' for world '%s'", name, worldName);
     }
