@@ -11,8 +11,8 @@ import org.bukkit.entity.Player;
 
 public class GiveWandForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(map)$", "map"),
-            new Parameter("^(wand)$", "wand")
+            new Parameter("map"),
+            new Parameter("wand")
     };
 
     public GiveWandForm() {
@@ -26,10 +26,11 @@ public class GiveWandForm extends CommandForm {
 
     @Override
     public String execute(Context context, Object[] arguments) {
+        ContextManager contextManager = Zombies.getInstance().getContextManager();
         Player player = (Player)context.getSender();
-        player.getInventory().addItem(ContextManager.getEditorItem());
+        player.getInventory().addItem(contextManager.getEditorItem());
 
-        return Zombies.getInstance().getContextManager().getContextMap().containsKey(player.getUniqueId()) ? null :
+        return contextManager.getContextMap().containsKey(player.getUniqueId()) ? null :
                 "Given mapeditor wand, but it won't work unless you create a session first!";
     }
 }

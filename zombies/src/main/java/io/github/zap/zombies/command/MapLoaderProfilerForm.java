@@ -26,8 +26,8 @@ import java.util.concurrent.Semaphore;
 
 public class MapLoaderProfilerForm extends CommandForm {
     private static final Parameter[] parameters = {
-            new Parameter("^(profile)$", "profile"),
-            new Parameter("^(maploader)$", "maploader"),
+            new Parameter("profile"),
+            new Parameter("maploader"),
             new Parameter("^(\\d+)$", "[iterations]", Converters.INTEGER_CONVERTER),
             new Parameter("^([a-zA-Z0-9_]+)$", "[world]")
     };
@@ -38,6 +38,8 @@ public class MapLoaderProfilerForm extends CommandForm {
     private static final ExecutorService service = Executors.newSingleThreadExecutor();
 
     static {
+        Range<Integer> values = Range.between(1, 50);
+
         validator = new CommandValidator((context, arguments) -> {
             String worldName = (String)arguments[3];
             if(Zombies.getInstance().getWorldLoader().worldExists(worldName)) {
@@ -45,10 +47,15 @@ public class MapLoaderProfilerForm extends CommandForm {
             }
 
             return ImmutablePair.of(false, String.format("World '%s' doesn't exist.", worldName));
-        });
+        }, new CommandValidator((context, arguments) -> {
+            int value = (int)arguments[2];
 
-        validator.chain(Validators.newRangeValidator(Range.between(1, 50), 2))
-                .chain(Validators.PLAYER_EXECUTOR);
+            if(values.contains(value)) {
+                return new ImmutablePair<>(false, String.format("Value '%s' is out of range for this command.", value));
+            }
+
+            return new ImmutablePair<>(true, null);
+        }, Validators.PLAYER_EXECUTOR));
     }
 
     public MapLoaderProfilerForm() {

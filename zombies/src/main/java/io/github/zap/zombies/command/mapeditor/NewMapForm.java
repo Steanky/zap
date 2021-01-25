@@ -13,8 +13,8 @@ import org.bukkit.inventory.PlayerInventory;
 
 public class NewMapForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(map)$", "map"),
-            new Parameter("^(create)$", "create"),
+            new Parameter("map"),
+            new Parameter("create"),
             new Parameter("^(\\w+)$", "[map_name]")
     };
 
@@ -36,8 +36,11 @@ public class NewMapForm extends CommandForm {
         Zombies zombies = Zombies.getInstance();
         zombies.getContextManager().getContextMap().get(player.getUniqueId()).setEditingMap(new MapData(name, worldName));
 
-        ItemStack editor = ContextManager.getEditorItem();
         PlayerInventory inventory = player.getInventory();
+
+        for(ItemStack item : inventory) {
+
+        }
 
         return String.format("Now editing new map '%s' for world '%s'.", name, worldName);
     }

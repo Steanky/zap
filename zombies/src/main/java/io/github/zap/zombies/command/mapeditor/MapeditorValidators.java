@@ -17,7 +17,7 @@ public final class MapeditorValidators {
         }
 
         return new ImmutablePair<>(true, null);
-    });
+    }, Validators.PLAYER_EXECUTOR);
 
     public static final CommandValidator NO_EDITOR_CONTEXT = new CommandValidator((context, arguments) -> {
         Player sender = (Player)context.getSender();
@@ -28,7 +28,7 @@ public final class MapeditorValidators {
         }
 
         return new ImmutablePair<>(true, null);
-    });
+    }, Validators.PLAYER_EXECUTOR);
 
     public static final CommandValidator BOUNDS_REQUIRED = new CommandValidator((context, arguments) -> {
         Player sender = (Player)context.getSender();
@@ -42,11 +42,5 @@ public final class MapeditorValidators {
         }
 
         return new ImmutablePair<>(true, null);
-    });
-
-    static {
-        HAS_EDITOR_CONTEXT.chain(Validators.PLAYER_EXECUTOR);
-        NO_EDITOR_CONTEXT.chain(Validators.PLAYER_EXECUTOR);
-        BOUNDS_REQUIRED.chain(HAS_EDITOR_CONTEXT);
-    }
+    }, HAS_EDITOR_CONTEXT);
 }

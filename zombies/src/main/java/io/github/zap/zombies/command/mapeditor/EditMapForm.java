@@ -13,8 +13,8 @@ import org.bukkit.entity.Player;
 
 public class EditMapForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(map)$", "map"),
-            new Parameter("^(edit)$", "edit"),
+            new Parameter("map"),
+            new Parameter("edit"),
             new Parameter("^(\\w+)$", "[map_name]")
     };
 

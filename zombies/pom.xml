@@ -204,7 +204,7 @@
         <dependency>
             <groupId>com.github.John-DND</groupId>
             <artifactId>RegularCommands</artifactId>
-            <version>6799b16c60</version>
+            <version>master-SNAPSHOT</version>
         </dependency>
 
         <dependency>

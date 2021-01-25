@@ -12,8 +12,8 @@ import org.bukkit.inventory.PlayerInventory;
 
 public class NewSessionForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(map)$", "map"),
-            new Parameter("^(session)$", "session")
+            new Parameter("map"),
+            new Parameter("session")
     };
 
     public NewSessionForm() {
@@ -30,7 +30,7 @@ public class NewSessionForm extends CommandForm {
         Zombies zombies = Zombies.getInstance();
         Player player = (Player)context.getSender();
         PlayerInventory inventory = player.getInventory();
-        ItemStack editor = ContextManager.getEditorItem();
+        ItemStack editor = zombies.getContextManager().getEditorItem();
 
         zombies.getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(player));
 
