@@ -72,6 +72,17 @@ public class EditorContext implements Disposable, RenderableProvider {
         }
     }
 
+    public BoundingBox getSelectedBounds() {
+        if(firstClicked != null && secondClicked != null) {
+            return BoundingBox.of(firstClicked, secondClicked);
+        }
+        else if(firstClicked != null) {
+            return BoundingBox.of(firstClicked, firstClicked);
+        }
+
+        return null;
+    }
+
     public Renderable getRenderable() {
         if(boundsRenderable == null) {
             boundsRenderable = new Renderable("selection");
@@ -79,7 +90,11 @@ public class EditorContext implements Disposable, RenderableProvider {
             boundsComponent = new CachingRenderComponent("bounds", new ParticleSettings(Particle.CRIT, 1)) {
                 @Override
                 public void updateVectors() {
-                    cache = VectorUtils.interpolateBounds(BoundingBox.of(firstClicked, secondClicked), 2);
+                    BoundingBox renderBounds = getSelectedBounds();
+
+                    if(renderBounds != null) {
+                        cache = VectorUtils.interpolateBounds(renderBounds, 2);
+                    }
                 }
             };
 
