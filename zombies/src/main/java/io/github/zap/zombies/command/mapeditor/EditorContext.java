@@ -32,6 +32,7 @@ public class EditorContext implements Disposable, RenderableProvider {
 
         renderer = new ParticleRenderer(player.getWorld(), player, 10);
         renderer.addRenderable(this);
+        renderer.start();
     }
 
     public void setContextRenderable(RenderableProvider provider) {

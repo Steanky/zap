@@ -59,11 +59,14 @@ public class Renderable {
 
         for(RenderComponent component : baked) {
             ParticleSettings settings = component.getSettings();
+            Vector[] vectors = component.getVectors();
 
-            for(Vector vector : component.getVectors()) {
-                in.spawnParticle(settings.getParticle(), receivers, sender, vector.getX(), vector.getY(), vector.getZ(),
-                        settings.getCount(), settings.getOffsetX(), settings.getOffsetY(), settings.getOffsetZ(),
-                        settings.getExtra(), settings.getData(), settings.isForce());
+            if(vectors != null) {
+                for(Vector vector : vectors) {
+                    in.spawnParticle(settings.getParticle(), receivers, sender, vector.getX(), vector.getY(), vector.getZ(),
+                            settings.getCount(), settings.getOffsetX(), settings.getOffsetY(), settings.getOffsetZ(),
+                            settings.getExtra(), settings.getData(), settings.isForce());
+                }
             }
         }
     }
