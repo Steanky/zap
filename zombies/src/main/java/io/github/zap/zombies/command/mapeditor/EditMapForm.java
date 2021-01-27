@@ -30,6 +30,8 @@ public class EditMapForm extends CommandForm {
 
     static {
         validator = MapeditorValidators.mapExistsValidator(2, MapeditorValidators.NO_ACTIVE_MAP);
+
+        //users can tab complete existing maps. fancy, unnecessary features
         completer = new ArgumentCompleter((context, form, args) -> {
             if(args.length == 3) {
                 List<String> possibleMaps = new ArrayList<>();

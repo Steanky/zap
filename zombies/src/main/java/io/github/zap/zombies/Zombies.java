@@ -125,12 +125,12 @@ public final class Zombies extends JavaPlugin implements Listener {
     public void onDisable() {
         playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
 
-        DataLoader loader = getArenaManager().getMapLoader();
+        DataLoader loader = getArenaManager().getMapLoader(); //save map data in case it was edited
         for(MapData data : arenaManager.getMaps()) {
             loader.save(data, data.getName());
         }
 
-        for(File file : loader.getRootDirectory().listFiles()) {
+        for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
             String fileNameWithExtension = file.getName();
             String filename = FilenameUtils.getBaseName(fileNameWithExtension);
 

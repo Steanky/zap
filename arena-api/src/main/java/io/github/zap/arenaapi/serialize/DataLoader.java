@@ -2,6 +2,10 @@ package io.github.zap.arenaapi.serialize;
 
 import java.io.File;
 
+/**
+ * Generalized interface for saving/loading data from files. Each implementation should manage a static directory,
+ * filetype, and serialization method.
+ */
 public interface DataLoader {
     /**
      * Saves the specified data to the provided filename. The file extension will be added by the DataLoader

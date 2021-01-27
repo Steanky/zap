@@ -181,6 +181,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         maps.put(name, data);
     }
 
+    public void removeMap(String name) {
+        maps.remove(name);
+    }
+
     public List<MapData> getMaps() {
         return new ArrayList<>(maps.values());
     }
