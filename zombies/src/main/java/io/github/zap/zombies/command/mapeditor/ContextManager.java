@@ -5,6 +5,7 @@ import io.github.zap.zombies.Zombies;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -17,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Getter
 public class ContextManager implements Listener {
     private static final Material itemType = Material.STICK;
     private static final List<String> itemLore = Lists.newArrayList("Zombies Map Editor Wand[TM]");
@@ -57,5 +57,27 @@ public class ContextManager implements Listener {
 
     public ItemStack getEditorItem() {
         return editorItem.clone();
+    }
+
+    public void newContext(Player player) {
+        UUID playerId = player.getUniqueId();
+        if(contextMap.containsKey(playerId)) {
+            throw new UnsupportedOperationException(String.format("cannot create context for player %s, it already " +
+                    "exists", playerId));
+        }
+
+        contextMap.put(player.getUniqueId(), new EditorContext(player));
+    }
+
+    public EditorContext fetchContext(Player player) {
+        return contextMap.get(player.getUniqueId());
+    }
+
+    public boolean hasContext(Player player) {
+        return contextMap.containsKey(player.getUniqueId());
+    }
+
+    public void removeContext(Player player) {
+        contextMap.remove(player.getUniqueId());
     }
 }

@@ -35,6 +35,18 @@ public class EditorContext implements Disposable, RenderableProvider {
         renderer.start();
     }
 
+    public Vector getFirstClicked() {
+        return firstClicked;
+    }
+
+    public Vector getSecondClicked() {
+        if(secondClicked == null) {
+            return firstClicked;
+        }
+
+        return secondClicked;
+    }
+
     public void setContextRenderable(RenderableProvider provider) {
         if(contextRenderable != null) {
             renderer.removeRenderable(contextRenderable.getName());

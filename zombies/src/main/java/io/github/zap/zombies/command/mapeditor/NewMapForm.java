@@ -8,8 +8,6 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 public class NewMapForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
@@ -18,13 +16,19 @@ public class NewMapForm extends CommandForm {
             new Parameter("^(\\w+)$", "[map_name]")
     };
 
+    private static final CommandValidator validator;
+
+    static {
+        validator = MapeditorValidators.noMapExistsValidator(2, MapeditorValidators.NO_ACTIVE_MAP);
+    }
+
     public NewMapForm() {
         super("Create a new Zombies map.", Permissions.OPERATOR, parameters);
     }
 
     @Override
     public CommandValidator getValidator(Context context, Object[] arguments) {
-        return MapeditorValidators.HAS_EDITOR_CONTEXT;
+        return validator;
     }
 
     @Override
@@ -33,14 +37,11 @@ public class NewMapForm extends CommandForm {
         Player player = (Player)context.getSender();
         String worldName = player.getWorld().getName();
 
+        MapData newMap = new MapData(name, worldName);
+
         Zombies zombies = Zombies.getInstance();
-        zombies.getContextManager().getContextMap().get(player.getUniqueId()).setEditingMap(new MapData(name, worldName));
-
-        PlayerInventory inventory = player.getInventory();
-
-        for(ItemStack item : inventory) {
-
-        }
+        zombies.getContextManager().fetchContext(player).setEditingMap(newMap);
+        zombies.getArenaManager().addMap(newMap);
 
         return String.format("Now editing new map '%s' for world '%s'.", name, worldName);
     }

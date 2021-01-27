@@ -4,11 +4,7 @@ import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
-import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
-import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.map.MapData;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 
 public class EditMapForm extends CommandForm {
@@ -22,9 +18,15 @@ public class EditMapForm extends CommandForm {
         super("Edit an existing Zombies map.", Permissions.OPERATOR, parameters);
     }
 
+    private static final CommandValidator validator;
+
+    static {
+        validator = MapeditorValidators.mapExistsValidator(2, MapeditorValidators.NO_ACTIVE_MAP);
+    }
+
     @Override
     public CommandValidator getValidator(Context context, Object[] arguments) {
-        return MapeditorValidators.HAS_EDITOR_CONTEXT;
+        return validator;
     }
 
     @Override

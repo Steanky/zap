@@ -41,7 +41,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     @Getter
     private final int arenaTimeout;
 
-    @Getter
     private final Map<String, MapData> maps = new HashMap<>();
 
     public ZombiesArenaManager(Location hubLocation, EquipmentManager equipmentManager, ShopManager shopManager, File dataFolder,
@@ -169,5 +168,19 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         for(ZombiesArena arena : arenas) {
             arena.dispose();
         }
+    }
+
+    public MapData getMap(String name) {
+        return maps.get(name);
+    }
+
+    public void addMap(MapData data) {
+        String name = data.getName();
+
+        if(maps.containsKey(name)) {
+            throw new UnsupportedOperationException("cannot add a map that already exists");
+        }
+
+        maps.put(name, data);
     }
 }
