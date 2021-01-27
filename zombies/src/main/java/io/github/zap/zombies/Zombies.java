@@ -17,6 +17,7 @@ import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
@@ -29,9 +30,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -64,9 +63,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Getter
     private MythicMobs mythicMobs;
-
-    @Getter
-    private DataLoader dataLoader;
 
     @Getter
     private WorldLoader worldLoader;
@@ -125,6 +121,11 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
+
+        DataLoader loader = getArenaManager().getMapLoader();
+        for(MapData data : arenaManager.getMaps()) {
+            loader.save(data, data.getName());
+        }
     }
 
     private void initConfig() {
@@ -183,10 +184,16 @@ public final class Zombies extends JavaPlugin implements Listener {
             World world = Bukkit.getWorld(worldName);
 
             if(world != null) {
+                DataLoader equipmentLoader = new JacksonDataLoader(Path.of(getDataFolder().getPath(),
+                        EQUIPMENT_FOLDER_NAME).toFile());
+
+                DataLoader mapLoader = new JacksonDataLoader(Path.of(getDataFolder().getPath(),
+                        MAP_FOLDER_NAME).toFile());
+
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
-                        new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
-                        new JacksonShopManager(), Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
-                        config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+                        mapLoader, equipmentLoader, config.getInt(ConfigNames.MAX_WORLDS),
+                        config.getInt(ConfigNames.ARENA_TIMEOUT));
+
                 arenaApi.registerArenaManager(arenaManager);
             }
             else {
@@ -199,12 +206,12 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initSerialization() throws LoadFailureException {
-        dataLoader = new JacksonDataLoader();
+
     }
 
     private void initPlayerDataManager() {
-        playerDataManager = new FilePlayerDataManager(Path.of(getDataFolder().getPath(), PLAYER_DATA_FOLDER_NAME)
-                .toFile(), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
+        playerDataManager = new FilePlayerDataManager(new JacksonDataLoader(Path.of(getDataFolder().getPath(),
+                PLAYER_DATA_FOLDER_NAME).toFile()), getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
     }
 
     private void initLocalization() throws LoadFailureException {

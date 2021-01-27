@@ -10,9 +10,6 @@ import java.util.*;
 
 public class FilePlayerDataManager implements PlayerDataManager {
     @Getter
-    private final File dataFolder;
-
-    @Getter
     private final DataLoader loader;
 
     @Getter
@@ -20,13 +17,9 @@ public class FilePlayerDataManager implements PlayerDataManager {
 
     private final Map<UUID, FilePlayerData> cache = new LinkedHashMap<>();
 
-    public FilePlayerDataManager(File dataFolder, DataLoader loader, int memoryCacheLength) {
-        this.dataFolder = dataFolder;
+    public FilePlayerDataManager(DataLoader loader, int memoryCacheLength) {
         this.loader = loader;
         this.memoryCacheLength = memoryCacheLength;
-
-        //noinspection ResultOfMethodCallIgnored
-        dataFolder.mkdirs();
     }
 
     @Override
@@ -37,7 +30,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
             return data;
         }
 
-        File dataFile = Path.of(dataFolder.getPath(), id.toString() + '.' + loader.getExtension()).toFile();
+        File dataFile = loader.getFile(id.toString());
 
         if(!dataFile.exists()) { //create playerdata file if missing
             FilePlayerData newData = new FilePlayerData();
@@ -46,7 +39,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
             return newData;
         }
         else {
-            data = loader.load(dataFile, FilePlayerData.class);
+            data = loader.load(id.toString(), FilePlayerData.class);
 
             if(data != null) { //loaded data from file, cache it in case of further use
                 cacheMapping(id, data);
@@ -83,6 +76,6 @@ public class FilePlayerDataManager implements PlayerDataManager {
     }
 
     private void saveData(FilePlayerData data, UUID id) {
-        loader.save(data, Path.of(dataFolder.getPath(), id.toString() + '.' + loader.getExtension()).toFile());
+        loader.save(data, id.toString());
     }
 }

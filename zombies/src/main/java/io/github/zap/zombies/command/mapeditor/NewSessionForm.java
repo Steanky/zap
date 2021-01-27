@@ -32,7 +32,7 @@ public class NewSessionForm extends CommandForm {
         PlayerInventory inventory = player.getInventory();
         ItemStack editor = zombies.getContextManager().getEditorItem();
 
-        zombies.getContextManager().getContextMap().put(player.getUniqueId(), new EditorContext(player));
+        zombies.getContextManager().newContext(player);
 
         if(inventory.contains(editor)) { //don't give players redundant editor wands
             inventory.addItem(editor);

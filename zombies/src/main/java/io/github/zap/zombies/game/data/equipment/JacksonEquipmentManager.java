@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game.data.equipment;
 
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
@@ -16,6 +18,7 @@ import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -29,7 +32,6 @@ import java.util.Set;
  */
 @RequiredArgsConstructor
 public class JacksonEquipmentManager implements EquipmentManager {
-
     private final FieldTypeDeserializer<EquipmentData<?>> equipmentDataDeserializer
             = new FieldTypeDeserializer<>("type");
 
@@ -39,7 +41,7 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
     private final Map<String, Map<String, EquipmentData<?>>> equipmentDataMap = new HashMap<>();
 
-    private final File dataFolder;
+    private final DataLoader dataLoader;
 
     private boolean loaded = false;
 
@@ -92,16 +94,15 @@ public class JacksonEquipmentManager implements EquipmentManager {
      */
     private void load() {
         if (!loaded) {
-            //noinspection ResultOfMethodCallIgnored
-            dataFolder.mkdirs();
+            File[] files = dataLoader.getRootDirectory().listFiles();
 
-            File[] files = dataFolder.listFiles();
-            JacksonDataLoader dataLoader = (JacksonDataLoader) Zombies.getInstance().getDataLoader();
-            dataLoader.addDeserializer(EquipmentData.class, equipmentDataDeserializer);
+            //TODO: probably should modify how this is loaded, it really shouldn't be done like this
+            ArenaApi.getInstance().addDeserializer(EquipmentData.class, equipmentDataDeserializer);
 
             if (files != null) {
                 for (File file : files) {
-                    EquipmentDataMap newEquipmentDataMapping = dataLoader.load(file, EquipmentDataMap.class);
+                    EquipmentDataMap newEquipmentDataMapping =
+                            dataLoader.load(FilenameUtils.getBaseName(file.getName()), EquipmentDataMap.class);
 
                     if (newEquipmentDataMapping != null) {
                         for (Map.Entry<String, EquipmentData<?>> mapping :

@@ -9,7 +9,6 @@ import org.bukkit.util.BoundingBox;
 
 public final class MapeditorValidators {
     public static final CommandValidator HAS_EDITOR_CONTEXT = new CommandValidator((context, arguments) -> {
-        Player sender = (Player)context.getSender();
         Zombies zombies = Zombies.getInstance();
 
         if(!zombies.getContextManager().hasContext((Player)context.getSender())) {
@@ -20,7 +19,6 @@ public final class MapeditorValidators {
     }, Validators.PLAYER_EXECUTOR);
 
     public static final CommandValidator NO_EDITOR_CONTEXT = new CommandValidator((context, arguments) -> {
-        Player sender = (Player)context.getSender();
         Zombies zombies = Zombies.getInstance();
 
         if(zombies.getContextManager().hasContext((Player)context.getSender())) {
@@ -31,7 +29,6 @@ public final class MapeditorValidators {
     }, Validators.PLAYER_EXECUTOR);
 
     public static final CommandValidator SELECTION_REQUIRED = new CommandValidator((context, arguments) -> {
-        Player sender = (Player)context.getSender();
         Zombies zombies = Zombies.getInstance();
 
         EditorContext editorContext = zombies.getContextManager().fetchContext((Player)context.getSender());
@@ -71,7 +68,7 @@ public final class MapeditorValidators {
         }
 
         return ImmutablePair.of(true, null);
-    }, MapeditorValidators.HAS_EDITOR_CONTEXT);
+    }, HAS_EDITOR_CONTEXT);
 
     public static CommandValidator HAS_ACTIVE_MAP = new CommandValidator((context, arguments) -> {
         if(Zombies.getInstance().getContextManager().fetchContext(((Player)context.getSender()))
@@ -80,7 +77,7 @@ public final class MapeditorValidators {
         }
 
         return ImmutablePair.of(true, null);
-    }, MapeditorValidators.HAS_EDITOR_CONTEXT);
+    }, HAS_EDITOR_CONTEXT);
 
     public static CommandValidator mapExistsValidator(int nameParameter, CommandValidator depend) {
         return new CommandValidator((context, arguments) -> {

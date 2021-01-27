@@ -2,7 +2,6 @@ package io.github.zap.zombies.command.mapeditor;
 
 import com.google.common.collect.Lists;
 import io.github.zap.zombies.Zombies;
-import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -23,7 +22,6 @@ public class ContextManager implements Listener {
     private static final List<String> itemLore = Lists.newArrayList("Zombies Map Editor Wand[TM]");
 
     private final ItemStack editorItem = new ItemStack(itemType);
-
     private final Map<UUID, EditorContext> contextMap = new HashMap<>();
 
     public ContextManager() {
