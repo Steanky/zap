@@ -18,5 +18,6 @@ public class ZombiesCommand extends RegularCommand {
         addForm(new EditMapForm());
         addForm(new GiveWandForm());
         addForm(new MapCloseForm());
+        addForm(new MapListForm());
     }
 }
