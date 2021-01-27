@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 
 public class ImportWorldForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(import)$", "import"),
-            new Parameter("^(world)$", "world"),
+            new Parameter("import"),
+            new Parameter("world"),
             new Parameter("^([a-zA-Z0-9_]+)$", "[world_name]")
     };
 
@@ -39,8 +39,7 @@ public class ImportWorldForm extends CommandForm {
             }
 
             return ImmutablePair.of(true, null);
-        });
-        validator.chain(Validators.PLAYER_EXECUTOR);
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     public ImportWorldForm() {

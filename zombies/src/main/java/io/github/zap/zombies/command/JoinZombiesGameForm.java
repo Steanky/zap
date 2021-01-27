@@ -23,7 +23,7 @@ import java.util.List;
 
 public class JoinZombiesGameForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(join)$", "join"),
+            new Parameter("join"),
             new Parameter("^([a-zA-Z0-9_]+)$", "[arena-name]"),
             new Parameter("^([a-zA-Z0-9_]+)$", "[map-name]")
     };
@@ -48,9 +48,7 @@ public class JoinZombiesGameForm extends CommandForm {
             }
 
             return new ImmutablePair<>(true, null);
-        });
-
-        validator.chain(Validators.PLAYER_EXECUTOR);
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     public JoinZombiesGameForm() {

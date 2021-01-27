@@ -83,6 +83,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -101,7 +102,7 @@
  default so just don't include a scope tag and you should be fine. also add the artifact
  to the filter below so its manifest file doesn't overlap with our project's.-->
 
-                                    <include>com.github.John-DND:RegularCommands</include>
+                                    <include>com.github.Steanky:RegularCommands</include>
                                 </includes>
                             </artifactSet>
 
@@ -109,7 +110,7 @@
                             'overlapping resources' warning when building. -->
                             <filters>
                                 <filter>
-                                    <artifact>com.github.John-DND:RegularCommands</artifact>
+                                    <artifact>com.github.Steanky:RegularCommands</artifact>
                                     <excludes>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
                                     </excludes>
@@ -122,6 +123,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.1.0</version>
@@ -202,9 +204,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.John-DND</groupId>
+            <groupId>com.github.Steanky</groupId>
             <artifactId>RegularCommands</artifactId>
-            <version>master-SNAPSHOT</version>
+            <version>-SNAPSHOT</version>
         </dependency>
 
         <dependency>
