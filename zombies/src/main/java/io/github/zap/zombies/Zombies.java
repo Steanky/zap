@@ -29,12 +29,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -125,6 +128,19 @@ public final class Zombies extends JavaPlugin implements Listener {
         DataLoader loader = getArenaManager().getMapLoader();
         for(MapData data : arenaManager.getMaps()) {
             loader.save(data, data.getName());
+        }
+
+        for(File file : loader.getRootDirectory().listFiles()) {
+            String fileNameWithExtension = file.getName();
+            String filename = FilenameUtils.getBaseName(fileNameWithExtension);
+
+            if(!arenaManager.hasMap(filename)) {
+                try {
+                    Files.delete(file.toPath());
+                } catch (IOException e) {
+                    warning(String.format("Failed to delete map file %s: %s", fileNameWithExtension, e.getMessage()));
+                }
+            }
         }
     }
 
