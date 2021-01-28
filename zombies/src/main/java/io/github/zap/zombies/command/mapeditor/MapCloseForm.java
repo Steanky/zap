@@ -14,7 +14,7 @@ public class MapCloseForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("close"),
-            new Parameter("^((true)|(false))$", "[true|false]", "true",
+            new Parameter("^((true)|(false))$", "[should-discard]", "false",
                     Converters.BOOLEAN_CONVERTER, Lists.newArrayList("true", "false"))
     };
 
@@ -34,7 +34,7 @@ public class MapCloseForm extends CommandForm {
         EditorContext editorContext = zombies.getContextManager().fetchContext((Player)context.getSender());
         editorContext.setEditingMap(null);
 
-        if(arguments[2].equals("false")) {
+        if((boolean)arguments[2]) {
             String name = editorContext.getEditingMap().getName();
             zombies.getArenaManager().removeMap(name);
             return "Closed and deleted the current map.";

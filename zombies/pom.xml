@@ -171,6 +171,12 @@
         </repository>
 
         <repository>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
@@ -206,7 +212,7 @@
         <dependency>
             <groupId>com.github.Steanky</groupId>
             <artifactId>RegularCommands</artifactId>
-            <version>-SNAPSHOT</version>
+            <version>master-SNAPSHOT</version>
         </dependency>
 
         <dependency>
