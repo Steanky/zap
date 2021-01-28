@@ -13,6 +13,7 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.StringUtils;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.World;
@@ -31,14 +32,14 @@ public class ImportWorldForm extends CommandForm {
     private static final CommandValidator validator;
 
     static {
-        validator = new CommandValidator((context, arguments) -> {
+        validator = new CommandValidator((context, form, arguments) -> {
             String worldName = (String)arguments[2];
             if(Zombies.getInstance().getServer().getWorlds().stream().map(World::getName)
                     .collect(Collectors.toList()).contains(worldName)) {
-                return ImmutablePair.of(false, "That world is loaded and thus cannot be imported.");
+                return ValidationResult.of(false, "That world is loaded and thus cannot be imported.");
             }
 
-            return ImmutablePair.of(true, null);
+            return ValidationResult.of(true, null);
         }, Validators.PLAYER_EXECUTOR);
     }
 

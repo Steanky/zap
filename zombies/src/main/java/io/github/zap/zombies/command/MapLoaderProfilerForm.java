@@ -8,6 +8,7 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.Zombies;
 import org.apache.commons.lang3.Range;
@@ -29,7 +30,7 @@ public class MapLoaderProfilerForm extends CommandForm {
             new Parameter("profile"),
             new Parameter("maploader"),
             new Parameter("^(\\d+)$", "[iterations]", Converters.INTEGER_CONVERTER),
-            new Parameter("^([a-zA-Z0-9_]+)$", "[world]")
+            new Parameter("^([a-zA-Z0-9_ ]+)$", "[world]")
     };
 
     private static final CommandValidator validator;
@@ -40,21 +41,21 @@ public class MapLoaderProfilerForm extends CommandForm {
     static {
         Range<Integer> values = Range.between(1, 50);
 
-        validator = new CommandValidator((context, arguments) -> {
+        validator = new CommandValidator((context, form, arguments) -> {
             String worldName = (String)arguments[3];
             if(Zombies.getInstance().getWorldLoader().worldExists(worldName)) {
-                return ImmutablePair.of(true, null);
+                return ValidationResult.of(true, null);
             }
 
-            return ImmutablePair.of(false, String.format("World '%s' doesn't exist.", worldName));
-        }, new CommandValidator((context, arguments) -> {
+            return ValidationResult.of(false, String.format("World '%s' doesn't exist.", worldName));
+        }, new CommandValidator((context,form, arguments) -> {
             int value = (int)arguments[2];
 
             if(values.contains(value)) {
-                return new ImmutablePair<>(false, String.format("Value '%s' is out of range for this command.", value));
+                return ValidationResult.of(false, String.format("Value '%s' is out of range for this command.", value));
             }
 
-            return new ImmutablePair<>(true, null);
+            return ValidationResult.of(true, null);
         }, Validators.PLAYER_EXECUTOR));
     }
 

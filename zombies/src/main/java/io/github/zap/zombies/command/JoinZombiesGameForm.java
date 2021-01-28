@@ -1,6 +1,5 @@
 package io.github.zap.zombies.command;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
@@ -8,18 +7,14 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
-import io.github.regularcommands.validator.ValidationStep;
+import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.ZombiesArenaManager;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
-
-import java.util.List;
 
 public class JoinZombiesGameForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
@@ -31,23 +26,23 @@ public class JoinZombiesGameForm extends CommandForm {
     private static final CommandValidator validator;
 
     static {
-        validator = new CommandValidator((context, arguments) -> {
+        validator = new CommandValidator((context, form, arguments) -> {
             String managerName = (String)arguments[1];
             String mapName = (String)arguments[2];
 
             ArenaManager<?> arenaManager = ArenaApi.getInstance().getArenaManager(managerName);
 
             if(arenaManager == null) {
-                return new ImmutablePair<>(false, String.format("An ArenaManager named '%s' does not exist.",
+                return ValidationResult.of(false, String.format("An ArenaManager named '%s' does not exist.",
                         managerName));
             }
 
             if(!arenaManager.hasMap(mapName)) {
-                return new ImmutablePair<>(false, String.format("A map named '%s' does not exist for " +
+                return ValidationResult.of(false, String.format("A map named '%s' does not exist for " +
                         "ArenaManager '%s'", mapName, managerName));
             }
 
-            return new ImmutablePair<>(true, null);
+            return ValidationResult.of(true, null);
         }, Validators.PLAYER_EXECUTOR);
     }
 
