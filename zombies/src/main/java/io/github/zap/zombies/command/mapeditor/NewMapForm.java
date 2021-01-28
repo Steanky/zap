@@ -19,7 +19,8 @@ public class NewMapForm extends CommandForm {
     private static final CommandValidator validator;
 
     static {
-        validator = MapeditorValidators.noMapExistsValidator(2, MapeditorValidators.NO_ACTIVE_MAP);
+        validator = MapeditorValidators.mapAbsentValidator(2,
+                new CommandValidator(MapeditorValidators.BOUNDS_REQUIRED.getStep(), MapeditorValidators.NO_ACTIVE_MAP));
     }
 
     public NewMapForm() {

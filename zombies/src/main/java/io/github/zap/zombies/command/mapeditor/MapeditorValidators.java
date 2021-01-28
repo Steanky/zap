@@ -90,7 +90,7 @@ public final class MapeditorValidators {
         }, depend);
     }
 
-    public static CommandValidator noMapExistsValidator(int nameParameter, CommandValidator depend) {
+    public static CommandValidator mapAbsentValidator(int nameParameter, CommandValidator depend) {
         return new CommandValidator((context, form, arguments) -> {
             if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[nameParameter])) {
                 return ValidationResult.of(false, "That map already exists.");

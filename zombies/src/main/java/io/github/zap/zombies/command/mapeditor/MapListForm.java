@@ -1,10 +1,8 @@
 package io.github.zap.zombies.command.mapeditor;
 
-import com.google.common.collect.Lists;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
-import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
