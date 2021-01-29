@@ -1,4 +1,4 @@
-package io.github.zap.zombies.command.mapeditor;
+package io.github.zap.zombies.command.mapeditor.form;
 
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;

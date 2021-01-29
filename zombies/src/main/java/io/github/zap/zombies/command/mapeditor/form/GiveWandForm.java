@@ -1,4 +1,4 @@
-package io.github.zap.zombies.command.mapeditor;
+package io.github.zap.zombies.command.mapeditor.form;
 
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
@@ -7,6 +7,7 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.command.mapeditor.ContextManager;
 import org.bukkit.entity.Player;
 
 public class GiveWandForm extends CommandForm {

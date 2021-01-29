@@ -4,10 +4,12 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.particle.*;
 import io.github.zap.arenaapi.util.ArrayUtils;
 import io.github.zap.arenaapi.util.VectorUtils;
+import io.github.zap.zombies.command.mapeditor.ComponentNames;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -22,6 +24,7 @@ import java.util.*;
  */
 @SuppressWarnings("FieldMayBeFinal")
 @Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class MapData implements RenderableProvider {
@@ -297,14 +300,14 @@ public class MapData implements RenderableProvider {
         if(renderable == null) {
             renderable = new Renderable("map");
 
-            renderable.addComponent(new CachingRenderComponent("map_bounds", new ParticleSettings(Particle.CRIT)) {
+            renderable.addComponent(new CachingRenderComponent(ComponentNames.MAP_BOUNDS_NAME, new ParticleSettings(Particle.CRIT)) {
                 @Override
                 public void updateVectors() {
                     cache = VectorUtils.interpolateBounds(mapBounds, 2);
                 }
             });
 
-            renderable.addComponent(new CachingRenderComponent("rooms", new ParticleSettings(Particle.FLAME)) {
+            renderable.addComponent(new CachingRenderComponent(ComponentNames.ROOMS_NAME, new ParticleSettings(Particle.FLAME)) {
                 @Override
                 public void updateVectors() {
                     List<Vector[]> arrays = new ArrayList<>();

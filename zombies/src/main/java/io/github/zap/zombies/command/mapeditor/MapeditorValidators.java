@@ -79,7 +79,9 @@ public final class MapeditorValidators {
         return ValidationResult.of(true, null);
     }, HAS_EDITOR_CONTEXT);
 
-    public static CommandValidator mapExistsValidator(int nameParameter, CommandValidator depend) {
+    public static CommandValidator HAS_MAP_AND_BOUNDS_SELECTION = new CommandValidator(BOUNDS_REQUIRED.getStep(), HAS_ACTIVE_MAP);
+
+    public static CommandValidator newMapExistsValidator(int nameParameter, CommandValidator depend) {
         return new CommandValidator((context, form, arguments) -> {
             if(!Zombies.getInstance().getArenaManager().hasMap((String)arguments[nameParameter])) {
                 return ValidationResult.of(false, "That map does not exist.");

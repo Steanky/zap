@@ -47,23 +47,18 @@ public class EditorContext implements Disposable, RenderableProvider {
         return secondClicked;
     }
 
-    public void setContextRenderable(RenderableProvider provider) {
-        if(contextRenderable != null) {
-            renderer.removeRenderable(contextRenderable.getName());
-        }
-
-        renderer.addRenderable(provider);
-    }
-
-    public void removeContextRenderable() {
-        if(contextRenderable != null) {
-            renderer.removeRenderable(contextRenderable.getName());
-            contextRenderable = null;
-        }
-    }
-
     public void setEditingMap(MapData data) {
-        editingMap = data;
+        if(data != editingMap) {
+            editingMap = data;
+
+            if(data == null) {
+                renderer.removeRenderable(contextRenderable.getName());
+                contextRenderable = null;
+            }
+            else {
+                contextRenderable = data.getRenderable();
+            }
+        }
     }
 
     public void handleClicked(Block at) {

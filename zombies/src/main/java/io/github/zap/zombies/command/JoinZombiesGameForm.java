@@ -13,14 +13,13 @@ import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.zombies.Zombies;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 
 public class JoinZombiesGameForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("join"),
-            new Parameter("^([a-zA-Z0-9_]+)$", "[arena-name]"),
-            new Parameter("^([a-zA-Z0-9_]+)$", "[map-name]")
+            new Parameter("^([a-zA-Z0-9_ ]+)$", "[arena-name]"),
+            new Parameter("^([a-zA-Z0-9_ ]+)$", "[map-name]")
     };
 
     private static final CommandValidator validator;

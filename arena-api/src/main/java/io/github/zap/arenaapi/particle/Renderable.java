@@ -7,10 +7,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class Renderable {
@@ -43,6 +40,18 @@ public class Renderable {
 
         for(RenderComponent component : baked) {
             component.updateVectors();
+        }
+    }
+
+    /**
+     * Updates a specific RenderComponent.
+     * @param component The name of the RenderComponent to update.
+     */
+    public void update(String component) {
+        RenderComponent renderComponent = renderComponents.get(component);
+
+        if(renderComponent != null) {
+            renderComponent.updateVectors();
         }
     }
 
@@ -86,5 +95,9 @@ public class Renderable {
         }
 
         shouldBake = true;
+    }
+
+    public List<String> getComponentNames() {
+        return new ArrayList<>(renderComponents.keySet());
     }
 }

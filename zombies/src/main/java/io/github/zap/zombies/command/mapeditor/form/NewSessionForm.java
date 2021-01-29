@@ -1,4 +1,4 @@
-package io.github.zap.zombies.command.mapeditor;
+package io.github.zap.zombies.command.mapeditor.form;
 
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
@@ -6,6 +6,7 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -33,10 +34,7 @@ public class NewSessionForm extends CommandForm {
         ItemStack editor = zombies.getContextManager().getEditorItem();
 
         zombies.getContextManager().newContext(player);
-
-        if(inventory.contains(editor)) { //don't give players redundant editor wands
-            inventory.addItem(editor);
-        }
+        inventory.addItem(editor);
 
         return "Started a new mapeditor session.";
     }
