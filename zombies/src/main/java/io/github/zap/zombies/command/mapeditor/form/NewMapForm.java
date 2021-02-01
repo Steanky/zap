@@ -18,11 +18,8 @@ public class NewMapForm extends CommandForm {
             new Parameter("^([a-zA-Z0-9_ ]+)$", "[name]")
     };
 
-    private static final CommandValidator validator;
-
-    static {
-        validator = MapeditorValidators.mapAbsentValidator(2, MapeditorValidators.NO_ACTIVE_MAP);
-    }
+    private static final CommandValidator validator = MapeditorValidators.mapAbsentValidator(2,
+            MapeditorValidators.NO_ACTIVE_MAP);
 
     public NewMapForm() {
         super("Creates a new session with the mapeditor.", Permissions.OPERATOR, parameters);

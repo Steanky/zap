@@ -27,7 +27,7 @@ import java.util.*;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class MapData implements RenderableProvider {
+public class MapData {
     /**
      * The unique name of this map that need not be user friendly
      */
@@ -291,36 +291,5 @@ public class MapData implements RenderableProvider {
         }
 
         return null;
-    }
-
-    private transient Renderable renderable = null;
-
-    @Override
-    public Renderable getRenderable() {
-        if(renderable == null) {
-            renderable = new Renderable("map");
-
-            renderable.addComponent(new CachingRenderComponent(ComponentNames.MAP_BOUNDS_NAME, new ParticleSettings(Particle.CRIT)) {
-                @Override
-                public void updateVectors() {
-                    cache = VectorUtils.interpolateBounds(mapBounds, 2);
-                }
-            });
-
-            renderable.addComponent(new CachingRenderComponent(ComponentNames.ROOMS_NAME, new ParticleSettings(Particle.FLAME)) {
-                @Override
-                public void updateVectors() {
-                    List<Vector[]> arrays = new ArrayList<>();
-
-                    for(RoomData room : rooms) {
-                        arrays.add(VectorUtils.interpolateBounds(room.getBounds(), 2));
-                    }
-
-                    cache = ArrayUtils.combine(arrays, Vector.class);
-                }
-            });
-        }
-
-        return renderable;
     }
 }
