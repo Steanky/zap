@@ -1,12 +1,14 @@
 package io.github.zap.arenaapi.particle;
 
+import java.util.Iterator;
+
 /**
- * Interface for an object that provides an array of fragments.
+ * Interface for an object that provides an iterable collection of renderable fragment data.
  */
 public interface Renderable {
     /**
-     * Gets the array of fragments.
-     * @return The array of fragments that can be used to visually render this object
+     * Gets the iterator used to iterate over the fragments.
+     * @return The fragment iterator
      */
     FragmentData[] getFragments();
 }
