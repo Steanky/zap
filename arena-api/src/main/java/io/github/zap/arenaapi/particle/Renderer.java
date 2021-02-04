@@ -4,9 +4,20 @@ package io.github.zap.arenaapi.particle;
  * Simple interface for an object that can render an array of FragmentData.
  */
 public interface Renderer {
+    void start();
+
+    void stop();
+
     /**
-     * Renders the provided array of FragmentData.
-     * @param data The data to render
+     * Renders any renderables this instance manages.
      */
-    void draw(FragmentData[] data);
+    void draw();
+
+    /**
+     * Registers a renderable with this Renderer.
+     * @param renderable The Renderable to register
+     */
+    void add(Renderable renderable);
+
+    void remove(int index);
 }

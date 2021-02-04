@@ -7,10 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Acts as a container inside which other Renderable objects may be registered. Performs fragment caching; the
- * underlying array will only be updated as necessary.
+ * Acts as a object inside which other Renderable objects are contained. Performs fragment caching; the
+ * underlying array will only be updated as necessary. Resizes similarly to ArrayList, but unlike ArrayList the
+ * array may also shrink to reduce memory under certain circumstances, as well as grow.
  */
-public abstract class CompoundRenderable implements Renderable {
+public class CompoundRenderable implements Renderable {
+    private static final int DEFAULT_INITIAL_CAPACITY = 100;
+    private static final double DEFAULT_LOAD_FACTOR = 0.75;
+
     @AllArgsConstructor
     private static class RenderableEntry {
         private final Renderable renderable;
@@ -18,38 +22,27 @@ public abstract class CompoundRenderable implements Renderable {
         private int length;
     }
 
+    private final double loadFactor;
     private FragmentData[] fragments;
     private int length;
 
     private final List<RenderableEntry> renderables = new ArrayList<>();
 
-    public CompoundRenderable(int initialCapacity) {
+    public CompoundRenderable(int initialCapacity, double loadFactor) {
         fragments = new FragmentData[initialCapacity];
+        this.loadFactor = loadFactor;
+    }
+
+    public CompoundRenderable(int initialCapacity) {
+        this(initialCapacity, DEFAULT_LOAD_FACTOR);
+    }
+
+    public CompoundRenderable(double loadFactor) {
+        this(DEFAULT_INITIAL_CAPACITY, loadFactor);
     }
 
     public CompoundRenderable() {
-        this(10);
-    }
-
-    private void ensureCapacity(int incoming) {
-        if(length + incoming > fragments.length) {
-            //increase size by the necessary amount
-            grow((length + incoming) - fragments.length);
-        }
-    }
-
-    private void grow(int by) {
-        FragmentData[] newArray = new FragmentData[fragments.length + by];
-        System.arraycopy(fragments, 0, newArray, 0, fragments.length);
-        fragments = newArray;
-    }
-
-    public void trimToSize() {
-        if(fragments.length > length) {
-            FragmentData[] newArray = new FragmentData[length];
-            System.arraycopy(fragments, 0, newArray, 0, length);
-            fragments = newArray;
-        }
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
     }
 
     @Override
@@ -57,6 +50,10 @@ public abstract class CompoundRenderable implements Renderable {
         return new ArraySegment<>(fragments, length, 0);
     }
 
+    /**
+     * Adds a renderable to this instance. If necessary, the backing array may be resized.
+     * @param renderable The renderable to add
+     */
     public void addRenderable(Renderable renderable) {
         ArraySegment<FragmentData> newFragments = renderable.getFragments();
         int newFragmentsLength = newFragments.getLength();
@@ -68,11 +65,12 @@ public abstract class CompoundRenderable implements Renderable {
         length += newFragmentsLength;
     }
 
+    /**
+     * Recalculates the Renderable located at the given index. Will resize the array as-needed, including shrinking it
+     * if too many unused indices exist.
+     * @param index The Renderable to update
+     */
     public void updateRenderable(int index) {
-        if(index < 0 || index >= renderables.size()) { //fail fast for updating invalid index
-            throw new IndexOutOfBoundsException("index out of bounds for renderable");
-        }
-
         RenderableEntry target = renderables.get(index);
         ArraySegment<FragmentData> newFragments = target.renderable.getFragments();
         int newFragmentsLength = newFragments.getLength();
@@ -101,14 +99,12 @@ public abstract class CompoundRenderable implements Renderable {
 
             target.length = newFragmentsLength;
             length += diff;
+
+            tryShrink();
         }
     }
 
     public void removeRenderable(int index) {
-        if(index < 0 || index >= renderables.size()) { //fail fast for updating index
-            throw new IndexOutOfBoundsException("index out of bounds for renderable");
-        }
-
         RenderableEntry target = renderables.get(index);
         if(target.length > 0 && index < renderables.size() - 1) {
             System.arraycopy(fragments, target.fragmentIndex + target.length, fragments, target.fragmentIndex,
@@ -118,13 +114,37 @@ public abstract class CompoundRenderable implements Renderable {
             for(int i = index + 1; i < renderables.size(); i++) {
                 renderables.get(i).fragmentIndex -= target.length;
             }
+
+            length -= target.length;
+
+            tryShrink();
         }
 
         renderables.remove(index);
-        length -= target.length;
     }
 
     public Renderable getRenderable(int index) {
         return renderables.get(index).renderable;
+    }
+
+    private void tryShrink() {
+        if(length < fragments.length * loadFactor) {
+            FragmentData[] newFragments = new FragmentData[length];
+            System.arraycopy(fragments, 0, newFragments, 0, length);
+            fragments = newFragments;
+        }
+    }
+
+    private void ensureCapacity(int incoming) {
+        if(length + incoming > fragments.length) {
+            //increase size by the necessary amount
+            grow((length + incoming) - fragments.length);
+        }
+    }
+
+    private void grow(int by) {
+        FragmentData[] newArray = new FragmentData[fragments.length + by];
+        System.arraycopy(fragments, 0, newArray, 0, fragments.length);
+        fragments = newArray;
     }
 }

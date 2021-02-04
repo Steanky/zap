@@ -33,8 +33,6 @@ public class ArraySegment<T> implements Iterable<T> {
     @Getter
     private final int length;
 
-    private Class<T> type;
-
     /**
      * Creates a new ArraySegment object from the specified array, length, and offset. An IndexOutOfBounds exception
      * will be thrown if fully iterating the array would at any point cause an IndexOutOfBounds exception.
@@ -106,12 +104,7 @@ public class ArraySegment<T> implements Iterable<T> {
      * ArraySegment
      */
     public T[] copyOf() {
-        if(type == null) {
-            //noinspection unchecked
-            type = (Class<T>)array.getClass().getComponentType();
-        }
-
-        Object newArray = Array.newInstance(type, array.length);
+        Object newArray = Array.newInstance(array.getClass().getComponentType(), array.length);
 
         //noinspection SuspiciousSystemArraycopy
         System.arraycopy(array, offset, newArray, 0, length);
