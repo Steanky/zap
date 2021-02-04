@@ -35,7 +35,7 @@ public class ArraySegment<T> implements Iterable<T> {
 
     /**
      * Creates a new ArraySegment object from the specified array, length, and offset. An IndexOutOfBounds exception
-     * will be thrown if fully iterating the array would at any point cause an IndexOutOfBounds exception.
+     * will be thrown if fully iterating the ArraySegment would at any point cause an IndexOutOfBounds exception.
      * @param array The array to make a segment from
      * @param length The length of the segment
      * @param offset The offset (starting index) of this segment
@@ -62,6 +62,14 @@ public class ArraySegment<T> implements Iterable<T> {
         this.array = array;
         this.offset = offset;
         this.length = length;
+    }
+
+    /**
+     * Creates an ArraySegment encompassing the entire array.
+     * @param array The array to effectively wrap
+     */
+    public ArraySegment(T[] array) {
+        this(array, array.length, 0);
     }
 
     @NotNull

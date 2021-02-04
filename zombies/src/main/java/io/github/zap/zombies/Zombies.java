@@ -21,6 +21,7 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
+import io.github.zap.zombies.test.RenderableProfiler;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import lombok.Getter;
@@ -94,9 +95,12 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        StopWatch timer = StopWatch.createStarted();
-        instance = this;
+        //StopWatch timer = StopWatch.createStarted();
+        //instance = this;
 
+        RenderableProfiler.start();
+
+        /*
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
             initConfig();
@@ -118,7 +122,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         }
 
         timer.stop();
-        info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
+        info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime())); */
     }
 
     @Override

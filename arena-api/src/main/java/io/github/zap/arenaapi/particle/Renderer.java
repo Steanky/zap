@@ -13,6 +13,8 @@ public interface Renderer {
      */
     void draw();
 
+    Renderable get(int index);
+
     /**
      * Registers a renderable with this Renderer.
      * @param renderable The Renderable to register
@@ -20,4 +22,6 @@ public interface Renderer {
     void add(Renderable renderable);
 
     void remove(int index);
+
+    int size();
 }
