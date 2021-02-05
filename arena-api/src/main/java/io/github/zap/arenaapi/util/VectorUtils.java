@@ -31,21 +31,18 @@ public final class VectorUtils {
      * @param density The interpolation density, measured in particles per block (PPB)
      * @return An array of vectors created by interpolating along the line bounded by start and end
      */
-    public static Vector[] interpolateLine(Vector start, Vector end, int density) {
+    public static Vector[] interpolateLine(ImmutableVector start, ImmutableVector end, int density) {
         double distance = start.distance(end);
 
-        Vector startClone = start.clone();
-        Vector endClone = end.clone();
-
-        endClone.add(startClone.clone().multiply(-1)); //end is now a vector with the same angle as the vector formed from s to e
+        end = start.add(end.multiply(-1));
 
         int particles = (int)Math.round(distance * density);
         Vector[] vectors = new Vector[particles];
-        endClone.multiply(1D / particles); //end is now a vector with a length equaling the distance between particles
+        end = end.multiply(1D / particles);
 
         for(int i = 0; i < particles; i++) {
-            vectors[i] = startClone.clone();
-            startClone.add(endClone);
+            vectors[i] = start.toBukkitVector();
+            start = start.add(end);
         }
 
         return vectors;
@@ -59,15 +56,15 @@ public final class VectorUtils {
      * @return
      */
     public static Vector[] interpolateBounds(BoundingBox box, int density) {
-        Vector origin = box.getMin();
-        Vector limit = box.getMax().add(UNIT);
+        ImmutableVector origin = new ImmutableVector(box.getMin());
+        ImmutableVector limit = new ImmutableVector(box.getMax().add(UNIT));
 
-        Vector one = new Vector(origin.getX(), origin.getY(), limit.getZ());
-        Vector two = new Vector(limit.getX(), origin.getY(), limit.getZ());
-        Vector three = new Vector(limit.getX(), origin.getY(), origin.getZ());
-        Vector four = new Vector(origin.getX(), limit.getY(), origin.getZ());
-        Vector five = new Vector(origin.getX(), limit.getY(), limit.getZ());
-        Vector seven = new Vector(limit.getX(), limit.getY(), origin.getZ());
+        ImmutableVector one = new ImmutableVector(origin.x, origin.y, limit.z);
+        ImmutableVector two = new ImmutableVector(limit.x, origin.y, limit.z);
+        ImmutableVector three = new ImmutableVector(limit.x, origin.y, origin.z);
+        ImmutableVector four = new ImmutableVector(origin.x, limit.y, origin.z);
+        ImmutableVector five = new ImmutableVector(origin.x, limit.y, limit.z);
+        ImmutableVector seven = new ImmutableVector(limit.x, limit.y, origin.z);
 
         return ArrayUtils.combine(interpolateLine(origin, one, density), interpolateLine(one, two, density),
                 interpolateLine(two, three, density), interpolateLine(three, origin, density),
