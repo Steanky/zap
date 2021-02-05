@@ -1,6 +1,8 @@
 package io.github.zap.zombies.command.mapeditor;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.particle.Renderer;
+import io.github.zap.arenaapi.particle.SimpleRenderer;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import org.bukkit.block.Block;
@@ -12,13 +14,17 @@ import org.bukkit.util.Vector;
 public class EditorContext implements Disposable {
     private final Player player;
 
-    private MapData editingMap;
+    private final MapData map;
 
     private Vector firstClicked = null;
     private Vector secondClicked = null;
 
-    public EditorContext(Player player) {
+    private final Renderer renderer;
+
+    public EditorContext(Player player, MapData map) {
         this.player = player;
+        this.map = map;
+        renderer = new SimpleRenderer(player.getWorld(), 0, 5);
     }
 
     public Vector getFirstClicked() {
@@ -31,12 +37,6 @@ public class EditorContext implements Disposable {
         }
 
         return secondClicked;
-    }
-
-    public void setEditingMap(MapData data) {
-        if(data != editingMap) {
-            editingMap = data;
-        }
     }
 
     public void handleClicked(Block at) {
@@ -67,6 +67,6 @@ public class EditorContext implements Disposable {
 
     @Override
     public void dispose() {
-
+        renderer.stop();
     }
 }

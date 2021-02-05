@@ -63,7 +63,7 @@ public final class MapeditorValidators {
     }, SELECTION_REQUIRED);
 
     public static CommandValidator NO_ACTIVE_MAP = new CommandValidator((context, form, arguments) -> {
-        if(Zombies.getInstance().getContextManager().fetchContext((Player)context.getSender()).getEditingMap() != null) {
+        if(Zombies.getInstance().getContextManager().fetchContext((Player)context.getSender()).getMap() != null) {
             return ValidationResult.of(false, "You are already editing a map.");
         }
 
@@ -72,7 +72,7 @@ public final class MapeditorValidators {
 
     public static CommandValidator HAS_ACTIVE_MAP = new CommandValidator((context, form, arguments) -> {
         if(Zombies.getInstance().getContextManager().fetchContext(((Player)context.getSender()))
-                .getEditingMap() == null) {
+                .getMap() == null) {
             return ValidationResult.of(false, "You are not editing a map.");
         }
 

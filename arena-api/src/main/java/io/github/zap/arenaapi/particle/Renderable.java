@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.particle;
 
+import org.bukkit.util.Vector;
+
 /**
  * Interface for an object that provides renderable fragment data.
  */
@@ -14,4 +16,6 @@ public interface Renderable {
      * Updates the array of fragments displayed by this renderer.
      */
     void update();
+
+    Shader getShader();
 }

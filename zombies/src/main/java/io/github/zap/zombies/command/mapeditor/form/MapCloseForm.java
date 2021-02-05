@@ -35,8 +35,7 @@ public class MapCloseForm extends CommandForm {
         Zombies zombies = Zombies.getInstance();
         EditorContext editorContext = zombies.getContextManager().fetchContext((Player)context.getSender());
 
-        MapData map = editorContext.getEditingMap();
-        editorContext.setEditingMap(null);
+        MapData map = editorContext.getMap();
 
         if((boolean)arguments[2]) {
             zombies.getArenaManager().removeMap(map.getName());

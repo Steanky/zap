@@ -38,8 +38,6 @@ public class NewMapForm extends CommandForm {
         MapData map = new MapData((String)arguments[2], player.getWorld().getName());
         EditorContext editorContext = zombies.getContextManager().fetchContext(player);
 
-        editorContext.setEditingMap(map);
-
         return String.format("Created new map '%s'.", map.getName());
     }
 }

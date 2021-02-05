@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.particle;
 
+import org.bukkit.util.Vector;
+
 public abstract class CachingRenderable implements Renderable {
     private FragmentData[] frags;
 
@@ -10,7 +12,7 @@ public abstract class CachingRenderable implements Renderable {
 
     @Override
     public void update() {
-        FragmentData[] newData = draw(frags);
+        FragmentData[] newData = getShader().generateFragments(calculateLocations(frags));
 
         /*
         only update the fragment array if necessary; if it's the same object then the call to draw() made no or direct
@@ -22,5 +24,5 @@ public abstract class CachingRenderable implements Renderable {
         }
     }
 
-    public abstract FragmentData[] draw(FragmentData[] previous);
+    public abstract Vector[] calculateLocations(FragmentData[] previous);
 }
