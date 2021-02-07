@@ -4,6 +4,8 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 public class Cube implements VectorProvider {
+    private static final Vector UNIT = new Vector(1, 1, 1);
+
     private final BoundingBox bounds;
     private final int density;
 
@@ -24,7 +26,7 @@ public class Cube implements VectorProvider {
     public int init() {
         if(length == -1) {
             Vector origin = bounds.getMin();
-            Vector limit = bounds.getMax().add(new Vector(1, 1, 1));
+            Vector limit = bounds.getMax().add(UNIT);
 
             Vector one = new Vector(origin.getX(), origin.getY(), limit.getZ());
             Vector two = new Vector(limit.getX(), origin.getY(), limit.getZ());
@@ -68,6 +70,8 @@ public class Cube implements VectorProvider {
         if(++j == lengths[i]) {
             i++;
             j = 0;
+
+            current.reset();
         }
 
         return vector;

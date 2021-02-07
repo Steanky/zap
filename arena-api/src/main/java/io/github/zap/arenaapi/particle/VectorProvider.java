@@ -20,7 +20,7 @@ public interface VectorProvider {
     Vector next();
 
     /**
-     * Resets the state of the object, so it can be created again.
+     * Resets the state of the object, so it can be iterated again.
      */
     void reset();
 }
