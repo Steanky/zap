@@ -2,6 +2,9 @@ package io.github.zap.arenaapi.particle;
 
 import org.bukkit.util.Vector;
 
+/**
+ * Vector provider that can represent any number of other VectorProviders.
+ */
 public class CompositeProvider implements VectorProvider {
     protected final VectorProvider[] providers;
     private final int[] lengths;
@@ -50,5 +53,10 @@ public class CompositeProvider implements VectorProvider {
         for (VectorProvider provider : providers) {
             provider.reset();
         }
+
+        i = 0;
+        j = 0;
+
+        length = -1;
     }
 }

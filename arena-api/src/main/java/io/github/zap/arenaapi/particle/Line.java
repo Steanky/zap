@@ -12,8 +12,8 @@ public class Line implements VectorProvider {
     private Vector step;
 
     public Line(Vector start, Vector end, int density) {
-        this.initialStart = start;
-        this.initialEnd = end;
+        this.initialStart = start.clone();
+        this.initialEnd = end.clone();
         this.density = density;
     }
 

@@ -1,7 +1,5 @@
 package io.github.zap.arenaapi.particle;
 
-import org.bukkit.util.Vector;
-
 /**
  * Interface for an object that provides renderable fragment data.
  */
