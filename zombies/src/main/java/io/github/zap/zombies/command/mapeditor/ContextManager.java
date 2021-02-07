@@ -2,6 +2,7 @@ package io.github.zap.zombies.command.mapeditor;
 
 import com.google.common.collect.Lists;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -57,14 +58,15 @@ public class ContextManager implements Listener {
         return editorItem.clone();
     }
 
-    public void newContext(Player player) {
+    public void newContext(Player player, MapData map) {
         UUID playerId = player.getUniqueId();
+
         if(contextMap.containsKey(playerId)) {
             throw new UnsupportedOperationException(String.format("cannot create context for player %s, it already " +
                     "exists", playerId));
         }
 
-        contextMap.put(player.getUniqueId(), new EditorContext(player));
+        contextMap.put(player.getUniqueId(), new EditorContext(player, map));
     }
 
     public EditorContext fetchContext(Player player) {

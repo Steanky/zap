@@ -27,7 +27,7 @@ import java.util.*;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class MapData extends CachingRenderable {
+public class MapData {
     /**
      * The unique name of this map that need not be user friendly
      */
@@ -290,16 +290,6 @@ public class MapData extends CachingRenderable {
             }
         }
 
-        return null;
-    }
-
-    @Override
-    public Vector[] calculateLocations(FragmentData[] previous) {
-        return new Vector[0];
-    }
-
-    @Override
-    public Shader getShader() {
         return null;
     }
 }

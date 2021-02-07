@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.particle;
 
+import io.github.zap.arenaapi.BoundedIterator;
 import org.bukkit.util.Vector;
 
 public abstract class CachingRenderable implements Renderable {
@@ -12,17 +13,18 @@ public abstract class CachingRenderable implements Renderable {
 
     @Override
     public void update() {
-        FragmentData[] newData = getShader().generateFragments(calculateLocations(frags));
+        BoundedIterator<Vector> positionIterator = positionIterator();
 
-        /*
-        only update the fragment array if necessary; if it's the same object then the call to draw() made no or direct
-        changes. this makes certain kinds of animations (those that don't require the use of a new array) much more
-        optimized
-         */
-        if(newData != frags) {
-            frags = newData;
+        int length = positionIterator.getLength();
+        FragmentData[] newData = length == frags.length ? frags : new FragmentData[length];
+
+        Shader shader = getShader();
+        for(int i = 0; i < newData.length; i++) {
+            newData[i] = shader.generateFragment(positionIterator.next());
         }
     }
 
-    public abstract Vector[] calculateLocations(FragmentData[] previous);
+    public abstract Shader getShader();
+
+    public abstract BoundedIterator<Vector> positionIterator();
 }
