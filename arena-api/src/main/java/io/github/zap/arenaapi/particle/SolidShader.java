@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Particle;
 import org.bukkit.util.Vector;
 
+/**
+ * Shader implementation that always gives the same particle, count, and data regardless of position.
+ */
 @RequiredArgsConstructor
 public class SolidShader implements Shader {
     private final Particle particle;

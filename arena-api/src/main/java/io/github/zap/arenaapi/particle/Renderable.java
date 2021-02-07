@@ -16,6 +16,4 @@ public interface Renderable {
      * Updates the array of fragments displayed by this renderer.
      */
     void update();
-
-    Shader getShader();
 }

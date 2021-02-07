@@ -1,9 +1,9 @@
 package io.github.zap.arenaapi.particle;
 
-import io.github.zap.arenaapi.BoundedIterator;
-import org.bukkit.util.Vector;
-
-public abstract class CachingRenderable implements Renderable {
+/**
+ * Higher-level implementation of Renderable. Performs caching where possible; supports very basic shader-like features
+ */
+public abstract class ShadedRenderable implements Renderable {
     private FragmentData[] frags;
 
     @Override
@@ -13,18 +13,18 @@ public abstract class CachingRenderable implements Renderable {
 
     @Override
     public void update() {
-        BoundedIterator<Vector> positionIterator = positionIterator();
+        VectorProvider provider = vectorProvider();
 
-        int length = positionIterator.getLength();
+        int length = provider.init();
         FragmentData[] newData = length == frags.length ? frags : new FragmentData[length];
 
         Shader shader = getShader();
         for(int i = 0; i < newData.length; i++) {
-            newData[i] = shader.generateFragment(positionIterator.next());
+            newData[i] = shader.generateFragment(provider.next());
         }
     }
 
     public abstract Shader getShader();
 
-    public abstract BoundedIterator<Vector> positionIterator();
+    public abstract VectorProvider vectorProvider();
 }
