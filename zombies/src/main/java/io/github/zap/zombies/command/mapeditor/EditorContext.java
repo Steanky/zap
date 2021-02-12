@@ -1,6 +1,5 @@
 package io.github.zap.zombies.command.mapeditor;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.particle.*;
 import io.github.zap.zombies.game.data.map.MapData;
@@ -12,9 +11,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-@Getter
 public class EditorContext implements Disposable {
     private static final Shader SELECTION_SHADER = new SolidShader(Particle.FLAME, 1, null);
+
+    private final SelectionRenderable boundsRenderable = new SelectionRenderable();
 
     private class SelectionRenderable extends ShadedRenderable {
         @Override
@@ -29,10 +29,10 @@ public class EditorContext implements Disposable {
         }
     }
 
-    private final SelectionRenderable boundsRenderable = new SelectionRenderable();
-
+    @Getter
     private final Player player;
 
+    @Getter
     @Setter
     private MapData map;
 
@@ -40,6 +40,9 @@ public class EditorContext implements Disposable {
     private Vector secondClicked = null;
 
     private final Renderer renderer;
+
+    @Getter
+    private Renderable currentRenderable;
 
     public EditorContext(Player player) {
         this.player = player;
@@ -77,7 +80,7 @@ public class EditorContext implements Disposable {
         boundsRenderable.update();
     }
 
-    public BoundingBox getSelectedBounds() {
+    public BoundingBox getSelection() {
         if(firstClicked != null && secondClicked != null) {
             return BoundingBox.of(firstClicked, secondClicked);
         }
@@ -86,6 +89,11 @@ public class EditorContext implements Disposable {
         }
 
         return null;
+    }
+
+    public void setCurrentRenderable(Renderable renderable) {
+        this.currentRenderable = renderable;
+        renderer.set(1, renderable);
     }
 
     @Override

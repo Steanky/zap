@@ -37,15 +37,15 @@ public class CompositeProvider implements VectorProvider {
 
     @Override
     public Vector next() {
-        VectorProvider current = providers[i];
-        Vector vector = current.next();
+        VectorProvider currentProvider = providers[i];
+        Vector subVector = currentProvider.next();
 
         if(++j == lengths[i]) {
             i++;
             j = 0;
         }
 
-        return vector;
+        return subVector;
     }
 
     @Override

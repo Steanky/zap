@@ -40,8 +40,7 @@ public class NewMapForm extends CommandForm {
         Player player = (Player)context.getSender();
 
         MapData map = new MapData((String)arguments[2], player.getWorld().getName());
-        Zombies.getInstance().getContextManager().fetchOrCreate(player).setMap(new MapData((String)arguments[2],
-                player.getWorld().getName()));
+        Zombies.getInstance().getContextManager().fetchOrCreate(player).setMap(map);
 
         return String.format("Created new map '%s'.", map.getName());
     }

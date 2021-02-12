@@ -37,9 +37,10 @@ public class ContextManager implements Listener {
             ItemStack item = event.getItem();
             Block block = event.getClickedBlock();
             if(item != null && block != null && item.getType() == itemType) {
-                EditorContext context = contextMap.get(event.getPlayer().getUniqueId());
+                Player player = event.getPlayer();
+                EditorContext context = contextMap.computeIfAbsent(event.getPlayer().getUniqueId(), uuid -> new EditorContext(player));
 
-                if(context != null && itemLore.equals(item.getLore())) {
+                if(itemLore.equals(item.getLore())) {
                     context.handleClicked(block);
                 }
             }

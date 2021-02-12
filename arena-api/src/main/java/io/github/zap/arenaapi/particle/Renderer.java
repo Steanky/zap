@@ -23,5 +23,7 @@ public interface Renderer {
 
     void remove(int index);
 
+    void set(int index, Renderable value);
+
     int size();
 }

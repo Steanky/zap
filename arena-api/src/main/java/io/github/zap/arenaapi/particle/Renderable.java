@@ -5,9 +5,9 @@ package io.github.zap.arenaapi.particle;
  */
 public interface Renderable {
     /**
-     * Gets the segment used to iterate over array fragments. Should generally return a cached value, whose contents
-     * are updated when update() is invoked
-     * @return The ArraySegment containing this renderable's FragmentData
+     * Gets the array of fragments that the renderer should use. This function is called very often and it should
+     * return a cached value whenever possible.
+     * @return The array of fragment data representing this Renderable
      */
     FragmentData[] getFragments();
 

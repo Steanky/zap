@@ -18,28 +18,27 @@ public interface VectorProvider {
         }
 
         @Override
-        public void reset() {
-
-        }
+        public void reset() { }
     };
 
     /**
      * Initializes the VectorProvider, performing necessary tasks so that it may be iterated. The value returned is the
      * number of Vectors this instance provides. In general, calling this multiple times should not have adverse
-     * effects.
+     * effects, although it is unnecessary.
      * @return The number of vectors this instance will iterate
      */
     int init();
 
     /**
      * Gets the next vector. Can throw an exception if it is called more times than length allows, but is not required
-     * to do so in order to allow for faster iteration.
+     * to do so in order to allow for marginally faster iteration.
      * @return The next vector
      */
     Vector next();
 
     /**
-     * Resets the state of the object, so it can be iterated again.
+     * Resets the state of the object, so it can be iterated again. Should support being invoked when the object is
+     * not fully iterated, including when it has not been iterated at all.
      */
     void reset();
 }

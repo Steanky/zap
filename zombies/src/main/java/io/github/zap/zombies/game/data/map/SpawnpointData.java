@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.map;
 
+import io.github.zap.zombies.Zombies;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -39,15 +40,21 @@ public class SpawnpointData {
 
     public SpawnpointData() {}
 
-
     public boolean canSpawn(String mob, MapData map) {
         SpawnRule rule = map.getSpawnRules().get(ruleName);
 
-        if(rule.isBlacklist()) {
-            return !rule.getMobSet().contains(mob);
+
+        if(rule != null) {
+            if(rule.isBlacklist()) {
+                return !rule.getMobSet().contains(mob);
+            }
+            else {
+                return rule.getMobSet().contains(mob);
+            }
         }
         else {
-            return rule.getMobSet().contains(mob);
+            Zombies.warning(String.format("SpawnRule %s does not exist. Allowing mob to spawn.", ruleName));
+            return true;
         }
     }
 }

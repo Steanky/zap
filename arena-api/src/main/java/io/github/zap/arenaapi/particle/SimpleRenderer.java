@@ -62,6 +62,12 @@ public class SimpleRenderer implements Renderer {
     }
 
     @Override
+    public void set(int index, Renderable value) {
+        renderables.set(index, value);
+        shouldBake = true;
+    }
+
+    @Override
     public Renderable get(int index) {
         return renderables.get(index);
     }

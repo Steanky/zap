@@ -22,7 +22,7 @@ public final class MapeditorValidators {
         Zombies zombies = Zombies.getInstance();
 
         EditorContext editorContext = zombies.getContextManager().fetchContext((Player)context.getSender());
-        BoundingBox selectedBounds = editorContext.getSelectedBounds();
+        BoundingBox selectedBounds = editorContext.getSelection();
 
         if(selectedBounds == null) {
             return ValidationResult.of(false, "This command requires you to have selected at least one point!");

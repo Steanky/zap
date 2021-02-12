@@ -6,6 +6,11 @@ package io.github.zap.arenaapi.particle;
 public abstract class ShadedRenderable implements Renderable {
     private FragmentData[] frags;
 
+    public ShadedRenderable() {
+        //call update once when object is created; ensures we have some initial values
+        update();
+    }
+
     @Override
     public FragmentData[] getFragments() {
         return frags;
@@ -16,7 +21,9 @@ public abstract class ShadedRenderable implements Renderable {
         VectorProvider provider = vectorProvider();
 
         int length = provider.init();
-        FragmentData[] newData = length == frags.length ? frags : new FragmentData[length];
+
+        //optimization: only allocate a new array if we have to
+        FragmentData[] newData = (frags == null || length != frags.length) ? new FragmentData[length] : frags;
 
         Shader shader = getShader();
         for(int i = 0; i < newData.length; i++) {
@@ -24,7 +31,6 @@ public abstract class ShadedRenderable implements Renderable {
         }
 
         provider.reset();
-
         frags = newData;
     }
 
