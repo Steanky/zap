@@ -1,10 +1,12 @@
 package io.github.zap.zombies.command.mapeditor;
 
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.Disposable;
-import io.github.zap.arenaapi.particle.Renderer;
-import io.github.zap.arenaapi.particle.SimpleRenderer;
+import io.github.zap.arenaapi.particle.*;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -12,19 +14,38 @@ import org.bukkit.util.Vector;
 
 @Getter
 public class EditorContext implements Disposable {
+    private static final Shader SELECTION_SHADER = new SolidShader(Particle.FLAME, 1, null);
+
+    private class SelectionRenderable extends ShadedRenderable {
+        @Override
+        public Shader getShader() {
+            return SELECTION_SHADER;
+        }
+
+        @Override
+        public VectorProvider vectorProvider() {
+            return firstClicked == null ? VectorProvider.EMPTY : new Cube(BoundingBox.of(firstClicked,
+                    secondClicked == null ? firstClicked : secondClicked), 1);
+        }
+    }
+
+    private final SelectionRenderable boundsRenderable = new SelectionRenderable();
+
     private final Player player;
 
-    private final MapData map;
+    @Setter
+    private MapData map;
 
     private Vector firstClicked = null;
     private Vector secondClicked = null;
 
     private final Renderer renderer;
 
-    public EditorContext(Player player, MapData map) {
+    public EditorContext(Player player) {
         this.player = player;
-        this.map = map;
         renderer = new SimpleRenderer(player.getWorld(), 0, 5);
+        renderer.add(boundsRenderable);
+        renderer.start();
     }
 
     public Vector getFirstClicked() {
@@ -52,6 +73,8 @@ public class EditorContext implements Disposable {
             firstClicked = secondClicked;
             secondClicked = clickedVector;
         }
+
+        boundsRenderable.update();
     }
 
     public BoundingBox getSelectedBounds() {

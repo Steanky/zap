@@ -14,8 +14,8 @@ public abstract class ShadedRenderable implements Renderable {
     @Override
     public void update() {
         VectorProvider provider = vectorProvider();
-        int length = provider.init();
 
+        int length = provider.init();
         FragmentData[] newData = length == frags.length ? frags : new FragmentData[length];
 
         Shader shader = getShader();
@@ -24,6 +24,8 @@ public abstract class ShadedRenderable implements Renderable {
         }
 
         provider.reset();
+
+        frags = newData;
     }
 
     public abstract Shader getShader();

@@ -18,16 +18,6 @@ public final class MapeditorValidators {
         return ValidationResult.of(true, null);
     }, Validators.PLAYER_EXECUTOR);
 
-    public static final CommandValidator NO_EDITOR_CONTEXT = new CommandValidator((context, form, arguments) -> {
-        Zombies zombies = Zombies.getInstance();
-
-        if(zombies.getContextManager().hasContext((Player)context.getSender())) {
-            return ValidationResult.of(false, "You must not have an active editor session to use this command.");
-        }
-
-        return ValidationResult.of(true, null);
-    }, Validators.PLAYER_EXECUTOR);
-
     public static final CommandValidator SELECTION_REQUIRED = new CommandValidator((context, form, arguments) -> {
         Zombies zombies = Zombies.getInstance();
 
@@ -78,26 +68,4 @@ public final class MapeditorValidators {
 
         return ValidationResult.of(true, null);
     }, HAS_EDITOR_CONTEXT);
-
-    public static CommandValidator HAS_MAP_AND_BOUNDS_SELECTION = new CommandValidator(BOUNDS_REQUIRED.getStep(), HAS_ACTIVE_MAP);
-
-    public static CommandValidator newMapExistsValidator(int nameParameter, CommandValidator depend) {
-        return new CommandValidator((context, form, arguments) -> {
-            if(!Zombies.getInstance().getArenaManager().hasMap((String)arguments[nameParameter])) {
-                return ValidationResult.of(false, "That map does not exist.");
-            }
-
-            return ValidationResult.of(true, null);
-        }, depend);
-    }
-
-    public static CommandValidator mapAbsentValidator(int nameParameter, CommandValidator depend) {
-        return new CommandValidator((context, form, arguments) -> {
-            if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[nameParameter])) {
-                return ValidationResult.of(false, "That map already exists.");
-            }
-
-            return ValidationResult.of(true, null);
-        }, depend);
-    }
 }

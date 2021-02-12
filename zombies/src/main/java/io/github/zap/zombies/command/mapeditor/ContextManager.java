@@ -58,7 +58,7 @@ public class ContextManager implements Listener {
         return editorItem.clone();
     }
 
-    public void newContext(Player player, MapData map) {
+    public void newContext(Player player) {
         UUID playerId = player.getUniqueId();
 
         if(contextMap.containsKey(playerId)) {
@@ -66,7 +66,7 @@ public class ContextManager implements Listener {
                     "exists", playerId));
         }
 
-        contextMap.put(player.getUniqueId(), new EditorContext(player, map));
+        contextMap.put(player.getUniqueId(), new EditorContext(player));
     }
 
     public EditorContext fetchContext(Player player) {
@@ -79,5 +79,9 @@ public class ContextManager implements Listener {
 
     public void removeContext(Player player) {
         contextMap.remove(player.getUniqueId());
+    }
+
+    public EditorContext fetchOrCreate(Player player) {
+        return contextMap.computeIfAbsent(player.getUniqueId(), (uuid) -> new EditorContext(player));
     }
 }

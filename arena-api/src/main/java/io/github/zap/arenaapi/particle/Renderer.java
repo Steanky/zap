@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.particle;
 
 /**
- * Simple interface for an object that can render a number of objects.
+ * Simple interface for an object that can render Renderables.
  */
 public interface Renderer {
     void start();

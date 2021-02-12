@@ -63,8 +63,7 @@ public class SimpleRenderer implements Renderer {
 
     @Override
     public Renderable get(int index) {
-        tryBake();
-        return baked[index];
+        return renderables.get(index);
     }
 
     @Override
@@ -74,8 +73,8 @@ public class SimpleRenderer implements Renderer {
 
     private void tryBake() {
         if(shouldBake) {
-            shouldBake = false;
             baked = renderables.toArray(EMPTY_RENDERABLE_ARRAY);
+            shouldBake = false;
         }
     }
 }

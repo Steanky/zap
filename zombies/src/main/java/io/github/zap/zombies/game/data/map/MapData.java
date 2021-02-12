@@ -227,6 +227,11 @@ public class MapData {
      */
     List<String> defaultEquipments = new ArrayList<>();
 
+    /**
+     * A map of SpawnRule objects which are used to define the behavior of spawnpoints.
+     */
+    Map<String, SpawnRule> spawnRules = new HashMap<>();
+
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
     public MapData(String mapName, String worldName) {

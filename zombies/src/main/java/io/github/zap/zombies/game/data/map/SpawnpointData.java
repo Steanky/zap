@@ -32,23 +32,22 @@ public class SpawnpointData {
     Vector windowFace = new Vector();
 
     /**
-     * Will be interpreted as either a whitelist or blacklist
+     * Used to retrieve an object that defines the behavior of the spawnpoint (what mobs it can spawn, what mobs it
+     * can't spawn, etc)
      */
-    Set<String> filter = new HashSet<>();
-
-    /**
-     * Whether or not filter is a whitelist
-     */
-    boolean isWhitelist;
+    String ruleName;
 
     public SpawnpointData() {}
 
-    public boolean canSpawn(String mob) {
-        if(isWhitelist) {
-            return filter.contains(mob);
+
+    public boolean canSpawn(String mob, MapData map) {
+        SpawnRule rule = map.getSpawnRules().get(ruleName);
+
+        if(rule.isBlacklist()) {
+            return !rule.getMobSet().contains(mob);
         }
         else {
-            return !filter.contains(mob);
+            return rule.getMobSet().contains(mob);
         }
     }
 }

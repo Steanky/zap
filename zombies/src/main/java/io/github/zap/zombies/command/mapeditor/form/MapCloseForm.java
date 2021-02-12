@@ -17,7 +17,7 @@ public class MapCloseForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("close"),
-            new Parameter("^((true)|(false))$", "[should-discard]", "false",
+            new Parameter("^((true)|(false))$", "[should-delete]", "false",
                     Converters.BOOLEAN_CONVERTER, Lists.newArrayList("true", "false"))
     };
 

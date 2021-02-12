@@ -4,10 +4,10 @@ import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
+import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.command.mapeditor.EditorContext;
-import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
 
@@ -18,8 +18,13 @@ public class NewMapForm extends CommandForm {
             new Parameter("^([a-zA-Z0-9_ ]+)$", "[name]")
     };
 
-    private static final CommandValidator validator = MapeditorValidators.mapAbsentValidator(2,
-            MapeditorValidators.NO_ACTIVE_MAP);
+    private static final CommandValidator validator = new CommandValidator((context, form, arguments) -> {
+        if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
+            return ValidationResult.of(false, "A map with that name already exists.");
+        }
+
+        return ValidationResult.of(true, null);
+    }, Validators.PLAYER_EXECUTOR);
 
     public NewMapForm() {
         super("Creates a new session with the mapeditor.", Permissions.OPERATOR, parameters);
@@ -32,11 +37,11 @@ public class NewMapForm extends CommandForm {
 
     @Override
     public String execute(Context context, Object[] arguments) {
-        Zombies zombies = Zombies.getInstance();
         Player player = (Player)context.getSender();
 
         MapData map = new MapData((String)arguments[2], player.getWorld().getName());
-        EditorContext editorContext = zombies.getContextManager().fetchContext(player);
+        Zombies.getInstance().getContextManager().fetchOrCreate(player).setMap(new MapData((String)arguments[2],
+                player.getWorld().getName()));
 
         return String.format("Created new map '%s'.", map.getName());
     }

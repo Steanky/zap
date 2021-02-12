@@ -97,7 +97,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 int amt = spawnEntryData.getMobCount();
 
                 for(SpawnpointData spawnpointData : spawnpoints) {
-                    if(spawnpointData.canSpawn(spawnEntryData.getMobName())) {
+                    if(spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
                         spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
                             Zombies zombies = Zombies.getInstance();
 
@@ -164,9 +164,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             return map.getRooms().stream()
                     .filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE || roomData.getOpenProperty()
                             .getValue(ZombiesArena.this))
-                    .flatMap(roomData -> roomData.getSpawnpoints()
-                            .stream()).filter(spawnpointData -> mobs.stream()
-                            .anyMatch(spawnEntryData -> spawnpointData.canSpawn(spawnEntryData.getMobName())))
+                    .flatMap(roomData -> roomData.getSpawnpoints().stream()).filter(spawnpointData -> mobs.stream()
+                            .anyMatch(spawnEntryData -> spawnpointData.canSpawn(spawnEntryData.getMobName(), map)))
                     .filter(spawnpointData -> getPlayerMap()
                             .values()
                             .stream()

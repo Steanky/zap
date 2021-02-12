@@ -28,10 +28,10 @@ public class GiveWandForm extends CommandForm {
     @Override
     public String execute(Context context, Object[] arguments) {
         ContextManager contextManager = Zombies.getInstance().getContextManager();
+
         Player player = (Player)context.getSender();
         player.getInventory().addItem(contextManager.getEditorItem());
 
-        return contextManager.hasContext(player) ? null : "Given mapeditor wand, but it won't work unless you create" +
-                " a session first!";
+        return "Gave editor wand.";
     }
 }
