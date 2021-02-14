@@ -212,7 +212,7 @@ public class Hologram {
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
         packetContainer.getIntegers().write(0, id);
-        packetContainer.getIntegers().write(1, nmsProxy.getEntityLivingTypeId(EntityType.ARMOR_STAND));
+        packetContainer.getIntegers().write(1, nmsProxy.getEntityTypeId(EntityType.ARMOR_STAND));
         packetContainer.getUUIDs().write(0, nmsProxy.randomUUID());
 
         packetContainer.getDoubles().write(0, location.getX());
