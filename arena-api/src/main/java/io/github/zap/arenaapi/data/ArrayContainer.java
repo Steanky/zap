@@ -12,6 +12,7 @@ import java.util.Iterator;
 public class ArrayContainer<V> implements Container<Integer, V> {
     private final V[] array;
     private final String name;
+    private final Class<V> valueClass;
 
     private Collection<V> backingCollection;
     private Collection<Integer> keys;
@@ -56,6 +57,16 @@ public class ArrayContainer<V> implements Container<Integer, V> {
         }
 
         return backingCollection;
+    }
+
+    @Override
+    public Class<Integer> keyClass() {
+        return Integer.class;
+    }
+
+    @Override
+    public Class<V> valueClass() {
+        return valueClass;
     }
 
     @NotNull

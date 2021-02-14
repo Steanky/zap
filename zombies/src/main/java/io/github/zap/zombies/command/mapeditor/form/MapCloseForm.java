@@ -33,7 +33,7 @@ public class MapCloseForm extends CommandForm {
     @Override
     public String execute(Context context, Object[] arguments) {
         Zombies zombies = Zombies.getInstance();
-        EditorContext editorContext = zombies.getContextManager().fetchContext((Player)context.getSender());
+        EditorContext editorContext = zombies.getContextManager().getContext((Player)context.getSender());
 
         MapData map = editorContext.getMap();
 

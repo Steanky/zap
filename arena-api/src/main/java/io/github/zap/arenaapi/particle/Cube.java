@@ -20,7 +20,7 @@ public class Cube extends CompositeProvider {
         Vector seven = new Vector(limit.getX(), limit.getY(), origin.getZ());
 
         providers[0] = new Line(origin, one, density);
-        providers[1] = new Line(origin, two, density);
+        providers[1] = new Line(one, two, density);
         providers[2] = new Line(two, three, density);
         providers[3] = new Line(three, origin, density);
 

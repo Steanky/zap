@@ -50,4 +50,14 @@ public interface Container<K, V> extends Iterable<V> {
      * Returns all of the values contained in this Container implementation
      */
     Collection<V> values();
+
+    /**
+     * Returns the type of object used to access values.
+     */
+    Class<K> keyClass();
+
+    /**
+     * Returns the type of values contained in this Container.
+     */
+    Class<V> valueClass();
 }

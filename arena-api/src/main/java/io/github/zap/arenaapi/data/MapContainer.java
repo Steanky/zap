@@ -11,6 +11,8 @@ import java.util.Map;
 public class MapContainer<K, V> implements Container<K, V> {
     private final Map<K, V> map;
     private final String name;
+    private final Class<K> keyClass;
+    private final Class<V> valueClass;
 
     @Override
     public String name() {
@@ -40,6 +42,16 @@ public class MapContainer<K, V> implements Container<K, V> {
     @Override
     public Collection<V> values() {
         return map.values();
+    }
+
+    @Override
+    public Class<K> keyClass() {
+        return keyClass;
+    }
+
+    @Override
+    public Class<V> valueClass() {
+        return valueClass;
     }
 
     @NotNull

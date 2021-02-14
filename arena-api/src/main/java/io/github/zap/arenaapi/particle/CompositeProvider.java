@@ -25,10 +25,10 @@ public class CompositeProvider implements VectorProvider {
 
             for (int i = 0; i < providers.length; i++) {
                 VectorProvider provider = providers[i];
-                int length = provider.init();
+                int providerLength = provider.init();
 
-                lengths[i] = length;
-                this.length += length;
+                lengths[i] = providerLength;
+                this.length += providerLength;
             }
         }
 
@@ -38,14 +38,13 @@ public class CompositeProvider implements VectorProvider {
     @Override
     public Vector next() {
         VectorProvider currentProvider = providers[i];
-        Vector subVector = currentProvider.next();
 
         if(++j == lengths[i]) {
             i++;
             j = 0;
         }
 
-        return subVector;
+        return currentProvider.next();
     }
 
     @Override

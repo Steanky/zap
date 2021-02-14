@@ -22,7 +22,7 @@ public class Line implements VectorProvider {
         if(length == -1) {
             length = (int)Math.round(initialStart.distance(initialEnd) * density);
             start = initialStart.clone();
-            step = initialEnd.clone().multiply(1D / length);
+            step = initialEnd.clone().subtract(initialStart).multiply(1D / (double)length);
         }
 
         return length;

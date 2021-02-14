@@ -12,8 +12,7 @@ import java.util.List;
 public class ListContainer<V> implements Container<Integer, V> {
     private final List<V> list;
     private final String name;
-
-    private Collection<Integer> keys;
+    private final Class<V> valueClass;
 
     @Override
     public String name() {
@@ -42,7 +41,7 @@ public class ListContainer<V> implements Container<Integer, V> {
 
     @Override
     public Collection<Integer> keys() {
-        keys = new ArrayList<>(list.size());
+        Collection<Integer> keys = new ArrayList<>(list.size());
 
         for(int i = 0; i < list.size(); i++) {
             keys.add(i);
@@ -54,6 +53,16 @@ public class ListContainer<V> implements Container<Integer, V> {
     @Override
     public Collection<V> values() {
         return list;
+    }
+
+    @Override
+    public Class<Integer> keyClass() {
+        return Integer.class;
+    }
+
+    @Override
+    public Class<V> valueClass() {
+        return valueClass;
     }
 
     @NotNull

@@ -70,7 +70,7 @@ public class ContextManager implements Listener {
         contextMap.put(player.getUniqueId(), new EditorContext(player));
     }
 
-    public EditorContext fetchContext(Player player) {
+    public EditorContext getContext(Player player) {
         return contextMap.get(player.getUniqueId());
     }
 
@@ -80,9 +80,5 @@ public class ContextManager implements Listener {
 
     public void removeContext(Player player) {
         contextMap.remove(player.getUniqueId());
-    }
-
-    public EditorContext fetchOrCreate(Player player) {
-        return contextMap.computeIfAbsent(player.getUniqueId(), (uuid) -> new EditorContext(player));
     }
 }

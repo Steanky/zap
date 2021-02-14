@@ -4,10 +4,10 @@ import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
-import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
 
@@ -24,10 +24,10 @@ public class NewMapForm extends CommandForm {
         }
 
         return ValidationResult.of(true, null);
-    }, Validators.PLAYER_EXECUTOR);
+    }, MapeditorValidators.HAS_SELECTION);
 
     public NewMapForm() {
-        super("Creates a new session with the mapeditor.", Permissions.OPERATOR, parameters);
+        super("Creates a new map.", Permissions.OPERATOR, parameters);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class NewMapForm extends CommandForm {
         Player player = (Player)context.getSender();
 
         MapData map = new MapData((String)arguments[2], player.getWorld().getName());
-        Zombies.getInstance().getContextManager().fetchOrCreate(player).setMap(map);
+        Zombies.getInstance().getContextManager().getContext(player).setMap(map);
 
         return String.format("Created new map '%s'.", map.getName());
     }

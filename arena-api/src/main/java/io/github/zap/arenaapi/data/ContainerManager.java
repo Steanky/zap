@@ -4,13 +4,12 @@ import io.github.zap.arenaapi.ArenaApi;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
- * Manager class that holds container instances for a certain
+ * Manager class that holds container instances of a certain type.
  */
 public class ContainerManager {
-    private final Map<String, Container<?,?>> containers = new HashMap<>();
+    private final Map<String, Container<?, ?>> containers = new HashMap<>();
 
     public Container<?, ?> getContainer(String name) {
         return containers.get(name);

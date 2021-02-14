@@ -3,8 +3,10 @@ package io.github.zap.zombies.command.mapeditor;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.particle.*;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.lumine.xikage.mythicmobs.utils.particles.ParticleData;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -12,7 +14,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 public class EditorContext implements Disposable {
-    private static final Shader SELECTION_SHADER = new SolidShader(Particle.FLAME, 1, null);
+    private static final Shader SELECTION_SHADER = new SolidShader(Particle.REDSTONE, 1, new Particle.DustOptions(Color.BLUE, 1));
 
     private final SelectionRenderable boundsRenderable = new SelectionRenderable();
 
@@ -25,7 +27,7 @@ public class EditorContext implements Disposable {
         @Override
         public VectorProvider vectorProvider() {
             return firstClicked == null ? VectorProvider.EMPTY : new Cube(BoundingBox.of(firstClicked,
-                    secondClicked == null ? firstClicked : secondClicked), 1);
+                    secondClicked == null ? firstClicked : secondClicked), 2);
         }
     }
 
@@ -46,21 +48,10 @@ public class EditorContext implements Disposable {
 
     public EditorContext(Player player) {
         this.player = player;
+
         renderer = new SimpleRenderer(player.getWorld(), 0, 5);
         renderer.add(boundsRenderable);
         renderer.start();
-    }
-
-    public Vector getFirstClicked() {
-        return firstClicked;
-    }
-
-    public Vector getSecondClicked() {
-        if(secondClicked == null) {
-            return firstClicked;
-        }
-
-        return secondClicked;
     }
 
     public void handleClicked(Block at) {
