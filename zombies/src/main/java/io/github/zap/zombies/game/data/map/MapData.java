@@ -297,4 +297,16 @@ public class MapData {
 
         return null;
     }
+
+    public boolean checkOverlap(String roomName, BoundingBox newRoomBounds) {
+        for(RoomData room : rooms) {
+            if(!room.getName().equals(roomName)) {
+                if(room.getBounds().getBounds().stream().anyMatch(boundingBox -> boundingBox.overlaps(newRoomBounds))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }

@@ -56,4 +56,9 @@ public class RoomData {
     transient final Property<Boolean> openProperty = new Property<>(false);
 
     public RoomData() {}
+
+    public RoomData(String name) {
+        this.name = name;
+        this.roomNameKey = "room." + name + ".name";
+    }
 }
