@@ -35,15 +35,68 @@ public class MultiBoundingBox {
         return false;
     }
 
+    /**
+     * Determines if the provided bounding box is entirely contained within this MultiBoundingBox. Uses a recursive
+     * algorithm to account for cases in which two (or more) bounding boxes are directly next to each other, with the
+     * testing box situated such that it can be found in both boxes at once.
+     * @param test The BoundingBox to test
+     * @return Whether or not this BoundingBox is entirely contained within this MultiBoundingBox.
+     */
     public boolean contains(BoundingBox test) {
         for(BoundingBox sample : boundingBoxes) {
-            if(sample.contains(test)) { //simplest case; we can stop testing
+            if(sample.contains(test)) { //simplest case; our box definitely fits
                 return true;
             }
             else {
+                Vector diffs;
 
+                Vector sampleEnd;
+                Vector testStart;
+                Vector testEnd;
+
+                boolean max;
+                if(sample.contains(test.getMin())) { //test max is out of bounds
+                    diffs = test.getMax().subtract(sample.getMax());
+
+                    sampleEnd = sample.getMax();
+                    testStart = test.getMin();
+                    testEnd = test.getMax();
+
+                    max = true;
+                } else if(sample.contains(test.getMax())) { //test min is out of bounds
+                    diffs = sample.getMin().subtract(test.getMin());
+
+                    sampleEnd = sample.getMin(); //reverse everything so we can use the same variables
+                    testStart = test.getMax();
+                    testEnd = test.getMin();
+
+                    max = false;
+                }
+                else { //everything is out of bounds, this is not a fit for anything
+                    continue;
+                }
+
+                boolean xIn;
+                boolean yIn;
+                boolean zIn;
+
+                if(max) {
+                    xIn = diffs.getX() < 0;
+                    yIn = diffs.getY() < 0;
+                    zIn = diffs.getZ() < 0;
+                }
+                else {
+                    xIn = diffs.getX() <= 0;
+                    yIn = diffs.getY() <= 0;
+                    zIn = diffs.getZ() <= 0;
+                }
+
+                return (xIn || contains(BoundingBox.of(new Vector(sampleEnd.getX(), testStart.getY(), sampleEnd.getZ()), testEnd))) &&
+                        (yIn || contains(BoundingBox.of(new Vector(testStart.getX(), sampleEnd.getY(), sampleEnd.getZ()), testEnd))) &&
+                        (zIn || contains(BoundingBox.of(new Vector(testStart.getX(), testStart.getY(), sampleEnd.getZ()), testEnd)));
             }
         }
+
         return false;
     }
 
