@@ -23,7 +23,7 @@ public class MultiBoundingBox {
     /**
      * Checks if the provided vector is inside any of the bounds.
      * @param vector The vector to check
-     * @return True if the provided vector is in every bounding box; false otherwise
+     * @return True if the provided vector is in any bounding box; false otherwise
      */
     public boolean contains(Vector vector) {
         for(BoundingBox boundingBox : boundingBoxes) {
@@ -32,6 +32,18 @@ public class MultiBoundingBox {
             }
         }
 
+        return false;
+    }
+
+    public boolean contains(BoundingBox test) {
+        for(BoundingBox sample : boundingBoxes) {
+            if(sample.contains(test)) { //simplest case; we can stop testing
+                return true;
+            }
+            else {
+
+            }
+        }
         return false;
     }
 

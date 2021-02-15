@@ -3,7 +3,8 @@ package io.github.zap.arenaapi.particle;
 import org.bukkit.util.Vector;
 
 /**
- * Object that provides a sequence of vectors, in order.
+ * Object that provides a sequence of vectors, in order. Implementations should be designed with performance in mind
+ * as some functions, particularly next(), may be called very frequently.
  */
 public interface VectorProvider {
     VectorProvider EMPTY = new VectorProvider() {
@@ -30,8 +31,8 @@ public interface VectorProvider {
     int init();
 
     /**
-     * Gets the next vector. Can throw an exception if it is called more times than length allows, but is not required
-     * to do so in order to allow for marginally faster iteration.
+     * Gets the next vector. Can throw an exception if it is called more times than the value returned by init allows,
+     * but is not required to do so in order to allow for marginally faster iteration.
      * @return The next vector
      */
     Vector next();

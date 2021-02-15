@@ -44,7 +44,8 @@ public class SimpleRenderer implements Renderer {
         for(Renderable renderable : baked) {
             for(FragmentData fragment : renderable.getFragments()) {
                 world.spawnParticle(fragment.getParticle(), fragment.getX(), fragment.getY(), fragment.getZ(),
-                        fragment.getCount(), fragment.getData());
+                        fragment.getCount(), fragment.getOffsetX(), fragment.getOffsetY(), fragment.getOffsetZ(),
+                        fragment.getExtra(), fragment.getData(), fragment.isForce());
             }
         }
     }

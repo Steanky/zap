@@ -15,6 +15,7 @@ public class SolidShader implements Shader {
 
     @Override
     public FragmentData generateFragment(Vector position) {
-        return new FragmentData(position.getX(), position.getY(), position.getZ(), particle, count, data);
+        return new FragmentData(particle, position.getX(), position.getY(), position.getZ(), count, 0, 0,
+                0, 0, data, true);
     }
 }

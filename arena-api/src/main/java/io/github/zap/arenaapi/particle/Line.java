@@ -5,13 +5,13 @@ import org.bukkit.util.Vector;
 public class Line implements VectorProvider {
     private final Vector initialStart;
     private final Vector initialEnd;
-    private final int density;
+    private final double density;
 
     private int length = -1;
     private Vector start;
     private Vector step;
 
-    public Line(Vector start, Vector end, int density) {
+    public Line(Vector start, Vector end, double density) {
         this.initialStart = start.clone();
         this.initialEnd = end.clone();
         this.density = density;

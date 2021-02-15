@@ -234,10 +234,13 @@ public class MapData {
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
-    public MapData(String mapName, String worldName) {
+    private MapData() {}
+
+    public MapData(String mapName, String worldName, BoundingBox bounds) {
         this.name = mapName;
         this.worldName = worldName;
         this.mapNameKey = String.format("map.%s.name", mapName);
+        this.mapBounds = bounds;
     }
 
     /**

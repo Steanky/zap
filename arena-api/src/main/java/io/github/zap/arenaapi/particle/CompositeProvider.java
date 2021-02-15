@@ -18,6 +18,11 @@ public class CompositeProvider implements VectorProvider {
         this.lengths = new int[length];
     }
 
+    public CompositeProvider(VectorProvider... providers) {
+        this.providers = providers;
+        this.lengths = new int[providers.length];
+    }
+
     @Override
     public int init() {
         if(length == -1) {

@@ -4,32 +4,31 @@ import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
+import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.command.mapeditor.EditorContext;
-import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
-import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
 
-public class NewMapForm extends CommandForm {
+public class EditMapForm extends CommandForm {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
-            new Parameter("create"),
+            new Parameter("edit"),
             new Parameter(Regexes.OBJECT_NAME, "[name]")
     };
 
     private static final CommandValidator validator = new CommandValidator((context, form, arguments) -> {
-        if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
-            return ValidationResult.of(false, "A map with that name already exists.");
+        if(!Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
+            return ValidationResult.of(false, "That map does not exist!");
         }
 
         return ValidationResult.of(true, null);
-    }, MapeditorValidators.HAS_SELECTION);
+    }, Validators.PLAYER_EXECUTOR);
 
-    public NewMapForm() {
-        super("Creates a new map.", Permissions.OPERATOR, parameters);
+    public EditMapForm() {
+        super("Edits an existing map.", Permissions.OPERATOR, parameters);
     }
 
     @Override
@@ -42,13 +41,10 @@ public class NewMapForm extends CommandForm {
         Zombies zombies = Zombies.getInstance();
         Player player = (Player)context.getSender();
         String mapName = (String)arguments[2];
-        String worldName = player.getWorld().getName();
 
         EditorContext editorContext = zombies.getContextManager().getContext(player);
-        MapData map = new MapData(mapName, worldName, editorContext.getSelection());
-        zombies.getArenaManager().addMap(map);
-        editorContext.setMap(map);
+        editorContext.setMap(zombies.getArenaManager().getMap(mapName));
 
-        return String.format("Created new map '%s' in world %s", mapName, worldName);
+        return String.format("Now editing map %s", mapName);
     }
 }

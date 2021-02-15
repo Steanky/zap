@@ -1,9 +1,7 @@
 package io.github.zap.zombies.command;
 
 import io.github.regularcommands.commands.RegularCommand;
-import io.github.zap.zombies.command.mapeditor.form.GiveWandForm;
-import io.github.zap.zombies.command.mapeditor.form.MapCloseForm;
-import io.github.zap.zombies.command.mapeditor.form.MapListForm;
+import io.github.zap.zombies.command.mapeditor.form.*;
 
 /**
  * General command used by this plugin.
@@ -17,5 +15,7 @@ public class ZombiesCommand extends RegularCommand {
         addForm(new GiveWandForm());
         addForm(new MapCloseForm());
         addForm(new MapListForm());
+        addForm(new NewMapForm());
+        addForm(new NewRoomForm());
     }
 }

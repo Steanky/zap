@@ -4,13 +4,11 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 public class Cube extends CompositeProvider {
-    private static final Vector UNIT = new Vector(1, 1, 1);
-
-    public Cube(BoundingBox bounds, int density) {
+    public Cube(BoundingBox bounds, double density) {
         super(12);
 
         Vector origin = bounds.getMin();
-        Vector limit = bounds.getMax().add(UNIT);
+        Vector limit = bounds.getMax();
 
         Vector one = new Vector(origin.getX(), origin.getY(), limit.getZ());
         Vector two = new Vector(limit.getX(), origin.getY(), limit.getZ());

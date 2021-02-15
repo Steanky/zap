@@ -126,17 +126,22 @@ public final class Zombies extends JavaPlugin implements Listener {
         DataLoader loader = getArenaManager().getMapLoader(); //save map data in case it was edited
         for(MapData data : arenaManager.getMaps()) {
             loader.save(data, data.getName());
+            Zombies.info(String.format("Saved MapData for '%s'", data.getName()));
         }
 
         for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
             String fileNameWithExtension = file.getName();
-            String filename = FilenameUtils.getBaseName(fileNameWithExtension);
 
-            if(!arenaManager.hasMap(filename)) {
-                try {
-                    Files.delete(file.toPath());
-                } catch (IOException e) {
-                    warning(String.format("Failed to delete map file %s: %s", fileNameWithExtension, e.getMessage()));
+            if(fileNameWithExtension.endsWith(arenaManager.getMapLoader().getExtension())) {
+                String filename = FilenameUtils.getBaseName(fileNameWithExtension);
+
+                if(!arenaManager.hasMap(filename)) {
+                    try {
+                        Files.delete(file.toPath());
+                        Zombies.info(String.format("Deleted absent map data '%s'", filename));
+                    } catch (IOException e) {
+                        warning(String.format("Failed to delete map file %s: %s", fileNameWithExtension, e.getMessage()));
+                    }
                 }
             }
         }
@@ -198,11 +203,10 @@ public final class Zombies extends JavaPlugin implements Listener {
             World world = Bukkit.getWorld(worldName);
 
             if(world != null) {
-                DataLoader equipmentLoader = new JacksonDataLoader(Path.of(getDataFolder().getPath(),
-                        EQUIPMENT_FOLDER_NAME).toFile());
+                DataLoader equipmentLoader = new JacksonDataLoader(new File(getDataFolder().getPath(),
+                        EQUIPMENT_FOLDER_NAME));
 
-                DataLoader mapLoader = new JacksonDataLoader(Path.of(getDataFolder().getPath(),
-                        MAP_FOLDER_NAME).toFile());
+                DataLoader mapLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), MAP_FOLDER_NAME));
 
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
                         mapLoader, equipmentLoader, config.getInt(ConfigNames.MAX_WORLDS),

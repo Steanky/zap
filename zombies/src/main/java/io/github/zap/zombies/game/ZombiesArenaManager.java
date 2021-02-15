@@ -56,11 +56,13 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
         File[] files = mapLoader.getRootDirectory().listFiles();
         if(files != null) {
+            Zombies.info(String.format("Found %s file(s) in the map directory.", files.length));
             for(File file : files) {
                 MapData map = this.mapLoader.load(FilenameUtils.getBaseName(file.getName()), MapData.class);
 
                 if(map != null) {
                     maps.put(map.getName(), map);
+                    Zombies.info(String.format("Loaded MapData for '%s'", map.getName()));
                 }
                 else {
                     throw new LoadFailureException("Unable to properly load some of the provided map data.");
