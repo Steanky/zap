@@ -10,7 +10,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
 
-public class MapListForm extends CommandForm {
+public class MapListForm extends CommandForm<Player> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("list")
@@ -21,14 +21,12 @@ public class MapListForm extends CommandForm {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<Player, ?> getValidator(Context context, Object[] arguments) {
         return Validators.PLAYER_EXECUTOR;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
-        Player player = (Player)context.getSender();
-
+    public String execute(Context context, Object[] arguments, Player player) {
         for(MapData map : Zombies.getInstance().getArenaManager().getMaps()) {
             player.sendMessage(map.getName());
         }

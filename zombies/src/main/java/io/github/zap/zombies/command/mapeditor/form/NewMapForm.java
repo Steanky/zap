@@ -12,15 +12,16 @@ import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 
-public class NewMapForm extends CommandForm {
+public class NewMapForm extends CommandForm<BoundingBox> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("create"),
             new Parameter(Regexes.OBJECT_NAME, "[name]")
     };
 
-    private static final CommandValidator validator = new CommandValidator((context, form, arguments) -> {
+    private static final CommandValidator<BoundingBox, BoundingBox> validator = new CommandValidator<>((context, form, previousData) -> {
         if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
             return ValidationResult.of(false, "A map with that name already exists.");
         }

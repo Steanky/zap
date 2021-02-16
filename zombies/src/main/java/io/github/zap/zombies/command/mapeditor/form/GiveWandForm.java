@@ -10,7 +10,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import org.bukkit.entity.Player;
 
-public class GiveWandForm extends CommandForm {
+public class GiveWandForm extends CommandForm<Player> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("wand")
@@ -21,17 +21,13 @@ public class GiveWandForm extends CommandForm {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<Player, ?> getValidator(Context context, Object[] arguments) {
         return Validators.PLAYER_EXECUTOR;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
-        ContextManager contextManager = Zombies.getInstance().getContextManager();
-
-        Player player = (Player)context.getSender();
-        player.getInventory().addItem(contextManager.getEditorItem());
-
+    public String execute(Context context, Object[] arguments, Player player) {
+        player.getInventory().addItem( Zombies.getInstance().getContextManager().getEditorItem());
         return "Gave editor wand.";
     }
 }

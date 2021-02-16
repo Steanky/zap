@@ -56,7 +56,7 @@ public class NewRoomForm extends CommandForm {
 
         for(RoomData room : map.getRooms()) {
             if(room.getName().equals(name)) {
-                room.getBounds().addBounds(selection);
+                room.getBounds().addBounds(selection.clone());
                 editorContext.getRenderable(EditorContext.Renderables.ROOMS).update();
                 return "Added new bounds to room.";
             }

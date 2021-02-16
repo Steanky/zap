@@ -10,21 +10,23 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.command.mapeditor.EditorContext;
 import io.github.zap.zombies.command.mapeditor.Regexes;
+import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
 
-public class EditMapForm extends CommandForm {
+public class EditMapForm extends CommandForm<MapData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("edit"),
             new Parameter(Regexes.OBJECT_NAME, "[name]")
     };
 
-    private static final CommandValidator validator = new CommandValidator((context, form, arguments) -> {
-        if(!Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
-            return ValidationResult.of(false, "That map does not exist!");
+    private static final CommandValidator<MapData, Player> validator = new CommandValidator<>((context, arguments, previous) -> {
+        MapData map = Zombies.getInstance().getArenaManager().getMap((String)arguments[2]);
+        if(map == null) {
+            return ValidationResult.of(false, "That map does not exist!", null);
         }
 
-        return ValidationResult.of(true, null);
+        return ValidationResult.of(true, null, map);
     }, Validators.PLAYER_EXECUTOR);
 
     public EditMapForm() {
@@ -32,19 +34,18 @@ public class EditMapForm extends CommandForm {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<MapData, ?> getValidator(Context context, Object[] arguments) {
         return validator;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
+    public String execute(Context context, Object[] arguments, MapData mapData) {
         Zombies zombies = Zombies.getInstance();
         Player player = (Player)context.getSender();
-        String mapName = (String)arguments[2];
 
         EditorContext editorContext = zombies.getContextManager().getContext(player);
-        editorContext.setMap(zombies.getArenaManager().getMap(mapName));
+        editorContext.setMap(mapData);
 
-        return String.format("Now editing map %s", mapName);
+        return String.format("Now editing map %s", mapData.getName());
     }
 }

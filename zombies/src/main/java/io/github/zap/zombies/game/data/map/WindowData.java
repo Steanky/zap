@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -30,12 +31,6 @@ public class WindowData {
      * the same index in faceVectors.
      */
     List<Material> repairedMaterials = new ArrayList<>();
-
-    /**
-     * Works exactly the same as repairedMaterials, but these materials are used during window breaking. Might remove
-     * this at a later date as I'm not exactly sure of its utility
-     */
-    List<Material> brokenMaterials = new ArrayList<>();
 
     /**
      * A list of vectors corresponding to the blocks of window face
@@ -83,7 +78,11 @@ public class WindowData {
      */
     transient final Property<Entity> attackingEntityProperty = new Property<>(null);
 
-    public WindowData() {}
+    private WindowData() {}
+
+    public WindowData(World from, BoundingBox bounds) {
+
+    }
 
     /**
      * Gets the center of the window's face (its breakable/repairable blocks)

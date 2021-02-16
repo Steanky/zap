@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
-public class MapLoaderProfilerForm extends CommandForm {
+public class MapLoaderProfilerForm extends CommandForm<Object> {
     private static final Parameter[] parameters = {
             new Parameter("profile"),
             new Parameter("maploader"),
@@ -74,7 +74,7 @@ public class MapLoaderProfilerForm extends CommandForm {
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
+    public String execute(Context context, Object[] arguments, Object data) {
         if(profilerSemaphore.tryAcquire()) { //only one instance of the profiler can run at a time
             Player player = (Player)context.getSender(); //validation ensures that this will never throw ClassCastException
             int iterations = (int)arguments[2];

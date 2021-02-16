@@ -43,7 +43,6 @@ public class SpawnpointData {
     public boolean canSpawn(String mob, MapData map) {
         SpawnRule rule = map.getSpawnRules().get(ruleName);
 
-
         if(rule != null) {
             if(rule.isBlacklist()) {
                 return !rule.getMobSet().contains(mob);

@@ -149,6 +149,10 @@ public class EditorContext implements Disposable {
         renderables.get(Renderables.SELECTION.index).update();
     }
 
+    /**
+     * Returns a new BoundingBox representing the current bounds selection made by the player.
+     * @return A new BoundingBox representing the selection the player currently has
+     */
     public BoundingBox getSelection() {
         if(firstClicked != null && secondClicked != null) {
             return BoundingBox.of(firstClicked, secondClicked).expandDirectional(UNIT);

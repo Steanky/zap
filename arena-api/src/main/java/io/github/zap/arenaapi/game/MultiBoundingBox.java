@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Encapsulates a bounding box made up of any number of axis-aligned bounding boxes.
+ * Encapsulates a composite bounded area made up of any number of axis-aligned bounding boxes, which are not required
+ * to be continuous and may also overlap.
  */
 public class MultiBoundingBox {
     private final List<BoundingBox> boundingBoxes = new ArrayList<>();
@@ -116,6 +117,21 @@ public class MultiBoundingBox {
      */
     public boolean contains(BoundingBox test) {
         return contains(test, new ArrayList<>(boundingBoxes));
+    }
+
+    /**
+     * Tests if the given BoundingBox overlaps any of the individual bounds contained in this MultiBoundingBox instance.
+     * @param test The BoundingBox to test for overlaps
+     * @return Whether or not test overlaps with any bounds contained by this instance
+     */
+    public boolean overlaps(BoundingBox test) {
+        for(BoundingBox boundingBox : boundingBoxes) {
+            if(boundingBox.overlaps(test)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
