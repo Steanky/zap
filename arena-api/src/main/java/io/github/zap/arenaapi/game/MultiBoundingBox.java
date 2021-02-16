@@ -35,15 +35,10 @@ public class MultiBoundingBox {
         return false;
     }
 
-    /**
-     * Determines if the provided bounding box is entirely contained within this MultiBoundingBox. Uses a recursive
-     * algorithm to account for cases in which two (or more) bounding boxes are directly next to each other, with the
-     * testing box situated such that it can be found in both boxes at once.
-     * @param test The BoundingBox to test
-     * @return Whether or not this BoundingBox is entirely contained within this MultiBoundingBox.
-     */
-    public boolean contains(BoundingBox test) {
-        for(BoundingBox sample : boundingBoxes) {
+    private boolean contains(BoundingBox test, int startingIndex) {
+        for(int i = startingIndex; i < boundingBoxes.size(); i++) {
+            BoundingBox sample = boundingBoxes.get(i);
+
             if(sample.contains(test)) { //simplest case; our box definitely fits
                 return true;
             }
@@ -72,7 +67,7 @@ public class MultiBoundingBox {
 
                     max = false;
                 }
-                else { //everything is out of bounds, this is not a fit for anything
+                else {
                     continue;
                 }
 
@@ -91,13 +86,24 @@ public class MultiBoundingBox {
                     zIn = diffs.getZ() <= 0;
                 }
 
-                return (xIn || contains(BoundingBox.of(new Vector(sampleEnd.getX(), testStart.getY(), sampleEnd.getZ()), testEnd))) &&
-                        (yIn || contains(BoundingBox.of(new Vector(testStart.getX(), sampleEnd.getY(), sampleEnd.getZ()), testEnd))) &&
-                        (zIn || contains(BoundingBox.of(new Vector(testStart.getX(), testStart.getY(), sampleEnd.getZ()), testEnd)));
+                return (xIn || contains(BoundingBox.of(new Vector(sampleEnd.getX(), testStart.getY(), testStart.getZ()), testEnd), i + 1)) &&
+                        (yIn || contains(BoundingBox.of(new Vector(testStart.getX(), sampleEnd.getY(), testStart.getZ()), new Vector(sampleEnd.getX(), testEnd.getY(), testEnd.getZ())), i + 1)) &&
+                        (zIn || contains(BoundingBox.of(new Vector(testStart.getX(), testStart.getY(), sampleEnd.getZ()), new Vector(sampleEnd.getX(), sampleEnd.getY(), testEnd.getZ())), i + 1));
             }
         }
 
         return false;
+    }
+
+    /**
+     * Determines if the provided bounding box is entirely contained within this MultiBoundingBox. Uses a recursive
+     * algorithm to account for cases in which two (or more) bounding boxes are directly next to each other, with test
+     * situated such that it can be found in both bounds at once.
+     * @param test The BoundingBox to test
+     * @return Whether or not this BoundingBox is entirely contained within this MultiBoundingBox.
+     */
+    public boolean contains(BoundingBox test) {
+        return contains(test, 0);
     }
 
     /**
