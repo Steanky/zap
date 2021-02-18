@@ -12,10 +12,5 @@ public class ZombiesCommand extends RegularCommand {
         addForm(new MapLoaderProfilerForm());
         addForm(new ImportWorldForm());
         addForm(new JoinZombiesGameForm());
-        addForm(new GiveWandForm());
-        addForm(new MapCloseForm());
-        addForm(new MapListForm());
-        addForm(new NewMapForm());
-        addForm(new NewRoomForm());
     }
 }

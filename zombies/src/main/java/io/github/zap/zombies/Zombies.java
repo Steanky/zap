@@ -15,6 +15,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
+import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -250,6 +251,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initCommands() {
         CommandManager commandManager = new CommandManager(this);
         commandManager.registerCommand(new ZombiesCommand());
+        commandManager.registerCommand(new MapeditorCommand());
 
         contextManager = new ContextManager();
     }

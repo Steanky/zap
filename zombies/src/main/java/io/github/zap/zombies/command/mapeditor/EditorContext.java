@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.particle.*;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
+import io.github.zap.zombies.game.data.map.WindowData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Color;
@@ -43,6 +44,9 @@ public class EditorContext implements Disposable {
     private static final Shader ROOM_SHADER = new SolidShader(Particle.REDSTONE, 1,
             new Particle.DustOptions(Color.WHITE, 1));
 
+    private static final Shader WINDOW_SHADER = new SolidShader(Particle.REDSTONE, 1,
+            new Particle.DustOptions(Color.BLUE, 1));
+
     private class SelectionRenderable extends ShadedRenderable {
         @Override
         public Shader getShader() {
@@ -51,7 +55,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            return firstClicked == null ? VectorProvider.EMPTY : new Cube(getSelection(), 1);
+            return firstClicked == null ? null : new Cube(getSelection(), 1);
         }
     }
 
@@ -63,7 +67,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            return map == null ? VectorProvider.EMPTY : new Cube(map.getMapBounds(), 0.25);
+            return map == null ? null : new Cube(map.getMapBounds(), 0.25);
         }
     }
 
@@ -86,9 +90,36 @@ public class EditorContext implements Disposable {
 
                 return new CompositeProvider(vectorProviders.toArray(EMPTY_VECTOR_PROVIDER_ARRAY));
             }
-            else {
-                return VectorProvider.EMPTY;
+
+            return null;
+        }
+    }
+
+    private class WindowRenderable extends ShadedRenderable {
+        @Override
+        public Shader getShader() {
+            return WINDOW_SHADER;
+        }
+
+        @Override
+        public VectorProvider vectorProvider() {
+            if(map != null && map.getRooms().size() > 0) {
+                List<VectorProvider> vectorProviders = new ArrayList<>();
+
+                for(RoomData room : map.getRooms()) {
+                    for(WindowData window : room.getWindows()) {
+                        vectorProviders.add(new Cube(window.getFaceBounds(), 2));
+
+                        for(BoundingBox bounds : window.getInteriorBounds().getBounds()) {
+                            vectorProviders.add(new Cube(bounds, 1));
+                        }
+                    }
+                }
+
+                return new CompositeProvider(vectorProviders.toArray(EMPTY_VECTOR_PROVIDER_ARRAY));
             }
+
+            return null;
         }
     }
 
@@ -112,6 +143,7 @@ public class EditorContext implements Disposable {
         addRenderable(new SelectionRenderable());
         addRenderable(new MapRenderable());
         addRenderable(new RoomRenderable());
+        addRenderable(new WindowRenderable());
         renderer.start();
     }
 

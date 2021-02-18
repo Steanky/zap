@@ -20,18 +20,20 @@ public abstract class ShadedRenderable implements Renderable {
     public void update() {
         VectorProvider provider = vectorProvider();
 
-        int length = provider.init();
+        if(provider != null) {
+            int length = provider.init();
 
-        //optimization: only allocate a new array if we have to
-        FragmentData[] newData = (frags == null || length != frags.length) ? new FragmentData[length] : frags;
+            //optimization: only allocate a new array if we have to
+            FragmentData[] newData = (frags == null || length != frags.length) ? new FragmentData[length] : frags;
 
-        Shader shader = getShader();
-        for(int i = 0; i < newData.length; i++) {
-            newData[i] = shader.generateFragment(provider.next());
+            Shader shader = getShader();
+            for(int i = 0; i < newData.length; i++) {
+                newData[i] = shader.generateFragment(provider.next());
+            }
+
+            provider.reset();
+            frags = newData;
         }
-
-        provider.reset();
-        frags = newData;
     }
 
     public abstract Shader getShader();

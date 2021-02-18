@@ -6,6 +6,7 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
+import io.github.zap.zombies.command.mapeditor.EditorContext;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
 import io.github.zap.zombies.command.mapeditor.form.data.WindowSelectionData;
@@ -45,6 +46,7 @@ public class NewWindowForm extends CommandForm<WindowSelectionData> {
     @Override
     public String execute(Context context, Object[] arguments, WindowSelectionData data) {
         data.getRoom().getWindows().add(new WindowData(data.getPlayer().getWorld(), data.getBounds()));
-        return "Created new room.";
+        data.getContext().getRenderable(EditorContext.Renderables.WINDOWS).update();
+        return "Added window.";
     }
 }
