@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -80,8 +81,20 @@ public class WindowData {
 
     private WindowData() {}
 
-    public WindowData(World from, BoundingBox bounds) {
+    public WindowData(World from, BoundingBox faceBounds) {
+        this.faceBounds = faceBounds;
 
+        Vector min = faceBounds.getMin();
+        Vector max = faceBounds.getMax();
+
+        for(int x = min.getBlockX(); x < max.getBlockX(); x++) {
+            for(int y = min.getBlockY(); y < max.getBlockY(); y++) {
+                for(int z = min.getBlockZ(); z < max.getBlockZ(); z++) {
+                    repairedMaterials.add(from.getBlockAt(x, y, z).getType());
+                    faceVectors.add(new Vector(x, y, z));
+                }
+            }
+        }
     }
 
     /**

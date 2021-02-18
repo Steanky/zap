@@ -32,7 +32,7 @@ public final class WorldUtils {
     }
 
     public static void fillBounds(World world, MultiBoundingBox bounds, Material material) {
-        for(BoundingBox box : bounds.getBounds()) {
+        for(BoundingBox box : bounds) {
             fillBounds(world, box, material);
         }
     }

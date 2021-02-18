@@ -71,7 +71,7 @@ public class ContextManager implements Listener {
     }
 
     public EditorContext getContext(Player player) {
-        return contextMap.get(player.getUniqueId());
+        return contextMap.computeIfAbsent(player.getUniqueId(), mapping -> new EditorContext(player));
     }
 
     public boolean hasContext(Player player) {

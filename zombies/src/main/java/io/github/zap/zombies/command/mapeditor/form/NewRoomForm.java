@@ -32,16 +32,16 @@ public class NewRoomForm extends CommandForm<MapSelectionData> {
 
         for(RoomData room : data.getMap().getRooms()) {
             if(room.getName().equals(name)) {
-                room.getBounds().addBounds(data.getBounds());
-                data.getContext().getRenderable(EditorContext.Renderables.ROOMS).update();
+                room.getBounds().addBounds(data.getSelection());
+                data.getContext().updateRenderable(EditorContext.Renderables.ROOMS);
                 return "Added new bounds to room.";
             }
         }
 
         RoomData newData = new RoomData(name);
-        newData.getBounds().addBounds(data.getBounds());
+        newData.getBounds().addBounds(data.getSelection());
         data.getMap().getRooms().add(newData);
-        data.getContext().getRenderable(EditorContext.Renderables.ROOMS).update();
+        data.getContext().updateRenderable(EditorContext.Renderables.ROOMS);
         return "Created new room.";
     }
 }

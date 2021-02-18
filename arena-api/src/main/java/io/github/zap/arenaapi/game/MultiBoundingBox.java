@@ -2,15 +2,17 @@ package io.github.zap.arenaapi.game;
 
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Encapsulates a composite bounded area made up of any number of axis-aligned bounding boxes, which are not required
  * to be continuous and may also overlap.
  */
-public class MultiBoundingBox {
+public class MultiBoundingBox implements Iterable<BoundingBox> {
     private final List<BoundingBox> boundingBoxes = new ArrayList<>();
 
     /**
@@ -135,16 +137,50 @@ public class MultiBoundingBox {
     }
 
     /**
-     * Returns copies of all the bounding boxes this instance contains. This method calls clone() on every bounding
-     * box to ensure that its internal state is protected.
-     * @return A copy of all the bounding boxes this instance contains
+     * Returns the underlying list for this BoundingBox.
+     * @return The underlying list
      */
-    public List<BoundingBox> getBounds() {
-        List<BoundingBox> result = new ArrayList<>();
-        for(BoundingBox internalBounds : boundingBoxes) {
-            result.add(internalBounds.clone());
-        }
+    public List<BoundingBox> getList() {
+        return boundingBoxes;
+    }
 
-        return result;
+    /**
+     * Gets the number of BoundingBoxes contained in this instance.
+     * @return The size of this MultiBoundingBox
+     */
+    public int size() {
+        return boundingBoxes.size();
+    }
+
+    /**
+     * Returns the BoundingBox at the specified index.
+     * @param i The index
+     * @return The BoundingBox at index i
+     */
+    public BoundingBox get(int i) {
+        return boundingBoxes.get(i);
+    }
+
+    /**
+     * Sets the bounds at the specified index.
+     * @param i The index to set
+     * @param bounds The bounds to set at the index
+     */
+    public void set(int i, BoundingBox bounds) {
+        boundingBoxes.add(i, bounds);
+    }
+
+    /**
+     * Removes the BoundingBox at the specified index
+     * @param i The index to remove at
+     */
+    public void remove(int i) {
+        boundingBoxes.remove(i);
+    }
+
+    @NotNull
+    @Override
+    public Iterator<BoundingBox> iterator() {
+        return boundingBoxes.iterator();
     }
 }

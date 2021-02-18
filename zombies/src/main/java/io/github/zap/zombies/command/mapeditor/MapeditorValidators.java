@@ -9,14 +9,6 @@ import io.github.zap.zombies.command.mapeditor.form.data.EditorContextData;
 import io.github.zap.zombies.command.mapeditor.form.data.MapContextData;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
 import io.github.zap.zombies.game.data.map.MapData;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
@@ -65,6 +57,6 @@ public final class MapeditorValidators {
     public static final CommandValidator<MapSelectionData, BoundsContextData> HAS_MAP_SELECTION =
             new CommandValidator<>((context, arguments, previousData) ->
                     ValidationResult.of(true, null, new MapSelectionData(previousData.getPlayer(),
-                            previousData.getContext(), previousData.getBounds(), previousData.getContext().getMap())),
+                            previousData.getContext(), previousData.getSelection(), previousData.getContext().getMap())),
                     HAS_SELECTION.from(HAS_ACTIVE_MAP));
 }

@@ -1,10 +1,6 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.particle.*;
-import io.github.zap.arenaapi.util.ArrayUtils;
-import io.github.zap.arenaapi.util.VectorUtils;
-import io.github.zap.zombies.command.mapeditor.ComponentNames;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -12,7 +8,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -304,7 +299,7 @@ public class MapData {
     public boolean checkOverlap(String roomName, BoundingBox newRoomBounds) {
         for(RoomData room : rooms) {
             if(!room.getName().equals(roomName)) {
-                if(room.getBounds().getBounds().stream().anyMatch(boundingBox -> boundingBox.overlaps(newRoomBounds))) {
+                if(room.getBounds().getList().stream().anyMatch(boundingBox -> boundingBox.overlaps(newRoomBounds))) {
                     return false;
                 }
             }

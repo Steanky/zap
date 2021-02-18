@@ -10,13 +10,13 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.entity.Player;
 
-public class MapListForm extends CommandForm<Player> {
+public class ListMapForm extends CommandForm<Player> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("list")
     };
 
-    public MapListForm() {
+    public ListMapForm() {
         super("Lists all maps that currently exist.", Permissions.OPERATOR, parameters);
     }
 

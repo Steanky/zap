@@ -9,17 +9,18 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
+import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.MapContextData;
 
-public class MapCloseForm extends CommandForm<MapContextData> {
+public class CloseMapForm extends CommandForm<MapContextData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("close"),
-            new Parameter("^((true)|(false))$", "[should-delete]", "false",
+            new Parameter(Regexes.BOOLEAN, "[should-delete]", "false",
                     Converters.BOOLEAN_CONVERTER, Lists.newArrayList("true", "false"))
     };
 
-    public MapCloseForm() {
+    public CloseMapForm() {
         super("Closes an existing map, optionally discarding it.", Permissions.OPERATOR, parameters);
     }
 

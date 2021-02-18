@@ -6,7 +6,6 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
@@ -83,7 +82,7 @@ public class EditorContext implements Disposable {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(RoomData room : map.getRooms()) {
-                    for(BoundingBox boundingBox : room.getBounds().getBounds()) {
+                    for(BoundingBox boundingBox : room.getBounds()) {
                         vectorProviders.add(new Cube(boundingBox, 0.5));
                     }
                 }
@@ -110,7 +109,7 @@ public class EditorContext implements Disposable {
                     for(WindowData window : room.getWindows()) {
                         vectorProviders.add(new Cube(window.getFaceBounds(), 2));
 
-                        for(BoundingBox bounds : window.getInteriorBounds().getBounds()) {
+                        for(BoundingBox bounds : window.getInteriorBounds()) {
                             vectorProviders.add(new Cube(bounds, 1));
                         }
                     }
@@ -152,15 +151,23 @@ public class EditorContext implements Disposable {
         renderables.add(renderable);
     }
 
-    public Renderable getRenderable(Renderables renderable) {
-        return renderables.get(renderable.index);
+    public void updateRenderable(Renderables renderable) {
+        renderables.get(renderable.index).update();
+    }
+
+    public void updateAllRenderables() {
+        for(Renderable renderable : renderables) {
+            renderable.update();
+        }
     }
 
     public void setMap(MapData map) {
-        this.map = map;
+        if(this.map != map) {
+            this.map = map;
 
-        for(Renderable renderable : renderables) {
-            renderable.update();
+            for(Renderable renderable : renderables) {
+                renderable.update();
+            }
         }
     }
 
