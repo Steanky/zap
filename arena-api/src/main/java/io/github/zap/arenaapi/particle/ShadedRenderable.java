@@ -4,7 +4,7 @@ package io.github.zap.arenaapi.particle;
  * Higher-level implementation of Renderable. Performs caching where possible; supports very basic shader-like features
  */
 public abstract class ShadedRenderable implements Renderable {
-    private FragmentData[] frags;
+    private FragmentData[] frags = new FragmentData[0];
 
     public ShadedRenderable() {
         //call update once when object is created; ensures we have some initial values
