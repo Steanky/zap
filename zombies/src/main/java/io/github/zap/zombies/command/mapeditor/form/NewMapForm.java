@@ -10,23 +10,23 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.command.mapeditor.EditorContext;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
+import io.github.zap.zombies.command.mapeditor.form.data.BoundsContextData;
 import io.github.zap.zombies.game.data.map.MapData;
-import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
 
-public class NewMapForm extends CommandForm<BoundingBox> {
+public class NewMapForm extends CommandForm<BoundsContextData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("create"),
             new Parameter(Regexes.OBJECT_NAME, "[name]")
     };
 
-    private static final CommandValidator<BoundingBox, BoundingBox> validator = new CommandValidator<>((context, form, previousData) -> {
+    private static final CommandValidator<BoundsContextData, BoundsContextData> validator =
+            new CommandValidator<>((context, arguments, previousData) -> {
         if(Zombies.getInstance().getArenaManager().hasMap((String)arguments[2])) {
-            return ValidationResult.of(false, "A map with that name already exists.");
+            return ValidationResult.of(false, "A map with that name already exists.", null);
         }
 
-        return ValidationResult.of(true, null);
+        return ValidationResult.of(true, null, previousData);
     }, MapeditorValidators.HAS_SELECTION);
 
     public NewMapForm() {
@@ -34,22 +34,17 @@ public class NewMapForm extends CommandForm<BoundingBox> {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<BoundsContextData, ?> getValidator(Context context, Object[] arguments) {
         return validator;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
-        Zombies zombies = Zombies.getInstance();
-        Player player = (Player)context.getSender();
-        String mapName = (String)arguments[2];
-        String worldName = player.getWorld().getName();
-
-        EditorContext editorContext = zombies.getContextManager().getContext(player);
-        MapData map = new MapData(mapName, worldName, editorContext.getSelection());
-        zombies.getArenaManager().addMap(map);
+    public String execute(Context context, Object[] arguments, BoundsContextData data) {
+        EditorContext editorContext = data.getContext();
+        MapData map = new MapData((String)arguments[2], data.getPlayer().getWorld().getName(), data.getBounds());
+        Zombies.getInstance().getArenaManager().addMap(map);
         editorContext.setMap(map);
 
-        return String.format("Created new map '%s' in world %s", mapName, worldName);
+        return String.format("Created new map '%s' in world %s", map.getName(), map.getWorldName());
     }
 }

@@ -33,31 +33,27 @@ public class MapLoaderProfilerForm extends CommandForm<Object> {
             new Parameter("^([a-zA-Z0-9_ ]+)$", "[world]")
     };
 
-    private static final CommandValidator validator;
+    private static final Range<Integer> values = Range.between(1, 50);
+    private static final CommandValidator<Object, ?> validator = new CommandValidator<>((context, arguments, previousData) -> {
+        String worldName = (String)arguments[3];
+        if(Zombies.getInstance().getWorldLoader().worldExists(worldName)) {
+            return ValidationResult.of(true, null, null);
+        }
+
+        return ValidationResult.of(false, String.format("World '%s' doesn't exist.", worldName), null);
+    }, new CommandValidator<>((context, arguments, previousData) -> {
+        int value = (int)arguments[2];
+
+        if(values.contains(value)) {
+            return ValidationResult.of(false, String.format("Value '%s' is out of range for this command.", value), null);
+        }
+
+        return ValidationResult.of(true, null, null);
+    }, Validators.PLAYER_EXECUTOR));
+
     private static final Semaphore profilerSemaphore = new Semaphore(1);
     private static final StopWatch profiler = new StopWatch();
     private static final ExecutorService service = Executors.newSingleThreadExecutor();
-
-    static {
-        Range<Integer> values = Range.between(1, 50);
-
-        validator = new CommandValidator((context, form, arguments) -> {
-            String worldName = (String)arguments[3];
-            if(Zombies.getInstance().getWorldLoader().worldExists(worldName)) {
-                return ValidationResult.of(true, null);
-            }
-
-            return ValidationResult.of(false, String.format("World '%s' doesn't exist.", worldName));
-        }, new CommandValidator((context,form, arguments) -> {
-            int value = (int)arguments[2];
-
-            if(values.contains(value)) {
-                return ValidationResult.of(false, String.format("Value '%s' is out of range for this command.", value));
-            }
-
-            return ValidationResult.of(true, null);
-        }, Validators.PLAYER_EXECUTOR));
-    }
 
     public MapLoaderProfilerForm() {
         super("Debug command for profiling map loading.", new PermissionData(true), parameters);
@@ -69,7 +65,7 @@ public class MapLoaderProfilerForm extends CommandForm<Object> {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<Object, ?> getValidator(Context context, Object[] arguments) {
         return validator;
     }
 

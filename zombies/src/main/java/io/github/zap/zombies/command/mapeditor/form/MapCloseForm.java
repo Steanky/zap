@@ -9,10 +9,9 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
-import io.github.zap.zombies.game.data.map.MapData;
-import org.bukkit.entity.Player;
+import io.github.zap.zombies.command.mapeditor.form.data.MapContextData;
 
-public class MapCloseForm extends CommandForm<MapData> {
+public class MapCloseForm extends CommandForm<MapContextData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("map"),
             new Parameter("close"),
@@ -25,17 +24,16 @@ public class MapCloseForm extends CommandForm<MapData> {
     }
 
     @Override
-    public CommandValidator<MapData, ?> getValidator(Context context, Object[] arguments) {
+    public CommandValidator<MapContextData, ?> getValidator(Context context, Object[] arguments) {
         return MapeditorValidators.HAS_ACTIVE_MAP;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments, MapData data) {
-        Zombies zombies = Zombies.getInstance();
-        zombies.getContextManager().getContext((Player)context.getSender()).setMap(null);
+    public String execute(Context context, Object[] arguments, MapContextData data) {
+        data.getContext().setMap(null);
 
         if((boolean)arguments[2]) {
-            zombies.getArenaManager().removeMap(data.getName());
+            Zombies.getInstance().getArenaManager().removeMap(data.getMap().getName());
             return "Closed and deleted the current map.";
         }
 
