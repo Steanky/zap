@@ -34,6 +34,9 @@ public abstract class ShadedRenderable implements Renderable {
             provider.reset();
             frags = newData;
         }
+        else if(frags.length > 0) { //reset to empty array if we return null
+            frags = new FragmentData[0];
+        }
     }
 
     public abstract Shader getShader();

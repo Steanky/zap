@@ -21,17 +21,20 @@ public class WindowBoundsForm extends CommandForm<WindowSelectionData> {
             new Parameter(Regexes.NON_NEGATIVE_NUMBER, "[target-index]", Converters.INTEGER_CONVERTER)
     };
 
-    private static final CommandValidator<WindowSelectionData, RoomSelectionData> validator = new CommandValidator<>((context, arguments, previousData) -> {
+    private static final CommandValidator<WindowSelectionData, RoomSelectionData> validator =
+            new CommandValidator<>((context, arguments, previousData) -> {
         RoomData room = previousData.getRoom();
+
         int index = (int)arguments[2];
         int windowCount = room.getWindows().size();
+
         if(index >= windowCount) {
             return ValidationResult.of(false, "Index out of bounds! Number of windows: " + windowCount, null);
         }
 
         return ValidationResult.of(true, null, new WindowSelectionData(previousData.getPlayer(),
                 previousData.getContext(), previousData.getSelection(), previousData.getMap(), previousData.getRoom(),
-                room.getWindows().remove(index)));
+                room.getWindows().get(index)));
     }, MapeditorValidators.HAS_ROOM_SELECTION);
 
     public WindowBoundsForm() {
