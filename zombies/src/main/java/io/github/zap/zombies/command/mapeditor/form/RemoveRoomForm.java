@@ -13,65 +13,102 @@ import io.github.zap.zombies.command.mapeditor.EditorContext;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
-import io.github.zap.zombies.command.mapeditor.form.data.RoomSelectionData;
+import io.github.zap.zombies.command.mapeditor.form.data.RoomDeletionData;
 import io.github.zap.zombies.game.data.map.RoomData;
-import io.github.zap.zombies.game.data.map.WindowData;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.util.BoundingBox;
 
-public class RemoveRoomForm extends CommandForm<RoomSelectionData> {
+import java.util.ArrayList;
+import java.util.List;
+
+public class RemoveRoomForm extends CommandForm<RoomDeletionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("room"),
             new Parameter("remove"),
-            new Parameter(Regexes.BOOLEAN, "[delete-all]", "false",
-                    Converters.BOOLEAN_CONVERTER, Lists.newArrayList("true", "false"))
+            new Parameter(Regexes.BOOLEAN, "[delete-all]", "false", Converters.BOOLEAN_CONVERTER,
+                    Lists.newArrayList("true", "false"))
     };
 
     public RemoveRoomForm() {
         super("Removes a room.", Permissions.OPERATOR, parameters);
     }
 
-    private static final CommandValidator<RoomSelectionData, MapSelectionData> validator =
+    private static final CommandValidator<RoomDeletionData, MapSelectionData> validator =
             new CommandValidator<>((context, arguments, previousData) -> {
-                BoundingBox selection = previousData.getSelection();
+                boolean targetRoom = (boolean)arguments[2];
 
+                BoundingBox selection = previousData.getSelection();
+                List<Pair<RoomData, List<Integer>>> data = new ArrayList<>();
+
+                int j = 0;
                 for(RoomData room : previousData.getMap().getRooms()) {
-                    if(room.getBounds().overlaps(selection)) {
-                        return ValidationResult.of(true, null, new RoomSelectionData(previousData.getPlayer(),
-                                previousData.getContext(), previousData.getSelection(), previousData.getMap(), room));
+                    MultiBoundingBox roomBounds = room.getBounds();
+
+                    for(int i = 0; i < roomBounds.size(); i++) {
+                        BoundingBox bounds = roomBounds.get(i);
+
+                        if(bounds.overlaps(selection)) {
+                            if(j >= data.size()) {
+                                data.add(ImmutablePair.of(room, new ArrayList<>()));
+
+                                if(targetRoom) {
+                                    return ValidationResult.of(true, null, new RoomDeletionData(previousData.getPlayer(),
+                                            previousData.getContext(), previousData.getSelection(), previousData.getMap(), data));
+                                }
+                            }
+
+                            data.get(j).getRight().add(i);
+                        }
                     }
+
+                    j++;
+                }
+
+                if(data.size() > 0) {
+                    return ValidationResult.of(true, null, new RoomDeletionData(previousData.getPlayer(),
+                            previousData.getContext(), previousData.getSelection(), previousData.getMap(), data));
                 }
 
                 return ValidationResult.of(false, "No room or room bounds overlap that selection.", null);
             }, MapeditorValidators.HAS_MAP_SELECTION);
 
     @Override
-    public CommandValidator<RoomSelectionData, ?> getValidator(Context context, Object[] arguments) {
+    public CommandValidator<RoomDeletionData, ?> getValidator(Context context, Object[] arguments) {
         return validator;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments, RoomSelectionData data) {
+    public String execute(Context context, Object[] arguments, RoomDeletionData data) {
         if((boolean)arguments[2]) {
-            data.getMap().getRooms().remove(data.getRoom());
+            RoomData target = data.getRoomIndices().get(0).getLeft();
+            data.getMap().getRooms().remove(target);
             data.getContext().updateRenderable(EditorContext.Renderables.ROOMS);
             data.getContext().updateRenderable(EditorContext.Renderables.WINDOWS);
-            return "Removed room '" + data.getRoom().getName() + "'.";
+            return "Removed room '" + target.getName() + "'.";
         }
 
-        MultiBoundingBox roomBounds = data.getRoom().getBounds();
+        List<Pair<RoomData, List<Integer>>> indices = data.getRoomIndices();
 
         int j = 0;
-        for(int i = roomBounds.size() - 1; i > -1; i--) {
-            BoundingBox bounds = roomBounds.get(i);
-            if(bounds.overlaps(data.getSelection())) {
-                roomBounds.remove(i);
+        for(Pair<RoomData, List<Integer>> pair : indices) {
+            RoomData room = pair.getLeft();
+            MultiBoundingBox bounds = room.getBounds();
+            List<Integer> targets = pair.getRight();
+
+            for(int i = targets.size() - 1; i > -1; i--) {
+                bounds.remove(targets.get(i));
                 j++;
+            }
+
+            if(bounds.size() == 0) {
+                data.getMap().getRooms().remove(room);
             }
         }
 
         data.getContext().updateRenderable(EditorContext.Renderables.ROOMS);
         data.getContext().updateRenderable(EditorContext.Renderables.WINDOWS);
 
-        return "Removed " + j + " bounds from room '" + data.getRoom().getName() + "'.";
+        return "Removed " + j + " bounds.";
     }
 }
