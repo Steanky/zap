@@ -14,7 +14,7 @@ import io.github.zap.zombies.game.data.map.RoomData;
 public class NewRoomForm extends CommandForm<MapSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("room"),
-            new Parameter("bounds"),
+            new Parameter("addbounds"),
             new Parameter(Regexes.OBJECT_NAME, "[name]")
     };
 

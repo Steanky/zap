@@ -22,7 +22,8 @@ public class EditorContext implements Disposable {
         SELECTION(0),
         MAP(1),
         ROOMS(2),
-        WINDOWS(3);
+        WINDOWS(3),
+        WINDOW_BOUNDS(4);
 
         @Getter
         private final int index;
@@ -45,6 +46,9 @@ public class EditorContext implements Disposable {
 
     private static final Shader WINDOW_SHADER = new SolidShader(Particle.REDSTONE, 1,
             new Particle.DustOptions(Color.BLUE, 1));
+
+    private static final Shader WINDOW_BOUNDS_SHADER = new SolidShader(Particle.REDSTONE, 1,
+            new Particle.DustOptions(Color.PURPLE, 2));
 
     private class SelectionRenderable extends ShadedRenderable {
         @Override
@@ -108,7 +112,29 @@ public class EditorContext implements Disposable {
                 for(RoomData room : map.getRooms()) {
                     for(WindowData window : room.getWindows()) {
                         vectorProviders.add(new Cube(window.getFaceBounds(), 2));
+                    }
+                }
 
+                return new CompositeProvider(vectorProviders.toArray(EMPTY_VECTOR_PROVIDER_ARRAY));
+            }
+
+            return null;
+        }
+    }
+
+    private class WindowBoundsRenderable extends ShadedRenderable {
+        @Override
+        public Shader getShader() {
+            return WINDOW_BOUNDS_SHADER;
+        }
+
+        @Override
+        public VectorProvider vectorProvider() {
+            if(map != null && map.getRooms().size() > 0) {
+                List<VectorProvider> vectorProviders = new ArrayList<>();
+
+                for(RoomData room : map.getRooms()) {
+                    for(WindowData window : room.getWindows()) {
                         for(BoundingBox bounds : window.getInteriorBounds()) {
                             vectorProviders.add(new Cube(bounds, 1));
                         }
@@ -143,6 +169,7 @@ public class EditorContext implements Disposable {
         addRenderable(new MapRenderable());
         addRenderable(new RoomRenderable());
         addRenderable(new WindowRenderable());
+        addRenderable(new WindowBoundsRenderable());
         renderer.start();
     }
 
