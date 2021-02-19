@@ -2,17 +2,13 @@ package io.github.zap.zombies.command.mapeditor.form;
 
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
-import io.github.regularcommands.commands.PermissionData;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
-import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
-import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.command.mapeditor.ContextManager;
-import io.github.zap.zombies.command.mapeditor.EditorContext;
-import org.bukkit.entity.Player;
+import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
+import io.github.zap.zombies.command.mapeditor.form.data.EditorContextData;
 
-public class ExitEditorForm extends CommandForm<Player> {
+public class ExitEditorForm extends CommandForm<EditorContextData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("exit")
     };
@@ -22,22 +18,15 @@ public class ExitEditorForm extends CommandForm<Player> {
     }
 
     @Override
-    public CommandValidator<Player, ?> getValidator(Context context, Object[] arguments) {
-        return Validators.PLAYER_EXECUTOR;
+    public CommandValidator<EditorContextData, ?> getValidator(Context context, Object[] arguments) {
+        return MapeditorValidators.HAS_EDITOR_CONTEXT;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments, Player data) {
-        ContextManager manager = Zombies.getInstance().getContextManager();
+    public String execute(Context context, Object[] arguments, EditorContextData data) {
+        data.getContext().setMap(null);
+        data.getContext().dispose();
 
-        if(manager.hasContext(data)) {
-            EditorContext editorContext = Zombies.getInstance().getContextManager().removeContext(data);
-            editorContext.setMap(null);
-            editorContext.dispose();
-            return "Ended mapeditor session.";
-        }
-        else {
-            return "You do not have an active mapeditor session.";
-        }
+        return "Ended mapeditor session.";
     }
 }
