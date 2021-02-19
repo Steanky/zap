@@ -78,7 +78,7 @@ public class ContextManager implements Listener {
         return contextMap.containsKey(player.getUniqueId());
     }
 
-    public void removeContext(Player player) {
-        contextMap.remove(player.getUniqueId());
+    public EditorContext removeContext(Player player) {
+        return contextMap.remove(player.getUniqueId());
     }
 }

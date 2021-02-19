@@ -15,5 +15,6 @@ public class MapeditorCommand extends RegularCommand {
         addForm(new NewWindowForm());
         addForm(new RemoveRoomForm());
         addForm(new WindowBoundsForm());
+        addForm(new ExitEditorForm());
     }
 }
