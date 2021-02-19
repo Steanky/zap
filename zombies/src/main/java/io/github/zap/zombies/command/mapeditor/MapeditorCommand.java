@@ -8,7 +8,7 @@ public class MapeditorCommand extends RegularCommand {
         super("mapeditor");
         addForm(new EditMapForm());
         addForm(new GiveWandForm());
-        addForm(new CloseMapForm());
+        addForm(new DeleteMapForm());
         addForm(new ListMapForm());
         addForm(new NewMapForm());
         addForm(new NewRoomForm());

@@ -13,10 +13,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ContextManager implements Listener {
     private static final Material itemType = Material.STICK;
@@ -80,5 +77,9 @@ public class ContextManager implements Listener {
 
     public EditorContext removeContext(Player player) {
         return contextMap.remove(player.getUniqueId());
+    }
+
+    public Collection<EditorContext> getContexts() {
+        return contextMap.values();
     }
 }
