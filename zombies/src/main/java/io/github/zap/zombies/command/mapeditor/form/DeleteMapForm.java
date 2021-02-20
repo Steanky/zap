@@ -4,6 +4,7 @@ import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
+import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
@@ -26,7 +27,7 @@ public class DeleteMapForm extends CommandForm<MapData> {
         }
 
         return ValidationResult.of(true, null, Zombies.getInstance().getArenaManager().getMap(arg));
-    });
+    }, Validators.PLAYER_EXECUTOR);
 
     public DeleteMapForm() {
         super("Deletes an existing map.", Permissions.OPERATOR, parameters);
@@ -40,6 +41,7 @@ public class DeleteMapForm extends CommandForm<MapData> {
     @Override
     public String execute(Context context, Object[] arguments, MapData data) {
         Zombies.getInstance().getArenaManager().removeMap(data.getName());
+
         for(EditorContext editorContext : Zombies.getInstance().getContextManager().getContexts()) {
             if (editorContext.getMap() == data) {
                 editorContext.setMap(null);

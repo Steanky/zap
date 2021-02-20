@@ -139,7 +139,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                 if(!arenaManager.hasMap(filename)) {
                     try {
                         Files.delete(file.toPath());
-                        Zombies.info(String.format("Deleted absent map data '%s'", filename));
+                        Zombies.info(String.format("Deleted map file for which data was removed: '%s'", filename));
                     } catch (IOException e) {
                         warning(String.format("Failed to delete map file %s: %s", fileNameWithExtension, e.getMessage()));
                     }
@@ -254,6 +254,19 @@ public final class Zombies extends JavaPlugin implements Listener {
         commandManager.registerCommand(new MapeditorCommand());
 
         contextManager = new ContextManager();
+
+        //get DataLoader object used by the map loader. all files for this instance are saved to the maps folder
+        DataLoader loader = Zombies.getInstance().getArenaManager().getMapLoader();
+
+        //load data from file named "test_map". file extensions are managed by dataloader so you shouldn't include them
+        MapData mapData = loader.load("test_map", MapData.class);
+
+        /*
+        ...manipulate mapData here
+         */
+
+        //save the updated data to the same file, whose old contents will be overwritten
+        loader.save(mapData, "test_map");
     }
 
     /*

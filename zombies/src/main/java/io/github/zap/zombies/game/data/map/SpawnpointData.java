@@ -38,7 +38,7 @@ public class SpawnpointData {
      */
     String ruleName;
 
-    public SpawnpointData() {}
+    private SpawnpointData() {}
 
     public boolean canSpawn(String mob, MapData map) {
         SpawnRule rule = map.getSpawnRules().get(ruleName);
