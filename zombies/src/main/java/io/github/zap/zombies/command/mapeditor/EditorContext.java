@@ -58,7 +58,14 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            return firstClicked == null ? null : new Cube(getSelection(), 1);
+            if (firstClicked != null) {
+                Vector target = getTarget();
+
+                return new CompositeProvider(new Cube(getSelection(), 1),
+                        new Cube(BoundingBox.of(target, target.clone().add(UNIT)), 2));
+            }
+
+            return null;
         }
     }
 
@@ -225,6 +232,17 @@ public class EditorContext implements Disposable {
         }
         else if(firstClicked != null) {
             return BoundingBox.of(firstClicked, firstClicked).expandDirectional(UNIT);
+        }
+
+        return null;
+    }
+
+    public Vector getTarget() {
+        if(firstClicked != null && secondClicked == null) {
+            return firstClicked.clone();
+        }
+        else if(firstClicked != null) {
+            return secondClicked.clone();
         }
 
         return null;

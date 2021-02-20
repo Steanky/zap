@@ -11,25 +11,33 @@ import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.RoomSelectionData;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 
-public class NewRoomSpawnpointForm extends CommandForm<RoomSelectionData> {
+public class NewWindowSpawnpointForm extends CommandForm<RoomSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("roomspawn"),
             new Parameter("create"),
-            new Parameter(Regexes.OBJECT_NAME, "[spawn-rule-name]")
+            new Parameter(Regexes.NON_NEGATIVE_NUMBER, "[window-index]")
     };
 
-    public NewRoomSpawnpointForm() {
-        super("Creates a new spawnpoint in a room.", Permissions.OPERATOR, parameters);
+    private static final CommandValidator<RoomSelectionData, RoomSelectionData> validator = new CommandValidator<>((context, arguments, previousData) -> {
+        if(previousData.getSelection().getVolume() != 1) {
+            return ValidationResult.of(false, "You must select a single block!", null);
+        }
+
+        return ValidationResult.of(true, null, previousData);
+    }, MapeditorValidators.HAS_ROOM_SELECTION);
+
+    public NewWindowSpawnpointForm() {
+        super("Creates a new spawnpoint in a window.", Permissions.OPERATOR, parameters);
     }
 
     @Override
     public CommandValidator<RoomSelectionData, ?> getValidator(Context context, Object[] arguments) {
-        return MapeditorValidators.HAS_ROOM_SELECTION;
+        return validator;
     }
 
     @Override
     public String execute(Context context, Object[] arguments, RoomSelectionData data) {
-        data.getRoom().getSpawnpoints().add(new SpawnpointData(data.getContext().getTarget(), null, null,
+        data.getRoom().getSpawnpoints().add(new SpawnpointData(data.getSelection().getMin(), null, null,
                 (String)arguments[2]));
         return "Added spawnpoint.";
     }
