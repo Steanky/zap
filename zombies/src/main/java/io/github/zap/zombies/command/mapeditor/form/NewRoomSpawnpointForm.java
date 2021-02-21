@@ -5,7 +5,6 @@ import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
-import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.RoomSelectionData;
@@ -13,7 +12,7 @@ import io.github.zap.zombies.game.data.map.SpawnpointData;
 
 public class NewRoomSpawnpointForm extends CommandForm<RoomSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("roomspawn"),
+            new Parameter("spawn"),
             new Parameter("create"),
             new Parameter(Regexes.OBJECT_NAME, "[spawn-rule-name]")
     };

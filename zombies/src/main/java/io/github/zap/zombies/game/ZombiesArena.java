@@ -483,9 +483,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
         if (chestEvent != null) {
             chestEvent.registerHandler(new EventHandler<>() {
-
                 private final Random random = new Random();
-
                 int rolls = 0;
 
                 @Override

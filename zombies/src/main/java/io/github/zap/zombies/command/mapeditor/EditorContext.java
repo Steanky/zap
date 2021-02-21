@@ -248,6 +248,14 @@ public class EditorContext implements Disposable {
         return null;
     }
 
+    public Vector getFirst() {
+        return firstClicked == null ? null : firstClicked.clone();
+    }
+
+    public Vector getSecond() {
+        return secondClicked == null ? getFirst() : secondClicked.clone();
+    }
+
     @Override
     public void dispose() {
         renderer.stop();
