@@ -46,29 +46,13 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final Map<String, MapData> maps = new HashMap<>();
 
     public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, int arenaCapacity,
-                               int arenaTimeout) throws LoadFailureException {
+                               int arenaTimeout) {
         super(NAME, hubLocation);
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
         this.shopManager = new JacksonShopManager();
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
         this.mapLoader = mapLoader;
-
-        File[] files = mapLoader.getRootDirectory().listFiles();
-        if(files != null) {
-            Zombies.info(String.format("Found %s file(s) in the map directory.", files.length));
-            for(File file : files) {
-                MapData map = this.mapLoader.load(FilenameUtils.getBaseName(file.getName()), MapData.class);
-
-                if(map != null) {
-                    maps.put(map.getName(), map);
-                    Zombies.info(String.format("Loaded MapData for '%s'", map.getName()));
-                }
-                else {
-                    throw new LoadFailureException("Unable to properly load some of the provided map data.");
-                }
-            }
-        }
     }
 
     @Override
@@ -189,5 +173,24 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     public List<MapData> getMaps() {
         return new ArrayList<>(maps.values());
+    }
+
+    public void loadMaps() throws LoadFailureException {
+        File[] files = mapLoader.getRootDirectory().listFiles();
+        if(files != null) {
+            Zombies.info(String.format("Found %s file(s) in the map directory.", files.length));
+            
+            for(File file : files) {
+                MapData map = this.mapLoader.load(FilenameUtils.getBaseName(file.getName()), MapData.class);
+
+                if(map != null) {
+                    maps.put(map.getName(), map);
+                    Zombies.info(String.format("Loaded MapData for '%s'", map.getName()));
+                }
+                else {
+                    throw new LoadFailureException("Unable to properly load some of the provided map data.");
+                }
+            }
+        }
     }
 }

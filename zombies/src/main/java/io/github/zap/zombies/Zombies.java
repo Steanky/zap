@@ -81,6 +81,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private LocalizationManager localizationManager;
 
+    @Getter
+    private CommandManager commandManager;
+
     public static final String DEFAULT_LOCALE = "en_US";
     public static final String DEFAULT_LOBBY_WORLD = "world";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
@@ -209,10 +212,9 @@ public final class Zombies extends JavaPlugin implements Listener {
 
                 DataLoader mapLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), MAP_FOLDER_NAME));
 
-                arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
-                        mapLoader, equipmentLoader, config.getInt(ConfigNames.MAX_WORLDS),
-                        config.getInt(ConfigNames.ARENA_TIMEOUT));
-
+                arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn), mapLoader,
+                        equipmentLoader, config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+                arenaManager.loadMaps();
                 arenaApi.registerArenaManager(arenaManager);
             }
             else {
@@ -249,24 +251,11 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initCommands() {
-        CommandManager commandManager = new CommandManager(this);
+        commandManager = new CommandManager(this);
         commandManager.registerCommand(new ZombiesCommand());
         commandManager.registerCommand(new MapeditorCommand());
 
         contextManager = new ContextManager();
-
-        //get DataLoader object used by the map loader. all files for this instance are saved to the maps folder
-        DataLoader loader = Zombies.getInstance().getArenaManager().getMapLoader();
-
-        //load data from file named "test_map". file extensions are managed by dataloader so you shouldn't include them
-        MapData mapData = loader.load("test_map", MapData.class);
-
-        /*
-        ...manipulate mapData here
-         */
-
-        //save the updated data to the same file, whose old contents will be overwritten
-        loader.save(mapData, "test_map");
     }
 
     /*

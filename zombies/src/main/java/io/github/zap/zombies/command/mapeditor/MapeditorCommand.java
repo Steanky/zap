@@ -13,10 +13,11 @@ public class MapeditorCommand extends RegularCommand {
         addForm(new NewMapForm());
         addForm(new NewRoomForm());
         addForm(new NewWindowForm());
-        addForm(new RemoveRoomForm());
+        addForm(new DeleteRoomForm());
         addForm(new WindowBoundsForm());
         addForm(new ExitEditorForm());
         addForm(new NewRoomSpawnpointForm());
         addForm(new NewWindowSpawnpointForm());
+        addForm(new ReloadMapForm());
     }
 }

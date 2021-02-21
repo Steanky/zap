@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.particle.*;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
+import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import lombok.Getter;
 import org.bukkit.Color;
@@ -23,7 +24,8 @@ public class EditorContext implements Disposable {
         MAP(1),
         ROOMS(2),
         WINDOWS(3),
-        WINDOW_BOUNDS(4);
+        WINDOW_BOUNDS(4),
+        SPAWNPOINTS(5);
 
         @Getter
         private final int index;
@@ -49,6 +51,9 @@ public class EditorContext implements Disposable {
 
     private static final Shader WINDOW_BOUNDS_SHADER = new SolidShader(Particle.REDSTONE, 1,
             new Particle.DustOptions(Color.PURPLE, 2));
+
+    private static final Shader SPAWNPOINT_SHADER = new SolidShader(Particle.REDSTONE, 3,
+            new Particle.DustOptions(Color.YELLOW, 1));
 
     private class SelectionRenderable extends ShadedRenderable {
         @Override
@@ -155,6 +160,39 @@ public class EditorContext implements Disposable {
         }
     }
 
+    private class SpawnpointRenderable extends ShadedRenderable {
+        @Override
+        public Shader getShader() {
+            return SPAWNPOINT_SHADER;
+        }
+
+        @Override
+        public VectorProvider vectorProvider() {
+            if(map != null && map.getRooms().size() > 0) {
+                List<VectorProvider> vectorProviders = new ArrayList<>();
+
+                for(RoomData room : map.getRooms()) {
+                    for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
+                        Vector spawn = spawnpoint.getSpawn();
+                        Vector target = spawnpoint.getTarget();
+
+                        if(spawn != null) {
+                            vectorProviders.add(new Cube(BoundingBox.of(spawn, spawn.clone().add(UNIT)), 3));
+                        }
+
+                        if(target != null) {
+                            vectorProviders.add(new Cube(BoundingBox.of(target, target.clone().add(UNIT)), 3));
+                        }
+                    }
+                }
+
+                return new CompositeProvider(vectorProviders.toArray(EMPTY_VECTOR_PROVIDER_ARRAY));
+            }
+
+            return null;
+        }
+    }
+
     private final List<Renderable> renderables = new ArrayList<>();
 
     @Getter
@@ -177,6 +215,7 @@ public class EditorContext implements Disposable {
         addRenderable(new RoomRenderable());
         addRenderable(new WindowRenderable());
         addRenderable(new WindowBoundsRenderable());
+        addRenderable(new SpawnpointRenderable());
         renderer.start();
     }
 

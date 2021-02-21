@@ -15,11 +15,6 @@ public final class MapeditorValidators {
             new CommandValidator<>((context, arguments, previousData) -> {
         Zombies zombies = Zombies.getInstance();
         EditorContext editorContext = zombies.getContextManager().getContext(previousData);
-
-        if(editorContext == null) {
-            return ValidationResult.of(false, "You need an editor session to use this command.", null);
-        }
-
         return ValidationResult.of(true, null, new EditorContextData(previousData, editorContext));
     }, Validators.PLAYER_EXECUTOR);
 

@@ -22,7 +22,7 @@ import org.bukkit.util.BoundingBox;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RemoveRoomForm extends CommandForm<RoomDeletionData> {
+public class DeleteRoomForm extends CommandForm<RoomDeletionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("room"),
             new Parameter("remove"),
@@ -30,7 +30,7 @@ public class RemoveRoomForm extends CommandForm<RoomDeletionData> {
                     Lists.newArrayList("true", "false"))
     };
 
-    public RemoveRoomForm() {
+    public DeleteRoomForm() {
         super("Removes a room.", Permissions.OPERATOR, parameters);
     }
 
@@ -106,8 +106,11 @@ public class RemoveRoomForm extends CommandForm<RoomDeletionData> {
             }
         }
 
-        data.getContext().updateRenderable(EditorContext.Renderables.ROOMS);
-        data.getContext().updateRenderable(EditorContext.Renderables.WINDOWS);
+        EditorContext editorContext = data.getContext();
+        editorContext.updateRenderable(EditorContext.Renderables.ROOMS);
+        editorContext.updateRenderable(EditorContext.Renderables.WINDOWS);
+        editorContext.updateRenderable(EditorContext.Renderables.SPAWNPOINTS);
+        editorContext.updateRenderable(EditorContext.Renderables.WINDOW_BOUNDS);
 
         return "Removed " + j + " bounds.";
     }

@@ -5,6 +5,7 @@ import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.zap.zombies.command.mapeditor.EditorContext;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.RoomSelectionData;
@@ -30,6 +31,7 @@ public class NewRoomSpawnpointForm extends CommandForm<RoomSelectionData> {
     public String execute(Context context, Object[] arguments, RoomSelectionData data) {
         data.getRoom().getSpawnpoints().add(new SpawnpointData(data.getContext().getTarget(), null, null,
                 (String)arguments[2]));
+        data.getContext().updateRenderable(EditorContext.Renderables.SPAWNPOINTS);
         return "Added spawnpoint.";
     }
 }

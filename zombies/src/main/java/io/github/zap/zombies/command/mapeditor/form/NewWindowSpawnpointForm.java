@@ -56,6 +56,7 @@ public class NewWindowSpawnpointForm extends CommandForm<WindowSelectionData> {
         EditorContext editorContext = data.getContext();
         data.getRoom().getSpawnpoints().add(new SpawnpointData(editorContext.getFirst(), editorContext.getSecond(),
                 data.getWindow().getCenter(), (String)arguments[3]));
+        editorContext.updateRenderable(EditorContext.Renderables.SPAWNPOINTS);
         return "Added spawnpoint to window.";
     }
 }
