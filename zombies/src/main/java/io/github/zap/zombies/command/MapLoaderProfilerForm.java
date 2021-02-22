@@ -8,6 +8,7 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.Zombies;
 import org.apache.commons.lang3.Range;
@@ -24,32 +25,35 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
-public class MapLoaderProfilerForm extends CommandForm {
+public class MapLoaderProfilerForm extends CommandForm<Object> {
     private static final Parameter[] parameters = {
-            new Parameter("^(profile)$", "profile"),
-            new Parameter("^(maploader)$", "maploader"),
+            new Parameter("profile"),
+            new Parameter("maploader"),
             new Parameter("^(\\d+)$", "[iterations]", Converters.INTEGER_CONVERTER),
-            new Parameter("^([a-zA-Z0-9_]+)$", "[world]")
+            new Parameter("^([a-zA-Z0-9_ ]+)$", "[world]")
     };
 
-    private static final CommandValidator validator;
+    private static final Range<Integer> values = Range.between(1, 50);
+    private static final CommandValidator<Object, ?> validator = new CommandValidator<>((context, arguments, previousData) -> {
+        String worldName = (String)arguments[3];
+        if(Zombies.getInstance().getWorldLoader().worldExists(worldName)) {
+            return ValidationResult.of(true, null, null);
+        }
+
+        return ValidationResult.of(false, String.format("World '%s' doesn't exist.", worldName), null);
+    }, new CommandValidator<>((context, arguments, previousData) -> {
+        int value = (int)arguments[2];
+
+        if(values.contains(value)) {
+            return ValidationResult.of(false, String.format("Value '%s' is out of range for this command.", value), null);
+        }
+
+        return ValidationResult.of(true, null, null);
+    }, Validators.PLAYER_EXECUTOR));
+
     private static final Semaphore profilerSemaphore = new Semaphore(1);
     private static final StopWatch profiler = new StopWatch();
     private static final ExecutorService service = Executors.newSingleThreadExecutor();
-
-    static {
-        validator = new CommandValidator((context, arguments) -> {
-            String worldName = (String)arguments[3];
-            if(Zombies.getInstance().getWorldLoader().worldExists(worldName)) {
-                return ImmutablePair.of(true, null);
-            }
-
-            return ImmutablePair.of(false, String.format("World '%s' doesn't exist.", worldName));
-        });
-
-        validator.chain(Validators.newRangeValidator(Range.between(1, 50), 2))
-                .chain(Validators.PLAYER_EXECUTOR);
-    }
 
     public MapLoaderProfilerForm() {
         super("Debug command for profiling map loading.", new PermissionData(true), parameters);
@@ -61,12 +65,12 @@ public class MapLoaderProfilerForm extends CommandForm {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<Object, ?> getValidator(Context context, Object[] arguments) {
         return validator;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
+    public String execute(Context context, Object[] arguments, Object data) {
         if(profilerSemaphore.tryAcquire()) { //only one instance of the profiler can run at a time
             Player player = (Player)context.getSender(); //validation ensures that this will never throw ClassCastException
             int iterations = (int)arguments[2];

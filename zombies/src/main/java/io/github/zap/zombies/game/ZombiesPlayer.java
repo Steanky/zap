@@ -22,7 +22,7 @@ import org.bukkit.event.Listener;
 import java.util.Map;
 import java.util.Set;
 
-public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Listener {
+public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Getter
     private final ZombiesArena arena;
 
@@ -96,6 +96,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         state = ZombiesPlayerState.DEAD;
         getPlayer().setGameMode(GameMode.SPECTATOR);
+
+        perks.activateAll();
     }
 
     @Override
@@ -142,7 +144,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Knocks down this player.
      */
     public void knock() {
-        if(state == ZombiesPlayerState.ALIVE) {
+        if(state == ZombiesPlayerState.ALIVE && isInGame()) {
             state = ZombiesPlayerState.KNOCKED;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
@@ -155,7 +157,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Revives this player.
      */
     public void revive() {
-        if(state == ZombiesPlayerState.KNOCKED) {
+        if(state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.ALIVE;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
@@ -168,9 +170,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Respawns the player at the map spawn. Also revives them, if they were knocked down.
      */
     public void respawn() {
-        revive();
-        state = ZombiesPlayerState.ALIVE;
-        getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
+        if(isInGame()) {
+            revive();
+            state = ZombiesPlayerState.ALIVE;
+            getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
+        }
     }
 
     /**
@@ -203,18 +207,18 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private void tryRepairWindow(WindowData targetWindow) {
         Property<Entity> attackingEntityProperty = targetWindow.getAttackingEntityProperty();
 
-        if(attackingEntityProperty.get(arena) == null) {
+        if(attackingEntityProperty.getValue(arena) == null) {
             Property<ZombiesPlayer> currentRepairerProperty = targetWindow.getRepairingPlayerProperty();
-            ZombiesPlayer currentRepairer = currentRepairerProperty.get(arena);
+            ZombiesPlayer currentRepairer = currentRepairerProperty.getValue(arena);
 
             if(currentRepairer == null) {
                 currentRepairer = this;
-                currentRepairerProperty.set(arena, this);
+                currentRepairerProperty.setValue(arena, this);
             }
 
             if(currentRepairer == this) {
                 //advance repair state
-                int previousIndex = targetWindow.getCurrentIndexProperty().get(arena);
+                int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
                 int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
                 if(blocksRepaired > 0) { //break the actual blocks
                     for(int i = previousIndex; i <= previousIndex + blocksRepaired; i++) {
