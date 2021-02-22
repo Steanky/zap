@@ -36,6 +36,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
@@ -161,6 +162,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @return A list of SpawnpointData objects that have been properly filtered.
          */
         private List<SpawnpointData> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
+            BoundingBox bounds = new BoundingBox().expand(0);
             return map.getRooms().stream()
                     .filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE || roomData.getOpenProperty()
                             .getValue(ZombiesArena.this))

@@ -1,15 +1,11 @@
 package io.github.zap.zombies.command.mapeditor.form;
 
-import com.google.common.collect.Lists;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
-import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
-import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
-import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
@@ -23,9 +19,7 @@ import java.util.List;
 public class DeleteObjectForm extends CommandForm<MapSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("object"),
-            new Parameter("remove"),
-            new Parameter(Regexes.BOOLEAN, "[delete-all]", "false", Converters.BOOLEAN_CONVERTER,
-                    Lists.newArrayList("true", "false"))
+            new Parameter("remove")
     };
 
     public DeleteObjectForm() {
@@ -57,11 +51,16 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
             for(int boundsIndex = roomBounds.size() - 1; boundsIndex > -1; boundsIndex--) {
                 BoundingBox bounds = roomBounds.get(boundsIndex);
 
+                if(selection.contains(bounds)) {
+                    roomBounds.remove(boundsIndex);
+                    removedObjects++;
+                }
+
                 List<WindowData> windows = room.getWindows();
                 for(int windowIndex = windows.size() - 1; windowIndex > -1; windowIndex--) {
                     WindowData window = windows.get(windowIndex);
 
-                    if(bounds.contains(window.getFaceBounds())) {
+                    if(selection.contains(window.getFaceBounds())) {
                         windows.remove(windowIndex);
                         removedObjects += window.getInteriorBounds().size() + 1;
 
