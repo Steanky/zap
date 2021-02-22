@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.game.MultiBoundingBox;
 import lombok.Getter;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,16 +13,16 @@ import java.util.List;
 @Getter
 public class DoorSide {
 
-   private int cost;
+   private int cost = 0;
 
-   private List<String> opensTo;
+   private List<String> opensTo = new ArrayList<>();
 
-   private MultiBoundingBox triggerBounds;
+   private MultiBoundingBox triggerBounds = new MultiBoundingBox();
 
    private Vector hologramLocation;
 
-   private DoorSide() {
-
+   public DoorSide(Vector hologramLocation) {
+      this.hologramLocation = hologramLocation;
    }
 
 }
