@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hologram.HologramReplacement;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.localization.LocalizationManager;
@@ -25,13 +25,13 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
     @Override
     protected void displayTo(Player player) {
-        Hologram hologram = getHologram();
+        HologramReplacement hologram = getHologram();
 
         LocalizationManager localizationManager = getLocalizationManager();
-        hologram.setLineFor(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString()
+        hologram.updateLineForPlayer(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString()
                 + localizationManager.getLocalizedMessageFor(player, MessageKey.ULTIMATE_MACHINE.getKey()));
 
-        hologram.setLineFor(player, 1,
+        hologram.updateLineForPlayer(player, 1,
                 getShopData().isRequiresPower() && !isPowered()
                         ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
                         + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())

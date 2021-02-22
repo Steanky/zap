@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hologram.HologramReplacement;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -32,6 +33,9 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
         super(zombiesArena, shopData);
 
         this.inventory = prepareInventory();
+
+        HologramReplacement hologram = getHologram();
+        hologram.updateLine(0);
     }
 
     @Override
@@ -71,13 +75,13 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
 
     @Override
     protected void displayTo(Player player) {
-        Hologram hologram = getHologram();
+        HologramReplacement hologram = getHologram();
 
         LocalizationManager localizationManager = getLocalizationManager();
-        hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() +
+        hologram.updateLineForPlayer(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() +
                 localizationManager.getLocalizedMessageFor(player, MessageKey.TEAM_MACHINE.getKey()));
 
-        hologram.setLine(1,
+        hologram.updateLineForPlayer(player, 1,
                 getShopData().isRequiresPower() && !isPowered()
                         ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
                         + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())

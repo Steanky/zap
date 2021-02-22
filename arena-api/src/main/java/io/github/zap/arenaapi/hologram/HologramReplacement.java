@@ -9,6 +9,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.ArenaApi;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,6 +28,7 @@ public class HologramReplacement {
 
     private final ArenaApi arenaApi;
 
+    @Getter
     private final List<HologramLine<?>> hologramLines = new ArrayList<>();
 
     private final double lineSpace;
@@ -79,9 +81,12 @@ public class HologramReplacement {
     }
 
     public void addLine(String text) {
-        hologramLines.add(
-                createTextLine(rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0), text)
+        TextLine textLine = createTextLine(
+                rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),
+                text
         );
+        hologramLines.add(textLine);
+        TEXT_LINE_SET.add(textLine.getEntityId());
     }
 
     private TextLine createTextLine(Location location, String text) {
@@ -156,6 +161,30 @@ public class HologramReplacement {
         } else {
 
         }
+    }
+
+    public void renderToPlayer(Player player) {
+        for (HologramLine<?> hologramLine : hologramLines) {
+            hologramLine.createVisualForPlayer(player);
+            hologramLine.updateVisualForPlayer(player);
+        }
+    }
+
+    public void destroy() {
+        int idCount = hologramLines.size();
+
+        int[] ids = new int[idCount];
+        for (int i = 0; i < idCount; i++) {
+            ids[i] = hologramLines.get(0).getEntityId();
+            hologramLines.remove(0);
+        }
+
+        for (Player player : rootLocation.getWorld().getPlayers()) {
+            PacketContainer killPacketContainer = getKillPacketContainer(ids);
+            arenaApi.sendPacketToPlayer(player, killPacketContainer);
+        }
+
+        TEXT_LINE_SET.clear();
     }
 
     private PacketContainer getKillPacketContainer(int id) {

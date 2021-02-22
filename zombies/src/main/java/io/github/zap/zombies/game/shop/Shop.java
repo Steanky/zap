@@ -75,7 +75,9 @@ public abstract class Shop<D extends ShopData> {
      * Displays the shop to a single player
      * @param player THe player to display the shop to
      */
-    protected abstract void displayTo(Player player);
+    protected void displayTo(Player player) {
+
+    }
 
     /**
      * Attempts to purchase an item for a player
