@@ -7,6 +7,7 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
@@ -45,8 +46,14 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
         List<RoomData> rooms = map.getRooms();
         for(int roomIndex = rooms.size() - 1; roomIndex > -1; roomIndex--) {
             RoomData room = rooms.get(roomIndex);
-
             List<BoundingBox> roomBounds = room.getBounds().getList();
+
+            if(room.getBounds().inside(selection)) {
+                map.getRooms().remove(roomIndex);
+                removedObjects += roomBounds.size() + room.getWindows().size() + room.getSpawnpoints().size() + 1;
+                continue;
+            }
+
             for(int boundsIndex = roomBounds.size() - 1; boundsIndex > -1; boundsIndex--) {
                 BoundingBox bounds = roomBounds.get(boundsIndex);
 
@@ -72,6 +79,7 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
                                 }
                             }
                         }
+
                         continue;
                     }
 
@@ -99,11 +107,10 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
                     }
                 }
             }
+        }
 
-            if(roomBounds.size() == 0) {
-                map.getRooms().remove(roomIndex);
-                removedObjects++;
-            }
+        if(removedObjects > 0) {
+            data.getContext().updateAllRenderables();
         }
 
         return "Removed " + removedObjects + " objects.";
