@@ -26,10 +26,7 @@ public class NewDoorSideForm extends CommandForm<DoorSelectionData> {
             new Parameter("side"),
             new Parameter(Regexes.NON_NEGATIVE_INTEGER, "[door-index]", Converters.INTEGER_CONVERTER),
             new Parameter(Regexes.STRING_LIST, "[opens-to]", Converters.newArrayConverter(argument ->
-                    ConversionResult.of(true, argument, null), ",", String.class)),
-            new Parameter(Regexes.INTEGER, "[x]", Converters.DOUBLE_CONVERTER),
-            new Parameter(Regexes.INTEGER, "[y]", Converters.DOUBLE_CONVERTER),
-            new Parameter(Regexes.INTEGER, "[z]", Converters.DOUBLE_CONVERTER),
+                    ConversionResult.of(true, argument, null), ",", String.class))
     };
 
     private static final CommandValidator<DoorSelectionData, MapSelectionData> validator =
@@ -44,19 +41,17 @@ public class NewDoorSideForm extends CommandForm<DoorSelectionData> {
 
         DoorData targetDoor = doors.get(index);
         for(DoorData door : doors) {
-            if(door != targetDoor) {
-                for(DoorSide side : door.getDoorSides()) {
-                    if(side.getTriggerBounds().overlaps(previousData.getSelection())) {
-                        return ValidationResult.of(false,
-                                "Trigger bounds cannot overlap triggers from other doors!", null);
-                    }
+            for(DoorSide side : door.getDoorSides()) {
+                if(side.getTriggerBounds().overlaps(previousData.getSelection())) {
+                    return ValidationResult.of(false,
+                            "Trigger bounds cannot overlap other triggers!", null);
                 }
             }
         }
 
         return ValidationResult.of(true, null, new DoorSelectionData(previousData.getPlayer(),
                 previousData.getContext(), previousData.getSelection(), previousData.getMap(), targetDoor));
-    }, MapeditorValidators.HAS_MAP_SELECTION);
+    }, MapeditorValidators.HAS_ROOM_SELECTION);
 
     public NewDoorSideForm() {
         super("Creates a new door side.", Permissions.OPERATOR, parameters);
@@ -71,7 +66,7 @@ public class NewDoorSideForm extends CommandForm<DoorSelectionData> {
     public String execute(Context context, Object[] arguments, DoorSelectionData data) {
         DoorData door = data.getDoor();
         DoorSide newSide = new DoorSide(0, Arrays.asList((String[])arguments[3]), data.getSelection(),
-                new Vector((double)arguments[4], (double)arguments[5], (double)arguments[6]));
+                data.getPlayer().getLocation().toVector());
         door.getDoorSides().add(newSide);
         data.getContext().updateRenderable(EditorContext.Renderables.DOOR_TRIGGERS);
         return "Added new door side.";

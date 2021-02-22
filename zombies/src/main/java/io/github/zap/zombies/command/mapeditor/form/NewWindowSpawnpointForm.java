@@ -15,6 +15,7 @@ import io.github.zap.zombies.command.mapeditor.form.data.WindowSelectionData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.perk.PerkType;
 
 import java.util.List;
 

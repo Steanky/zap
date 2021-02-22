@@ -3,10 +3,12 @@ package io.github.zap.zombies.command.mapeditor.form;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
+import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.command.mapeditor.EditorContext;
+import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.DoorSelectionData;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
@@ -18,7 +20,7 @@ public class NewDoorForm extends CommandForm<DoorSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("door"),
             new Parameter("addbounds"),
-            new Parameter(Regexes.NON_NEGATIVE_INTEGER, "[door-index]")
+            new Parameter(Regexes.NON_NEGATIVE_INTEGER, "[door-index]", Converters.INTEGER_CONVERTER)
     };
 
     private static final CommandValidator<DoorSelectionData, MapSelectionData> validator =
@@ -30,12 +32,18 @@ public class NewDoorForm extends CommandForm<DoorSelectionData> {
             return ValidationResult.of(false, "Index out of bounds!", null);
         }
 
-        DoorData target = index == doors.size() ? new DoorData() : doors.get(index);
-        previousData.getMap().getDoors().add(target);
+        DoorData door;
+        if(index == doors.size()) {
+            door = new DoorData();
+            previousData.getMap().getDoors().add(door);
+        }
+        else {
+            door = doors.get(index);
+        }
 
         return ValidationResult.of(true, null, new DoorSelectionData(previousData.getPlayer(),
-                previousData.getContext(), previousData.getSelection(), previousData.getMap(), target));
-    });
+                previousData.getContext(), previousData.getSelection(), previousData.getMap(), door));
+    }, MapeditorValidators.HAS_ROOM_SELECTION);
 
     public NewDoorForm() {
         super("Creates a new door.", Permissions.OPERATOR, parameters);
