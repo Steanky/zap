@@ -13,9 +13,11 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ShopData {
 
-    String type;
+    String type = "none";
 
-    boolean requiresPower;
+    boolean requiresPower = false;
 
-    protected ShopData() {}
+    public ShopData() {
+        
+    }
 }
