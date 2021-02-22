@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.equipment.gun.logic;
 
 import com.google.common.collect.Sets;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
+import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
@@ -26,6 +27,7 @@ public class BasicBeam {
     private final static Set<Material> AIR_MATERIALS =
             Sets.newHashSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
 
+    private final MapData mapData;
     private final World world;
     private final Vector root;
     private final Vector directionVector;
@@ -36,7 +38,8 @@ public class BasicBeam {
     private final double knockbackFactor;
 
 
-    public BasicBeam(Location root, LinearGunLevel level) {
+    public BasicBeam(MapData mapData, Location root, LinearGunLevel level) {
+        this.mapData = mapData;
         this.world = root.getWorld();
         this.root = root.toVector();
         this.directionVector = root.getDirection();
@@ -86,7 +89,7 @@ public class BasicBeam {
             targetBlock = iterator.next();
 
             Material material = targetBlock.getType();
-            if (!AIR_MATERIALS.contains(material)) {
+            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) != null) {
                 break;
             }
         }
@@ -178,11 +181,11 @@ public class BasicBeam {
      */
     private void replaceFarthestEnqueuedEntities(Queue<ImmutablePair<RayTraceResult, Double>> queue,
                                                  Iterator<Entity> iterator) {
-        double maxDist = (queue.size() > 0) ? queue.peek().getRight() : 1.7976931348623157E308D;
+        double maxDist = (queue.size() > 0) ? queue.peek().getRight() : Double.POSITIVE_INFINITY;
 
         while (iterator.hasNext()) {
             Entity entity = iterator.next();
-            BoundingBox boundingBox = entity.getBoundingBox().expand(0.0D);
+            BoundingBox boundingBox = entity.getBoundingBox();
             RayTraceResult hitResult = boundingBox.rayTrace(root, directionVector, distance);
 
             if (hitResult != null) {
@@ -239,6 +242,6 @@ public class BasicBeam {
         Vector hitPosition = rayTraceResult.getHitPosition();
         double yPos = hitPosition.getY();
 
-        return  (2 * eyeY - heightY <= yPos && yPos <= heightY);
+        return (2 * eyeY - heightY <= yPos && yPos <= heightY);
     }
 }

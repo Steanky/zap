@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunLevel;
+import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -23,15 +24,16 @@ public class ZapperBeam extends LinearBeam {
 
     private final double maxChainDistance;
 
-    public ZapperBeam(Location root, Particle particle, ZapperGunLevel zapperGunLevel, int particleCount) {
-        super(root, particle, zapperGunLevel, particleCount);
+    public ZapperBeam(MapData mapData, Location root, Particle particle, ZapperGunLevel zapperGunLevel,
+                      int particleCount) {
+        super(mapData, root, particle, zapperGunLevel, particleCount);
 
         this.maxChainedEntities = zapperGunLevel.getMaxChainedEntities();
         this.maxChainDistance = zapperGunLevel.getMaxChainDistance();
     }
 
-    public ZapperBeam(Location root, Particle particle, ZapperGunLevel zapperGunLevel) {
-        this(root, particle, zapperGunLevel, DEFAULT_PARTICLE_COUNT);
+    public ZapperBeam(MapData mapData, Location root, Particle particle, ZapperGunLevel zapperGunLevel) {
+        this(mapData, root, particle, zapperGunLevel, DEFAULT_PARTICLE_COUNT);
     }
 
     @Override
