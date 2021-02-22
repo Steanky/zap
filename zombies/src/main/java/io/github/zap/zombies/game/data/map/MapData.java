@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -198,6 +199,11 @@ public class MapData {
     List<RoomData> rooms = new ArrayList<>();
 
     /**
+     * All doors in this map
+     */
+    List<DoorData> doors = new ArrayList<>();
+
+    /**
      * All the shops managed by this map
      */
     List<ShopData> shops = new ArrayList<>();
@@ -294,17 +300,5 @@ public class MapData {
         }
 
         return null;
-    }
-
-    public boolean checkOverlap(String roomName, BoundingBox newRoomBounds) {
-        for(RoomData room : rooms) {
-            if(!room.getName().equals(roomName)) {
-                if(room.getBounds().getList().stream().anyMatch(boundingBox -> boundingBox.overlaps(newRoomBounds))) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 }

@@ -22,7 +22,7 @@ public class NewWindowSpawnpointForm extends CommandForm<WindowSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("spawn"),
             new Parameter("create"),
-            new Parameter(Regexes.NON_NEGATIVE_NUMBER, "[window-index]", Converters.INTEGER_CONVERTER),
+            new Parameter(Regexes.NON_NEGATIVE_INTEGER, "[window-index]", Converters.INTEGER_CONVERTER),
             new Parameter(Regexes.OBJECT_NAME, "[rule-name]")
     };
 

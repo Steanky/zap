@@ -18,7 +18,7 @@ public class WindowBoundsForm extends CommandForm<WindowSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("window"),
             new Parameter("addbounds"),
-            new Parameter(Regexes.NON_NEGATIVE_NUMBER, "[target-index]", Converters.INTEGER_CONVERTER)
+            new Parameter(Regexes.NON_NEGATIVE_INTEGER, "[target-index]", Converters.INTEGER_CONVERTER)
     };
 
     private static final CommandValidator<WindowSelectionData, RoomSelectionData> validator =
