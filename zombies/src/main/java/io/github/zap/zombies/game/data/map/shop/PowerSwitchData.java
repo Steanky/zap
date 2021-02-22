@@ -1,17 +1,17 @@
 package io.github.zap.zombies.game.data.map.shop;
 
 import lombok.Getter;
+import org.bukkit.util.Vector;
 
 /**
  * Data for a power switch
  */
+@Getter
 public class PowerSwitchData extends BlockShopData {
 
-    @Getter
-    private int cost;
+    private int cost = 0;
 
-    private PowerSwitchData() {
-
+    public PowerSwitchData(Vector blockLocation, Vector hologramLocation) {
+        super(blockLocation, hologramLocation);
     }
-
 }

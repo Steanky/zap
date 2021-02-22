@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.data.map.shop;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 /**
@@ -12,12 +11,8 @@ import org.bukkit.util.Vector;
 @AllArgsConstructor
 public class ArmorStandShopData extends ShopData {
 
-    Vector blockLocation;
+    Vector rootLocation;
 
-    BlockFace blockFace;
-
-    protected ArmorStandShopData() {
-
-    }
+    Vector hologramLocation;
 
 }

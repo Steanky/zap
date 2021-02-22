@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,13 +14,15 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class DoorSide {
-   private int cost;
+   private int cost = 0;
 
-   private List<String> opensTo;
+   private List<String> opensTo = new ArrayList<>();
 
-   private BoundingBox triggerBounds;
+   private BoundingBox triggerBounds = new MultiBoundingBox();
 
    private Vector hologramLocation;
 
-   private DoorSide() { }
+   public DoorSide(Vector hologramLocation) {
+      this.hologramLocation = hologramLocation;
+   }
 }

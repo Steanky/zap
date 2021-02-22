@@ -2,7 +2,9 @@ package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.zombies.game.perk.PerkType;
 import lombok.Getter;
+import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,12 +13,11 @@ import java.util.List;
 @Getter
 public class PerkMachineData extends BlockShopData {
 
-    private PerkType perkType;
+    private PerkType perkType = PerkType.DEFAULT;
 
-    private List<Integer> costs;
+    private List<Integer> costs = new ArrayList<>();
 
-    private PerkMachineData() {
-
+    public PerkMachineData(Vector blockLocation, Vector hologramLocation) {
+        super(blockLocation, hologramLocation);
     }
-
 }
