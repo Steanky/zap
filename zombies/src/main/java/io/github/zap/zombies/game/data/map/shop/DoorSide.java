@@ -18,7 +18,7 @@ public class DoorSide {
 
    private List<String> opensTo = new ArrayList<>();
 
-   private BoundingBox triggerBounds = new MultiBoundingBox();
+   private BoundingBox triggerBounds = new BoundingBox();
 
    private Vector hologramLocation;
 

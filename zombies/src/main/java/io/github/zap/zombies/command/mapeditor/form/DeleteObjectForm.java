@@ -11,6 +11,8 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.data.map.shop.DoorData;
+import io.github.zap.zombies.game.data.map.shop.DoorSide;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -38,6 +40,27 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
         MapData map = data.getMap();
         BoundingBox selection = data.getSelection();
         List<RoomData> rooms = map.getRooms();
+        List<DoorData> doors = map.getDoors();
+        for(int doorIndex = doors.size() - 1; doorIndex > -1; doorIndex--) {
+            DoorData door = doors.get(doorIndex);
+
+            if(door.getDoorBounds().inside(selection)) {
+                doors.remove(doorIndex);
+                removedObjects += door.getDoorSides().size() + 1;
+                continue;
+            }
+
+            List<DoorSide> sides = door.getDoorSides();
+            for(int doorSideIndex = sides.size() - 1; doorSideIndex > -1; doorSideIndex--) {
+                DoorSide side = sides.get(doorSideIndex);
+
+                if(selection.contains(side.getTriggerBounds())) {
+                    sides.remove(doorSideIndex);
+                    removedObjects++;
+                }
+            }
+        }
+
         for(int roomIndex = rooms.size() - 1; roomIndex > -1; roomIndex--) {
             RoomData room = rooms.get(roomIndex);
             List<BoundingBox> roomBounds = room.getBounds().getList();
