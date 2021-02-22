@@ -5,42 +5,36 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 @RequiredArgsConstructor
-public class MapContainer<K, V> implements Container<K, V> {
-    private final Map<K, V> map;
-    private final Class<K> keyClass;
+public class SetContainer<V> implements Container<V, V> {
+    private final Set<V> set;
     private final Class<V> valueClass;
 
     @Override
     public int size() {
-        return map.size();
+        return set.size();
     }
 
     @Override
-    public V get(K value) {
-        return map.get(value);
-    }
-
-    @Override
-    public void set(K key, V value) {
-        map.put(key, value);
-    }
-
-    @Override
-    public void add(V value) {
+    public V get(V value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean remove(K key) {
-        if(map.containsKey(key)) {
-            map.remove(key);
-            return true;
-        }
+    public void set(V key, V value) {
+        throw new UnsupportedOperationException();
+    }
 
-        return false;
+    @Override
+    public void add(V value) {
+        set.add(value);
+    }
+
+    @Override
+    public boolean remove(V key) {
+        return set.remove(key);
     }
 
     @Override
@@ -60,22 +54,22 @@ public class MapContainer<K, V> implements Container<K, V> {
 
     @Override
     public boolean canAppend() {
-        return false;
+        return true;
     }
 
     @Override
-    public Collection<K> keys() {
-        return map.keySet();
+    public Collection<V> keys() {
+        return set;
     }
 
     @Override
     public Collection<V> values() {
-        return map.values();
+        return set;
     }
 
     @Override
-    public Class<K> keyClass() {
-        return keyClass;
+    public Class<V> keyClass() {
+        return valueClass;
     }
 
     @Override
@@ -86,6 +80,6 @@ public class MapContainer<K, V> implements Container<K, V> {
     @NotNull
     @Override
     public Iterator<V> iterator() {
-        return map.values().iterator();
+        return set.iterator();
     }
 }

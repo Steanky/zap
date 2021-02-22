@@ -38,6 +38,22 @@ public class MultiBoundingBox implements Iterable<BoundingBox> {
         return false;
     }
 
+    /**
+     * Returns true if all bounds for this MultiBoundingBox are contained in the given BoundingBox. Returns false
+     * otherwise
+     * @param other The bounds to check
+     * @return True if this MultiBoundingBox is inside the given bounds; false otherwise
+     */
+    public boolean inside(BoundingBox other) {
+        for(BoundingBox boundingBox : boundingBoxes) {
+            if(!other.contains(boundingBox)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private boolean contains(BoundingBox test, List<BoundingBox> sampleList) {
         for(int i = sampleList.size() - 1; i >= 0; i--) {
             BoundingBox sample = sampleList.get(i);

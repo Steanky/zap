@@ -11,13 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ListContainer<V> implements Container<Integer, V> {
     private final List<V> list;
-    private final String name;
     private final Class<V> valueClass;
-
-    @Override
-    public String name() {
-        return name;
-    }
 
     @Override
     public int size() {
@@ -31,12 +25,43 @@ public class ListContainer<V> implements Container<Integer, V> {
 
     @Override
     public void set(Integer key, V value) {
-        list.set(key, value);
+        if(key == list.size()) {
+            list.add(value);
+        }
+        else {
+            list.set(key, value);
+        }
     }
 
     @Override
     public void add(V value) {
         list.add(value);
+    }
+
+    @Override
+    public boolean remove(Integer key) {
+        list.remove((int)key);
+        return true;
+    }
+
+    @Override
+    public boolean fixedSize() {
+        return false;
+    }
+
+    @Override
+    public boolean readOnly() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsIndexing() {
+        return true;
+    }
+
+    @Override
+    public boolean canAppend() {
+        return true;
     }
 
     @Override

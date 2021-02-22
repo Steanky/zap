@@ -176,10 +176,12 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     public void loadMaps() throws LoadFailureException {
+        Zombies.info("Loading maps. Changes will not apply to existing map data.");
+
         File[] files = mapLoader.getRootDirectory().listFiles();
         if(files != null) {
             Zombies.info(String.format("Found %s file(s) in the map directory.", files.length));
-            
+
             for(File file : files) {
                 MapData map = this.mapLoader.load(FilenameUtils.getBaseName(file.getName()), MapData.class);
 

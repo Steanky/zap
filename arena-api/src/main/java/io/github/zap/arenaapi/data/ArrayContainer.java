@@ -11,16 +11,10 @@ import java.util.Iterator;
 @RequiredArgsConstructor
 public class ArrayContainer<V> implements Container<Integer, V> {
     private final V[] array;
-    private final String name;
     private final Class<V> valueClass;
 
     private Collection<V> backingCollection;
     private Collection<Integer> keys;
-
-    @Override
-    public String name() {
-        return name;
-    }
 
     @Override
     public int size() {
@@ -35,6 +29,37 @@ public class ArrayContainer<V> implements Container<Integer, V> {
     @Override
     public void set(Integer key, V value) {
         array[key] = value;
+    }
+
+    @Override
+    public void add(V value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(Integer key) {
+        array[key] = null;
+        return true;
+    }
+
+    @Override
+    public boolean fixedSize() {
+        return true;
+    }
+
+    @Override
+    public boolean readOnly() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsIndexing() {
+        return true;
+    }
+
+    @Override
+    public boolean canAppend() {
+        return false;
     }
 
     @Override
