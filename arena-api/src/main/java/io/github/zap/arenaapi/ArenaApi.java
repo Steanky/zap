@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi;
 
 import com.comphenix.protocol.ProtocolLib;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
@@ -10,10 +12,12 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -115,6 +119,26 @@ public final class ArenaApi extends JavaPlugin {
             throw new LoadFailureException(String.format("Required plugin %s cannot be found.", pluginName));
         }
     }
+
+    public void sendPacketToPlayer(Plugin plugin, Player player, PacketContainer packetContainer) {
+        try {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packetContainer);
+        } catch (InvocationTargetException e) {
+            plugin.getLogger().log(
+                    Level.WARNING,
+                    String.format(
+                            "Error sending packet of type '%s' to player '%s'",
+                            packetContainer.getType().name(),
+                            player.getName()
+                    )
+            );
+        }
+    }
+
+    public void sendPacketToPlayer(Player player, PacketContainer packetContainer) {
+        sendPacketToPlayer(this, player, packetContainer);
+    }
+
 
     /**
      * Logs a message with this plugin, at the specified level.

@@ -13,6 +13,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
 
+import static com.comphenix.protocol.ProtocolLibrary.getProtocolManager;
+
 public class ItemLine extends HologramLine<Material> {
 
     public ItemLine(Location location) {
@@ -24,7 +26,7 @@ public class ItemLine extends HologramLine<Material> {
         NMSProxy nmsProxy = getNmsProxy();
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
-        packetContainer.getIntegers().write(0, getId());
+        packetContainer.getIntegers().write(0, getEntityId());
         packetContainer.getIntegers().write(1, nmsProxy.getEntityTypeId(EntityType.DROPPED_ITEM));
         packetContainer.getUUIDs().write(0, nmsProxy.randomUUID());
 
@@ -57,7 +59,7 @@ public class ItemLine extends HologramLine<Material> {
 
     private PacketContainer createItemUpdatePacket(Material material) {
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
-        packetContainer.getIntegers().write(0, getId());
+        packetContainer.getIntegers().write(0, getEntityId());
 
         WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
 

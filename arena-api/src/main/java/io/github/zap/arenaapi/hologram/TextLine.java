@@ -24,7 +24,7 @@ public class TextLine extends HologramLine<String> {
         NMSProxy nmsProxy = getNmsProxy();
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
-        packetContainer.getIntegers().write(0, getId());
+        packetContainer.getIntegers().write(0, getEntityId());
         packetContainer.getIntegers().write(1, nmsProxy.getEntityTypeId(EntityType.ARMOR_STAND));
         packetContainer.getUUIDs().write(0, nmsProxy.randomUUID());
 
@@ -57,7 +57,7 @@ public class TextLine extends HologramLine<String> {
 
     private PacketContainer createLineUpdatePacket(String line) {
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
-        packetContainer.getIntegers().write(0, getId());
+        packetContainer.getIntegers().write(0, getEntityId());
 
         WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
 
