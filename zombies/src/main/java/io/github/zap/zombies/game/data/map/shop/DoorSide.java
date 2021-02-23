@@ -22,6 +22,8 @@ public class DoorSide {
 
    private Vector hologramLocation;
 
+   private DoorSide() {}
+
    public DoorSide(Vector hologramLocation) {
       this.hologramLocation = hologramLocation;
    }

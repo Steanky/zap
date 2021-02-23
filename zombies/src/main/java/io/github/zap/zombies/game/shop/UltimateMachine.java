@@ -78,7 +78,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.ULTIMATE_MACHINE.name();
+    public ShopType getShopType() {
+        return ShopType.ULTIMATE_MACHINE;
     }
 }

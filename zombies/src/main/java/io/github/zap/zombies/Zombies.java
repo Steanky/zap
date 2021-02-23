@@ -125,26 +125,30 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
-
-        DataLoader loader = getArenaManager().getMapLoader(); //save map data in case it was edited
-        for(MapData data : arenaManager.getMaps()) {
-            loader.save(data, data.getName());
-            Zombies.info(String.format("Saved MapData for '%s'", data.getName()));
+        if(playerDataManager != null) {
+            playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
         }
 
-        for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
-            String fileNameWithExtension = file.getName();
+        if(arenaManager != null) {
+            DataLoader loader = arenaManager.getMapLoader(); //save map data in case it was edited
+            for(MapData data : arenaManager.getMaps()) {
+                loader.save(data, data.getName());
+                Zombies.info(String.format("Saved MapData for '%s'", data.getName()));
+            }
 
-            if(fileNameWithExtension.endsWith(arenaManager.getMapLoader().getExtension())) {
-                String filename = FilenameUtils.getBaseName(fileNameWithExtension);
+            for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
+                String fileNameWithExtension = file.getName();
 
-                if(!arenaManager.hasMap(filename)) {
-                    try {
-                        Files.delete(file.toPath());
-                        Zombies.info(String.format("Deleted map file for which data was removed: '%s'", filename));
-                    } catch (IOException e) {
-                        warning(String.format("Failed to delete map file %s: %s", fileNameWithExtension, e.getMessage()));
+                if(fileNameWithExtension.endsWith(arenaManager.getMapLoader().getExtension())) {
+                    String filename = FilenameUtils.getBaseName(fileNameWithExtension);
+
+                    if(!arenaManager.canDelete(filename)) {
+                        try {
+                            Files.delete(file.toPath());
+                            Zombies.info(String.format("Deleted marked map file: '%s'", filename));
+                        } catch (IOException e) {
+                            warning(String.format("Failed to delete map file %s: %s", fileNameWithExtension, e.getMessage()));
+                        }
                     }
                 }
             }
@@ -168,9 +172,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initProxy() throws LoadFailureException {
-        //noinspection SwitchStatementWithTooFewBranches
         switch (Bukkit.getBukkitVersion()) {
             case "1.16.4-R0.1-SNAPSHOT":
+            case "1.16.5-R0.1-SNAPSHOT":
                 nmsProxy = new ZombiesNMSProxy_v1_16_R3();
                 break;
             default:

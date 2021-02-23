@@ -125,7 +125,7 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.DOOR.name();
+    public ShopType getShopType() {
+        return ShopType.DOOR;
     }
 }

@@ -71,9 +71,9 @@ public final class ArenaApi extends JavaPlugin {
 
 
     private void initProxy() throws LoadFailureException {
-        //noinspection SwitchStatementWithTooFewBranches
         switch (Bukkit.getBukkitVersion()) {
             case "1.16.4-R0.1-SNAPSHOT":
+            case "1.16.5-R0.1-SNAPSHOT":
                 nmsProxy = new NMSProxy_v1_16_R3();
                 break;
             default:

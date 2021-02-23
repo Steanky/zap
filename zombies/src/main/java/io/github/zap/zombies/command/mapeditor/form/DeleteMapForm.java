@@ -40,7 +40,7 @@ public class DeleteMapForm extends CommandForm<MapData> {
 
     @Override
     public String execute(Context context, Object[] arguments, MapData data) {
-        Zombies.getInstance().getArenaManager().removeMap(data.getName());
+        Zombies.getInstance().getArenaManager().deleteOnDisable(data.getName());
 
         for(EditorContext editorContext : Zombies.getInstance().getContextManager().getContexts()) {
             if (editorContext.getMap() == data) {

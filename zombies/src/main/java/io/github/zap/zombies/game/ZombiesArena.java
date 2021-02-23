@@ -204,7 +204,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final List<Shop<?>> shops = new ArrayList<>();
 
     @Getter
-    private final Map<String, List<Shop<?>>> shopMap = new HashMap<>();
+    private final Map<ShopType, List<Shop<?>>> shopMap = new HashMap<>();
 
     @Getter
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
@@ -504,14 +504,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         for (ShopData shopData : map.getShops()) {
             Shop<?> shop = shopManager.createShop(this, shopData);
             shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
+            shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
             shopEvents.computeIfAbsent(shopData.getType(), (ShopType type) -> new Event<>());
         }
 
         for(DoorData doorData : map.getDoors()) {
             Shop<DoorData> shop = shopManager.createShop(this, doorData);
             shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
+            shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
             shopEvents.computeIfAbsent(doorData.getType(), (ShopType type) -> new Event<>());
         }
 

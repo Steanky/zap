@@ -130,8 +130,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.GUN_SHOP.name();
+    public ShopType getShopType() {
+        return ShopType.GUN_SHOP;
     }
 
     private Boolean tryRefill(ZombiesPlayer zombiesPlayer, GunObjectGroup gunObjectGroup) {

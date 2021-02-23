@@ -45,6 +45,8 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Map<String, MapData> maps = new HashMap<>();
 
+    private final Set<String> markedForDeletion = new HashSet<>();
+
     public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, int arenaCapacity,
                                int arenaTimeout) {
         super(NAME, hubLocation);
@@ -173,6 +175,16 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     public List<MapData> getMaps() {
         return new ArrayList<>(maps.values());
+    }
+
+    public void deleteOnDisable(String mapName) {
+        if(maps.containsKey(mapName)) {
+            markedForDeletion.add(mapName);
+        }
+    }
+
+    public boolean canDelete(String mapName) {
+        return markedForDeletion.contains(mapName);
     }
 
     public void loadMaps() throws LoadFailureException {
