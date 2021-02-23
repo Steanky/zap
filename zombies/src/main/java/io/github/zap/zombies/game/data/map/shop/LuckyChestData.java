@@ -27,9 +27,8 @@ public class LuckyChestData extends ShopData {
 
     private long sittingTime = 0L;
 
-    private LuckyChestData(Vector chestLocation) {
+    public LuckyChestData(Vector chestLocation) {
         super(ShopType.LUCKY_CHEST, false);
         this.chestLocation = chestLocation;
     }
-
 }
