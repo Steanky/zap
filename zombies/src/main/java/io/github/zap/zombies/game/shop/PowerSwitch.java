@@ -1,12 +1,12 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hologram.HologramReplacement;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
-import org.bukkit.ChatColor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -22,25 +22,18 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
-        Hologram hologram = getHologram();
+    public void display() {
+        HologramReplacement hologram = getHologram();
 
-        LocalizationManager localizationManager = getLocalizationManager();
-        hologram.setLine(
-                0,
-                ChatColor.GOLD.toString() + ChatColor.BOLD.toString()
-                + localizationManager.getLocalizedMessageFor(player, MessageKey.POWER_SWITCH.getKey())
-        );
-
-        hologram.setLineFor(
-                player,
-                1,
+        hologram.updateLineForEveryone(0, MessageKey.POWER_SWITCH.getKey());
+        hologram.updateLineForEveryone(1,
                 isPowered()
-                        ? ChatColor.GREEN
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.ACTIVE.getKey())
-                        : ChatColor.GOLD.toString() + getShopData().getCost() + " "
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
-        );
+                        ? ImmutablePair.of(MessageKey.ACTIVE.getKey(), new String[]{})
+                        : ImmutablePair.of(
+                                MessageKey.COST.getKey(),
+                        new String[]{ String.valueOf(getShopData().getCost()) }
+                        )
+                );
     }
 
     @Override

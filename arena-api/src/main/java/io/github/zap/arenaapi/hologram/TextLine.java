@@ -4,19 +4,19 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.proxy.NMSProxy;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
-public class TextLine extends HologramLine<String> {
+public class TextLine extends HologramLine<ImmutablePair<String, String[]>> {
 
-    public TextLine(Location location) {
-        super(location);
+    public TextLine(LocalizationManager localizationManager, Location location) {
+        super(localizationManager, location);
     }
 
     @Override
@@ -39,20 +39,14 @@ public class TextLine extends HologramLine<String> {
 
     @Override
     public void updateVisualForPlayer(Player player) {
-        String visual = getVisualForPlayer(player);
-        PacketContainer lineUpdatePacketContainer = createLineUpdatePacket(visual);
+        ImmutablePair<String, String[]> visual = getVisualForPlayer(player);
+        String message = String.format(
+                getLocalizationManager().getLocalizedMessageFor(player, visual.getLeft()),
+                (Object[]) visual.getRight()
+        );
+        PacketContainer lineUpdatePacketContainer = createLineUpdatePacket(message);
 
-        try {
-            getProtocolManager().sendServerPacket(player, lineUpdatePacketContainer);
-        } catch (InvocationTargetException e) {
-            ArenaApi.warning(
-                    String.format(
-                            "Error sending packet of type '%s' to player '%s'",
-                            lineUpdatePacketContainer.getType().name(),
-                            player.getName()
-                    )
-            );
-        }
+        getArenaApi().sendPacketToPlayer(player, lineUpdatePacketContainer);
     }
 
     private PacketContainer createLineUpdatePacket(String line) {

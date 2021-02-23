@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hologram.HologramReplacement;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
@@ -8,8 +7,8 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -33,9 +32,6 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
         super(zombiesArena, shopData);
 
         this.inventory = prepareInventory();
-
-        HologramReplacement hologram = getHologram();
-        hologram.updateLine(0);
     }
 
     @Override
@@ -74,19 +70,15 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    public void display() {
         HologramReplacement hologram = getHologram();
 
-        LocalizationManager localizationManager = getLocalizationManager();
-        hologram.updateLineForPlayer(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() +
-                localizationManager.getLocalizedMessageFor(player, MessageKey.TEAM_MACHINE.getKey()));
-
-        hologram.updateLineForPlayer(player, 1,
-                getShopData().isRequiresPower() && !isPowered()
-                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
-                        : ChatColor.GREEN
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.RIGHT_CLICK_TO_OPEN.getKey())
+        hologram.updateLineForEveryone(0, ImmutablePair.of(MessageKey.TEAM_MACHINE.getKey(), new String[]{}));
+        hologram.updateLineForEveryone(
+                1,
+                (getShopData().isRequiresPower() && !isPowered())
+                        ? MessageKey.REQUIRES_POWER.toString()
+                        : MessageKey.RIGHT_CLICK_TO_OPEN.toString()
         );
     }
 

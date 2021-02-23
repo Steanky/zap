@@ -1,11 +1,13 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
-import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hologram.HologramReplacement;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
 import lombok.Getter;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -19,7 +21,7 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 @Getter
 public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<D> {
 
-    private final Hologram hologram;
+    private final HologramReplacement hologram;
 
     private final ArmorStand armorStand;
 
@@ -34,14 +36,18 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
         armorStand.setGravity(false);
         armorStand.setVisible(false);
 
-        hologram = new Hologram(location.clone().add(0.5, -2.0, 0.5), 2);
+        hologram = new HologramReplacement(
+                Zombies.getInstance().getLocalizationManager(),
+                location.clone().add(0.5, -2.0, 0.5),
+                2
+        );
     }
 
     @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
-        Hologram hologram = getHologram();
+        HologramReplacement hologram = getHologram();
         for (Player player : args.getPlayers()) {
-            hologram.renderTo(player);
+            hologram.renderToPlayer(player);
         }
 
         super.onPlayerJoin(args);

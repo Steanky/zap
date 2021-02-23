@@ -9,7 +9,9 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,6 +29,8 @@ public class HologramReplacement {
     private static final Set<Integer> TEXT_LINE_SET = new HashSet<>();
 
     private final ArenaApi arenaApi;
+
+    private final LocalizationManager localizationManager;
 
     @Getter
     private final List<HologramLine<?>> hologramLines = new ArrayList<>();
@@ -70,28 +74,29 @@ public class HologramReplacement {
         });
     }
 
-    public HologramReplacement(Location location, double lineSpace) {
+    public HologramReplacement(LocalizationManager localizationManager, Location location, double lineSpace) {
         this.arenaApi = ArenaApi.getInstance();
+        this.localizationManager = localizationManager;
         this.rootLocation = location;
         this.lineSpace = lineSpace;
     }
 
-    public HologramReplacement(Location location) {
-        this(location, DEFAULT_LINE_SPACE);
+    public HologramReplacement(LocalizationManager localizationManager, Location location) {
+        this(localizationManager, location, DEFAULT_LINE_SPACE);
     }
 
-    public void addLine(String text) {
+    public void addLine(ImmutablePair<String, String[]> message) {
         TextLine textLine = createTextLine(
                 rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),
-                text
+                message
         );
         hologramLines.add(textLine);
         TEXT_LINE_SET.add(textLine.getEntityId());
     }
 
-    private TextLine createTextLine(Location location, String text) {
-        TextLine textLine = new TextLine(location);
-        textLine.setVisualForEveryone(text);
+    private TextLine createTextLine(Location location, ImmutablePair<String, String[]> message) {
+        TextLine textLine = new TextLine(localizationManager, location);
+        textLine.setVisualForEveryone(message);
 
         return textLine;
     }
@@ -103,37 +108,49 @@ public class HologramReplacement {
     }
 
     private ItemLine createItemLine(Location location, Material material) {
-        ItemLine itemLine = new ItemLine(location);
+        ItemLine itemLine = new ItemLine(localizationManager, location);
         itemLine.setVisualForEveryone(material);
 
         return itemLine;
     }
 
-    public void updateLineForEveryone(int index, String text) {
+    public void updateLineForEveryone(int index, ImmutablePair<String, String[]> message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisualForEveryone(text);
+            ((TextLine) hologramLine).setVisualForEveryone(message);
         } else {
 
         }
     }
 
-    public void updateLine(int index, String text) {
+    public void updateLine(int index, ImmutablePair<String, String[]> message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisual(text);
+            ((TextLine) hologramLine).setVisual(message);
         } else {
 
         }
     }
 
-    public void updateLineForPlayer(Player player, int index, String text) {
+    public void updateLineForPlayer(Player player, int index, ImmutablePair<String, String[]> message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisualForPlayer(player, text);
+            ((TextLine) hologramLine).setVisualForPlayer(player, message);
         } else {
 
         }
+    }
+
+    public void updateLineForEveryone(int index, String message) {
+        updateLineForEveryone(index, ImmutablePair.of(message, new String[]{}));
+    }
+
+    public void updateLine(int index, String message) {
+        updateLine(index, ImmutablePair.of(message, new String[]{}));
+    }
+
+    public void updateLineForPlayer(Player player, int index, String message) {
+        updateLineForPlayer(player, index, ImmutablePair.of(message, new String[]{}));
     }
 
     public void updateLineForEveryone(int index, Material material) {

@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hologram.HologramReplacement;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.localization.LocalizationManager;
@@ -12,7 +12,7 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
-import org.bukkit.ChatColor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -35,31 +35,26 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
         int level = (perkEquipment == null) ? 0 : perkEquipment.getLevel() + 1;
 
-        LocalizationManager localizationManager = getLocalizationManager();
-        String secondHologramLine;
+        ImmutablePair<String, String[]> secondHologramLine;
         if (perkEquipment == null || level < perkEquipment.getEquipmentData().getLevels().size()) {
             secondHologramLine = perkMachineData.isRequiresPower() && !isPowered()
-                    ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
-                    + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
-                    : ChatColor.GOLD.toString() + perkMachineData.getCosts().get(level) + " "
-                    + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey());
+                    ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
+                    : ImmutablePair.of(
+                            MessageKey.GOLD.getKey(),
+                    new String[]{ String.valueOf(perkMachineData.getCosts().get(level)) }
+                    );
         } else {
-            secondHologramLine = ChatColor.GREEN
-                    + localizationManager.getLocalizedMessageFor(player, MessageKey.ACTIVE.getKey());
+            secondHologramLine = ImmutablePair.of(MessageKey.ACTIVE.getKey(), new String[]{});
         }
 
 
-        Hologram hologram = getHologram();
-        hologram.setLineFor(
+        HologramReplacement hologram = getHologram();
+        hologram.updateLineForPlayer(
                 player,
                 0,
-                ChatColor.BLUE.toString() + ChatColor.BOLD.toString() +
-                        localizationManager.getLocalizedMessageFor(
-                                player,
-                                perkMachineData.getPerkType().name()
-                        )
+                perkMachineData.getPerkType().name()
         );
-        hologram.setLineFor(player, 1, secondHologramLine);
+        hologram.updateLineForPlayer(player, 1, secondHologramLine);
     }
 
     @Override

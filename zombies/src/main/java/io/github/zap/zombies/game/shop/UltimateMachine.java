@@ -10,7 +10,7 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
-import org.bukkit.ChatColor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -27,16 +27,14 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     protected void displayTo(Player player) {
         HologramReplacement hologram = getHologram();
 
-        LocalizationManager localizationManager = getLocalizationManager();
-        hologram.updateLineForPlayer(player, 0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString()
-                + localizationManager.getLocalizedMessageFor(player, MessageKey.ULTIMATE_MACHINE.getKey()));
+        hologram.updateLineForPlayer(player, 0, MessageKey.ULTIMATE_MACHINE.getKey());
 
         hologram.updateLineForPlayer(player, 1,
                 getShopData().isRequiresPower() && !isPowered()
-                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
-                        : ChatColor.GOLD.toString() + getShopData().getCost() + " "
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
+                        ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
+                        : ImmutablePair.of(
+                                MessageKey.COST.toString(), new String[]{ String.valueOf(getShopData().getCost()) }
+                                )
         );
     }
 

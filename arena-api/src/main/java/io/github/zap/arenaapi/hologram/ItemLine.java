@@ -3,7 +3,7 @@ package io.github.zap.arenaapi.hologram;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,14 +11,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.InvocationTargetException;
-
-import static com.comphenix.protocol.ProtocolLibrary.getProtocolManager;
-
 public class ItemLine extends HologramLine<Material> {
 
-    public ItemLine(Location location) {
-        super(location);
+    public ItemLine(LocalizationManager localizationManager, Location location) {
+        super(localizationManager, location);
     }
 
     @Override
@@ -44,17 +40,7 @@ public class ItemLine extends HologramLine<Material> {
         Material material = getVisualForPlayer(player);
         PacketContainer itemUpdatePacketContainer = createItemUpdatePacket(material);
 
-        try {
-            getProtocolManager().sendServerPacket(player, itemUpdatePacketContainer);
-        } catch (InvocationTargetException e) {
-            ArenaApi.warning(
-                    String.format(
-                            "Error sending packet of type '%s' to player '%s'",
-                            itemUpdatePacketContainer.getType().name(),
-                            player.getName()
-                    )
-            );
-        }
+        getArenaApi().sendPacketToPlayer(player, itemUpdatePacketContainer);
     }
 
     private PacketContainer createItemUpdatePacket(Material material) {
