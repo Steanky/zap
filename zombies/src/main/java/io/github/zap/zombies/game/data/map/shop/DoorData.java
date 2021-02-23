@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.arenaapi.game.MultiBoundingBox;
+import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -15,5 +16,5 @@ public class DoorData extends ShopData {
   
     private List<DoorSide> doorSides = new ArrayList<>();
 
-    public DoorData() { }
+    public DoorData() { super(ShopType.DOOR, false); }
 }

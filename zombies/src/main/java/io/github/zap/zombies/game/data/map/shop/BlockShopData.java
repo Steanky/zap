@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.data.map.shop;
 
-import lombok.AllArgsConstructor;
+import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
 import org.bukkit.util.Vector;
 
@@ -8,11 +8,14 @@ import org.bukkit.util.Vector;
  * Data for a block shop
  */
 @Getter
-@AllArgsConstructor
-public class BlockShopData extends ShopData {
+public abstract class BlockShopData extends ShopData {
+    private final Vector blockLocation;
 
-    private Vector blockLocation;
+    private final Vector hologramLocation;
 
-    private Vector hologramLocation;
-
+    public BlockShopData(ShopType type, boolean requiresPower, Vector blockLocation, Vector hologramLocation) {
+        super(type, requiresPower);
+        this.blockLocation = blockLocation;
+        this.hologramLocation = hologramLocation;
+    }
 }

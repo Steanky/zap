@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.map.shop;
 
+import io.github.zap.zombies.game.shop.ShopType;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -27,6 +28,7 @@ public class LuckyChestData extends ShopData {
     private long sittingTime = 0L;
 
     private LuckyChestData(Vector chestLocation) {
+        super(ShopType.LUCKY_CHEST, false);
         this.chestLocation = chestLocation;
     }
 

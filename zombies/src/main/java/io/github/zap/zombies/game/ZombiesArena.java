@@ -207,7 +207,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final Map<String, List<Shop<?>>> shopMap = new HashMap<>();
 
     @Getter
-    private final Map<String, Event<ShopEventArgs>> shopEvents = new HashMap<>();
+    private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
@@ -505,17 +505,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Shop<?> shop = shopManager.createShop(this, shopData);
             shops.add(shop);
             shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
-            shopEvents.computeIfAbsent(shopData.getType(), (String type) -> new Event<>());
+            shopEvents.computeIfAbsent(shopData.getType(), (ShopType type) -> new Event<>());
         }
 
         for(DoorData doorData : map.getDoors()) {
             Shop<DoorData> shop = shopManager.createShop(this, doorData);
             shops.add(shop);
             shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
-            shopEvents.computeIfAbsent(doorData.getType(), (String type) -> new Event<>());
+            shopEvents.computeIfAbsent(doorData.getType(), (ShopType type) -> new Event<>());
         }
 
-        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
+        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
         if (chestEvent != null) {
             chestEvent.registerHandler(new EventHandler<>() {
                 private final Random random = new Random();

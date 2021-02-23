@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.map.shop;
 
+import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
 import org.bukkit.util.Vector;
 
@@ -8,15 +9,17 @@ import org.bukkit.util.Vector;
  */
 @Getter
 public class GunShopData extends ArmorStandShopData {
-
     private String gunName = "NONE";
 
     private int cost = 0;
 
     private int refillCost = 0;
 
-    public GunShopData(Vector rootLocation, Vector hologramLocation) {
-        super(rootLocation, hologramLocation);
+    private GunShopData() {
+        super(ShopType.GUN_SHOP, false, null, null);
     }
 
+    public GunShopData(Vector rootLocation, Vector hologramLocation) {
+        super(ShopType.GUN_SHOP, false, rootLocation, hologramLocation);
+    }
 }
