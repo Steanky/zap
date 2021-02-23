@@ -9,6 +9,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
+import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.shop.LuckyChest;
@@ -476,12 +477,44 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void startCountdown() {
         //do countdown timer; at the end, call doRound() to kick off the game
         // TODO: do this at the end
+    }
+
+    public void stopCountdown() {
+        //reset countdown timer
+    }
+
+    /**
+     * Win code here
+     */
+    private void doVictory() {
+
+    }
+
+    /**
+     * Loss code here
+     */
+    private void doLoss() {
+
+    }
+
+    /**
+     * Loads shops; should be called just before the game begins
+     */
+    private void loadShops() {
         for (ShopData shopData : map.getShops()) {
             Shop<?> shop = shopManager.createShop(this, shopData);
             shops.add(shop);
             shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
             shopEvents.computeIfAbsent(shopData.getType(), (String type) -> new Event<>());
         }
+
+        for(DoorData doorData : map.getDoors()) {
+            Shop<DoorData> shop = shopManager.createShop(this, doorData);
+            shops.add(shop);
+            shopMap.computeIfAbsent(shop.getShopType(), (String type) -> new ArrayList<>()).add(shop);
+            shopEvents.computeIfAbsent(doorData.getType(), (String type) -> new Event<>());
+        }
+
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
         if (chestEvent != null) {
             chestEvent.registerHandler(new EventHandler<>() {
@@ -504,23 +537,5 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
             });
         }
-    }
-
-    public void stopCountdown() {
-        //reset countdown timer
-    }
-
-    /**
-     * Win code here
-     */
-    private void doVictory() {
-
-    }
-
-    /**
-     * Loss code here
-     */
-    private void doLoss() {
-
     }
 }
