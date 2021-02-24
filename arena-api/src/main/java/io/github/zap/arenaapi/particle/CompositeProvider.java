@@ -10,8 +10,8 @@ public class CompositeProvider implements VectorProvider {
     private final int[] lengths;
 
     private int length = -1;
-    private int i = 0;
-    private int j = 0;
+    private int providerIndex = 0;
+    private int fragmentIndex = 0;
 
     public CompositeProvider(int length) {
         this.providers = new VectorProvider[length];
@@ -42,11 +42,11 @@ public class CompositeProvider implements VectorProvider {
 
     @Override
     public Vector next() {
-        VectorProvider currentProvider = providers[i];
+        VectorProvider currentProvider = providers[providerIndex];
 
-        if(++j == lengths[i]) {
-            i++;
-            j = 0;
+        if(++fragmentIndex == lengths[providerIndex]) {
+            providerIndex++;
+            fragmentIndex = 0;
         }
 
         return currentProvider.next();
@@ -58,8 +58,8 @@ public class CompositeProvider implements VectorProvider {
             provider.reset();
         }
 
-        i = 0;
-        j = 0;
+        providerIndex = 0;
+        fragmentIndex = 0;
 
         length = -1;
     }
