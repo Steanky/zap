@@ -11,9 +11,7 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
-import io.github.zap.zombies.game.data.map.shop.DoorData;
-import io.github.zap.zombies.game.data.map.shop.DoorSide;
-import io.github.zap.zombies.game.data.map.shop.ShopData;
+import io.github.zap.zombies.game.data.map.shop.*;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -40,9 +38,10 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
 
         MapData map = data.getMap();
         BoundingBox selection = data.getSelection();
-        List<RoomData> rooms = map.getRooms();
         List<DoorData> doors = map.getDoors();
+        List<RoomData> rooms = map.getRooms();
         List<ShopData> shops = map.getShops();
+
         for(int doorIndex = doors.size() - 1; doorIndex > -1; doorIndex--) {
             DoorData door = doors.get(doorIndex);
 
@@ -129,6 +128,25 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
                         spawnpoints.remove(spawnpointIndex);
                         removedObjects++;
                     }
+                }
+            }
+        }
+
+        for(int shopIndex = shops.size() - 1; shopIndex > -1; shopIndex--) {
+            ShopData shop = shops.get(shopIndex);
+
+            Vector origin = null;
+            if(shop instanceof ArmorStandShopData) {
+                origin = ((ArmorStandShopData)shop).getRootLocation();
+            }
+            else if(shop instanceof BlockShopData) {
+                origin = ((BlockShopData)shop).getBlockLocation();
+            }
+
+            if(origin != null) {
+                if(selection.contains(origin)) {
+                    shops.remove(shopIndex);
+                    removedObjects++;
                 }
             }
         }
