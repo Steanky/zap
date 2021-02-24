@@ -12,7 +12,6 @@ import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Trident;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -80,8 +79,8 @@ public class EditorContext implements Disposable {
             if (firstClicked != null) {
                 Vector target = getTarget();
 
-                return new CompositeProvider(new Cube(getSelection(), 1),
-                        new Cube(BoundingBox.of(target, target.clone().add(UNIT)), 2));
+                return new CompositeProvider(new RectangularPrism(getSelection(), 1),
+                        new RectangularPrism(BoundingBox.of(target, target.clone().add(UNIT)), 2));
             }
 
             return null;
@@ -96,7 +95,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            return map == null ? null : new Cube(map.getMapBounds(), 0.25);
+            return map == null ? null : new RectangularPrism(map.getMapBounds(), 0.25);
         }
     }
 
@@ -113,7 +112,7 @@ public class EditorContext implements Disposable {
 
                 for(RoomData room : map.getRooms()) {
                     for(BoundingBox boundingBox : room.getBounds()) {
-                        vectorProviders.add(new Cube(boundingBox, 0.5));
+                        vectorProviders.add(new RectangularPrism(boundingBox, 0.5));
                     }
                 }
 
@@ -137,7 +136,7 @@ public class EditorContext implements Disposable {
 
                 for(RoomData room : map.getRooms()) {
                     for(WindowData window : room.getWindows()) {
-                        vectorProviders.add(new Cube(window.getFaceBounds(), 2));
+                        vectorProviders.add(new RectangularPrism(window.getFaceBounds(), 2));
                     }
                 }
 
@@ -162,7 +161,7 @@ public class EditorContext implements Disposable {
                 for(RoomData room : map.getRooms()) {
                     for(WindowData window : room.getWindows()) {
                         for(BoundingBox bounds : window.getInteriorBounds()) {
-                            vectorProviders.add(new Cube(bounds, 1));
+                            vectorProviders.add(new RectangularPrism(bounds, 1));
                         }
                     }
                 }
@@ -191,11 +190,11 @@ public class EditorContext implements Disposable {
                         Vector target = spawnpoint.getTarget();
 
                         if(spawn != null) {
-                            vectorProviders.add(new Cube(BoundingBox.of(spawn, spawn.clone().add(UNIT)), 3));
+                            vectorProviders.add(new RectangularPrism(BoundingBox.of(spawn, spawn.clone().add(UNIT)), 3));
                         }
 
                         if(target != null) {
-                            vectorProviders.add(new Cube(BoundingBox.of(target, target.clone().add(UNIT)), 3));
+                            vectorProviders.add(new RectangularPrism(BoundingBox.of(target, target.clone().add(UNIT)), 3));
                         }
                     }
                 }
@@ -220,7 +219,7 @@ public class EditorContext implements Disposable {
 
                 for(DoorData door : map.getDoors()) {
                     for(BoundingBox bounds : door.getDoorBounds()) {
-                        vectorProviders.add(new Cube(bounds, 2));
+                        vectorProviders.add(new RectangularPrism(bounds, 2));
                     }
                 }
 
@@ -244,7 +243,7 @@ public class EditorContext implements Disposable {
 
                 for(DoorData door : map.getDoors()) {
                     for(DoorSide side : door.getDoorSides()) {
-                        vectorProviders.add(new Cube(side.getTriggerBounds(), 2));
+                        vectorProviders.add(new RectangularPrism(side.getTriggerBounds(), 2));
                     }
                 }
 
@@ -269,12 +268,12 @@ public class EditorContext implements Disposable {
                 for(ShopData shop : map.getShops()) {
                     if(shop instanceof BlockShopData) {
                         BlockShopData blockShopData = (BlockShopData) shop;
-                        vectorProviders.add(new Cube(BoundingBox.of(blockShopData.getBlockLocation(),
+                        vectorProviders.add(new RectangularPrism(BoundingBox.of(blockShopData.getBlockLocation(),
                                 blockShopData.getBlockLocation().clone().add(UNIT)), 1));
                     }
                     if(shop instanceof ArmorStandShopData) {
                         ArmorStandShopData armorShopData = (ArmorStandShopData) shop;
-                        vectorProviders.add(new Cube(BoundingBox.of(armorShopData.getRootLocation(),
+                        vectorProviders.add(new RectangularPrism(BoundingBox.of(armorShopData.getRootLocation(),
                                 armorShopData.getRootLocation().clone().add(UNIT)), 1));
                     }
                 }

@@ -3,8 +3,8 @@ package io.github.zap.arenaapi.particle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-public class Cube extends CompositeProvider {
-    public Cube(BoundingBox bounds, double density) {
+public class RectangularPrism extends CompositeProvider {
+    public RectangularPrism(BoundingBox bounds, double density) {
         super(12);
 
         Vector origin = bounds.getMin();
