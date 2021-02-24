@@ -35,7 +35,7 @@ public class ArraySegment<T> implements Iterable<T> {
 
     /**
      * Creates a new ArraySegment object from the specified array, length, and offset. An IndexOutOfBounds exception
-     * will be thrown if fully iterating the ArraySegment would at any point cause an IndexOutOfBounds exception.
+     * will be thrown if fully iterating the ArraySegment would at any point cause an ArrayIndexOutOfBounds exception.
      * @param array The array to make a segment from
      * @param length The length of the segment
      * @param offset The offset (starting index) of this segment
@@ -44,19 +44,19 @@ public class ArraySegment<T> implements Iterable<T> {
         Objects.requireNonNull(array, "array cannot be null");
 
         if(length < 0) {
-            throw new IndexOutOfBoundsException("length cannot be negative");
+            throw new ArrayIndexOutOfBoundsException("length cannot be negative");
         }
 
         if(length > array.length) {
-            throw new IndexOutOfBoundsException("length cannot be greater than the length of the underlying array");
+            throw new ArrayIndexOutOfBoundsException("length cannot be greater than the length of the underlying array");
         }
 
         if(offset < 0 || offset > array.length) {
-            throw new IndexOutOfBoundsException("offset must be within the bounds of the array");
+            throw new ArrayIndexOutOfBoundsException("offset must be within the bounds of the array");
         }
 
         if(offset + length > array.length) {
-            throw new IndexOutOfBoundsException("part of the segment is out of bounds for the array");
+            throw new ArrayIndexOutOfBoundsException("part of the segment is out of bounds for the array");
         }
 
         this.array = array;
@@ -86,7 +86,7 @@ public class ArraySegment<T> implements Iterable<T> {
      */
     public T get(int i) {
         if(i < 0 || i >= length) {
-            throw new IndexOutOfBoundsException("array index out of bounds");
+            throw new ArrayIndexOutOfBoundsException("array index out of bounds");
         }
 
         return array[offset + i];
@@ -100,7 +100,7 @@ public class ArraySegment<T> implements Iterable<T> {
      */
     public void set(int i, T value) {
         if(i < 0 || i >= length) {
-            throw new IndexOutOfBoundsException("array index out of bounds");
+            throw new ArrayIndexOutOfBoundsException("array index out of bounds");
         }
 
         array[offset + i] = value;
