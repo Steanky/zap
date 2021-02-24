@@ -129,7 +129,7 @@ public class ArraySegment<T> implements Iterable<T> {
      * @param length The number of copied elements
      */
     public void copyTo(int offset, Object dest, int destOffset, int length) {
-        if(offset + length > this.length) {
+        if(offset < 0 || length < 0 || offset + length > this.length) {
             throw new ArrayIndexOutOfBoundsException("array index out of bounds");
         }
 
