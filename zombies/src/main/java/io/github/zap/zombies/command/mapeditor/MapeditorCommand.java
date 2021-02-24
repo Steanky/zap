@@ -21,5 +21,6 @@ public class MapeditorCommand extends RegularCommand {
         addForm(new ReloadMapForm());
         addForm(new NewDoorForm());
         addForm(new NewDoorSideForm());
+        addForm(new NewShopForm());
     }
 }

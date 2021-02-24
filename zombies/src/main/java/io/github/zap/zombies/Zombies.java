@@ -142,7 +142,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                 if(fileNameWithExtension.endsWith(arenaManager.getMapLoader().getExtension())) {
                     String filename = FilenameUtils.getBaseName(fileNameWithExtension);
 
-                    if(!arenaManager.canDelete(filename)) {
+                    if(arenaManager.canDelete(filename)) {
                         try {
                             Files.delete(file.toPath());
                             Zombies.info(String.format("Deleted marked map file: '%s'", filename));

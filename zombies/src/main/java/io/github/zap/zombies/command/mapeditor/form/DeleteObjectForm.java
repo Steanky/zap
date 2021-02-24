@@ -13,6 +13,7 @@ import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import io.github.zap.zombies.game.data.map.shop.ShopData;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -41,6 +42,7 @@ public class DeleteObjectForm extends CommandForm<MapSelectionData> {
         BoundingBox selection = data.getSelection();
         List<RoomData> rooms = map.getRooms();
         List<DoorData> doors = map.getDoors();
+        List<ShopData> shops = map.getShops();
         for(int doorIndex = doors.size() - 1; doorIndex > -1; doorIndex--) {
             DoorData door = doors.get(doorIndex);
 

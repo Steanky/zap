@@ -6,8 +6,7 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
-import io.github.zap.zombies.game.data.map.shop.DoorData;
-import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import io.github.zap.zombies.game.data.map.shop.*;
 import lombok.Getter;
 import org.bukkit.Color;
 import org.bukkit.Particle;
@@ -22,6 +21,7 @@ import java.util.List;
 
 public class EditorContext implements Disposable {
     private static final Vector UNIT = new Vector(1, 1, 1);
+    private static final VectorProvider[] EMPTY_VECTOR_PROVIDER_ARRAY = new VectorProvider[0];
 
     public enum Renderables {
         SELECTION(0),
@@ -31,7 +31,8 @@ public class EditorContext implements Disposable {
         WINDOW_BOUNDS(4),
         SPAWNPOINTS(5),
         DOORS(6),
-        DOOR_TRIGGERS(7);
+        DOOR_SIDES(7),
+        SHOPS(8);
 
         @Getter
         private final int index;
@@ -40,8 +41,6 @@ public class EditorContext implements Disposable {
             this.index = index;
         }
     }
-
-    private static final VectorProvider[] EMPTY_VECTOR_PROVIDER_ARRAY = new VectorProvider[0];
 
     private static final Shader SELECTION_SHADER = new SolidShader(Particle.REDSTONE, 1,
             new Particle.DustOptions(Color.GREEN, 1));
@@ -66,6 +65,9 @@ public class EditorContext implements Disposable {
 
     private static final Shader DOOR_TRIGGER_SHADER = new SolidShader(Particle.REDSTONE, 1,
             new Particle.DustOptions(Color.GRAY, 1));
+
+    private static final Shader SHOP_SHADER = new SolidShader(Particle.REDSTONE, 1,
+            new Particle.DustOptions(Color.AQUA, 1));
 
     private class SelectionRenderable extends ShadedRenderable {
         @Override
@@ -106,7 +108,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            if(map != null && map.getRooms().size() > 0) {
+            if(map != null) {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(RoomData room : map.getRooms()) {
@@ -130,7 +132,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            if(map != null && map.getRooms().size() > 0) {
+            if(map != null) {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(RoomData room : map.getRooms()) {
@@ -154,7 +156,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            if(map != null && map.getRooms().size() > 0) {
+            if(map != null) {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(RoomData room : map.getRooms()) {
@@ -180,7 +182,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            if(map != null && map.getRooms().size() > 0) {
+            if(map != null) {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(RoomData room : map.getRooms()) {
@@ -213,7 +215,7 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            if(map != null && map.getDoors().size() > 0) {
+            if(map != null) {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(DoorData door : map.getDoors()) {
@@ -229,7 +231,7 @@ public class EditorContext implements Disposable {
         }
     }
 
-    private class DoorTriggerRenderable extends ShadedRenderable {
+    private class DoorSideRenderable extends ShadedRenderable {
         @Override
         public Shader getShader() {
             return DOOR_TRIGGER_SHADER;
@@ -237,15 +239,43 @@ public class EditorContext implements Disposable {
 
         @Override
         public VectorProvider vectorProvider() {
-            if(map != null && map.getDoors().size() > 0) {
+            if(map != null) {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(DoorData door : map.getDoors()) {
                     for(DoorSide side : door.getDoorSides()) {
                         vectorProviders.add(new Cube(side.getTriggerBounds(), 2));
+                    }
+                }
 
-                        Vector holoLocation = side.getHologramLocation();
-                        vectorProviders.add(new Cube(BoundingBox.of(holoLocation, holoLocation), 1));
+                return new CompositeProvider(vectorProviders.toArray(EMPTY_VECTOR_PROVIDER_ARRAY));
+            }
+
+            return null;
+        }
+    }
+
+    private class ShopRenderable extends ShadedRenderable {
+        @Override
+        public Shader getShader() {
+            return SHOP_SHADER;
+        }
+
+        @Override
+        public VectorProvider vectorProvider() {
+            if(map != null && map.getShops().size() > 0) {
+                List<VectorProvider> vectorProviders = new ArrayList<>();
+
+                for(ShopData shop : map.getShops()) {
+                    if(shop instanceof BlockShopData) {
+                        BlockShopData blockShopData = (BlockShopData) shop;
+                        vectorProviders.add(new Cube(BoundingBox.of(blockShopData.getBlockLocation(),
+                                blockShopData.getBlockLocation().clone().add(UNIT)), 1));
+                    }
+                    if(shop instanceof ArmorStandShopData) {
+                        ArmorStandShopData armorShopData = (ArmorStandShopData) shop;
+                        vectorProviders.add(new Cube(BoundingBox.of(armorShopData.getRootLocation(),
+                                armorShopData.getRootLocation().clone().add(UNIT)), 1));
                     }
                 }
 
@@ -272,7 +302,7 @@ public class EditorContext implements Disposable {
     public EditorContext(Player player) {
         this.player = player;
 
-        renderer = new SimpleRenderer(player.getWorld(), 0, 5);
+        renderer = new SimpleRenderer(player.getWorld(), 0, 10);
         addRenderable(new SelectionRenderable());
         addRenderable(new MapRenderable());
         addRenderable(new RoomRenderable());
@@ -280,7 +310,8 @@ public class EditorContext implements Disposable {
         addRenderable(new WindowBoundsRenderable());
         addRenderable(new SpawnpointRenderable());
         addRenderable(new DoorRenderable());
-        addRenderable(new DoorTriggerRenderable());
+        addRenderable(new DoorSideRenderable());
+        addRenderable(new ShopRenderable());
         renderer.start();
     }
 

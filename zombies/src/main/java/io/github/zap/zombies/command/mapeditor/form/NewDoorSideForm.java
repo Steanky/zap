@@ -15,7 +15,6 @@ import io.github.zap.zombies.command.mapeditor.form.data.DoorSelectionData;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
-import org.bukkit.util.Vector;
 
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +67,7 @@ public class NewDoorSideForm extends CommandForm<DoorSelectionData> {
         DoorSide newSide = new DoorSide(0, Arrays.asList((String[])arguments[3]), data.getSelection(),
                 data.getPlayer().getLocation().toVector());
         door.getDoorSides().add(newSide);
-        data.getContext().updateRenderable(EditorContext.Renderables.DOOR_TRIGGERS);
+        data.getContext().updateRenderable(EditorContext.Renderables.DOOR_SIDES);
         return "Added new door side.";
     }
 }
