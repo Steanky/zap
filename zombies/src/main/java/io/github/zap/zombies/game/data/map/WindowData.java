@@ -102,11 +102,7 @@ public class WindowData {
      * @return The central vector of the window's face
      */
     public Vector getCenter() {
-        if(center == null) {
-            center = faceBounds.getCenter();
-        }
-
-        return center.clone();
+        return faceBounds.getCenter();
     }
 
     /**
@@ -114,11 +110,7 @@ public class WindowData {
      * @return The volume of the window's face
      */
     public int getVolume() {
-        if(volume == -1) {
-            volume = (int)faceBounds.getVolume();
-        }
-
-        return volume;
+        return (int)faceBounds.getVolume();
     }
 
     /**
