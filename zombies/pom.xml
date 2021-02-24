@@ -10,6 +10,12 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <swm.version>217988c</swm.version>
+        <mythicmobs.version>4.11.0-BETA</mythicmobs.version>
+        <protocollib.version>4.6.0</protocollib.version>
+    </properties>
+
     <artifactId>zombies</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -53,7 +59,7 @@
                                 <artifactItem>
                                     <groupId>com.comphenix.protocol</groupId>
                                     <artifactId>ProtocolLib</artifactId>
-                                    <version>4.6.0-SNAPSHOT</version>
+                                    <version>${protocollib.version}</version>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -232,7 +238,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>4.6.0</version>
+            <version>${protocollib.version}</version>
         </dependency>
 
         <dependency>

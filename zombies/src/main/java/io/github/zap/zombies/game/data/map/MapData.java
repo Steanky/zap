@@ -194,6 +194,11 @@ public class MapData {
     int fastReviveMaxLevel = 1;
 
     /**
+     * Number of rolls before a chest moves to a new location
+     */
+    int rollsPerChest = 5;
+
+    /**
      * The list of rooms managed by this map
      */
     List<RoomData> rooms = new ArrayList<>();
@@ -207,11 +212,6 @@ public class MapData {
      * All the shops managed by this map
      */
     List<ShopData> shops = new ArrayList<>();
-
-    /**
-     * Number of rolls before a chest moves to a new location
-     */
-    int rollsPerChest = 5;
 
     /**
      * All the rounds in the game

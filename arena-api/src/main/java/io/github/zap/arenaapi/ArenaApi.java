@@ -1,9 +1,7 @@
 package io.github.zap.arenaapi;
 
-import com.comphenix.protocol.ProtocolLib;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
@@ -40,9 +38,6 @@ public final class ArenaApi extends JavaPlugin {
     private NMSProxy nmsProxy;
 
     @Getter
-    private ProtocolLib protocolLib;
-
-    @Getter
     private SimpleModule module;
 
     @Getter
@@ -57,7 +52,6 @@ public final class ArenaApi extends JavaPlugin {
 
         try {
             initProxy();
-            initDependencies();
             initMapper();
         }
         catch(LoadFailureException exception)
@@ -82,10 +76,6 @@ public final class ArenaApi extends JavaPlugin {
             default:
                 throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));
         }
-    }
-
-    private void initDependencies() throws LoadFailureException {
-        protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB, true);
     }
 
     private void initMapper() {

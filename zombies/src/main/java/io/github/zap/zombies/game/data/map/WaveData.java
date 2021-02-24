@@ -27,17 +27,17 @@ public class WaveData {
     /**
      * Controls the behavior of the spawner for this wave
      */
-    SpawnMethod method;
+    SpawnMethod method = SpawnMethod.RANGED;
 
     /**
      * Used by SpawnMethod.RANGED
      */
-    int slaSquared;
+    int slaSquared = 4096;
 
     /**
      * Whether this wave's mobs should be randomly distributed through the available spawnpoints.
      */
-    boolean randomizeSpawnpoints;
+    boolean randomizeSpawnpoints = true;
 
     public WaveData() {}
 }
