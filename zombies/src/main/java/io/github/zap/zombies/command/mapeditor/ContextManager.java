@@ -44,27 +44,8 @@ public class ContextManager implements Listener {
         }
     }
 
-    public boolean isEditorItemType(ItemStack item) {
-        if(item != null) {
-            return item.getType() == itemType && itemLore.equals(item.getLore());
-        }
-
-        return false;
-    }
-
     public ItemStack getEditorItem() {
         return editorItem.clone();
-    }
-
-    public void newContext(Player player) {
-        UUID playerId = player.getUniqueId();
-
-        if(contextMap.containsKey(playerId)) {
-            throw new UnsupportedOperationException(String.format("cannot create context for player %s, it already " +
-                    "exists", playerId));
-        }
-
-        contextMap.put(player.getUniqueId(), new EditorContext(player));
     }
 
     public EditorContext getContext(Player player) {
@@ -75,8 +56,8 @@ public class ContextManager implements Listener {
         return contextMap.containsKey(player.getUniqueId());
     }
 
-    public EditorContext removeContext(Player player) {
-        return contextMap.remove(player.getUniqueId());
+    public void removeContext(Player player) {
+        contextMap.remove(player.getUniqueId());
     }
 
     public Collection<EditorContext> getContexts() {

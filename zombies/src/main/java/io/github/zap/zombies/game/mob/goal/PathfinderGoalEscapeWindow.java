@@ -19,6 +19,7 @@ import org.bukkit.util.Vector;
 import java.util.Optional;
 
 @MythicAIGoal(
+        author = "Steank",
         name = "escapeWindow",
         description = "Used by zombies to navigate out of windows."
 )
