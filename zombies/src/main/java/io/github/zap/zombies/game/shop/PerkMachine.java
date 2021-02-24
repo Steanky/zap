@@ -163,7 +163,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.PERK_MACHINE.name();
+    public ShopType getShopType() {
+        return ShopType.PERK_MACHINE;
     }
 }

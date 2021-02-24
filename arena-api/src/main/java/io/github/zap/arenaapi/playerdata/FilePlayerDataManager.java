@@ -10,9 +10,6 @@ import java.util.*;
 
 public class FilePlayerDataManager implements PlayerDataManager {
     @Getter
-    private final File dataFolder;
-
-    @Getter
     private final DataLoader loader;
 
     @Getter
@@ -20,13 +17,9 @@ public class FilePlayerDataManager implements PlayerDataManager {
 
     private final Map<UUID, FilePlayerData> cache = new LinkedHashMap<>();
 
-    public FilePlayerDataManager(File dataFolder, DataLoader loader, int memoryCacheLength) {
-        this.dataFolder = dataFolder;
+    public FilePlayerDataManager(DataLoader loader, int memoryCacheLength) {
         this.loader = loader;
         this.memoryCacheLength = memoryCacheLength;
-
-        //noinspection ResultOfMethodCallIgnored
-        dataFolder.mkdirs();
     }
 
     @Override
@@ -37,17 +30,16 @@ public class FilePlayerDataManager implements PlayerDataManager {
             return data;
         }
 
-        String name = id.toString() + "." + loader.getExtension();
-        File dataFile = Path.of(dataFolder.getPath(), name).toFile();
+        File dataFile = loader.getFile(id.toString());
 
         if(!dataFile.exists()) { //create playerdata file if missing
             FilePlayerData newData = new FilePlayerData();
             cacheMapping(id, newData);
-            loader.save(newData, dataFile);
+            saveData(newData, id);
             return newData;
         }
         else {
-            data = loader.load(dataFile, FilePlayerData.class);
+            data = loader.load(id.toString(), FilePlayerData.class);
 
             if(data != null) { //loaded data from file, cache it in case of further use
                 cacheMapping(id, data);
@@ -66,8 +58,7 @@ public class FilePlayerDataManager implements PlayerDataManager {
             FilePlayerData value = entry.getValue();
 
             if(value.isDirty()) {
-                loader.save(value, Path.of(dataFolder.getPath(), entry.getKey().toString() + '.' +
-                        loader.getExtension()).toFile());
+                saveData(value, entry.getKey());
             }
         }
     }
@@ -79,8 +70,12 @@ public class FilePlayerDataManager implements PlayerDataManager {
             FilePlayerData removedValue = cache.remove(cache.keySet().iterator().next()); //get the value so we can save it if needed
 
             if(data.isDirty()) { //save the data we just removed, if it has been marked as dirty
-                loader.save(removedValue, dataFolder);
+                saveData(removedValue, id);
             }
         }
+    }
+
+    private void saveData(FilePlayerData data, UUID id) {
+        loader.save(data, id.toString());
     }
 }

@@ -4,19 +4,21 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
+import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -33,44 +35,26 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final ShopManager shopManager;
 
     @Getter
-    private final File dataFolder;
-
-    @Getter
     private final int arenaCapacity;
 
     @Getter
     private final int arenaTimeout;
 
     @Getter
+    private final DataLoader mapLoader;
+
     private final Map<String, MapData> maps = new HashMap<>();
 
-    public ZombiesArenaManager(Location hubLocation, EquipmentManager equipmentManager, ShopManager shopManager, File dataFolder,
-                               int arenaCapacity, int arenaTimeout) throws LoadFailureException {
+    private final Set<String> markedForDeletion = new HashSet<>();
+
+    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, int arenaCapacity,
+                               int arenaTimeout) {
         super(NAME, hubLocation);
-        this.equipmentManager = equipmentManager;
-        this.shopManager = shopManager;
-        this.dataFolder = dataFolder;
+        this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
+        this.shopManager = new JacksonShopManager();
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
-
-        //noinspection ResultOfMethodCallIgnored
-        dataFolder.mkdirs();
-
-        File[] files = dataFolder.listFiles();
-        DataLoader loader = Zombies.getInstance().getDataLoader();
-
-        if(files != null) {
-            for(File file : files) {
-                MapData map = loader.load(file, MapData.class);
-
-                if(map != null) {
-                    maps.put(map.getName(), map);
-                }
-                else {
-                    throw new LoadFailureException("Unable to properly load some of the provided map data.");
-                }
-            }
-        }
+        this.mapLoader = mapLoader;
     }
 
     @Override
@@ -168,6 +152,59 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     public void dispose() {
         for(ZombiesArena arena : arenas) {
             arena.dispose();
+        }
+    }
+
+    public MapData getMap(String name) {
+        return maps.get(name);
+    }
+
+    public void addMap(MapData data) {
+        String name = data.getName();
+
+        if(maps.containsKey(name)) {
+            throw new UnsupportedOperationException("cannot add a map that already exists");
+        }
+
+        maps.put(name, data);
+    }
+
+    public void removeMap(String name) {
+        maps.remove(name);
+    }
+
+    public List<MapData> getMaps() {
+        return new ArrayList<>(maps.values());
+    }
+
+    public void deleteOnDisable(String mapName) {
+        if(maps.containsKey(mapName)) {
+            markedForDeletion.add(mapName);
+        }
+    }
+
+    public boolean canDelete(String mapName) {
+        return markedForDeletion.contains(mapName);
+    }
+
+    public void loadMaps() throws LoadFailureException {
+        Zombies.info("Loading maps. Changes will not apply to existing map data.");
+
+        File[] files = mapLoader.getRootDirectory().listFiles();
+        if(files != null) {
+            Zombies.info(String.format("Found %s file(s) in the map directory.", files.length));
+
+            for(File file : files) {
+                MapData map = this.mapLoader.load(FilenameUtils.getBaseName(file.getName()), MapData.class);
+
+                if(map != null) {
+                    maps.put(map.getName(), map);
+                    Zombies.info(String.format("Loaded MapData for '%s'", map.getName()));
+                }
+                else {
+                    throw new LoadFailureException("Unable to properly load some of the provided map data.");
+                }
+            }
         }
     }
 }

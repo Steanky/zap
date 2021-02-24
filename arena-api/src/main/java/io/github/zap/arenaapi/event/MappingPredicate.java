@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.event;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Represents a function that performs both validation and a mapping conversion in a single call.
@@ -14,5 +14,5 @@ public interface MappingPredicate<T, U> {
      * non-null.
      * @param input The input value
      */
-    ImmutablePair<Boolean, U> tryMap(T input);
+    Pair<Boolean, U> tryMap(T input);
 }

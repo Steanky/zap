@@ -13,12 +13,11 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
-import io.github.zap.zombies.command.DebugCommand;
+import io.github.zap.zombies.command.ZombiesCommand;
+import io.github.zap.zombies.command.mapeditor.ContextManager;
+import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
-import io.github.zap.zombies.game.data.map.shop.GunShopData;
-import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
-import io.github.zap.zombies.game.shop.GunShop;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -27,23 +26,17 @@ import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.block.BlockFace;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -59,7 +52,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private ArenaApi arenaApi;
 
     @Getter
-    private SWMPlugin SWM; //access SWM through this proxy interface
+    private SWMPlugin SWM;
 
     @Getter
     private File slimeWorldDirectory;
@@ -71,16 +64,16 @@ public final class Zombies extends JavaPlugin implements Listener {
     private SlimeLoader slimeLoader;
 
     @Getter
-    private MythicMobs mythicMobs; ///access mythicmobs through this proxy interface
+    private MythicMobs mythicMobs;
 
     @Getter
-    private DataLoader dataLoader; //used to save/load data from custom serialization framework
+    private WorldLoader worldLoader;
 
     @Getter
-    private WorldLoader worldLoader; //responsible for loading worlds
+    private ZombiesArenaManager arenaManager;
 
     @Getter
-    private CommandManager commandManager;
+    private ContextManager contextManager;
 
     @Getter
     private PlayerDataManager playerDataManager;
@@ -88,12 +81,18 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private LocalizationManager localizationManager;
 
+    @Getter
+    private CommandManager commandManager;
+
     public static final String DEFAULT_LOCALE = "en_US";
-    public static final String ARENA_METADATA_NAME = "zombies_arena";
+    public static final String DEFAULT_LOBBY_WORLD = "world";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
+
+    public static final String ARENA_METADATA_NAME = "zombies_arena";
+    public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
 
     @Override
     public void onEnable() {
@@ -126,7 +125,34 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
+        if(playerDataManager != null) {
+            playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
+        }
+
+        if(arenaManager != null) {
+            DataLoader loader = arenaManager.getMapLoader(); //save map data in case it was edited
+            for(MapData data : arenaManager.getMaps()) {
+                loader.save(data, data.getName());
+                Zombies.info(String.format("Saved MapData for '%s'", data.getName()));
+            }
+
+            for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
+                String fileNameWithExtension = file.getName();
+
+                if(fileNameWithExtension.endsWith(arenaManager.getMapLoader().getExtension())) {
+                    String filename = FilenameUtils.getBaseName(fileNameWithExtension);
+
+                    if(arenaManager.canDelete(filename)) {
+                        try {
+                            Files.delete(file.toPath());
+                            Zombies.info(String.format("Deleted marked map file: '%s'", filename));
+                        } catch (IOException e) {
+                            warning(String.format("Failed to delete map file %s: %s", fileNameWithExtension, e.getMessage()));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void initConfig() {
@@ -139,16 +165,16 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
-        config.addDefault(ConfigNames.LOBBY_WORLD,"world");
+        config.addDefault(ConfigNames.LOBBY_WORLD, DEFAULT_LOBBY_WORLD);
 
         config.options().copyDefaults(true);
         saveConfig();
     }
 
     private void initProxy() throws LoadFailureException {
-        //noinspection SwitchStatementWithTooFewBranches
         switch (Bukkit.getBukkitVersion()) {
             case "1.16.4-R0.1-SNAPSHOT":
+            case "1.16.5-R0.1-SNAPSHOT":
                 nmsProxy = new ZombiesNMSProxy_v1_16_R3();
                 break;
             default:
@@ -185,14 +211,15 @@ public final class Zombies extends JavaPlugin implements Listener {
             World world = Bukkit.getWorld(worldName);
 
             if(world != null) {
+                DataLoader equipmentLoader = new JacksonDataLoader(new File(getDataFolder().getPath(),
+                        EQUIPMENT_FOLDER_NAME));
 
-                ZombiesArenaManager zombiesArenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn),
-                        new JacksonEquipmentManager(Path.of(getDataFolder().getPath(), EQUIPMENT_FOLDER_NAME).toFile()),
-                        new JacksonShopManager(),
-                        Path.of(getDataFolder().getPath(), MAP_FOLDER_NAME).toFile(),
-                        config.getInt(ConfigNames.MAX_WORLDS),
-                        config.getInt(ConfigNames.ARENA_TIMEOUT));
-                arenaApi.registerArenaManager(zombiesArenaManager);
+                DataLoader mapLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), MAP_FOLDER_NAME));
+
+                arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn), mapLoader,
+                        equipmentLoader, config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+                arenaManager.loadMaps();
+                arenaApi.registerArenaManager(arenaManager);
             }
             else {
                 throw new LoadFailureException(String.format("Specified lobby world '%s' does not exist.", worldName));
@@ -204,12 +231,12 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initSerialization() throws LoadFailureException {
-        dataLoader = new JacksonDataLoader();
+
     }
 
     private void initPlayerDataManager() {
-        playerDataManager = new FilePlayerDataManager(Path.of(getDataFolder().getPath(), PLAYER_DATA_FOLDER_NAME)
-                .toFile(), dataLoader, getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
+        playerDataManager = new FilePlayerDataManager(new JacksonDataLoader(Path.of(getDataFolder().getPath(),
+                PLAYER_DATA_FOLDER_NAME).toFile()), getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
     }
 
     private void initLocalization() throws LoadFailureException {
@@ -228,17 +255,11 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initCommands() {
-        CommandManager commandManager = new CommandManager(this);
-        commandManager.registerCommand(new DebugCommand());
-        getCommand("tahmid").setExecutor((commandSender, command, s, strings) -> {
-            if (commandSender instanceof Player) {
-                Player player = (Player) commandSender;
-                ItemStack[] itemStacks = player.getEquipment().getArmorContents();
-                System.out.println();
-            }
+        commandManager = new CommandManager(this);
+        commandManager.registerCommand(new ZombiesCommand());
+        commandManager.registerCommand(new MapeditorCommand());
 
-            return true;
-        });
+        contextManager = new ContextManager();
     }
 
     /*
@@ -287,13 +308,5 @@ public final class Zombies extends JavaPlugin implements Listener {
      */
     public static void severe(String message) {
         log(Level.SEVERE, message);
-    }
-
-    /**
-     * Calls the specified event for this plugin.
-     * @param event The event to call
-     */
-    public static void callEvent(Event event) {
-        instance.getServer().getPluginManager().callEvent(event);
     }
 }

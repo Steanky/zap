@@ -15,6 +15,7 @@ import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import org.bukkit.entity.Creature;
 
 @MythicAIGoal(
+        author = "Steank",
         name = "unboundedPlayerTarget",
         description = "Special goal that only cares about players in the current game and has an infinite range."
 )

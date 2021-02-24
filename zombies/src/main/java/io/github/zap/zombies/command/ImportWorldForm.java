@@ -13,6 +13,7 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.StringUtils;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
+import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.World;
@@ -21,27 +22,23 @@ import java.io.File;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-public class ImportWorldForm extends CommandForm {
+public class ImportWorldForm extends CommandForm<String> {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(import)$", "import"),
-            new Parameter("^(world)$", "world"),
+            new Parameter("import"),
+            new Parameter("world"),
             new Parameter("^([a-zA-Z0-9_]+)$", "[world_name]")
     };
 
-    private static final CommandValidator validator;
+    private static final CommandValidator<String, ?> validator = new CommandValidator<>((context, arguments, previousData) -> {
+        String worldName = (String)arguments[2];
 
-    static {
-        validator = new CommandValidator((context, arguments) -> {
-            String worldName = (String)arguments[2];
-            if(Zombies.getInstance().getServer().getWorlds().stream().map(World::getName)
-                    .collect(Collectors.toList()).contains(worldName)) {
-                return ImmutablePair.of(false, "That world is loaded and thus cannot be imported.");
-            }
+        if(Zombies.getInstance().getServer().getWorlds().stream().map(World::getName)
+                .collect(Collectors.toList()).contains(worldName)) {
+            return ValidationResult.of(false, "That world is loaded and thus cannot be imported.", null);
+        }
 
-            return ImmutablePair.of(true, null);
-        });
-        validator.chain(Validators.PLAYER_EXECUTOR);
-    }
+        return ValidationResult.of(true, null, worldName);
+    }, Validators.PLAYER_EXECUTOR);
 
     public ImportWorldForm() {
         super("Imports a world to the SWM format.", Permissions.OPERATOR, parameters);
@@ -53,13 +50,12 @@ public class ImportWorldForm extends CommandForm {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<String, ?> getValidator(Context context, Object[] arguments) {
         return validator;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
-        String worldName = (String)arguments[2];
+    public String execute(Context context, Object[] arguments, String worldName) {
         Zombies zombies = Zombies.getInstance();
 
         try {

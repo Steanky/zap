@@ -49,6 +49,15 @@ public class ZombiesPerks implements Disposable {
         }
     }
 
+    /**
+     * Activates all perk effects that should be applied, considering their current level.
+     */
+    public void activateAll() {
+        for(Perk<?> perk : perks.values()) {
+            perk.activate();
+        }
+    }
+
     public Perk<?> getPerk(PerkType type) {
         return perks.get(type);
     }

@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class BoundingBoxDeserializer extends StdDeserializer<BoundingBox> {
 
-    protected BoundingBoxDeserializer() {
+    public BoundingBoxDeserializer() {
         super(BoundingBox.class);
     }
 

@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.map.shop;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
@@ -7,6 +8,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
 import io.github.zap.zombies.game.shop.*;
 import lombok.Getter;
+import org.checkerframework.checker.units.qual.A;
 
 /**
  * Class for storing and managing shop data using Jackson's data loader
@@ -20,24 +22,24 @@ public class JacksonShopManager implements ShopManager {
     private final ShopCreator shopCreator = new ShopCreator();
 
     public JacksonShopManager() {
-        JacksonDataLoader jacksonDataLoader = (JacksonDataLoader) Zombies.getInstance().getDataLoader();
-        jacksonDataLoader.addDeserializer(ShopData.class, shopDataDeserializer);
-        jacksonDataLoader.addDeserializer(TeamMachineTask.class, new FieldTypeDeserializer<>("type"));
+        ArenaApi arenaApi = ArenaApi.getInstance();
+        arenaApi.addDeserializer(ShopData.class, shopDataDeserializer);
+        arenaApi.addDeserializer(TeamMachineTask.class, new FieldTypeDeserializer<>("type"));
 
-        addShop(ShopType.ARMOR_SHOP.name(), ArmorShopData.class, ArmorShop::new);
-        addShop(ShopType.DOOR.name(), DoorData.class, Door::new);
-        addShop(ShopType.GUN_SHOP.name(), GunShopData.class, GunShop::new);
-        addShop(ShopType.LUCKY_CHEST.name(), LuckyChestData.class, LuckyChest::new);
-        addShop(ShopType.PERK_MACHINE.name(), PerkMachineData.class, PerkMachine::new);
-        addShop(ShopType.POWER_SWITCH.name(), PowerSwitchData.class, PowerSwitch::new);
-        addShop(ShopType.TEAM_MACHINE.name(), TeamMachineData.class, TeamMachine::new);
-        addShop(ShopType.ULTIMATE_MACHINE.name(), UltimateMachineData.class, UltimateMachine::new);
+        addShop(ShopType.ARMOR_SHOP, ArmorShopData.class, ArmorShop::new);
+        addShop(ShopType.DOOR, DoorData.class, Door::new);
+        addShop(ShopType.GUN_SHOP, GunShopData.class, GunShop::new);
+        addShop(ShopType.LUCKY_CHEST, LuckyChestData.class, LuckyChest::new);
+        addShop(ShopType.PERK_MACHINE, PerkMachineData.class, PerkMachine::new);
+        addShop(ShopType.POWER_SWITCH, PowerSwitchData.class, PowerSwitch::new);
+        addShop(ShopType.TEAM_MACHINE, TeamMachineData.class, TeamMachine::new);
+        addShop(ShopType.ULTIMATE_MACHINE, UltimateMachineData.class, UltimateMachine::new);
     }
 
     @Override
-    public <D extends ShopData> void addShop(String shopType, Class<D> dataClass,
+    public <D extends ShopData> void addShop(ShopType shopType, Class<D> dataClass,
                                              ShopCreator.ShopMapping<D> shopMapping) {
-        shopDataDeserializer.getMappings().put(shopType, dataClass);
+        shopDataDeserializer.getMappings().put(String.valueOf(shopType), dataClass);
         shopCreator.getShopMappings().put(shopType, shopMapping);
     }
 
