@@ -24,7 +24,7 @@ public abstract class ShadedRenderable implements Renderable {
             int length = provider.init();
 
             //optimization: only allocate a new array if we have to
-            FragmentData[] newData = (frags == null || length != frags.length) ? new FragmentData[length] : frags;
+            FragmentData[] newData = (length != frags.length) ? new FragmentData[length] : frags;
 
             Shader shader = getShader();
             for(int i = 0; i < newData.length; i++) {
