@@ -48,7 +48,7 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
 
     @Override
     public boolean canStylize() {
-        return false;
+        return true;
     }
 
     @Override
