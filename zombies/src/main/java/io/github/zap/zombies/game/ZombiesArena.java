@@ -12,6 +12,7 @@ import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.LuckyChest;
 import io.github.zap.zombies.game.shop.Shop;
 import io.github.zap.zombies.game.shop.ShopEventArgs;
@@ -24,6 +25,7 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -209,6 +211,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
+    @Getter
+    private final GameScoreboard gameScoreboard;
+
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
 
@@ -228,6 +233,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
+        this.gameScoreboard = new GameScoreboard(this);
+        gameScoreboard.initialize();
 
         Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
                 EntityDeathEvent.class);
@@ -291,6 +298,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         for(Player player : args.getPlayers()) {
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
             player.setGameMode(GameMode.ADVENTURE);
+            player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
@@ -427,6 +435,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         event.setFoodLevel(20);
     }
 
+    public void startGame() {
+        getPlayerMap().forEach((l,r) -> r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies started! You probably wanna change this!"));
+        doRound();
+    }
+
     private void doRound() {
         for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
             if(!player.isAlive()) {
@@ -481,6 +494,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     public void stopCountdown() {
         //reset countdown timer
+
     }
 
     /**
