@@ -3,7 +3,6 @@ package io.github.zap.arenaapi;
 import com.comphenix.protocol.ProtocolLib;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
@@ -59,7 +58,7 @@ public final class ArenaApi extends JavaPlugin {
         }
         catch(LoadFailureException exception)
         {
-            severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
+            severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, true);
             return;
