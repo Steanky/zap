@@ -13,8 +13,10 @@ import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.DoorSelectionData;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
+import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +47,13 @@ public class NewDoorSideForm extends CommandForm<DoorSelectionData> {
                     return ValidationResult.of(false,
                             "Trigger bounds cannot overlap other triggers!", null);
                 }
+            }
+        }
+
+        String[] opensTo = (String[])arguments[3];
+        for(String roomName : opensTo) {
+            if(previousData.getMap().getRooms().stream().noneMatch(roomData -> roomData.getName().equals(roomName))) {
+                return ValidationResult.of(false, "Room " + roomName + " does not exist!", null);
             }
         }
 
