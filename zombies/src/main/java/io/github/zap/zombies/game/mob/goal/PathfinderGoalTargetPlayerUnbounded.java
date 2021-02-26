@@ -12,6 +12,7 @@ import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Creature;
 
 @MythicAIGoal(
@@ -54,6 +55,7 @@ public class PathfinderGoalTargetPlayerUnbounded extends Pathfinder implements P
             loadMetadata();
             return false;
         }
+
         return true;
     }
 
