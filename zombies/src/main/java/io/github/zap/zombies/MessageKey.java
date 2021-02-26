@@ -52,7 +52,7 @@ public enum MessageKey {
     TEAM_MACHINE_PURCHASE("zombies.game.tm.purchase");
 
     @Getter
-    private String key;
+    private final String key;
 
     MessageKey(String key) {
         this.key = key;

@@ -6,6 +6,7 @@ import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
@@ -495,6 +496,23 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      */
     private void doLoss() {
 
+    }
+
+    /**
+     * Attempts to break the given window.
+     */
+    public void tryBreakWindow(Entity attacker, WindowData targetWindow, int by) {
+        targetWindow.getAttackingEntityProperty().setValue(this, attacker);
+
+        int previousIndex = targetWindow.getCurrentIndexProperty().getValue(this);
+        int blocksBroken = targetWindow.retractRepairState(this, by);
+
+        for(int i = previousIndex; i > previousIndex - blocksBroken; i--) { //break the blocks
+            WorldUtils.getBlockAt(world, targetWindow.getFaceVectors().get(i))
+                    .setType(targetWindow.getRepairedMaterials().get(i));
+
+            //TODO: play block breaking sound (particles too)
+        }
     }
 
     /**

@@ -135,8 +135,10 @@ public class WindowData {
         int max = getVolume() - 1;
 
         if(currentIndex < max) {
-            int repaired = Math.min(currentIndex + by, max);
-            currentIndexProperty.setValue(accessor, repaired);
+            int newValue = Math.min(currentIndex + by, max);
+            int repaired = newValue - currentIndex;
+
+            currentIndexProperty.setValue(accessor, newValue);
             return repaired;
         }
 
@@ -149,14 +151,17 @@ public class WindowData {
      * @param by The amount to reduce the repair index by
      * @return true if any number of breaks occurred, false otherwise
      */
-    public boolean retractRepairState(Unique accessor, int by) {
+    public int retractRepairState(Unique accessor, int by) {
         int currentIndex = currentIndexProperty.getValue(accessor);
 
         if(currentIndex > -1) {
-            currentIndexProperty.setValue(accessor, Math.max(currentIndex - by, -1));
-            return true;
+            int newValue = Math.max(-1, currentIndex - by);
+            int broken = currentIndex - newValue;
+
+            currentIndexProperty.setValue(accessor, newValue);
+            return broken;
         }
 
-        return false;
+        return 0;
     }
 }

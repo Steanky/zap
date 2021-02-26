@@ -1,11 +1,13 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.Property;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
+import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
@@ -14,6 +16,7 @@ import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import net.minecraft.server.v1_16_R3.EntityCreature;
 import net.minecraft.server.v1_16_R3.Vec3D;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.Optional;
@@ -68,6 +71,18 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
                         target.getBlockZ());
 
                 targetWindow = arena.getMap().windowAt(spawnPoint.getWindowFace()); //get target window using lookup
+
+                if(targetWindow != null) {
+                    hasWindow = true;
+
+                    Vector center = targetWindow.getCenter();
+                    windowCenter = new AbstractLocation(new BukkitWorld(arena.getWorld()), center.getX(),
+                            center.getY(), center.getZ());
+                }
+                else {
+                    Zombies.warning("Window lookup failed for entity " + nmsEntity.getUniqueID());
+                    return;
+                }
             }
 
             loadedMetadata = true;
@@ -111,19 +126,27 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
     @Override
     public boolean shouldEnd() {
         AbstractLocation entityLocation = this.entity.getLocation();
-        int radiusSquared = 4;
-        return destination == null || (destination.distanceSquared(destination) <= (double) radiusSquared &&
+        return destination == null || (destination.distanceSquared(destination) <= 4D &&
                 entityLocation.getBlockY() == destination.getBlockY());
     }
 
     @Override
     public void end() {
-        targetWindow = null;
+        if(targetWindow != null) {
+            Property<Entity> attackingEntityProperty = targetWindow.getAttackingEntityProperty();
+            Entity attacker = attackingEntityProperty.getValue(arena);
+
+            if(attacker == entity.getBukkitEntity()) {
+                attackingEntityProperty.setValue(arena, null);
+            }
+
+            targetWindow = null;
+        }
     }
 
-    public void tryBreak() {
+    private void tryBreak() {
         if(entity.getEyeLocation().distanceSquared(windowCenter) <= breakReachSquared) {
-            //TODO: break window
+            arena.tryBreakWindow(entity.getBukkitEntity(), targetWindow, breakIncrement);
         }
     }
 }

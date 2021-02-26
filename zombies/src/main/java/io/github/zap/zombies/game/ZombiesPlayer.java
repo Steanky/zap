@@ -106,8 +106,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     public void addCoins(int amount) {
-        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.ADD_GOLD, amount);
-        coins += amount;
+        if(amount > 0) {
+            Zombies.sendLocalizedMessage(getPlayer(), MessageKey.ADD_GOLD, amount);
+            coins += amount;
+        }
     }
 
     public void subtractCoins(int amount) {
@@ -220,14 +222,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 //advance repair state
                 int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
                 int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
-                if(blocksRepaired > 0) { //break the actual blocks
-                    for(int i = previousIndex; i <= previousIndex + blocksRepaired; i++) {
-                        WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i))
-                                .setType(targetWindow.getRepairedMaterials().get(i));
-                    }
-
-                    addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
+                for(int i = previousIndex + 1; i < previousIndex + blocksRepaired; i++) {
+                    WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i))
+                            .setType(targetWindow.getRepairedMaterials().get(i));
                 }
+
+                addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
             }
             else {
                 //can't repair because someone else already is
