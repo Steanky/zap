@@ -4,33 +4,27 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
-import lombok.AccessLevel;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Level;
+import java.util.function.Supplier;
 
 public class GameScoreboard extends BukkitRunnable implements Disposable {
     // Should these be in a config file?
-    public static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yy");
-    public static String SIDEBAR_TITLE = "" + ChatColor.YELLOW + ChatColor.BOLD + "Zombies";
-    private static Map<ZombiesArenaState, Class<? extends IGameScoreboardState>> SCOREBOARD_STATES;
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yy");
+    public static final String SIDEBAR_TITLE = "" + ChatColor.YELLOW + ChatColor.BOLD + "Zombies";
+    private static final Map<ZombiesArenaState, Supplier<GameScoreboardState>> SCOREBOARD_STATES;
     static {
         SCOREBOARD_STATES = new HashMap<>();
-        SCOREBOARD_STATES.put(ZombiesArenaState.PREGAME, PregameScoreboardState.class);
-        SCOREBOARD_STATES.put(ZombiesArenaState.COUNTDOWN, PregameScoreboardState.class);
-        SCOREBOARD_STATES.put(ZombiesArenaState.STARTED, IngameScoreboardState.class);
-        SCOREBOARD_STATES.put(ZombiesArenaState.ENDED, IngameScoreboardState.class);
+        SCOREBOARD_STATES.put(ZombiesArenaState.PREGAME, PregameScoreboardState::new);
+        SCOREBOARD_STATES.put(ZombiesArenaState.COUNTDOWN, PregameScoreboardState::new);
+        SCOREBOARD_STATES.put(ZombiesArenaState.STARTED, IngameScoreboardState::new);
+        SCOREBOARD_STATES.put(ZombiesArenaState.ENDED, IngameScoreboardState::new);
     }
 
     @Getter
@@ -39,7 +33,7 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
     @Getter
     private final int refreshRate;
 
-    private IGameScoreboardState currentState;
+    private GameScoreboardState currentState;
 
     private ZombiesArenaState previousState;
 
@@ -54,10 +48,10 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
         this.refreshRate = refreshRate;
     }
 
-    private IGameScoreboardState getCurrentState() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    private GameScoreboardState getCurrentState() {
         var arenaState = getZombiesArena().getState();
         if(arenaState != previousState) {
-            currentState = SCOREBOARD_STATES.get(arenaState).getConstructor().newInstance();
+            currentState = SCOREBOARD_STATES.get(arenaState).get();
             currentState.stateChangedFrom(previousState, this);
             previousState = arenaState;
         }
@@ -72,11 +66,7 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
 
     @Override
     public void run() {
-        try {
-            getCurrentState().update();
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException | InstantiationException e) {
-            Zombies.log(Level.SEVERE, "Cannot instantiate game scoreboard state! ");
-        }
+        getCurrentState().update();
     }
 
     @Override

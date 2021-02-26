@@ -1,11 +1,8 @@
 package io.github.zap.zombies.game.scoreboards;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,10 +12,10 @@ import java.util.*;
 /**
  * A wrapper that render text to a sidebar objective
  */
-public class SidebarTextWriter implements Iterable<ITextFragment>, ITextWriter {
+public class SidebarTextWriter implements Iterable<ITextFragment>, TextWriter {
     // implement non-reduced-flicker for 128 + 40 chars (currently 64)
-    public static int MAX_CHAR_REDUCE_FLICKER = 64;
-    public static int MAX_CHAR = 168;
+    public static final int MAX_CHAR_REDUCE_FLICKER = 64;
+    public static final int MAX_CHAR = 168;
 
     @Getter
     @Setter
@@ -113,7 +110,7 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, ITextWriter {
             if(content instanceof ITextFragment)
                 add((ITextFragment)content);
             else
-                add(new TextFragment(content.toString()));
+                add(new StringFragment(content.toString()));
         }
 
         return this;
@@ -156,7 +153,7 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, ITextWriter {
      */
     public SidebarTextWriter textc (String... contents) {
         for(String content : contents)
-            add(new TextFragment(content));
+            add(new StringFragment(content));
         return this;
     }
 
@@ -166,7 +163,7 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, ITextWriter {
      * @return the current SidebarTextWriter object
      */
     public SidebarTextWriter textc(Iterable<String> contents) {
-        contents.forEach(x -> add(new TextFragment(x)));
+        contents.forEach(x -> add(new StringFragment(x)));
         return this;
     }
 
@@ -175,7 +172,7 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, ITextWriter {
      * @return the current SidebarTextWriter object
      */
     public SidebarTextWriter line() {
-        add(new TextFragment("\n"));
+        add(new StringFragment("\n"));
         return this;
     }
 

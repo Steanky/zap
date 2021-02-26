@@ -1,33 +1,31 @@
 package io.github.zap.zombies.game.scoreboards;
 
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Represent a segment of string to render in SidebarTextWriter
  */
-public class TextFragment implements ITextFragment {
+public class StringFragment implements ITextFragment {
     @Getter
     public String value;
 
-    private Set<ITextWriter> writers = new HashSet<>();
+    private Set<TextWriter> writers = new HashSet<>();
 
     /**
      * Create a new instance of TextFragment
      * @param value the initial value
      */
-    public TextFragment(String value) {
+    public StringFragment(String value) {
         this.value = value;
     }
 
     /**
      * Create a new instance of TextFragment
      */
-    public TextFragment() {
+    public StringFragment() {
         this("");
     }
 
@@ -51,17 +49,17 @@ public class TextFragment implements ITextFragment {
     }
 
     @Override
-    public Iterable<ITextWriter> getWriters() {
+    public Iterable<TextWriter> getWriters() {
         return writers;
     }
 
     @Override
-    public void addWriter(ITextWriter writer) {
+    public void addWriter(TextWriter writer) {
         writers.add(writer);
     }
 
     @Override
-    public void removeWriter(ITextWriter writer) {
+    public void removeWriter(TextWriter writer) {
         writers.remove(writer);
     }
 }

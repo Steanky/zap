@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, ITextWriter{
+public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, TextWriter {
     // It seems like there is not limit to the display name
     @Getter
     private final SidebarTextWriter writer;
@@ -36,7 +36,7 @@ public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, IT
             if(content instanceof ITextFragment)
                 add((ITextFragment)content);
             else
-                add(new TextFragment(content.toString()));
+                add(new StringFragment(content.toString()));
         }
 
         return this;
@@ -70,7 +70,7 @@ public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, IT
      */
     public SidebarDisplayNameTextWriter textc (String... contents) {
         for(String content : contents)
-            add(new TextFragment(content));
+            add(new StringFragment(content));
         return this;
     }
 

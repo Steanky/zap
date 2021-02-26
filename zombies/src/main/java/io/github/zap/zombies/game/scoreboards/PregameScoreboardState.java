@@ -5,23 +5,20 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import static io.github.zap.zombies.game.scoreboards.GameScoreboard.DATE_FORMATTER;
 
-public class PregameScoreboardState implements IGameScoreboardState, Disposable {
-    public static List<Integer> CD_MILESTONE = Arrays.asList(20, 10, 5, 4, 3, 2, 1);
+public class PregameScoreboardState implements GameScoreboardState, Disposable {
+    public static final List<Integer> CD_MILESTONE = Arrays.asList(20, 10, 5, 4, 3, 2, 1);
     private double counter = 21;
 
     private GameScoreboard gameScoreboard;
@@ -29,9 +26,9 @@ public class PregameScoreboardState implements IGameScoreboardState, Disposable 
 
     private SidebarTextWriter writer;
 
-    private TextFragment tfPlayerCount = new TextFragment();
-    private TextFragment cd = new TextFragment();
-    private TextFragment status = new TextFragment();
+    private StringFragment tfPlayerCount = new StringFragment();
+    private StringFragment cd = new StringFragment();
+    private StringFragment status = new StringFragment();
 
     @Override
     public void stateChangedFrom(ZombiesArenaState gameState, GameScoreboard gameScoreboard) {

@@ -6,33 +6,29 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.netty.handler.logging.LogLevel;
-import lombok.Data;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Zombie;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
 import static io.github.zap.zombies.game.scoreboards.GameScoreboard.DATE_FORMATTER;
 
-public class IngameScoreboardState implements IGameScoreboardState, Disposable {
+public class IngameScoreboardState implements GameScoreboardState, Disposable {
     private GameScoreboard gameScoreboard;
 
-    private Map<UUID, ImmutablePair<TextFragment, TextFragment>> playerStatues = new HashMap<>();
-    private Map<UUID, Triple<Scoreboard, SidebarTextWriter, TextFragment>> playScoreboards = new HashMap<>();
+    private Map<UUID, ImmutablePair<StringFragment, StringFragment>> playerStatues = new HashMap<>();
+    private Map<UUID, Triple<Scoreboard, SidebarTextWriter, StringFragment>> playScoreboards = new HashMap<>();
 
-    private TextFragment round = new TextFragment();
-    private TextFragment zombieLeft = new TextFragment();
-    private TextFragment time = new TextFragment();
+    private StringFragment round = new StringFragment();
+    private StringFragment zombieLeft = new StringFragment();
+    private StringFragment time = new StringFragment();
 
 
     @Override
@@ -42,15 +38,15 @@ public class IngameScoreboardState implements IGameScoreboardState, Disposable {
         var map = scoreboard.getZombiesArena().getMap().getName();
 
         for(var i : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
-            var tfName = new TextFragment(i.getValue().getPlayer().getName());
-            var tfState = new TextFragment();
+            var tfName = new StringFragment(i.getValue().getPlayer().getName());
+            var tfState = new StringFragment();
             playerStatues.put(i.getKey(), ImmutablePair.of(tfName, tfState));
         }
 
         for(var player : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
             var bukkitScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
             var writer = SidebarTextWriter.create(bukkitScoreboard, GameScoreboard.SIDEBAR_TITLE);
-            var zombieKills = new TextFragment(ChatColor.GOLD + "0");
+            var zombieKills = new StringFragment(ChatColor.GOLD + "0");
 
             writer.line(ChatColor.GRAY, date)
                   .line()
