@@ -11,7 +11,7 @@ import java.util.Map;
 public class EquipmentDataMap {
 
     @Getter
-    private Map<String, EquipmentData<?>> map = new HashMap<>();
+    private final Map<String, EquipmentData<?>> map = new HashMap<>();
 
     private EquipmentDataMap() {
 

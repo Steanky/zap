@@ -52,7 +52,7 @@ public class SidebarLineProvider {
     @Getter
     private final Objective objective;
 
-    private List<Team> teams = new ArrayList<>();
+    private final List<Team> teams = new ArrayList<>();
 
     @Getter()
     @Setter(AccessLevel.PRIVATE)

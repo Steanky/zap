@@ -6,13 +6,15 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hologram.HologramLine;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
-import org.bukkit.ChatColor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -56,6 +58,18 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
+    public void display() {
+        Hologram hologram = getHologram();
+
+        List<HologramLine<?>> lines = hologram.getHologramLines();
+        while (lines.size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
+
+        super.display();
+    }
+
+    @Override
     protected void displayTo(Player player) {
         Hologram hologram = getHologram();
         ArmorShopData armorShopData = getShopData();
@@ -63,25 +77,21 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         List<ArmorShopData.ArmorLevel> armorLevels = armorShopData.getArmorLevels();
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
-        LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
-
         // Display the hologram
-        String secondHologramLine;
+        Pair<String, String[]> secondHologramLine;
         if (armorLevel == null) {
             armorLevel = armorLevels.get(armorLevels.size() - 1);
-            secondHologramLine = localizationManager.getLocalizedMessageFor(player, MessageKey.UNLOCKED.getKey());
+            secondHologramLine = ImmutablePair.of(MessageKey.UNLOCKED.getKey(), new String[]{});
         } else {
             secondHologramLine = (armorShopData.isRequiresPower() && !isPowered())
-                    ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
-                    + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
-                    : ChatColor.GOLD.toString() + armorLevel.getCost() + " "
-                    + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey());
+                    ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
+                    : ImmutablePair.of(MessageKey.COST.getKey(), new String[]{ String.valueOf(armorLevel.getCost()) });
         }
 
         sendArmorStandUpdatePackets(player, armorLevel);
 
-        hologram.setLineFor(player, 0, ChatColor.GREEN + armorLevel.getName());
-        hologram.setLineFor(player, 1, secondHologramLine);
+        hologram.updateLineForPlayer(player, 0, armorLevel.getName());
+        hologram.updateLineForPlayer(player, 1, secondHologramLine);
     }
 
     @Override

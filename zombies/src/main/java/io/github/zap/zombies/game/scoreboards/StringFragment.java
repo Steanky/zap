@@ -12,7 +12,7 @@ public class StringFragment implements ITextFragment {
     @Getter
     public String value;
 
-    private Set<TextWriter> writers = new HashSet<>();
+    private final Set<TextWriter> writers = new HashSet<>();
 
     /**
      * Create a new instance of TextFragment

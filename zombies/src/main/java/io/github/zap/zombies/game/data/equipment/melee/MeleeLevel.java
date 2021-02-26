@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.data.equipment.melee;
 
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.enchantments.Enchantment;
 
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
 public class MeleeLevel {
 
     @Getter
-    private List<ImmutablePair<Enchantment, Integer>> enchantments;
+    private List<Pair<Enchantment, Integer>> enchantments;
 
     private MeleeLevel() {
 

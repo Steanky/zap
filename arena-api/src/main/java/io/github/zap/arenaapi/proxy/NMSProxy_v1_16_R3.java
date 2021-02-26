@@ -22,7 +22,7 @@ public class NMSProxy_v1_16_R3 implements NMSProxy {
     }
 
     @Override
-    public int getEntityLivingTypeId(EntityType entityType) {
+    public int getEntityTypeId(EntityType entityType) {
         Optional<EntityTypes<?>> opt = EntityTypes.getByName(entityType.getKey().getKey());
         return opt.map(IRegistry.ENTITY_TYPE::a).orElse(-1);
     }

@@ -38,7 +38,7 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
     private AbstractLocation windowCenter;
     private AbstractLocation destination;
 
-    private boolean hasWindow = false;
+    private final boolean hasWindow = false;
     private boolean loadedMetadata = false;
 
     private int tickCounter = 0;
