@@ -36,6 +36,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     @Getter
     @Setter
+    private int kills;
+
+    @Getter
+    @Setter
     private int repairIncrement = 1;
 
     @Getter
