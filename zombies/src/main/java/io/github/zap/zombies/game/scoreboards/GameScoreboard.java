@@ -46,6 +46,7 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
     public GameScoreboard(ZombiesArena zombiesArena, int refreshRate) {
         this.zombiesArena = zombiesArena;
         this.refreshRate = refreshRate;
+        this.getZombiesArena().startCountdown();
     }
 
     private GameScoreboardState getCurrentState() {

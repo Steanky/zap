@@ -11,7 +11,10 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.Scoreboard;
+import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +24,10 @@ import java.util.logging.Level;
 import static io.github.zap.zombies.game.scoreboards.GameScoreboard.DATE_FORMATTER;
 
 public class IngameScoreboardState implements GameScoreboardState, Disposable {
+    public static final long secondToMillis = 1000;
+    public static final long minuteToMillis = 60 * secondToMillis;
+    public static final long hourToMillis = 60 * minuteToMillis;
+
     private GameScoreboard gameScoreboard;
 
     private Map<UUID, ImmutablePair<StringFragment, StringFragment>> playerStatues = new HashMap<>();
@@ -50,7 +57,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
             writer.line(ChatColor.GRAY, date)
                   .line()
-                  .line("" + ChatColor.BOLD + ChatColor.RED + "Round ", round)
+                  .line("" + ChatColor.BOLD + ChatColor.RED, round)
                   .line("Zombies Left: " + ChatColor.GREEN, zombieLeft)
                   .line();
 
@@ -94,8 +101,14 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
     public void update() {
         // Update general information
         var playerMap =  gameScoreboard.getZombiesArena().getPlayerMap();
-        round.setValue(gameScoreboard.getZombiesArena().getMap().getCurrentRoundProperty().getValue(gameScoreboard.getZombiesArena()).toString());
         zombieLeft.setValue("" + gameScoreboard.getZombiesArena().getMobs().size());
+        if(gameScoreboard.getZombiesArena().getState() == ZombiesArenaState.ENDED) {
+            round.setValue("Game Over!");
+            time.setValue(formatTime(gameScoreboard.getZombiesArena().getEndTimeStamp() * 0 + System.currentTimeMillis() - gameScoreboard.getZombiesArena().getStartTimeStamp()));
+        } else {
+            round.setValue("Round " + gameScoreboard.getZombiesArena().getMap().getCurrentRoundProperty().getValue(gameScoreboard.getZombiesArena()).toString());
+            time.setValue(formatTime(System.currentTimeMillis() - gameScoreboard.getZombiesArena().getStartTimeStamp()));
+        }
 
         // Update player status
         for(var playerStatus : playerStatues.entrySet()) {
@@ -134,6 +147,33 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                 Zombies.getInstance().getLogger().log(Level.SEVERE, "Could not find player with UUID: " + playerSb.getKey().toString());
             }
         }
+    }
+
+    private long previousMillis = 0;
+
+    @NotNull
+    private String formatTime(long timeElapsedInMillis) {
+        var hours = timeElapsedInMillis / hourToMillis;
+        var minutes = (timeElapsedInMillis % hourToMillis) / minuteToMillis;
+        var seconds = (timeElapsedInMillis % minuteToMillis) / secondToMillis;
+
+        // To avoid timer *lag* behind then *fast-forward* due to taskTimer is not precise we will round up the value
+        // if the delta time is smaller than half of the interval
+        long millis = timeElapsedInMillis % secondToMillis;
+        long roundingMidPoint = (1000 - gameScoreboard.getRefreshRate() / 2 + previousMillis) % 1000;
+        if(millis > roundingMidPoint) {
+            seconds++;
+        }
+        previousMillis = millis;
+
+        var formatter = new DecimalFormat("00");
+        StringBuilder sb = new StringBuilder();
+        if(hours > 0) {
+            sb.append(hours);
+            sb.append(":");
+        }
+        sb.append(formatter.format(minutes)).append(":").append(formatter.format(seconds));
+        return sb.toString();
     }
 
     @Override
