@@ -6,7 +6,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
-import io.github.zap.arenaapi.hologram.HologramReplacement;
+import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
@@ -54,7 +54,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
     private UUID rollingPlayerId = null;
 
-    private HologramReplacement hologram;
+    private Hologram hologram;
 
     @Setter
     private boolean active;
@@ -86,7 +86,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
      */
     public void toggle(boolean enable) {
         if (enable) {
-            hologram = new HologramReplacement(getLocalizationManager(), chestLocation.clone().add(0, 0.5, 0));
+            hologram = new Hologram(getLocalizationManager(), chestLocation.clone().add(0, 0.5, 0));
             while (hologram.getHologramLines().size() < 2) {
                 hologram.addLine(MessageKey.PLACEHOLDER.getKey());
             }
@@ -219,11 +219,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private final List<EquipmentData<?>> equipments;
 
-        private HologramReplacement timeRemaining;
+        private Hologram timeRemaining;
 
-        private HologramReplacement rightClickToClaim;
+        private Hologram rightClickToClaim;
 
-        private HologramReplacement gunName;
+        private Hologram gunName;
 
         private Item rollingItem;
 
@@ -294,7 +294,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setGravity(false);
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
-            gunName = new HologramReplacement(zombies.getLocalizationManager(), chestLocation.clone(), 1);
+            gunName = new Hologram(zombies.getLocalizationManager(), chestLocation.clone(), 1);
             gunName.addLine(MessageKey.PLACEHOLDER.getKey());
 
             PacketContainer packetContainer = getChestPacket();
@@ -312,7 +312,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         @Override
         public void onEnd(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
-            timeRemaining = new HologramReplacement(
+            timeRemaining = new Hologram(
                     zombies.getLocalizationManager(),
                     chestLocation.clone().add(0, 1, 0),
                     2
@@ -320,7 +320,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             timeRemaining.addLine(
                     ImmutablePair.of(MessageKey.TIME_REMAINING.getKey(), new String[]{ String.valueOf(sittingTime) }));
 
-            rightClickToClaim = new HologramReplacement(
+            rightClickToClaim = new Hologram(
                     zombies.getLocalizationManager(),
                     chestLocation.clone().add(0, 0.25, 0),
                     1

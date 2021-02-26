@@ -8,34 +8,39 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.proxy.NMSProxy;
+import io.github.zap.arenaapi.localization.LocalizationManager;
+import lombok.Getter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+/**
+ * Represents a hologram which can show lines of text or items
+ */
 public class Hologram {
 
-    private final static double LINE_SPACE = 0.25;
+    private static final double DEFAULT_LINE_SPACE = 0.25;
 
-    private final static Set<Integer> ID_SET = new HashSet<>();
+    private static final Set<Integer> TEXT_LINE_SET = new HashSet<>();
 
-    private final ProtocolManager protocolManager;
+    private final ArenaApi arenaApi;
 
-    private final NMSProxy nmsProxy;
+    private final LocalizationManager localizationManager;
 
-    private final Location location;
+    @Getter
+    private final List<HologramLine<?>> hologramLines = new ArrayList<>();
 
-    private final List<Integer> hologramLines = new ArrayList<>();
+    private final double lineSpace;
 
-    private final List<String> defaultLines = new ArrayList<>();
-
-    private boolean active = true;
+    private final Location rootLocation;
 
     static {
         ArenaApi arenaApi = ArenaApi.getInstance();
@@ -51,7 +56,7 @@ public class Hologram {
                             .INTERACT_AT) {
                         int id = packetContainer.getIntegers().read(0);
 
-                        if (ID_SET.contains(id)) {
+                        if (TEXT_LINE_SET.contains(id)) {
                             event.setCancelled(true);
 
                             PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client
@@ -72,196 +77,216 @@ public class Hologram {
         });
     }
 
-    public Hologram(Location location) {
-        ArenaApi plugin = ArenaApi.getInstance();
-        protocolManager = ProtocolLibrary.getProtocolManager();
-        nmsProxy = plugin.getNmsProxy();
-
-        this.location = location;
+    public Hologram(LocalizationManager localizationManager, Location location, double lineSpace) {
+        this.arenaApi = ArenaApi.getInstance();
+        this.localizationManager = localizationManager;
+        this.rootLocation = location;
+        this.lineSpace = lineSpace;
     }
 
-    public Hologram(Location location, int lineCount) {
-        this(location);
-        addLines(lineCount);
+    public Hologram(LocalizationManager localizationManager, Location location) {
+        this(localizationManager, location, DEFAULT_LINE_SPACE);
     }
 
-    public Hologram(Location location, String... defaultLines) {
-        this(location, defaultLines.length);
+    /**
+     * Adds a line with a message key
+     * @param message The message key
+     */
+    public void addLine(String message) {
+        addLine(new ImmutablePair<>(message, new String[]{}));
+    }
 
-        for (int i = 0; i < defaultLines.length; i++) {
-            setLine(i, defaultLines[i]);
-            this.defaultLines.add(defaultLines[i]);
+    /**
+     * Adds a line with a message key and format arguments
+     * @param message A pair of the message key and format arguments
+     */
+    public void addLine(ImmutablePair<String, String[]> message) {
+        TextLine textLine = createTextLine(
+                rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),
+                message
+        );
+        hologramLines.add(textLine);
+        TEXT_LINE_SET.add(textLine.getEntityId());
+    }
+
+    private TextLine createTextLine(Location location, ImmutablePair<String, String[]> message) {
+        TextLine textLine = new TextLine(localizationManager, location);
+        textLine.setVisualForEveryone(message);
+
+        return textLine;
+    }
+
+    /**
+     * Adds a line with a material for a dropped item
+     * @param material The material to add
+     */
+    public void addLine(Material material) {
+        hologramLines.add(
+                createItemLine(rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0), material)
+        );
+    }
+
+    private ItemLine createItemLine(Location location, Material material) {
+        ItemLine itemLine = new ItemLine(localizationManager, location);
+        itemLine.setVisualForEveryone(material);
+
+        return itemLine;
+    }
+
+    /**
+     * Updates a text line for all players and overrides custom visuals
+     * @param index The index of the line to update
+     * @param message The updated line
+     */
+    public void updateLineForEveryone(int index, ImmutablePair<String, String[]> message) {
+        HologramLine<?> hologramLine = hologramLines.get(index);
+        if (hologramLine instanceof TextLine) {
+            ((TextLine) hologramLine).setVisualForEveryone(message);
+        } else {
+
         }
     }
 
     /**
-     * Creates multiple empty lines
-     * @param lineCount The number of lines
+     * Updates a text line for all players
+     * @param index The index of the line to update
+     * @param message The updated line
      */
-    public void addLines(int lineCount) {
-        for (int i = 0; i < lineCount; i++) {
-            addLine();
+    public void updateLine(int index, ImmutablePair<String, String[]> message) {
+        HologramLine<?> hologramLine = hologramLines.get(index);
+        if (hologramLine instanceof TextLine) {
+            ((TextLine) hologramLine).setVisual(message);
+        } else {
+
         }
     }
 
     /**
-     * Creates an empty line
+     * Updates a text line for a single player
+     * @param player The player to update the line for
+     * @param index The index of the line to update
+     * @param message The updated line
      */
-    public void addLine() {
-        sendToAll(createHologramLine(location.clone().subtract(0D, hologramLines.size() * LINE_SPACE, 0D)));
-    }
+    public void updateLineForPlayer(Player player, int index, ImmutablePair<String, String[]> message) {
+        HologramLine<?> hologramLine = hologramLines.get(index);
+        if (hologramLine instanceof TextLine) {
+            ((TextLine) hologramLine).setVisualForPlayer(player, message);
+        } else {
 
-    /**
-     * Sets the text of a line for a player
-     * @param player The player in question
-     * @param index The index of the line to edit
-     * @param line The new message
-     */
-    public void setLineFor(Player player, int index, String line) {
-        PacketContainer packetContainer = createSetLinePacket(index, line);
-
-        if (packetContainer != null) {
-            sendTo(player, packetContainer);
         }
     }
 
     /**
-     * Sets the text of a line
-     * @param index The index of the line to edit
-     * @param line The new message
+     * Updates a text line for all players and overrides custom visuals
+     * @param index The index of the line to update
+     * @param message The updated line
      */
-    public void setLine(int index, String line) {
-        PacketContainer packetContainer = createSetLinePacket(index, line);
-
-        if (packetContainer != null) {
-            sendToAll(packetContainer);
-        }
-    }
-
-    private PacketContainer createSetLinePacket(int index, String line) {
-        // If index within bounds, return a packet which sets the hologram line, else return null
-        return (0 <= index && index < hologramLines.size()) ? setHologramLine(hologramLines.get(index), line) : null;
+    public void updateLineForEveryone(int index, String message) {
+        updateLineForEveryone(index, ImmutablePair.of(message, new String[]{}));
     }
 
     /**
-     * Removes all hologram entities
+     * Updates a text line for all players
+     * @param index The index of the line to update
+     * @param message The updated line
      */
-    public void destroy() {
-        if (!active) {
-            PacketContainer packetContainer = removeHologramLines();
-            sendToAll(packetContainer);
+    public void updateLine(int index, String message) {
+        updateLine(index, ImmutablePair.of(message, new String[]{}));
+    }
 
-            hologramLines.clear();
-            active = false;
+    /**
+     * Updates a text line for a single player
+     * @param player The player to update the line for
+     * @param index The index of the line to update
+     * @param message The updated line
+     */
+    public void updateLineForPlayer(Player player, int index, String message) {
+        updateLineForPlayer(player, index, ImmutablePair.of(message, new String[]{}));
+    }
+
+    /**
+     * Updates an item line for all players and overrides custom visuals
+     * @param index The index of the line to update
+     * @param material The updated line
+     */
+    public void updateLineForEveryone(int index, Material material) {
+        HologramLine<?> hologramLine = hologramLines.get(index);
+        if (hologramLine instanceof ItemLine) {
+            ((ItemLine) hologramLine).setVisualForEveryone(material);
+        } else {
+
         }
     }
 
     /**
-     * Renders a hologram for a player
+     * Updates an item line for all players
+     * @param index The index of the line to update
+     * @param material The updated line
+     */
+    public void updateLine(int index, Material material) {
+        HologramLine<?> hologramLine = hologramLines.get(index);
+        if (hologramLine instanceof ItemLine) {
+            ((ItemLine) hologramLine).setVisual(material);
+        } else {
+
+        }
+    }
+
+    /**
+     * Updates an item line for a single player
+     * @param player The player to update the line for
+     * @param index The index of the line to update
+     * @param material The updated line
+     */
+    public void updateLineForPlayer(Player player, int index, Material material) {
+        HologramLine<?> hologramLine = hologramLines.get(index);
+        if (hologramLine instanceof ItemLine) {
+            ((ItemLine) hologramLine).setVisualForPlayer(player, material);
+        } else {
+
+        }
+    }
+
+    /**
+     * Creates and renders the hologram for a plyer
      * @param player The player to render the hologram to
      */
-    public void renderTo(Player player) {
-        if (active) {
-            for (int i = 0; i < hologramLines.size(); i++) {
-                sendTo(player, createHologramLine(
-                        location.clone().subtract(0D, i * LINE_SPACE, 0D)
-                ));
-            }
-
-            for (int i = 0; i < defaultLines.size(); i++) {
-                setLineFor(player, i, defaultLines.get(i));
-            }
+    public void renderToPlayer(Player player) {
+        for (HologramLine<?> hologramLine : hologramLines) {
+            hologramLine.createVisualForPlayer(player);
+            hologramLine.updateVisualForPlayer(player);
         }
     }
 
     /**
-     * Sends a packet to all players in the world
-     * @param packetContainer The packet to send
+     * Destroys the hologram
      */
-    private void sendToAll(PacketContainer packetContainer) {
-        for (Player player : location.getWorld().getPlayers()) {
-            sendTo(player, packetContainer);
+    public void destroy() {
+        int idCount = hologramLines.size();
+
+        int[] ids = new int[idCount];
+        for (int i = 0; i < idCount; i++) {
+            ids[i] = hologramLines.get(0).getEntityId();
+            hologramLines.remove(0);
         }
-    }
 
-    /**
-     * Sends a packet to a player
-     * @param player The player to send to
-     * @param packetContainer The packet to send
-     */
-    private void sendTo(Player player, PacketContainer packetContainer) {
-        if (active) {
-            try {
-                protocolManager.sendServerPacket(player, packetContainer);
-            } catch (InvocationTargetException exception) {
-                ArenaApi.warning(String.format("Error sending packet of type '%s' to player '%s'.", packetContainer
-                        .getType().name(), player.getName()));
-            }
+        for (Player player : rootLocation.getWorld().getPlayers()) {
+            PacketContainer killPacketContainer = getKillPacketContainer(ids);
+            arenaApi.sendPacketToPlayer(player, killPacketContainer);
         }
+
+        TEXT_LINE_SET.clear();
     }
 
-    /**
-     * Creates a packet which spawns a hologram line
-     * @param location The location to spawn the hologram at
-     * @return The packet
-     */
-    private PacketContainer createHologramLine(Location location) {
-        int id = nmsProxy.nextEntityId();
-
-        hologramLines.add(id);
-        ID_SET.add(id);
-
-        PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
-        packetContainer.getIntegers().write(0, id);
-        packetContainer.getIntegers().write(1, nmsProxy.getEntityTypeId(EntityType.ARMOR_STAND));
-        packetContainer.getUUIDs().write(0, nmsProxy.randomUUID());
-
-        packetContainer.getDoubles().write(0, location.getX());
-        packetContainer.getDoubles().write(1, location.getY());
-        packetContainer.getDoubles().write(2, location.getZ());
-
-        return packetContainer;
+    private PacketContainer getKillPacketContainer(int id) {
+        return getKillPacketContainer(new int[]{ id });
     }
 
-    /**
-     * Creates a packet which sets the content of a hologram line
-     * @param id The entity id of the hologram line
-     * @param line The new hologram line message
-     * @return The packet
-     */
-    private PacketContainer setHologramLine(int id, String line) {
-        PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
-        packetContainer.getIntegers().write(0, id);
+    private PacketContainer getKillPacketContainer(int[] ids) {
+        PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
+        killPacketContainer.getIntegerArrays().write(0, ids);
 
-        WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
-
-        WrappedDataWatcher.Serializer invisibleSerializer = WrappedDataWatcher.Registry.get(Byte.class);
-        WrappedDataWatcher.WrappedDataWatcherObject invisible = new WrappedDataWatcher.WrappedDataWatcherObject(0, invisibleSerializer);
-
-        WrappedDataWatcher.Serializer customNameSerializer = WrappedDataWatcher.Registry.getChatComponentSerializer(true);
-        WrappedDataWatcher.WrappedDataWatcherObject customName = new WrappedDataWatcher.WrappedDataWatcherObject(2, customNameSerializer);
-        Optional<?> opt = Optional.of(WrappedChatComponent.fromText(line).getHandle());
-
-        WrappedDataWatcher.Serializer customNameVisibleSerializer = WrappedDataWatcher.Registry.get(Boolean.class);
-        WrappedDataWatcher.WrappedDataWatcherObject customNameVisible = new WrappedDataWatcher.WrappedDataWatcherObject(3, customNameVisibleSerializer);
-
-        wrappedDataWatcher.setObject(invisible, (byte) 0x20);
-        wrappedDataWatcher.setObject(customName, opt);
-        wrappedDataWatcher.setObject(customNameVisible, true);
-        packetContainer.getWatchableCollectionModifier().write(0, wrappedDataWatcher.getWatchableObjects());
-
-        return packetContainer;
+        return killPacketContainer;
     }
 
-    /**
-     * Creates a packet which removes all hologram entities
-     * @return The packet
-     */
-    private PacketContainer removeHologramLines() {
-        PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        packetContainer.getIntegerArrays().write(0, hologramLines.stream().mapToInt(Integer::intValue).toArray());
-        ID_SET.removeAll(hologramLines);
-
-        return packetContainer;
-    }
 }

@@ -15,17 +15,17 @@ import java.util.List;
 @Getter
 public class LuckyChestData extends ShopData {
 
-    private List<String> equipments = new ArrayList<>();
+    private final List<String> equipments = new ArrayList<>();
 
-    private List<ImmutablePair<List<Jingle.Note>, Long>> jingle = new ArrayList<>();
+    private final List<ImmutablePair<List<Jingle.Note>, Long>> jingle = new ArrayList<>();
 
-    private Vector chestLocation;
+    private final Vector chestLocation;
 
-    private int cost = 0;
+    private final int cost = 0;
 
-    private int rollsUntilMove = 0;
+    private final int rollsUntilMove = 0;
 
-    private long sittingTime = 0L;
+    private final long sittingTime = 0L;
 
     public LuckyChestData(Vector chestLocation) {
         super(ShopType.LUCKY_CHEST, false);

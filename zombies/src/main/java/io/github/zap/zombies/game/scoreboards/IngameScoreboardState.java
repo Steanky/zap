@@ -23,12 +23,12 @@ import static io.github.zap.zombies.game.scoreboards.GameScoreboard.DATE_FORMATT
 public class IngameScoreboardState implements GameScoreboardState, Disposable {
     private GameScoreboard gameScoreboard;
 
-    private Map<UUID, ImmutablePair<StringFragment, StringFragment>> playerStatues = new HashMap<>();
-    private Map<UUID, Triple<Scoreboard, SidebarTextWriter, StringFragment>> playScoreboards = new HashMap<>();
+    private final Map<UUID, ImmutablePair<StringFragment, StringFragment>> playerStatues = new HashMap<>();
+    private final Map<UUID, Triple<Scoreboard, SidebarTextWriter, StringFragment>> playScoreboards = new HashMap<>();
 
-    private StringFragment round = new StringFragment();
-    private StringFragment zombieLeft = new StringFragment();
-    private StringFragment time = new StringFragment();
+    private final StringFragment round = new StringFragment();
+    private final StringFragment zombieLeft = new StringFragment();
+    private final StringFragment time = new StringFragment();
 
 
     @Override

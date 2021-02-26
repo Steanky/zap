@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
-import io.github.zap.arenaapi.hologram.HologramReplacement;
+import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.BlockShopData;
@@ -19,7 +19,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
 
     @Getter
-    private final HologramReplacement hologram;
+    private final Hologram hologram;
 
     private final Block block;
 
@@ -28,7 +28,7 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
 
         World world = zombiesArena.getWorld();
 
-        hologram = new HologramReplacement(
+        hologram = new Hologram(
                 Zombies.getInstance().getLocalizationManager(),
                 shopData.getHologramLocation().toLocation(world),
                 2
@@ -44,7 +44,7 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
 
     @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
-        HologramReplacement hologram = getHologram();
+        Hologram hologram = getHologram();
         for (Player player : args.getPlayers()) {
             hologram.renderToPlayer(player);
         }

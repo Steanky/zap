@@ -11,6 +11,9 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * A hologram line represented by a dropped item
+ */
 public class ItemLine extends HologramLine<Material> {
 
     public ItemLine(LocalizationManager localizationManager, Location location) {

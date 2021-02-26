@@ -12,7 +12,7 @@ public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, Te
     @Getter
     private final SidebarTextWriter writer;
 
-    private List<ITextFragment> fragments = new ArrayList<>();
+    private final List<ITextFragment> fragments = new ArrayList<>();
 
     public SidebarDisplayNameTextWriter(SidebarTextWriter writer) {
         this.writer = writer;

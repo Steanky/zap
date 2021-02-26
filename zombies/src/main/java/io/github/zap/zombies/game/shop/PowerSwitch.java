@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.hologram.HologramReplacement;
+import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -23,7 +23,7 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
 
     @Override
     public void display() {
-        HologramReplacement hologram = getHologram();
+        Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
             hologram.addLine(MessageKey.PLACEHOLDER.getKey());
         }

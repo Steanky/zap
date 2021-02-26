@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
-import io.github.zap.arenaapi.hologram.HologramReplacement;
+import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class Door extends Shop<DoorData> {
 
-    private final Map<DoorSide, HologramReplacement> doorSideHologramMap = new HashMap<>();
+    private final Map<DoorSide, Hologram> doorSideHologramMap = new HashMap<>();
 
     private boolean opened = false;
 
@@ -34,7 +34,7 @@ public class Door extends Shop<DoorData> {
         World world = zombiesArena.getWorld();
         LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
         for (DoorSide doorSide : getShopData().getDoorSides()) {
-            HologramReplacement hologram = new HologramReplacement(
+            Hologram hologram = new Hologram(
                     localizationManager,
                     doorSide.getHologramLocation().toLocation(world),
                     2
@@ -54,9 +54,9 @@ public class Door extends Shop<DoorData> {
 
     @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
-        for (HologramReplacement hologramReplacement : doorSideHologramMap.values()) {
+        for (Hologram hologram : doorSideHologramMap.values()) {
             for (Player player : args.getPlayers()) {
-                hologramReplacement.renderToPlayer(player);
+                hologram.renderToPlayer(player);
             }
         }
 
@@ -66,8 +66,8 @@ public class Door extends Shop<DoorData> {
     @Override
     public void display() {
         if (!opened) {
-            for (Map.Entry<DoorSide, HologramReplacement> entry : doorSideHologramMap.entrySet()) {
-                HologramReplacement hologram = entry.getValue();
+            for (Map.Entry<DoorSide, Hologram> entry : doorSideHologramMap.entrySet()) {
+                Hologram hologram = entry.getValue();
 
                 // TODO: figure out how to write door names with localization api
                 /*
@@ -125,7 +125,7 @@ public class Door extends Shop<DoorData> {
                             );
                             zombiesPlayer.subtractCoins(cost);
 
-                            for (HologramReplacement hologram : doorSideHologramMap.values()) {
+                            for (Hologram hologram : doorSideHologramMap.values()) {
                                 hologram.destroy();
                             }
                             opened = true;

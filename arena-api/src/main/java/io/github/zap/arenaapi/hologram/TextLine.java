@@ -13,6 +13,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Optional;
 
+/**
+ * A hologram line represented by a line of text using localization API
+ */
 public class TextLine extends HologramLine<ImmutablePair<String, String[]>> {
 
     public TextLine(LocalizationManager localizationManager, Location location) {

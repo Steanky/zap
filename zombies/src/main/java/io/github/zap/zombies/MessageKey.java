@@ -57,7 +57,7 @@ public enum MessageKey {
     PLACEHOLDER("zombies.game.placeholder");
 
     @Getter
-    private String key;
+    private final String key;
 
     MessageKey(String key) {
         this.key = key;
