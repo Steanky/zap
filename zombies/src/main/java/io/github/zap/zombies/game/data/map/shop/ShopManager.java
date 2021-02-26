@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.shop.Shop;
+import io.github.zap.zombies.game.shop.ShopType;
 
 /**
  * Stores and manages information about shops
@@ -15,7 +16,7 @@ public interface ShopManager {
      * @param shopMapping A mapping class used to create the shop from the data instance
      * @param <D> The type of the shop's data
      */
-    <D extends ShopData> void addShop(String shopType, Class<D> dataClass, ShopCreator.ShopMapping<D> shopMapping);
+    <D extends ShopData> void addShop(ShopType shopType, Class<D> dataClass, ShopCreator.ShopMapping<D> shopMapping);
 
     /**
      * Creates a shop from its data

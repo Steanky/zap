@@ -26,7 +26,7 @@ public class Property<T> {
      * @param unique The Named object attempting to access this instance, which should have a unique name
      * @return The value stored for the provided Named object, or the default value used by this instance
      */
-    public T get(Unique unique) {
+    public T getValue(Unique unique) {
         return mappings.getOrDefault(unique.getId(), defaultValue);
     }
 
@@ -35,7 +35,7 @@ public class Property<T> {
      * @param unique The enacting Named instance
      * @param value The value to store for Named
      */
-    public void set(Unique unique, T value) {
+    public void setValue(Unique unique, T value) {
         UUID id = unique.getId();
         mappings.put(id, value);
 

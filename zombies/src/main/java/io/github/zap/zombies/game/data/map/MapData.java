@@ -1,10 +1,12 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
@@ -18,23 +20,24 @@ import java.util.*;
  */
 @SuppressWarnings("FieldMayBeFinal")
 @Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class MapData {
     /**
      * The unique name of this map that need not be user friendly
      */
-    String name = "default_map";
+    String name;
 
     /**
      * The resource key of the map name
      */
-    String mapNameKey = "map.default_map.name";
+    String mapNameKey;
 
     /**
      * The name of the world corresponding to this map
      */
-    String worldName = "default_world";
+    String worldName;
 
     /**
      * The bounds of the map, inside which every component should exist
@@ -191,19 +194,24 @@ public class MapData {
     int fastReviveMaxLevel = 1;
 
     /**
+     * Number of rolls before a chest moves to a new location
+     */
+    int rollsPerChest = 5;
+
+    /**
      * The list of rooms managed by this map
      */
     List<RoomData> rooms = new ArrayList<>();
 
     /**
+     * All doors in this map
+     */
+    List<DoorData> doors = new ArrayList<>();
+
+    /**
      * All the shops managed by this map
      */
     List<ShopData> shops = new ArrayList<>();
-
-    /**
-     * Number of rolls before a chest moves to a new location
-     */
-    int rollsPerChest = 5;
 
     /**
      * All the rounds in the game
@@ -220,9 +228,21 @@ public class MapData {
      */
     List<String> defaultEquipments = new ArrayList<>();
 
+    /**
+     * A map of SpawnRule objects which are used to define the behavior of spawnpoints.
+     */
+    Map<String, SpawnRule> spawnRules = new HashMap<>();
+
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
-    public MapData() {}
+    private MapData() {}
+
+    public MapData(String mapName, String worldName, BoundingBox bounds) {
+        this.name = mapName;
+        this.worldName = worldName;
+        this.mapNameKey = String.format("map.%s.name", mapName);
+        this.mapBounds = bounds;
+    }
 
     /**
      * Gets the window whose face contains the provided vector, or null if the vector is not inside any windows.

@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun;
 
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.equipment.gun.logic.LinearBeam;
@@ -9,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -37,7 +39,9 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
         Vector eyeDirection = player.getEyeLocation().getDirection().clone();
         Vector targetBlockVector = getTargetBlockVector(player);
 
-        sendShot(world, eyeLocation, eyeDirection, targetBlockVector);
+        if(targetBlockVector != null) {
+            sendShot(world, eyeLocation, eyeDirection, targetBlockVector);
+        }
     }
 
     /**
@@ -71,7 +75,15 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
             boundingBox = targetBlock.getBoundingBox();
         }
 
-        return boundingBox.rayTrace(player.getEyeLocation().toVector(), player.getEyeLocation().getDirection(),
-                range + 1.74).getHitPosition();
+        RayTraceResult result = boundingBox.rayTrace(player.getEyeLocation().toVector(), player.getEyeLocation()
+                .getDirection(), range + 1.74);
+
+        if(result != null) {
+            return result.getHitPosition();
+        }
+        else {
+            Zombies.warning("BoundingBox#rayTrace() returned null.");
+            return null;
+        }
     }
 }

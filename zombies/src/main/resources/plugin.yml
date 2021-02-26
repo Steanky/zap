@@ -4,7 +4,7 @@ main: io.github.zap.zombies.Zombies
 api-version: 1.16
 depend: [ ArenaApi, SlimeWorldManager, MythicMobs ]
 commands:
-  zap_debug:
-    description: "ZAP debugging utility command."
-  tahmid:
-    description: "t"
+  zap:
+    description: "Generic command used by this plugin for various things."
+  mapeditor:
+    description: "Mapeditor command."

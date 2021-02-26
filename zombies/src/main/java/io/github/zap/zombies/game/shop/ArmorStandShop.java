@@ -5,8 +5,7 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
 import lombok.Getter;
-import org.bukkit.*;
-import org.bukkit.block.BlockFace;
+import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -27,14 +26,18 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
         super(zombiesArena, shopData);
 
         World world = zombiesArena.getWorld();
-        BlockFace blockFace = getShopData().getBlockFace();
-        Location location = getShopData().getBlockLocation().add(blockFace.getDirection()).toLocation(world);
 
-        armorStand = world.spawn(location.clone().add(0.5, -1.0, 0.5), ArmorStand.class);
+        armorStand = world.spawn(
+                getShopData().getRootLocation().toLocation(world).add(0.5, -1.0, 0.5),
+                ArmorStand.class
+        );
         armorStand.setGravity(false);
         armorStand.setVisible(false);
 
-        hologram = new Hologram(location.clone().add(0.5, -2.0, 0.5), 2);
+        hologram = new Hologram(
+                getShopData().getHologramLocation().toLocation(world).add(0.5, -2.0, 0.5),
+                2
+        );
     }
 
     @Override

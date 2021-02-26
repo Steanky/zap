@@ -24,7 +24,6 @@ import java.util.Map;
  * Represents a door used to open other rooms
  */
 public class Door extends Shop<DoorData> {
-
     private final Map<DoorSide, Hologram> doorSideHologramMap = new HashMap<>();
 
     private boolean opened = false;
@@ -126,7 +125,7 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.DOOR.name();
+    public ShopType getShopType() {
+        return ShopType.DOOR;
     }
 }

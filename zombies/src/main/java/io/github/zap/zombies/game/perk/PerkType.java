@@ -8,5 +8,6 @@ public enum PerkType {
     QUICK_FIRE,
     EXTRA_HEALTH,
     EXTRA_WEAPON,
-    FAST_REVIVE
+    FAST_REVIVE,
+    DEFAULT
 }

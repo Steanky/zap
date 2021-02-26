@@ -25,14 +25,14 @@ public final class WorldUtils {
         for(int x = minX; x < maxX; x++) {
             for(int y = minY; y < maxY; y++) {
                 for(int z = minZ; z < maxZ; z++) {
-                    world.getBlockAt(x, y, z).setType(material);
+                    world.getBlockAt(x, y, z).setType(material, false);
                 }
             }
         }
     }
 
     public static void fillBounds(World world, MultiBoundingBox bounds, Material material) {
-        for(BoundingBox box : bounds.getBounds()) {
+        for(BoundingBox box : bounds) {
             fillBounds(world, box, material);
         }
     }

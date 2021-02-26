@@ -11,7 +11,7 @@ import org.bukkit.util.Vector;
 import java.io.IOException;
 
 public class BoundingBoxSerializer extends StdSerializer<BoundingBox> {
-    protected BoundingBoxSerializer() {
+    public BoundingBoxSerializer() {
         super(BoundingBox.class);
     }
 

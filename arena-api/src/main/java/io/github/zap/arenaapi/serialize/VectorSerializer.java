@@ -8,7 +8,7 @@ import org.bukkit.util.Vector;
 import java.io.IOException;
 
 public class VectorSerializer extends StdSerializer<Vector> {
-    protected VectorSerializer() {
+    public VectorSerializer() {
         super(Vector.class);
     }
 

@@ -10,6 +10,12 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <swm.version>217988c</swm.version>
+        <mythicmobs.version>4.11.0-BETA</mythicmobs.version>
+        <protocollib.version>4.6.0</protocollib.version>
+    </properties>
+
     <artifactId>zombies</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -47,13 +53,13 @@
                                 <artifactItem>
                                     <groupId>io.lumine.xikage</groupId>
                                     <artifactId>mythicmobs</artifactId>
-                                    <version>4.10.1</version>
+                                    <version>${mythicmobs.version}</version>
                                 </artifactItem>
 
                                 <artifactItem>
                                     <groupId>com.comphenix.protocol</groupId>
                                     <artifactId>ProtocolLib</artifactId>
-                                    <version>4.6.0-SNAPSHOT</version>
+                                    <version>${protocollib.version}</version>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -83,6 +89,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -101,7 +108,7 @@
  default so just don't include a scope tag and you should be fine. also add the artifact
  to the filter below so its manifest file doesn't overlap with our project's.-->
 
-                                    <include>com.github.John-DND:RegularCommands</include>
+                                    <include>com.github.Steanky:RegularCommands</include>
                                 </includes>
                             </artifactSet>
 
@@ -109,7 +116,7 @@
                             'overlapping resources' warning when building. -->
                             <filters>
                                 <filter>
-                                    <artifact>com.github.John-DND:RegularCommands</artifact>
+                                    <artifact>com.github.Steanky:RegularCommands</artifact>
                                     <excludes>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
                                     </excludes>
@@ -122,6 +129,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.1.0</version>
@@ -169,6 +177,12 @@
         </repository>
 
         <repository>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
@@ -183,7 +197,7 @@
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper</artifactId>
-            <version>1.16.4-R0.1-SNAPSHOT</version>
+            <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -202,22 +216,16 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.John-DND</groupId>
+            <groupId>com.github.Steanky</groupId>
             <artifactId>RegularCommands</artifactId>
-            <version>6799b16c60</version>
+            <version>master-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>io.lumine.xikage</groupId>
             <artifactId>mythicmobs</artifactId>
-            <version>4.10.1</version>
+            <version>${mythicmobs.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib</artifactId>
-            <version>4.6.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -225,6 +233,12 @@
             <artifactId>arena-api</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>${protocollib.version}</version>
         </dependency>
 
         <dependency>
