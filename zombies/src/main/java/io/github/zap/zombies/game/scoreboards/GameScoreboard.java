@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.scoreboards;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 
-public class GameScoreboard extends BukkitRunnable {
+public class GameScoreboard extends BukkitRunnable implements Disposable {
     // Should these be in a config file?
     public static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yy");
     public static String SIDEBAR_TITLE = "" + ChatColor.YELLOW + ChatColor.BOLD + "Zombies";
@@ -78,8 +79,14 @@ public class GameScoreboard extends BukkitRunnable {
         }
     }
 
+    @Override
     public void dispose() {
+        // stop the update task
         if(updateTask != null && !updateTask.isCancelled())
             updateTask.cancel();
+
+        if(currentState != null && currentState instanceof Disposable) {
+            ((Disposable) currentState).dispose();
+        }
     }
 }

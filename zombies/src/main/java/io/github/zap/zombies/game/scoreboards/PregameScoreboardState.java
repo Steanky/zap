@@ -120,5 +120,6 @@ public class PregameScoreboardState implements IGameScoreboardState, Disposable 
     @Override
     public void dispose() {
         gameScoreboard.getZombiesArena().getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        writer.dispose();
     }
 }

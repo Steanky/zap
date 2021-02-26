@@ -144,5 +144,6 @@ public class IngameScoreboardState implements IGameScoreboardState, Disposable {
     public void dispose() {
         gameScoreboard.getZombiesArena().getPlayerJoinEvent().removeHandler(this::handleRejoin);
         gameScoreboard.getZombiesArena().getPlayerLeaveEvent().removeHandler(this::handleLeave);
+        playScoreboards.forEach((uuid, data) -> data.getMiddle().dispose());
     }
 }

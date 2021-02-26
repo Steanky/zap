@@ -261,7 +261,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
-
+        gameScoreboard.dispose(); // dispose resource related to managing game scoreboard
         //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
         scheduler.cancelTask(timeoutTaskId);
