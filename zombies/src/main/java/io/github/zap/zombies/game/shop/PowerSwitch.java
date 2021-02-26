@@ -78,7 +78,7 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.POWER_SWITCH.name();
+    public ShopType getShopType() {
+        return ShopType.POWER_SWITCH;
     }
 }

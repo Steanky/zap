@@ -146,8 +146,8 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.ARMOR_SHOP.name();
+    public ShopType getShopType() {
+        return ShopType.ARMOR_SHOP;
     }
 
     /**

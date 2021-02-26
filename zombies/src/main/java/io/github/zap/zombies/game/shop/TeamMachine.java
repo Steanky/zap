@@ -57,7 +57,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                             localizationManager.sendLocalizedMessage(
                                     player,
                                     MessageKey.TEAM_MACHINE_PURCHASE.getKey(),
-                                    player.getDisplayName(),
+                                    player.getName(),
                                     teamMachineTask.getDisplayName()
                             );
                         }
@@ -148,7 +148,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.TEAM_MACHINE.name();
+    public ShopType getShopType() {
+        return ShopType.TEAM_MACHINE;
     }
 }

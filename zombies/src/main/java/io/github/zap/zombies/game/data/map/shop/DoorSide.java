@@ -1,27 +1,30 @@
 package io.github.zap.zombies.game.data.map.shop;
 
-import io.github.zap.arenaapi.game.MultiBoundingBox;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Data for a side of a door
  */
 @Getter
+@AllArgsConstructor
 public class DoorSide {
+   private int cost = 0;
 
-   private int cost;
+   private List<String> opensTo = new ArrayList<>();
 
-   private List<String> opensTo;
-
-   private MultiBoundingBox triggerBounds;
+   private BoundingBox triggerBounds = new BoundingBox();
 
    private Vector hologramLocation;
 
-   private DoorSide() {
+   private DoorSide() {}
 
+   public DoorSide(Vector hologramLocation) {
+      this.hologramLocation = hologramLocation;
    }
-
 }

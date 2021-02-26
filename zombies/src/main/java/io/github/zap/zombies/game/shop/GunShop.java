@@ -12,9 +12,7 @@ import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -46,15 +44,16 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     public void display() {
         if (item == null) {
             World world = getZombiesArena().getWorld();
-            BlockFace blockFace = getShopData().getBlockFace();
-            Location location = getShopData().getBlockLocation().add(blockFace.getDirection()).toLocation(world);
 
             ItemStack itemStack = new ItemStack(
                     getZombiesArena().getEquipmentManager().getEquipmentData(
                             getZombiesArena().getMap().getMapNameKey(), getShopData().getGunName()
                     ).getMaterial()
             );
-            item = world.dropItem(location.clone().add(0.5, 0.48125, 0.5), itemStack);
+            item = world.dropItem(
+                    getShopData().getRootLocation().toLocation(world).add(0.5, 0.48125, 0.5),
+                    itemStack
+            );
             item.setGravity(false);
             item.setVelocity(new Vector(0, 0, 0));
         }
@@ -148,8 +147,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.GUN_SHOP.name();
+    public ShopType getShopType() {
+        return ShopType.GUN_SHOP;
     }
 
     private Boolean tryRefill(ZombiesPlayer zombiesPlayer, GunObjectGroup gunObjectGroup) {

@@ -196,8 +196,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.LUCKY_CHEST.name();
+    public ShopType getShopType() {
+        return ShopType.LUCKY_CHEST;
     }
 
     /**

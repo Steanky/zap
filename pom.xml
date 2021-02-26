@@ -12,7 +12,6 @@
     <!--global properties that should be applied to all module poms-->
     <properties>
         <java.version>11</java.version>
-        <swm.version>217988c</swm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <pluginsDirectory>../run/server-1/plugins</pluginsDirectory>
     </properties>
