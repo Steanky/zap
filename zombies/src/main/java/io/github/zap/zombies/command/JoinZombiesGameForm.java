@@ -69,6 +69,6 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
             }
         });
 
-        return ">green{Attemping to join a game...}";
+        return ">green{Attempting to join a game...}";
     }
 }
