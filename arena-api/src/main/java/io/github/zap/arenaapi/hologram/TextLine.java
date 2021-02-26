@@ -6,7 +6,7 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.proxy.NMSProxy;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * A hologram line represented by a line of text using localization API
  */
-public class TextLine extends HologramLine<ImmutablePair<String, String[]>> {
+public class TextLine extends HologramLine<Pair<String, String[]>> {
 
     public TextLine(LocalizationManager localizationManager, Location location) {
         super(localizationManager, location);
@@ -42,7 +42,7 @@ public class TextLine extends HologramLine<ImmutablePair<String, String[]>> {
 
     @Override
     public void updateVisualForPlayer(Player player) {
-        ImmutablePair<String, String[]> visual = getVisualForPlayer(player);
+        Pair<String, String[]> visual = getVisualForPlayer(player);
         String message = String.format(
                 getLocalizationManager().getLocalizedMessageFor(player, visual.getLeft()),
                 (Object[]) visual.getRight()

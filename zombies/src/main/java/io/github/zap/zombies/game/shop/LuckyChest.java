@@ -21,7 +21,11 @@ import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.bukkit.*;
+import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
@@ -285,7 +289,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         }
 
         @Override
-        public void onStart(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
+        public void onStart(List<Pair<List<Jingle.Note>, Long>> jingle) {
             toggle(false);
             rollingItem = world.dropItem(
                     chestLocation.clone().add(0, 0.981250, 0),
@@ -311,7 +315,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
 
         @Override
-        public void onEnd(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
+        public void onEnd(List<Pair<List<Jingle.Note>, Long>> jingle) {
             timeRemaining = new Hologram(
                     zombies.getLocalizationManager(),
                     chestLocation.clone().add(0, 1, 0),
@@ -349,7 +353,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         }
 
         @Override
-        public void onNotePlayed(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
+        public void onNotePlayed(List<Pair<List<Jingle.Note>, Long>> jingle) {
             EquipmentData<?> equipmentData = equipments.get(rollIndex = random.nextInt(jingle.size()));
 
             rollingItem.getItemStack().setType(equipmentData.getMaterial());

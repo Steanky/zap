@@ -14,11 +14,11 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class DoorSide {
-   private final int cost = 0;
+   private int cost = 0;
 
-   private final List<String> opensTo = new ArrayList<>();
+   private List<String> opensTo = new ArrayList<>();
 
-   private final BoundingBox triggerBounds = new BoundingBox();
+   private BoundingBox triggerBounds = new BoundingBox();
 
    private Vector hologramLocation;
 

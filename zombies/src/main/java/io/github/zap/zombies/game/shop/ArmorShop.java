@@ -5,8 +5,8 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import io.github.zap.arenaapi.hologram.HologramLine;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hologram.HologramLine;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
@@ -14,6 +14,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -77,7 +78,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
         // Display the hologram
-        ImmutablePair<String, String[]> secondHologramLine;
+        Pair<String, String[]> secondHologramLine;
         if (armorLevel == null) {
             armorLevel = armorLevels.get(armorLevels.size() - 1);
             secondHologramLine = ImmutablePair.of(MessageKey.UNLOCKED.getKey(), new String[]{});

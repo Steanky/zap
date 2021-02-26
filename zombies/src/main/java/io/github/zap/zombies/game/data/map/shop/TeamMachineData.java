@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Getter
 public class TeamMachineData extends BlockShopData {
-    private final List<TeamMachineTask> teamMachineTasks = new ArrayList<>();
+    private List<TeamMachineTask> teamMachineTasks = new ArrayList<>();
 
     private TeamMachineData() {
         super(ShopType.TEAM_MACHINE, true, null, null);

@@ -9,11 +9,11 @@ import org.bukkit.util.Vector;
  */
 @Getter
 public class GunShopData extends ArmorStandShopData {
-    private final String gunName = "NONE";
+    private String gunName = "NONE";
 
-    private final int cost = 0;
+    private int cost = 0;
 
-    private final int refillCost = 0;
+    private int refillCost = 0;
 
     private GunShopData() {
         super(ShopType.GUN_SHOP, false, null, null);

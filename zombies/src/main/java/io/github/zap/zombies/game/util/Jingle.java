@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.util;
 import io.github.zap.zombies.Zombies;
 import lombok.Getter;
 import lombok.Value;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -32,7 +32,7 @@ public class Jingle {
      * @param jingle The notes to play
      * @param location The location to play the jingle at
      */
-    public static void play(List<ImmutablePair<List<Note>, Long>> jingle, JingleListener jingleListener,
+    public static void play(List<Pair<List<Note>, Long>> jingle, JingleListener jingleListener,
                             Location location) {
         playAt(jingle, jingleListener, location, 0);
     }
@@ -42,7 +42,7 @@ public class Jingle {
      * @param location The location to play the note at
      * @param noteNumber The note number in the jingle
      */
-    public static void playAt(List<ImmutablePair<List<Note>, Long>> jingle, JingleListener jingleListener,
+    public static void playAt(List<Pair<List<Note>, Long>> jingle, JingleListener jingleListener,
                               Location location, int noteNumber) {
         if (noteNumber < jingle.size()) {
             if (noteNumber == 0) {
@@ -50,7 +50,7 @@ public class Jingle {
             }
 
             World world = location.getWorld();
-            ImmutablePair<List<Note>, Long> notePair = jingle.get(noteNumber);
+            Pair<List<Note>, Long> notePair = jingle.get(noteNumber);
 
             new BukkitRunnable() {
                 @Override
@@ -95,21 +95,21 @@ public class Jingle {
         /**
          * Method called when the jingle playing begins
          */
-        default void onStart(List<ImmutablePair<List<Note>, Long>> jingle) {
+        default void onStart(List<Pair<List<Note>, Long>> jingle) {
 
         }
 
         /**
          * Method called when a note of the jingle is played
          */
-        default void onNotePlayed(List<ImmutablePair<List<Note>, Long>> jingle) {
+        default void onNotePlayed(List<Pair<List<Note>, Long>> jingle) {
 
         }
 
         /**
          * Method called upon jingle completion
          */
-        default void onEnd(List<ImmutablePair<List<Note>, Long>> jingle) {
+        default void onEnd(List<Pair<List<Note>, Long>> jingle) {
 
         }
     }

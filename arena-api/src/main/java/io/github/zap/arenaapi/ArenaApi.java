@@ -18,7 +18,7 @@ import io.github.zap.arenaapi.serialize.VectorSerializer;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -28,7 +28,8 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -117,7 +118,7 @@ public final class ArenaApi extends JavaPlugin {
         return arenaManagers.get(name);
     }
 
-    public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
+    public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         String gameName = information.getGameName();
         ArenaManager<?> arenaManager = arenaManagers.get(gameName);
 

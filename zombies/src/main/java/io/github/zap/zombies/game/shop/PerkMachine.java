@@ -13,6 +13,7 @@ import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -44,7 +45,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
         int level = (perkEquipment == null) ? 0 : perkEquipment.getLevel() + 1;
 
-        ImmutablePair<String, String[]> secondHologramLine;
+        Pair<String, String[]> secondHologramLine;
         if (perkEquipment == null || level < perkEquipment.getEquipmentData().getLevels().size()) {
             secondHologramLine = perkMachineData.isRequiresPower() && !isPowered()
                     ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})

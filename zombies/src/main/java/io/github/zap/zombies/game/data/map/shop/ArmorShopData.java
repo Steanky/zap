@@ -11,9 +11,9 @@ import java.util.List;
 /**
  * Data for an armor shop
  */
+@Getter
 public class ArmorShopData extends ArmorStandShopData {
-    @Getter
-    private final List<ArmorLevel> armorLevels = new ArrayList<>();
+    private List<ArmorLevel> armorLevels = new ArrayList<>();
 
     private ArmorShopData() {
         super(ShopType.ARMOR_SHOP, false, null, null);

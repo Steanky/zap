@@ -13,9 +13,9 @@ import java.util.List;
  */
 @Getter
 public class PerkMachineData extends BlockShopData {
-    private final PerkType perkType = PerkType.DEFAULT;
+    private PerkType perkType = PerkType.DEFAULT;
 
-    private final List<Integer> costs = new ArrayList<>();
+    private List<Integer> costs = new ArrayList<>();
 
     private PerkMachineData() {
         super(ShopType.PERK_MACHINE, true, null, null);

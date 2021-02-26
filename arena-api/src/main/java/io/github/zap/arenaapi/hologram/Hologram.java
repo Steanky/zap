@@ -12,6 +12,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -93,14 +94,14 @@ public class Hologram {
      * @param message The message key
      */
     public void addLine(String message) {
-        addLine(new ImmutablePair<>(message, new String[]{}));
+        addLine(ImmutablePair.of(message, new String[]{}));
     }
 
     /**
      * Adds a line with a message key and format arguments
      * @param message A pair of the message key and format arguments
      */
-    public void addLine(ImmutablePair<String, String[]> message) {
+    public void addLine(Pair<String, String[]> message) {
         TextLine textLine = createTextLine(
                 rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),
                 message
@@ -109,7 +110,7 @@ public class Hologram {
         TEXT_LINE_SET.add(textLine.getEntityId());
     }
 
-    private TextLine createTextLine(Location location, ImmutablePair<String, String[]> message) {
+    private TextLine createTextLine(Location location, Pair<String, String[]> message) {
         TextLine textLine = new TextLine(localizationManager, location);
         textLine.setVisualForEveryone(message);
 
@@ -138,7 +139,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLineForEveryone(int index, ImmutablePair<String, String[]> message) {
+    public void updateLineForEveryone(int index, Pair<String, String[]> message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
             ((TextLine) hologramLine).setVisualForEveryone(message);
@@ -152,7 +153,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLine(int index, ImmutablePair<String, String[]> message) {
+    public void updateLine(int index, Pair<String, String[]> message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
             ((TextLine) hologramLine).setVisual(message);
@@ -167,7 +168,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLineForPlayer(Player player, int index, ImmutablePair<String, String[]> message) {
+    public void updateLineForPlayer(Player player, int index, Pair<String, String[]> message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
             ((TextLine) hologramLine).setVisualForPlayer(player, message);

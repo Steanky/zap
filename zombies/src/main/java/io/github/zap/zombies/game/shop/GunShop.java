@@ -12,6 +12,7 @@ import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -71,8 +72,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
 
-        ImmutablePair<String, String[]> firstHologramLine = null;
-        ImmutablePair<String, String[]> secondHologramLine = null;
+        Pair<String, String[]> firstHologramLine = null;
+        Pair<String, String[]> secondHologramLine = null;
 
         LocalizationManager localizationManager = getLocalizationManager();
         if (gunShopData.isRequiresPower() && !isPowered()) {

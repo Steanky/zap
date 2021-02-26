@@ -12,9 +12,9 @@ import java.util.List;
  */
 @Getter
 public class DoorData extends ShopData {
-    private final MultiBoundingBox doorBounds = new MultiBoundingBox();
+    private MultiBoundingBox doorBounds = new MultiBoundingBox();
 
-    private final List<DoorSide> doorSides = new ArrayList<>();
+    private List<DoorSide> doorSides = new ArrayList<>();
 
     public DoorData() { super(ShopType.DOOR, false); }
 }

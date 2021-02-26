@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
  */
 @Getter
 public class PowerSwitchData extends BlockShopData {
-    private final int cost = 0;
+    private int cost = 0;
 
     private PowerSwitchData() {
         super(ShopType.POWER_SWITCH, false, null, null);

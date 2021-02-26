@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
@@ -14,6 +13,7 @@ import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
@@ -62,7 +62,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         return NAME;
     }
 
-    public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
+    public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         if(!information.getJoinable().validate()) {
             onCompletion.accept(ImmutablePair.of(false, MessageKey.OFFLINE_ARENA_REJECTION.getKey()));
             return;
