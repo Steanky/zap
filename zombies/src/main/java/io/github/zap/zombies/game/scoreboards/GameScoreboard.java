@@ -75,7 +75,7 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
         try {
             getCurrentState().update();
         } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException | InstantiationException e) {
-            Zombies.log(Level.SEVERE, "Cannot instantiate state! ");
+            Zombies.log(Level.SEVERE, "Cannot instantiate game scoreboard state! ");
         }
     }
 
