@@ -1,9 +1,10 @@
 package io.github.zap.arenaapi;
 
 import com.comphenix.protocol.ProtocolLib;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
@@ -17,15 +18,18 @@ import io.github.zap.arenaapi.serialize.VectorSerializer;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -114,7 +118,7 @@ public final class ArenaApi extends JavaPlugin {
         return arenaManagers.get(name);
     }
 
-    public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
+    public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         String gameName = information.getGameName();
         ArenaManager<?> arenaManager = arenaManagers.get(gameName);
 
@@ -162,6 +166,26 @@ public final class ArenaApi extends JavaPlugin {
             throw new LoadFailureException(String.format("Required plugin %s cannot be found.", pluginName));
         }
     }
+
+    public void sendPacketToPlayer(Plugin plugin, Player player, PacketContainer packetContainer) {
+        try {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packetContainer);
+        } catch (InvocationTargetException e) {
+            plugin.getLogger().log(
+                    Level.WARNING,
+                    String.format(
+                            "Error sending packet of type '%s' to player '%s'",
+                            packetContainer.getType().name(),
+                            player.getName()
+                    )
+            );
+        }
+    }
+
+    public void sendPacketToPlayer(Player player, PacketContainer packetContainer) {
+        sendPacketToPlayer(this, player, packetContainer);
+    }
+
 
     /**
      * Logs a message with this plugin, at the specified level.

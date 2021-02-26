@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.proxy;
 
-import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 
 import java.util.UUID;
@@ -23,9 +22,9 @@ public interface NMSProxy {
     UUID randomUUID();
 
     /**
-     * Gets the true typeid of a living entity type
-     * @param entityType The type of the living entity
-     * @return The living entity typeid
+     * Gets the true typeid of an entity type
+     * @param entityType The type of the entity
+     * @return The entity typeid
      */
-    int getEntityLivingTypeId(EntityType entityType);
+    int getEntityTypeId(EntityType entityType);
 }
