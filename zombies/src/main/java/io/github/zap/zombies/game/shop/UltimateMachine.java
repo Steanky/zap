@@ -24,6 +24,15 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
+    public void display() {
+        HologramReplacement hologram = getHologram();
+        while (hologram.getHologramLines().size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
+        super.display();
+    }
+
+    @Override
     protected void displayTo(Player player) {
         HologramReplacement hologram = getHologram();
 

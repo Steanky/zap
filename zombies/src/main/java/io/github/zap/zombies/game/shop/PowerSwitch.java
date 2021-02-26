@@ -24,6 +24,9 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     @Override
     public void display() {
         HologramReplacement hologram = getHologram();
+        while (hologram.getHologramLines().size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
 
         hologram.updateLineForEveryone(0, MessageKey.POWER_SWITCH.getKey());
         hologram.updateLineForEveryone(1,

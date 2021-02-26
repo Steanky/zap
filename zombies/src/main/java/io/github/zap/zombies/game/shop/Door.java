@@ -34,14 +34,16 @@ public class Door extends Shop<DoorData> {
         World world = zombiesArena.getWorld();
         LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
         for (DoorSide doorSide : getShopData().getDoorSides()) {
-            doorSideHologramMap.put(
-                    doorSide,
-                    new HologramReplacement(
-                            localizationManager,
-                            doorSide.getHologramLocation().toLocation(world),
-                            2
-                    )
+            HologramReplacement hologram = new HologramReplacement(
+                    localizationManager,
+                    doorSide.getHologramLocation().toLocation(world),
+                    2
             );
+            while (hologram.getHologramLines().size() < 2) {
+                hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            }
+
+            doorSideHologramMap.put(doorSide, hologram);
         }
     }
 

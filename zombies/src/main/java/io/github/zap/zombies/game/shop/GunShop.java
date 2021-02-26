@@ -58,6 +58,10 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             item.setGravity(false);
             item.setVelocity(new Vector(0, 0, 0));
         }
+        HologramReplacement hologram = getHologram();
+        while (hologram.getHologramLines().size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
 
         super.display();
     }

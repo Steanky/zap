@@ -46,12 +46,15 @@ public enum MessageKey {
     OTHER_PERSON_ROLLING("zombies.game.chest.other"),
     NOT_DONE_ROLLING("zombies.game.chest.unfinished"),
     RIGHT_CLICK_TO_CLAIM("zombies.game.chest.claim"),
+    TIME_REMAINING("zombies.game.chest.time"),
 
     ACTIVATED_POWER_TITLE("zombies.game.power.on.title"),
     ACTIVATED_POWER_SUBTITLE("zombies.game.power.on.subtitle"),
     NO_POWER("zombies.game.power.off"),
 
-    TEAM_MACHINE_PURCHASE("zombies.game.tm.purchase");
+    TEAM_MACHINE_PURCHASE("zombies.game.tm.purchase"),
+
+    PLACEHOLDER("zombies.game.placeholder");
 
     @Getter
     private String key;

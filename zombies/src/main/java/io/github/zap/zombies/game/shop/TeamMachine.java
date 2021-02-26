@@ -72,6 +72,9 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     @Override
     public void display() {
         HologramReplacement hologram = getHologram();
+        while (hologram.getHologramLines().size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
 
         hologram.updateLineForEveryone(0, ImmutablePair.of(MessageKey.TEAM_MACHINE.getKey(), new String[]{}));
         hologram.updateLineForEveryone(

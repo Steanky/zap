@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import io.github.zap.arenaapi.hologram.HologramLine;
 import io.github.zap.arenaapi.hologram.HologramReplacement;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
@@ -56,14 +57,24 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
+    public void display() {
+        HologramReplacement hologram = getHologram();
+
+        List<HologramLine<?>> lines = hologram.getHologramLines();
+        while (lines.size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
+
+        super.display();
+    }
+
+    @Override
     protected void displayTo(Player player) {
         HologramReplacement hologram = getHologram();
         ArmorShopData armorShopData = getShopData();
 
         List<ArmorShopData.ArmorLevel> armorLevels = armorShopData.getArmorLevels();
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
-
-        LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
 
         // Display the hologram
         ImmutablePair<String, String[]> secondHologramLine;

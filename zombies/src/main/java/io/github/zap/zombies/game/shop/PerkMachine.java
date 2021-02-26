@@ -28,6 +28,15 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     }
 
     @Override
+    public void display() {
+        HologramReplacement hologram = getHologram();
+        while (hologram.getHologramLines().size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
+        super.display();
+    }
+
+    @Override
     protected void displayTo(Player player) {
         ZombiesPlayer zombiesPlayer = getZombiesArena().getPlayerMap().get(player.getUniqueId());
         PerkMachineData perkMachineData = getShopData();

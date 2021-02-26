@@ -85,6 +85,10 @@ public class HologramReplacement {
         this(localizationManager, location, DEFAULT_LINE_SPACE);
     }
 
+    public void addLine(String message) {
+        addLine(new ImmutablePair<>(message, new String[]{}));
+    }
+
     public void addLine(ImmutablePair<String, String[]> message) {
         TextLine textLine = createTextLine(
                 rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),

@@ -5,7 +5,8 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
-import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.hologram.HologramReplacement;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
@@ -20,7 +21,6 @@ import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -54,7 +54,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
     private UUID rollingPlayerId = null;
 
-    private Hologram hologram;
+    private HologramReplacement hologram;
 
     @Setter
     private boolean active;
@@ -86,7 +86,10 @@ public class LuckyChest extends Shop<LuckyChestData> {
      */
     public void toggle(boolean enable) {
         if (enable) {
-            hologram = new Hologram(chestLocation.clone().add(0, 0.5, 0));
+            hologram = new HologramReplacement(getLocalizationManager(), chestLocation.clone().add(0, 0.5, 0));
+            while (hologram.getHologramLines().size() < 2) {
+                hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            }
 
             active = true;
         } else if (hologram != null) {
@@ -98,25 +101,28 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
+        for (Player player : args.getPlayers()) {
+            if (hologram != null) {
+                hologram.renderToPlayer(player);
+                roller.displayTo(player);
+            }
+        }
+    }
+
+    @Override
+    public void display() {
         if (hologram != null) {
             LuckyChestData luckyChestData = getShopData();
 
-            hologram.renderTo(player);
-
-            LocalizationManager localizationManager = getLocalizationManager();
-            hologram.setLineFor(player, 0, ChatColor.DARK_PURPLE +
-                    localizationManager.getLocalizedMessageFor(player, MessageKey.LUCKY_CHEST.getKey()));
-            hologram.setLineFor(player, 1,
+            hologram.updateLineForEveryone(0, MessageKey.LUCKY_CHEST.getKey());
+            hologram.updateLineForEveryone(1,
                     luckyChestData.isRequiresPower() && !isPowered()
-                            ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
-                            + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
-                            : ChatColor.YELLOW.toString() + ChatColor.BOLD.toString()
-                            + luckyChestData.getCost() + " "
-                            + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
+                            ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
+                            : ImmutablePair.of(MessageKey.COST.getKey(),
+                            new String[]{ String.valueOf(luckyChestData.getCost()) })
             );
         }
-        roller.displayTo(player);
     }
 
     @Override
@@ -197,7 +203,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
     /**
      * Utility class to roll the guns in the chest's display
      */
-    private static class Roller implements Jingle.JingleListener {
+    private class Roller implements Jingle.JingleListener {
 
         private final Random random = new Random();
 
@@ -213,18 +219,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private final List<EquipmentData<?>> equipments;
 
+        private HologramReplacement timeRemaining;
 
-        private final static String format = ChatColor.RED + "%ds";
+        private HologramReplacement rightClickToClaim;
 
-        private Hologram timeRemaining;
-
-        private String timeRemainingString;
-
-        private Hologram rightClickToClaim;
-
-        private Hologram gunName;
-
-        private String gunNameString;
+        private HologramReplacement gunName;
 
         private Item rollingItem;
 
@@ -246,32 +245,21 @@ public class LuckyChest extends Shop<LuckyChestData> {
             LuckyChestData luckyChestData = luckyChest.getShopData();
             this.sittingTime = luckyChestData.getSittingTime();
         }
-
         /**
          * Displays all relevant holograms to a player
          * @param player The player to display the holograms to
          */
         private void displayTo(Player player) {
             if (timeRemaining != null) {
-                timeRemaining.renderTo(player);
-                timeRemaining.setLineFor(player, 0, timeRemainingString);
+                timeRemaining.renderToPlayer(player);
             }
 
             if (rightClickToClaim != null) {
-                rightClickToClaim.renderTo(player);
-
-                LocalizationManager localizationManager = zombies.getLocalizationManager();
-                rightClickToClaim.setLineFor(
-                        player,
-                        0,
-                        localizationManager.getLocalizedMessageFor(player, MessageKey.RIGHT_CLICK_TO_CLAIM.getKey()
-                        )
-                );
+                rightClickToClaim.renderToPlayer(player);
             }
 
             if (gunName != null) {
-                gunName.renderTo(player);
-                gunName.setLineFor(player, 0, gunNameString);
+                gunName.renderToPlayer(player);
             }
 
             try {
@@ -298,6 +286,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         @Override
         public void onStart(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
+            toggle(false);
             rollingItem = world.dropItem(
                     chestLocation.clone().add(0, 0.981250, 0),
                     new ItemStack(Material.AIR)
@@ -305,7 +294,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setGravity(false);
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
-            gunName = new Hologram(chestLocation.clone(), 1);
+            gunName = new HologramReplacement(zombies.getLocalizationManager(), chestLocation.clone(), 1);
+            gunName.addLine(MessageKey.PLACEHOLDER.getKey());
 
             PacketContainer packetContainer = getChestPacket();
             for (Player player : chestLocation.getWorld().getPlayers()) {
@@ -322,10 +312,20 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         @Override
         public void onEnd(List<ImmutablePair<List<Jingle.Note>, Long>> jingle) {
-            timeRemaining = new Hologram(chestLocation.clone().add(0, 1, 0), 2);
-            timeRemaining.setLine(0, timeRemainingString = String.format(format, sittingTime));
+            timeRemaining = new HologramReplacement(
+                    zombies.getLocalizationManager(),
+                    chestLocation.clone().add(0, 1, 0),
+                    2
+            );
+            timeRemaining.addLine(
+                    ImmutablePair.of(MessageKey.TIME_REMAINING.getKey(), new String[]{ String.valueOf(sittingTime) }));
 
-            rightClickToClaim = new Hologram(chestLocation.clone().add(0, 0.25, 0), 1);
+            rightClickToClaim = new HologramReplacement(
+                    zombies.getLocalizationManager(),
+                    chestLocation.clone().add(0, 0.25, 0),
+                    1
+            );
+            rightClickToClaim.addLine(MessageKey.RIGHT_CLICK_TO_CLAIM.getKey());
 
             collectable = true;
             sittingTaskId = new BukkitRunnable() {
@@ -334,7 +334,13 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
                 @Override
                 public void run() {
-                    timeRemaining.setLine(0, String.format(format, sittingTime -= 0.1));
+                    timeRemaining.updateLineForEveryone(
+                            0,
+                            ImmutablePair.of(
+                                    MessageKey.TIME_REMAINING.getKey(),
+                                    new String[]{ String.valueOf(sittingTime -= 0.1) }
+                                    )
+                    );
                     if (sittingTime <= 0) {
                         cancelSitting();
                     }
@@ -347,7 +353,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             EquipmentData<?> equipmentData = equipments.get(rollIndex = random.nextInt(jingle.size()));
 
             rollingItem.getItemStack().setType(equipmentData.getMaterial());
-            gunName.setLine(0, gunNameString = equipmentData.getName());
+            gunName.updateLineForEveryone(0, equipmentData.getName());
         }
 
         /**
@@ -380,6 +386,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             }
 
             Bukkit.getScheduler().cancelTask(sittingTaskId);
+            toggle(true);
         }
 
     }
