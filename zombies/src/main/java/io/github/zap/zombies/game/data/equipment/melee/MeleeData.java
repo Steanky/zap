@@ -2,7 +2,7 @@ package io.github.zap.zombies.game.data.equipment.melee;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -31,8 +31,8 @@ public class MeleeData extends EquipmentData<MeleeLevel> {
         itemMeta.setUnbreakable(true);
 
         MeleeLevel meleeLevel = getLevels().get(level);
-        for (ImmutablePair<Enchantment, Integer> pair : meleeLevel.getEnchantments()) {
-            itemMeta.addEnchant(pair.left, pair.right, true);
+        for (Pair<Enchantment, Integer> pair : meleeLevel.getEnchantments()) {
+            itemMeta.addEnchant(pair.getLeft(), pair.getRight(), true);
         }
 
         itemStack.setItemMeta(itemMeta);

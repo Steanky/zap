@@ -37,7 +37,7 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, TextWriter {
     @Setter
     private WrapMode textWrapping = WrapMode.CHARACTER;
 
-    private List<ITextFragment> fragments = new ArrayList<>();
+    private final List<ITextFragment> fragments = new ArrayList<>();
 
     private final SidebarLineProvider lineProvider;
 

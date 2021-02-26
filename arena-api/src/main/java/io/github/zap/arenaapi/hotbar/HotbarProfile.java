@@ -34,7 +34,17 @@ public class HotbarProfile {
             for (int i = 0; i <= 8; i++) {
                 add(i);
             }
-        }});
+        }}) {
+            @Override
+            public Integer getNextEmptySlot() {
+                if (getHotbarObjectMap().isEmpty()) {
+                    return null;
+                } else {
+                    return getHotbarObjectMap().keySet().iterator().next();
+                }
+            }
+        };
+
         hotbarObjectGroupMap.put(DEFAULT_HOTBAR_OBJECT_GROUP_KEY, defaultHotbarObjectGroup);
     }
 
@@ -56,6 +66,33 @@ public class HotbarProfile {
      */
     public void addItem(int slot, ItemStack itemStack) {
         addHotbarObject(slot, new HotbarObject(player, slot, itemStack));
+    }
+
+    /**
+     * Changes the ownership of a slot to a new hotbar object group
+     * @param slot The slot to swap
+     * @param newHotbarObjectGroupName The name of the new hotbar object group
+     */
+    public void swapSlotOwnership(int slot, String newHotbarObjectGroupName) {
+        HotbarObjectGroup hotbarObjectGroup = hotbarObjectGroupMap.get(newHotbarObjectGroupName);
+
+        if (hotbarObjectGroup != null) {
+            for (HotbarObjectGroup otherHotbarObjectGroup : hotbarObjectGroupMap.values()) {
+                if (otherHotbarObjectGroup.getHotbarObjectMap().containsKey(slot)) {
+                    otherHotbarObjectGroup.remove(slot, false);
+                    hotbarObjectGroup.addHotbarObject(slot);
+                    return;
+                }
+            }
+
+            throw new IllegalArgumentException(
+                    String.format("The HotbarProfile does not manage slot %d, so we can't swap its ownership!", slot)
+            );
+        } else {
+            throw new IllegalArgumentException(
+                    String.format("The specified HotbarObjectGroup %s does not exist!", newHotbarObjectGroupName)
+            );
+        }
     }
 
     /**
@@ -165,6 +202,14 @@ public class HotbarProfile {
         }
 
         return null;
+    }
+
+    /**
+     * Gets the next free slot in the hotbar profile
+     * @return The next free slot
+     */
+    public Integer getNextFreeSlot() {
+        return defaultHotbarObjectGroup.getNextEmptySlot();
     }
 
 }

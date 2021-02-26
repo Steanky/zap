@@ -75,10 +75,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 S managedPlayer = playerMap.get(event.getPlayer().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
-                    return new ImmutablePair<>(true, new ProxyArgs<>(event, managedPlayer));
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
                 }
 
-                return new ImmutablePair<>(false, null);
+                return ImmutablePair.of(false, null);
             });
         }
     }

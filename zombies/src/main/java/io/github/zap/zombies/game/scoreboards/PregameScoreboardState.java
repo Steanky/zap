@@ -26,9 +26,9 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
 
     private SidebarTextWriter writer;
 
-    private StringFragment tfPlayerCount = new StringFragment();
-    private StringFragment cd = new StringFragment();
-    private StringFragment status = new StringFragment();
+    private final StringFragment tfPlayerCount = new StringFragment();
+    private final StringFragment cd = new StringFragment();
+    private final StringFragment status = new StringFragment();
 
     @Override
     public void stateChangedFrom(ZombiesArenaState gameState, GameScoreboard gameScoreboard) {
@@ -52,7 +52,7 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
         for (var player : gameScoreboard.getZombiesArena().getPlayerMap().values()){
             player.getPlayer().setScoreboard(bukkitScoreboard);
         }
-        
+
         gameScoreboard.getZombiesArena().getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         gameScoreboard.getZombiesArena().getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
     }
