@@ -7,6 +7,7 @@ import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
+import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.MapContextData;
 import io.github.zap.zombies.game.data.map.WaveData;
@@ -26,7 +27,7 @@ public class NewWaveForm extends CommandForm<MapContextData> {
         }
 
         return ValidationResult.of(true, null, mapContextData);
-    });
+    }, MapeditorValidators.HAS_ACTIVE_MAP);
 
     public NewWaveForm() {
         super("Creates a new wave.", Permissions.OPERATOR, parameters);

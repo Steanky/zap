@@ -25,10 +25,7 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -71,7 +68,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @param postSpawn The routine to call after the entity is spawned; used for applying metadata
          * @return Whether or not it spawned successfully
          */
-        boolean spawnMob(String mobName, Vector at, Consumer<Entity> postSpawn);
+        boolean spawnMob(String mobName, Vector at, Consumer<ActiveMob> postSpawn);
     }
 
     /**
@@ -104,14 +101,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 for(SpawnpointData spawnpointData : spawnpoints) {
                     if(spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
                         spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
-                            Zombies zombies = Zombies.getInstance();
-
-                            //set necessary metadata for the AI to function
-                            entity.setMetadata(Zombies.ARENA_METADATA_NAME, new FixedMetadataValue(zombies,
-                                    ZombiesArena.this));
-
-                            entity.setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, new FixedMetadataValue(zombies,
-                                    spawnpointData));
+                            entity.getEntity().setMetadata(Zombies.ARENA_METADATA_NAME, ZombiesArena.this);
+                            entity.getEntity().setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, spawnpointData);
                         });
 
                         amt--;
@@ -132,16 +123,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @return Whether or not the mob was successfully spawned
          */
         @Override
-        public boolean spawnMob(String mobName, Vector at, Consumer<Entity> postSpawn) {
+        public boolean spawnMob(String mobName, Vector at, Consumer<ActiveMob> postSpawn) {
             MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
 
             if(mob != null) {
-                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX(), at.getY(),
-                        at.getZ()), map.getMobSpawnLevel());
+                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX() + 0.5, at.getY(),
+                        at.getZ() + 0.5), map.getMobSpawnLevel());
 
                 if(activeMob != null) {
                     mobs.add(activeMob.getUniqueId());
-                    postSpawn.accept(activeMob.getEntity().getBukkitEntity());
+                    postSpawn.accept(activeMob);
                     return true;
                 }
                 else {
@@ -522,10 +513,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         int blocksBroken = targetWindow.retractRepairState(this, by);
 
         for(int i = previousIndex; i > previousIndex - blocksBroken; i--) { //break the blocks
-            WorldUtils.getBlockAt(world, targetWindow.getFaceVectors().get(i))
-                    .setType(targetWindow.getRepairedMaterials().get(i));
+            WorldUtils.getBlockAt(world, targetWindow.getFaceVectors().get(i)).setType(Material.AIR);
 
-            //TODO: play block breaking sound (particles too)
+            Vector center = targetWindow.getCenter();
+            Location centerLocation = new Location(world, center.getX(), center.getY(), center.getZ());
+
+            if(i > 0) {
+                world.playSound(centerLocation, targetWindow.getBlockBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+            }
+            else {
+                world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+            }
         }
     }
 

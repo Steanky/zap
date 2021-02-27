@@ -9,6 +9,7 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.MapContextData;
 import io.github.zap.zombies.command.mapeditor.form.data.SpawnEntryContextData;
@@ -50,7 +51,7 @@ public class NewSpawnEntryForm extends CommandForm<SpawnEntryContextData> {
         return ValidationResult.of(true, null, new SpawnEntryContextData(mapContextData.getPlayer(),
                 mapContextData.getContext(), mapContextData.getMap(), round.getWaves().get(waveIndex),
                 new SpawnEntryData(mobName, (int)objects[4])));
-    });
+    }, MapeditorValidators.HAS_ACTIVE_MAP);
 
     public NewSpawnEntryForm() {
         super("Creates a new spawn entry.", Permissions.OPERATOR, parameters);

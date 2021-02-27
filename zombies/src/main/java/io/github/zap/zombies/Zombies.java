@@ -18,8 +18,7 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.mob.goal.PathfinderGoalEscapeWindow;
-import io.github.zap.zombies.game.mob.goal.PathfinderGoalTargetPlayerUnbounded;
+import io.github.zap.zombies.game.mob.goal.BreakWindow;
 import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
@@ -116,7 +115,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             initConfig();
             initProxy();
             initDependencies();
-            initPathfinding(PathfinderGoalEscapeWindow.class, PathfinderGoalTargetPlayerUnbounded.class);
+            initPathfinding(BreakWindow.class);
             initMechanics(CobwebMechanic.class);
             initMechanics();
             initPlayerDataManager();
@@ -127,7 +126,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         }
         catch(LoadFailureException exception)
         {
-            severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
+            severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
             return;
@@ -220,10 +219,10 @@ public final class Zombies extends JavaPlugin implements Listener {
                     MythicAIGoal mythicAnnotation = customGoal.getAnnotation(MythicAIGoal.class);
 
                     if(mythicAnnotation != null) {
-                        aiGoals.put(mythicAnnotation.name(), customGoal);
+                        aiGoals.put(mythicAnnotation.name().toUpperCase(), customGoal);
 
                         for(String alias : mythicAnnotation.aliases()) {
-                            aiGoals.put(alias, customGoal);
+                            aiGoals.put(alias.toUpperCase(), customGoal);
                         }
 
                         info("Loaded custom AI goal " + customGoal.getName());
@@ -254,10 +253,10 @@ public final class Zombies extends JavaPlugin implements Listener {
                 MythicMechanic mythicAnnotation = customMechanic.getAnnotation(MythicMechanic.class);
 
                 if(mythicAnnotation != null) {
-                    mechanics.put(mythicAnnotation.name(), customMechanic);
+                    mechanics.put(mythicAnnotation.name().toUpperCase(), customMechanic);
 
                     for(String alias : mythicAnnotation.aliases()) {
-                        mechanics.put(alias, customMechanic);
+                        mechanics.put(alias.toUpperCase(), customMechanic);
                     }
 
                     info("Loaded custom MythicMobs mechanic " + customMechanic.getName());

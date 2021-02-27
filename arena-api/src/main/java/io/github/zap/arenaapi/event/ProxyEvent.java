@@ -51,8 +51,11 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         performance consequences
          */
         if(handlerCount() == 1 && !eventRegistered) {
-            plugin.getServer().getPluginManager().registerEvent(bukkitEventClass, this, priority,
-                    (listener, event) -> callEvent(bukkitEventClass.cast(event)), plugin, ignoreCancelled);
+            plugin.getServer().getPluginManager().registerEvent(bukkitEventClass, this, priority, (listener, event) -> {
+                if(bukkitEventClass.isAssignableFrom(event.getClass())) {
+                    callEvent(bukkitEventClass.cast(event));
+                }
+                }, plugin, ignoreCancelled);
 
             eventRegistered = true;
             addProxy(handlingInstance, this);

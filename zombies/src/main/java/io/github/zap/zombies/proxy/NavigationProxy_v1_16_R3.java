@@ -35,11 +35,11 @@ public class NavigationProxy_v1_16_R3 implements NavigationProxy {
         }
 
         PathEntity path = navigator.a(positionMappings.keySet(), 1024);
-        if(path != null) {
-            PathPoint finalPoint = path.getFinalPoint();
 
-            if(finalPoint != null) {
-                BlockPosition targetPosition = finalPoint.a();
+        if(path != null) {
+            BlockPosition targetPosition = path.m();
+
+            if(targetPosition != null) {
                 List<ZombiesPlayer> players = positionMappings.get(targetPosition);
 
                 if(players != null) {

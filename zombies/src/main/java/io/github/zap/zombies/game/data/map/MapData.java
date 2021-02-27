@@ -106,19 +106,9 @@ public class MapData {
     int windowRepairRadius = 3;
 
     /**
-     * The initial delay (in Minecraft server ticks) before the window will be first repaired, after the player crouches
-     */
-    int initialRepairDelay = 20;
-
-    /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
      */
     int windowRepairTicks = 20;
-
-    /**
-     * The base rate at which mobs break through windows, in server ticks
-     */
-    int windowBreakTicks = 40;
 
     /**
      * The MythicMobs mob level that mobs will spawn at

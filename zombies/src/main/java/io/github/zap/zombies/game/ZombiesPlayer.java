@@ -15,9 +15,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
+import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.Set;
@@ -132,7 +134,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if(windowRepairTaskId == -1) {
             MapData map = arena.getMap();
             windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                    this::checkForWindow, map.getInitialRepairDelay(), map.getWindowRepairTicks());
+                    this::checkForWindow, 0, map.getWindowRepairTicks());
         }
     }
 
@@ -226,21 +228,30 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 //advance repair state
                 int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
                 int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
-                for(int i = previousIndex + 1; i < previousIndex + blocksRepaired; i++) {
-                    WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i))
-                            .setType(targetWindow.getRepairedMaterials().get(i));
+                for(int i = previousIndex; i < previousIndex + blocksRepaired; i++) {
+                    WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i + 1))
+                            .setType(targetWindow.getRepairedMaterials().get(i + 1));
+
+                    Vector center = targetWindow.getCenter();
+                    Location centerLocation = new Location(arena.getWorld(), center.getX(), center.getY(), center.getZ());
+                    if(i < targetWindow.getVolume() - 2) {
+                        arena.getWorld().playSound(centerLocation, targetWindow.getBlockRepairSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                    }
+                    else {
+                        arena.getWorld().playSound(centerLocation, targetWindow.getWindowRepairSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                    }
                 }
 
-                addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
+                //addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
             }
             else {
                 //can't repair because someone else already is
-                Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_PLAYER);
+                //Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_PLAYER);
             }
         }
         else {
             //can't repair because there is a something attacking the window
-            Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_MOB);
+            //Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_MOB);
         }
     }
 }

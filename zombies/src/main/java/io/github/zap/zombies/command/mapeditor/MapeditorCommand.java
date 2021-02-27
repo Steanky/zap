@@ -26,5 +26,6 @@ public class MapeditorCommand extends RegularCommand {
         addForm(new NewRoundForm());
         addForm(new NewWaveForm());
         addForm(new NewSpawnEntryForm());
+        addForm(new SaveMapForm());
     }
 }
