@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.*;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.perk.FastRevive;
@@ -16,10 +17,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.UUID;
 
+/**
+ * Represents the corpse of a knocked down or dead player
+ */
 public class Corpse {
 
     private final ProtocolManager protocolManager;
@@ -33,7 +36,11 @@ public class Corpse {
 
     private final int id;
 
+    private final int defaultDeathTime;
+
     private int deathTaskId;
+
+    private int deathTime;
 
     @Getter
     private boolean active = true;
@@ -56,15 +63,27 @@ public class Corpse {
     public Corpse(ZombiesPlayer zombiesPlayer) {
         this.zombiesPlayer = zombiesPlayer;
         this.location = zombiesPlayer.getPlayer().getLocation();
+        this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
+
+        zombiesPlayer.getArena().getCorpses().add(this);
+        zombiesPlayer.getArena().getAvailableCorpses().add(this);
 
         protocolManager = ProtocolLibrary.getProtocolManager();
         id = Zombies.getInstance().getNmsProxy().nextEntityId();
         spawnDeadBody();
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(), this::continueDying, 0L, 2L);
     }
 
+    /**
+     * Sets the current reviver of the corpse
+     * @param reviver The reviver of the corpse
+     */
     public void setReviver(ZombiesPlayer reviver) {
         if (reviver == null) {
             zombiesPlayer.getArena().getAvailableCorpses().add(this);
+            deathTime = defaultDeathTime;
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(), this::continueDying, 0L, 2L);
         } else {
             if (deathTaskId != -1) {
                 Bukkit.getScheduler().cancelTask(deathTaskId);
@@ -76,6 +95,9 @@ public class Corpse {
         this.reviver = reviver;
     }
 
+    /**
+     * Removes 0.1s of revival time from the corpse
+     */
     public void continueReviving() {
         if (--reviveTime == 0) {
             active = false;
@@ -83,25 +105,36 @@ public class Corpse {
         }
     }
 
-    private void sendTo(Player player, PacketContainer packetContainer) {
-        try {
-            protocolManager.sendServerPacket(player, packetContainer);
-        } catch (InvocationTargetException exception) {
-            Zombies.getInstance().getLogger()
-                    .warning(String.format("Error sending a corpse packet to player %s", player.getName()));
+    /**
+     * Removes 0.1s of death time from the corpse
+     */
+    public void continueDying() {
+        if (deathTime == 0) {
+            zombiesPlayer.kill();
+            zombiesPlayer.getArena().getAvailableCorpses().remove(this);
+        } else {
+            deathTime -= 1;
         }
     }
 
-    private void sendToAll(PacketContainer packetContainer) {
+    private double convertTicksToSeconds(int ticks) {
+        return (double) (ticks / 20) + 0.05D * ticks % 20;
+    }
+
+    private void sendPacketToPlayer(PacketContainer packetContainer, Player player) {
+        ArenaApi.getInstance().sendPacketToPlayer(Zombies.getInstance(), player, packetContainer);
+    }
+
+    private void sendPacket(PacketContainer packetContainer) {
         for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
-            sendTo(player, packetContainer);
+            sendPacketToPlayer(packetContainer, player);
         }
     }
 
-    public void spawnDeadBody() {
-        sendToAll(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER));
-        sendToAll(createSpawnPlayerPacketContainer());
-        sendToAll(createSleepingPacketContainer());
+    private void spawnDeadBody() {
+        sendPacket(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER));
+        sendPacket(createSpawnPlayerPacketContainer());
+        sendPacket(createSleepingPacketContainer());
         /*new BukkitRunnable() {
 
             @Override
@@ -156,6 +189,21 @@ public class Corpse {
         packetContainer.getWatchableCollectionModifier().write(0, wrappedDataWatcher.getWatchableObjects());
 
         return packetContainer;
+    }
+
+    /**
+     * Destroys the corpse and removes its trace from the arena it is in
+     */
+    public void destroy() {
+        PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
+        killPacketContainer.getIntegerArrays().write(0, new int[] { id });
+
+        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
+            sendPacketToPlayer(killPacketContainer, player);
+        }
+
+        zombiesPlayer.getArena().getCorpses().remove(this);
+        zombiesPlayer.getArena().getAvailableCorpses().remove(this);
     }
 
     @Override

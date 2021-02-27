@@ -31,6 +31,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Setter
     private ZombiesPlayerState state;
 
+    private Corpse corpse;
+
     @Setter
     @Getter
     private int coins;
@@ -182,7 +184,18 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
-            //TODO: player knockdown code
+            corpse = new Corpse(this);
+        }
+    }
+
+    /**
+     * Commits murder. 😈
+     */
+    public void kill() {
+        if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
+            state = ZombiesPlayerState.DEAD;
+
+            hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
         }
     }
 
@@ -195,7 +208,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
 
-            //TODO: dead body removal code
+            corpse.destroy();
+            corpse = null;
         }
     }
 
@@ -273,6 +287,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
     }
 
+    /**
+     * Checks for corpses to revive or continues reviving the current corpse
+     */
     private void checkForCorpses() {
         int maxDistance = arena.getMap().getReviveRadius();
 
@@ -295,6 +312,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
     }
 
+    /**
+     * Finds a new corpse to revive
+     */
     private void selectNewCorpse() {
         int maxDistance = arena.getMap().getReviveRadius();
 

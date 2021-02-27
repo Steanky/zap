@@ -213,6 +213,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
     @Getter
+    private final Set<Corpse> corpses = new HashSet<>();
+
+    @Getter
     private final Set<Corpse> availableCorpses = new HashSet<>();
 
     @Getter
@@ -408,8 +411,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         if(event.isSneaking()) {
             managedPlayer.activateRepair();
+            managedPlayer.activateRevive();
         }
         else {
+            managedPlayer.disableRepair();
             managedPlayer.disableRepair();
         }
     }
