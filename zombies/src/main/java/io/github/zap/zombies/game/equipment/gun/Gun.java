@@ -8,7 +8,6 @@ import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import lombok.Getter;
 import org.bukkit.Sound;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -94,7 +93,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         if (currentClipAmmo > 0) {
             // Animate xp bar
             new BukkitRunnable() {
-                private final float fireRate = getEquipmentData().getLevels().get(getLevel()).getFireRate() * getZombiesPlayer().getFireRateMultiplier();
+                private final float fireRate = (float) (getEquipmentData().getLevels().get(getLevel()).getFireRate() * getZombiesPlayer().getFireRateMultiplier());
                 private final float goal = fireRate * 20;
                 private final float stepVal = 1 / (fireRate * 20);
 
