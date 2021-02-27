@@ -3,11 +3,10 @@ package io.github.zap.zombies.game.corpse;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -41,6 +40,7 @@ public class Corpse {
 
     private final int id;
 
+    @Getter
     private final int defaultDeathTime;
 
     @Getter
@@ -57,26 +57,17 @@ public class Corpse {
 
     private int reviveTime;
 
-    static {
-        Zombies zombies = Zombies.getInstance();
-        ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-        protocolManager.addPacketListener(new PacketAdapter(zombies, PacketType.Play.Server.PLAYER_INFO) {
-            @Override
-            public void onPacketSending(PacketEvent event) {
-                zombies.getLogger().info(event.getPacket().getPlayerInfoAction().read(0).name());
-            }
-        });
-    }
-
     public Corpse(ZombiesPlayer zombiesPlayer) {
         this.nmsProxy = Zombies.getInstance().getNmsProxy();
         this.zombiesPlayer = zombiesPlayer;
         this.location = zombiesPlayer.getPlayer().getLocation();
         this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
+        this.deathTime = defaultDeathTime;
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
         zombiesArena.getCorpses().add(this);
         zombiesArena.getAvailableCorpses().add(this);
+        zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
 
         protocolManager = ProtocolLibrary.getProtocolManager();
         id = this.nmsProxy.nextEntityId();
@@ -136,6 +127,12 @@ public class Corpse {
         }
     }
 
+    private void onPlayerJoin(ManagingArena.PlayerListArgs playerListArgs) {
+        for (Player player : playerListArgs.getPlayers()) {
+            spawnDeadBodyForPlayer(player);
+        }
+    }
+
     private double convertTicksToSeconds(int ticks) {
         return (double) (ticks / 20) + 0.05D * ticks % 20;
     }
@@ -151,18 +148,24 @@ public class Corpse {
     }
 
     private void spawnDeadBody() {
-        sendPacket(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER));
-        sendPacket(createSpawnPlayerPacketContainer());
-        sendPacket(createSleepingPacketContainer());
+        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
+            spawnDeadBodyForPlayer(player);
+        }
+    }
+
+    private void spawnDeadBodyForPlayer(Player player) {
+        sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER), player);
+        sendPacketToPlayer(createSpawnPlayerPacketContainer(), player);
+        sendPacketToPlayer(createSleepingPacketContainer(), player);
 
         addCorpseToTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
         addCorpseToTeamPacket.getIntegers().write(0, 3);
         addCorpseToTeamPacket.getSpecificModifier(Collection.class)
                 .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
 
-        sendPacket(addCorpseToTeamPacket);
+        sendPacketToPlayer(addCorpseToTeamPacket, player);
 
-        sendPacket(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER));
+        sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
@@ -225,6 +228,7 @@ public class Corpse {
 
         zombiesPlayer.getArena().getCorpses().remove(this);
         zombiesPlayer.getArena().getAvailableCorpses().remove(this);
+        zombiesPlayer.getArena().getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
     }
 
     @Override

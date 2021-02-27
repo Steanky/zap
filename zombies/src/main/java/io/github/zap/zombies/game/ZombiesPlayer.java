@@ -12,6 +12,7 @@ import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
+import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.Map;
 import java.util.Set;
@@ -185,6 +188,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
             corpse = new Corpse(this);
+
+            getPerks().getPerk(PerkType.SPEED).disable();
+            Player player = getPlayer();
+            player.setWalkSpeed(0);
+            player.setInvisible(true);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, corpse.getDefaultDeathTime(), 128,
+                    true, false, false));
         }
     }
 
@@ -196,6 +206,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.DEAD;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
+
+            Player player = getPlayer();
+            player.setWalkSpeed(0.2F);
+            player.removePotionEffect(PotionEffectType.JUMP);
+            player.setAllowFlight(true);
+            player.setFlying(true);
         }
     }
 
@@ -208,8 +224,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
 
-            corpse.destroy();
-            corpse = null;
+            if (corpse != null) {
+                corpse.destroy();
+                corpse = null;
+            }
+
+            getPerks().getPerk(PerkType.SPEED).activate();
+            Player player = getPlayer();
+            player.removePotionEffect(PotionEffectType.JUMP);
+            player.setInvisible(false);
+            player.setFlying(false);
+            player.setAllowFlight(false);
         }
     }
 
