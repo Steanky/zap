@@ -45,6 +45,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Getter
     private final ZombiesHotbarManager hotbarManager;
 
+    // Allow other class to modify the fire rate without modify the logic code itself. Only support
+    // Mollification and Division. Also why remove old multiplier Thamid?
+    @Getter
+    @Setter
+    private int fireRateMultiplier = 1;
+
     @Getter
     private final ZombiesPerks perks;
 
@@ -78,7 +84,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {
-                hotbarManager.setHotbarObject(slot, equipmentManager.createEquipment(player, slot, equipmentData));
+                hotbarManager.setHotbarObject(slot, equipmentManager.createEquipment(this, slot, equipmentData));
             }
         }
 

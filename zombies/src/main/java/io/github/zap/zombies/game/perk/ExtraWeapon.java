@@ -6,4 +6,6 @@ public class ExtraWeapon extends MarkerPerk {
     public ExtraWeapon(ZombiesPlayer owner, int maxLevel, boolean resetOnQuit) {
         super(owner, maxLevel, resetOnQuit);
     }
+
+
 }
