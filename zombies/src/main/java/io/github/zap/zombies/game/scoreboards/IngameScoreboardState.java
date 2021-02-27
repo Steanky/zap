@@ -1,16 +1,19 @@
 package io.github.zap.zombies.game.scoreboards;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.corpse.Corpse;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -65,6 +68,10 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
             playScoreboards.put(player.getKey(),Triple.of(bukkitScoreboard, writer, zombieKills));
 
+            Team corpseTeam = bukkitScoreboard.registerNewTeam(gameScoreboard.getZombiesArena().getCorpseTeamName());
+            corpseTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+            corpseTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+
             // Add their in game scoreboard for every player still in the game
             if(player.getValue().isInGame())
                 player.getValue().getPlayer().setScoreboard(bukkitScoreboard);
@@ -82,11 +89,23 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
         for(var player : playerListArgs.getPlayers()) {
             if(playScoreboards.containsKey(player.getUniqueId())) {
                 player.setScoreboard(playScoreboards.get(player.getUniqueId()).getLeft());
+
+                for (Corpse corpse : gameScoreboard.getZombiesArena().getCorpses()) {
+                    ArenaApi.getInstance().sendPacketToPlayer(
+                            Zombies.getInstance(),
+                            player,
+                            corpse.getAddCorpseToTeamPacket()
+                    );
+                }
             } else {
                 Zombies.getInstance().getLogger().log(Level.SEVERE, "Could not find scoreboard for player: " + player.getName() + " with UUID: " + player.getUniqueId());
                 player.sendMessage(ChatColor.RED + "Unable to load your scoreboard!");
             }
         }
+    }
+
+    private void handleDeath() {
+
     }
 
 

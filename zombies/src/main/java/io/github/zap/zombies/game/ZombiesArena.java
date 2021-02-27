@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -212,6 +214,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
+    private final PacketContainer createTeamPacketContainer =
+            new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+
+    @Getter
+    private final String corpseTeamName = UUID.randomUUID().toString().substring(0, 16);
+
     @Getter
     private final Set<Corpse> corpses = new HashSet<>();
 
@@ -258,6 +266,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
         getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
         getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
+
+        createTeamPacketContainer.getStrings().write(0, UUID.randomUUID().toString().substring(0, 16));
+        createTeamPacketContainer.getIntegers().write(0, 0);
+        createTeamPacketContainer.getStrings()
+                .write(1, "never")
+                .write(2, "never");
     }
 
     @Override
@@ -454,6 +468,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(!player.isAlive()) {
                 player.respawn();
             }
+            new Corpse(player);
         }
 
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();

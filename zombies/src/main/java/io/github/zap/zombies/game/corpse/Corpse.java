@@ -9,14 +9,17 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.perk.FastRevive;
 import io.github.zap.zombies.game.perk.PerkType;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -26,6 +29,8 @@ import java.util.UUID;
 public class Corpse {
 
     private final ProtocolManager protocolManager;
+
+    private final ZombiesNMSProxy nmsProxy;
 
     private final ZombiesPlayer zombiesPlayer;
 
@@ -37,6 +42,9 @@ public class Corpse {
     private final int id;
 
     private final int defaultDeathTime;
+
+    @Getter
+    private final PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
 
     private int deathTaskId;
 
@@ -61,18 +69,28 @@ public class Corpse {
     }
 
     public Corpse(ZombiesPlayer zombiesPlayer) {
+        this.nmsProxy = Zombies.getInstance().getNmsProxy();
         this.zombiesPlayer = zombiesPlayer;
         this.location = zombiesPlayer.getPlayer().getLocation();
         this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
 
-        zombiesPlayer.getArena().getCorpses().add(this);
-        zombiesPlayer.getArena().getAvailableCorpses().add(this);
+        ZombiesArena zombiesArena = zombiesPlayer.getArena();
+        zombiesArena.getCorpses().add(this);
+        zombiesArena.getAvailableCorpses().add(this);
 
         protocolManager = ProtocolLibrary.getProtocolManager();
-        id = Zombies.getInstance().getNmsProxy().nextEntityId();
+        id = this.nmsProxy.nextEntityId();
+
         spawnDeadBody();
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(), this::continueDying, 0L, 2L);
+        addCorpseToTeamPacket.getStrings().write(0, zombiesArena.getCorpseTeamName());
+        addCorpseToTeamPacket.getIntegers().write(0, 3);
+        addCorpseToTeamPacket.getSpecificModifier(Collection.class)
+                .write(0, Collections.singletonList(uniqueId));
+
+        sendPacket(addCorpseToTeamPacket);
+
+        startDying();
     }
 
     /**
@@ -83,7 +101,7 @@ public class Corpse {
         if (reviver == null) {
             zombiesPlayer.getArena().getAvailableCorpses().add(this);
             deathTime = defaultDeathTime;
-            Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(), this::continueDying, 0L, 2L);
+            startDying();
         } else {
             if (deathTaskId != -1) {
                 Bukkit.getScheduler().cancelTask(deathTaskId);
@@ -103,6 +121,15 @@ public class Corpse {
             active = false;
             zombiesPlayer.revive();
         }
+    }
+
+    private void startDying() {
+        deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
+                Zombies.getInstance(),
+                this::continueDying,
+                0L,
+                2L
+        );
     }
 
     /**
@@ -135,25 +162,19 @@ public class Corpse {
         sendPacket(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER));
         sendPacket(createSpawnPlayerPacketContainer());
         sendPacket(createSleepingPacketContainer());
-        /*new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                sendToAll(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER));
-            }
-        }.runTaskLater(Zombies.getInstance(), 1L);*/
+        sendPacket(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER));
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
         packetContainer.getPlayerInfoAction().write(0, playerInfoAction);
+
+        WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, uniqueId.toString().substring(0, 16));
+        wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+
         packetContainer.getPlayerInfoDataLists().write(0, Collections.singletonList(
                 new PlayerInfoData(
-                        /* WrappedGameProfile.fromPlayer(zombiesPlayer.getPlayer())
-                                // .withId(uniqueId.toString())
-                                .withName(uniqueId.toString().substring(0, 16)),
-                                */
-                        new WrappedGameProfile(uniqueId, uniqueId.toString().substring(0, 16)),
+                        wrappedGameProfile,
                         0,
                         EnumWrappers.NativeGameMode.NOT_SET,
                         WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16))
