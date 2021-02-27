@@ -16,7 +16,7 @@ public abstract class TeamMachineTask {
 
     private final transient LocalizationManager localizationManager;
 
-    private String type;
+    private final String type;
 
     private String displayName;
 

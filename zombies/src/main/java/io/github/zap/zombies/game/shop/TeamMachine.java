@@ -7,8 +7,8 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -70,19 +70,18 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    public void display() {
         Hologram hologram = getHologram();
+        while (hologram.getHologramLines().size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+        }
 
-        LocalizationManager localizationManager = getLocalizationManager();
-        hologram.setLine(0, ChatColor.GREEN.toString() + ChatColor.BOLD.toString() +
-                localizationManager.getLocalizedMessageFor(player, MessageKey.TEAM_MACHINE.getKey()));
-
-        hologram.setLine(1,
-                getShopData().isRequiresPower() && !isPowered()
-                        ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
-                        : ChatColor.GREEN
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.RIGHT_CLICK_TO_OPEN.getKey())
+        hologram.updateLineForEveryone(0, ImmutablePair.of(MessageKey.TEAM_MACHINE.getKey(), new String[]{}));
+        hologram.updateLineForEveryone(
+                1,
+                (getShopData().isRequiresPower() && !isPowered())
+                        ? MessageKey.REQUIRES_POWER.toString()
+                        : MessageKey.RIGHT_CLICK_TO_OPEN.toString()
         );
     }
 

@@ -26,6 +26,7 @@ public enum MessageKey {
     ACTIVE("zombies.game.shop.active"),
     UNLOCKED("zombies.game.shop.unlocked"),
     REQUIRES_POWER("zombies.game.shop.power"),
+    COST("zombies.game.shop.cost"),
 
     LUCKY_CHEST("zombies.game.shop.chest.name"),
     POWER_SWITCH("zombies.game.shop.power.name"),
@@ -39,20 +40,24 @@ public enum MessageKey {
     TO_RELOAD("zombies.tutorial.reload"),
     TO_SHOOT("zombies.tutorial.shoot"),
 
-    AMMO("zombies.game.gun.ammo"),
+    BUY_GUN("zombies.game.gun.buy"),
+    REFILL_AMMO("zombies.game.gun.ammo"),
 
     OTHER_PERSON_ROLLING("zombies.game.chest.other"),
     NOT_DONE_ROLLING("zombies.game.chest.unfinished"),
     RIGHT_CLICK_TO_CLAIM("zombies.game.chest.claim"),
+    TIME_REMAINING("zombies.game.chest.time"),
 
     ACTIVATED_POWER_TITLE("zombies.game.power.on.title"),
     ACTIVATED_POWER_SUBTITLE("zombies.game.power.on.subtitle"),
     NO_POWER("zombies.game.power.off"),
 
-    TEAM_MACHINE_PURCHASE("zombies.game.tm.purchase");
+    TEAM_MACHINE_PURCHASE("zombies.game.tm.purchase"),
+
+    PLACEHOLDER("zombies.game.placeholder");
 
     @Getter
-    private String key;
+    private final String key;
 
     MessageKey(String key) {
         this.key = key;
