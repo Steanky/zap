@@ -38,7 +38,7 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
     private AbstractLocation windowCenter;
     private AbstractLocation destination;
 
-    private final boolean hasWindow = false;
+    private boolean hasWindow = false;
     private boolean loadedMetadata = false;
 
     private int tickCounter = 0;
@@ -117,9 +117,6 @@ public class PathfinderGoalEscapeWindow extends Pathfinder implements Pathfindin
         if(destination != null) {
             nmsEntity.getControllerLook().a(new Vec3D(destination.getX(), destination.getY() + 1,
                     destination.getZ()));
-
-            //TODO: test, this may not be necessary
-            ai().navigateToLocation(this.entity, destination, SEARCH_DISTANCE);
         }
     }
 

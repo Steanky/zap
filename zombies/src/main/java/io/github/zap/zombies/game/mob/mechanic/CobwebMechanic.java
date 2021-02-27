@@ -60,7 +60,7 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
 
     private void placeCobweb(Block targetBlock) {
         BlockData save = targetBlock.getBlockData();
-        targetBlock.setType(Material.COBWEB);
+        targetBlock.setType(Material.COBWEB, false);
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> targetBlock.setBlockData(save),
                 decayTime);

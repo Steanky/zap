@@ -18,10 +18,20 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.mob.goal.PathfinderGoalEscapeWindow;
+import io.github.zap.zombies.game.mob.goal.PathfinderGoalTargetPlayerUnbounded;
+import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.mobs.ai.PathfinderAdapter;
+import io.lumine.xikage.mythicmobs.skills.SkillManager;
+import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
+import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
+import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
+import io.lumine.xikage.mythicmobs.volatilecode.handlers.VolatileAIHandler;
+import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16_R3;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
@@ -36,9 +46,11 @@ import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -104,7 +116,9 @@ public final class Zombies extends JavaPlugin implements Listener {
             initConfig();
             initProxy();
             initDependencies();
-            initSerialization();
+            initPathfinding(PathfinderGoalEscapeWindow.class, PathfinderGoalTargetPlayerUnbounded.class);
+            initMechanics(CobwebMechanic.class);
+            initMechanics();
             initPlayerDataManager();
             initLocalization();
             initWorldLoader();
@@ -185,7 +199,76 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initDependencies() throws LoadFailureException {
         arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
         SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
-        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, true);
+        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, false);
+    }
+
+    @SafeVarargs
+    private void initPathfinding(Class<? extends PathfinderAdapter>... customGoals) throws LoadFailureException {
+        VolatileAIHandler handler = mythicMobs.getVolatileCodeHandler().getAIHandler();
+
+        if(handler instanceof VolatileAIHandler_v1_16_R3) {
+            VolatileAIHandler_v1_16_R3 target = (VolatileAIHandler_v1_16_R3)handler;
+
+            try {
+                Field aiGoalsField = VolatileAIHandler_v1_16_R3.class.getDeclaredField("AI_GOALS");
+                aiGoalsField.setAccessible(true);
+
+                @SuppressWarnings("unchecked") Map<String, Class<? extends PathfinderAdapter>> aiGoals =
+                        (Map<String, Class<? extends PathfinderAdapter>>)aiGoalsField.get(target);
+
+                for(Class<? extends PathfinderAdapter> customGoal : customGoals) {
+                    MythicAIGoal mythicAnnotation = customGoal.getAnnotation(MythicAIGoal.class);
+
+                    if(mythicAnnotation != null) {
+                        aiGoals.put(mythicAnnotation.name(), customGoal);
+
+                        for(String alias : mythicAnnotation.aliases()) {
+                            aiGoals.put(alias, customGoal);
+                        }
+
+                        info("Loaded custom AI goal " + customGoal.getName());
+                    }
+                    else {
+                        warning("Class " + customGoal.getName() + " should be annotated with @MythicAIGoal!");
+                    }
+                }
+            } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+                warning("Reflection-related exception when initializing pathfinding.");
+            }
+        }
+        else {
+            throw new LoadFailureException("Unsupported version of MythicMobs AIHandler!");
+        }
+    }
+
+    @SafeVarargs
+    private void initMechanics(Class<? extends SkillMechanic>... customMechanics) throws LoadFailureException {
+        try {
+            Field mechanicsField = SkillManager.class.getDeclaredField("MECHANICS");
+            mechanicsField.setAccessible(true);
+
+            @SuppressWarnings("unchecked") Map<String, Class<? extends SkillMechanic>> mechanics =
+                    (Map<String, Class<? extends SkillMechanic>>)mechanicsField.get(null);
+
+            for(Class<? extends SkillMechanic> customMechanic : customMechanics) {
+                MythicMechanic mythicAnnotation = customMechanic.getAnnotation(MythicMechanic.class);
+
+                if(mythicAnnotation != null) {
+                    mechanics.put(mythicAnnotation.name(), customMechanic);
+
+                    for(String alias : mythicAnnotation.aliases()) {
+                        mechanics.put(alias, customMechanic);
+                    }
+
+                    info("Loaded custom MythicMobs mechanic " + customMechanic.getName());
+                }
+                else {
+                    warning("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
+                }
+            }
+        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+            warning("Reflection-related exception when initializing pathfinding.");
+        }
     }
 
     private void initWorldLoader() {
@@ -228,10 +311,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         else {
             throw new LoadFailureException("Unable to load required configuration information for ZombiesArenaManager.");
         }
-    }
-
-    private void initSerialization() throws LoadFailureException {
-
     }
 
     private void initPlayerDataManager() {
