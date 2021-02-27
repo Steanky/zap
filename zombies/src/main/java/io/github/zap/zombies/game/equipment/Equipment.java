@@ -16,10 +16,14 @@ public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
     @Getter
     private final D equipmentData;
 
+    @Getter
+    private final ZombiesPlayer zombiesPlayer;
+
     public Equipment(ZombiesPlayer player, int slot, D equipmentData) {
         super(player.getPlayer(), slot);
 
         this.equipmentData = equipmentData;
+        this.zombiesPlayer = player;
         setRepresentingItemStack(equipmentData.createItemStack(player.getPlayer(), 0));
     }
 

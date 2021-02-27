@@ -49,7 +49,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     // Mollification and Division. Also why remove old multiplier Thamid?
     @Getter
     @Setter
-    private int fireRateMultiplier = 1;
+    private double fireRateMultiplier = 1;
 
     @Getter
     private final ZombiesPerks perks;
