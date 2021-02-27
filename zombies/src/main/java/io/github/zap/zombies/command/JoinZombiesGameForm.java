@@ -64,11 +64,11 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
                 null, null);
 
         api.handleJoin(testInformation, (pair) -> {
-            if(!pair.left) {
-                player.sendMessage(pair.right);
+            if(!pair.getLeft()) {
+                player.sendMessage(pair.getRight());
             }
         });
 
-        return ">green{Attemping to join a game...}";
+        return ">green{Attempting to join a game...}";
     }
 }
