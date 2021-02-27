@@ -8,6 +8,11 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.*;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.perk.FastRevive;
+import io.github.zap.zombies.game.perk.PerkType;
+import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -19,11 +24,23 @@ public class Corpse {
 
     private final ProtocolManager protocolManager;
 
-    private final Player zombiesPlayer;
+    private final ZombiesPlayer zombiesPlayer;
+
+    @Getter
+    private final Location location;
 
     private final UUID uniqueId = UUID.randomUUID();
 
     private final int id;
+
+    private int deathTaskId;
+
+    @Getter
+    private boolean active = true;
+
+    private ZombiesPlayer reviver;
+
+    private int reviveTime;
 
     static {
         Zombies zombies = Zombies.getInstance();
@@ -36,12 +53,34 @@ public class Corpse {
         });
     }
 
-    public Corpse(Player player) {
-        this.zombiesPlayer = player;
+    public Corpse(ZombiesPlayer zombiesPlayer) {
+        this.zombiesPlayer = zombiesPlayer;
+        this.location = zombiesPlayer.getPlayer().getLocation();
 
         protocolManager = ProtocolLibrary.getProtocolManager();
         id = Zombies.getInstance().getNmsProxy().nextEntityId();
         spawnDeadBody();
+    }
+
+    public void setReviver(ZombiesPlayer reviver) {
+        if (reviver == null) {
+            zombiesPlayer.getArena().getAvailableCorpses().add(this);
+        } else {
+            if (deathTaskId != -1) {
+                Bukkit.getScheduler().cancelTask(deathTaskId);
+            }
+
+            this.reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
+        }
+
+        this.reviver = reviver;
+    }
+
+    public void continueReviving() {
+        if (--reviveTime == 0) {
+            active = false;
+            zombiesPlayer.revive();
+        }
     }
 
     private void sendTo(Player player, PacketContainer packetContainer) {
@@ -54,7 +93,7 @@ public class Corpse {
     }
 
     private void sendToAll(PacketContainer packetContainer) {
-        for (Player player : zombiesPlayer.getWorld().getPlayers()) {
+        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
             sendTo(player, packetContainer);
         }
     }
@@ -96,7 +135,7 @@ public class Corpse {
         packetContainer.getIntegers().write(0, id);
         packetContainer.getUUIDs().write(0, uniqueId);
 
-        Location location = zombiesPlayer.getLocation();
+        Location location = zombiesPlayer.getPlayer().getLocation();
         packetContainer.getDoubles()
                 .write(0, location.getX())
                 .write(1, location.getY())
@@ -119,4 +158,18 @@ public class Corpse {
         return packetContainer;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Corpse corpse = (Corpse) o;
+
+        return uniqueId.equals(corpse.uniqueId);
+    }
+
+    @Override
+    public int hashCode() {
+        return uniqueId.hashCode();
+    }
 }

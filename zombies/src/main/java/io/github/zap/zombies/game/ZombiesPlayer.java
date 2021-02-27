@@ -2,9 +2,11 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
+import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
@@ -17,7 +19,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     private WindowData targetWindow;
     private int windowRepairTaskId = -1;
+
+    private Corpse targetCorpse;
+    private int reviveTaskId;
 
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
@@ -141,6 +145,31 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if(windowRepairTaskId != -1) {
             Bukkit.getScheduler().cancelTask(windowRepairTaskId);
             windowRepairTaskId = -1;
+        }
+    }
+
+    /**
+     * Puts the player into a reviving state
+     */
+    public void activateRevive() {
+        if (reviveTaskId == - 1) {
+            MapData map = arena.getMap();
+            reviveTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
+                    Zombies.getInstance(),
+                    this::checkForCorpses,
+                    0L,
+                    2L
+            );
+        }
+    }
+
+    /**
+     * Disables revive state
+     */
+    public void disableRevive() {
+        if (reviveTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(reviveTaskId);
+            reviveTaskId = -1;
         }
     }
 
@@ -243,4 +272,44 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_MOB);
         }
     }
+
+    private void checkForCorpses() {
+        int maxDistance = arena.getMap().getReviveRadius();
+
+        if (targetCorpse == null || !targetCorpse.isActive()) {
+            selectNewCorpse();
+        } else {
+            double distance = VectorUtils.manhattanDistance(
+                    getPlayer().getLocation().toVector(),
+                    targetCorpse.getLocation().toVector()
+            );
+
+            if (distance < maxDistance) {
+                targetCorpse.continueReviving();
+            } else {
+                targetCorpse.setReviver(null);
+                targetCorpse = null;
+
+                selectNewCorpse();
+            }
+        }
+    }
+
+    private void selectNewCorpse() {
+        int maxDistance = arena.getMap().getReviveRadius();
+
+        for (Corpse corpse : arena.getAvailableCorpses()) {
+            double distance = VectorUtils.manhattanDistance(
+                    getPlayer().getLocation().toVector(),
+                    corpse.getLocation().toVector()
+            );
+            if (distance <= maxDistance) {
+                targetCorpse = corpse;
+                targetCorpse.setReviver(this);
+                targetCorpse.continueReviving();
+                break;
+            }
+        }
+    }
+
 }
