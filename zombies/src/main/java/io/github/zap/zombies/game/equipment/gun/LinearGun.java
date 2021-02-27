@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.equipment.gun.logic.LinearBeam;
@@ -27,7 +28,7 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
         add(Material.VOID_AIR);
     }};
 
-    public LinearGun(Player player, int slot, LinearGunData equipmentData) {
+    public LinearGun(ZombiesPlayer player, int slot, LinearGunData equipmentData) {
         super(player, slot, equipmentData);
     }
 

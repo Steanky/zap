@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.equipment;
 
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.Equipment;
 import lombok.Getter;
 import org.bukkit.entity.Player;
@@ -28,7 +29,7 @@ public class EquipmentCreator {
          * @param equipmentData The equipment data to create the equipment with
          * @return The new equipment
          */
-        Equipment<D, L> createEquipment(Player player, int slot, D equipmentData);
+        Equipment<D, L> createEquipment(ZombiesPlayer player, int slot, D equipmentData);
     }
 
 }

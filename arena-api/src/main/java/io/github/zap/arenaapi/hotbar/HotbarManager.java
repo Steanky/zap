@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,10 @@ public class HotbarManager {
         this.player = player;
 
         switchProfile(DEFAULT_PROFILE_NAME);
+    }
+
+    public Map<String, HotbarProfile> getProfiles() {
+        return Collections.unmodifiableMap(profiles);
     }
 
     /**

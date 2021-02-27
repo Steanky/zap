@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
@@ -30,7 +31,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     private boolean canShoot = true;
 
-    public Gun(Player player, int slot, D equipmentData) {
+    public Gun(ZombiesPlayer player, int slot, D equipmentData) {
         super(player, slot, equipmentData);
     }
 
@@ -93,7 +94,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         if (currentClipAmmo > 0) {
             // Animate xp bar
             new BukkitRunnable() {
-                private final float fireRate = getEquipmentData().getLevels().get(getLevel()).getFireRate();
+                private final float fireRate = getEquipmentData().getLevels().get(getLevel()).getFireRate() * getZombiesPlayer().getFireRateMultiplier();
                 private final float goal = fireRate * 20;
                 private final float stepVal = 1 / (fireRate * 20);
 

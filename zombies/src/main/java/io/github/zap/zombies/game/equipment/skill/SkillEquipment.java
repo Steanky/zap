@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.equipment.skill;
 
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
@@ -18,7 +19,7 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
 
     boolean usable = true;
 
-    public SkillEquipment(Player player, int slot, SkillData equipmentData) {
+    public SkillEquipment(ZombiesPlayer player, int slot, SkillData equipmentData) {
         super(player, slot, equipmentData);
     }
 

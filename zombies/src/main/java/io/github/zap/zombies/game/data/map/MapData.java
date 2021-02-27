@@ -228,6 +228,8 @@ public class MapData {
      */
     List<String> defaultEquipments = new ArrayList<>();
 
+    double fireRatePerkMultiplier = 0.25;
+
     /**
      * A map of SpawnRule objects which are used to define the behavior of spawnpoints.
      */
