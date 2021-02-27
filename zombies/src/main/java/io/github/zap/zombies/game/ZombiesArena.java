@@ -468,7 +468,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(!player.isAlive()) {
                 player.respawn();
             }
-            new Corpse(player);
         }
 
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();

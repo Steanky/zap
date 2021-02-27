@@ -104,10 +104,6 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
         }
     }
 
-    private void handleDeath() {
-
-    }
-
 
     @Override
     public void update() {

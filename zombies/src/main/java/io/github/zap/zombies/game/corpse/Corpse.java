@@ -82,14 +82,6 @@ public class Corpse {
         id = this.nmsProxy.nextEntityId();
 
         spawnDeadBody();
-
-        addCorpseToTeamPacket.getStrings().write(0, zombiesArena.getCorpseTeamName());
-        addCorpseToTeamPacket.getIntegers().write(0, 3);
-        addCorpseToTeamPacket.getSpecificModifier(Collection.class)
-                .write(0, Collections.singletonList(uniqueId));
-
-        sendPacket(addCorpseToTeamPacket);
-
         startDying();
     }
 
@@ -162,6 +154,14 @@ public class Corpse {
         sendPacket(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER));
         sendPacket(createSpawnPlayerPacketContainer());
         sendPacket(createSleepingPacketContainer());
+
+        addCorpseToTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
+        addCorpseToTeamPacket.getIntegers().write(0, 3);
+        addCorpseToTeamPacket.getSpecificModifier(Collection.class)
+                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
+
+        sendPacket(addCorpseToTeamPacket);
+
         sendPacket(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER));
     }
 
