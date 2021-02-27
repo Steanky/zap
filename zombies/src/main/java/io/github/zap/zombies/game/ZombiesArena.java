@@ -506,8 +506,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     public void startCountdown() {
         //do countdown timer; at the end, call doRound() to kick off the game
-        // TODO: test code
-        state= ZombiesArenaState.COUNTDOWN;
         // TODO: do this at the end
     }
 
