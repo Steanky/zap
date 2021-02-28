@@ -7,6 +7,8 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -14,6 +16,7 @@ import io.github.zap.zombies.game.perk.FastRevive;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -40,11 +43,12 @@ public class Corpse {
 
     private final int id;
 
-    @Getter
-    private final int defaultDeathTime;
+    private final Hologram hologram;
 
     @Getter
     private final PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+
+    private final int defaultDeathTime;
 
     private int deathTaskId;
 
@@ -62,7 +66,17 @@ public class Corpse {
         this.zombiesPlayer = zombiesPlayer;
         this.location = zombiesPlayer.getPlayer().getLocation();
         this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
+        this.hologram =
+                new Hologram(Zombies.getInstance().getLocalizationManager(), location.clone().add(0, 2, 0));
         this.deathTime = defaultDeathTime;
+
+        hologram.addLine(MessageKey.CORPSE_LINE.getKey());
+        hologram.addLine(MessageKey.DYING_MESSAGE.getKey());
+        hologram.addLine(ImmutablePair.of(
+                MessageKey.CORPSE_TIME_REMAINING.getKey(),
+                new String[]{ String.valueOf(convertTicksToSeconds(defaultDeathTime)) }
+        ));
+        hologram.addLine(MessageKey.CORPSE_LINE.getKey());
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
         zombiesArena.getCorpses().add(this);
@@ -91,6 +105,7 @@ public class Corpse {
             }
 
             this.reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
+            hologram.updateLine(1, MessageKey.REVIVING_MESSAGE.getKey());
         }
 
         this.reviver = reviver;
@@ -100,13 +115,21 @@ public class Corpse {
      * Removes 0.1s of revival time from the corpse
      */
     public void continueReviving() {
-        if (--reviveTime == 0) {
+        if (reviveTime == 0) {
             active = false;
             zombiesPlayer.revive();
+        } else {
+            hologram.updateLine(2, ImmutablePair.of(
+                    MessageKey.CORPSE_TIME_REMAINING.getKey(),
+                    new String[] { String.valueOf(convertTicksToSeconds(reviveTime)) }
+            ));
+            reviveTime--;
         }
     }
 
     private void startDying() {
+        hologram.updateLine(1, MessageKey.DYING_MESSAGE.getKey());
+
         deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                 Zombies.getInstance(),
                 this::continueDying,
@@ -123,6 +146,10 @@ public class Corpse {
             zombiesPlayer.kill();
             zombiesPlayer.getArena().getAvailableCorpses().remove(this);
         } else {
+            hologram.updateLine(2, ImmutablePair.of(
+                    MessageKey.CORPSE_TIME_REMAINING.getKey(),
+                    new String[] { String.valueOf(convertTicksToSeconds(deathTime)) }
+            ));
             deathTime -= 1;
         }
     }

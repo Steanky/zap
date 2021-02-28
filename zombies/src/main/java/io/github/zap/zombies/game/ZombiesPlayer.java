@@ -193,7 +193,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             Player player = getPlayer();
             player.setWalkSpeed(0);
             player.setInvisible(true);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, corpse.getDefaultDeathTime(), 128,
+            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
                     true, false, false));
         }
     }
