@@ -1,10 +1,6 @@
 package io.github.zap.arenaapi.event;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Filters an event's calls based on a predicate and maps the calls based on a function. The result is a function that

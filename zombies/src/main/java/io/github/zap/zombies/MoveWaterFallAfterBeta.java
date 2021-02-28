@@ -2,18 +2,12 @@ package io.github.zap.zombies;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.arena.Arena;
-import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
-import io.github.zap.zombies.game.ZombiesArena;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-
-import java.util.function.Function;
 
 public class MoveWaterFallAfterBeta implements Listener {
     @Getter

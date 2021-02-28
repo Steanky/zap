@@ -5,7 +5,6 @@ import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.Getter;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

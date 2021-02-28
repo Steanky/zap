@@ -7,7 +7,6 @@ import io.github.zap.arenaapi.ArenaApi;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
 public class JacksonDataLoader implements DataLoader {
     private static final String EXTENSION = ".json";

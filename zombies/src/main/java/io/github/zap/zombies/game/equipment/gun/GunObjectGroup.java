@@ -1,15 +1,11 @@
 package io.github.zap.zombies.game.equipment.gun;
 
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
-import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 /**

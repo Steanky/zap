@@ -1,15 +1,11 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.zombies.Zombies;
-import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.util.Vector;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @SuppressWarnings("FieldMayBeFinal")
 @Getter

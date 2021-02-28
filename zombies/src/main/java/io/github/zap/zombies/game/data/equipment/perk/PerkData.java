@@ -5,9 +5,6 @@ import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.perk.PerkType;
 import lombok.Getter;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-
-import java.util.List;
 
 /**
  * Data for a perk
