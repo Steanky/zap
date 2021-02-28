@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -27,10 +28,7 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -43,6 +41,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
@@ -248,6 +247,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
 
+    private BukkitTask gameEndTimeoutTask;
+
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      *
@@ -329,7 +330,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerJoin(PlayerListArgs args) {
         if(state == ZombiesArenaState.PREGAME && getOnlineCount() >= map.getMinimumCapacity()) {
             state = ZombiesArenaState.COUNTDOWN;
-            startCountdown();
         }
 
         for(Player player : args.getPlayers()) {
@@ -356,7 +356,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
                 if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
-                    stopCountdown();
                 }
 
                 removePlayers(args.getPlayers());
@@ -505,6 +504,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
+            getPlayerMap().forEach((l,r) -> {
+                r.getPlayer().sendTitle(ChatColor.RED + " " + currentRoundProperty.getValue(this), "");
+                r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 0.5f);
+            });
         }
         else {
             //game just finished, do win condition
@@ -527,29 +530,34 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public void startCountdown() {
-        //do countdown timer; at the end, call doRound() to kick off the game
-        // TODO: do this at the end
-    }
-
-    public void stopCountdown() {
-        //reset countdown timer
-
-    }
-
     /**
      * Win code here
      */
     private void doVictory() {
+        state = ZombiesArenaState.ENDED;
         endTimeStamp = System.currentTimeMillis();
+        var round = map.getCurrentRoundProperty().getValue(this);
+        getPlayerMap().forEach((l,r) -> {
+            r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
+            r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+        });
+        waitAndDispose(200);
     }
 
     /**
      * Loss code here
      */
     private void doLoss() {
+        state = ZombiesArenaState.ENDED;
         endTimeStamp = System.currentTimeMillis();
+        var round = map.getCurrentRoundProperty().getValue(this);
+        getPlayerMap().forEach((l,r) -> {
+            r.getPlayer().sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
+            r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+        });
+        waitAndDispose(200);
     }
+
 
     /**
      * Loads shops; should be called just before the game begins
@@ -585,7 +593,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                         ((LuckyChest) chests.get(random.nextInt(chests.size()))).toggle(true);
                         // TODO: set where the chest is
-
                         rolls = 0;
                     }
                 }
