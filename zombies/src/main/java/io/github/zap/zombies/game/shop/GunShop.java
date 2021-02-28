@@ -13,6 +13,7 @@ import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -124,7 +125,6 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
 
@@ -138,7 +138,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     // TODO: ye
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
 
             return true;
@@ -162,8 +162,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
                     int refillCost = gunShopData.getRefillCost();
                     if (zombiesPlayer.getCoins() < refillCost) {
-                        getLocalizationManager().sendLocalizedMessage(zombiesPlayer.getPlayer(),
-                                MessageKey.CANNOT_AFFORD.getKey());
+                        zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
 
                         return false;
                     } else {
@@ -189,15 +188,14 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             if (gunObjectGroup.getHotbarObjectMap().containsKey(selectedSlot)) {
                 slot = selectedSlot;
             } else {
-                getLocalizationManager().sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
+                player.sendMessage(ChatColor.RED + "Choose the slot you want to buy the gun in!");
                 return false;
             }
         }
 
         int cost = gunShopData.getCost();
         if (zombiesPlayer.getCoins() < cost) {
-            getLocalizationManager().sendLocalizedMessage(player,
-                    MessageKey.CANNOT_AFFORD.getKey());
+            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
 
             return false;
         } else {

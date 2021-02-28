@@ -11,6 +11,7 @@ import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -56,7 +57,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
             if (!getShopData().isRequiresPower() || isPowered()) {
                 if (zombiesPlayer.getCoins() < getShopData().getCost()) {
-                    localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                    player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                 } else {
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
 
@@ -69,14 +70,14 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                             upgradeableEquipment.upgrade();
                             onPurchaseSuccess(zombiesPlayer);
                         } else {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.MAXED_OUT.getKey());
+                            player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
                         }
                     } else {
-                        localizationManager.sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
+                        player.sendMessage(ChatColor.RED + "Choose a slot to receive this item in!");
                     }
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
 
             return true;

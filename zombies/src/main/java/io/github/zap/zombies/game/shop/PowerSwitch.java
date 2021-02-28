@@ -7,10 +7,9 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-
-import java.util.Locale;
 
 /**
  * Switch used to turn on the power in the arena permanently
@@ -47,22 +46,19 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
             Player player = zombiesPlayer.getPlayer();
 
             if (isPowered()) {
-                localizationManager.sendLocalizedMessage(player, MessageKey.MAXED_OUT.getKey());
+                player.sendMessage(ChatColor.RED + "You have already turned on the power!");
             } else {
                 int cost = getShopData().getCost();
 
                 if (zombiesPlayer.getCoins() < cost) {
-                    localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                    player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                 } else {
                     zombiesPlayer.subtractCoins(cost);
 
                     for (Player playerInWorld : getZombiesArena().getWorld().getPlayers()) {
-                        Locale locale = localizationManager.getPlayerLocale(playerInWorld);
                         playerInWorld.sendTitle(
-                                localizationManager
-                                        .getLocalizedMessage(locale, MessageKey.ACTIVATED_POWER_TITLE.getKey()),
-                                localizationManager
-                                        .getLocalizedMessage(locale, MessageKey.ACTIVATED_POWER_SUBTITLE.getKey()),
+                                ChatColor.YELLOW + "Somebody turned on the power!",
+                                ChatColor.GOLD + "what should I put here?",
                                 20, 60, 20
                         );
                     }

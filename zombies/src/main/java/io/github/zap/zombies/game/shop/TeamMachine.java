@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -9,6 +8,7 @@ import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -52,13 +52,14 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                     if (teamMachineTask != null && teamMachineTask.execute(zombiesArena, zombiesPlayer)) {
                         inventoryClickEvent.setCancelled(true);
 
-                        LocalizationManager localizationManager = getLocalizationManager();
                         for (Player player : zombiesArena.getWorld().getPlayers()) {
-                            localizationManager.sendLocalizedMessage(
-                                    player,
-                                    MessageKey.TEAM_MACHINE_PURCHASE.getKey(),
-                                    player.getName(),
-                                    teamMachineTask.getDisplayName()
+                            player.sendMessage(
+                                    String.format(
+                                            "%sPlayer %s purchased %s from the team machine!",
+                                            ChatColor.YELLOW,
+                                            player.getName(),
+                                            teamMachineTask.getDisplayName()
+                                    )
                             );
                         }
 
@@ -94,7 +95,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                 player.openInventory(inventory);
                 return true;
             } else {
-                getLocalizationManager().sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                player.sendMessage("The power is not active yet!");
             }
         }
 

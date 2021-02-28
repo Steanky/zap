@@ -22,10 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
@@ -135,7 +132,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         if (event instanceof PlayerInteractEvent) {
             PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
-            if (left.equals(playerInteractEvent.getClickedBlock()) || right.equals(playerInteractEvent.getClickedBlock())) {
+            if (left.equals(playerInteractEvent.getClickedBlock())
+                    || right.equals(playerInteractEvent.getClickedBlock())) {
                 LocalizationManager localizationManager = getLocalizationManager();
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
                 Player player = zombiesPlayer.getPlayer();
@@ -146,7 +144,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
                         if (rollingPlayerId == null) {
                             if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                                localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                                zombiesPlayer.getPlayer()
+                                        .sendMessage(ChatColor.RED + "You cannot afford this item!");
                             } else {
                                 rollingPlayerId = zombiesPlayer.getPlayer().getUniqueId();
                                 playerInteractEvent.setCancelled(true);
@@ -161,12 +160,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                         .getHotbarObjectGroup(equipmentData.getName());
 
                                 if (equipmentObjectGroup == null) {
-                                    localizationManager.sendLocalizedMessage(player, MessageKey.NO_GROUP.getKey());
+                                    player.sendMessage(ChatColor.RED + "It looks like you cannot obtain this item!");
                                 } else {
                                     Integer slot = equipmentObjectGroup.getNextEmptySlot();
                                     if (slot == null) {
-                                        localizationManager.sendLocalizedMessage(player,
-                                                MessageKey.CHOOSE_SLOT.getKey());
+                                        player.sendMessage(ChatColor.RED + "Choose a slot to receive the item in!");
                                     } else {
                                         hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
                                                 zombiesPlayer,
@@ -180,16 +178,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                     }
                                 }
                             } else {
-                                localizationManager.sendLocalizedMessage(player, MessageKey.NOT_DONE_ROLLING.getKey());
+                                player.sendMessage(ChatColor.RED + "The chest is not done rolling yet!");
                             }
                         } else {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.OTHER_PERSON_ROLLING.getKey());
+                            player.sendMessage(ChatColor.RED + "Somebody else is rolling!");
                         }
                     } else {
                         // TODO: not active rn
                     }
                 } else {
-                    localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                    player.sendMessage(ChatColor.RED + "The power is not active yet!");
                 }
 
                 return true;

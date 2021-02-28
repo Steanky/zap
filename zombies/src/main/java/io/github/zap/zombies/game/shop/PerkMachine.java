@@ -14,6 +14,7 @@ import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -85,7 +86,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                         int cost = costs.get(0);
 
                         if (zombiesPlayer.getCoins() < cost) {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
                             HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                             PerkObjectGroup perkObjectGroup =
@@ -106,10 +107,10 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
                                     onPurchaseSuccess(zombiesPlayer);
                                 } else {
-                                    localizationManager.sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
+                                    player.sendMessage(ChatColor.RED + "Choose a slot to receive the perk in!");
                                 }
                             } else {
-                                localizationManager.sendLocalizedMessage(player, MessageKey.NO_GROUP.getKey());
+                                player.sendMessage(ChatColor.RED + "You cannot receive this item!");
                             }
                         }
                     }
@@ -120,7 +121,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                         int cost = costs.get(level);
 
                         if (zombiesPlayer.getCoins() < cost) {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
                             zombiesPlayer.subtractCoins(cost);
                             perkEquipment.upgrade();
@@ -129,11 +130,11 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                             onPurchaseSuccess(zombiesPlayer);
                         }
                     } else {
-                        localizationManager.sendLocalizedMessage(player, MessageKey.UNLOCKED.getKey());
+                        player.sendMessage(ChatColor.RED + "You have already unlocked this item!");
                     }
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
 
             return true;
