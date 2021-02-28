@@ -25,6 +25,8 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -81,17 +83,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private class BasicSpawner implements Spawner {
         @Override
         public void spawnWave(WaveData wave) {
-            spawnMobs(wave.getSpawnEntries(), wave.getMethod(), wave.getSlaSquared(), wave.isRandomizeSpawnpoints());
+            spawnMobInternal(wave.getSpawnEntries(), wave.getMethod(), wave.getSlaSquared(), wave.isRandomizeSpawnpoints())
+                .forEach(x -> x.setMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), wave)));
+
         }
 
-        @Override
-        public void spawnMobs(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
+        private List<Entity> spawnMobInternal(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
             List<SpawnpointData> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
+            List<Entity> spawnedEntites = new ArrayList<>();
 
             if(spawnpoints.size() == 0) {
                 Zombies.warning("There are no available spawnpoints for this mob set. This likely indicates an error " +
                         "in map configuration.");
-                return;
+                return Collections.emptyList();
             }
 
             if(randomize) {
@@ -112,6 +116,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                             entity.setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, new FixedMetadataValue(zombies,
                                     spawnpointData));
+
+                            entity.setMetadata(Zombies.SPAWNINFO_ENTRY_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnEntryData));
+
+                            spawnedEntites.add(entity);
                         });
 
                         amt--;
@@ -122,6 +130,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     }
                 }
             }
+
+            return spawnedEntites;
+        }
+
+        @Override
+        public void spawnMobs(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
+            spawnMobInternal(mobs, method, slaSquared, randomize);
         }
 
         /**
@@ -482,7 +497,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
             getPlayerMap().forEach((l,r) -> {
-                r.getPlayer().sendTitle(ChatColor.RED + " " + currentRoundProperty.getValue(this), "");
+                var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
+                        currentRound.getCustomMessage() : ChatColor.RED + " " + currentRoundProperty.getValue(this);
+                r.getPlayer().sendTitle(messageTitle, "");
                 r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 0.5f);
             });
         }
