@@ -2,13 +2,10 @@ package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
-import io.github.zap.arenaapi.serialize.JacksonDataLoader;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
 import io.github.zap.zombies.game.shop.*;
 import lombok.Getter;
-import org.checkerframework.checker.units.qual.A;
 
 /**
  * Class for storing and managing shop data using Jackson's data loader

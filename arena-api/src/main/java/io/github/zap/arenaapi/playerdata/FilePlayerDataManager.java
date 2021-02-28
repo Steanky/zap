@@ -5,8 +5,9 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.Getter;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class FilePlayerDataManager implements PlayerDataManager {
     @Getter

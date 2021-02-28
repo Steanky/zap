@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.util;
 
 import java.lang.reflect.Array;
-import java.util.Collection;
 
 public final class ArrayUtils {
     /**

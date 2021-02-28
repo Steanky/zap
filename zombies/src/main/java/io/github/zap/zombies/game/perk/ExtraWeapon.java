@@ -1,10 +1,8 @@
 package io.github.zap.zombies.game.perk;
 
 import io.github.zap.arenaapi.hotbar.HotbarManager;
-import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.zombies.game.ZombiesPlayer;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;

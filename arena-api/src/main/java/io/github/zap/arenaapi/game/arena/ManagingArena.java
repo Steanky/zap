@@ -2,9 +2,9 @@ package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
-import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 import lombok.Value;
 import org.apache.commons.lang3.tuple.ImmutablePair;
