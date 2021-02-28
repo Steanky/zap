@@ -112,7 +112,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         }
                     }
 
-                    if(startAmt == amt) {
+                    if(startAmt == amt) { //make sure we managed to spawn at least one mob
                         Zombies.warning("Unable to find a valid spawnpoint for SpawnEntryData.");
                         break;
                     }
