@@ -62,7 +62,7 @@ public class MapData {
     /**
      * The duration of the game start countdown timer, in seconds
      */
-    int countdownSeconds = 10;
+    int countdownSeconds = 20;
 
     /**
      * The number of coins each player should start with
@@ -217,6 +217,8 @@ public class MapData {
      * Equipments given at the start of the game by their name
      */
     List<String> defaultEquipments = new ArrayList<>();
+
+    double fireRatePerkMultiplier = 0.25;
 
     /**
      * A map of SpawnRule objects which are used to define the behavior of spawnpoints.

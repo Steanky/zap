@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.hotbar;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,28 +72,31 @@ public class HotbarProfile {
     /**
      * Changes the ownership of a slot to a new hotbar object group
      * @param slot The slot to swap
+     * @param newHotbarObjectGroup The new hotbar object group
+     */
+    public void swapSlotOwnership(int slot, @NotNull HotbarObjectGroup newHotbarObjectGroup) {
+        for (HotbarObjectGroup otherHotbarObjectGroup : hotbarObjectGroupMap.values()) {
+            if (otherHotbarObjectGroup.getHotbarObjectMap().containsKey(slot)) {
+                otherHotbarObjectGroup.remove(slot, false);
+                newHotbarObjectGroup.addHotbarObject(slot);
+                return;
+            }
+        }
+
+        throw new IllegalArgumentException(
+                String.format("The HotbarProfile does not manage slot %d, so we can't swap its ownership!", slot)
+        );
+    }
+
+    /**
+     * Changes the ownership of a slot to a new hotbar object group
+     * @param slot The slot to swap
      * @param newHotbarObjectGroupName The name of the new hotbar object group
      */
     public void swapSlotOwnership(int slot, String newHotbarObjectGroupName) {
         HotbarObjectGroup hotbarObjectGroup = hotbarObjectGroupMap.get(newHotbarObjectGroupName);
+        swapSlotOwnership(slot, hotbarObjectGroup);
 
-        if (hotbarObjectGroup != null) {
-            for (HotbarObjectGroup otherHotbarObjectGroup : hotbarObjectGroupMap.values()) {
-                if (otherHotbarObjectGroup.getHotbarObjectMap().containsKey(slot)) {
-                    otherHotbarObjectGroup.remove(slot, false);
-                    hotbarObjectGroup.addHotbarObject(slot);
-                    return;
-                }
-            }
-
-            throw new IllegalArgumentException(
-                    String.format("The HotbarProfile does not manage slot %d, so we can't swap its ownership!", slot)
-            );
-        } else {
-            throw new IllegalArgumentException(
-                    String.format("The specified HotbarObjectGroup %s does not exist!", newHotbarObjectGroupName)
-            );
-        }
     }
 
     /**

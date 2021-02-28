@@ -10,8 +10,13 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.scoreboard.Criterias;
+import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Scoreboard;
+import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,10 +26,14 @@ import java.util.logging.Level;
 import static io.github.zap.zombies.game.scoreboards.GameScoreboard.DATE_FORMATTER;
 
 public class IngameScoreboardState implements GameScoreboardState, Disposable {
+    public static final long secondToMillis = 1000;
+    public static final long minuteToMillis = 60 * secondToMillis;
+    public static final long hourToMillis = 60 * minuteToMillis;
+
     private GameScoreboard gameScoreboard;
 
     private final Map<UUID, ImmutablePair<StringFragment, StringFragment>> playerStatues = new HashMap<>();
-    private final Map<UUID, Triple<Scoreboard, SidebarTextWriter, StringFragment>> playScoreboards = new HashMap<>();
+    private final Map<UUID, IngamePlayerScoreboardInformation> playScoreboards = new HashMap<>();
 
     private final StringFragment round = new StringFragment();
     private final StringFragment zombieLeft = new StringFragment();
@@ -48,31 +57,42 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
             var writer = SidebarTextWriter.create(bukkitScoreboard, GameScoreboard.SIDEBAR_TITLE);
             var zombieKills = new StringFragment(ChatColor.GOLD + "0");
 
+            // Writing the side bar
             writer.line(ChatColor.GRAY, date)
-                  .line()
-                  .line("" + ChatColor.BOLD + ChatColor.RED + "Round ", round)
-                  .line("Zombies Left: " + ChatColor.GREEN, zombieLeft)
-                  .line();
+                    .line()
+                    .line("" + ChatColor.BOLD + ChatColor.RED, round)
+                    .line("Zombies Left: " + ChatColor.GREEN, zombieLeft)
+                    .line();
 
             playerStatues.forEach((l,r) -> writer.line(ChatColor.GRAY, r.left, ChatColor.WHITE + ": ", r.right));
 
             writer.line()
-                  .line("Zombie Kills: " + ChatColor.GREEN, zombieKills)
-                  .line("Time: " + ChatColor.GREEN, time)
-                  .line("Map: " + ChatColor.GREEN + map)
-                  .line()
-                  .text(ChatColor.YELLOW + "discord.gg/:zzz:");
+                    .line("Zombie Kills: " + ChatColor.GREEN, zombieKills)
+                    .line("Time: " + ChatColor.GREEN, time)
+                    .line("Map: " + ChatColor.GREEN + map)
+                    .line()
+                    .text(ChatColor.YELLOW + "discord.gg/:zzz:");
 
-            playScoreboards.put(player.getKey(),Triple.of(bukkitScoreboard, writer, zombieKills));
+
+            // Health objective
+            var objHealth = bukkitScoreboard.registerNewObjective("objHealth", Criterias.HEALTH, "Health");
+            objHealth.setDisplaySlot(DisplaySlot.BELOW_NAME);
+
+            // Kills objective
+            var objKills = bukkitScoreboard.registerNewObjective("objKills", "dummy", "Zombie Kills");
+            objKills.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 
             // Add their in game scoreboard for every player still in the game
             if(player.getValue().isInGame())
                 player.getValue().getPlayer().setScoreboard(bukkitScoreboard);
+
+            playScoreboards.put(player.getKey(), new IngamePlayerScoreboardInformation(bukkitScoreboard, this, objHealth, objKills, writer, zombieKills));
         }
 
         scoreboard.getZombiesArena().getPlayerJoinEvent().registerHandler(this::handleRejoin);
         scoreboard.getZombiesArena().getPlayerLeaveEvent().registerHandler(this::handleLeave);
     }
+
 
     private void handleLeave(ManagingArena<ZombiesArena, ZombiesPlayer>.ManagedPlayerListArgs managedPlayerListArgs) {
         managedPlayerListArgs.getPlayers().forEach(x -> x.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard()));
@@ -81,7 +101,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
     private void handleRejoin(ManagingArena.PlayerListArgs playerListArgs) {
         for(var player : playerListArgs.getPlayers()) {
             if(playScoreboards.containsKey(player.getUniqueId())) {
-                player.setScoreboard(playScoreboards.get(player.getUniqueId()).getLeft());
+                player.setScoreboard(playScoreboards.get(player.getUniqueId()).getBukkitScoreboard());
             } else {
                 Zombies.getInstance().getLogger().log(Level.SEVERE, "Could not find scoreboard for player: " + player.getName() + " with UUID: " + player.getUniqueId());
                 player.sendMessage(ChatColor.RED + "Unable to load your scoreboard!");
@@ -94,8 +114,14 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
     public void update() {
         // Update general information
         var playerMap =  gameScoreboard.getZombiesArena().getPlayerMap();
-        round.setValue(gameScoreboard.getZombiesArena().getMap().getCurrentRoundProperty().getValue(gameScoreboard.getZombiesArena()).toString());
         zombieLeft.setValue("" + gameScoreboard.getZombiesArena().getMobs().size());
+        if(gameScoreboard.getZombiesArena().getState() == ZombiesArenaState.ENDED) {
+            round.setValue("Game Over!");
+            time.setValue(formatTime(gameScoreboard.getZombiesArena().getEndTimeStamp() - gameScoreboard.getZombiesArena().getStartTimeStamp()));
+        } else {
+            round.setValue("Round " + gameScoreboard.getZombiesArena().getMap().getCurrentRoundProperty().getValue(gameScoreboard.getZombiesArena()).toString());
+            time.setValue(formatTime(System.currentTimeMillis() - gameScoreboard.getZombiesArena().getStartTimeStamp()));
+        }
 
         // Update player status
         for(var playerStatus : playerStatues.entrySet()) {
@@ -128,18 +154,47 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
         for(var playerSb : playScoreboards.entrySet()) {
             if(playerMap.containsKey(playerSb.getKey())) {
                 var player = playerMap.get(playerSb.getKey());
-                playerSb.getValue().getRight().setValue("" + player.getKills());
-                playerSb.getValue().getMiddle().update();
+                playerSb.getValue().getZombieKills().setValue("" + player.getKills());
+                playerSb.getValue().getSidebarWriter().update();
+                gameScoreboard.getZombiesArena().getPlayerMap()
+                        .forEach((l,r) -> playerSb.getValue().getZombiesKillObjective().getScore(r.getPlayer().getName()).setScore(r.getKills()));
             } else {
                 Zombies.getInstance().getLogger().log(Level.SEVERE, "Could not find player with UUID: " + playerSb.getKey().toString());
             }
         }
     }
 
+    private long previousMillis = 0;
+
+    @NotNull
+    private String formatTime(long timeElapsedInMillis) {
+        var hours = timeElapsedInMillis / hourToMillis;
+        var minutes = (timeElapsedInMillis % hourToMillis) / minuteToMillis;
+        var seconds = (timeElapsedInMillis % minuteToMillis) / secondToMillis;
+
+        // To avoid timer *lag* behind then *fast-forward* due to taskTimer is not precise we will round up the value
+        // if the delta time is smaller than half of the interval
+        long millis = timeElapsedInMillis % secondToMillis;
+        long roundingMidPoint = (1000 - gameScoreboard.getRefreshRate() / 2 + previousMillis) % 1000;
+        if(millis > roundingMidPoint) {
+            seconds++;
+        }
+        previousMillis = millis;
+
+        var formatter = new DecimalFormat("00");
+        StringBuilder sb = new StringBuilder();
+        if(hours > 0) {
+            sb.append(hours);
+            sb.append(":");
+        }
+        sb.append(formatter.format(minutes)).append(":").append(formatter.format(seconds));
+        return sb.toString();
+    }
+
     @Override
     public void dispose() {
         gameScoreboard.getZombiesArena().getPlayerJoinEvent().removeHandler(this::handleRejoin);
         gameScoreboard.getZombiesArena().getPlayerLeaveEvent().removeHandler(this::handleLeave);
-        playScoreboards.forEach((uuid, data) -> data.getMiddle().dispose());
+        playScoreboards.forEach((uuid, data) -> data.getSidebarWriter().dispose());
     }
 }

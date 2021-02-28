@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment;
 
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import lombok.Getter;
@@ -15,11 +16,15 @@ public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
     @Getter
     private final D equipmentData;
 
-    public Equipment(Player player, int slot, D equipmentData) {
-        super(player, slot);
+    @Getter
+    private final ZombiesPlayer zombiesPlayer;
+
+    public Equipment(ZombiesPlayer player, int slot, D equipmentData) {
+        super(player.getPlayer(), slot);
 
         this.equipmentData = equipmentData;
-        setRepresentingItemStack(equipmentData.createItemStack(player, 0));
+        this.zombiesPlayer = player;
+        setRepresentingItemStack(equipmentData.createItemStack(player.getPlayer(), 0));
     }
 
 

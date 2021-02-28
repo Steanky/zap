@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -36,12 +37,15 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -206,8 +210,24 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final GameScoreboard gameScoreboard;
 
+    /**
+     * Indicate when the game start using System.currentTimeMillis()
+     * return -1 if the game hasn't start
+     */
+    @Getter
+    private long startTimeStamp = -1;
+
+    /**
+     * Indicate when the game end using System.currentTimeMillis()
+     * return -1 if the game hasn't end
+     */
+    @Getter
+    private long endTimeStamp = -1;
+
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
+
+    private BukkitTask gameEndTimeoutTask;
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
@@ -427,6 +447,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     public void startGame() {
         getPlayerMap().forEach((l,r) -> r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies started! You probably wanna change this!"));
+        startTimeStamp = System.currentTimeMillis();
         doRound();
         state = ZombiesArenaState.STARTED;
     }
@@ -456,6 +477,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
+            getPlayerMap().forEach((l,r) -> {
+                r.getPlayer().sendTitle(ChatColor.RED + " " + currentRoundProperty.getValue(this), "");
+                r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 0.5f);
+            });
         }
         else {
             //game just finished, do win condition
@@ -482,15 +507,30 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * Win code here
      */
     private void doVictory() {
-
+        state = ZombiesArenaState.ENDED;
+        endTimeStamp = System.currentTimeMillis();
+        var round = map.getCurrentRoundProperty().getValue(this);
+        getPlayerMap().forEach((l,r) -> {
+            r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
+            r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+        });
+        waitAndDispose(200);
     }
 
     /**
      * Loss code here
      */
     private void doLoss() {
-
+        state = ZombiesArenaState.ENDED;
+        endTimeStamp = System.currentTimeMillis();
+        var round = map.getCurrentRoundProperty().getValue(this);
+        getPlayerMap().forEach((l,r) -> {
+            r.getPlayer().sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
+            r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+        });
+        waitAndDispose(200);
     }
+
 
     /**
      * Attempts to break the given window.
@@ -554,7 +594,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                         ((LuckyChest) chests.get(random.nextInt(chests.size()))).toggle(true);
                         // TODO: set where the chest is
-
                         rolls = 0;
                     }
                 }

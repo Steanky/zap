@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.perk.PerkData;
@@ -69,14 +70,14 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, String mapName,
+    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesPlayer player, int slot, String mapName,
                                                                            String name) {
         return createEquipment(player, slot, (D) getEquipmentData(mapName, name));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, D equipmentData) {
+    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesPlayer player, int slot, D equipmentData) {
         EquipmentCreator.EquipmentMapping<D, L> equipmentMapping = (EquipmentCreator.EquipmentMapping<D, L>)
                 equipmentCreator.getEquipmentMappings().get(equipmentData.getEquipmentType());
 
