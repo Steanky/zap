@@ -11,6 +11,8 @@ import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.powerups.JacksonPowerUpDataManager;
+import io.github.zap.zombies.game.powerups.PowerUpDataManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -32,6 +34,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final EquipmentManager equipmentManager;
 
     @Getter
+    private final PowerUpDataManager powerUpDataManager;
+
+    @Getter
     private final ShopManager shopManager;
 
     @Getter
@@ -47,10 +52,11 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Set<String> markedForDeletion = new HashSet<>();
 
-    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, int arenaCapacity,
+    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, DataLoader powerUpLoader, int arenaCapacity,
                                int arenaTimeout) {
         super(NAME, hubLocation);
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
+        this.powerUpDataManager = new JacksonPowerUpDataManager(powerUpLoader);
         this.shopManager = new JacksonShopManager();
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
@@ -89,7 +95,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     Zombies.getInstance().getWorldLoader().loadWorld(mapData.getWorldName(), (world) -> {
                         ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                         managedArenas.put(arena.getId(), arena);
-                        arenaCreated.callEvent(arena);
+                        getArenaCreated().callEvent(arena);
                         if(arena.handleJoin(information.getJoinable().getPlayers())) {
                             onCompletion.accept(ImmutablePair.of(true, null));
                         }

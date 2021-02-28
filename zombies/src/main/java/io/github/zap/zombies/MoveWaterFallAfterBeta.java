@@ -22,7 +22,7 @@ public class MoveWaterFallAfterBeta implements Listener {
 
 
     public MoveWaterFallAfterBeta() {
-        ArenaApi.getInstance().getArenaMangers().forEach((l,r) -> r.arenaCreated.registerHandler(this::onArenaCreated));
+        ArenaApi.getInstance().getArenaMangers().forEach((l,r) -> r.getArenaCreated().registerHandler(this::onArenaCreated));
     }
 
 
@@ -35,7 +35,7 @@ public class MoveWaterFallAfterBeta implements Listener {
     private void onArenaDisposing(ManagingArena.ArenaEventArgs<?, ? extends ManagedPlayer<?, ?>> arenaEventArgs) {
         arenaEventArgs.getArena().getPlayerMap().forEach((l,r) -> {
             if(r.isInGame()) {
-                r.getPlayer().teleport(lobbyLocation);
+                r.getPlayer().teleport(r.getArena().getManager().getHubLocation());
             }
         });
     }
