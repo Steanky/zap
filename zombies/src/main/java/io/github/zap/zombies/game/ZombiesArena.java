@@ -99,17 +99,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             for(SpawnEntryData spawnEntryData : mobs) {
                 int amt = spawnEntryData.getMobCount();
 
-                for(SpawnpointData spawnpointData : spawnpoints) {
-                    if(spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
-                        spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
-                            entity.getEntity().setMetadata(Zombies.ARENA_METADATA_NAME, ZombiesArena.this);
-                            entity.getEntity().setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, spawnpointData);
-                        });
+                while(amt > 0) {
+                    int startAmt = amt;
+                    for(SpawnpointData spawnpointData : spawnpoints) {
+                        if(spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
+                            spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
+                                entity.getEntity().setMetadata(Zombies.ARENA_METADATA_NAME, ZombiesArena.this);
+                                entity.getEntity().setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, spawnpointData);
+                            });
 
-                        amt--;
+                            amt--;
+                        }
                     }
 
-                    if(amt == 0) {
+                    if(startAmt == amt) {
+                        Zombies.warning("Unable to find a valid spawnpoint for SpawnEntryData.");
                         break;
                     }
                 }
