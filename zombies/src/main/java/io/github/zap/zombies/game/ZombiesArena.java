@@ -161,7 +161,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @return A list of SpawnpointData objects that have been properly filtered.
          */
         private List<SpawnpointData> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
-            BoundingBox bounds = new BoundingBox().expand(0);
             return map.getRooms().stream()
                     .filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE || roomData.getOpenProperty()
                             .getValue(ZombiesArena.this))
@@ -310,6 +309,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
             player.setGameMode(GameMode.ADVENTURE);
             player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
+
+            player.setHealth(20);
+            player.setSaturation(20);
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
