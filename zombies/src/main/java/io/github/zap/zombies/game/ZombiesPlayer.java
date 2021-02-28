@@ -198,8 +198,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.KNOCKED;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
-            disableRepair();
-
             corpse = new Corpse(this);
 
             getPerks().getPerk(PerkType.SPEED).disable();

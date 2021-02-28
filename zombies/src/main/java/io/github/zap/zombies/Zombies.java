@@ -278,7 +278,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-            warning("Reflection-related exception when initializing pathfinding.");
+            warning("Reflection-related exception when initializing mechanics.");
         }
     }
 
