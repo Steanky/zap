@@ -75,17 +75,18 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
     @Override
     public void update() {
         var arena = gameScoreboard.getZombiesArena();
+        var cdt =  arena.getMap().getCountdownSeconds();
 
         tfPlayerCount.setValue("" + arena.getPlayerMap().size());
         switch (arena.getState()) {
             case PREGAME:
-                if(counter != 21) {
+                if(counter != cdt + 1) {
                     arena.getPlayerMap().forEach((l,r) -> {
                         r.getPlayer().sendMessage(ChatColor.YELLOW + "Not enough player to start the game, countdown canceled");
                         r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1, 1);
                     });
 
-                    counter = 21;
+                    counter = cdt + 1;
                 }
 
                 status.setValue("Waiting...");
@@ -94,7 +95,7 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
             case COUNTDOWN:
                 status.setValue("Starting in");
                 var lastDisplayCounter = (int) Math.ceil(counter);
-                counter = counter > 20 ? 20 : counter - gameScoreboard.getRefreshRate() / 20f;
+                counter = counter > cdt ? cdt : counter - gameScoreboard.getRefreshRate() / 20f;
                 var displayCounter = (int) Math.ceil(counter);
 
                 if(CD_MILESTONE.contains(displayCounter) && lastDisplayCounter != displayCounter)  {

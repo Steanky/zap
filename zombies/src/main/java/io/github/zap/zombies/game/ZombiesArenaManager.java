@@ -89,7 +89,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     Zombies.getInstance().getWorldLoader().loadWorld(mapData.getWorldName(), (world) -> {
                         ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                         managedArenas.put(arena.getId(), arena);
-
+                        arenaCreated.callEvent(arena);
                         if(arena.handleJoin(information.getJoinable().getPlayers())) {
                             onCompletion.accept(ImmutablePair.of(true, null));
                         }
