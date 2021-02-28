@@ -122,7 +122,6 @@ public final class Zombies extends JavaPlugin implements Listener {
             initDependencies();
             initPathfinding(MeleeAttack.class, BreakWindow.class);
             initMechanics(CobwebMechanic.class);
-            initMechanics();
             initPlayerDataManager();
             initLocalization();
             initWorldLoader();
