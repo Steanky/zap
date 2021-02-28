@@ -23,6 +23,8 @@ import io.github.zap.zombies.game.shop.ShopType;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
+import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
+import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDespawnEvent;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
@@ -260,9 +262,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
-        Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
-                EntityDeathEvent.class);
-        entityDeathEvent.registerHandler(this::onMobDeath);
+        Event<MythicMobDeathEvent> mythicMobDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
+                MythicMobDeathEvent.class);
+        Event<MythicMobDespawnEvent> mythicMobDespawnEvent = new ProxyEvent<>(Zombies.getInstance(), this,
+                MythicMobDespawnEvent.class);
+        mythicMobDeathEvent.registerHandler(this::onMobDeath);
+        mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
 
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
@@ -330,7 +335,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
 
             player.setHealth(20);
-            player.setSaturation(20);
+            player.setFoodLevel(20);
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
@@ -370,11 +375,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onMobDeath(EntityDeathEvent args) {
+    private void onMobDeath(MythicMobDeathEvent args) {
         if (mobs.remove(args.getEntity().getUniqueId()) && mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
             doRound();
-            Zombies.info("Round ended.");
         }
+    }
+
+    private void onMobDespawn(MythicMobDespawnEvent args) {
+        onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
     }
 
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {

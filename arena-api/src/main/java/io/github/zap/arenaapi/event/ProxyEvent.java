@@ -140,7 +140,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         try {
             list = (HandlerList)bukkitEventClass.getMethod("getHandlers").invoke(null);
         }
-        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException ignored) {
             ArenaApi.warning("Failed to construct ProxyEvent due to a reflection-related exception.");
             list = null;
             reflectionFailed = true;
