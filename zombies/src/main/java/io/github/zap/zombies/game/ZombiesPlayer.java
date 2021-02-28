@@ -245,8 +245,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             player.setFlying(false);
             player.setAllowFlight(false);
 
-            activateRepair();
-            activateRevive();
+            if (player.isSneaking()) {
+                activateRepair();
+                activateRevive();
+            }
         }
     }
 
