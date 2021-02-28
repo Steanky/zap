@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.Property;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
@@ -13,6 +14,7 @@ import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.Optional;
@@ -88,7 +90,7 @@ public class BreakWindow extends Pathfinder implements PathfindingGoal {
             }
         }
 
-        return !complete && arena.runAI();
+        return !complete && arena.runAI() && window != null;
     }
 
     @Override
@@ -109,17 +111,19 @@ public class BreakWindow extends Pathfinder implements PathfindingGoal {
         if(entity.getLocation().distanceSquared(destination) < 2) {
             complete = true;
 
-            if(entity.getUniqueId() == window.getAttackingEntityProperty().getValue(arena).getUniqueId()) {
+            Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
+
+            if(attackingEntity != null && entity.getUniqueId() == attackingEntity.getUniqueId()) {
                 window.getAttackingEntityProperty().setValue(arena, null);
             }
         }
 
-        ai().navigateToLocation(entity, destination, 64);
+        ai().navigateToLocation(entity, destination, 0);
     }
 
     @Override
     public boolean shouldEnd() {
-        return complete || !arena.runAI();
+        return complete || !arena.runAI() || window == null;
     }
 
     @Override

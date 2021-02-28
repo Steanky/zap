@@ -36,6 +36,7 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
     private ZombiesPlayer targetPlayer;
 
     private int attackTimer;
+    private int pathfindTimer;
 
     public MeleeAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
@@ -47,6 +48,12 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
         navigationProxy = Zombies.getInstance().getNmsProxy().getNavigationFor((Mob)entity.getBukkitEntity());
         nmsEntity = ((CraftCreature)entity.getBukkitEntity()).getHandle();
         nmsEntity.getAttributeMap().a(GenericAttributes.FOLLOW_RANGE).setValue(Integer.MAX_VALUE);
+
+        /*
+        randomize the rate at which this zombie recalculates its path, to make sure there are no massive lag spikes if
+        hundreds of zombies recalculate at once
+         */
+        pathfindTimer = nmsEntity.getRandom().nextInt(20);
     }
 
     private boolean loadMetadata() {
@@ -73,7 +80,10 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
             }
         }
 
-        targetPlayer = navigationProxy.findClosest(arena, ZombiesPlayer::isAlive, 2048);
+        if(targetPlayer == null) {
+            targetPlayer = navigationProxy.findClosest(arena, ZombiesPlayer::isAlive);
+        }
+
         return targetPlayer != null;
     }
 
@@ -85,17 +95,20 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
     @Override
     public void tick() {
         EntityLiving target = nmsEntity.getGoalTarget();
-        nmsEntity.getControllerLook().a(target, 30.0F, 30.0F);
 
-        ai().navigateToLocation(entity, BukkitAdapter.adapt(targetPlayer.getPlayer().getLocation()), 0);
+        if(++pathfindTimer == 20) {
+            nmsEntity.getControllerLook().a(target, 30.0F, 30.0F);
+            ai().navigateToLocation(entity, BukkitAdapter.adapt(targetPlayer.getPlayer().getLocation()), 0);
+            pathfindTimer = 0;
+        }
+
         this.attackTimer = Math.max(this.attackTimer - 1, 0);
-
         this.tryAttack(target, nmsEntity.h(target.locX(), target.locY(), target.locZ()));
     }
 
     @Override
     public boolean shouldEnd() {
-        return !targetPlayer.isAlive() || !arena.runAI();
+        return targetPlayer == null || !targetPlayer.isAlive() || !arena.runAI();
     }
 
     @Override

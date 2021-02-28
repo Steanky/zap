@@ -36,7 +36,7 @@ public class NavigationProxy_v1_16_R3 implements NavigationProxy {
         }
     }
 
-    public ZombiesPlayer findClosest(ZombiesArena arena, Predicate<ZombiesPlayer> filter, int range) {
+    public ZombiesPlayer findClosest(ZombiesArena arena, Predicate<ZombiesPlayer> filter) {
         Pair<Float, ZombiesPlayer> bestCandidate = ImmutablePair.of(Float.MAX_VALUE, null);
 
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
