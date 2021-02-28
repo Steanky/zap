@@ -54,6 +54,11 @@ public enum MessageKey {
 
     TEAM_MACHINE_PURCHASE("zombies.game.tm.purchase"),
 
+    CORPSE_LINE("zombies.game.corpse_line"),
+    DYING_MESSAGE("zombies.game.corpse.dying_message"),
+    REVIVING_MESSAGE("zombies.game.corpse.time_until_revive"),
+    CORPSE_TIME_REMAINING("zombies.game.corpse.time_remaining"),
+
     PLACEHOLDER("zombies.game.placeholder");
 
     @Getter
