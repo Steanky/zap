@@ -2,18 +2,21 @@ package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesArenaState;
-import io.github.zap.zombies.game.data.map.SpawnpointData;
-import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.proxy.NavigationProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
-import org.bukkit.Location;
-import org.bukkit.util.Vector;
+import net.minecraft.server.v1_16_R3.EntityCreature;
+import net.minecraft.server.v1_16_R3.EntityLiving;
+import net.minecraft.server.v1_16_R3.EnumHand;
+import net.minecraft.server.v1_16_R3.GenericAttributes;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftCreature;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 
 import java.util.Optional;
 
@@ -21,27 +24,29 @@ import java.util.Optional;
         name = "unboundedMeleeAttack"
 )
 public class MeleeAttack extends Pathfinder implements PathfindingGoal {
+    private final NavigationProxy navigationProxy;
+    private final EntityCreature nmsEntity;
+
     private boolean metadataLoaded;
 
-    private final int breakTicks;
-    private final double breakReachSquared;
-    private final int breakCount;
+    private final int attackTicks;
+    private final double attackReach;
 
     private ZombiesArena arena;
-    private WindowData window;
-    private AbstractLocation destination;
+    private ZombiesPlayer targetPlayer;
 
-    private int counter = 0;
-
-    private boolean complete = false;
+    private int attackTimer;
 
     public MeleeAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
         this.goalType = GoalType.MOVE_LOOK;
 
-        breakTicks = mlc.getInteger("breakTicks", 20);
-        breakReachSquared = mlc.getDouble("breakReachSquared", 4);
-        breakCount = mlc.getInteger("breakCount", 1);
+        attackTicks = mlc.getInteger("attackTicks", 20);
+        attackReach = mlc.getDouble("attackReach", 2.0);
+
+        navigationProxy = Zombies.getInstance().getNmsProxy().getNavigationFor((Mob)entity.getBukkitEntity());
+        nmsEntity = ((CraftCreature)entity.getBukkitEntity()).getHandle();
+        nmsEntity.getAttributeMap().a(GenericAttributes.FOLLOW_RANGE).setValue(Integer.MAX_VALUE);
     }
 
     private boolean loadMetadata() {
@@ -50,30 +55,10 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
 
         if(arenaOptional.isPresent() && spawnpointOptional.isPresent()) {
             arena = (ZombiesArena) arenaOptional.get();
-            SpawnpointData spawnpoint = (SpawnpointData) spawnpointOptional.get();
-
-            Vector target = spawnpoint.getTarget();
-
-            if(target != null) {
-                destination = BukkitAdapter.adapt(new Location(BukkitAdapter.adapt(entity.getWorld()), target.getX() + 0.5,
-                        target.getY(), target.getZ() + 0.5));
-
-                window = arena.getMap().windowAt(spawnpoint.getWindowFace());
-            }
-            else {
-                window = null;
-                destination = null;
-                complete = true;
-            }
-
             return true;
         }
         else {
             arena = null;
-            window = null;
-            destination = null;
-            complete = true;
-
             return false;
         }
     }
@@ -82,43 +67,57 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
     public boolean shouldStart() {
         if(!metadataLoaded) {
             metadataLoaded = loadMetadata();
-            return metadataLoaded;
+
+            if(!metadataLoaded) {
+                return false;
+            }
         }
 
-        return arena.getState() != ZombiesArenaState.STARTED;
+        targetPlayer = navigationProxy.findClosest(arena, ZombiesPlayer::isAlive, 2048);
+        return targetPlayer != null;
     }
 
     @Override
     public void start() {
-        ai().navigateToLocation(entity, destination, 64);
+        ai().setTarget((LivingEntity) entity.getBukkitEntity(), targetPlayer.getPlayer());
     }
 
     @Override
     public void tick() {
-        if(++counter == breakTicks) {
-            if(window.getCenter().distanceSquared(BukkitAdapter.adapt(entity.getLocation().toVector())) < breakReachSquared) {
-                arena.tryBreakWindow(BukkitAdapter.adapt(entity), window, breakCount);
-            }
+        EntityLiving target = nmsEntity.getGoalTarget();
+        nmsEntity.getControllerLook().a(target, 30.0F, 30.0F);
 
-            counter = 0;
-        }
+        ai().navigateToLocation(entity, BukkitAdapter.adapt(targetPlayer.getPlayer().getLocation()), 0);
+        this.attackTimer = Math.max(this.attackTimer - 1, 0);
 
-        if(entity.getLocation().distanceSquared(destination) < 2) {
-            complete = true;
-
-            if(entity.getUniqueId() == window.getAttackingEntityProperty().getValue(arena).getUniqueId()) {
-                window.getAttackingEntityProperty().setValue(arena, null);
-            }
-        }
-
-        ai().navigateToLocation(entity, destination, 64);
+        this.tryAttack(target, nmsEntity.h(target.locX(), target.locY(), target.locZ()));
     }
 
     @Override
     public boolean shouldEnd() {
-        return complete;
+        return !targetPlayer.isAlive() || !arena.runAI();
     }
 
     @Override
-    public void end() { }
+    public void end() {
+        if(targetPlayer != null && !targetPlayer.isAlive()) {
+            targetPlayer = null;
+        }
+    }
+
+    private void tryAttack(EntityLiving target, double distance) {
+        if (distance <= boundsWidth(target) && attackTimer <= 0) {
+            resetAttackTimer();
+            nmsEntity.swingHand(EnumHand.MAIN_HAND);
+            nmsEntity.attackEntity(target);
+        }
+    }
+
+    private double boundsWidth(EntityLiving target) {
+        return (nmsEntity.getWidth() * attackReach * nmsEntity.getWidth() * attackReach + target.getWidth());
+    }
+
+    private void resetAttackTimer() {
+        attackTimer = attackTicks;
+    }
 }

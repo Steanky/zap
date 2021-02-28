@@ -284,7 +284,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerJoin(PlayerListArgs args) {
         if(state == ZombiesArenaState.PREGAME && getOnlineCount() >= map.getMinimumCapacity()) {
             state = ZombiesArenaState.COUNTDOWN;
-            startCountdown();
         }
 
         for(Player player : args.getPlayers()) {
@@ -311,7 +310,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
                 if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
-                    stopCountdown();
                 }
 
                 removePlayers(args.getPlayers());
@@ -332,9 +330,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onMobDeath(EntityDeathEvent args) {
-        mobs.remove(args.getEntity().getUniqueId());
-        if (mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
+        if (mobs.remove(args.getEntity().getUniqueId()) && mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
             doRound();
+            Zombies.info("Round ended.");
         }
     }
 
@@ -430,6 +428,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void startGame() {
         getPlayerMap().forEach((l,r) -> r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies started! You probably wanna change this!"));
         doRound();
+        state = ZombiesArenaState.STARTED;
     }
 
     private void doRound() {
@@ -479,16 +478,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public void startCountdown() {
-        //do countdown timer; at the end, call doRound() to kick off the game
-        // TODO: do this at the end
-    }
-
-    public void stopCountdown() {
-        //reset countdown timer
-
-    }
-
     /**
      * Win code here
      */
@@ -525,6 +514,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
             }
         }
+    }
+
+    public boolean runAI() {
+        return state == ZombiesArenaState.STARTED;
     }
 
     /**

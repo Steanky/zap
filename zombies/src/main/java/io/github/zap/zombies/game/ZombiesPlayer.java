@@ -90,6 +90,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void quit() {
         super.quit();
 
+        state = ZombiesPlayerState.DEAD;
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         windowRepairTaskId = -1;
 
@@ -99,10 +100,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Override
     public void rejoin() {
         super.rejoin();
-
-        state = ZombiesPlayerState.DEAD;
         getPlayer().setGameMode(GameMode.SPECTATOR);
-
         perks.activateAll();
     }
 
