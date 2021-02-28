@@ -103,7 +103,7 @@ public class MapData {
     /**
      * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
      */
-    int windowRepairRadius = 3;
+    int windowRepairRadius = 6;
 
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
