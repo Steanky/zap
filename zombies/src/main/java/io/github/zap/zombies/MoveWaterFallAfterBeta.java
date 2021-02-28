@@ -22,7 +22,7 @@ public class MoveWaterFallAfterBeta implements Listener {
 
 
     public MoveWaterFallAfterBeta() {
-        ArenaApi.getInstance().getArenaMangers().forEach((l,r) -> r.arenaCreated.registerHandler(this::onArenaCreated));
+        ArenaApi.getInstance().getArenaMangers().forEach((l,r) -> r.getArenaCreated().registerHandler(this::onArenaCreated));
     }
 
 

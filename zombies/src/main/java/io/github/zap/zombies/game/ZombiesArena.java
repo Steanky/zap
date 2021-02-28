@@ -23,6 +23,8 @@ import io.github.zap.zombies.game.shop.ShopType;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
+import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
+import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDespawnEvent;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
@@ -37,10 +39,8 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
@@ -71,7 +71,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @param postSpawn The routine to call after the entity is spawned; used for applying metadata
          * @return Whether or not it spawned successfully
          */
-        boolean spawnMob(String mobName, Vector at, Consumer<Entity> postSpawn);
+        boolean spawnMob(String mobName, Vector at, Consumer<ActiveMob> postSpawn);
     }
 
     /**
@@ -101,23 +101,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             for(SpawnEntryData spawnEntryData : mobs) {
                 int amt = spawnEntryData.getMobCount();
 
-                for(SpawnpointData spawnpointData : spawnpoints) {
-                    if(spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
-                        spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
-                            Zombies zombies = Zombies.getInstance();
+                while(amt > 0) {
+                    int startAmt = amt;
+                    for(SpawnpointData spawnpointData : spawnpoints) {
+                        if(spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
+                            spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
+                                entity.getEntity().setMetadata(Zombies.ARENA_METADATA_NAME, ZombiesArena.this);
+                                entity.getEntity().setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, spawnpointData);
+                            });
 
-                            //set necessary metadata for the AI to function
-                            entity.setMetadata(Zombies.ARENA_METADATA_NAME, new FixedMetadataValue(zombies,
-                                    ZombiesArena.this));
-
-                            entity.setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, new FixedMetadataValue(zombies,
-                                    spawnpointData));
-                        });
-
-                        amt--;
+                            amt--;
+                        }
                     }
 
-                    if(amt == 0) {
+                    if(startAmt == amt) { //make sure we managed to spawn at least one mob
+                        Zombies.warning("Unable to find a valid spawnpoint for SpawnEntryData.");
                         break;
                     }
                 }
@@ -132,16 +130,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @return Whether or not the mob was successfully spawned
          */
         @Override
-        public boolean spawnMob(String mobName, Vector at, Consumer<Entity> postSpawn) {
+        public boolean spawnMob(String mobName, Vector at, Consumer<ActiveMob> postSpawn) {
             MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
 
             if(mob != null) {
-                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX(), at.getY(),
-                        at.getZ()), map.getMobSpawnLevel());
+                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX() + 0.5, at.getY(),
+                        at.getZ() + 0.5), map.getMobSpawnLevel());
 
                 if(activeMob != null) {
                     mobs.add(activeMob.getUniqueId());
-                    postSpawn.accept(activeMob.getEntity().getBukkitEntity());
+                    postSpawn.accept(activeMob);
                     return true;
                 }
                 else {
@@ -166,7 +164,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @return A list of SpawnpointData objects that have been properly filtered.
          */
         private List<SpawnpointData> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
-            BoundingBox bounds = new BoundingBox().expand(0);
             return map.getRooms().stream()
                     .filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE || roomData.getOpenProperty()
                             .getValue(ZombiesArena.this))
@@ -265,9 +262,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
-        Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
-                EntityDeathEvent.class);
-        entityDeathEvent.registerHandler(this::onMobDeath);
+        Event<MythicMobDeathEvent> mythicMobDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
+                MythicMobDeathEvent.class);
+        Event<MythicMobDespawnEvent> mythicMobDespawnEvent = new ProxyEvent<>(Zombies.getInstance(), this,
+                MythicMobDespawnEvent.class);
+        mythicMobDeathEvent.registerHandler(this::onMobDeath);
+        mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
 
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
@@ -333,6 +333,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
             player.setGameMode(GameMode.ADVENTURE);
             player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
+
+            player.setHealth(20);
+            player.setFoodLevel(20);
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
@@ -372,11 +375,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onMobDeath(EntityDeathEvent args) {
-        mobs.remove(args.getEntity().getUniqueId());
-        if (mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
+    private void onMobDeath(MythicMobDeathEvent args) {
+        if (mobs.remove(args.getEntity().getUniqueId()) && mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
             doRound();
         }
+    }
+
+    private void onMobDespawn(MythicMobDespawnEvent args) {
+        onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
     }
 
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
@@ -476,6 +482,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerMap().forEach((l,r) -> r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies started! You probably wanna change this!"));
         startTimeStamp = System.currentTimeMillis();
         doRound();
+        state = ZombiesArenaState.STARTED;
     }
 
     private void doRound() {
@@ -557,6 +564,34 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         waitAndDispose(200);
     }
 
+
+    /**
+     * Attempts to break the given window.
+     */
+    public void tryBreakWindow(Entity attacker, WindowData targetWindow, int by) {
+        targetWindow.getAttackingEntityProperty().setValue(this, attacker);
+
+        int previousIndex = targetWindow.getCurrentIndexProperty().getValue(this);
+        int blocksBroken = targetWindow.retractRepairState(this, by);
+
+        for(int i = previousIndex; i > previousIndex - blocksBroken; i--) { //break the blocks
+            WorldUtils.getBlockAt(world, targetWindow.getFaceVectors().get(i)).setType(Material.AIR);
+
+            Vector center = targetWindow.getCenter();
+            Location centerLocation = new Location(world, center.getX(), center.getY(), center.getZ());
+
+            if(i > 0) {
+                world.playSound(centerLocation, targetWindow.getBlockBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+            }
+            else {
+                world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+            }
+        }
+    }
+
+    public boolean runAI() {
+        return state == ZombiesArenaState.STARTED;
+    }
 
     /**
      * Loads shops; should be called just before the game begins

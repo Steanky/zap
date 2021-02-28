@@ -38,6 +38,11 @@ public class NewWindowSpawnpointForm extends CommandForm<WindowSelectionData> {
             return ValidationResult.of(false, "That index is out of bounds!", null);
         }
 
+        //noinspection SuspiciousMethodCalls
+        if(!previousData.getMap().getSpawnRules().containsKey(arguments[3])) {
+            return ValidationResult.of(false, "A spawnrule with that name does not exist!", null);
+        }
+
         return ValidationResult.of(true, null, new WindowSelectionData(previousData.getPlayer(),
                 previousData.getContext(), previousData.getSelection(), previousData.getMap(), previousData.getRoom(),
                 windows.get(index)));
