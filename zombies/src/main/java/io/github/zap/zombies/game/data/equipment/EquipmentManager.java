@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.equipment;
 
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import org.bukkit.entity.Player;
@@ -40,7 +41,7 @@ public interface EquipmentManager {
      * @param name The name key of the equipment
      * @return The new piece of equipment
      */
-    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, String mapName, String name);
+    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesPlayer player, int slot, String mapName, String name);
 
     /**
      * Creates a piece of equipment
@@ -51,7 +52,7 @@ public interface EquipmentManager {
      * @param <L> The type of the levels used for the equipment
      * @return The new piece of equipment
      */
-    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(Player player, int slot, D equipmentData);
+    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesPlayer player, int slot, D equipmentData);
 
     /**
      * Creates an equipment object group based on its equipment type

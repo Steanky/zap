@@ -169,7 +169,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                                 MessageKey.CHOOSE_SLOT.getKey());
                                     } else {
                                         hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
-                                                player,
+                                                zombiesPlayer,
                                                 slot,
                                                 equipmentData
                                         ));
