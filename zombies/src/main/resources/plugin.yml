@@ -2,7 +2,10 @@ name: Zombies
 version: ${project.version}
 main: io.github.zap.zombies.Zombies
 api-version: 1.16
-depend: [ ArenaApi, SlimeWorldManager, MythicMobs ]
+depend: [ ArenaApi, SlimeWorldManager ]
+loadbefore: [ MythicMobs ]
 commands:
-  zap_debug:
-    description: "ZAP debugging utility command."
+  zap:
+    description: "Generic command used by this plugin for various things."
+  mapeditor:
+    description: "Mapeditor command."

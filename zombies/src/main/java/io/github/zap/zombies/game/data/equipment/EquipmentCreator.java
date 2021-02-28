@@ -4,7 +4,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.Equipment;
 import lombok.Getter;
-import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;

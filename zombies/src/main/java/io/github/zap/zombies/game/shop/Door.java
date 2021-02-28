@@ -5,11 +5,11 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -17,7 +17,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,11 +32,18 @@ public class Door extends Shop<DoorData> {
         super(zombiesArena, shopData);
 
         World world = zombiesArena.getWorld();
+        LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
         for (DoorSide doorSide : getShopData().getDoorSides()) {
-            doorSideHologramMap.put(
-                    doorSide,
-                    new Hologram(doorSide.getHologramLocation().toLocation(world), 2)
+            Hologram hologram = new Hologram(
+                    localizationManager,
+                    doorSide.getHologramLocation().toLocation(world),
+                    2
             );
+            while (hologram.getHologramLines().size() < 2) {
+                hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            }
+
+            doorSideHologramMap.put(doorSide, hologram);
         }
     }
 
@@ -47,12 +53,24 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
+        for (Hologram hologram : doorSideHologramMap.values()) {
+            for (Player player : args.getPlayers()) {
+                hologram.renderToPlayer(player);
+            }
+        }
+
+        super.onPlayerJoin(args);
+    }
+
+    @Override
+    public void display() {
         if (!opened) {
             for (Map.Entry<DoorSide, Hologram> entry : doorSideHologramMap.entrySet()) {
                 Hologram hologram = entry.getValue();
-                hologram.renderTo(player);
 
+                // TODO: figure out how to write door names with localization api
+                /*
                 LocalizationManager localizationManager = getLocalizationManager();
                 StringBuilder stringBuilder = new StringBuilder(ChatColor.GREEN.toString());
                 List<String> opensTo = entry.getKey().getOpensTo();
@@ -73,8 +91,9 @@ public class Door extends Shop<DoorData> {
                         player,
                         1,
                         ChatColor.GOLD.toString() + entry.getKey().getCost() + " "
-                        + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
+                                + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
                 );
+                 */
             }
         }
     }
@@ -126,7 +145,7 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.DOOR.name();
+    public ShopType getShopType() {
+        return ShopType.DOOR;
     }
 }

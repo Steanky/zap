@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.map;
 
+import io.github.zap.zombies.Zombies;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -26,9 +27,33 @@ public class SpawnpointData {
     Vector target = new Vector();
 
     /**
-     * This represents all of the mobs that can be spawned here
+     * A vector corresponding to the location of the window to which this spawnpoint belongs. This will be ignored if
+     * the spawnpoint is not inside of a window.
      */
-    Set<MythicMob> whitelist = new HashSet<>();
+    Vector windowFace = new Vector();
 
-    public SpawnpointData() {}
+    /**
+     * Used to retrieve an object that defines the behavior of the spawnpoint (what mobs it can spawn, what mobs it
+     * can't spawn, etc)
+     */
+    String ruleName;
+
+    private SpawnpointData() {}
+
+    public boolean canSpawn(String mob, MapData map) {
+        SpawnRule rule = map.getSpawnRules().get(ruleName);
+
+        if(rule != null) {
+            if(rule.isBlacklist()) {
+                return !rule.getMobSet().contains(mob);
+            }
+            else {
+                return rule.getMobSet().contains(mob);
+            }
+        }
+        else {
+            Zombies.warning(String.format("SpawnRule %s does not exist. Allowing mob to spawn.", ruleName));
+            return true;
+        }
+    }
 }

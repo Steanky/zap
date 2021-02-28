@@ -18,7 +18,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 @MythicMechanic(
-        author = "NoVegetals",
+        author = "Steank",
         name = "cobweb",
         description = "Places a cobweb at the current AI target's location, as long as it has line of sight."
 )
@@ -60,9 +60,9 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
 
     private void placeCobweb(Block targetBlock) {
         BlockData save = targetBlock.getBlockData();
-        targetBlock.setType(Material.COBWEB);
+        targetBlock.setType(Material.COBWEB, false);
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () ->
-                targetBlock.setBlockData(save), decayTime);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> targetBlock.setBlockData(save),
+                decayTime);
     }
 }

@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.event;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -14,9 +15,9 @@ import java.util.function.Predicate;
 public class MappingEvent<T, U> extends Event<U> {
     public MappingEvent(Event<T> event, MappingPredicate<T, U> mapper) {
         event.registerHandler((args) -> {
-            ImmutablePair<Boolean, U> result = mapper.tryMap(args);
-            if(result.left) {
-                callEvent(result.right);
+            Pair<Boolean, U> result = mapper.tryMap(args);
+            if(result.getLeft()) {
+                callEvent(result.getRight());
             }
         });
     }

@@ -1,15 +1,13 @@
 package io.github.zap.arenaapi.game.arena;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -28,6 +26,13 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
 
     protected Collection<T> arenas = managedArenas.values();
 
+    @Getter
+    private final Event<Arena<T>> arenaCreated = new Event<>();
+
+    public Map<UUID, T> getManagedArenas () {
+        return Collections.unmodifiableMap(managedArenas);
+    }
+
     /**
      * Handle the specified JoinInformation. This method should create arenas as necessary to handle join requests.
      * This method may run fully or partially async, in which case it may return before the arena is created.
@@ -42,7 +47,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      *                     terms, why the JoinAttempt was rejected. It should only be non-null if the first part of
      *                     the pair is false.
      */
-    public abstract void handleJoin(JoinInformation joinAttempt, Consumer<ImmutablePair<Boolean, String>> onCompletion);
+    public abstract void handleJoin(JoinInformation joinAttempt, Consumer<Pair<Boolean, String>> onCompletion);
 
     /**
      * Whether or not this manager accepts players. Can be used to effectively "turn off" an ArenaManager.

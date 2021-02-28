@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
 import java.io.IOException;
 
 public class VectorDeserializer extends StdDeserializer<Vector> {
-    protected VectorDeserializer() {
+    public VectorDeserializer() {
         super(Vector.class);
     }
 

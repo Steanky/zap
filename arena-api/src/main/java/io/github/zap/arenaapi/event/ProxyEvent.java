@@ -51,8 +51,11 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         performance consequences
          */
         if(handlerCount() == 1 && !eventRegistered) {
-            plugin.getServer().getPluginManager().registerEvent(bukkitEventClass, this, priority,
-                    (listener, event) -> callEvent(bukkitEventClass.cast(event)), plugin, ignoreCancelled);
+            plugin.getServer().getPluginManager().registerEvent(bukkitEventClass, this, priority, (listener, event) -> {
+                if(bukkitEventClass.isAssignableFrom(event.getClass())) {
+                    callEvent(bukkitEventClass.cast(event));
+                }
+                }, plugin, ignoreCancelled);
 
             eventRegistered = true;
             addProxy(handlingInstance, this);
@@ -137,7 +140,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         try {
             list = (HandlerList)bukkitEventClass.getMethod("getHandlers").invoke(null);
         }
-        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException ignored) {
             ArenaApi.warning("Failed to construct ProxyEvent due to a reflection-related exception.");
             list = null;
             reflectionFailed = true;

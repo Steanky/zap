@@ -1,20 +1,39 @@
 package io.github.zap.arenaapi;
 
 import com.comphenix.protocol.ProtocolLib;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
+import io.github.zap.arenaapi.serialize.BoundingBoxDeserializer;
+import io.github.zap.arenaapi.serialize.BoundingBoxSerializer;
+import io.github.zap.arenaapi.serialize.VectorDeserializer;
+import io.github.zap.arenaapi.serialize.VectorSerializer;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -28,6 +47,12 @@ public final class ArenaApi extends JavaPlugin {
     @Getter
     private ProtocolLib protocolLib;
 
+    @Getter
+    private SimpleModule module;
+
+    @Getter
+    private ObjectMapper mapper;
+
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
     @Override
@@ -38,10 +63,11 @@ public final class ArenaApi extends JavaPlugin {
         try {
             initProxy();
             initDependencies();
+            initMapper();
         }
         catch(LoadFailureException exception)
         {
-            severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
+            severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, true);
             return;
@@ -53,9 +79,9 @@ public final class ArenaApi extends JavaPlugin {
 
 
     private void initProxy() throws LoadFailureException {
-        //noinspection SwitchStatementWithTooFewBranches
         switch (Bukkit.getBukkitVersion()) {
             case "1.16.4-R0.1-SNAPSHOT":
+            case "1.16.5-R0.1-SNAPSHOT":
                 nmsProxy = new NMSProxy_v1_16_R3();
                 break;
             default:
@@ -65,6 +91,25 @@ public final class ArenaApi extends JavaPlugin {
 
     private void initDependencies() throws LoadFailureException {
         protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB, true);
+    }
+
+    private void initMapper() {
+        module = new SimpleModule();
+
+        module.addSerializer(org.bukkit.util.Vector.class, new VectorSerializer());
+        module.addDeserializer(Vector.class, new VectorDeserializer());
+
+        module.addSerializer(BoundingBox.class, new BoundingBoxSerializer());
+        module.addDeserializer(BoundingBox.class, new BoundingBoxDeserializer());
+
+        mapper = new ObjectMapper();
+        mapper.registerModule(module);
+
+        mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE));
     }
 
     public void registerArenaManager(ArenaManager<?> manager) {
@@ -77,7 +122,11 @@ public final class ArenaApi extends JavaPlugin {
         return arenaManagers.get(name);
     }
 
-    public void handleJoin(JoinInformation information, Consumer<ImmutablePair<Boolean, String>> onCompletion) {
+    public Map<String, ArenaManager<?>> getArenaMangers() {
+        return Collections.unmodifiableMap(arenaManagers);
+    }
+
+    public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         String gameName = information.getGameName();
         ArenaManager<?> arenaManager = arenaManagers.get(gameName);
 
@@ -87,6 +136,16 @@ public final class ArenaApi extends JavaPlugin {
         else {
             warning(String.format("Invalid JoinInformation received: '%s' is not a game.", gameName));
         }
+    }
+
+    /**
+     * Adds a deserializer to the module
+     * @param type The type of the class to deserialize
+     * @param deserializer The deserializer itself
+     * @param <T> The type of the deserializer
+     */
+    public <T> void addDeserializer(Class<T> type, JsonDeserializer<? extends T> deserializer) {
+        module.addDeserializer(type, deserializer);
     }
 
     /*
@@ -115,6 +174,26 @@ public final class ArenaApi extends JavaPlugin {
             throw new LoadFailureException(String.format("Required plugin %s cannot be found.", pluginName));
         }
     }
+
+    public void sendPacketToPlayer(Plugin plugin, Player player, PacketContainer packetContainer) {
+        try {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packetContainer);
+        } catch (InvocationTargetException e) {
+            plugin.getLogger().log(
+                    Level.WARNING,
+                    String.format(
+                            "Error sending packet of type '%s' to player '%s'",
+                            packetContainer.getType().name(),
+                            player.getName()
+                    )
+            );
+        }
+    }
+
+    public void sendPacketToPlayer(Player player, PacketContainer packetContainer) {
+        sendPacketToPlayer(this, player, packetContainer);
+    }
+
 
     /**
      * Logs a message with this plugin, at the specified level.

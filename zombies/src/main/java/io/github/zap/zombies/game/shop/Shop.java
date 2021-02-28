@@ -16,13 +16,9 @@ import org.bukkit.event.Event;
  */
 @Getter
 public abstract class Shop<D extends ShopData> {
-
     private final LocalizationManager localizationManager;
-
     private final ZombiesArena zombiesArena;
-
     private final D shopData;
-
     private boolean powered = false;
 
     public Shop(ZombiesArena zombiesArena, D shopData) {
@@ -37,7 +33,7 @@ public abstract class Shop<D extends ShopData> {
      * Registers all events from the zombie arena that will be monitored by the shop
      */
     protected void registerArenaEvents() {
-        zombiesArena.getShopEvents().get(ShopType.POWER_SWITCH.name()).registerHandler(args -> {
+        zombiesArena.getShopEvents().get(ShopType.POWER_SWITCH).registerHandler(args -> {
             powered = true;
             display();
         });
@@ -75,7 +71,9 @@ public abstract class Shop<D extends ShopData> {
      * Displays the shop to a single player
      * @param player THe player to display the shop to
      */
-    protected abstract void displayTo(Player player);
+    protected void displayTo(Player player) {
+
+    }
 
     /**
      * Attempts to purchase an item for a player
@@ -86,8 +84,7 @@ public abstract class Shop<D extends ShopData> {
 
     /**
      * Gets the type of the shop
-     * @return A string representation of the type of the shop
+     * @return A representation of the type of the shop
      */
-    public abstract String getShopType();
-
+    public abstract ShopType getShopType();
 }

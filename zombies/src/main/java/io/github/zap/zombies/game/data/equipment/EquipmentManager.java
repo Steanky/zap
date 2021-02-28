@@ -67,5 +67,4 @@ public interface EquipmentManager {
      * @return The new equipment object group
      */
     EquipmentObjectGroup createEquipmentObjectGroup(String equipmentType, Player player, Set<Integer> slots);
-
 }

@@ -11,10 +11,9 @@ import io.github.zap.zombies.game.data.map.shop.GunShopData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.World;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -46,17 +45,22 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     public void display() {
         if (item == null) {
             World world = getZombiesArena().getWorld();
-            BlockFace blockFace = getShopData().getBlockFace();
-            Location location = getShopData().getBlockLocation().add(blockFace.getDirection()).toLocation(world);
 
             ItemStack itemStack = new ItemStack(
                     getZombiesArena().getEquipmentManager().getEquipmentData(
                             getZombiesArena().getMap().getMapNameKey(), getShopData().getGunName()
                     ).getMaterial()
             );
-            item = world.dropItem(location.clone().add(0.5, 0.48125, 0.5), itemStack);
+            item = world.dropItem(
+                    getShopData().getRootLocation().toLocation(world).add(0.5, 0.48125, 0.5),
+                    itemStack
+            );
             item.setGravity(false);
             item.setVelocity(new Vector(0, 0, 0));
+        }
+        Hologram hologram = getHologram();
+        while (hologram.getHologramLines().size() < 2) {
+            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
         }
 
         super.display();
@@ -68,40 +72,53 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
 
+        Pair<String, String[]> firstHologramLine = null;
+        Pair<String, String[]> secondHologramLine = null;
+
         LocalizationManager localizationManager = getLocalizationManager();
-        String firstHologramLine = ChatColor.GREEN.toString();
-        String secondHologramLine = (gunShopData.isRequiresPower() && !isPowered())
-                ? ChatColor.GRAY.toString() + ChatColor.ITALIC.toString()
-                + localizationManager.getLocalizedMessageFor(player, MessageKey.REQUIRES_POWER.getKey())
-                : ChatColor.GOLD.toString() + gunShopData.getRefillCost() + " "
-                + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey());
+        if (gunShopData.isRequiresPower() && !isPowered()) {
+            secondHologramLine = ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{});
+        } else {
+            if (zombiesPlayer != null) {
+                GunObjectGroup gunObjectGroup
+                        = (GunObjectGroup) zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+                if (gunObjectGroup != null) {
+                    for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
+                        if (hotbarObject instanceof Gun<?, ?>) {
+                            Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
-        if (zombiesPlayer != null) {
-            GunObjectGroup gunObjectGroup
-                    = (GunObjectGroup) zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
-            if (gunObjectGroup != null) {
-                for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof Gun<?, ?>) {
-                        Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
-
-                        if (gun.getEquipmentData().getName().equals(gunName)) {
-                            firstHologramLine += gunName + " "
-                                    + localizationManager.getLocalizedMessageFor(player, MessageKey.AMMO.getKey());
-                            break;
+                            if (gun.getEquipmentData().getName().equals(gunName)) {
+                                firstHologramLine = ImmutablePair.of(
+                                        MessageKey.REFILL_AMMO.getKey(),
+                                        new String[]{ localizationManager.getLocalizedMessageFor(player, gunName) }
+                                        );
+                                secondHologramLine = ImmutablePair.of(
+                                        MessageKey.COST.getKey(),
+                                        new String[]{ String.valueOf(gunShopData.getRefillCost()) }
+                                        );
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
 
-        if (firstHologramLine.equals(ChatColor.GREEN.toString())) {
-            firstHologramLine += gunName;
+        if (firstHologramLine == null) {
+            firstHologramLine = ImmutablePair.of(
+                    MessageKey.BUY_GUN.getKey(),
+                    new String[]{ localizationManager.getLocalizedMessageFor(player, gunName) }
+                    );
+            secondHologramLine = ImmutablePair.of(
+                    MessageKey.COST.getKey(),
+                    new String[]{ String.valueOf(gunShopData.getCost()) }
+            );
         }
 
         Hologram hologram = getHologram();
 
-        hologram.setLineFor(player, 0, firstHologramLine);
-        hologram.setLineFor(player, 1, secondHologramLine);
+        hologram.updateLineForPlayer(player, 0, firstHologramLine);
+        hologram.updateLineForPlayer(player, 1, secondHologramLine);
     }
 
     @Override
@@ -131,8 +148,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public String getShopType() {
-        return ShopType.GUN_SHOP.name();
+    public ShopType getShopType() {
+        return ShopType.GUN_SHOP;
     }
 
     private Boolean tryRefill(ZombiesPlayer zombiesPlayer, GunObjectGroup gunObjectGroup) {

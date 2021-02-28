@@ -6,7 +6,6 @@ import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
-import org.bukkit.entity.Player;
 
 /**
  * Represents a weapon that uses melee combat

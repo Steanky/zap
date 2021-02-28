@@ -1,6 +1,5 @@
 package io.github.zap.zombies.command;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
@@ -8,50 +7,40 @@ import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
-import io.github.regularcommands.validator.ValidationStep;
+import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.ZombiesArenaManager;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-
-public class JoinZombiesGameForm extends CommandForm {
+public class JoinZombiesGameForm extends CommandForm<Joinable> {
     private static final Parameter[] parameters = new Parameter[] {
-            new Parameter("^(join)$", "join"),
-            new Parameter("^([a-zA-Z0-9_]+)$", "[arena-name]"),
-            new Parameter("^([a-zA-Z0-9_]+)$", "[map-name]")
+            new Parameter("join"),
+            new Parameter("^([a-zA-Z0-9_ ]+)$", "[arena-name]"),
+            new Parameter("^([a-zA-Z0-9_ ]+)$", "[map-name]")
     };
 
-    private static final CommandValidator validator;
+    private static final CommandValidator<Joinable, ?> validator = new CommandValidator<>((context, arguments, previousData) -> {
+        String managerName = (String)arguments[1];
+        String mapName = (String)arguments[2];
 
-    static {
-        validator = new CommandValidator((context, arguments) -> {
-            String managerName = (String)arguments[1];
-            String mapName = (String)arguments[2];
+        ArenaManager<?> arenaManager = ArenaApi.getInstance().getArenaManager(managerName);
 
-            ArenaManager<?> arenaManager = ArenaApi.getInstance().getArenaManager(managerName);
+        if(arenaManager == null) {
+            return ValidationResult.of(false, String.format("An ArenaManager named '%s' does not exist.",
+                    managerName), null);
+        }
 
-            if(arenaManager == null) {
-                return new ImmutablePair<>(false, String.format("An ArenaManager named '%s' does not exist.",
-                        managerName));
-            }
+        if(!arenaManager.hasMap(mapName)) {
+            return ValidationResult.of(false, String.format("A map named '%s' does not exist for " +
+                    "ArenaManager '%s'", mapName, managerName), null);
+        }
 
-            if(!arenaManager.hasMap(mapName)) {
-                return new ImmutablePair<>(false, String.format("A map named '%s' does not exist for " +
-                        "ArenaManager '%s'", mapName, managerName));
-            }
-
-            return new ImmutablePair<>(true, null);
-        });
-
-        validator.chain(Validators.PLAYER_EXECUTOR);
-    }
+        return ValidationResult.of(true, null, new SimpleJoinable(Lists.newArrayList(previousData)));
+    }, Validators.PLAYER_EXECUTOR);
 
     public JoinZombiesGameForm() {
         super("Joins a Zombies game.", Permissions.OPERATOR, parameters);
@@ -63,23 +52,23 @@ public class JoinZombiesGameForm extends CommandForm {
     }
 
     @Override
-    public CommandValidator getValidator(Context context, Object[] arguments) {
+    public CommandValidator<Joinable, ?> getValidator(Context context, Object[] arguments) {
         return validator;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments) {
+    public String execute(Context context, Object[] arguments, Joinable data) {
         Player player = (Player) context.getSender();
         ArenaApi api = Zombies.getInstance().getArenaApi();
-        JoinInformation testInformation = new JoinInformation(new SimpleJoinable(Lists.newArrayList(player)),
-                (String)arguments[1], (String)arguments[2], null, null);
+        JoinInformation testInformation = new JoinInformation(data, (String)arguments[1], (String)arguments[2],
+                null, null);
 
         api.handleJoin(testInformation, (pair) -> {
-            if(!pair.left) {
-                player.sendMessage(pair.right);
+            if(!pair.getLeft()) {
+                player.sendMessage(pair.getRight());
             }
         });
 
-        return ">green{Attemping to join a game...}";
+        return ">green{Attempting to join a game...}";
     }
 }

@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.event.Event;
@@ -11,12 +12,15 @@ import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -60,6 +64,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         S managedPlayer;
     }
 
+    @Value
+    public static class ArenaEventArgs<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> {
+        ManagingArena<T, S> arena;
+    }
+
     /**
      * Wraps proxy events in an additional validation layer; they will only fire for online managed players.
      * Additionally, the event arguments will always consist of an EventProxyArguments instance containing the
@@ -73,10 +82,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 S managedPlayer = playerMap.get(event.getPlayer().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
-                    return new ImmutablePair<>(true, new ProxyArgs<>(event, managedPlayer));
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
                 }
 
-                return new ImmutablePair<>(false, null);
+                return ImmutablePair.of(false, null);
             });
         }
     }
@@ -113,9 +122,9 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * This class is necessary because PlayerDeathEvent does not extent PlayerEvent for reasons that escape me. Yet
      * another anime betrayal.
      */
-    private class AdaptedPlayerDeathEvent extends MappingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
-        public AdaptedPlayerDeathEvent() {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
+    private class AdaptedEntityEvent<U extends EntityEvent> extends MappingEvent<U, ProxyArgs<U>> {
+        public AdaptedEntityEvent(Class<U> eventClass) {
+            super(new ProxyEvent<>(plugin, ManagingArena.this, eventClass,
                     EventPriority.NORMAL, true), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
@@ -135,10 +144,15 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     private int onlineCount;
 
-    //events
+    //custom events that aren't just wrapping Bukkit ones somehow
     private final Event<PlayerListArgs> playerJoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
+    /**
+     * Called right before the arena get disposed
+     */
+    private final Event<ArenaEventArgs<T,S>> onDisposing = new Event<>();
+
 
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
     //more will be added as needed
@@ -151,6 +165,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerItemConsumeEvent>> playerItemConsumeEvent;
     private final Event<ProxyArgs<PlayerAttemptPickupItemEvent>> playerAttemptPickupItemEvent;
     private final Event<ProxyArgs<PlayerArmorStandManipulateEvent>> playerArmorStandManipulateEvent;
+    private final Event<ProxyArgs<FoodLevelChangeEvent>> playerFoodLevelChangeEvent;
 
     private final Event<ManagedInventoryEventArgs<InventoryOpenEvent>> inventoryOpenEvent;
     private final Event<ManagedInventoryEventArgs<InventoryClickEvent>> inventoryClickEvent;
@@ -163,12 +178,13 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
         playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
-        playerDeathEvent = new AdaptedPlayerDeathEvent();
+        playerDeathEvent = new AdaptedEntityEvent<>(PlayerDeathEvent.class);
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
         playerItemConsumeEvent = new AdaptedPlayerEvent<>(PlayerItemConsumeEvent.class);
         playerAttemptPickupItemEvent = new AdaptedPlayerEvent<>(PlayerAttemptPickupItemEvent.class);
         playerArmorStandManipulateEvent = new AdaptedPlayerEvent<>(PlayerArmorStandManipulateEvent.class);
+        playerFoodLevelChangeEvent = new AdaptedEntityEvent<>(FoodLevelChangeEvent.class);
 
         inventoryOpenEvent = new AdaptedInventoryEvent<>(InventoryOpenEvent.class);
         inventoryClickEvent = new AdaptedInventoryEvent<>(InventoryClickEvent.class);
@@ -177,7 +193,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     /**
-     * Basically just makes it so that players exiting the server are treated as if they simply quit the game.
+     * Basically just makes it so that players exiting the server while in an arena are treated as if they simply quit
+     * the game.
      * @param args The PlayerQuitEvent and associated ManagedPlayer instance
      */
     private void onPlayerQuit(ProxyArgs<PlayerQuitEvent> args) {
@@ -282,11 +299,22 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     @Override
     public void dispose() {
+        onDisposing.callEvent(new ArenaEventArgs<>(this));
+
         for(S player : playerMap.values()) { //close players
             player.dispose();
         }
 
         ProxyEvent.closeAll(this); //closes proxy events
+    }
+
+    protected void waitAndDispose(int ticks) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                dispose();
+            }
+        }.runTaskLater(ArenaApi.getInstance(), ticks);
     }
 
     /**

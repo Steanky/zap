@@ -12,9 +12,12 @@
     <!--global properties that should be applied to all module poms-->
     <properties>
         <java.version>11</java.version>
-        <swm.version>217988c</swm.version>
+        <lombok.version>1.18.4</lombok.version>
+        <paper.version>1.16.5-R0.1-SNAPSHOT</paper.version>
+        <commons-lang3.version>3.11</commons-lang3.version>
+        <protocollib.version>4.6.0</protocollib.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <pluginsDirectory>../run/server-1/plugins</pluginsDirectory>
+        <serverDir>run/server-1</serverDir>
     </properties>
 
     <modules>

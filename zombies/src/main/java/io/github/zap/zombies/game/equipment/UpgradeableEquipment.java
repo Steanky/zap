@@ -4,7 +4,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.Getter;
-import org.bukkit.entity.Player;
 
 /**
  * A piece of equipment that can be upgraded

@@ -1,13 +1,14 @@
 package io.github.zap.zombies.command;
 
 import io.github.regularcommands.commands.RegularCommand;
+import io.github.zap.zombies.command.mapeditor.form.*;
 
 /**
- * Command that should be used for generic testing of things during development. Add forms to this as necessary.
+ * General command used by this plugin.
  */
-public class DebugCommand extends RegularCommand {
-    public DebugCommand() {
-        super("zap_debug");
+public class ZombiesCommand extends RegularCommand {
+    public ZombiesCommand() {
+        super("zap");
         addForm(new MapLoaderProfilerForm());
         addForm(new ImportWorldForm());
         addForm(new JoinZombiesGameForm());

@@ -1,9 +1,9 @@
 package io.github.zap.arenaapi;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Generic utility class that enables different named accessor objects to access their own unique copies of a single
@@ -18,16 +18,41 @@ public class Property<T> {
 
     private final Map<UUID, T> mappings = new HashMap<>();
 
-    @Getter
-    private final T defaultValue;
+    private T defaultValue;
+
+    private Supplier<T> defaultValueConstructor = () -> null;
+
+    private boolean defaultExists;
+
+    public Property(T defaultValue) {
+        this.defaultValue = defaultValue;
+        defaultExists = true;
+    }
+
+    public Property(Supplier<T> defaultValueConstructor) {
+        Objects.requireNonNull(defaultValueConstructor, "defaultValueConstructor cannot be null");
+
+        this.defaultValueConstructor = defaultValueConstructor;
+        defaultExists = false;
+    }
+
+    public T getDefaultValue() {
+        if(!defaultExists) {
+            defaultValue = defaultValueConstructor.get();
+            defaultExists = true;
+        }
+
+        return defaultValue;
+    }
 
     /**
-     * Gets the value that is stored for the given Named. Returns the default value if it is not in the internal map.
+     * Gets the value that is stored for the given Named. Returns the default value if it is not in the internal map,
+     * and creates a new mapping for this unique containing the default value.
      * @param unique The Named object attempting to access this instance, which should have a unique name
      * @return The value stored for the provided Named object, or the default value used by this instance
      */
-    public T get(Unique unique) {
-        return mappings.getOrDefault(unique.getId(), defaultValue);
+    public T getValue(Unique unique) {
+        return mappings.computeIfAbsent(unique.getId(), uuid -> getDefaultValue());
     }
 
     /**
@@ -35,7 +60,7 @@ public class Property<T> {
      * @param unique The enacting Named instance
      * @param value The value to store for Named
      */
-    public void set(Unique unique, T value) {
+    public void setValue(Unique unique, T value) {
         UUID id = unique.getId();
         mappings.put(id, value);
 

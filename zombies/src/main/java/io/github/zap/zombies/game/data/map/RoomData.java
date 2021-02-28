@@ -8,7 +8,9 @@ import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Defines a room.
@@ -53,5 +55,10 @@ public class RoomData {
      */
     transient final Property<Boolean> openProperty = new Property<>(false);
 
-    public RoomData() {}
+    private RoomData() {}
+
+    public RoomData(String name) {
+        this.name = name;
+        this.roomNameKey = "room." + name + ".name";
+    }
 }
