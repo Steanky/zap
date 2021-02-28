@@ -309,7 +309,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerJoin(PlayerListArgs args) {
         if(state == ZombiesArenaState.PREGAME && getOnlineCount() >= map.getMinimumCapacity()) {
             state = ZombiesArenaState.COUNTDOWN;
-            startCountdown();
         }
 
         for(Player player : args.getPlayers()) {
@@ -336,7 +335,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
                 if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
-                    stopCountdown();
                 }
 
                 removePlayers(args.getPlayers());
@@ -507,16 +505,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Bukkit.getScheduler().cancelTask(timeoutTaskId);
             timeoutTaskId = -1;
         }
-    }
-
-    public void startCountdown() {
-        //do countdown timer; at the end, call doRound() to kick off the game
-        // TODO: do this at the end
-    }
-
-    public void stopCountdown() {
-        //reset countdown timer
-
     }
 
     /**
