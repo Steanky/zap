@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.ArenaApi;
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -8,6 +9,7 @@ import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
@@ -36,7 +38,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
@@ -44,7 +45,6 @@ import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -212,6 +212,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
+    private final PacketContainer createTeamPacketContainer =
+            new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+
+    @Getter
+    private final String corpseTeamName = UUID.randomUUID().toString().substring(0, 16);
+
+    @Getter
+    private final Set<Corpse> corpses = new HashSet<>();
+
+    @Getter
+    private final Set<Corpse> availableCorpses = new HashSet<>();
+
     @Getter
     private final GameScoreboard gameScoreboard;
 
@@ -268,6 +280,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
         getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
         getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
+
+        createTeamPacketContainer.getStrings().write(0, UUID.randomUUID().toString().substring(0, 16));
+        createTeamPacketContainer.getIntegers().write(0, 0);
+        createTeamPacketContainer.getStrings()
+                .write(1, "never")
+                .write(2, "never");
     }
 
     @Override
@@ -418,10 +436,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
         if(event.isSneaking()) {
-            managedPlayer.activateRepair();
+            if (managedPlayer.isAlive()) {
+                managedPlayer.activateRepair();
+                managedPlayer.activateRevive();
+            }
         }
         else {
             managedPlayer.disableRepair();
+            managedPlayer.disableRevive();
         }
     }
 

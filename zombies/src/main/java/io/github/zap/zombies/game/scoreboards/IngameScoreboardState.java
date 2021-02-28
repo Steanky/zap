@@ -13,10 +13,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.Criterias;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,6 +81,10 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
             // Kills objective
             var objKills = bukkitScoreboard.registerNewObjective("objKills", "dummy", "Zombie Kills");
             objKills.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+
+            Team corpseTeam = bukkitScoreboard.registerNewTeam(gameScoreboard.getZombiesArena().getCorpseTeamName());
+            corpseTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+            corpseTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
 
             // Add their in game scoreboard for every player still in the game
             if(player.getValue().isInGame())

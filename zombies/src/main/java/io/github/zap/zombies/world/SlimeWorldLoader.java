@@ -7,8 +7,8 @@ import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.api.exceptions.WorldInUseException;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
-import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.plugin.SWMPlugin;
+import com.grinderwolf.swm.plugin.config.ConfigManager;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.Zombies;
 import org.bukkit.Bukkit;
@@ -52,7 +52,7 @@ public class SlimeWorldLoader implements WorldLoader {
 
                     try {
                         preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
-                                new SlimePropertyMap()));
+                                ConfigManager.getWorldConfig().getWorlds().get(worldName).toPropertyMap()));
                     }
                     catch(IOException | CorruptedWorldException | WorldInUseException | NewerFormatException |
                             UnknownWorldException e) {

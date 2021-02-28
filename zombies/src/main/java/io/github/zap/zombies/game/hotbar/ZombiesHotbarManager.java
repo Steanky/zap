@@ -12,6 +12,8 @@ public class ZombiesHotbarManager extends HotbarManager {
 
     public final static String KNOCKED_DOWN_PROFILE_NAME = "Knocked";
 
+    public final static String DEAD_PROFILE_NAME = "Dead";
+
     public ZombiesHotbarManager(Player player) {
         super(player);
     }

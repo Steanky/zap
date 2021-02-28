@@ -25,9 +25,11 @@ public class ZombiesPerks implements Disposable {
                 map.getSpeedReapplyInterval()), resetOnQuit, map.getSpeedMaxLevel(), map.getSpeedDuration(),
                 map.getSpeedAmplifier()));
         perks.put(PerkType.QUICK_FIRE, new QuickFire(player, map.getQuickFireMaxLevel(), resetOnQuit));
-        perks.put(PerkType.EXTRA_HEALTH, new ExtraHealth(player, map.getExtraHealthMaxLevel(), map.getExtraHealthHpPerLevel(), resetOnQuit));
+        perks.put(PerkType.EXTRA_HEALTH, new ExtraHealth(player, map.getExtraHealthMaxLevel(),
+                map.getExtraHealthHpPerLevel(), resetOnQuit));
         perks.put(PerkType.EXTRA_WEAPON, new ExtraWeapon(player, map.getExtraHealthMaxLevel(), resetOnQuit));
-        perks.put(PerkType.FAST_REVIVE, new FastRevive(player, map.getFastReviveMaxLevel(), resetOnQuit));
+        perks.put(PerkType.FAST_REVIVE, new FastRevive(player, map.getFastReviveMaxLevel(), resetOnQuit,
+                map.getDefaultReviveTime(), map.getTickReductionPerLevel()));
     }
 
     /**
