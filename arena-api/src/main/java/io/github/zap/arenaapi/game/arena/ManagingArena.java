@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.event.Event;
@@ -19,6 +20,7 @@ import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -60,6 +62,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
          * PlayerDeathEvent).
          */
         S managedPlayer;
+    }
+
+    @Value
+    public static class ArenaEventArgs<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> {
+        ManagingArena<T, S> arena;
     }
 
     /**
@@ -141,6 +148,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<PlayerListArgs> playerJoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
+    /**
+     * Called right before the arena get disposed
+     */
+    private final Event<ArenaEventArgs<T,S>> onDisposing = new Event<>();
+
 
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
     //more will be added as needed
@@ -287,11 +299,22 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     @Override
     public void dispose() {
+        onDisposing.callEvent(new ArenaEventArgs<>(this));
+
         for(S player : playerMap.values()) { //close players
             player.dispose();
         }
 
         ProxyEvent.closeAll(this); //closes proxy events
+    }
+
+    protected void waitAndDispose(int ticks) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                dispose();
+            }
+        }.runTaskLater(ArenaApi.getInstance(), ticks);
     }
 
     /**

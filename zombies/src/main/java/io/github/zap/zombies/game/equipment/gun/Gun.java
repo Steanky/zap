@@ -94,7 +94,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         if (currentClipAmmo > 0) {
             // Animate xp bar
             new BukkitRunnable() {
-                private final float fireRate = getEquipmentData().getLevels().get(getLevel()).getFireRate() * getZombiesPlayer().getFireRateMultiplier();
+                private final float fireRate = (float) (getEquipmentData().getLevels().get(getLevel()).getFireRate() * getZombiesPlayer().getFireRateMultiplier());
                 private final float goal = fireRate * 20;
                 private final float stepVal = 1 / (fireRate * 20);
 

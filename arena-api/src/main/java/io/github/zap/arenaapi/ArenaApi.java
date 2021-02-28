@@ -28,8 +28,10 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -116,6 +118,10 @@ public final class ArenaApi extends JavaPlugin {
 
     public ArenaManager<?> getArenaManager(String name) {
         return arenaManagers.get(name);
+    }
+
+    public Map<String, ArenaManager<?>> getArenaMangers() {
+        return Collections.unmodifiableMap(arenaManagers);
     }
 
     public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {

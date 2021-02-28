@@ -1,15 +1,13 @@
 package io.github.zap.arenaapi.game.arena;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -27,6 +25,12 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
     protected Map<UUID, T> managedArenas = new HashMap<>();
 
     protected Collection<T> arenas = managedArenas.values();
+
+    public Event<Arena<T>> arenaCreated = new Event<>();
+
+    public Map<UUID, T> getManagedArenas () {
+        return Collections.unmodifiableMap(managedArenas);
+    }
 
     /**
      * Handle the specified JoinInformation. This method should create arenas as necessary to handle join requests.
