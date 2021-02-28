@@ -163,7 +163,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Puts the player into a reviving state
      */
     public void activateRevive() {
-        if (reviveTaskId == - 1) {
+        if (reviveTaskId == -1) {
             MapData map = arena.getMap();
             reviveTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                     Zombies.getInstance(),
@@ -201,6 +201,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             player.setInvisible(true);
             player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
                     true, false, false));
+
+            disableRepair();
+            disableRevive();
         }
     }
 
@@ -241,6 +244,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             player.setInvisible(false);
             player.setFlying(false);
             player.setAllowFlight(false);
+
+            activateRepair();
+            activateRevive();
         }
     }
 

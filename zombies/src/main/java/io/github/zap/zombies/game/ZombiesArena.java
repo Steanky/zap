@@ -2,7 +2,6 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -39,7 +38,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
@@ -47,7 +45,6 @@ import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -439,12 +436,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
         if(event.isSneaking()) {
-            managedPlayer.activateRepair();
-            managedPlayer.activateRevive();
+            if (managedPlayer.isAlive()) {
+                managedPlayer.activateRepair();
+                managedPlayer.activateRevive();
+            }
         }
         else {
             managedPlayer.disableRepair();
-            managedPlayer.disableRepair();
+            managedPlayer.disableRevive();
         }
     }
 
