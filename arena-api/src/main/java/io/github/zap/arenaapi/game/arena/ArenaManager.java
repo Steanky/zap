@@ -26,7 +26,8 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
 
     protected Collection<T> arenas = managedArenas.values();
 
-    public Event<Arena<T>> arenaCreated = new Event<>();
+    @Getter
+    private final Event<Arena<T>> arenaCreated = new Event<>();
 
     public Map<UUID, T> getManagedArenas () {
         return Collections.unmodifiableMap(managedArenas);
