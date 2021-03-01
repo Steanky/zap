@@ -56,6 +56,9 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
                 if(bukkitEventClass.isAssignableFrom(event.getClass())) {
                     callEvent(bukkitEventClass.cast(event));
                 }
+                else {
+                    ArenaApi.warning("!bukkitEventClass.isAssignableFrom(event.getClass())");
+                }
                 }, plugin, ignoreCancelled);
 
             eventRegistered = true;
@@ -92,8 +95,8 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         List<ProxyEvent<?>> proxyEvents = proxies.get(id);
 
         if(proxyEvents != null) {
-            for(ProxyEvent<?> event : proxyEvents) {
-                event.dispose();
+            for(int i = proxyEvents.size() - 1; i > -1; i--) {
+                proxyEvents.get(i).dispose();
             }
 
             proxies.remove(id);
@@ -136,14 +139,13 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
     }
 
     private void getHandlerList() {
-        HandlerList list;
+        HandlerList list = null;
 
         try {
             list = (HandlerList)bukkitEventClass.getMethod("getHandlerList").invoke(null);
         }
         catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException ignored) {
             ArenaApi.warning("Failed to reflect getHandlersList due to a reflection-related exception.");
-            list = null;
             reflectionFailed = true;
         }
 
