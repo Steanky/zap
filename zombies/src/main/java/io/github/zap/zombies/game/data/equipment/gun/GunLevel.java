@@ -26,6 +26,10 @@ public class GunLevel  {
 
     private float reloadRate;
 
+    int goldPerShot;
+
+    int goldPerHeadshot;
+
     protected GunLevel() {
 
     }

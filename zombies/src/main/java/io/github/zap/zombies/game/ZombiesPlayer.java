@@ -271,6 +271,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     /**
+     * Increments the player's kill counter
+     */
+    public void incrementKills() {
+        kills++;
+    }
+
+    /**
      * Tries to find and repair a window.
      */
     private void checkForWindow() {

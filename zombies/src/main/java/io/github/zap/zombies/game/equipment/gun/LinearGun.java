@@ -22,6 +22,7 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
 
         new LinearBeam(
                 getZombiesArena().getMap(),
+                getZombiesPlayer(),
                 getPlayer().getEyeLocation(),
                 linearGunData.getParticle(),
                 currentLevel

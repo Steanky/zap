@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
@@ -19,15 +20,17 @@ public class LinearBeam extends BasicBeam { // TODO: figuring out particle data
     private final int particleCount;
 
 
-    public LinearBeam(MapData mapData, Location root, Particle particle, LinearGunLevel level, int particleCount) {
-        super(mapData, root, level);
+    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, Particle particle,
+                      LinearGunLevel level, int particleCount) {
+        super(mapData, zombiesPlayer, root, level);
 
         this.particle = particle;
         this.particleCount = particleCount;
     }
 
-    public LinearBeam(MapData mapData, Location root, Particle particle, LinearGunLevel level) {
-        this(mapData, root, particle, level, DEFAULT_PARTICLE_COUNT);
+    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, Particle particle,
+                      LinearGunLevel level) {
+        this(mapData, zombiesPlayer, root, particle, level, DEFAULT_PARTICLE_COUNT);
     }
 
     /**

@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.Location;
@@ -24,16 +25,17 @@ public class ZapperBeam extends LinearBeam {
 
     private final double maxChainDistance;
 
-    public ZapperBeam(MapData mapData, Location root, Particle particle, ZapperGunLevel zapperGunLevel,
-                      int particleCount) {
-        super(mapData, root, particle, zapperGunLevel, particleCount);
+    public ZapperBeam(MapData mapData, ZombiesPlayer zombiesPlayer,
+                      Location root, Particle particle, ZapperGunLevel zapperGunLevel, int particleCount) {
+        super(mapData, zombiesPlayer, root, particle, zapperGunLevel, particleCount);
 
         this.maxChainedEntities = zapperGunLevel.getMaxChainedEntities();
         this.maxChainDistance = zapperGunLevel.getMaxChainDistance();
     }
 
-    public ZapperBeam(MapData mapData, Location root, Particle particle, ZapperGunLevel zapperGunLevel) {
-        this(mapData, root, particle, zapperGunLevel, DEFAULT_PARTICLE_COUNT);
+    public ZapperBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, Particle particle,
+                      ZapperGunLevel zapperGunLevel) {
+        this(mapData, zombiesPlayer, root, particle, zapperGunLevel, DEFAULT_PARTICLE_COUNT);
     }
 
     @Override
@@ -71,12 +73,19 @@ public class ZapperBeam extends LinearBeam {
         if (mob != null) {
             if (determineIfHeadshot(rayTraceResult, mob)) {
                 mob.setHealth(mob.getHealth() - getDamage());
+                getZombiesPlayer().addCoins(getGoldPerHeadshot());
             } else {
                 mob.damage(getDamage());
+                getZombiesPlayer().addCoins(getGoldPerShot());
             }
+
             mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));
 
             hitMobs.add(mob);
+
+            if (mob.getHealth() <= 0) {
+                getZombiesPlayer().incrementKills();
+            }
         }
     }
 }

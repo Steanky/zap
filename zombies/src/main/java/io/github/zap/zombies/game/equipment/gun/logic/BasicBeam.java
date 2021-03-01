@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
 import com.google.common.collect.Sets;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class BasicBeam {
             Sets.newHashSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
 
     private final MapData mapData;
+    private final ZombiesPlayer zombiesPlayer;
     private final World world;
     private final Vector root;
     private final Vector directionVector;
@@ -36,10 +38,13 @@ public class BasicBeam {
     private final int range;
     private final double damage;
     private final double knockbackFactor;
+    private final int goldPerShot;
+    private final int goldPerHeadshot;
 
 
-    public BasicBeam(MapData mapData, Location root, LinearGunLevel level) {
+    public BasicBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, LinearGunLevel level) {
         this.mapData = mapData;
+        this.zombiesPlayer = zombiesPlayer;
         this.world = root.getWorld();
         this.root = root.toVector();
         this.directionVector = root.getDirection();
@@ -50,6 +55,8 @@ public class BasicBeam {
         this.range = Math.min(120, level.getRange());
         this.damage = level.getDamage();
         this.knockbackFactor = level.getKnockbackFactor();
+        this.goldPerShot = level.getGoldPerShot();
+        this.goldPerHeadshot = level.getGoldPerHeadshot();
     }
 
     /**
@@ -221,10 +228,17 @@ public class BasicBeam {
         if (mob != null) {
             if (determineIfHeadshot(rayTraceResult, mob)) {
                 mob.setHealth(mob.getHealth() - damage);
+                zombiesPlayer.addCoins(goldPerHeadshot);
             } else {
                 mob.damage(damage);
+                zombiesPlayer.addCoins(goldPerShot);
             }
+
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
+
+            if (mob.getHealth() <= 0) {
+                zombiesPlayer.incrementKills();
+            }
         }
     }
 
