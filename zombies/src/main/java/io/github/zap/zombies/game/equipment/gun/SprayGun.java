@@ -38,8 +38,8 @@ public class SprayGun extends Gun<SprayGunData, SprayGunLevel> {
             new LinearBeam(
                     getZombiesArena().getMap(),
                     getZombiesPlayer(),
-                    currentLevel,
                     eyeLocationCopy,
+                    currentLevel,
                     sprayGunData.getParticle(),
                     sprayGunData.getParticleData()
             ).send();

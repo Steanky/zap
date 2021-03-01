@@ -40,7 +40,8 @@ public class JacksonEquipmentManager implements EquipmentManager {
     private final FieldTypeDeserializer<EquipmentData<?>> equipmentDataDeserializer
             = new FieldTypeDeserializer<>("type");
 
-    private final FieldTypeDeserializer<ParticleDataWrapper<?>> particleDataWrapperDeserializer;
+    private final FieldTypeDeserializer<ParticleDataWrapper<?>> particleDataWrapperDeserializer
+            = new FieldTypeDeserializer<>("type");
 
     private final EquipmentCreator equipmentCreator = new EquipmentCreator();
 
@@ -61,7 +62,6 @@ public class JacksonEquipmentManager implements EquipmentManager {
         addEquipmentType(EquipmentType.ZAPPER.name(), ZapperGunData.class, ZapperGun::new);
 
 
-        particleDataWrapperDeserializer = new FieldTypeDeserializer<>("type");
         particleDataWrapperDeserializer.getMappings().put(
                 ParticleDataWrapper.DUST_DATA_NAME,
                 ParticleDataWrapper.DustParticleDataWrapper.class
