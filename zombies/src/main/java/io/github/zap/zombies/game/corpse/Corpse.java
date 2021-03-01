@@ -72,7 +72,7 @@ public class Corpse {
         hologram.addLine("----------------------------------");
         hologram.addLine(ChatColor.RED + "help this noob");
 
-        hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
+        hologram.addLine(String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
         hologram.addLine("----------------------------------");
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
