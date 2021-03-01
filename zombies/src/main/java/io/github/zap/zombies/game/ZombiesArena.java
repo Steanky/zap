@@ -36,6 +36,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
@@ -84,13 +85,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         @Override
         public void spawnWave(WaveData wave) {
             spawnMobInternal(wave.getSpawnEntries(), wave.getMethod(), wave.getSlaSquared(), wave.isRandomizeSpawnpoints())
-                .forEach(x -> x.setMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), wave)));
+                .forEach(x -> x.getEntity().setMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), wave)));
 
         }
 
-        private List<Entity> spawnMobInternal(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
+        private List<ActiveMob> spawnMobInternal(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
             List<SpawnpointData> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
-            List<Entity> spawnedEntites = new ArrayList<>();
+            List<ActiveMob> spawnedEntites = new ArrayList<>();
 
             if(spawnpoints.size() == 0) {
                 Zombies.warning("There are no available spawnpoints for this mob set. This likely indicates an error " +
@@ -112,10 +113,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                             spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
                                 entity.getEntity().setMetadata(Zombies.ARENA_METADATA_NAME, ZombiesArena.this);
                                 entity.getEntity().setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, spawnpointData);
-
-                            entity.setMetadata(Zombies.SPAWNINFO_ENTRY_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnEntryData));
-
-                            spawnedEntites.add(entity);
+                                entity.getEntity().setMetadata(Zombies.SPAWNINFO_ENTRY_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnEntryData));
+                                spawnedEntites.add(entity);
                         });
 
                             amt--;
@@ -243,7 +242,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final GameScoreboard gameScoreboard;
 
     @Getter
-    private final Event<EntityDeathEvent> entityDeathEvent;
+    private final Event<MythicMobDeathEvent> mythicMobDeathEvent;
 
     /**
      * Indicate when the game start using System.currentTimeMillis()
@@ -284,7 +283,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
-        Event<MythicMobDeathEvent> mythicMobDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
+        mythicMobDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
                 MythicMobDeathEvent.class);
         Event<MythicMobDespawnEvent> mythicMobDespawnEvent = new ProxyEvent<>(Zombies.getInstance(), this,
                 MythicMobDespawnEvent.class);

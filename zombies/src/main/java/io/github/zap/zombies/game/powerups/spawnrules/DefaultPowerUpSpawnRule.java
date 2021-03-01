@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WaveData;
+import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.event.entity.EntityDeathEvent;
 
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpawnRuleData> implements Disposable {
     public DefaultPowerUpSpawnRule(String spawnTargetName, DefaultPowerUpSpawnRuleData data, ZombiesArena arena) {
         super(spawnTargetName, data, arena);
-        getArena().getEntityDeathEvent().registerHandler(this::onMobDeath);
+        getArena().getMythicMobDeathEvent().registerHandler(this::onMobDeath);
     }
 
     private boolean isRound;
@@ -24,7 +25,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
     private int roundDeathCount;
     private Random random = new Random();
 
-    private void onMobDeath(EntityDeathEvent e) {
+    private void onMobDeath(MythicMobDeathEvent e) {
         var patterns = getData().getPattern();
         var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena());
         if(patterns.contains(currentRound)) {
@@ -61,6 +62,6 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
     @Override
     public void dispose() {
-        getArena().getEntityDeathEvent().removeHandler(this::onMobDeath);
+        getArena().getMythicMobDeathEvent().removeHandler(this::onMobDeath);
     }
 }
