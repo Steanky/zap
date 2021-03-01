@@ -29,13 +29,12 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
@@ -272,6 +271,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
+        getPlayerDamageEvent().registerHandler(this::onPlayerDamage);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
@@ -386,6 +386,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onMobDespawn(MythicMobDespawnEvent args) {
         onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
+    }
+
+    private void onPlayerDamage(ProxyArgs<EntityDamageEvent> args) {
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+        if (!managedPlayer.isAlive()) {
+            args.getEvent().setCancelled(true);
+        }
     }
 
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {

@@ -207,7 +207,7 @@ public class Hologram {
     }
 
     /**
-     * Creates and renders the hologram for a plyer
+     * Creates and renders the hologram for a player
      * @param player The player to render the hologram to
      */
     public void renderToPlayer(Player player) {
