@@ -56,9 +56,6 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
                 if(bukkitEventClass.isAssignableFrom(event.getClass())) {
                     callEvent(bukkitEventClass.cast(event));
                 }
-                else {
-                    ArenaApi.warning("!bukkitEventClass.isAssignableFrom(event.getClass())");
-                }
                 }, plugin, ignoreCancelled);
 
             eventRegistered = true;
