@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.powerups;
 
-import io.github.zap.zombies.game.ZombiesArena;
 import lombok.Value;
 import org.bukkit.Material;
 
@@ -8,7 +7,6 @@ import org.bukkit.Material;
 public class PowerUpData {
     String type;
     String name;
-    SpawnRulesData spawnRulesData;
     String powerUpType;
 
     String displayName;

@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -13,6 +12,7 @@ import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.LuckyChest;
 import io.github.zap.zombies.game.shop.Shop;
@@ -25,8 +25,6 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -38,7 +36,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
@@ -46,7 +43,6 @@ import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -204,6 +200,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final EquipmentManager equipmentManager;
 
     @Getter
+    private final PowerUpManager powerUpManager;
+
+    @Getter
     private final ShopManager shopManager;
 
     @Getter
@@ -229,6 +228,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private final GameScoreboard gameScoreboard;
+
+    @Getter
+    private final Event<EntityDeathEvent> entityDeathEvent;
 
     /**
      * Indicate when the game start using System.currentTimeMillis()
@@ -262,13 +264,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();
+        this.powerUpManager = manager.getPowerUpManager();
         this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
-        Event<EntityDeathEvent> entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
+        entityDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
                 EntityDeathEvent.class);
         entityDeathEvent.registerHandler(this::onMobDeath);
 

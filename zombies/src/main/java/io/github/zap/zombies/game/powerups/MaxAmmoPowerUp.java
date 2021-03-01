@@ -4,7 +4,7 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 
-@PowerUpType(getName = "MaxAmmo")
+@PowerUpType(getName = "Max Ammo")
 public class MaxAmmoPowerUp extends PowerUp {
     public MaxAmmoPowerUp(PowerUpData data, ZombiesArena arena) {
         super(data, arena);

@@ -1,4 +1,6 @@
-package io.github.zap.zombies.game.powerups;
+package io.github.zap.zombies.game.powerups.managers;
+
+import io.github.zap.zombies.game.powerups.PowerUpData;
 
 public interface PowerUpDataTypeLinker {
     String getName();

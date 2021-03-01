@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.powerups;
+package io.github.zap.zombies.game.powerups.managers;
 
 import lombok.Value;
 

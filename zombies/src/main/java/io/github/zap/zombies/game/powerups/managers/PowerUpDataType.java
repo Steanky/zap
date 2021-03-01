@@ -1,5 +1,8 @@
-package io.github.zap.zombies.game.powerups;
+package io.github.zap.zombies.game.powerups.managers;
 
+import io.github.zap.zombies.game.powerups.PowerUpData;
+import io.github.zap.zombies.game.powerups.managers.PowerUpDataTypeLinker;
+import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
 import lombok.Getter;
 
 public enum PowerUpDataType implements PowerUpDataTypeLinker {

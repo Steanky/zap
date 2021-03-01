@@ -29,9 +29,9 @@ public abstract class PowerUp {
         removePowerUpItem();
         asItem = createArmourStand(location);
         //noinspection ConstantConditions
-        asItem.getEquipment().setHelmet(new ItemStack(data.itemRepresentation), true);
+        asItem.getEquipment().setHelmet(new ItemStack(data.getItemRepresentation()), true);
         asName = createArmourStand(location.add(0, 1.25, 0));
-        asName.setCustomName(data.displayName);
+        asName.setCustomName(data.getDisplayName());
         asName.setCustomNameVisible(true);
     }
 
