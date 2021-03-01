@@ -183,7 +183,7 @@ public class Corpse {
 
         sendPacketToPlayer(addCorpseToTeamPacket, player);
 
-        sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
+        //sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
