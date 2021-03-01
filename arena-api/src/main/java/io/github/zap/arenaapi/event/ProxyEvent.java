@@ -29,6 +29,17 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
 
     private static final Map<UUID, List<ProxyEvent<?>>> proxies = new HashMap<>();
 
+    /**
+     * Constructs a new ProxyEvent. This event wraps a Bukkit event. Instances of ProxyEvent must be properly disposed
+     * of via a call to dispose() or by removing all of their handlers. This will cause the event to be de-registered
+     * from Bukkit.
+     * @param plugin The plugin to register the Bukkit event under
+     * @param handlingInstance The object responsible for instantiating this ProxyEvent (used for cleanup)
+     * @param bukkitEventClass The Bukkit event we're wrapping
+     * @param priority The EventPriority to use for this proxy
+     * @param ignoreCancelled Whether or not we ignore cancelled events. If set to true, cancelled events will not
+     *                        cause this ProxyEvent to fire. If set to true, it will fire regardless.
+     */
     public ProxyEvent(Plugin plugin, Unique handlingInstance, Class<T> bukkitEventClass, EventPriority priority,
                       boolean ignoreCancelled) {
         this.handlingInstance = handlingInstance;
@@ -38,6 +49,12 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         this.ignoreCancelled = ignoreCancelled;
     }
 
+    /**
+     * Constructs a new ProxyEvent with EventPriority.NORMAL and ignoring cancelled events.
+     * @param plugin The plugin to register the Bukkit event under
+     * @param handlingInstance The object responsible for instantiating this ProxyEvent (used for cleanup)
+     * @param bukkitEventClass The Bukkit event we're wrapping
+     */
     public ProxyEvent(Plugin plugin, Unique handlingInstance, Class<T> bukkitEventClass) {
         this(plugin, handlingInstance, bukkitEventClass, EventPriority.NORMAL, true);
     }
