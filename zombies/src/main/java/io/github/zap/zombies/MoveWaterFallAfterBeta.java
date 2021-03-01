@@ -1,6 +1,7 @@
 package io.github.zap.zombies;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.game.PlayerState;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
@@ -12,6 +13,8 @@ import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.function.Function;
 
@@ -19,7 +22,6 @@ public class MoveWaterFallAfterBeta implements Listener {
     @Getter
     @Setter
     private Location lobbyLocation;
-
 
     public MoveWaterFallAfterBeta() {
         ArenaApi.getInstance().getArenaMangers().forEach((l,r) -> r.getArenaCreated().registerHandler(this::onArenaCreated));
