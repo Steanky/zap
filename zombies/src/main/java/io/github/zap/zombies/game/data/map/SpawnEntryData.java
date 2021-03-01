@@ -9,9 +9,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SpawnEntryData {
-    String mobName;
+    String mobName = "default";
 
-    int mobCount;
+    int mobCount = 0;
 
-    public SpawnEntryData() {}
+    private SpawnEntryData() {}
 }

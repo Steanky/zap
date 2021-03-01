@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
@@ -72,7 +71,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         if(!information.getJoinable().validate()) {
-            onCompletion.accept(ImmutablePair.of(false, MessageKey.OFFLINE_ARENA_REJECTION.getKey()));
+            onCompletion.accept(ImmutablePair.of(false, "Someone is offline and therefore unable to join!"));
             return;
         }
 
@@ -103,7 +102,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                         }
                         else {
                             Zombies.warning(String.format("Newly created arena rejected join request '%s'.", information));
-                            onCompletion.accept(ImmutablePair.of(false, MessageKey.NEW_ARENA_REJECTION.getKey()));
+                            onCompletion.accept(ImmutablePair.of(false, "Tried to make a new arena, but it couldn't accept all of the players!"));
                         }
                     });
 
@@ -125,7 +124,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     onCompletion.accept(ImmutablePair.of(true, null));
                 }
                 else {
-                    onCompletion.accept(ImmutablePair.of(false, MessageKey.GENERIC_ARENA_REJECTION.getKey()));
+                    onCompletion.accept(ImmutablePair.of(false, "The arena rejected the join request."));
                 }
 
                 return;
@@ -135,7 +134,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             }
         }
 
-        onCompletion.accept(ImmutablePair.of(false, MessageKey.UNKNOWN_ARENA_REJECTION.getKey()));
+        onCompletion.accept(ImmutablePair.of(false, "An unknown error occurred."));
     }
 
     @Override

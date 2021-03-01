@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.Unique;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.InvocationTargetException;
@@ -51,8 +52,11 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         performance consequences
          */
         if(handlerCount() == 1 && !eventRegistered) {
-            plugin.getServer().getPluginManager().registerEvent(bukkitEventClass, this, priority,
-                    (listener, event) -> callEvent(bukkitEventClass.cast(event)), plugin, ignoreCancelled);
+            plugin.getServer().getPluginManager().registerEvent(bukkitEventClass, this, priority, (listener, event) -> {
+                if(bukkitEventClass.isAssignableFrom(event.getClass())) {
+                    callEvent(bukkitEventClass.cast(event));
+                }
+                }, plugin, ignoreCancelled);
 
             eventRegistered = true;
             addProxy(handlingInstance, this);
@@ -88,8 +92,8 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         List<ProxyEvent<?>> proxyEvents = proxies.get(id);
 
         if(proxyEvents != null) {
-            for(ProxyEvent<?> event : proxyEvents) {
-                event.dispose();
+            for(int i = proxyEvents.size() - 1; i > -1; i--) {
+                proxyEvents.get(i).dispose();
             }
 
             proxies.remove(id);
@@ -132,14 +136,13 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
     }
 
     private void getHandlerList() {
-        HandlerList list;
+        HandlerList list = null;
 
         try {
-            list = (HandlerList)bukkitEventClass.getMethod("getHandlers").invoke(null);
+            list = (HandlerList)bukkitEventClass.getMethod("getHandlerList").invoke(null);
         }
-        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
-            ArenaApi.warning("Failed to construct ProxyEvent due to a reflection-related exception.");
-            list = null;
+        catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException ignored) {
+            ArenaApi.warning("Failed to reflect getHandlersList due to a reflection-related exception.");
             reflectionFailed = true;
         }
 

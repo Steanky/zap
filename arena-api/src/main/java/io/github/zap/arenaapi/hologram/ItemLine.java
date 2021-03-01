@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.hologram;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,8 +15,8 @@ import org.bukkit.inventory.ItemStack;
  */
 public class ItemLine extends HologramLine<Material> {
 
-    public ItemLine(LocalizationManager localizationManager, Location location) {
-        super(localizationManager, location);
+    public ItemLine(Location location) {
+        super(location);
     }
 
     @Override

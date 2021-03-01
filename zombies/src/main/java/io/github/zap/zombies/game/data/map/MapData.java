@@ -103,12 +103,7 @@ public class MapData {
     /**
      * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
      */
-    int windowRepairRadius = 3;
-
-    /**
-     * The initial delay (in Minecraft server ticks) before the window will be first repaired, after the player crouches
-     */
-    int initialRepairDelay = 20;
+    int windowRepairRadius = 6;
 
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
@@ -119,6 +114,17 @@ public class MapData {
      * The base rate at which mobs break through windows, in server ticks
      */
     int windowBreakTicks = 40;
+
+    /**
+     * The time it takes, in Minecraft server ticks, for a corpse to die and for players to no longer be able to revive
+     * the corpse
+     */
+    int corpseDeathTime;
+
+    /**
+     * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
+     */
+    int reviveRadius = 3;
 
     /**
      * The MythicMobs mob level that mobs will spawn at
@@ -192,6 +198,16 @@ public class MapData {
      * The maximum level of fast revive
      */
     int fastReviveMaxLevel = 1;
+
+    /**
+     * The default number of ticks it takes for a player to be revived
+     */
+    int defaultReviveTime;
+
+    /**
+     * The amount of ticks subtracted from the revive time per each level
+     */
+    int tickReductionPerLevel = 10;
 
     /**
      * Number of rolls before a chest moves to a new location

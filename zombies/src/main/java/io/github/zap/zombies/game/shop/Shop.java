@@ -1,8 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
@@ -16,13 +14,12 @@ import org.bukkit.event.Event;
  */
 @Getter
 public abstract class Shop<D extends ShopData> {
-    private final LocalizationManager localizationManager;
+
     private final ZombiesArena zombiesArena;
     private final D shopData;
     private boolean powered = false;
 
     public Shop(ZombiesArena zombiesArena, D shopData) {
-        this.localizationManager = Zombies.getInstance().getLocalizationManager();
         this.zombiesArena = zombiesArena;
         this.shopData = shopData;
 

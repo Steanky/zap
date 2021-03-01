@@ -4,12 +4,14 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.arenaapi.util.VectorUtils;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -54,32 +56,44 @@ public class WindowData {
     Vector base = new Vector();
 
     /**
-     * The center of the window's face, used for distance checking. This value is calculated once and cached.
+     * The sound that is played when a single block from the window breaks
      */
-    Vector center = new Vector();
+    Sound blockBreakSound = Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR;
 
     /**
-     * The volume of the window's face. This is calculated once and cached.
+     * The sound that plays when the window is entirely broken
      */
-    int volume = -1;
+    Sound windowBreakSound = Sound.BLOCK_ANVIL_DESTROY;
+
+    /**
+     * The sound that plays when a single block is repaired
+     */
+    Sound blockRepairSound = Sound.BLOCK_WOOD_PLACE;
+
+    /**
+     * The sound that plays when the entire window has been repaired
+     */
+    Sound windowRepairSound = Sound.BLOCK_ANVIL_PLACE;
 
     /**
      * Arena specific state: the current index at which the window is being repaired or broken. This points to the index
      * of the current repaired block; thus, if the window is fully broken, it will == -1
+     *
+     * The default value is calculated as soon as it is needed
      */
-    transient final Property<Integer> currentIndexProperty = new Property<>(getVolume() - 1);
+    transient final Property<Integer> currentIndexProperty = new Property<>(() -> getVolume() - 1);
 
     /**
      * Arena specific state: the player who is currently repairing the window
      */
-    transient final Property<ZombiesPlayer> repairingPlayerProperty = new Property<>(null);
+    transient final Property<ZombiesPlayer> repairingPlayerProperty = new Property<>((ZombiesPlayer) null);
 
     /**
      * Arena specific state: the entity that is currently attacking the window
      */
-    transient final Property<Entity> attackingEntityProperty = new Property<>(null);
+    transient final Property<Entity> attackingEntityProperty = new Property<>((Entity) null);
 
-    private WindowData() {}
+    private WindowData() { }
 
     public WindowData(World from, BoundingBox faceBounds) {
         this.faceBounds = faceBounds;
@@ -135,8 +149,10 @@ public class WindowData {
         int max = getVolume() - 1;
 
         if(currentIndex < max) {
-            int repaired = Math.min(currentIndex + by, max);
-            currentIndexProperty.setValue(accessor, repaired);
+            int newValue = Math.min(currentIndex + by, max);
+            int repaired = newValue - currentIndex;
+
+            currentIndexProperty.setValue(accessor, newValue);
             return repaired;
         }
 
@@ -149,14 +165,17 @@ public class WindowData {
      * @param by The amount to reduce the repair index by
      * @return true if any number of breaks occurred, false otherwise
      */
-    public boolean retractRepairState(Unique accessor, int by) {
+    public int retractRepairState(Unique accessor, int by) {
         int currentIndex = currentIndexProperty.getValue(accessor);
 
         if(currentIndex > -1) {
-            currentIndexProperty.setValue(accessor, Math.max(currentIndex - by, -1));
-            return true;
+            int newValue = Math.max(-1, currentIndex - by);
+            int broken = currentIndex - newValue;
+
+            currentIndexProperty.setValue(accessor, newValue);
+            return broken;
         }
 
-        return false;
+        return 0;
     }
 }

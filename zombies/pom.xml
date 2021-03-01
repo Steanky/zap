@@ -13,7 +13,6 @@
     <properties>
         <swm.version>217988c</swm.version>
         <mythicmobs.version>4.11.0-BETA</mythicmobs.version>
-        <protocollib.version>4.6.0</protocollib.version>
     </properties>
 
     <artifactId>zombies</artifactId>
@@ -73,7 +72,7 @@
                                     <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
                                     <artifactId>slimeworldmanager-classmodifier</artifactId>
                                     <version>${swm.version}</version>
-                                    <outputDirectory>${pluginsDirectory}/../</outputDirectory>
+                                    <outputDirectory>${serverDir}</outputDirectory>
                                     <destFileName>slimeworldmanager-classmodifier.jar</destFileName>
                                 </artifactItem>
 
@@ -84,7 +83,7 @@
                                 </artifactItem>
                             </artifactItems>
 
-                            <outputDirectory>${pluginsDirectory}</outputDirectory>
+                            <outputDirectory>${serverDir}/plugins/</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -124,7 +123,7 @@
                             </filters>
 
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputFile>${pluginsDirectory}\${project.name}-${project.version}.jar</outputFile>
+                            <outputFile>${serverDir}/plugins/${project.name}-${project.version}.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -136,13 +135,13 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>${pluginsDirectory}</directory>
+                            <directory>${serverDir}/plugins</directory>
                             <includes>
                                 <include>*.jar</include>
                             </includes>
                         </fileset>
                         <fileset>
-                            <directory>${pluginsDirectory}/../</directory>
+                            <directory>${serverDir}</directory>
                             <includes>
                                 <include>slimeworldmanager-classmodifier.jar</include>
                             </includes>
@@ -197,27 +196,28 @@
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper</artifactId>
-            <version>1.16.5-R0.1-SNAPSHOT</version>
+            <version>${paper.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.11</version>
+            <version>${commons-lang3.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.github.Steanky</groupId>
             <artifactId>RegularCommands</artifactId>
+            <!--suppress MavenModelInspection -->
             <version>master-SNAPSHOT</version>
         </dependency>
 

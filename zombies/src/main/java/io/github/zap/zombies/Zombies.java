@@ -18,31 +18,39 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.mob.goal.MeleeAttack;
+import io.github.zap.zombies.game.mob.goal.BreakWindow;
+import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.mobs.ai.PathfinderAdapter;
+import io.lumine.xikage.mythicmobs.skills.SkillManager;
+import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
+import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
+import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
+import io.lumine.xikage.mythicmobs.volatilecode.handlers.VolatileAIHandler;
+import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16_R3;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Objects;
+import java.util.Map;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -114,7 +122,8 @@ public final class Zombies extends JavaPlugin implements Listener {
             initConfig();
             initProxy();
             initDependencies();
-            initSerialization();
+            initPathfinding(MeleeAttack.class, BreakWindow.class);
+            initMechanics(CobwebMechanic.class);
             initPlayerDataManager();
             initLocalization();
             initWorldLoader();
@@ -124,7 +133,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         }
         catch(LoadFailureException exception)
         {
-            severe(String.format("A fatal error occured that prevented the plugin from enabling properly: '%s'.",
+            severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
             return;
@@ -203,7 +212,76 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initDependencies() throws LoadFailureException {
         arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
         SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
-        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, true);
+        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, false);
+    }
+
+    @SafeVarargs
+    private void initPathfinding(Class<? extends PathfinderAdapter>... customGoals) throws LoadFailureException {
+        VolatileAIHandler handler = mythicMobs.getVolatileCodeHandler().getAIHandler();
+
+        if(handler instanceof VolatileAIHandler_v1_16_R3) {
+            VolatileAIHandler_v1_16_R3 target = (VolatileAIHandler_v1_16_R3)handler;
+
+            try {
+                Field aiGoalsField = VolatileAIHandler_v1_16_R3.class.getDeclaredField("AI_GOALS");
+                aiGoalsField.setAccessible(true);
+
+                @SuppressWarnings("unchecked") Map<String, Class<? extends PathfinderAdapter>> aiGoals =
+                        (Map<String, Class<? extends PathfinderAdapter>>)aiGoalsField.get(target);
+
+                for(Class<? extends PathfinderAdapter> customGoal : customGoals) {
+                    MythicAIGoal mythicAnnotation = customGoal.getAnnotation(MythicAIGoal.class);
+
+                    if(mythicAnnotation != null) {
+                        aiGoals.put(mythicAnnotation.name().toUpperCase(), customGoal);
+
+                        for(String alias : mythicAnnotation.aliases()) {
+                            aiGoals.put(alias.toUpperCase(), customGoal);
+                        }
+
+                        info("Loaded custom AI goal " + customGoal.getName());
+                    }
+                    else {
+                        warning("Class " + customGoal.getName() + " should be annotated with @MythicAIGoal!");
+                    }
+                }
+            } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+                warning("Reflection-related exception when initializing pathfinding.");
+            }
+        }
+        else {
+            throw new LoadFailureException("Unsupported version of MythicMobs AIHandler!");
+        }
+    }
+
+    @SafeVarargs
+    private void initMechanics(Class<? extends SkillMechanic>... customMechanics) throws LoadFailureException {
+        try {
+            Field mechanicsField = SkillManager.class.getDeclaredField("MECHANICS");
+            mechanicsField.setAccessible(true);
+
+            @SuppressWarnings("unchecked") Map<String, Class<? extends SkillMechanic>> mechanics =
+                    (Map<String, Class<? extends SkillMechanic>>)mechanicsField.get(null);
+
+            for(Class<? extends SkillMechanic> customMechanic : customMechanics) {
+                MythicMechanic mythicAnnotation = customMechanic.getAnnotation(MythicMechanic.class);
+
+                if(mythicAnnotation != null) {
+                    mechanics.put(mythicAnnotation.name().toUpperCase(), customMechanic);
+
+                    for(String alias : mythicAnnotation.aliases()) {
+                        mechanics.put(alias.toUpperCase(), customMechanic);
+                    }
+
+                    info("Loaded custom MythicMobs mechanic " + customMechanic.getName());
+                }
+                else {
+                    warning("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
+                }
+            }
+        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+            warning("Reflection-related exception when initializing mechanics.");
+        }
     }
 
     private void initWorldLoader() {
@@ -251,10 +329,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         }
     }
 
-    private void initSerialization() throws LoadFailureException {
-
-    }
-
     private void initPlayerDataManager() {
         playerDataManager = new FilePlayerDataManager(new JacksonDataLoader(Path.of(getDataFolder().getPath(),
                 PLAYER_DATA_FOLDER_NAME).toFile()), getConfig().getInt(ConfigNames.DATA_CACHE_CAPACITY));
@@ -286,17 +360,6 @@ public final class Zombies extends JavaPlugin implements Listener {
     /*
     Public static utility functions below
      */
-
-    /**
-     * Sends a localized message to the specific player. The message displayed will be in whatever language the
-     * player has chosen.
-     * @param player The player we are sending the message to
-     * @param key The MessageKey of the message we are sending
-     * @param formatArgs Format arguments for the message, which may be necessary for some MessageKeys
-     */
-    public static void sendLocalizedMessage(Player player, MessageKey key, Object... formatArgs) {
-        instance.getLocalizationManager().sendLocalizedMessage(player, key.getKey(), formatArgs);
-    }
 
     /**
      * Logs a message with this plugin, at the specified level.

@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.perk;
 import io.github.zap.arenaapi.event.EmptyEventArgs;
 import io.github.zap.arenaapi.event.RepeatingEvent;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 

@@ -12,6 +12,7 @@ import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -159,6 +160,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent;
     private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent;
     private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent;
+    private final Event<ProxyArgs<EntityDamageEvent>> playerDamageEvent;
     private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent;
     private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent;
     private final Event<ProxyArgs<PlayerItemHeldEvent>> playerItemHeldEvent;
@@ -178,6 +180,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
         playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
+        playerDamageEvent = new AdaptedEntityEvent<>(EntityDamageEvent.class);
         playerDeathEvent = new AdaptedEntityEvent<>(PlayerDeathEvent.class);
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
@@ -314,7 +317,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
             public void run() {
                 dispose();
             }
-        }.runTaskLater(ArenaApi.getInstance(), ticks);
+        }.runTaskLater(plugin, ticks);
     }
 
     /**
