@@ -29,6 +29,7 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -376,8 +377,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onMobDeath(MythicMobDeathEvent args) {
-        if (mobs.remove(args.getEntity().getUniqueId()) && mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
-            doRound();
+        if(mobs.remove(args.getEntity().getUniqueId())) {
+            if(mobs.size() == 0 && state == ZombiesArenaState.STARTED){
+                doRound();
+            }
         }
     }
 
@@ -475,7 +478,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
-        event.setFoodLevel(20);
     }
 
     public void startGame() {
@@ -564,7 +566,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         waitAndDispose(200);
     }
 
-
     /**
      * Attempts to break the given window.
      */
@@ -581,10 +582,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Location centerLocation = new Location(world, center.getX(), center.getY(), center.getZ());
 
             if(i > 0) {
-                world.playSound(centerLocation, targetWindow.getBlockBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                world.playSound(centerLocation, targetWindow.getBlockBreakSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
             }
             else {
-                world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
             }
         }
     }
