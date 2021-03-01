@@ -4,7 +4,9 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 
 public class GuardianBeam extends BasicBeam {
@@ -18,12 +20,17 @@ public class GuardianBeam extends BasicBeam {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
         if (mob != null) {
+            ZombiesPlayer zombiesPlayer = getZombiesPlayer();
+            Player player = zombiesPlayer.getPlayer();
+
             if (determineIfHeadshot(rayTraceResult, mob)) {
                 mob.setHealth(mob.getHealth() - getDamage());
-                getZombiesPlayer().addCoins(getGoldPerHeadshot());
+                zombiesPlayer.addCoins(getGoldPerHeadshot());
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT, 2.0F, 1.0F);
             } else {
                 mob.damage(getDamage());
-                getZombiesPlayer().addCoins(getGoldPerShot());
+                zombiesPlayer.addCoins(getGoldPerShot());
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT, 1.5F, 1.0F);
             }
 
             mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));

@@ -8,10 +8,12 @@ import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
@@ -226,12 +228,17 @@ public class BasicBeam {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
         if (mob != null) {
+            Player player = zombiesPlayer.getPlayer();
+
             if (determineIfHeadshot(rayTraceResult, mob)) {
                 mob.setHealth(mob.getHealth() - damage);
                 zombiesPlayer.addCoins(goldPerHeadshot);
+
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
             } else {
                 mob.damage(damage);
                 zombiesPlayer.addCoins(goldPerShot);
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
             }
 
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));

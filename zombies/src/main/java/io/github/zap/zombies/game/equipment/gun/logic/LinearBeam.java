@@ -3,6 +3,7 @@ package io.github.zap.zombies.game.equipment.gun.logic;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -17,20 +18,22 @@ public class LinearBeam extends BasicBeam { // TODO: figuring out particle data
     public final static int DEFAULT_PARTICLE_COUNT = 4; // TODO: check
 
     private final Particle particle;
+    private final ParticleDataWrapper<?> particleDataWrapper;
     private final int particleCount;
 
 
-    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, Particle particle,
-                      LinearGunLevel level, int particleCount) {
+    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, LinearGunLevel level,
+                      Particle particle, ParticleDataWrapper<?> particleDataWrapper, int particleCount) {
         super(mapData, zombiesPlayer, root, level);
 
         this.particle = particle;
+        this.particleDataWrapper = particleDataWrapper;
         this.particleCount = particleCount;
     }
 
-    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, Particle particle,
-                      LinearGunLevel level) {
-        this(mapData, zombiesPlayer, root, particle, level, DEFAULT_PARTICLE_COUNT);
+    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, LinearGunLevel level,
+                      Particle particle, ParticleDataWrapper<?> particleDataWrapper) {
+        this(mapData, zombiesPlayer, root, level, particle, particleDataWrapper, DEFAULT_PARTICLE_COUNT);
     }
 
     /**
@@ -52,10 +55,8 @@ public class LinearBeam extends BasicBeam { // TODO: figuring out particle data
             world.spawnParticle(
                     particle,
                     rootLocation,
-                    0,
-                    0,
-                    0,
-                    0
+                    1,
+                    particleDataWrapper.getData()
             );
             rootLocation.add(getDirectionVector());
         }

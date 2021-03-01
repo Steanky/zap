@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
+import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.Getter;
 import org.bukkit.Particle;
 
@@ -12,6 +13,6 @@ public class ParticleGunData<L extends ParticleGunLevel> extends GunData<L> {
 
     private Particle particle;
 
-    private Object particleData;
+    private ParticleDataWrapper<?> particleData;
 
 }

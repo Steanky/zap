@@ -21,6 +21,7 @@ import io.github.zap.zombies.game.equipment.gun.ZapperGun;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
+import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
@@ -35,8 +36,11 @@ import java.util.Set;
  */
 @RequiredArgsConstructor
 public class JacksonEquipmentManager implements EquipmentManager {
+
     private final FieldTypeDeserializer<EquipmentData<?>> equipmentDataDeserializer
             = new FieldTypeDeserializer<>("type");
+
+    private final FieldTypeDeserializer<ParticleDataWrapper<?>> particleDataWrapperDeserializer;
 
     private final EquipmentCreator equipmentCreator = new EquipmentCreator();
 
@@ -55,6 +59,21 @@ public class JacksonEquipmentManager implements EquipmentManager {
         addEquipmentType(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
         addEquipmentType(EquipmentType.SPRAY_GUN.name(), SprayGunData.class, SprayGun::new);
         addEquipmentType(EquipmentType.ZAPPER.name(), ZapperGunData.class, ZapperGun::new);
+
+
+        particleDataWrapperDeserializer = new FieldTypeDeserializer<>("type");
+        particleDataWrapperDeserializer.getMappings().put(
+                ParticleDataWrapper.DUST_DATA_NAME,
+                ParticleDataWrapper.DustParticleDataWrapper.class
+        );
+        particleDataWrapperDeserializer.getMappings().put(
+                ParticleDataWrapper.BLOCK_DATA_NAME,
+                ParticleDataWrapper.BlockParticleDataWrapper.class
+        );
+        particleDataWrapperDeserializer.getMappings().put(
+                ParticleDataWrapper.ITEM_STACK_DATA_NAME,
+                ParticleDataWrapper.ItemStackParticleDataWrapper.class
+        );
     }
 
     public <D extends EquipmentData<L>, L> void  addEquipmentType(String equipmentType, Class<D> dataClass,
@@ -106,6 +125,7 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
             //TODO: probably should modify how this is loaded, it really shouldn't be done like this
             ArenaApi.getInstance().addDeserializer(EquipmentData.class, equipmentDataDeserializer);
+            ArenaApi.getInstance().addDeserializer(ParticleDataWrapper.class, particleDataWrapperDeserializer);
 
             if (files != null) {
                 for (File file : files) {
