@@ -70,7 +70,7 @@ public class Corpse {
         this.deathTime = defaultDeathTime;
 
         hologram.addLine("----------------------------------");
-        hologram.addLine(ChatColor.RED + "help this noob");
+        hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
 
         hologram.addLine(String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
         hologram.addLine("----------------------------------");
@@ -122,7 +122,7 @@ public class Corpse {
     }
 
     private void startDying() {
-        hologram.updateLine(1, "help this noob");
+        hologram.updateLine(1, ChatColor.RED + "help this noob");
 
         deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                 Zombies.getInstance(),
@@ -148,6 +148,7 @@ public class Corpse {
     private void onPlayerJoin(ManagingArena.PlayerListArgs playerListArgs) {
         for (Player player : playerListArgs.getPlayers()) {
             spawnDeadBodyForPlayer(player);
+            hologram.renderToPlayer(player);
         }
     }
 
