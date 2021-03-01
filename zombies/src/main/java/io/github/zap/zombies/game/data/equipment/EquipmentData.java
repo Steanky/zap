@@ -40,6 +40,10 @@ public abstract class EquipmentData<L> {
         this.levels = levels;
     }
 
+    protected EquipmentData() {
+        
+    }
+
     /**
      * Creates an item stack that represents the equipment
      * @param player The player to create the item stack for and to get the locale from

@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class LocalizationManager {
-    
+
     private static final String EXTENSION = "lang";
 
     private final Map<Locale, Translation> resources = new HashMap<>();
