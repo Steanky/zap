@@ -41,7 +41,7 @@ public abstract class EquipmentData<L> {
     }
 
     protected EquipmentData() {
-        
+
     }
 
     /**
