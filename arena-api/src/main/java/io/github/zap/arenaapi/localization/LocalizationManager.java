@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.localization;
 import com.google.common.io.Files;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
-import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.playerdata.PlayerData;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.util.FileUtils;
@@ -18,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class LocalizationManager {
+    
     private static final String EXTENSION = "lang";
 
     private final Map<Locale, Translation> resources = new HashMap<>();

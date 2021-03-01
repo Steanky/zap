@@ -1,7 +1,5 @@
 package io.github.zap.zombies.game.data.equipment;
 
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.util.RomanNumeral;
 import lombok.Getter;
 import org.bukkit.ChatColor;
@@ -20,8 +18,6 @@ import java.util.List;
  */
 @Getter
 public abstract class EquipmentData<L> {
-
-    private transient final LocalizationManager localizationManager;
 
     private String type;
 
@@ -42,12 +38,6 @@ public abstract class EquipmentData<L> {
         this.material = material;
         this.lore = lore;
         this.levels = levels;
-
-        localizationManager = Zombies.getInstance().getLocalizationManager();
-    }
-
-    protected EquipmentData() {
-        localizationManager = Zombies.getInstance().getLocalizationManager();
     }
 
     /**
@@ -101,8 +91,7 @@ public abstract class EquipmentData<L> {
      * @return The formatted version of the display name with a certain chat color
      */
     public String getFormattedDisplayNameWithChatColor(ChatColor chatColor, Player player, int level) {
-        String formattedDisplayName = localizationManager
-                .getLocalizedMessage(localizationManager.getPlayerLocale(player), displayName);
+        String formattedDisplayName = displayName;
         if (level > 0) {
             formattedDisplayName = ChatColor.BOLD.toString() + formattedDisplayName;
             formattedDisplayName += " Ultimate";
