@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.hologram;
 
 import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -19,8 +18,6 @@ import java.util.UUID;
 @Getter
 public abstract class HologramLine<V> {
 
-    private final LocalizationManager localizationManager;
-
     private final ArenaApi arenaApi;
 
     private final NMSProxy nmsProxy;
@@ -35,8 +32,7 @@ public abstract class HologramLine<V> {
 
     private V defaultVisual;
 
-    public HologramLine(LocalizationManager localizationManager, Location location) {
-        this.localizationManager = localizationManager;
+    public HologramLine(Location location) {
         this.arenaApi = ArenaApi.getInstance();
         this.nmsProxy = arenaApi.getNmsProxy();
         this.location = location;

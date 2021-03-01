@@ -8,8 +8,6 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -20,12 +18,8 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
@@ -90,9 +84,9 @@ public class LuckyChest extends Shop<LuckyChestData> {
      */
     public void toggle(boolean enable) {
         if (enable) {
-            hologram = new Hologram(getLocalizationManager(), chestLocation.clone().add(0, 0.5, 0));
+            hologram = new Hologram(chestLocation.clone().add(0, 0.5, 0));
             while (hologram.getHologramLines().size() < 2) {
-                hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+                hologram.addLine("");
             }
 
             active = true;
@@ -119,12 +113,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
         if (hologram != null) {
             LuckyChestData luckyChestData = getShopData();
 
-            hologram.updateLineForEveryone(0, MessageKey.LUCKY_CHEST.getKey());
+            hologram.updateLineForEveryone(0, ChatColor.GOLD + "Lucky Chest");
             hologram.updateLineForEveryone(1,
                     luckyChestData.isRequiresPower() && !isPowered()
-                            ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
-                            : ImmutablePair.of(MessageKey.COST.getKey(),
-                            new String[]{ String.valueOf(luckyChestData.getCost()) })
+                            ? ChatColor.GRAY + "Requires Power!"
+                            : String.format("%s%d Gold", ChatColor.GOLD, luckyChestData.getCost())
             );
         }
     }
@@ -135,8 +128,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         if (event instanceof PlayerInteractEvent) {
             PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
-            if (left.equals(playerInteractEvent.getClickedBlock()) || right.equals(playerInteractEvent.getClickedBlock())) {
-                LocalizationManager localizationManager = getLocalizationManager();
+            if (left.equals(playerInteractEvent.getClickedBlock())
+                    || right.equals(playerInteractEvent.getClickedBlock())) {
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
                 Player player = zombiesPlayer.getPlayer();
 
@@ -146,7 +139,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
                         if (rollingPlayerId == null) {
                             if (zombiesPlayer.getCoins() < luckyChestData.getCost()) {
-                                localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                                zombiesPlayer.getPlayer()
+                                        .sendMessage(ChatColor.RED + "You cannot afford this item!");
                             } else {
                                 rollingPlayerId = zombiesPlayer.getPlayer().getUniqueId();
                                 playerInteractEvent.setCancelled(true);
@@ -161,12 +155,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                         .getHotbarObjectGroup(equipmentData.getName());
 
                                 if (equipmentObjectGroup == null) {
-                                    localizationManager.sendLocalizedMessage(player, MessageKey.NO_GROUP.getKey());
+                                    player.sendMessage(ChatColor.RED + "It looks like you cannot obtain this item!");
                                 } else {
                                     Integer slot = equipmentObjectGroup.getNextEmptySlot();
                                     if (slot == null) {
-                                        localizationManager.sendLocalizedMessage(player,
-                                                MessageKey.CHOOSE_SLOT.getKey());
+                                        player.sendMessage(ChatColor.RED + "Choose a slot to receive the item in!");
                                     } else {
                                         hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
                                                 zombiesPlayer,
@@ -180,16 +173,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                     }
                                 }
                             } else {
-                                localizationManager.sendLocalizedMessage(player, MessageKey.NOT_DONE_ROLLING.getKey());
+                                player.sendMessage(ChatColor.RED + "The chest is not done rolling yet!");
                             }
                         } else {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.OTHER_PERSON_ROLLING.getKey());
+                            player.sendMessage(ChatColor.RED + "Somebody else is rolling!");
                         }
                     } else {
                         // TODO: not active rn
                     }
                 } else {
-                    localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                    player.sendMessage(ChatColor.RED + "The power is not active yet!");
                 }
 
                 return true;
@@ -298,8 +291,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setGravity(false);
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
-            gunName = new Hologram(zombies.getLocalizationManager(), chestLocation.clone(), 1);
-            gunName.addLine(MessageKey.PLACEHOLDER.getKey());
+            gunName = new Hologram(chestLocation.clone(), 1);
+            gunName.addLine("");
 
             PacketContainer packetContainer = getChestPacket();
             for (Player player : chestLocation.getWorld().getPlayers()) {
@@ -317,19 +310,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
         @Override
         public void onEnd(List<Pair<List<Jingle.Note>, Long>> jingle) {
             timeRemaining = new Hologram(
-                    zombies.getLocalizationManager(),
                     chestLocation.clone().add(0, 1, 0),
                     2
             );
-            timeRemaining.addLine(
-                    ImmutablePair.of(MessageKey.TIME_REMAINING.getKey(), new String[]{ String.valueOf(sittingTime) }));
+            timeRemaining.addLine(String.format("%s%ds", ChatColor.RED, sittingTime));
 
             rightClickToClaim = new Hologram(
-                    zombies.getLocalizationManager(),
                     chestLocation.clone().add(0, 0.25, 0),
                     1
             );
-            rightClickToClaim.addLine(MessageKey.RIGHT_CLICK_TO_CLAIM.getKey());
+            rightClickToClaim.addLine("Right Click to Claim");
 
             collectable = true;
             sittingTaskId = new BukkitRunnable() {
@@ -340,10 +330,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                 public void run() {
                     timeRemaining.updateLineForEveryone(
                             0,
-                            ImmutablePair.of(
-                                    MessageKey.TIME_REMAINING.getKey(),
-                                    new String[]{ String.valueOf(sittingTime -= 0.1) }
-                                    )
+                            String.format("%s%ds", ChatColor.RED, sittingTime -= 0.1)
                     );
                     if (sittingTime <= 0) {
                         cancelSitting();

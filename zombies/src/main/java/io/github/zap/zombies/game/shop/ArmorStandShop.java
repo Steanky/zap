@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
 import lombok.Getter;
@@ -36,7 +35,6 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
         armorStand.setVisible(false);
 
         hologram = new Hologram(
-                Zombies.getInstance().getLocalizationManager(),
                 getShopData().getRootLocation().toLocation(world).add(0.5, -2.0, 0.5),
                 2
         );

@@ -7,14 +7,11 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hologram.HologramLine;
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -63,7 +60,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
         List<HologramLine<?>> lines = hologram.getHologramLines();
         while (lines.size() < 2) {
-            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            hologram.addLine("");
         }
 
         super.display();
@@ -78,14 +75,14 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
         // Display the hologram
-        Pair<String, String[]> secondHologramLine;
+        String secondHologramLine;
         if (armorLevel == null) {
             armorLevel = armorLevels.get(armorLevels.size() - 1);
-            secondHologramLine = ImmutablePair.of(MessageKey.UNLOCKED.getKey(), new String[]{});
+            secondHologramLine = ChatColor.RED + "You have already unlocked this item!";
         } else {
             secondHologramLine = (armorShopData.isRequiresPower() && !isPowered())
-                    ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
-                    : ImmutablePair.of(MessageKey.COST.getKey(), new String[]{ String.valueOf(armorLevel.getCost()) });
+                    ? ChatColor.GRAY + "Requires Power!"
+                    : String.format("%s%d Gold", ChatColor.GOLD, armorLevel.getCost());
         }
 
         sendArmorStandUpdatePackets(player, armorLevel);
@@ -97,19 +94,18 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
 
             if (!getShopData().isRequiresPower() || isPowered()) {
                 ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
                 if (armorLevel == null) {
-                    localizationManager.sendLocalizedMessage(player, MessageKey.MAXED_OUT.getKey());
+                    player.sendMessage(ChatColor.RED + "You already have the max level of this armor!");
                 } else {
                     int cost = armorLevel.getCost();
 
                     if (zombiesPlayer.getCoins() < cost) {
-                        localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                        player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                     } else {
                         // Choose the best equipments
                         Material[] materials = armorLevel.getMaterials();
@@ -138,7 +134,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                 }
 
             } else {
-                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
 
             return true;

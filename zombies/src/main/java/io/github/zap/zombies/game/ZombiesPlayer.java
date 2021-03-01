@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
@@ -19,9 +18,9 @@ import lombok.Setter;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.Set;
@@ -131,16 +130,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     public void addCoins(int amount) {
         if(amount > 0) {
-            getPlayer().sendMessage(ChatColor.YELLOW + "+" + amount + " coins");
+            getPlayer().sendMessage(String.format("+%d Gold", amount));
             coins += amount;
         }
     }
 
     public void subtractCoins(int amount) {
-        if(amount > 0 && coins > 0) {
-            getPlayer().sendMessage(ChatColor.YELLOW + "-" + amount + " coins");
-            coins -= amount;
-        }
+        getPlayer().sendMessage(String.format("-%d Gold", amount));
+        coins -= amount;
     }
 
     public boolean isAlive() {
@@ -164,7 +161,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 repairingPlayerProperty.setValue(arena, null);
             }
         }
-        
+
         repairOn = false;
     }
 
