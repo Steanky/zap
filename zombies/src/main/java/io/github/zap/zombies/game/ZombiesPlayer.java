@@ -170,7 +170,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      */
     public void activateRevive() {
         if (reviveTaskId == -1) {
-            MapData map = arena.getMap();
             reviveTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                     Zombies.getInstance(),
                     this::checkForCorpses,
