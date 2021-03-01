@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.powerups.managers;
 
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.map.SpawnRule;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpData;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;

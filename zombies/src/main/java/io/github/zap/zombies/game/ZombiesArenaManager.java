@@ -58,6 +58,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         super(NAME, hubLocation);
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
         this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpDataManagerOptions());
+        ((JacksonPowerUpManager) this.powerUpManager).load();
         this.shopManager = new JacksonShopManager();
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;

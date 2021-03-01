@@ -9,5 +9,5 @@ import java.lang.reflect.InvocationTargetException;
 
 @FunctionalInterface
 public interface SpawnRuleCtor<D extends SpawnRuleData, T extends PowerUpSpawnRule<D>> {
-    T construct(String name, D data, ZombiesArena arena);
+    T construct(String name, SpawnRuleData data, ZombiesArena arena);
 }

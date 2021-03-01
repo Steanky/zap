@@ -6,12 +6,12 @@ import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.powerups.*;
-import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRule;
-import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
-import io.github.zap.zombies.game.powerups.spawnrules.SpawnRuleData;
+import io.github.zap.zombies.game.powerups.spawnrules.*;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
 import java.lang.reflect.AnnotatedType;
@@ -32,6 +32,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     @Getter
     private boolean loaded;
 
+    private boolean isLoading;
+
     @Getter
     private final DataLoader dataLoader;
 
@@ -49,7 +51,6 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     }
 
     public void addDataLoader(PowerUpDataTypeLinker dataTypeLinker) {
-        ensureLoad();
         powerUpDataDeserializer.getMappings().putIfAbsent(dataTypeLinker.getName(), dataTypeLinker.getDataType());
     }
 
@@ -134,10 +135,10 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
         BiFunction<ZombiesArena, PowerUpData, PowerUp> initializer = null;
         Class<? extends PowerUpData> dataClass = null;
 
-        if(typeMap.containsKey(name)) {
+        if(!typeMap.containsKey(name)) {
             for (Constructor<?> ctor : classType.getConstructors()) {
                 var params = ctor.getParameterTypes();
-                if(params.length > 2 && PowerUpData.class.isAssignableFrom(params[0]) && ZombiesArena.class.isAssignableFrom(params[1])) {
+                if(params.length == 2 && PowerUpData.class.isAssignableFrom(params[0]) && ZombiesArena.class.isAssignableFrom(params[1])) {
                     initializer = (data, arena) -> {
                         try {
                             return (PowerUp) ctor.newInstance(data, arena);
@@ -165,7 +166,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
     @Override
     public void registerPowerUp(Class<? extends PowerUp> classType) {
-        for (AnnotatedType at : classType.getAnnotatedInterfaces()) {
+        for (var at : classType.getAnnotations()) {
             if(at instanceof PowerUpType) {
                 registerPowerUp(((PowerUpType) at).getName(), classType);
                 return;
@@ -200,22 +201,21 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     public void registerSpawnRule(String name, Class<? extends PowerUpSpawnRule<?>> spawnRuleType) {
         SpawnRuleCtor<?, ?> initializer = null;
         Class<? extends SpawnRuleData> dataClass = null;
-        if(spawnRuleTypeMap.containsKey(name)) {
+        if(!spawnRuleTypeMap.containsKey(name)) {
             for(Constructor<?> ctor : spawnRuleType.getConstructors()) {
                 var params = ctor.getParameterTypes();
-                if(params.length > 3 && params[0] == String.class && SpawnRuleData.class.isAssignableFrom(params[1]) && ZombiesArena.class.isAssignableFrom(params[2])) {
-                    initializer = (type, data, arena) -> {
+                if(params.length == 3 && params[0] == String.class && SpawnRuleData.class.isAssignableFrom(params[1]) && ZombiesArena.class.isAssignableFrom(params[2])) {
+                    initializer = (SpawnRuleCtor<SpawnRuleData, PowerUpSpawnRule<SpawnRuleData>>) (name1, data, arena) -> {
                         try {
                             //noinspection unchecked
-                            return (PowerUpSpawnRule<SpawnRuleData>) ctor.newInstance(type, data, arena);
+                            return (PowerUpSpawnRule<SpawnRuleData>) ctor.newInstance(name1, data, arena);
                         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                            Zombies.log(Level.SEVERE, "Unable to create spawn rule type: " + name);
+                            Zombies.log(Level.SEVERE, "Unable to create spawn rule type: " + name1);
                             return null;
                         }
                     };
-
                     //noinspection unchecked
-                    dataClass = (Class<? extends SpawnRuleData>) params[0];
+                    dataClass = (Class<? extends SpawnRuleData>) params[1];
                     break;
                 }
             }
@@ -232,9 +232,9 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
     @Override
     public void registerSpawnRule(Class<? extends PowerUpSpawnRule<?>> spawnRuleType) {
-        for (AnnotatedType at : spawnRuleType.getAnnotatedInterfaces()) {
-            if(at instanceof PowerUpType) {
-                registerSpawnRule(((PowerUpType) at).getName(), spawnRuleType);
+        for (var at : spawnRuleType.getAnnotations()) {
+            if(at instanceof SpawnRuleType) {
+                registerSpawnRule(((SpawnRuleType) at).getName(), spawnRuleType);
                 return;
             }
         }
@@ -252,12 +252,16 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
     @Override
     public PowerUpSpawnRule<?> createSpawnRule(String name, String powerUpName, ZombiesArena arena) {
-        return null;
+        ensureLoad();
+        Validate.isTrue(spawnRuleDataMap.containsKey(name), " spawn rule does not exist");
+        var data = spawnRuleDataMap.get(name);
+        return spawnRuleTypeMap.get(data.getSpawnRuleType()).left.construct(name, data, arena);
     }
 
     @Override
     public void load() {
         if(!isLoaded()) {
+            isLoading = true;
             addSpawnRuleDataLoader(SpawnRuleDataType.DEFAULT);
 
             // There is no way to retrieve class from package easily so I gonna manually do it
@@ -277,12 +281,29 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
                     .filter(Objects::nonNull)
                     .forEach(x -> addSpawnRuleData(x, false));
 
+            createTest();
+
             loaded = true;
         }
     }
 
+    private void createTest() {
+        var maxAmmoData = new PowerUpData(PowerUpDataType.BASIC.getName(), "Max Ammo", "Max Ammo", ChatColor.BLUE + "Max Ammo", Material.ARROW);
+        addPowerUpData(maxAmmoData);
+
+        var pattern = new HashSet<Integer>();
+        pattern.add(1);
+        pattern.add(2);
+        pattern.add(3);
+
+        var wave = new HashSet<Integer>();
+        wave.add(1);
+        var spawnRuleData = new DefaultPowerUpSpawnRuleData("Default", "Default", "Default", pattern, wave);
+        addSpawnRuleData(spawnRuleData);
+    }
+
     private void ensureLoad() {
-        if(!isLoaded()) {
+        if(!isLoaded() && !isLoading) {
             load();
         }
     }
