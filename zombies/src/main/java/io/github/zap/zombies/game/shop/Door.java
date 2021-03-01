@@ -2,14 +2,12 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.MessageKey;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -32,15 +30,13 @@ public class Door extends Shop<DoorData> {
         super(zombiesArena, shopData);
 
         World world = zombiesArena.getWorld();
-        LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
         for (DoorSide doorSide : getShopData().getDoorSides()) {
             Hologram hologram = new Hologram(
-                    localizationManager,
                     doorSide.getHologramLocation().toLocation(world),
                     2
             );
             while (hologram.getHologramLines().size() < 2) {
-                hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+                hologram.addLine("");
             }
 
             doorSideHologramMap.put(doorSide, hologram);
@@ -102,7 +98,6 @@ public class Door extends Shop<DoorData> {
     public boolean purchase(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
         Event event = args.getEvent();
         if (event instanceof PlayerInteractEvent) {
-            LocalizationManager localizationManager = getLocalizationManager();
             DoorData doorData = getShopData();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
@@ -115,7 +110,7 @@ public class Door extends Shop<DoorData> {
                     if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
                         int cost = doorSide.getCost();
                         if (zombiesPlayer.getCoins() < cost) {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.toString());
+                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
                             ZombiesArena zombiesArena = getZombiesArena();
                             WorldUtils.fillBounds(

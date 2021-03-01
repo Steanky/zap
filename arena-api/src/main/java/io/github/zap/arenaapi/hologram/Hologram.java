@@ -9,10 +9,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -33,8 +30,6 @@ public class Hologram {
     private static final Set<Integer> TEXT_LINE_SET = new HashSet<>();
 
     private final ArenaApi arenaApi;
-
-    private final LocalizationManager localizationManager;
 
     @Getter
     private final List<HologramLine<?>> hologramLines = new ArrayList<>();
@@ -78,30 +73,21 @@ public class Hologram {
         });
     }
 
-    public Hologram(LocalizationManager localizationManager, Location location, double lineSpace) {
+    public Hologram(Location location, double lineSpace) {
         this.arenaApi = ArenaApi.getInstance();
-        this.localizationManager = localizationManager;
         this.rootLocation = location;
         this.lineSpace = lineSpace;
     }
 
-    public Hologram(LocalizationManager localizationManager, Location location) {
-        this(localizationManager, location, DEFAULT_LINE_SPACE);
-    }
-
-    /**
-     * Adds a line with a message key
-     * @param message The message key
-     */
-    public void addLine(String message) {
-        addLine(ImmutablePair.of(message, new String[]{}));
+    public Hologram(Location location) {
+        this(location, DEFAULT_LINE_SPACE);
     }
 
     /**
      * Adds a line with a message key and format arguments
      * @param message A pair of the message key and format arguments
      */
-    public void addLine(Pair<String, String[]> message) {
+    public void addLine(String message) {
         TextLine textLine = createTextLine(
                 rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),
                 message
@@ -110,8 +96,8 @@ public class Hologram {
         TEXT_LINE_SET.add(textLine.getEntityId());
     }
 
-    private TextLine createTextLine(Location location, Pair<String, String[]> message) {
-        TextLine textLine = new TextLine(localizationManager, location);
+    private TextLine createTextLine(Location location, String message) {
+        TextLine textLine = new TextLine(location);
         textLine.setVisualForEveryone(message);
 
         return textLine;
@@ -128,7 +114,7 @@ public class Hologram {
     }
 
     private ItemLine createItemLine(Location location, Material material) {
-        ItemLine itemLine = new ItemLine(localizationManager, location);
+        ItemLine itemLine = new ItemLine(location);
         itemLine.setVisualForEveryone(material);
 
         return itemLine;
@@ -139,7 +125,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLineForEveryone(int index, Pair<String, String[]> message) {
+    public void updateLineForEveryone(int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
             ((TextLine) hologramLine).setVisualForEveryone(message);
@@ -153,7 +139,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLine(int index, Pair<String, String[]> message) {
+    public void updateLine(int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
             ((TextLine) hologramLine).setVisual(message);
@@ -168,41 +154,13 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLineForPlayer(Player player, int index, Pair<String, String[]> message) {
+    public void updateLineForPlayer(Player player, int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine) {
             ((TextLine) hologramLine).setVisualForPlayer(player, message);
         } else {
 
         }
-    }
-
-    /**
-     * Updates a text line for all players and overrides custom visuals
-     * @param index The index of the line to update
-     * @param message The updated line
-     */
-    public void updateLineForEveryone(int index, String message) {
-        updateLineForEveryone(index, ImmutablePair.of(message, new String[]{}));
-    }
-
-    /**
-     * Updates a text line for all players
-     * @param index The index of the line to update
-     * @param message The updated line
-     */
-    public void updateLine(int index, String message) {
-        updateLine(index, ImmutablePair.of(message, new String[]{}));
-    }
-
-    /**
-     * Updates a text line for a single player
-     * @param player The player to update the line for
-     * @param index The index of the line to update
-     * @param message The updated line
-     */
-    public void updateLineForPlayer(Player player, int index, String message) {
-        updateLineForPlayer(player, index, ImmutablePair.of(message, new String[]{}));
     }
 
     /**

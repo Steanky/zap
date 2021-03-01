@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
@@ -133,13 +132,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     public void addCoins(int amount) {
         if(amount > 0) {
-            Zombies.sendLocalizedMessage(getPlayer(), MessageKey.ADD_GOLD, amount);
+            getPlayer().sendMessage(String.format("+%d Gold", amount));
             coins += amount;
         }
     }
 
     public void subtractCoins(int amount) {
-        Zombies.sendLocalizedMessage(getPlayer(), MessageKey.SUBTRACT_GOLD, amount);
+        getPlayer().sendMessage(String.format("-%d Gold", amount));
         coins -= amount;
     }
 

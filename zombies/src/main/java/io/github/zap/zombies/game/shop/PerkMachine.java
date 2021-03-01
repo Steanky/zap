@@ -3,8 +3,6 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PerkMachineData;
@@ -12,8 +10,7 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -32,7 +29,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            hologram.addLine("");
         }
         super.display();
     }
@@ -45,16 +42,13 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
         int level = (perkEquipment == null) ? 0 : perkEquipment.getLevel() + 1;
 
-        Pair<String, String[]> secondHologramLine;
+        String secondHologramLine;
         if (perkEquipment == null || level < perkEquipment.getEquipmentData().getLevels().size()) {
             secondHologramLine = perkMachineData.isRequiresPower() && !isPowered()
-                    ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
-                    : ImmutablePair.of(
-                            MessageKey.GOLD.getKey(),
-                    new String[]{ String.valueOf(perkMachineData.getCosts().get(level)) }
-                    );
+                    ? ChatColor.GRAY + "Requires Power!"
+                    : String.format("%s%d Gold", ChatColor.GOLD, perkMachineData.getCosts().get(level));
         } else {
-            secondHologramLine = ImmutablePair.of(MessageKey.ACTIVE.getKey(), new String[]{});
+            secondHologramLine = ChatColor.GREEN + "Active";
         }
 
 
@@ -70,7 +64,6 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
             PerkMachineData perkMachineData = getShopData();
@@ -85,7 +78,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                         int cost = costs.get(0);
 
                         if (zombiesPlayer.getCoins() < cost) {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
                             HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                             PerkObjectGroup perkObjectGroup =
@@ -107,10 +100,10 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
                                     onPurchaseSuccess(zombiesPlayer);
                                 } else {
-                                    localizationManager.sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
+                                    player.sendMessage(ChatColor.RED + "Choose a slot to receive the perk in!");
                                 }
                             } else {
-                                localizationManager.sendLocalizedMessage(player, MessageKey.NO_GROUP.getKey());
+                                player.sendMessage(ChatColor.RED + "You cannot receive this item!");
                             }
                         }
                     }
@@ -121,7 +114,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                         int cost = costs.get(level);
 
                         if (zombiesPlayer.getCoins() < cost) {
-                            localizationManager.sendLocalizedMessage(player, MessageKey.CANNOT_AFFORD.getKey());
+                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
                             zombiesPlayer.subtractCoins(cost);
                             perkEquipment.upgrade();
@@ -130,11 +123,11 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                             onPurchaseSuccess(zombiesPlayer);
                         }
                     } else {
-                        localizationManager.sendLocalizedMessage(player, MessageKey.UNLOCKED.getKey());
+                        player.sendMessage(ChatColor.RED + "You have already unlocked this item!");
                     }
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
 
             return true;
