@@ -8,7 +8,6 @@ import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -16,8 +15,8 @@ import io.github.zap.zombies.game.perk.FastRevive;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -67,16 +66,14 @@ public class Corpse {
         this.location = zombiesPlayer.getPlayer().getLocation();
         this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
         this.hologram =
-                new Hologram(Zombies.getInstance().getLocalizationManager(), location.clone().add(0, 2, 0));
+                new Hologram(location.clone().add(0, 2, 0));
         this.deathTime = defaultDeathTime;
 
-        hologram.addLine(MessageKey.CORPSE_LINE.getKey());
-        hologram.addLine(MessageKey.DYING_MESSAGE.getKey());
-        hologram.addLine(ImmutablePair.of(
-                MessageKey.CORPSE_TIME_REMAINING.getKey(),
-                new String[]{ String.valueOf(convertTicksToSeconds(defaultDeathTime)) }
-        ));
-        hologram.addLine(MessageKey.CORPSE_LINE.getKey());
+        hologram.addLine("----------------------------------");
+        hologram.addLine(ChatColor.RED + "help this noob");
+
+        hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
+        hologram.addLine("----------------------------------");
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
         zombiesArena.getCorpses().add(this);
@@ -105,7 +102,7 @@ public class Corpse {
             }
 
             this.reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
-            hologram.updateLine(1, MessageKey.REVIVING_MESSAGE.getKey());
+            hologram.updateLine(1, ChatColor.RED + "Reviving...");
         }
 
         this.reviver = reviver;
@@ -119,16 +116,13 @@ public class Corpse {
             active = false;
             zombiesPlayer.revive();
         } else {
-            hologram.updateLine(2, ImmutablePair.of(
-                    MessageKey.CORPSE_TIME_REMAINING.getKey(),
-                    new String[] { String.valueOf(convertTicksToSeconds(reviveTime)) }
-            ));
+            hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(reviveTime)));
             reviveTime--;
         }
     }
 
     private void startDying() {
-        hologram.updateLine(1, MessageKey.DYING_MESSAGE.getKey());
+        hologram.updateLine(1, "help this noob");
 
         deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                 Zombies.getInstance(),
@@ -146,10 +140,7 @@ public class Corpse {
             zombiesPlayer.kill();
             zombiesPlayer.getArena().getAvailableCorpses().remove(this);
         } else {
-            hologram.updateLine(2, ImmutablePair.of(
-                    MessageKey.CORPSE_TIME_REMAINING.getKey(),
-                    new String[] { String.valueOf(convertTicksToSeconds(deathTime)) }
-            ));
+            hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(deathTime)));
             deathTime -= 1;
         }
     }

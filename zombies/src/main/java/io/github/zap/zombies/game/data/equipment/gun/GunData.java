@@ -1,7 +1,5 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -9,7 +7,6 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Data for a gun
@@ -39,13 +36,11 @@ public class GunData<L extends GunLevel> extends EquipmentData<L> {
         lore.addAll(getStatsLore(level));
         lore.add("");
 
-        LocalizationManager localizationManager = getLocalizationManager();
-        Locale locale = localizationManager.getPlayerLocale(player);
-        lore.add(ChatColor.YELLOW + localizationManager.getLocalizedMessage(locale, MessageKey.LEFT_CLICK.getKey())
-                + " " + ChatColor.GRAY + localizationManager.getLocalizedMessage(locale, MessageKey.TO_RELOAD.getKey())
+        lore.add(ChatColor.YELLOW + "Left Click"
+                + " " + ChatColor.GRAY + "to Reload"
                 + ".");
-        lore.add(ChatColor.YELLOW + localizationManager.getLocalizedMessage(locale, MessageKey.RIGHT_CLICK.getKey())
-                + " " + ChatColor.GRAY + localizationManager.getLocalizedMessage(locale, MessageKey.TO_SHOOT.getKey())
+        lore.add(ChatColor.YELLOW + "Right Click"
+                + " " + ChatColor.GRAY + "to Shoot"
                 + ".");
 
         return lore;

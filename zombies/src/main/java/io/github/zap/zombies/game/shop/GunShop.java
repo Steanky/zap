@@ -3,16 +3,13 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.GunShopData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -60,7 +57,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         }
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            hologram.addLine("");
         }
 
         super.display();
@@ -72,12 +69,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
 
-        Pair<String, String[]> firstHologramLine = null;
-        Pair<String, String[]> secondHologramLine = null;
+        String firstHologramLine = null;
+        String secondHologramLine = null;
 
-        LocalizationManager localizationManager = getLocalizationManager();
         if (gunShopData.isRequiresPower() && !isPowered()) {
-            secondHologramLine = ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{});
+            secondHologramLine = ChatColor.GRAY + "Requires Power!";
         } else {
             if (zombiesPlayer != null) {
                 GunObjectGroup gunObjectGroup
@@ -88,14 +84,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                             Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
                             if (gun.getEquipmentData().getName().equals(gunName)) {
-                                firstHologramLine = ImmutablePair.of(
-                                        MessageKey.REFILL_AMMO.getKey(),
-                                        new String[]{ localizationManager.getLocalizedMessageFor(player, gunName) }
-                                        );
-                                secondHologramLine = ImmutablePair.of(
-                                        MessageKey.COST.getKey(),
-                                        new String[]{ String.valueOf(gunShopData.getRefillCost()) }
-                                        );
+                                firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunName);
+                                secondHologramLine =
+                                        String.format("%s%d Gold", ChatColor.GREEN, gunShopData.getRefillCost());
                                 break;
                             }
                         }
@@ -105,14 +96,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         }
 
         if (firstHologramLine == null) {
-            firstHologramLine = ImmutablePair.of(
-                    MessageKey.BUY_GUN.getKey(),
-                    new String[]{ localizationManager.getLocalizedMessageFor(player, gunName) }
-                    );
-            secondHologramLine = ImmutablePair.of(
-                    MessageKey.COST.getKey(),
-                    new String[]{ String.valueOf(gunShopData.getCost()) }
-            );
+            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunName);
+            secondHologramLine = String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getCost());
         }
 
         Hologram hologram = getHologram();
@@ -124,7 +109,6 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
 
@@ -138,7 +122,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     // TODO: ye
                 }
             } else {
-                localizationManager.sendLocalizedMessage(player, MessageKey.NO_POWER.getKey());
+                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
 
             return true;
@@ -162,8 +146,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
                     int refillCost = gunShopData.getRefillCost();
                     if (zombiesPlayer.getCoins() < refillCost) {
-                        getLocalizationManager().sendLocalizedMessage(zombiesPlayer.getPlayer(),
-                                MessageKey.CANNOT_AFFORD.getKey());
+                        zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
 
                         return false;
                     } else {
@@ -189,15 +172,14 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             if (gunObjectGroup.getHotbarObjectMap().containsKey(selectedSlot)) {
                 slot = selectedSlot;
             } else {
-                getLocalizationManager().sendLocalizedMessage(player, MessageKey.CHOOSE_SLOT.getKey());
+                player.sendMessage(ChatColor.RED + "Choose the slot you want to buy the gun in!");
                 return false;
             }
         }
 
         int cost = gunShopData.getCost();
         if (zombiesPlayer.getCoins() < cost) {
-            getLocalizationManager().sendLocalizedMessage(player,
-                    MessageKey.CANNOT_AFFORD.getKey());
+            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
 
             return false;
         } else {
