@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.Unique;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.InvocationTargetException;
@@ -138,10 +139,10 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
         HandlerList list;
 
         try {
-            list = (HandlerList)bukkitEventClass.getMethod("getHandlersList").invoke(null);
+            list = (HandlerList)bukkitEventClass.getMethod("getHandlerList").invoke(null);
         }
         catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException ignored) {
-            ArenaApi.warning("Failed to construct ProxyEvent due to a reflection-related exception.");
+            ArenaApi.warning("Failed to reflect getHandlersList due to a reflection-related exception.");
             list = null;
             reflectionFailed = true;
         }

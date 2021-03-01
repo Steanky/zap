@@ -317,7 +317,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
             public void run() {
                 dispose();
             }
-        }.runTaskLater(ArenaApi.getInstance(), ticks);
+        }.runTaskLater(plugin, ticks);
     }
 
     /**
