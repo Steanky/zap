@@ -3,6 +3,10 @@ package io.github.zap.zombies.game.powerups;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.equipment.gun.Gun;
+import io.github.zap.zombies.game.powerups.events.ChangedAction;
+import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
+
+import java.util.Collections;
 
 @PowerUpType(getName = "Max Ammo")
 public class MaxAmmoPowerUp extends PowerUp {
@@ -20,5 +24,7 @@ public class MaxAmmoPowerUp extends PowerUp {
                 }
             });
         });
+
+        deactivate();
     }
 }

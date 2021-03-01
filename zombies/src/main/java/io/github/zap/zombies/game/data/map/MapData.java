@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -250,6 +251,13 @@ public class MapData {
      * A map of SpawnRule objects which are used to define the behavior of spawnpoints.
      */
     Map<String, SpawnRule> spawnRules = new HashMap<>();
+
+    /**
+     * Define conditions to spawn power up
+     * Left String are SpawnRule data
+     * Right String are PowerUp names
+     */
+    Set<ImmutablePair<String, String>> powerUpSpawnRules = new HashSet<>();
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 

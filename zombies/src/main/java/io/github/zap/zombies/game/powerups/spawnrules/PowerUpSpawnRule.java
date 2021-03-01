@@ -3,8 +3,12 @@ package io.github.zap.zombies.game.powerups.spawnrules;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.powerups.PowerUp;
+import io.github.zap.zombies.game.powerups.events.ChangedAction;
+import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import lombok.Getter;
 import org.bukkit.Location;
+
+import java.util.Collections;
 
 public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
     @Getter
@@ -29,5 +33,8 @@ public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
         var pu = getArena().getPowerUpManager().createPowerUp(getSpawnTargetName(), getArena());
         pu.spawnItem(loc);
         powerUpSpawned.callEvent(pu);
+        var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ADD, Collections.singleton(pu));
+        getArena().getPowerUps().add(pu);
+        getArena().getPowerUpChangedEvent().callEvent(eventArgs);
     }
 }
