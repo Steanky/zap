@@ -78,7 +78,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private class AdaptedPlayerEvent<U extends PlayerEvent> extends MappingEvent<U, ProxyArgs<U>> {
         public AdaptedPlayerEvent(Class<U> bukkitEventClass) {
             super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
-                    true), event -> {
+                    false), event -> {
                 S managedPlayer = playerMap.get(event.getPlayer().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
@@ -97,7 +97,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private class AdaptedInventoryEvent<U extends InventoryEvent> extends MappingEvent<U, ManagedInventoryEventArgs<U>> {
         public AdaptedInventoryEvent(Class<U> bukkitEventClass) {
             super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
-                    true), event -> {
+                    false), event -> {
                 List<HumanEntity> viewers = event.getViewers();
                 List<S> managedViewers = new ArrayList<>();
 
@@ -125,7 +125,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private class AdaptedEntityEvent<U extends EntityEvent> extends MappingEvent<U, ProxyArgs<U>> {
         public AdaptedEntityEvent(Class<U> eventClass) {
             super(new ProxyEvent<>(plugin, ManagingArena.this, eventClass,
-                    EventPriority.NORMAL, true), event -> {
+                    EventPriority.NORMAL, false), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
