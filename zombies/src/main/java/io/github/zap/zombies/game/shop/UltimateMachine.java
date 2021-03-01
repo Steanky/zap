@@ -3,14 +3,12 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -41,17 +39,14 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
         hologram.updateLineForPlayer(player, 1,
                 getShopData().isRequiresPower() && !isPowered()
-                        ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
-                        : ImmutablePair.of(
-                                MessageKey.COST.toString(), new String[]{ String.valueOf(getShopData().getCost()) }
-                                )
+                        ? ChatColor.GRAY + "Requires Power!"
+                        : String.format("%s%d Gold", ChatColor.GOLD, getShopData().getCost())
         );
     }
 
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
 

@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.BlockShopData;
 import lombok.Getter;
@@ -29,7 +28,6 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
         World world = zombiesArena.getWorld();
 
         hologram = new Hologram(
-                Zombies.getInstance().getLocalizationManager(),
                 shopData.getHologramLocation().toLocation(world),
                 2
         );

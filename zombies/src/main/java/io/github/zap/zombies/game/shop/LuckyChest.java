@@ -8,7 +8,6 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -20,7 +19,6 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -87,7 +85,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
      */
     public void toggle(boolean enable) {
         if (enable) {
-            hologram = new Hologram(getLocalizationManager(), chestLocation.clone().add(0, 0.5, 0));
+            hologram = new Hologram(chestLocation.clone().add(0, 0.5, 0));
             while (hologram.getHologramLines().size() < 2) {
                 hologram.addLine(MessageKey.PLACEHOLDER.getKey());
             }
@@ -119,9 +117,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
             hologram.updateLineForEveryone(0, MessageKey.LUCKY_CHEST.getKey());
             hologram.updateLineForEveryone(1,
                     luckyChestData.isRequiresPower() && !isPowered()
-                            ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
-                            : ImmutablePair.of(MessageKey.COST.getKey(),
-                            new String[]{ String.valueOf(luckyChestData.getCost()) })
+                            ? ChatColor.GRAY + "Requires Power!"
+                            : String.format("%s%d Gold", ChatColor.GOLD, luckyChestData.getCost())
             );
         }
     }
@@ -134,7 +131,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
             PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
             if (left.equals(playerInteractEvent.getClickedBlock())
                     || right.equals(playerInteractEvent.getClickedBlock())) {
-                LocalizationManager localizationManager = getLocalizationManager();
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
                 Player player = zombiesPlayer.getPlayer();
 
@@ -296,7 +292,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setGravity(false);
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
-            gunName = new Hologram(zombies.getLocalizationManager(), chestLocation.clone(), 1);
+            gunName = new Hologram(chestLocation.clone(), 1);
             gunName.addLine(MessageKey.PLACEHOLDER.getKey());
 
             PacketContainer packetContainer = getChestPacket();
@@ -315,15 +311,12 @@ public class LuckyChest extends Shop<LuckyChestData> {
         @Override
         public void onEnd(List<Pair<List<Jingle.Note>, Long>> jingle) {
             timeRemaining = new Hologram(
-                    zombies.getLocalizationManager(),
                     chestLocation.clone().add(0, 1, 0),
                     2
             );
-            timeRemaining.addLine(
-                    ImmutablePair.of(MessageKey.TIME_REMAINING.getKey(), new String[]{ String.valueOf(sittingTime) }));
+            timeRemaining.addLine(String.format("%s%ds", ChatColor.RED, sittingTime));
 
             rightClickToClaim = new Hologram(
-                    zombies.getLocalizationManager(),
                     chestLocation.clone().add(0, 0.25, 0),
                     1
             );
@@ -338,10 +331,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                 public void run() {
                     timeRemaining.updateLineForEveryone(
                             0,
-                            ImmutablePair.of(
-                                    MessageKey.TIME_REMAINING.getKey(),
-                                    new String[]{ String.valueOf(sittingTime -= 0.1) }
-                                    )
+                            String.format("%s%ds", ChatColor.RED, sittingTime -= 0.1)
                     );
                     if (sittingTime <= 0) {
                         cancelSitting();

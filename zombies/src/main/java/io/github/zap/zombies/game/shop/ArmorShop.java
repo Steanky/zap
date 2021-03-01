@@ -12,8 +12,6 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -78,14 +76,14 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
         // Display the hologram
-        Pair<String, String[]> secondHologramLine;
+        String secondHologramLine;
         if (armorLevel == null) {
             armorLevel = armorLevels.get(armorLevels.size() - 1);
-            secondHologramLine = ImmutablePair.of(MessageKey.UNLOCKED.getKey(), new String[]{});
+            secondHologramLine = ChatColor.RED + "You have already unlocked this item!";
         } else {
             secondHologramLine = (armorShopData.isRequiresPower() && !isPowered())
-                    ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
-                    : ImmutablePair.of(MessageKey.COST.getKey(), new String[]{ String.valueOf(armorLevel.getCost()) });
+                    ? ChatColor.GRAY + "Requires Power!"
+                    : String.format("%s%d Gold", ChatColor.GOLD, armorLevel.getCost());
         }
 
         sendArmorStandUpdatePackets(player, armorLevel);

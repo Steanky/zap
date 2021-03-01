@@ -2,10 +2,8 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.MessageKey;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
@@ -33,10 +31,8 @@ public class Door extends Shop<DoorData> {
         super(zombiesArena, shopData);
 
         World world = zombiesArena.getWorld();
-        LocalizationManager localizationManager = Zombies.getInstance().getLocalizationManager();
         for (DoorSide doorSide : getShopData().getDoorSides()) {
             Hologram hologram = new Hologram(
-                    localizationManager,
                     doorSide.getHologramLocation().toLocation(world),
                     2
             );

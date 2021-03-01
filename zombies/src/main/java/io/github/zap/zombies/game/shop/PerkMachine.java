@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -12,8 +11,6 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -46,16 +43,13 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
         int level = (perkEquipment == null) ? 0 : perkEquipment.getLevel() + 1;
 
-        Pair<String, String[]> secondHologramLine;
+        String secondHologramLine;
         if (perkEquipment == null || level < perkEquipment.getEquipmentData().getLevels().size()) {
             secondHologramLine = perkMachineData.isRequiresPower() && !isPowered()
-                    ? ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{})
-                    : ImmutablePair.of(
-                            MessageKey.GOLD.getKey(),
-                    new String[]{ String.valueOf(perkMachineData.getCosts().get(level)) }
-                    );
+                    ? ChatColor.GRAY + "Requires Power!"
+                    : String.format("%s%d Gold", ChatColor.GOLD, perkMachineData.getCosts().get(level));
         } else {
-            secondHologramLine = ImmutablePair.of(MessageKey.ACTIVE.getKey(), new String[]{});
+            secondHologramLine = ChatColor.GREEN + "Active";
         }
 
 
@@ -71,7 +65,6 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
             PerkMachineData perkMachineData = getShopData();

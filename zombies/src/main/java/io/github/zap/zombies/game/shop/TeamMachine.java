@@ -1,12 +1,10 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -74,15 +72,15 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            hologram.addLine("");
         }
 
-        hologram.updateLineForEveryone(0, ImmutablePair.of(MessageKey.TEAM_MACHINE.getKey(), new String[]{}));
+        hologram.updateLineForEveryone(0, ChatColor.BLUE + "Team Machine");
         hologram.updateLineForEveryone(
                 1,
                 (getShopData().isRequiresPower() && !isPowered())
-                        ? MessageKey.REQUIRES_POWER.toString()
-                        : MessageKey.RIGHT_CLICK_TO_OPEN.toString()
+                        ? ChatColor.GRAY + "Requires Power!"
+                        : ChatColor.GREEN + "Right click to open!"
         );
     }
 

@@ -1,12 +1,10 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -30,18 +28,14 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
         hologram.updateLineForEveryone(0, MessageKey.POWER_SWITCH.getKey());
         hologram.updateLineForEveryone(1,
                 isPowered()
-                        ? ImmutablePair.of(MessageKey.ACTIVE.getKey(), new String[]{})
-                        : ImmutablePair.of(
-                                MessageKey.COST.getKey(),
-                        new String[]{ String.valueOf(getShopData().getCost()) }
-                        )
+                        ? ChatColor.GREEN + "Active"
+                        : String.format("%s%d Gold", ChatColor.GOLD, getShopData().getCost())
                 );
     }
 
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            LocalizationManager localizationManager = getLocalizationManager();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
 

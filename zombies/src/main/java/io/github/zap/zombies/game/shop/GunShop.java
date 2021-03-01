@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -11,8 +10,6 @@ import io.github.zap.zombies.game.data.map.shop.GunShopData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
@@ -73,12 +70,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
 
-        Pair<String, String[]> firstHologramLine = null;
-        Pair<String, String[]> secondHologramLine = null;
+        String firstHologramLine = null;
+        String secondHologramLine = null;
 
-        LocalizationManager localizationManager = getLocalizationManager();
         if (gunShopData.isRequiresPower() && !isPowered()) {
-            secondHologramLine = ImmutablePair.of(MessageKey.REQUIRES_POWER.getKey(), new String[]{});
+            secondHologramLine = ChatColor.GRAY + "Requires Power!";
         } else {
             if (zombiesPlayer != null) {
                 GunObjectGroup gunObjectGroup
@@ -89,14 +85,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                             Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
                             if (gun.getEquipmentData().getName().equals(gunName)) {
-                                firstHologramLine = ImmutablePair.of(
-                                        MessageKey.REFILL_AMMO.getKey(),
-                                        new String[]{ localizationManager.getLocalizedMessageFor(player, gunName) }
-                                        );
-                                secondHologramLine = ImmutablePair.of(
-                                        MessageKey.COST.getKey(),
-                                        new String[]{ String.valueOf(gunShopData.getRefillCost()) }
-                                        );
+                                firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunName);
+                                secondHologramLine =
+                                        String.format("%s%d Gold", ChatColor.GREEN, gunShopData.getRefillCost());
                                 break;
                             }
                         }
@@ -106,14 +97,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         }
 
         if (firstHologramLine == null) {
-            firstHologramLine = ImmutablePair.of(
-                    MessageKey.BUY_GUN.getKey(),
-                    new String[]{ localizationManager.getLocalizedMessageFor(player, gunName) }
-                    );
-            secondHologramLine = ImmutablePair.of(
-                    MessageKey.COST.getKey(),
-                    new String[]{ String.valueOf(gunShopData.getCost()) }
-            );
+            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunName);
+            secondHologramLine = String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getCost());
         }
 
         Hologram hologram = getHologram();
