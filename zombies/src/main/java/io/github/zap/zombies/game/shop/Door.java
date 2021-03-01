@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
@@ -37,7 +36,7 @@ public class Door extends Shop<DoorData> {
                     2
             );
             while (hologram.getHologramLines().size() < 2) {
-                hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+                hologram.addLine("");
             }
 
             doorSideHologramMap.put(doorSide, hologram);

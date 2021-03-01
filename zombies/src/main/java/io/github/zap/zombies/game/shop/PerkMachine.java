@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PerkMachineData;
@@ -30,7 +29,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            hologram.addLine("");
         }
         super.display();
     }

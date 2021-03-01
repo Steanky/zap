@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
@@ -22,10 +21,10 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+            hologram.addLine("");
         }
 
-        hologram.updateLineForEveryone(0, MessageKey.POWER_SWITCH.getKey());
+        hologram.updateLineForEveryone(0, ChatColor.GOLD + "Power Switch");
         hologram.updateLineForEveryone(1,
                 isPowered()
                         ? ChatColor.GREEN + "Active"

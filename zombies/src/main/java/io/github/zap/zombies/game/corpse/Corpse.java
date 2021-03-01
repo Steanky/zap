@@ -8,7 +8,6 @@ import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -70,11 +69,11 @@ public class Corpse {
                 new Hologram(location.clone().add(0, 2, 0));
         this.deathTime = defaultDeathTime;
 
-        hologram.addLine(MessageKey.CORPSE_LINE.getKey());
-        hologram.addLine(MessageKey.DYING_MESSAGE.getKey());
+        hologram.addLine("----------------------------------");
+        hologram.addLine(ChatColor.RED + "help this noob");
 
         hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
-        hologram.addLine(MessageKey.CORPSE_LINE.getKey());
+        hologram.addLine("----------------------------------");
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
         zombiesArena.getCorpses().add(this);
@@ -103,7 +102,7 @@ public class Corpse {
             }
 
             this.reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
-            hologram.updateLine(1, MessageKey.REVIVING_MESSAGE.getKey());
+            hologram.updateLine(1, ChatColor.RED + "Reviving...");
         }
 
         this.reviver = reviver;
@@ -123,7 +122,7 @@ public class Corpse {
     }
 
     private void startDying() {
-        hologram.updateLine(1, MessageKey.DYING_MESSAGE.getKey());
+        hologram.updateLine(1, "help this noob");
 
         deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                 Zombies.getInstance(),

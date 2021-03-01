@@ -8,7 +8,6 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -87,7 +86,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         if (enable) {
             hologram = new Hologram(chestLocation.clone().add(0, 0.5, 0));
             while (hologram.getHologramLines().size() < 2) {
-                hologram.addLine(MessageKey.PLACEHOLDER.getKey());
+                hologram.addLine("");
             }
 
             active = true;
@@ -114,7 +113,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         if (hologram != null) {
             LuckyChestData luckyChestData = getShopData();
 
-            hologram.updateLineForEveryone(0, MessageKey.LUCKY_CHEST.getKey());
+            hologram.updateLineForEveryone(0, ChatColor.GOLD + "Lucky Chest");
             hologram.updateLineForEveryone(1,
                     luckyChestData.isRequiresPower() && !isPowered()
                             ? ChatColor.GRAY + "Requires Power!"
@@ -293,7 +292,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
             gunName = new Hologram(chestLocation.clone(), 1);
-            gunName.addLine(MessageKey.PLACEHOLDER.getKey());
+            gunName.addLine("");
 
             PacketContainer packetContainer = getChestPacket();
             for (Player player : chestLocation.getWorld().getPlayers()) {
@@ -320,7 +319,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     chestLocation.clone().add(0, 0.25, 0),
                     1
             );
-            rightClickToClaim.addLine(MessageKey.RIGHT_CLICK_TO_CLAIM.getKey());
+            rightClickToClaim.addLine("Right Click to Claim");
 
             collectable = true;
             sittingTaskId = new BukkitRunnable() {
