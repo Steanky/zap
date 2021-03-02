@@ -185,6 +185,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         } else {
             zombiesPlayer.subtractCoins(getShopData().getCost());
             gunObjectGroup.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
+                    getZombiesArena(),
                     zombiesPlayer,
                     slot,
                     getZombiesArena().getMap().getMapNameKey(),

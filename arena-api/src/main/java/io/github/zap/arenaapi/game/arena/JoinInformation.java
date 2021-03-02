@@ -3,9 +3,7 @@ package io.github.zap.arenaapi.game.arena;
 import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.Metadata;
 import lombok.Value;
-import org.bukkit.entity.Player;
 
-import java.util.Set;
 import java.util.UUID;
 
 /**

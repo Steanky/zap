@@ -1,21 +1,16 @@
 package io.github.zap.zombies.proxy;
 
-import com.google.common.collect.ImmutableSet;
-import io.github.zap.arenaapi.util.ListUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import lombok.RequiredArgsConstructor;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class NavigationProxy_v1_16_R3 implements NavigationProxy {

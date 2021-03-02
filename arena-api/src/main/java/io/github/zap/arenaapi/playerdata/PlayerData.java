@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.playerdata;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Date;
-import java.util.Locale;
 import java.util.UUID;
 
 public interface PlayerData {

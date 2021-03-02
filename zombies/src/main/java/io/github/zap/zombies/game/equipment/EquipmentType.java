@@ -10,5 +10,8 @@ public enum EquipmentType {
     SKILL,
     PERK,
 
-    LINEAR_GUN
+    LINEAR_GUN,
+    SPRAY_GUN,
+    ZAPPER,
+    GUARDIAN
 }

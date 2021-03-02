@@ -40,6 +40,8 @@ public enum MessageKey {
     TO_RELOAD("zombies.tutorial.reload"),
     TO_SHOOT("zombies.tutorial.shoot"),
 
+    NO_AMMO("zombies.game.shop.gun.ammo.empty"),
+
     BUY_GUN("zombies.game.gun.buy"),
     REFILL_AMMO("zombies.game.gun.ammo"),
 

@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import lombok.Getter;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import java.util.List;
  * Data for a gun
  * @param <L> The gun level type
  */
+@Getter
 public class GunData<L extends GunLevel> extends EquipmentData<L> {
 
     private final transient String unchangedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
@@ -19,14 +20,6 @@ public class GunData<L extends GunLevel> extends EquipmentData<L> {
 
     private final transient String changedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
             + ChatColor.DARK_GRAY + "%s ➔ " + ChatColor.GREEN + "%s";
-
-    public GunData(String type, String name, String displayName, List<String> lore, List<L> levels, Material material) {
-        super(type, name, displayName, material, lore, levels);
-    }
-
-    protected GunData() {
-
-    }
 
     @Override
     public List<String> getLore(Player player, int level) {

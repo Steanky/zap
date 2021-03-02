@@ -91,6 +91,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                     ZombiesArena zombiesArena = getZombiesArena();
                                     hotbarManager.setHotbarObject(slot, zombiesArena.getEquipmentManager()
                                             .createEquipment(
+                                                    zombiesArena,
                                                     zombiesPlayer,
                                                     slot,
                                                     zombiesArena.getMap().getMapNameKey(),

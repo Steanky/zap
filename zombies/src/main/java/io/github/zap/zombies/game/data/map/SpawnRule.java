@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.data.map;
 
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,9 +1,9 @@
 package io.github.zap.zombies.game.equipment;
 
+import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.Getter;
-import org.bukkit.entity.Player;
 
 /**
  * A piece of equipment that can be upgraded
@@ -15,8 +15,8 @@ public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipme
     @Getter
     private int level = 0;
 
-    public UpgradeableEquipment(ZombiesPlayer player, int slot, D equipmentData) {
-        super(player, slot, equipmentData);
+    public UpgradeableEquipment(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
+        super(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
 
     /**
@@ -26,4 +26,8 @@ public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipme
         setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), ++level));
     }
 
+    @Override
+    public L getCurrentLevel() {
+        return getEquipmentData().getLevels().get(level);
+    }
 }

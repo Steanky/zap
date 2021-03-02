@@ -6,7 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @SuppressWarnings("FieldMayBeFinal")
 @AllArgsConstructor
