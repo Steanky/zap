@@ -259,6 +259,8 @@ public class MapData {
      */
     Set<ImmutablePair<String, String>> powerUpSpawnRules = new HashSet<>();
 
+    Set<Integer> disablePowerUpRound = new HashSet<>();
+
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
     private MapData() {}

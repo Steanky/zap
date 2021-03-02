@@ -17,6 +17,7 @@ import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpBossBar;
+import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
@@ -559,10 +560,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
             getPlayerMap().forEach((l,r) -> {
                 var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
-                        currentRound.getCustomMessage() : ChatColor.RED + " " + currentRoundProperty.getValue(this);
+                        currentRound.getCustomMessage() : ChatColor.RED + " " + currentRoundIndex + 1;
                 r.getPlayer().sendTitle(messageTitle, "");
                 r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 0.5f);
             });
+
+            if(getMap().getDisablePowerUpRound().contains(currentRoundIndex + 1)) {
+                getPowerUps().stream()
+                        .filter(x -> x.getState() == PowerUpState.NONE || x.getState() == PowerUpState.DROPPED)
+                        .forEach(PowerUp::deactivate);
+            }
         }
         else {
             //game just finished, do win condition

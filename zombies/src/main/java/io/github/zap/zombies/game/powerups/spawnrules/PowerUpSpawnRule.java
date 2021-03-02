@@ -29,6 +29,12 @@ public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
         this.spawnTargetName = spawnTargetName;
     }
 
+    public boolean isDisabledRound() {
+        var disabledRounds = getArena().getMap().getDisablePowerUpRound();
+        var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena()) + 1;
+        return disabledRounds.contains(currentRound);
+    }
+
     protected void spawn(Location loc) {
         var pu = getArena().getPowerUpManager().createPowerUp(getSpawnTargetName(), getArena());
         pu.spawnItem(loc);

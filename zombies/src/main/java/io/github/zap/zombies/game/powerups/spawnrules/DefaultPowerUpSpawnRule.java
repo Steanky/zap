@@ -40,7 +40,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
         if(isRound) {
             var waveMeta = e.getEntity().getMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME);
             if(waveMeta.size() > 1 && waveMeta.get(0).value() == chosenWave) {
-                if(deathCountUntilDrops == roundDeathCount) {
+                if(deathCountUntilDrops == roundDeathCount && !isDisabledRound()) {
                     spawn(e.getEntity().getLocation());
                 }
 
