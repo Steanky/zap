@@ -18,7 +18,7 @@ public class SkillData extends EquipmentData<SkillLevel> {
 
     public SkillData(String name, String displayName, Material material, List<String> lore, List<SkillLevel> levels,
                      int delay) {
-        super(EquipmentType.SKILL.name(), name, displayName, material, lore, levels);
+        super(EquipmentType.SKILL.name(), name, displayName, lore, levels, material);
 
         this.delay = delay;
     }

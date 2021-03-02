@@ -31,7 +31,7 @@ public abstract class EquipmentData<L> {
 
     private List<L> levels;
 
-    public EquipmentData(String type, String name, String displayName, Material material, List<String> lore, List<L> levels) {
+    public EquipmentData(String type, String name, String displayName, List<String> lore, List<L> levels, Material material) {
         this.type = type;
         this.name = name;
         this.displayName = displayName;

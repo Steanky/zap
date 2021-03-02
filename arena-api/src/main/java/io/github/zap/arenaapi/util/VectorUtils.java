@@ -1,11 +1,6 @@
 package io.github.zap.arenaapi.util;
 
-import io.github.zap.arenaapi.game.MultiBoundingBox;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class VectorUtils {
     private static final Vector UNIT = new Vector(1, 1, 1);

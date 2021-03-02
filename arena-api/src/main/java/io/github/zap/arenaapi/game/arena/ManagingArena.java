@@ -1,10 +1,9 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
-import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
-import io.github.zap.arenaapi.event.Event;
 import lombok.Getter;
 import lombok.Value;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -79,7 +78,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private class AdaptedPlayerEvent<U extends PlayerEvent> extends MappingEvent<U, ProxyArgs<U>> {
         public AdaptedPlayerEvent(Class<U> bukkitEventClass) {
             super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
-                    true), event -> {
+                    false), event -> {
                 S managedPlayer = playerMap.get(event.getPlayer().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
@@ -98,7 +97,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private class AdaptedInventoryEvent<U extends InventoryEvent> extends MappingEvent<U, ManagedInventoryEventArgs<U>> {
         public AdaptedInventoryEvent(Class<U> bukkitEventClass) {
             super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
-                    true), event -> {
+                    false), event -> {
                 List<HumanEntity> viewers = event.getViewers();
                 List<S> managedViewers = new ArrayList<>();
 
@@ -119,14 +118,25 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         }
     }
 
-    /**
-     * This class is necessary because PlayerDeathEvent does not extent PlayerEvent for reasons that escape me. Yet
-     * another anime betrayal.
-     */
     private class AdaptedEntityEvent<U extends EntityEvent> extends MappingEvent<U, ProxyArgs<U>> {
         public AdaptedEntityEvent(Class<U> eventClass) {
             super(new ProxyEvent<>(plugin, ManagingArena.this, eventClass,
-                    EventPriority.NORMAL, true), event -> {
+                    EventPriority.NORMAL, false), event -> {
+                S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
+
+                if(managedPlayer != null && managedPlayer.isInGame()) {
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
+                }
+
+                return ImmutablePair.of(false, null);
+            });
+        }
+    }
+
+    private class AdaptedPlayerDeathEvent extends MappingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
+        public AdaptedPlayerDeathEvent() {
+            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
+                    EventPriority.NORMAL, false), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
@@ -154,11 +164,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      */
     private final Event<ArenaEventArgs<T,S>> onDisposing = new Event<>();
 
-
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
     //more will be added as needed
     private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent;
     private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent;
+    private final Event<ProxyArgs<PlayerAnimationEvent>> playerAnimationEvent;
     private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent;
     private final Event<ProxyArgs<EntityDamageEvent>> playerDamageEvent;
     private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent;
@@ -179,9 +189,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
         playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
         playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
+        playerAnimationEvent = new AdaptedPlayerEvent<>(PlayerAnimationEvent.class);
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
         playerDamageEvent = new AdaptedEntityEvent<>(EntityDamageEvent.class);
-        playerDeathEvent = new AdaptedEntityEvent<>(PlayerDeathEvent.class);
+        playerDeathEvent = new AdaptedPlayerDeathEvent();
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
         playerItemConsumeEvent = new AdaptedPlayerEvent<>(PlayerItemConsumeEvent.class);

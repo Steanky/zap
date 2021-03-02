@@ -94,7 +94,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {
-                hotbarManager.setHotbarObject(slot, equipmentManager.createEquipment(this, slot, equipmentData));
+                hotbarManager.setHotbarObject(
+                        slot,
+                        equipmentManager.createEquipment(arena, this, slot, equipmentData)
+                );
             }
         }
 
@@ -126,17 +129,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Override
     public void dispose() {
         perks.dispose();
+
+        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+        Bukkit.getScheduler().cancelTask(reviveTaskId);
     }
 
     public void addCoins(int amount) {
         if(amount > 0) {
-            getPlayer().sendMessage(String.format("+%d Gold", amount));
+            getPlayer().sendMessage(String.format("%s+%d Gold", ChatColor.GOLD, amount));
             coins += amount;
         }
     }
 
     public void subtractCoins(int amount) {
-        getPlayer().sendMessage(String.format("-%d Gold", amount));
+        getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
         coins -= amount;
     }
 
@@ -265,6 +271,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.ALIVE;
             getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
         }
+    }
+
+    /**
+     * Increments the player's kill counter
+     */
+    public void incrementKills() {
+        kills++;
     }
 
     /**

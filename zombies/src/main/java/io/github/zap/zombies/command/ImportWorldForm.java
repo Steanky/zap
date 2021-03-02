@@ -4,8 +4,6 @@ import com.grinderwolf.swm.api.exceptions.InvalidWorldException;
 import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
 import com.grinderwolf.swm.api.exceptions.WorldLoadedException;
 import com.grinderwolf.swm.api.exceptions.WorldTooBigException;
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
-import com.grinderwolf.swm.plugin.SWMPlugin;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
@@ -15,7 +13,6 @@ import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.zombies.Zombies;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.World;
 
 import java.io.File;

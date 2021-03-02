@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.equipment.perk;
 
+import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
-import io.github.zap.arenaapi.hotbar.HotbarObject;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
