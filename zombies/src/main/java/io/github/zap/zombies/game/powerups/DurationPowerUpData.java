@@ -1,13 +1,14 @@
 package io.github.zap.zombies.game.powerups;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 
+@Getter
+@Setter
 public class DurationPowerUpData extends PowerUpData {
-    @Getter
-    int duration = 6000;
+    int duration = 600; // In ticks
 
-    @Getter
-    BarColor bossBarColor;
+    BarColor bossBarColor = BarColor.WHITE;
 }

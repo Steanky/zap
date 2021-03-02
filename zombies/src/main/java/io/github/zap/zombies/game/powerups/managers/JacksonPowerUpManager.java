@@ -25,7 +25,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     private final FieldTypeDeserializer<PowerUpData> powerUpDataDeserializer = new FieldTypeDeserializer<>("type");
     private final FieldTypeDeserializer<SpawnRuleData> spawnRuleDataFieldTypeDeserializer = new FieldTypeDeserializer<>("type");
     private final Map<String, PowerUpData> dataMap = new HashMap<>();
-    private final Map<String, ImmutablePair<BiFunction<ZombiesArena, PowerUpData, PowerUp>, Class<? extends PowerUpData>>> typeMap = new HashMap<>();
+    private final Map<String, ImmutablePair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> typeMap = new HashMap<>();
     private final Map<String, SpawnRuleData> spawnRuleDataMap = new HashMap<>();
     private final Map<String, ImmutablePair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> spawnRuleTypeMap = new HashMap<>();
 
@@ -118,13 +118,13 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     }
 
     @Override
-    public Set<ImmutablePair<BiFunction<ZombiesArena, PowerUpData, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers() {
+    public Set<ImmutablePair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers() {
         ensureLoad();
         return new HashSet<>(typeMap.values());
     }
 
     @Override
-    public void registerPowerUp(String name, BiFunction<ZombiesArena, PowerUpData, PowerUp> powerUpsInitializer, Class<? extends PowerUpData> dataClass) {
+    public void registerPowerUp(String name, BiFunction<PowerUpData,ZombiesArena, PowerUp> powerUpsInitializer, Class<? extends PowerUpData> dataClass) {
         ensureLoad();
         Validate.isTrue(!typeMap.containsKey(name), name + " is already exist!");
         typeMap.put(name, ImmutablePair.of(powerUpsInitializer, dataClass));
@@ -132,7 +132,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
     @Override
     public void registerPowerUp(String name, Class<? extends PowerUp> classType) {
-        BiFunction<ZombiesArena, PowerUpData, PowerUp> initializer = null;
+        BiFunction<PowerUpData,ZombiesArena, PowerUp> initializer = null;
         Class<? extends PowerUpData> dataClass = null;
 
         if(!typeMap.containsKey(name)) {
@@ -247,7 +247,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
         ensureLoad();
         Validate.isTrue(dataMap.containsKey(name), name + " power up does not exist");
         var data = dataMap.get(name);
-        return typeMap.get(data.getPowerUpType()).left.apply(arena, data);
+        return typeMap.get(data.getPowerUpType()).left.apply(data, arena);
     }
 
     @Override
@@ -266,6 +266,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
             // There is no way to retrieve class from package easily so I gonna manually do it
             registerPowerUp(MaxAmmoPowerUp.class);
+            registerPowerUp(DurationPowerUp.class);
 
             //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
@@ -288,8 +289,22 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     }
 
     private void createTest() {
-        var maxAmmoData = new PowerUpData(PowerUpDataType.BASIC.getName(), "Max Ammo", "Max Ammo", ChatColor.BLUE + "Max Ammo", Material.ARROW);
+        var maxAmmoData = new PowerUpData();
+        maxAmmoData.setName("MaxAmmo");
+        maxAmmoData.setPowerUpType("Max Ammo");
+        maxAmmoData.setDisplayName(ChatColor.BLUE + "Max Ammo");
+        maxAmmoData.setItemRepresentation(Material.ARROW);
+
         addPowerUpData(maxAmmoData);
+
+        var instaKillData = new DurationPowerUpData();
+        instaKillData.setName("InstaKill");
+        instaKillData.setPowerUpType("Duration");
+        instaKillData.setDisplayName(ChatColor.RED + "Insta Kill");
+        instaKillData.setItemRepresentation(Material.SKELETON_SKULL);
+        instaKillData.setDuration(600);
+
+        addPowerUpData(instaKillData);
 
         var pattern = new HashSet<Integer>();
         pattern.add(1);

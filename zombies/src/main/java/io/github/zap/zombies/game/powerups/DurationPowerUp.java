@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+@PowerUpType(getName = "Duration")
 public class DurationPowerUp extends PowerUp {
     @Getter
     private long estimatedEndTimeStamp;

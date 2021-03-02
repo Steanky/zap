@@ -2,10 +2,19 @@ package io.github.zap.zombies.proxy;
 
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
+import io.github.zap.zombies.Zombies;
+import lombok.SneakyThrows;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftItem;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMob;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements ZombiesNMSProxy {
     @Override

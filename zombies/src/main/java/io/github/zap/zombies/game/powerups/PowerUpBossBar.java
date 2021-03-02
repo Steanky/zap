@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 public class PowerUpBossBar extends BukkitRunnable implements Disposable, CommandExecutor {
     final BossBar bukkitBossBar;
@@ -36,9 +37,10 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable, Comman
         this.arena = arena;
         bukkitBossBar = Bukkit.createBossBar("", BarColor.BLUE, BarStyle.SOLID);
         updateTask = runTaskTimer(Zombies.getInstance(), 0, refreshRate);
-        formatter = new DecimalFormat("##.##");
+        formatter = new DecimalFormat("##.#");
         arena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         arena.getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
+        bukkitBossBar.setVisible(false);
 
         Zombies.getInstance().getCommand("pu").setExecutor(this);
     }
@@ -54,23 +56,30 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable, Comman
     @Override
     public void run() {
         var longest = findLongest();
+        if(longest == null) {
+            bukkitBossBar.setVisible(false);
+            return;
+        }
+
+
         var items = arena.getPowerUps().stream()
-                .filter(x -> x instanceof DurationPowerUp);
+                .filter(x -> x instanceof DurationPowerUp && x.getState() == PowerUpState.ACTIVATED)
+                .collect(Collectors.toSet());
 
         StringBuilder sb = new StringBuilder();
         sb.append(longest.getData().getDisplayName());
-        items.limit(3).forEach(x -> sb.append(ChatColor.GRAY + ", ").append(x.getData().getDisplayName()));
-        if(items.count() > 3) {
+        items.stream().skip(1).limit(3).forEach(x -> sb.append(ChatColor.RESET).append(ChatColor.GRAY + ", ").append(x.getData().getDisplayName()));
+        if(items.size() > 3) {
             sb.append(ChatColor.DARK_GRAY + "...");
         }
-        var ticks = (longest.getEstimatedEndTimeStamp() - System.currentTimeMillis());
-        sb.append(" " + ChatColor.GRAY + " - ").append(formatter.format(ticks / 20f)).append("seconds");
+        var millis = (longest.getEstimatedEndTimeStamp() - System.currentTimeMillis());
+        sb.append(" " + ChatColor.GRAY + " - ").append(formatter.format(millis / 1000f)).append("seconds");
 
-        if(items.anyMatch(x -> true)) {
+        if(items.size() > 0)  {
             if(!bukkitBossBar.isVisible()) bukkitBossBar.setVisible(true);
             bukkitBossBar.setTitle(sb.toString());
             bukkitBossBar.setColor(((DurationPowerUpData)longest.getData()).getBossBarColor());
-            bukkitBossBar.setProgress(ticks / (float)((DurationPowerUpData)longest.getData()).getDuration());
+            bukkitBossBar.setProgress(millis / 50f / (float)((DurationPowerUpData)longest.getData()).getDuration());
         } else {
             bukkitBossBar.setVisible(false);
         }
@@ -80,12 +89,13 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable, Comman
         DurationPowerUp longest = null;
 
         for(var item : arena.getPowerUps()) {
-            var current = (DurationPowerUp)item;
-            if(longest == null || current.getEstimatedEndTimeStamp() > longest.getEstimatedEndTimeStamp()) {
-                longest = current;
+            if(item instanceof DurationPowerUp && item.getState() == PowerUpState.ACTIVATED) {
+                var current = (DurationPowerUp)item;
+                if(longest == null || current.getEstimatedEndTimeStamp() > longest.getEstimatedEndTimeStamp()) {
+                    longest = current;
+                }
             }
         }
-
         return longest;
     }
 

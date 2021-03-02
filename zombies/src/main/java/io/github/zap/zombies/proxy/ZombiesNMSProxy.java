@@ -2,6 +2,9 @@ package io.github.zap.zombies.proxy;
 
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import io.github.zap.arenaapi.proxy.NMSProxy;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 

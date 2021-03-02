@@ -98,6 +98,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         private List<ActiveMob> spawnMobInternal(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
             List<SpawnpointData> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
+            List<ActiveMob> spawnedEntites = new ArrayList<>();
 
             if(spawnpoints.size() == 0) {
                 Zombies.warning("There are no available spawnpoints for this mob set. This likely indicates an error " +
@@ -279,7 +280,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private Event<PowerUpChangedEventArgs> powerUpChangedEvent = new Event<>();
 
     @Getter
-    private PowerUpBossBar powerUpBossBar = new PowerUpBossBar(this, 10);
+    private PowerUpBossBar powerUpBossBar = new PowerUpBossBar(this, 5);
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.

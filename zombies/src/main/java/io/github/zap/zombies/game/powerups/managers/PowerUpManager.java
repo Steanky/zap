@@ -21,8 +21,8 @@ public interface PowerUpManager {
     void addSpawnRuleData(SpawnRuleData spawnRuleData);
     void removeSpawnRuleData(String name);
 
-    Set<ImmutablePair<BiFunction<ZombiesArena, PowerUpData, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers();
-    void registerPowerUp(String name, BiFunction<ZombiesArena, PowerUpData, PowerUp> powerUpsInitializer, Class<? extends PowerUpData> dataClass);
+    Set<ImmutablePair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers();
+    void registerPowerUp(String name, BiFunction<PowerUpData,ZombiesArena, PowerUp> powerUpsInitializer, Class<? extends PowerUpData> dataClass);
     void registerPowerUp(String name, Class<? extends PowerUp> classType);
     void registerPowerUp(Class<? extends PowerUp> classType);
     void unregisterPowerUp(String name);

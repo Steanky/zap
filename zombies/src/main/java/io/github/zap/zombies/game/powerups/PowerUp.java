@@ -10,13 +10,18 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.util.Collections;
 
 public abstract class PowerUp {
+    public static float ITEM_SPIN_ANGULAR_VELOCITY = 180; // deg/s
+
     @Getter
     private final PowerUpData data;
 
@@ -38,11 +43,11 @@ public abstract class PowerUp {
     private Location powerUpItemLocation;
     private BukkitTask checkForDistTask;
 
-    protected ArmorStand asItem;
+    protected Item itemEntity;
     protected ArmorStand asName;
 
     public PowerUp(PowerUpData data, ZombiesArena arena) {
-        this(data, arena, 10);
+        this(data, arena, 1);
     }
 
     public PowerUp(PowerUpData data, ZombiesArena arena, int refreshRate) {
@@ -57,12 +62,19 @@ public abstract class PowerUp {
 
         state = PowerUpState.DROPPED;
         removePowerUpItem();
-        asItem = createArmourStand(location);
-        //noinspection ConstantConditions
-        asItem.getEquipment().setHelmet(new ItemStack(getData().getItemRepresentation()), true);
-        asName = createArmourStand(location.add(0, 1.25, 0));
-        asName.setCustomName(data.getDisplayName());
-        asName.setCustomNameVisible(true);
+        itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
+        itemEntity.setItemStack(new ItemStack(getData().getItemRepresentation(), 1));
+        itemEntity.setCustomName(getData().getDisplayName());
+        itemEntity.setCustomNameVisible(true);
+        itemEntity.setWillAge(false);
+        itemEntity.setCanPlayerPickup(false);
+        itemEntity.setVelocity(new Vector());
+        itemEntity.setGravity(false);
+        itemEntity.setInvulnerable(true);
+        itemEntity.setSilent(true);
+
+        asName = createArmourStand(location);
+        asName.addPassenger(itemEntity);
 
         // Check distance & time-out
         powerUpItemLocation = location;
@@ -70,12 +82,28 @@ public abstract class PowerUp {
             @Override
             public void run() {
                 MutableBoolean isPickedUp = new MutableBoolean(false);
+                // Check for despawn timer
+                if((System.currentTimeMillis() - spawnedTimeStamp) / 50 > getData().getDespawnDuration()) {
+                    deactivate();
+                    checkForDistTask.cancel();
+                }
 
                 getArena().getPlayerMap().forEach((l,r) -> {
-                    var dist = r.getPlayer().getLocation().distance(powerUpItemLocation);
+                    var itemBox = new BoundingBox(
+                            powerUpItemLocation.getX(),
+                            powerUpItemLocation.getY(),
+                            powerUpItemLocation.getZ(),
+                            powerUpItemLocation.getX(),
+                            powerUpItemLocation.getY(),
+                            powerUpItemLocation.getZ()).expand(getData().getPickupRange());
+
+                    var collide = r.getPlayer().getBoundingBox().overlaps(itemBox);
+                    itemEntity.setCustomName(getData().getDisplayName());
                     var pickupDist = getData().getPickupRange();
-                    if(dist <= pickupDist && !(boolean)isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
+                    if(collide && !(boolean)isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
                         if(!checkForDistTask.isCancelled()) checkForDistTask.cancel();
+                        var sameType = getSamePowerUp();
+                        if(sameType != null) sameType.deactivate();
                         isPickedUp.setValue(true);
                         removePowerUpItem();
                         var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ACTIVATED, Collections.singleton(getCurrent()));
@@ -85,6 +113,7 @@ public abstract class PowerUp {
                             player.getPlayer().sendMessage(ChatColor.YELLOW +  r.getPlayer().getName() + " activated " + getData().getDisplayName());
                             player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
                         });
+
                         state = PowerUpState.ACTIVATED;
                         activatedTimeStamp = System.currentTimeMillis();
                         activate();
@@ -94,9 +123,18 @@ public abstract class PowerUp {
         }.runTaskTimer(Zombies.getInstance(), 0, getRefreshRate());
     }
 
+    public PowerUp getSamePowerUp() {
+        var sameType = getArena().getPowerUps().stream()
+                .filter(x -> x.getState() == PowerUpState.ACTIVATED &&
+                             x.getData().getName().equals(getData().getName()) &&
+                             x != this)
+                .findFirst();
+        return sameType.orElse(null);
+    }
+
     public void removePowerUpItem() {
-        if(asItem != null) {
-            asItem.remove();
+        if(itemEntity != null) {
+            itemEntity.remove();
         }
 
         if (asName != null) {
