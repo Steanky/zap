@@ -17,7 +17,7 @@
         <commons-lang3.version>3.11</commons-lang3.version>
         <protocollib.version>4.6.0</protocollib.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <serverDir>run/server-1</serverDir>
+        <serverDir>../run/server-1</serverDir>
     </properties>
 
     <modules>

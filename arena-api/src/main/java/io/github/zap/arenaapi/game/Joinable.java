@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.game;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Interface for classes containing players (parties, etc)

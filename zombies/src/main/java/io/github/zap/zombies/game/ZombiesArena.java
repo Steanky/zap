@@ -15,6 +15,8 @@ import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.LuckyChest;
 import io.github.zap.zombies.game.shop.Shop;
@@ -34,7 +36,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
@@ -266,14 +268,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 MythicMobDeathEvent.class);
         Event<MythicMobDespawnEvent> mythicMobDespawnEvent = new ProxyEvent<>(Zombies.getInstance(), this,
                 MythicMobDespawnEvent.class);
+
         mythicMobDeathEvent.registerHandler(this::onMobDeath);
         mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
 
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
+        getPlayerDamageEvent().registerHandler(this::onPlayerDamage);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
+        getPlayerAnimationEvent().registerHandler(this::onPlayerAnimation);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
@@ -286,6 +291,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         createTeamPacketContainer.getStrings()
                 .write(1, "never")
                 .write(2, "never");
+
+        Zombies.getInstance().getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
     @Override
@@ -376,13 +383,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onMobDeath(MythicMobDeathEvent args) {
-        if (mobs.remove(args.getEntity().getUniqueId()) && mobs.size() == 0 && state == ZombiesArenaState.STARTED) { //round ended, begin next one
-            doRound();
+        if(mobs.remove(args.getEntity().getUniqueId())) {
+            if(mobs.size() == 0 && state == ZombiesArenaState.STARTED){
+                doRound();
+            }
         }
     }
 
     private void onMobDespawn(MythicMobDespawnEvent args) {
         onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
+    }
+
+    private void onPlayerDamage(ProxyArgs<EntityDamageEvent> args) {
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+        if (!managedPlayer.isAlive()) {
+            args.getEvent().setCancelled(true);
+        }
     }
 
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
@@ -401,6 +417,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
+        Zombies.info("PlayerInteract called for EventAPI");
+
         PlayerInteractEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
 
@@ -419,6 +437,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    @org.bukkit.event.EventHandler
+    private void onPlayerInteract(PlayerInteractEvent args) {
+        Zombies.info("PlayerInteract called for Bukkit");
+    }
+
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
         PlayerInteractAtEntityEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
@@ -434,6 +457,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if (noPurchases) {
                 player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
             }
+        }
+    }
+
+    private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
+        PlayerAnimationEvent event = args.getEvent();
+        ZombiesPlayer player = args.getManagedPlayer();
+
+        // why does Bukkit only have one animation type?
+        if (event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
+            player.getHotbarManager().click(Action.LEFT_CLICK_BLOCK);
         }
     }
 
@@ -475,7 +508,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
-        event.setFoodLevel(20);
     }
 
     public void startGame() {
@@ -483,6 +515,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         startTimeStamp = System.currentTimeMillis();
         doRound();
         state = ZombiesArenaState.STARTED;
+
+        for (ZombiesPlayer player : getPlayerMap().values()) {
+            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
+                    player.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+            int slot = equipmentObjectGroup.getNextEmptySlot();
+            equipmentObjectGroup.setHotbarObject(slot, equipmentManager.createEquipment(this, player, slot, "test", "pistol"));
+        }
     }
 
     private void doRound() {
@@ -564,7 +603,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         waitAndDispose(200);
     }
 
-
     /**
      * Attempts to break the given window.
      */
@@ -581,10 +619,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Location centerLocation = new Location(world, center.getX(), center.getY(), center.getZ());
 
             if(i > 0) {
-                world.playSound(centerLocation, targetWindow.getBlockBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                world.playSound(centerLocation, targetWindow.getBlockBreakSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
             }
             else {
-                world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
             }
         }
     }

@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.scoreboards;
 
 import io.github.zap.zombies.game.ZombiesArenaState;
-import java.util.Optional;
 
 public interface GameScoreboardState {
     /**

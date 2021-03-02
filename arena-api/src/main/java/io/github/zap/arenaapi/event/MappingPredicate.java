@@ -12,6 +12,8 @@ public interface MappingPredicate<T, U> {
      * Maps the provided input, validating it first. If the input is invalid, the first parameter of the returned
      * pair will be false and the second will be null. If the input is valid, it will return true and the value will be
      * non-null.
+     *
+     * Generally speaking, this function should not attempt to modify the internal state of its input object.
      * @param input The input value
      */
     Pair<Boolean, U> tryMap(T input);

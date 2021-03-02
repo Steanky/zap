@@ -1,86 +1,86 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
-import org.bukkit.FluidCollisionMode;
+import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
+import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.util.ParticleDataWrapper;
+import lombok.Getter;
+import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Sends lines of particles from guns
  */
-public class LinearBeam {
+@Getter
+public class LinearBeam extends BasicBeam {
 
-    private final double distance;
-    private final List<Entity> hitEntities = new ArrayList<>();
+    public final static int DEFAULT_PARTICLE_COUNT = 50; // TODO: check
 
-    private final World world;
-    private final Vector particleVector;
-    private final Vector directionVector;
-    private final int maxHitEntities;
     private final Particle particle;
+    private final ParticleDataWrapper<?> particleDataWrapper;
+    private final int particleCount;
 
-    public LinearBeam(World world, Particle particle, Vector eyeLocation, Vector directionVector,
-                      Vector targetBlockVector, int maxHitEntities) {
-        this.distance = eyeLocation.distance(targetBlockVector);
 
-        this.world = world;
+    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, LinearGunLevel level,
+                      Particle particle, ParticleDataWrapper<?> particleDataWrapper, int particleCount) {
+        super(mapData, zombiesPlayer, root, level);
+
         this.particle = particle;
-        this.particleVector = eyeLocation.clone();
-        this.directionVector = directionVector.clone();
-        this.maxHitEntities = maxHitEntities;
+        this.particleDataWrapper = particleDataWrapper;
+        this.particleCount = particleCount;
+    }
+
+    public LinearBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, LinearGunLevel level,
+                      Particle particle, ParticleDataWrapper<?> particleDataWrapper) {
+        this(mapData, zombiesPlayer, root, level, particle, particleDataWrapper, DEFAULT_PARTICLE_COUNT);
     }
 
     /**
-     * Sends the line of particles
+     * Sends the bullet
      */
     public void send() {
-        final int particleCount = (int) Math.floor(distance);
-
-        for (int i = 0; i < particleCount; i++) {
-            if (hitEntities.size() == maxHitEntities) {
-                break;
-            } else {
-                world.spawnParticle(particle, particleVector.getX(), particleVector.getY(), particleVector.getZ(),
-                        0, 0, 0, 0);
-                findEntitiesInLineOfSight();
-                particleVector.add(directionVector);
-            }
-        }
-
-        for (Entity entity : hitEntities) {
-            damageEntity(entity);
-        }
+        super.send();
+        spawnParticles();
     }
 
     /**
-     * Gets all entities within the shooting player's line of sight
+     * Spawns the bullet's particles in a line
      */
-    private void findEntitiesInLineOfSight() {
-        for (Entity entity : world.getNearbyEntities(particleVector.toLocation(world), 1, 1 , 1)) {
-            if (entity instanceof Mob) { //TODO: Change requirement
-                final BoundingBox boundingBox = entity.getBoundingBox();
+    private void spawnParticles() {
+        World world = getWorld();
+        Location rootLocation = getRoot().toLocation(world);
 
-                if (boundingBox.rayTrace(particleVector, directionVector.clone().normalize(), 1) != null
-                        && hitEntities.size() < maxHitEntities) {
-                    hitEntities.add(entity);
-                    // TODO: Damaging the entities
-                }
+        if (particleDataWrapper != null) {
+            for (int i = 0; i < particleCount; i++) {
+                world.spawnParticle(
+                        particle,
+                        rootLocation,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        particleDataWrapper.getData()
+                );
+                rootLocation.add(getDirectionVector());
+            }
+        } else {
+            for (int i = 0; i < particleCount; i++) {
+                world.spawnParticle(
+                        particle,
+                        rootLocation,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0
+                );
+                rootLocation.add(getDirectionVector());
             }
         }
 
+
     }
 
-    /**
-     * Damages an actual entity
-     * @param entity The entity to damage
-     */
-    private void damageEntity(Entity entity) {
-        // TODO: Damaging the entities
-    }
 }

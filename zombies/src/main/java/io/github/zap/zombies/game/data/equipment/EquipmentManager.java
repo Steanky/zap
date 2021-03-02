@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.equipment;
 
+import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
@@ -25,7 +26,7 @@ public interface EquipmentManager {
 
     /**
      * Gets a piece of equipment data
-     * @param mapName
+     * @param mapName The name of the map the equipment will be used in
      * @param name The name that the equipment data belongs to
      * @return The equipment data
      */
@@ -35,16 +36,19 @@ public interface EquipmentManager {
      * Creates a piece of equipment
      * @param <D> The type of the data used for the equipment
      * @param <L> The type of the levels used for the equipment
+     * @param zombiesArena The zombies arena to create the equipment in
      * @param player The player to create the equipment for
      * @param slot The slot the equipment will go in
-     * @param mapName
+     * @param mapName The name of the map the equipment will be used in
      * @param name The name key of the equipment
      * @return The new piece of equipment
      */
-    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesPlayer player, int slot, String mapName, String name);
+    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena, ZombiesPlayer player,
+                                                                    int slot, String mapName, String name);
 
     /**
      * Creates a piece of equipment
+     * @param zombiesArena The zombies arena to create the equipment in
      * @param player The player to create the equipment for
      * @param slot The slot the equipment will go in
      * @param equipmentData The equipment data to create the equipment with
@@ -52,7 +56,8 @@ public interface EquipmentManager {
      * @param <L> The type of the levels used for the equipment
      * @return The new piece of equipment
      */
-    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesPlayer player, int slot, D equipmentData);
+    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena, ZombiesPlayer player,
+                                                                    int slot, D equipmentData);
 
     /**
      * Creates an equipment object group based on its equipment type

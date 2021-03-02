@@ -95,9 +95,9 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
     @Override
     public void tick() {
         EntityLiving target = nmsEntity.getGoalTarget();
+        nmsEntity.getControllerLook().a(target, 30.0F, 30.0F);
 
         if(++pathfindTimer == 20) {
-            nmsEntity.getControllerLook().a(target, 30.0F, 30.0F);
             ai().navigateToLocation(entity, BukkitAdapter.adapt(targetPlayer.getPlayer().getLocation()), 0);
             pathfindTimer = 0;
         }
@@ -119,14 +119,14 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
     }
 
     private void tryAttack(EntityLiving target, double distance) {
-        if (distance <= boundsWidth(target) && attackTimer <= 0) {
+        if (distance <= attackDistance(target) && attackTimer <= 0) {
             resetAttackTimer();
             nmsEntity.swingHand(EnumHand.MAIN_HAND);
             nmsEntity.attackEntity(target);
         }
     }
 
-    private double boundsWidth(EntityLiving target) {
+    private double attackDistance(EntityLiving target) {
         return (nmsEntity.getWidth() * attackReach * nmsEntity.getWidth() * attackReach + target.getWidth());
     }
 

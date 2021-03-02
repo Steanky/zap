@@ -2,11 +2,8 @@ package io.github.zap.zombies.proxy;
 
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMob;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.entity.Creature;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 

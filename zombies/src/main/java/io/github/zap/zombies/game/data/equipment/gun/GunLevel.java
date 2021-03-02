@@ -1,24 +1,35 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 
 /**
  * A level of a gun that contains all of its numerical statistics
  */
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 public class GunLevel  {
 
-    private float damage;
+    int range;
 
-    private int ammo;
+    float damage;
 
-    private int clipAmmo;
+    double knockbackFactor;
 
-    private float fireRate;
+    int ammo;
 
-    private float reloadRate;
+    int clipAmmo;
+
+    int fireRate;
+
+    int reloadRate;
+
+    int goldPerShot;
+
+    int goldPerHeadshot;
 
     protected GunLevel() {
 

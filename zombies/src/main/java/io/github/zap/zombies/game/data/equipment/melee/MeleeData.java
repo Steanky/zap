@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class MeleeData extends EquipmentData<MeleeLevel> {
     public MeleeData(String name, String displayName, Material material, List<String> lore, List<MeleeLevel> levels) {
-        super(EquipmentType.MELEE.name(), name, displayName, material, lore, levels);
+        super(EquipmentType.MELEE.name(), name, displayName, lore, levels, material);
     }
     private MeleeData() {
 

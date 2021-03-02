@@ -18,8 +18,8 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.mob.goal.MeleeAttack;
 import io.github.zap.zombies.game.mob.goal.BreakWindow;
+import io.github.zap.zombies.game.mob.goal.MeleeAttack;
 import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
@@ -40,7 +40,6 @@ import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
@@ -355,17 +354,6 @@ public final class Zombies extends JavaPlugin implements Listener {
     /*
     Public static utility functions below
      */
-
-    /**
-     * Sends a localized message to the specific player. The message displayed will be in whatever language the
-     * player has chosen.
-     * @param player The player we are sending the message to
-     * @param key The MessageKey of the message we are sending
-     * @param formatArgs Format arguments for the message, which may be necessary for some MessageKeys
-     */
-    public static void sendLocalizedMessage(Player player, MessageKey key, Object... formatArgs) {
-        instance.getLocalizationManager().sendLocalizedMessage(player, key.getKey(), formatArgs);
-    }
 
     /**
      * Logs a message with this plugin, at the specified level.

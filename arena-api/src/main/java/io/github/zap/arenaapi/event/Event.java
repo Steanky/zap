@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.Disposable;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,6 @@
 package io.github.zap.zombies.command;
 
 import io.github.regularcommands.commands.RegularCommand;
-import io.github.zap.zombies.command.mapeditor.form.*;
 
 /**
  * General command used by this plugin.

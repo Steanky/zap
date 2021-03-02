@@ -2,7 +2,6 @@ package io.github.zap.zombies.command.mapeditor.form;
 
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
-import io.github.regularcommands.commands.PermissionData;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Permissions;
@@ -15,7 +14,6 @@ import io.github.zap.zombies.command.mapeditor.form.data.MapContextData;
 import io.github.zap.zombies.command.mapeditor.form.data.SpawnEntryContextData;
 import io.github.zap.zombies.game.data.map.RoundData;
 import io.github.zap.zombies.game.data.map.SpawnEntryData;
-import io.github.zap.zombies.game.data.map.WaveData;
 
 import java.util.List;
 

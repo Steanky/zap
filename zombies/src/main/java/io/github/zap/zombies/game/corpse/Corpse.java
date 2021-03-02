@@ -70,9 +70,9 @@ public class Corpse {
         this.deathTime = defaultDeathTime;
 
         hologram.addLine("----------------------------------");
-        hologram.addLine(ChatColor.RED + "help this noob");
+        hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
 
-        hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
+        hologram.addLine(String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
         hologram.addLine("----------------------------------");
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
@@ -122,7 +122,7 @@ public class Corpse {
     }
 
     private void startDying() {
-        hologram.updateLine(1, "help this noob");
+        hologram.updateLine(1, ChatColor.RED + "help this noob");
 
         deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                 Zombies.getInstance(),
@@ -148,6 +148,7 @@ public class Corpse {
     private void onPlayerJoin(ManagingArena.PlayerListArgs playerListArgs) {
         for (Player player : playerListArgs.getPlayers()) {
             spawnDeadBodyForPlayer(player);
+            hologram.renderToPlayer(player);
         }
     }
 
@@ -183,7 +184,7 @@ public class Corpse {
 
         sendPacketToPlayer(addCorpseToTeamPacket, player);
 
-        sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
+        //sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {

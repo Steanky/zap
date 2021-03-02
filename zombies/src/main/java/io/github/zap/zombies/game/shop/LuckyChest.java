@@ -161,11 +161,14 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                     if (slot == null) {
                                         player.sendMessage(ChatColor.RED + "Choose a slot to receive the item in!");
                                     } else {
-                                        hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
-                                                zombiesPlayer,
-                                                slot,
-                                                equipmentData
-                                        ));
+                                        hotbarManager.setHotbarObject(slot, getZombiesArena().getEquipmentManager()
+                                                .createEquipment(
+                                                        getZombiesArena(),
+                                                        zombiesPlayer,
+                                                        slot,
+                                                        equipmentData
+                                                )
+                                        );
                                         roller.cancelSitting();
                                         rollingPlayerId = null;
 

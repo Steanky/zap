@@ -89,7 +89,7 @@ public class HotbarObject {
         this.representingItemStack = representingItemStack;
 
         if (visible) {
-            setVisible(true);
+            setStack(representingItemStack);
         }
     }
 
@@ -98,8 +98,7 @@ public class HotbarObject {
      * @param visible Whether or not the hotbar object is visible
      */
     public void setVisible(boolean visible) {
-        this.visible = visible;
-        if (visible) {
+        if (this.visible = visible) {
             setStack(representingItemStack);
             if (player.getInventory().getHeldItemSlot() == slot) {
                 onSlotSelected();

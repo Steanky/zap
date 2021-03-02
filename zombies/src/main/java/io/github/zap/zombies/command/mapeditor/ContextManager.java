@@ -2,7 +2,6 @@ package io.github.zap.zombies.command.mapeditor;
 
 import com.google.common.collect.Lists;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.data.map.MapData;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

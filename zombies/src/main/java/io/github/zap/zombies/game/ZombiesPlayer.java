@@ -15,10 +15,7 @@ import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.SoundCategory;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -63,7 +60,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     private final ZombiesPerks perks;
 
     private WindowData targetWindow;
-    private int windowRepairTaskId = -1;
+
+    private boolean repairOn;
+    private int windowRepairTaskId;
 
     private Corpse targetCorpse;
     private int reviveTaskId;
@@ -95,11 +94,16 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {
-                hotbarManager.setHotbarObject(slot, equipmentManager.createEquipment(this, slot, equipmentData));
+                hotbarManager.setHotbarObject(
+                        slot,
+                        equipmentManager.createEquipment(arena, this, slot, equipmentData)
+                );
             }
         }
 
         perks = new ZombiesPerks(this);
+        windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+                this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
     }
 
     public void quit() {
@@ -125,17 +129,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Override
     public void dispose() {
         perks.dispose();
+
+        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+        Bukkit.getScheduler().cancelTask(reviveTaskId);
     }
 
     public void addCoins(int amount) {
         if(amount > 0) {
-            getPlayer().sendMessage(String.format("+%d Gold", amount));
+            getPlayer().sendMessage(String.format("%s+%d Gold", ChatColor.GOLD, amount));
             coins += amount;
         }
     }
 
     public void subtractCoins(int amount) {
-        getPlayer().sendMessage(String.format("-%d Gold", amount));
+        getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
         coins -= amount;
     }
 
@@ -147,21 +154,21 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Puts the player into a window repairing state.
      */
     public void activateRepair() {
-        if(windowRepairTaskId == -1) {
-            MapData map = arena.getMap();
-            windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                    this::checkForWindow, 0, map.getWindowRepairTicks());
-        }
+        repairOn = true;
     }
 
     /**
      * Disables window repair state.
      */
     public void disableRepair() {
-        if(windowRepairTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-            windowRepairTaskId = -1;
+        if(targetWindow != null) {
+            Property<ZombiesPlayer> repairingPlayerProperty = targetWindow.getRepairingPlayerProperty();
+            if(repairingPlayerProperty.getValue(arena) == this) {
+                repairingPlayerProperty.setValue(arena, null);
+            }
         }
+
+        repairOn = false;
     }
 
     /**
@@ -169,7 +176,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      */
     public void activateRevive() {
         if (reviveTaskId == -1) {
-            MapData map = arena.getMap();
             reviveTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
                     Zombies.getInstance(),
                     this::checkForCorpses,
@@ -268,25 +274,34 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     /**
+     * Increments the player's kill counter
+     */
+    public void incrementKills() {
+        kills++;
+    }
+
+    /**
      * Tries to find and repair a window.
      */
     private void checkForWindow() {
-        MapData map = arena.getMap();
+        if(repairOn) {
+            MapData map = arena.getMap();
 
-        if(targetWindow == null) { //our target window is null, so look for one
-            WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius());
+            if(targetWindow == null) { //our target window is null, so look for one
+                WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius());
 
-            if(window != null) {
-                targetWindow = window;
-                tryRepairWindow(targetWindow);
+                if(window != null) {
+                    targetWindow = window;
+                    tryRepairWindow(targetWindow);
+                }
             }
-        }
-        else { //we already have a target window - make sure it's still in range
-            if(targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius())) {
-                tryRepairWindow(targetWindow);
-            }
-            else {
-                targetWindow = null;
+            else { //we already have a target window - make sure it's still in range
+                if(targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius())) {
+                    tryRepairWindow(targetWindow);
+                }
+                else {
+                    targetWindow = null;
+                }
             }
         }
     }
@@ -317,23 +332,21 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                     Vector center = targetWindow.getCenter();
                     Location centerLocation = new Location(arena.getWorld(), center.getX(), center.getY(), center.getZ());
                     if(i < targetWindow.getVolume() - 2) {
-                        arena.getWorld().playSound(centerLocation, targetWindow.getBlockRepairSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                        arena.getWorld().playSound(centerLocation, targetWindow.getBlockRepairSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
                     }
                     else {
-                        arena.getWorld().playSound(centerLocation, targetWindow.getWindowRepairSound(), SoundCategory.BLOCKS, 10.0F, 10.0F);
+                        arena.getWorld().playSound(centerLocation, targetWindow.getWindowRepairSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
                     }
                 }
 
-                //addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
+                addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
             }
             else {
-                //can't repair because someone else already is
-                //Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_PLAYER);
+                getPlayer().sendMessage(ChatColor.RED + "Someone is already repairing that window!");
             }
         }
         else {
-            //can't repair because there is a something attacking the window
-            //Zombies.sendLocalizedMessage(getPlayer(), MessageKey.WINDOW_REPAIR_FAIL_MOB);
+            getPlayer().sendMessage(ChatColor.RED + "A mob is attacking that window!");
         }
     }
 
