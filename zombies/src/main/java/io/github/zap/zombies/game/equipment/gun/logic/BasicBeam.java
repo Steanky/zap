@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
 import com.google.common.collect.Sets;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
@@ -81,12 +82,14 @@ public class BasicBeam {
             boundingBox = targetBlock.getBoundingBox();
         }
 
-        return Objects.requireNonNull(
-                boundingBox.rayTrace(
-                        root,
-                        directionVector,
-                        range + 1.74) // sqrt(3) error to account for entire block
-        ).getHitPosition().distance(root);
+        RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,range + 1.74);
+        if (rayTraceResult != null) {
+            return rayTraceResult.getHitPosition().distance(root);
+        } else {
+            Zombies.warning("ray trace in getDistance() method in BasicBeam returned null, shot not fired");
+
+            return 0.0D;
+        }
     }
 
     /**
