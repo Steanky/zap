@@ -50,9 +50,9 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public void navigateToLocation(EntityInsentient entity, Location location, double minStopDistance) {
+    public void navigateToLocation(EntityInsentient entity, double x, double y, double z, double speed) {
         if(entity.isAlive()) {
-            entity.getNavigation().a(location.getX(), location.getY(), location.getZ(), minStopDistance);
+            entity.getNavigation().a(x, y, z, speed);
         }
     }
 
@@ -69,5 +69,14 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     @Override
     public void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent) {
         entity.setGoalTarget(target, reason, fireEvent);
+    }
+
+    @Override
+    public void setAttributeFor(EntityLiving entity, AttributeBase attribute, double value) {
+        AttributeModifiable modifiableAttribute = entity.getAttributeMap().a(attribute);
+
+        if(modifiableAttribute != null) {
+            modifiableAttribute.setValue(value);
+        }
     }
 }

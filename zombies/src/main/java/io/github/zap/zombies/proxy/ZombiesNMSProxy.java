@@ -28,11 +28,13 @@ public interface ZombiesNMSProxy extends NMSProxy {
 
     ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, Predicate<ZombiesPlayer> filter);
 
-    void navigateToLocation(EntityInsentient entity, Location location, double minStopDistance);
+    void navigateToLocation(EntityInsentient entity, double x, double y, double z, double speed);
 
     double getDistanceToSquared(Entity entity, double x, double y, double z);
 
     void lookAtEntity(ControllerLook look, Entity target, float f1, float f2);
 
     void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent);
+
+    void setAttributeFor(EntityLiving entity, AttributeBase attribute, double value);
 }

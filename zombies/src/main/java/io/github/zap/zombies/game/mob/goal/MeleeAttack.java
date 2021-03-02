@@ -11,6 +11,7 @@ import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.LivingEntity;
@@ -22,11 +23,8 @@ import java.util.Optional;
 @MythicAIGoal (
         name = "unboundedMeleeAttack"
 )
-public class MeleeAttack extends Pathfinder implements PathfindingGoal {
-    private final ZombiesNMSProxy proxy;
+public class MeleeAttack extends ZombiesPathfinder {
     private final EntityInsentient nmsEntity;
-
-    private boolean metadataLoaded;
 
     private final int attackTicks;
     private final double attackReach;
@@ -38,49 +36,27 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
     private int pathfindTimer;
 
     public MeleeAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
-        super(entity, line, mlc);
+        super(entity, line, mlc, Zombies.ARENA_METADATA_NAME);
         this.goalType = GoalType.MOVE_LOOK;
 
         attackTicks = mlc.getInteger("attackTicks", 20);
         attackReach = mlc.getDouble("attackReach", 2.0);
 
         nmsEntity = ((CraftCreature)entity.getBukkitEntity()).getHandle();
-        nmsEntity.getAttributeMap().a(GenericAttributes.FOLLOW_RANGE).setValue(Integer.MAX_VALUE);
+        getProxy().setAttributeFor(nmsEntity, GenericAttributes.FOLLOW_RANGE, Double.MAX_VALUE);
 
         /*
         randomize the rate at which this zombie recalculates its path, to make sure there are no massive lag spikes if
         hundreds of zombies recalculate at once
          */
         pathfindTimer = nmsEntity.getRandom().nextInt(20);
-        proxy = Zombies.getInstance().getNmsProxy();
-    }
-
-    private boolean loadMetadata() {
-        Optional<Object> arenaOptional = entity.getMetadata(Zombies.ARENA_METADATA_NAME);
-        Optional<Object> spawnpointOptional = entity.getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
-
-        if(arenaOptional.isPresent() && spawnpointOptional.isPresent()) {
-            arena = (ZombiesArena) arenaOptional.get();
-            return true;
-        }
-        else {
-            arena = null;
-            return false;
-        }
     }
 
     @Override
-    public boolean shouldStart() {
-        if(!metadataLoaded) {
-            metadataLoaded = loadMetadata();
-
-            if(!metadataLoaded) {
-                return false;
-            }
-        }
-
+    public boolean canStart() {
         if(targetPlayer == null) {
-            targetPlayer = proxy.findClosest(nmsEntity, arena, ZombiesPlayer::isAlive);
+            arena = getMetadata(Zombies.ARENA_METADATA_NAME);
+            targetPlayer = getProxy().findClosest(nmsEntity, arena, ZombiesPlayer::isAlive);
         }
 
         return targetPlayer != null;
@@ -88,26 +64,28 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
 
     @Override
     public void start() {
-        proxy.setTarget(nmsEntity, ((CraftPlayer)targetPlayer.getPlayer()).getHandle(),
+        getProxy().setTarget(nmsEntity, ((CraftPlayer)targetPlayer.getPlayer()).getHandle(),
                 EntityTargetEvent.TargetReason.CUSTOM, true);
     }
 
     @Override
     public void tick() {
         EntityLiving target = nmsEntity.getGoalTarget();
-        proxy.lookAtEntity(nmsEntity.getControllerLook(), target, 30.0F, 30.0F);
+        if(target != null) {
+            getProxy().lookAtEntity(nmsEntity.getControllerLook(), target, 30.0F, 30.0F);
 
-        if(++pathfindTimer == 20) {
-            proxy.navigateToLocation(nmsEntity, targetPlayer.getPlayer().getLocation(), 1.0);
-            pathfindTimer = 0;
+            if(++pathfindTimer == 20) {
+                getProxy().navigateToLocation(nmsEntity, target.locX(), target.locY(), target.locZ(), 1.0D);
+                pathfindTimer = 0;
+            }
+
+            this.attackTimer = Math.max(this.attackTimer - 1, 0);
+            this.tryAttack(target, getProxy().getDistanceToSquared(nmsEntity, target.locX(), target.locY(), target.locZ()));
         }
-
-        this.attackTimer = Math.max(this.attackTimer - 1, 0);
-        this.tryAttack(target, proxy.getDistanceToSquared(nmsEntity, target.locX(), target.locY(), target.locZ()));
     }
 
     @Override
-    public boolean shouldEnd() {
+    public boolean canEnd() {
         return targetPlayer == null || !targetPlayer.isAlive() || !arena.runAI();
     }
 

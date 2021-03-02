@@ -1,11 +1,13 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
 import lombok.Getter;
-import net.minecraft.server.v1_16_R3.Entity;
+import net.minecraft.server.v1_16_R3.EntityInsentient;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 
 import java.util.HashMap;
@@ -13,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * General pathfinding class. Supports loading of MythicMobs entity metadata.
+ * General pathfinding class. Supports loading of MythicMobs entity metadata and exposes the ZombiesNMSProxy.
  */
 public abstract class ZombiesPathfinder extends Pathfinder implements PathfindingGoal {
     private final Map<String, Object> metadata = new HashMap<>();
@@ -21,12 +23,16 @@ public abstract class ZombiesPathfinder extends Pathfinder implements Pathfindin
     private boolean metadataLoaded;
 
     @Getter
-    private final Entity nmsEntity;
+    private final EntityInsentient nmsEntity;
+
+    @Getter
+    private final ZombiesNMSProxy proxy;
 
     public ZombiesPathfinder(AbstractEntity entity, String line, MythicLineConfig mlc, String... metadataKeys) {
         super(entity, line, mlc);
         keys = metadataKeys;
-        nmsEntity = ((CraftEntity)entity.getBukkitEntity()).getHandle();
+        nmsEntity = (EntityInsentient) ((CraftEntity)entity.getBukkitEntity()).getHandle();
+        proxy = Zombies.getInstance().getNmsProxy();
     }
 
     private boolean loadMetadata() {
@@ -53,12 +59,12 @@ public abstract class ZombiesPathfinder extends Pathfinder implements Pathfindin
     }
 
     @Override
-    public boolean shouldStart() {
+    public final boolean shouldStart() {
         return loadMetadata() && canStart();
     }
 
     @Override
-    public boolean shouldEnd() {
+    public final boolean shouldEnd() {
         return canEnd();
     }
 
