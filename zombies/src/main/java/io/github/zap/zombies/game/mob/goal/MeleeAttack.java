@@ -3,20 +3,19 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.github.zap.zombies.proxy.NavigationProxy;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
-import net.minecraft.server.v1_16_R3.EntityCreature;
-import net.minecraft.server.v1_16_R3.EntityLiving;
-import net.minecraft.server.v1_16_R3.EnumHand;
-import net.minecraft.server.v1_16_R3.GenericAttributes;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftCreature;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
+import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.Optional;
 
@@ -24,8 +23,8 @@ import java.util.Optional;
         name = "unboundedMeleeAttack"
 )
 public class MeleeAttack extends Pathfinder implements PathfindingGoal {
-    private final NavigationProxy navigationProxy;
-    private final EntityCreature nmsEntity;
+    private final ZombiesNMSProxy proxy;
+    private final EntityInsentient nmsEntity;
 
     private boolean metadataLoaded;
 
@@ -45,7 +44,6 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
         attackTicks = mlc.getInteger("attackTicks", 20);
         attackReach = mlc.getDouble("attackReach", 2.0);
 
-        navigationProxy = Zombies.getInstance().getNmsProxy().getNavigationFor((Mob)entity.getBukkitEntity());
         nmsEntity = ((CraftCreature)entity.getBukkitEntity()).getHandle();
         nmsEntity.getAttributeMap().a(GenericAttributes.FOLLOW_RANGE).setValue(Integer.MAX_VALUE);
 
@@ -54,6 +52,7 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
         hundreds of zombies recalculate at once
          */
         pathfindTimer = nmsEntity.getRandom().nextInt(20);
+        proxy = Zombies.getInstance().getNmsProxy();
     }
 
     private boolean loadMetadata() {
@@ -81,7 +80,7 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
         }
 
         if(targetPlayer == null) {
-            targetPlayer = navigationProxy.findClosest(arena, ZombiesPlayer::isAlive);
+            targetPlayer = proxy.findClosest(nmsEntity, arena, ZombiesPlayer::isAlive);
         }
 
         return targetPlayer != null;
@@ -89,21 +88,22 @@ public class MeleeAttack extends Pathfinder implements PathfindingGoal {
 
     @Override
     public void start() {
-        ai().setTarget((LivingEntity) entity.getBukkitEntity(), targetPlayer.getPlayer());
+        proxy.setTarget(nmsEntity, ((CraftPlayer)targetPlayer.getPlayer()).getHandle(),
+                EntityTargetEvent.TargetReason.CUSTOM, true);
     }
 
     @Override
     public void tick() {
         EntityLiving target = nmsEntity.getGoalTarget();
-        nmsEntity.getControllerLook().a(target, 30.0F, 30.0F);
+        proxy.lookAtEntity(nmsEntity.getControllerLook(), target, 30.0F, 30.0F);
 
         if(++pathfindTimer == 20) {
-            ai().navigateToLocation(entity, BukkitAdapter.adapt(targetPlayer.getPlayer().getLocation()), 0);
+            proxy.navigateToLocation(nmsEntity, targetPlayer.getPlayer().getLocation(), 1.0);
             pathfindTimer = 0;
         }
 
         this.attackTimer = Math.max(this.attackTimer - 1, 0);
-        this.tryAttack(target, nmsEntity.h(target.locX(), target.locY(), target.locZ()));
+        this.tryAttack(target, proxy.getDistanceToSquared(nmsEntity, target.locX(), target.locY(), target.locZ()));
     }
 
     @Override
