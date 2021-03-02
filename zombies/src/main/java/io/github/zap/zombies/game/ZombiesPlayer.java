@@ -126,6 +126,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Override
     public void dispose() {
         perks.dispose();
+
+        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+        Bukkit.getScheduler().cancelTask(reviveTaskId);
     }
 
     public void addCoins(int amount) {
