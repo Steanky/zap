@@ -288,8 +288,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         createTeamPacketContainer.getStrings()
                 .write(1, "never")
                 .write(2, "never");
-
-        Zombies.getInstance().getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
     @Override
@@ -414,8 +412,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
-        Zombies.info("PlayerInteract called for EventAPI");
-
         PlayerInteractEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
 
@@ -432,11 +428,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.getHotbarManager().click(event.getAction());
             }
         }
-    }
-
-    @org.bukkit.event.EventHandler
-    private void onPlayerInteract(PlayerInteractEvent args) {
-        Zombies.info("PlayerInteract called for Bukkit");
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
