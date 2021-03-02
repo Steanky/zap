@@ -40,7 +40,9 @@ import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -349,6 +351,15 @@ public final class Zombies extends JavaPlugin implements Listener {
         commandManager.registerCommand(new MapeditorCommand());
 
         contextManager = new ContextManager();
+        getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onPlayerInteract(PlayerInteractEvent event) {
+                for (var t : event.getHandlers().getRegisteredListeners()) {
+                    System.out.println(t.getPlugin().getName());
+                }
+                System.out.println();
+            }
+        }, this);
     }
 
     /*

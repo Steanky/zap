@@ -13,9 +13,9 @@ import org.bukkit.World;
  * Sends lines of particles from guns
  */
 @Getter
-public class LinearBeam extends BasicBeam { // TODO: figuring out particle data
+public class LinearBeam extends BasicBeam {
 
-    public final static int DEFAULT_PARTICLE_COUNT = 4; // TODO: check
+    public final static int DEFAULT_PARTICLE_COUNT = 50; // TODO: check
 
     private final Particle particle;
     private final ParticleDataWrapper<?> particleDataWrapper;
@@ -51,15 +51,36 @@ public class LinearBeam extends BasicBeam { // TODO: figuring out particle data
         World world = getWorld();
         Location rootLocation = getRoot().toLocation(world);
 
-        for (int i = 0; i < particleCount; i++) {
-            world.spawnParticle(
-                    particle,
-                    rootLocation,
-                    1,
-                    particleDataWrapper.getData()
-            );
-            rootLocation.add(getDirectionVector());
+        if (particleDataWrapper != null) {
+            for (int i = 0; i < particleCount; i++) {
+                world.spawnParticle(
+                        particle,
+                        rootLocation,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        particleDataWrapper.getData()
+                );
+                rootLocation.add(getDirectionVector());
+            }
+        } else {
+            for (int i = 0; i < particleCount; i++) {
+                world.spawnParticle(
+                        particle,
+                        rootLocation,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0
+                );
+                rootLocation.add(getDirectionVector());
+            }
         }
+
+
     }
 
 }

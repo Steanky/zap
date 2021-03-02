@@ -4,12 +4,11 @@ import com.google.common.collect.Sets;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -27,8 +26,11 @@ import java.util.function.Predicate;
  */
 @Getter
 public class BasicBeam {
+
     private final static Set<Material> AIR_MATERIALS =
             Sets.newHashSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
+
+    private final BukkitAPIHelper bukkitAPIHelper;
 
     private final MapData mapData;
     private final ZombiesPlayer zombiesPlayer;
@@ -45,13 +47,13 @@ public class BasicBeam {
 
 
     public BasicBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, LinearGunLevel level) {
+        this.bukkitAPIHelper = MythicMobs.inst().getAPIHelper();
+
         this.mapData = mapData;
         this.zombiesPlayer = zombiesPlayer;
         this.world = root.getWorld();
         this.root = root.toVector();
-        this.directionVector = root.getDirection();
-        this.distance = getDistance();
-
+        this.directionVector = root.getDirection().clone();
 
         this.maxPierceableEntities = level.getMaxPierceableEntities();
         this.range = Math.min(120, level.getRange());
@@ -59,6 +61,8 @@ public class BasicBeam {
         this.knockbackFactor = level.getKnockbackFactor();
         this.goldPerShot = level.getGoldPerShot();
         this.goldPerHeadshot = level.getGoldPerHeadshot();
+
+        this.distance = getDistance();
     }
 
     /**
@@ -227,18 +231,21 @@ public class BasicBeam {
     protected void damageEntity(RayTraceResult rayTraceResult) {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
-        if (mob != null) {
+        if (mob != null && bukkitAPIHelper.isMythicMob(mob)) {
             Player player = zombiesPlayer.getPlayer();
 
             if (determineIfHeadshot(rayTraceResult, mob)) {
+                mob.playEffect(EntityEffect.HURT);
                 mob.setHealth(mob.getHealth() - damage);
                 zombiesPlayer.addCoins(goldPerHeadshot);
 
+                // TODO: this sound is clearly not correct
                 player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
             } else {
                 mob.damage(damage);
                 zombiesPlayer.addCoins(goldPerShot);
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
+
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1.5F, 1.0F);
             }
 
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));

@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.equipment.gun;
 
-import io.github.zap.zombies.MessageKey;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -9,6 +8,7 @@ import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import lombok.Getter;
+import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,6 +35,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     public Gun(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
         super(zombiesArena, zombiesPlayer, slot, equipmentData);
+
+        refill();
     }
 
     /**
@@ -60,21 +62,23 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 player.playSound(player.getLocation(), Sound.ENTITY_HORSE_GALLOP, 1F, 0.5F);
 
                 new BukkitRunnable() {
-                    private final float reloadRate = level.getReloadRate();
+                    private final int reloadRate = level.getReloadRate();
                     private final int maxVal = getEquipmentData().getMaterial().getMaxDurability();
-                    private final float stepVal = maxVal / (reloadRate * 20);
 
                     private int step = 0;
 
                     @Override
                     public void run() {
-                        if (step < (int) (reloadRate * 20)) {
-                            setItemDamage((int) (maxVal - ++step * stepVal));
+                        if (step < reloadRate) {
+                            setItemDamage(maxVal - (++step * maxVal) / reloadRate);
                         } else {
                             setItemDamage(0);
-                            setClipAmmo(Math.min(clipAmmo, currentAmmo));
+
+                            int newClip = Math.min(clipAmmo, currentAmmo);
+                            setClipAmmo(newClip);
 
                             canReload = true;
+                            canShoot = true;
                             cancel();
                         }
                     }
@@ -94,34 +98,34 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         setClipAmmo(currentClipAmmo - 1);
 
         Player player = getPlayer();
-        if (currentClipAmmo > 0) {
-            // Animate xp bar
-            new BukkitRunnable() {
-                private final float fireRate = (float) (getEquipmentData().getLevels().get(getLevel()).getFireRate() * getZombiesPlayer().getFireRateMultiplier());
-                private final float goal = fireRate * 20;
-                private final float stepVal = 1 / (fireRate * 20);
+        // Animate xp bar
+        new BukkitRunnable() {
+            private final int goal =
+                    (int) (getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier());
+            private final int stepVal = 1 / goal;
+            private int step = 0;
 
-                private int step = 0;
-
-                @Override
-                public void run() {
-                    if (step < goal && isSelected()) {
+            @Override
+            public void run() {
+                if (step < goal) {
+                    step++;
+                    if (isSelected()) {
                         player.setExp(++step * stepVal);
-                    } else {
-                        if (isSelected()) {
-                            player.setExp(1);
-                        }
-
-                        cancel();
                     }
+                } else {
+                    if (isSelected()) {
+                        player.setExp(1);
+                    }
+
+                    canShoot = true;
+                    cancel();
                 }
-            }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
-        } else {
-            if (currentAmmo > 0) {
-                reload();
-            } else {
-                getLocalizationManager().sendLocalizedMessage(player, MessageKey.NO_AMMO.getKey());
             }
+        }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
+        if (currentAmmo > 0) {
+            reload();
+        } else {
+            player.sendMessage(ChatColor.RED + "no ammo, bro.");
         }
     }
 
@@ -135,6 +139,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         damageable.setDamage(val);
 
         getRepresentingItemStack().setItemMeta((ItemMeta) damageable);
+        setRepresentingItemStack(getRepresentingItemStack());
     }
 
     /**
@@ -142,10 +147,14 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * @param ammo The new ammo
      */
     protected void setAmmo(int ammo) {
+        currentAmmo = ammo;
         if (isVisible()) {
-            currentAmmo = ammo;
-            getPlayer().setLevel(ammo);
+            updateAmmo();
         }
+    }
+
+    private void updateAmmo() {
+        getPlayer().setLevel(currentAmmo);
     }
 
     /**
@@ -153,24 +162,34 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * @param clipAmmo The new clip ammo
      */
     protected void setClipAmmo(int clipAmmo) {
+        this.currentClipAmmo = clipAmmo;
+
         if (isVisible()) {
-            this.currentClipAmmo = clipAmmo;
-
-            if (clipAmmo > 0) {
-                setItemDamage(0);
-                getRepresentingItemStack().setAmount(clipAmmo);
-            } else {
-                setItemDamage(getEquipmentData().getMaterial().getMaxDurability());
-                getRepresentingItemStack().setAmount(1);
-            }
-
-            // TODO: work around for item not updating meta twice in 1 server thread iteration
-            getPlayer().updateInventory();
+            updateClipAmmo();
         }
+    }
+
+    private void updateClipAmmo() {
+        if (currentClipAmmo > 0) {
+            setItemDamage(0);
+            getRepresentingItemStack().setAmount(currentClipAmmo);
+        } else {
+            setItemDamage(getEquipmentData().getMaterial().getMaxDurability());
+            getRepresentingItemStack().setAmount(1);
+        }
+        setRepresentingItemStack(getRepresentingItemStack());
+
+        // TODO: work around for item not updating meta twice in 1 server thread iteration
+        getPlayer().updateInventory();
     }
 
     @Override
     public void setVisible(boolean visible) {
+        if (visible) {
+            updateAmmo();
+            updateClipAmmo();
+        }
+
         super.setVisible(visible);
     }
 

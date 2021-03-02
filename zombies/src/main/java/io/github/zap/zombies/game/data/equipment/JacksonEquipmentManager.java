@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.equipment.gun.GuardianGunData;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
 import io.github.zap.zombies.game.data.equipment.gun.SprayGunData;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunData;
@@ -15,12 +16,13 @@ import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupCreator;
 import io.github.zap.zombies.game.equipment.EquipmentType;
-import io.github.zap.zombies.game.equipment.gun.LinearGun;
-import io.github.zap.zombies.game.equipment.gun.SprayGun;
-import io.github.zap.zombies.game.equipment.gun.ZapperGun;
+import io.github.zap.zombies.game.equipment.gun.*;
+import io.github.zap.zombies.game.equipment.melee.MeleeObjectGroup;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
+import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
 import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
+import io.github.zap.zombies.game.equipment.skill.SkillObjectGroup;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
@@ -60,6 +62,16 @@ public class JacksonEquipmentManager implements EquipmentManager {
         addEquipmentType(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
         addEquipmentType(EquipmentType.SPRAY_GUN.name(), SprayGunData.class, SprayGun::new);
         addEquipmentType(EquipmentType.ZAPPER.name(), ZapperGunData.class, ZapperGun::new);
+        addEquipmentType(EquipmentType.GUARDIAN.name(), GuardianGunData.class, GuardianGun::new);
+
+        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
+                .put(EquipmentType.MELEE.name(), MeleeObjectGroup::new);
+        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
+                .put(EquipmentType.GUN.name(), GunObjectGroup::new);
+        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
+                .put(EquipmentType.SKILL.name(), SkillObjectGroup::new);
+        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
+                .put(EquipmentType.PERK.name(), PerkObjectGroup::new);
 
 
         particleDataWrapperDeserializer.getMappings().put(

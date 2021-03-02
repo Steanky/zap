@@ -13,6 +13,6 @@ public class ParticleGunData<L extends ParticleGunLevel> extends GunData<L> {
 
     private Particle particle;
 
-    private ParticleDataWrapper<?> particleData;
+    private ParticleDataWrapper<?> particleDataWrapper;
 
 }

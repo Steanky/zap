@@ -16,15 +16,13 @@ public class GunLevel  {
 
     private double knockbackFactor;
 
-    private Integer freezeTime;
-
     private int ammo;
 
     private int clipAmmo;
 
-    private float fireRate;
+    private int fireRate;
 
-    private float reloadRate;
+    private int reloadRate;
 
     int goldPerShot;
 

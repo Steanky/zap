@@ -136,13 +136,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     public void addCoins(int amount) {
         if(amount > 0) {
-            getPlayer().sendMessage(String.format("+%d Gold", amount));
+            getPlayer().sendMessage(String.format("%s+%d Gold", ChatColor.GOLD, amount));
             coins += amount;
         }
     }
 
     public void subtractCoins(int amount) {
-        getPlayer().sendMessage(String.format("-%d Gold", amount));
+        getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
         coins -= amount;
     }
 

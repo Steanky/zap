@@ -26,7 +26,7 @@ public class ZapperGun extends Gun<ZapperGunData, ZapperGunLevel> {
                 getPlayer().getEyeLocation(),
                 currentLevel,
                 linearGunData.getParticle(),
-                linearGunData.getParticleData()
+                linearGunData.getParticleDataWrapper()
         ).send();
     }
 

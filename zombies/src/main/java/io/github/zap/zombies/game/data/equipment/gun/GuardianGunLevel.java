@@ -8,4 +8,10 @@ import lombok.Getter;
 @Getter
 public class GuardianGunLevel extends LinearGunLevel {
 
+    private int freezeTime;
+
+    public GuardianGunLevel() {
+
+    }
+
 }

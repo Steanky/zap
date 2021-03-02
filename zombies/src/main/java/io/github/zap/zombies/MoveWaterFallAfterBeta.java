@@ -1,7 +1,6 @@
 package io.github.zap.zombies;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.game.PlayerState;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.game.arena.ManagingArena;

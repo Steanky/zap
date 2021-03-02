@@ -15,6 +15,8 @@ import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.LuckyChest;
 import io.github.zap.zombies.game.shop.Shop;
@@ -276,6 +278,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
+        getPlayerAnimationEvent().registerHandler(this::onPlayerAnimation);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
@@ -457,6 +460,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
+        PlayerAnimationEvent event = args.getEvent();
+        ZombiesPlayer player = args.getManagedPlayer();
+
+        // why does Bukkit only have one animation type?
+        if (event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
+            player.getHotbarManager().click(Action.LEFT_CLICK_BLOCK);
+        }
+    }
+
     private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
         PlayerToggleSneakEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
@@ -502,6 +515,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         startTimeStamp = System.currentTimeMillis();
         doRound();
         state = ZombiesArenaState.STARTED;
+
+        for (ZombiesPlayer player : getPlayerMap().values()) {
+            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
+                    player.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+            int slot = equipmentObjectGroup.getNextEmptySlot();
+            equipmentObjectGroup.setHotbarObject(slot, equipmentManager.createEquipment(this, player, slot, "test", "pistol"));
+        }
     }
 
     private void doRound() {

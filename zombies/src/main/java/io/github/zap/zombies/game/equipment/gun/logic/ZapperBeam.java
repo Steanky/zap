@@ -4,10 +4,7 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
@@ -58,7 +55,7 @@ public class ZapperBeam extends LinearBeam {
                 if (!attackedMobs.contains(mobToZap) && !hitMobs.contains(mobToZap)) {
                     mobToZap.damage(getDamage());
 
-                    Vector knockbackVector = mob.getLocation().subtract(mobToZap.getLocation()).toVector().normalize()
+                    Vector knockbackVector = mobToZap.getLocation().subtract(mob.getLocation()).toVector().normalize()
                             .multiply(getKnockbackFactor());
                     mobToZap.setVelocity(mobToZap.getVelocity().add(knockbackVector));
 
@@ -73,18 +70,20 @@ public class ZapperBeam extends LinearBeam {
     protected void damageEntity(RayTraceResult rayTraceResult) {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
-        if (mob != null) {
+        if (mob != null && getBukkitAPIHelper().isMythicMob(mob)) {
             ZombiesPlayer zombiesPlayer = getZombiesPlayer();
             Player player = zombiesPlayer.getPlayer();
 
             if (determineIfHeadshot(rayTraceResult, mob)) {
+                mob.playEffect(EntityEffect.HURT);
                 mob.setHealth(mob.getHealth() - getDamage());
                 zombiesPlayer.addCoins(getGoldPerHeadshot());
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT, 2.0F, 1.0F);
+
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
             } else {
                 mob.damage(getDamage());
                 zombiesPlayer.addCoins(getGoldPerShot());
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT, 1.5F, 1.0F);
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1.5F, 1.0F);
             }
 
             mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));

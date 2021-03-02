@@ -41,7 +41,7 @@ public class SprayGun extends Gun<SprayGunData, SprayGunLevel> {
                     eyeLocationCopy,
                     currentLevel,
                     sprayGunData.getParticle(),
-                    sprayGunData.getParticleData()
+                    sprayGunData.getParticleDataWrapper()
             ).send();
         }
     }
