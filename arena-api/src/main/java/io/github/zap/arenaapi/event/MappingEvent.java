@@ -3,12 +3,20 @@ package io.github.zap.arenaapi.event;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * Filters an event's calls based on a predicate and maps the calls based on a function. The result is a function that
- * will call handlers with the mapped argument. If the predicate fails its test, the event will not be called.
+ * Filters an event's calls based on the results of a MappingPredicate, which performs a validation and a conversion
+ * on the given inpput arguments.
  * @param <T> The argument type of the event we are wrapping
  * @param <U> The argument type of this event
  */
 public class MappingEvent<T, U> extends Event<U> {
+    /**
+     * Creates a new MappingEvent attached to the provided Event, to which a handler is registered. When the given
+     * Event is invoked, this MappingEvent will attempt to perform a validation and mapping conversion before calling
+     * its own handlers with the resulting value of the conversion. It will not call anything if the MappingPredicate
+     * fails.
+     * @param event The event to register to
+     * @param mapper The mapper to test and convert event arguments
+     */
     public MappingEvent(Event<T> event, MappingPredicate<T, U> mapper) {
         event.registerHandler((args) -> {
             Pair<Boolean, U> result = mapper.tryMap(args);
