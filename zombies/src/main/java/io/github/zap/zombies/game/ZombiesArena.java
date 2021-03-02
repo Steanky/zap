@@ -16,6 +16,7 @@ import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.powerups.PowerUp;
+import io.github.zap.zombies.game.powerups.PowerUpBossBar;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
@@ -264,8 +265,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final List<Integer> waveSpawnerTasks = new ArrayList<>();
     private int timeoutTaskId = -1;
 
-    private BukkitTask gameEndTimeoutTask;
-
     private Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
 
     // Contains both active and has not been picked up
@@ -274,6 +273,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private Event<PowerUpChangedEventArgs> powerUpChangedEvent = new Event<>();
+
+    @Getter
+    private PowerUpBossBar powerUpBossBar = new PowerUpBossBar(this, 10);
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.

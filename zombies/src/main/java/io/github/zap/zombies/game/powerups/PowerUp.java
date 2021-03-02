@@ -32,6 +32,9 @@ public abstract class PowerUp {
     @Getter
     private PowerUpState state = PowerUpState.NONE;
 
+    @Getter
+    private long activatedTimeStamp;
+
     private Location powerUpItemLocation;
     private BukkitTask checkForDistTask;
 
@@ -56,7 +59,7 @@ public abstract class PowerUp {
         removePowerUpItem();
         asItem = createArmourStand(location);
         //noinspection ConstantConditions
-        asItem.getEquipment().setHelmet(new ItemStack(data.getItemRepresentation()), true);
+        asItem.getEquipment().setHelmet(new ItemStack(getData().getItemRepresentation()), true);
         asName = createArmourStand(location.add(0, 1.25, 0));
         asName.setCustomName(data.getDisplayName());
         asName.setCustomNameVisible(true);
@@ -80,8 +83,10 @@ public abstract class PowerUp {
                         getArena().getPlayerMap().forEach((id,player) -> {
                             player.getPlayer().sendTitle(getData().getDisplayName(), "");
                             player.getPlayer().sendMessage(ChatColor.YELLOW +  r.getPlayer().getName() + " activated " + getData().getDisplayName());
+                            player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
                         });
                         state = PowerUpState.ACTIVATED;
+                        activatedTimeStamp = System.currentTimeMillis();
                         activate();
                     }
                 });

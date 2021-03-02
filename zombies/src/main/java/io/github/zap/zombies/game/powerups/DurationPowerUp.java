@@ -2,10 +2,16 @@ package io.github.zap.zombies.game.powerups;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import lombok.Getter;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 public class DurationPowerUp extends PowerUp {
+    @Getter
+    private long estimatedEndTimeStamp;
+
+    private BukkitTask timeoutTask;
+
     public DurationPowerUp(DurationPowerUpData data, ZombiesArena arena) {
         super(data, arena);
     }
@@ -13,8 +19,6 @@ public class DurationPowerUp extends PowerUp {
     public DurationPowerUp(DurationPowerUpData data, ZombiesArena arena, int refreshRate) {
         super(data, arena, refreshRate);
     }
-
-    private BukkitTask timeoutTask;
 
     @Override
     public void activate() {
@@ -25,15 +29,23 @@ public class DurationPowerUp extends PowerUp {
         if(getState() != PowerUpState.ACTIVATED)
             throw new IllegalStateException("The perk must be activated to call this method!");
 
-        if(timeoutTask != null && !timeoutTask.isCancelled()) {
-            timeoutTask.cancel();
-        }
+        stopTimeoutTimer();
+        var duration = ((DurationPowerUpData)getData()).getDuration();
 
         timeoutTask = new BukkitRunnable() {
             @Override
             public void run() {
-                deactivate();
+                if(getState() == PowerUpState.ACTIVATED)
+                    deactivate();
             }
-        }.runTaskLater(Zombies.getInstance(), ((DurationPowerUpData)getData()).getTimeoutDuration());
+        }.runTaskLater(Zombies.getInstance(), duration);
+
+        estimatedEndTimeStamp = System.currentTimeMillis() + duration * 50;
+    }
+
+    protected void stopTimeoutTimer() {
+        if(timeoutTask != null && !timeoutTask.isCancelled()) {
+            timeoutTask.cancel();
+        }
     }
 }

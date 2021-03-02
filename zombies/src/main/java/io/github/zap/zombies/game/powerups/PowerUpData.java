@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 
 public class PowerUpData {
     @Getter
@@ -24,4 +25,12 @@ public class PowerUpData {
     @Getter
     double pickupRange = 1;
 
+    @Getter
+    Sound pickupSound = Sound.ENTITY_ITEM_PICKUP;
+
+    @Getter
+    float pickupSoundVolume = 1;
+
+    @Getter
+    float pickupSoundPitch = 1;
 }
