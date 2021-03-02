@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.powerups;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.powerups.PowerUpData;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import lombok.Getter;

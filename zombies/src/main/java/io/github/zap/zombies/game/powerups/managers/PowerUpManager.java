@@ -1,11 +1,10 @@
 package io.github.zap.zombies.game.powerups.managers;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.map.SpawnRule;
 import io.github.zap.zombies.game.powerups.PowerUp;
-import io.github.zap.zombies.game.powerups.PowerUpData;
+import io.github.zap.zombies.game.data.powerups.PowerUpData;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
-import io.github.zap.zombies.game.powerups.spawnrules.SpawnRuleData;
+import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.Set;

@@ -13,6 +13,8 @@ import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
+import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
+import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
@@ -24,6 +26,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Getter
@@ -135,8 +138,35 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     public void addCoins(int amount) {
+        addCoins(amount, "");
+    }
+
+    public void addCoins(int amount, String msg) {
         if(amount > 0) {
-            getPlayer().sendMessage(String.format("%s+%d Gold", ChatColor.GOLD, amount));
+            StringBuilder sb = new StringBuilder();
+            double multiplier = 1;
+            int count = 0;
+            var optGM = getArena().getPowerUps().stream()
+                    .filter(x -> x instanceof EarnedGoldMultiplierPowerUp)
+                    .collect(Collectors.toSet());
+            if(msg != null && !msg.isEmpty())
+                sb.append(msg);
+
+            for (var item : optGM) {
+                if(count != 0)
+                    sb.append(", ");
+                sb.append(ChatColor.RESET).append(item.getData().getDisplayName());
+                multiplier *= ((EarnedGoldMultiplierPowerUpData)item.getData()).getMultiplier();
+                count ++;
+            }
+
+            var fullMsg = sb.toString();
+            amount *= multiplier;
+            if(fullMsg.isEmpty())
+                getPlayer().sendMessage(String.format("%s+%d Gold!", ChatColor.GOLD, amount));
+            else
+                getPlayer().sendMessage(String.format("%s+%d Gold (%s)!", ChatColor.GOLD, amount, fullMsg));
+
             coins += amount;
         }
     }

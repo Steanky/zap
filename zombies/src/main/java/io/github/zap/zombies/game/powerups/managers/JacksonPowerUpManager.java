@@ -5,6 +5,10 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
+import io.github.zap.zombies.game.data.powerups.PowerUpData;
+import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
+import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import io.github.zap.zombies.game.powerups.*;
 import io.github.zap.zombies.game.powerups.spawnrules.*;
 import lombok.Getter;
@@ -14,7 +18,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
-import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -168,7 +171,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     public void registerPowerUp(Class<? extends PowerUp> classType) {
         for (var at : classType.getAnnotations()) {
             if(at instanceof PowerUpType) {
-                registerPowerUp(((PowerUpType) at).getName(), classType);
+                registerPowerUp(((PowerUpType) at).name(), classType);
                 return;
             }
         }
@@ -262,11 +265,14 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     public void load() {
         if(!isLoaded()) {
             isLoading = true;
+            addDataLoader(PowerUpDataType.EARNED_GOLD_MOD);
             addSpawnRuleDataLoader(SpawnRuleDataType.DEFAULT);
 
             // There is no way to retrieve class from package easily so I gonna manually do it
-            registerPowerUp(MaxAmmoPowerUp.class);
+            registerPowerUp(AmmoModificationPowerUp.class);
             registerPowerUp(DurationPowerUp.class);
+            registerPowerUp(EarnedGoldMultiplierPowerUp.class);
+            registerPowerUp(PlayerGoldModificationPowerUp.class);
 
             //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())

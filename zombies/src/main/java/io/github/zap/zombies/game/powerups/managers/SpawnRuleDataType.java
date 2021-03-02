@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.powerups.managers;
 
-import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
-import io.github.zap.zombies.game.powerups.spawnrules.SpawnRuleData;
+import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
+import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import lombok.Getter;
 
 public enum SpawnRuleDataType implements SpawnRuleDataTypeLinker {

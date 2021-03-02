@@ -1,8 +1,7 @@
-package io.github.zap.zombies.game.powerups;
+package io.github.zap.zombies.game.data.powerups;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 
 @Getter

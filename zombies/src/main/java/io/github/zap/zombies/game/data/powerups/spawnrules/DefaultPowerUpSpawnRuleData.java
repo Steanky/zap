@@ -1,8 +1,6 @@
-package io.github.zap.zombies.game.powerups.spawnrules;
+package io.github.zap.zombies.game.data.powerups.spawnrules;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Value;
 
 import java.util.Set;
 

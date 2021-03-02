@@ -2,11 +2,12 @@ package io.github.zap.zombies.game.powerups;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
 import lombok.Getter;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-@PowerUpType(getName = "Duration")
+@PowerUpType(name = "Duration")
 public class DurationPowerUp extends PowerUp {
     @Getter
     private long estimatedEndTimeStamp;

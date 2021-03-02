@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.powerups.spawnrules;
 
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;

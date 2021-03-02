@@ -146,7 +146,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * Sets the ammo of the weapon
      * @param ammo The new ammo
      */
-    protected void setAmmo(int ammo) {
+    public void setAmmo(int ammo) {
         currentAmmo = ammo;
         if (isVisible()) {
             updateAmmo();

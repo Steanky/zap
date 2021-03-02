@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.powerups.spawnrules;
+package io.github.zap.zombies.game.data.powerups.spawnrules;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

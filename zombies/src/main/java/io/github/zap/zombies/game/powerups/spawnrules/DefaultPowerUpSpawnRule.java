@@ -4,9 +4,9 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WaveData;
+import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.bukkit.event.entity.EntityDeathEvent;
 
 import java.util.Random;
 import java.util.stream.Collectors;
