@@ -26,7 +26,7 @@ public class WrappedPhantomSwoop extends MythicWrapper {
         Class<?>[] classes = EntityPhantom.class.getDeclaredClasses(); //ew
         for(Class<?> sample : classes) {
             String simpleName = sample.getSimpleName();
-            if(simpleName.equals("i")) { //inner class is pathfinder for circling phantoms
+            if(simpleName.equals("e")) { //inner class is pathfinder for circling phantoms
                 Constructor<?> constructor = sample.getDeclaredConstructors()[0];
                 constructor.setAccessible(true); //screw you mojang
 
