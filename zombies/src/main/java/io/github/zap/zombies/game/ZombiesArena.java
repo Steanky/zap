@@ -291,8 +291,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         createTeamPacketContainer.getStrings()
                 .write(1, "never")
                 .write(2, "never");
-
-        Zombies.getInstance().getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
     @Override
@@ -417,8 +415,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
-        Zombies.info("PlayerInteract called for EventAPI");
-
         PlayerInteractEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
 
@@ -435,11 +431,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.getHotbarManager().click(event.getAction());
             }
         }
-    }
-
-    @org.bukkit.event.EventHandler
-    private void onPlayerInteract(PlayerInteractEvent args) {
-        Zombies.info("PlayerInteract called for Bukkit");
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
@@ -515,13 +506,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         startTimeStamp = System.currentTimeMillis();
         doRound();
         state = ZombiesArenaState.STARTED;
-
-        for (ZombiesPlayer player : getPlayerMap().values()) {
-            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
-                    player.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
-            int slot = equipmentObjectGroup.getNextEmptySlot();
-            equipmentObjectGroup.setHotbarObject(slot, equipmentManager.createEquipment(this, player, slot, "test", "pistol"));
-        }
     }
 
     private void doRound() {

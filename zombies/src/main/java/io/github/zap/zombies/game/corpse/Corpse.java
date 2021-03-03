@@ -1,8 +1,6 @@
 package io.github.zap.zombies.game.corpse;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
@@ -28,8 +26,6 @@ import java.util.UUID;
  * Represents the corpse of a knocked down or dead player
  */
 public class Corpse {
-
-    private final ProtocolManager protocolManager;
 
     private final ZombiesNMSProxy nmsProxy;
 
@@ -69,18 +65,17 @@ public class Corpse {
                 new Hologram(location.clone().add(0, 2, 0));
         this.deathTime = defaultDeathTime;
 
-        hologram.addLine("----------------------------------");
+        hologram.addLine(ChatColor.YELLOW + "----------------------------------");
         hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
 
         hologram.addLine(String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
-        hologram.addLine("----------------------------------");
+        hologram.addLine(ChatColor.YELLOW + "----------------------------------");
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
         zombiesArena.getCorpses().add(this);
         zombiesArena.getAvailableCorpses().add(this);
         zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
 
-        protocolManager = ProtocolLibrary.getProtocolManager();
         id = this.nmsProxy.nextEntityId();
 
         spawnDeadBody();
@@ -192,7 +187,10 @@ public class Corpse {
         packetContainer.getPlayerInfoAction().write(0, playerInfoAction);
 
         WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, uniqueId.toString().substring(0, 16));
-        wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+        WrappedSignedProperty skin = nmsProxy.getSkin(zombiesPlayer.getPlayer());
+        if (skin != null) {
+            wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+        }
 
         packetContainer.getPlayerInfoDataLists().write(0, Collections.singletonList(
                 new PlayerInfoData(
