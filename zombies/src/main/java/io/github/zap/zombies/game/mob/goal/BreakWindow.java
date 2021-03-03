@@ -52,8 +52,8 @@ public class BreakWindow extends ZombiesPathfinder {
     }
 
     @Override
-    public boolean canEnd() {
-        return completed || !arena.runAI();
+    public boolean stayActive() {
+        return !completed && arena.runAI();
     }
 
     @Override

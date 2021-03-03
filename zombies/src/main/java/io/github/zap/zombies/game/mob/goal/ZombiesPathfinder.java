@@ -99,7 +99,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
 
     @Override
     public final boolean shouldStayActive() {
-        return !canEnd();
+        return stayActive();
     }
 
     @Override
@@ -119,7 +119,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
 
     public abstract boolean canStart();
 
-    public abstract boolean canEnd();
+    public abstract boolean stayActive();
 
     public abstract void onStart();
 

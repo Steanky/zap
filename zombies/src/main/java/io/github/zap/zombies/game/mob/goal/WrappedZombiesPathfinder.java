@@ -5,7 +5,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.GenericAttributes;
 import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -46,19 +45,12 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         }
 
         if(target == null && ++attemptRetarget == 20) {
+            attemptRetarget = 0;
             target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
+
             if(target != null) {
-                EntityPlayer targetPlayer = ((CraftPlayer)target.getPlayer()).getHandle();
-
-                if(targetPlayer != null) {
-                    getHandle().setGoalTarget(targetPlayer, EntityTargetEvent.TargetReason.CUSTOM, true);
-                }
-                else {
-                    Zombies.warning("targetPlayer is null; this should be impossible");
-                    return false;
-                }
-
-                attemptRetarget = 0;
+                getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
+                Zombies.info("SetGoalTarget");
                 return wrappedGoal.a();
             }
 
@@ -69,8 +61,8 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     }
 
     @Override
-    public boolean canEnd() {
-        return !arena.runAI() && !wrappedGoal.b();
+    public boolean stayActive() {
+        return arena.runAI() && target.isAlive() && wrappedGoal.b();
     }
 
     @Override
@@ -80,6 +72,9 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
 
     @Override
     public void onEnd() {
+        getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, true);
+        target = null;
+        attemptRetarget = 19;
         wrappedGoal.d();
     }
 

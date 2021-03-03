@@ -6,27 +6,24 @@ import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ai.WrappedPathfindingGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.ai.PathfinderHolder;
-import net.minecraft.server.v1_16_R3.EntityCreature;
-import net.minecraft.server.v1_16_R3.PathfinderGoal;
-import net.minecraft.server.v1_16_R3.PathfinderGoalMeleeAttack;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 
 @MythicAIGoal(
-        name = "unboundedMeleeAttack"
+        name = "unboundedArrowAttack"
 )
-public class WrappedMeleeAttack extends MythicWrapper {
-    public WrappedMeleeAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
+public class WrappedArrowAttack extends MythicWrapper {
+    public WrappedArrowAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
     }
 
     @Override
     public PathfinderGoal create() {
-        return new WrappedZombiesPathfinder(entity, new PathfinderGoalMeleeAttack((EntityCreature)getHandle(),
-                1, true), getRetargetInterval());
+        return new WrappedZombiesPathfinder(entity, new PathfinderGoalArrowAttack((IRangedEntity) getHandle(), 10, 1, 10), getRetargetInterval());
     }
 
     @Override
     public boolean isValid() {
-        return entity.isCreature();
+        return getHandle() instanceof IRangedEntity;
     }
 }
