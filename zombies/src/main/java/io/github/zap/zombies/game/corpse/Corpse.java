@@ -89,7 +89,6 @@ public class Corpse {
     public void setReviver(ZombiesPlayer reviver) {
         if (reviver == null) {
             zombiesPlayer.getArena().getAvailableCorpses().add(this);
-            deathTime = defaultDeathTime;
             startDying();
         } else {
             if (deathTaskId != -1) {
@@ -107,16 +106,19 @@ public class Corpse {
      * Removes 0.1s of revival time from the corpse
      */
     public void continueReviving() {
-        if (reviveTime == 0) {
+        if (reviveTime <= 0) {
             active = false;
             zombiesPlayer.revive();
+            hologram.destroy();
+            destroy();
         } else {
             hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(reviveTime)));
-            reviveTime--;
+            reviveTime -= 2;
         }
     }
 
     private void startDying() {
+        deathTime = defaultDeathTime;
         hologram.updateLine(1, ChatColor.RED + "help this noob");
 
         deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
@@ -131,12 +133,13 @@ public class Corpse {
      * Removes 0.1s of death time from the corpse
      */
     public void continueDying() {
-        if (deathTime == 0) {
+        if (deathTime <= 0) {
+            active = false;
             zombiesPlayer.kill();
-            zombiesPlayer.getArena().getAvailableCorpses().remove(this);
+            hologram.destroy();
         } else {
             hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(deathTime)));
-            deathTime -= 1;
+            deathTime -= 2;
         }
     }
 
@@ -148,7 +151,7 @@ public class Corpse {
     }
 
     private double convertTicksToSeconds(int ticks) {
-        return (double) (ticks / 20) + 0.05D * ticks % 20;
+        return (double) (ticks / 20) + 0.05D * (ticks % 20);
     }
 
     private void sendPacketToPlayer(PacketContainer packetContainer, Player player) {

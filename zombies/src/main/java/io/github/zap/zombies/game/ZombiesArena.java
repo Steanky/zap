@@ -41,6 +41,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Consumer;
@@ -576,6 +577,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerMap().forEach((l,r) -> {
             r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+            r.getPlayer().setAllowFlight(false);
+            r.getPlayer().setFlying(false);
+            r.getPlayer().setInvisible(false);
+            r.getPlayer().setWalkSpeed(0.2F);
+            r.getPlayer().removePotionEffect(PotionEffectType.JUMP);
         });
         waitAndDispose(200);
     }
@@ -590,6 +596,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerMap().forEach((l,r) -> {
             r.getPlayer().sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+            r.getPlayer().setAllowFlight(false);
+            r.getPlayer().setFlying(false);
+            r.getPlayer().setInvisible(false);
+            r.getPlayer().setWalkSpeed(0.2F);
+            r.getPlayer().removePotionEffect(PotionEffectType.JUMP);
         });
         waitAndDispose(200);
     }

@@ -122,10 +122,12 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 }
             }
         }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
-        if (currentAmmo > 0) {
-            reload();
-        } else {
-            player.sendMessage(ChatColor.RED + "no ammo, bro.");
+        if (currentClipAmmo == 0) {
+            if (currentAmmo > 0) {
+                reload();
+            } else {
+                player.sendMessage(ChatColor.RED + "no ammo, bro.");
+            }
         }
     }
 

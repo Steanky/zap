@@ -192,6 +192,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if (reviveTaskId != -1) {
             Bukkit.getScheduler().cancelTask(reviveTaskId);
             reviveTaskId = -1;
+            if (targetCorpse != null) {
+                targetCorpse.setReviver(null);
+                targetCorpse = null;
+            }
         }
     }
 
