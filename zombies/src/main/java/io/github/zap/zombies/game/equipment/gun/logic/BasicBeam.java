@@ -5,9 +5,14 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
+import io.github.zap.zombies.game.data.powerups.ModifierModificationPowerUpData;
+import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -237,24 +242,41 @@ public class BasicBeam {
         if (mob != null && bukkitAPIHelper.isMythicMob(mob)) {
             Player player = zombiesPlayer.getPlayer();
 
-            if (determineIfHeadshot(rayTraceResult, mob)) {
-                mob.playEffect(EntityEffect.HURT);
-                mob.setHealth(mob.getHealth() - damage);
-                zombiesPlayer.addCoins(goldPerHeadshot);
-
-                // TODO: this sound is clearly not correct
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
-            } else {
-                mob.damage(damage);
-                zombiesPlayer.addCoins(goldPerShot);
-
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1.5F, 1.0F);
-            }
-
+            var isHeadShot = determineIfHeadshot(rayTraceResult, mob);
+            inflictDamage(mob, damage, isHeadShot);
+            mob.playEffect(EntityEffect.HURT);
+            mob.setHealth(mob.getHealth() - damage);
+            zombiesPlayer.addCoins(goldPerHeadshot);
+            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isHeadShot ? 2F : 1.5F, 1.0F);
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
 
             if (mob.getHealth() <= 0) {
                 zombiesPlayer.incrementKills();
+            }
+        }
+    }
+
+    protected void inflictDamage(Mob mob, double damage, boolean isCritical) {
+        final MutableDouble finalDmg = new MutableDouble(damage);
+        final MutableBoolean instaKill = new MutableBoolean(false);
+        getZombiesPlayer().getArena().getPowerUps().stream()
+                .filter(x -> x instanceof DamageModificationPowerUp)
+                .forEach(x -> {
+                    var cData = (DamageModificationPowerUpData) x.getData();
+                    if(cData.isInstaKill()) {
+                        instaKill.setTrue();
+                        return;
+                    }
+
+                    finalDmg.setValue(finalDmg.getValue() * cData.getMultiplier() + cData.getAdditionalDamage());
+                });
+        if(instaKill.getValue()) { // TODO: Maybe set a entity metadata that can defy instakill
+            mob.setHealth(0);
+        } else {
+            if(isCritical) {
+                mob.setHealth(mob.getHealth() - finalDmg.getValue());
+            } else {
+                mob.damage(finalDmg.getValue());
             }
         }
     }

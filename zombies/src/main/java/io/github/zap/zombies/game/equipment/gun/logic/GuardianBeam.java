@@ -36,17 +36,11 @@ public class GuardianBeam extends BasicBeam {
             ZombiesPlayer zombiesPlayer = getZombiesPlayer();
             Player player = zombiesPlayer.getPlayer();
 
-            if (determineIfHeadshot(rayTraceResult, mob)) {
-                mob.playEffect(EntityEffect.HURT);
-                mob.setHealth(mob.getHealth() - getDamage());
-                zombiesPlayer.addCoins(getGoldPerHeadshot());
-
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
-            } else {
-                mob.damage(getDamage());
-                zombiesPlayer.addCoins(getGoldPerShot());
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1.5F, 1.0F);
-            }
+            var isCrit = determineIfHeadshot(rayTraceResult, mob);
+            mob.playEffect(EntityEffect.HURT);
+            inflictDamage(mob, getDamage(), isCrit);
+            zombiesPlayer.addCoins(getGoldPerHeadshot());
+            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isCrit ? 2.0F : 1.5F, 1.0F);
 
             AbstractEntity abstractEntity = activeMob.getEntity();
             abstractEntity.setMovementSpeed(0.0D);

@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class ModifierModificationPowerUpData extends PowerUpData {
     double multiplier;
-    int amount;
+    double amount;
 }
