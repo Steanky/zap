@@ -25,7 +25,7 @@ public class WrappedMeleeAttack extends WrappedPathfindingGoal implements Pathfi
     @Override
     public PathfinderGoal create() {
         return new WrappedZombiesPathfinder(entity, new PathfinderGoalMeleeAttack((EntityCreature)((CraftEntity)
-                entity.getBukkitEntity()).getHandle(), 0, false), retargetTicks);
+                entity.getBukkitEntity()).getHandle(), 1, true), retargetTicks);
     }
 
     @Override

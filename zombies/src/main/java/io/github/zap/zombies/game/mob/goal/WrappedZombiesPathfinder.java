@@ -5,9 +5,11 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
+import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.GenericAttributes;
 import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.event.entity.EntityTargetEvent;
 
 /**
  * Generic implementation for a pathfinder that is based off of vanilla AI rather than an entirely custom goal. The
@@ -45,27 +47,40 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
 
         if(target == null && ++attemptRetarget == 20) {
             target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
-            getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle());
-            attemptRetarget = 0;
-            return target != null && wrappedGoal.shouldActivate();
+            if(target != null) {
+                EntityPlayer targetPlayer = ((CraftPlayer)target.getPlayer()).getHandle();
+
+                if(targetPlayer != null) {
+                    getHandle().setGoalTarget(targetPlayer, EntityTargetEvent.TargetReason.CUSTOM, true);
+                }
+                else {
+                    Zombies.warning("targetPlayer is null; this should be impossible");
+                    return false;
+                }
+
+                attemptRetarget = 0;
+                return wrappedGoal.a();
+            }
+
+            return false;
         }
 
-        return wrappedGoal.shouldActivate();
+        return wrappedGoal.a();
     }
 
     @Override
     public boolean canEnd() {
-        return !arena.runAI() && !wrappedGoal.shouldStayActive();
+        return !arena.runAI() && !wrappedGoal.b();
     }
 
     @Override
     public void onStart() {
-        wrappedGoal.start();
+        wrappedGoal.c();
     }
 
     @Override
     public void onEnd() {
-        wrappedGoal.onTaskReset();
+        wrappedGoal.d();
     }
 
     @Override
@@ -76,6 +91,6 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
             counter = 0;
         }
 
-        wrappedGoal.tick();
+        wrappedGoal.e();
     }
 }

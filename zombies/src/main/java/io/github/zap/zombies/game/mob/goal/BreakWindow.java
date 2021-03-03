@@ -35,8 +35,8 @@ public class BreakWindow extends ZombiesPathfinder {
         if(!completed) {
             if(arena == null && spawnpoint == null && window == null) {
                 arena = getMetadata(Zombies.ARENA_METADATA_NAME);
-                window = arena.getMap().windowAt(spawnpoint.getWindowFace());
                 spawnpoint = getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
+                window = arena.getMap().windowAt(spawnpoint.getWindowFace());
 
                 destination = spawnpoint.getTarget();
                 if(destination == null) { //don't start if we have no destination
