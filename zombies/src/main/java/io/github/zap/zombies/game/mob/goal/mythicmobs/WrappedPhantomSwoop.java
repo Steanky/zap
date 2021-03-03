@@ -12,10 +12,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 @MythicAIGoal(
-        name = "unboundedPhantomCircle"
+        name = "unboundedPhantomSwoop"
 )
-public class WrappedPhantomCircle extends MythicWrapper {
-    public WrappedPhantomCircle(AbstractEntity entity, String line, MythicLineConfig mlc) {
+public class WrappedPhantomSwoop extends MythicWrapper {
+    public WrappedPhantomSwoop(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
     }
 
@@ -26,7 +26,7 @@ public class WrappedPhantomCircle extends MythicWrapper {
         Class<?>[] classes = EntityPhantom.class.getDeclaredClasses(); //ew
         for(Class<?> sample : classes) {
             String simpleName = sample.getSimpleName();
-            if(simpleName.equals("e")) { //inner class is pathfinder for circling phantoms
+            if(simpleName.equals("i")) { //inner class is pathfinder for circling phantoms
                 Constructor<?> constructor = sample.getDeclaredConstructors()[0];
                 constructor.setAccessible(true); //screw you mojang
 
