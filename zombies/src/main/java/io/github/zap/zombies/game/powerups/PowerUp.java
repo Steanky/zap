@@ -44,6 +44,8 @@ public abstract class PowerUp {
     private Location powerUpItemLocation;
     private BukkitTask checkForDistTask;
 
+    @Getter
+    protected Location dropLocation;
     protected Item itemEntity;
     protected ArmorStand asName;
 
@@ -63,6 +65,7 @@ public abstract class PowerUp {
 
         state = PowerUpState.DROPPED;
         removePowerUpItem();
+        dropLocation = location;
         itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
         itemEntity.setItemStack(new ItemStack(getData().getItemRepresentation(), getData().getItemCount()));
         itemEntity.setCustomName(getData().getDisplayName());

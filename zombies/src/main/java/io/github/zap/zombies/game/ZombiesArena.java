@@ -270,6 +270,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private BukkitTask gameEndTimeoutTask;
 
+    @Getter
     private Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
 
     // Contains both active and has not been picked up

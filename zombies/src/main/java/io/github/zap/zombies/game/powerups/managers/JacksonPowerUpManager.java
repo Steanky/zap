@@ -268,6 +268,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             addDataLoader(PowerUpDataType.EARNED_GOLD_MOD);
             addDataLoader(PowerUpDataType.MULTIPLIER);
             addDataLoader(PowerUpDataType.DAMAGE_MOD);
+            addDataLoader(PowerUpDataType.BARRICADE_COUNT_MOD);
+            addDataLoader(PowerUpDataType.DURATION);
             addSpawnRuleDataLoader(SpawnRuleDataType.DEFAULT);
 
             // There is no way to retrieve class from package easily so I gonna manually do it
@@ -275,10 +277,11 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             registerPowerUp(DurationPowerUp.class);
             registerPowerUp(EarnedGoldMultiplierPowerUp.class);
             registerPowerUp(PlayerGoldModificationPowerUp.class);
+            registerPowerUp(BarricadeCountModificationPowerUp.class);
 
             //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class))
+                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {Zombies.log(Level.WARNING, x.getName()); e.printStackTrace(); return null;}})
                     .filter(Objects::nonNull)
                     .forEach(x -> addPowerUpData(x, false));
 

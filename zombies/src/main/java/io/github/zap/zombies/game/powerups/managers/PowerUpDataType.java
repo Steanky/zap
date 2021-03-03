@@ -1,14 +1,13 @@
 package io.github.zap.zombies.game.powerups.managers;
 
-import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
-import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
-import io.github.zap.zombies.game.data.powerups.ModifierModificationPowerUpData;
-import io.github.zap.zombies.game.data.powerups.PowerUpData;
+import io.github.zap.zombies.game.data.powerups.*;
 import lombok.Getter;
 
 public enum PowerUpDataType implements PowerUpDataTypeLinker {
     BASIC("basic", PowerUpData.class),
+    DURATION("duration", DurationPowerUpData.class),
     EARNED_GOLD_MOD("earned_gold_mod", EarnedGoldMultiplierPowerUpData.class),
+    BARRICADE_COUNT_MOD("window_barricade_count_mod", BarricadeCountModificationPowerUpData.class),
     MULTIPLIER("multiplier", ModifierModificationPowerUpData.class),
     DAMAGE_MOD("damage_mod", DamageModificationPowerUpData.class);
 
