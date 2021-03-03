@@ -10,6 +10,7 @@ import org.bukkit.util.Vector;
 
 public class BreakWindow extends ZombiesPathfinder {
     private static final int DISTANCE_CHECK_TICKS = 5;
+    private static final double MIN_TARGET_DISTANCE = 3D;
 
     private ZombiesArena arena;
     private SpawnpointData spawnpoint;
@@ -78,7 +79,7 @@ public class BreakWindow extends ZombiesPathfinder {
         }
 
         if(counter % DISTANCE_CHECK_TICKS == 0) {
-            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ()) < breakReachSquared) {
+            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ()) < MIN_TARGET_DISTANCE) {
                 Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
                 if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
                     window.getAttackingEntityProperty().setValue(arena, null);

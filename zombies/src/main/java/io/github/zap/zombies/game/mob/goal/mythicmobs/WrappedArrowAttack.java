@@ -13,13 +13,20 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
         name = "unboundedArrowAttack"
 )
 public class WrappedArrowAttack extends MythicWrapper {
+    private final double speed;
+    private final int fireInterval;
+    private final float targetDistance;
+
     public WrappedArrowAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
+        speed = mlc.getDouble("speed", 1);
+        fireInterval = mlc.getInteger("fireInterval", 40);
+        targetDistance = mlc.getFloat("targetDistance", 10);
     }
 
     @Override
     public PathfinderGoal create() {
-        return new WrappedZombiesPathfinder(entity, new PathfinderGoalArrowAttack((IRangedEntity) getHandle(), 10, 1, 10), getRetargetInterval());
+        return new WrappedZombiesPathfinder(entity, new PathfinderGoalArrowAttack((IRangedEntity) getHandle(), speed, fireInterval, targetDistance), getRetargetInterval());
     }
 
     @Override

@@ -50,7 +50,6 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
 
             if(target != null) {
                 getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
-                Zombies.info("SetGoalTarget");
                 return wrappedGoal.a();
             }
 
