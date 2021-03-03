@@ -266,6 +266,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
         if(!isLoaded()) {
             isLoading = true;
             addDataLoader(PowerUpDataType.EARNED_GOLD_MOD);
+            addDataLoader(PowerUpDataType.MULTIPLIER);
+            addDataLoader(PowerUpDataType.DAMAGE_MOD);
             addSpawnRuleDataLoader(SpawnRuleDataType.DEFAULT);
 
             // There is no way to retrieve class from package easily so I gonna manually do it
@@ -284,11 +286,11 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
             //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> dataLoader.load(FilenameUtils.getBaseName(x.getName()), SpawnRuleData.class))
+                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), SpawnRuleData.class); } catch (Exception e) {return null;}})
                     .filter(Objects::nonNull)
                     .forEach(x -> addSpawnRuleData(x, false));
 
-            createTest();
+            //createTest();
 
             loaded = true;
         }

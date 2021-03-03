@@ -64,7 +64,7 @@ public abstract class PowerUp {
         state = PowerUpState.DROPPED;
         removePowerUpItem();
         itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
-        itemEntity.setItemStack(new ItemStack(getData().getItemRepresentation(), 1));
+        itemEntity.setItemStack(new ItemStack(getData().getItemRepresentation(), getData().getItemCount()));
         itemEntity.setCustomName(getData().getDisplayName());
         itemEntity.setCustomNameVisible(true);
         itemEntity.setWillAge(false);

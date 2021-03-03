@@ -30,7 +30,7 @@ public class AmmoModificationPowerUp extends PowerUp {
                     var levelAmmo = gun.getCurrentLevel().getAmmo();
                     var cData = (ModifierModificationPowerUpData) getData();
 
-                    gun.setAmmo((int) MathUtils.clamp(levelAmmo * cData.getMultiplier() + cData.getAmount(), 0, levelAmmo));
+                    gun.setAmmo((int) MathUtils.normalizeMultiplier(levelAmmo * cData.getMultiplier() + cData.getAmount(), levelAmmo));
                 }
             });
         });

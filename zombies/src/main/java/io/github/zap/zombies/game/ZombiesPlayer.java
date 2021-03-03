@@ -149,8 +149,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             var optGM = getArena().getPowerUps().stream()
                     .filter(x -> x instanceof EarnedGoldMultiplierPowerUp)
                     .collect(Collectors.toSet());
-            if(msg != null && !msg.isEmpty())
+            if(msg != null && !msg.isEmpty()) {
                 sb.append(msg);
+                count++;
+            }
+
 
             for (var item : optGM) {
                 if(count != 0)

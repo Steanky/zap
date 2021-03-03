@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.Value;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 
@@ -12,10 +13,11 @@ import org.bukkit.Sound;
 public class PowerUpData {
     String type;
     String name;
-    String powerUpType;
+    String powerUpType = ChatColor.GOLD + "ads";
 
     String displayName;
-    Material itemRepresentation;
+    Material itemRepresentation = Material.GOLD_BLOCK;
+    int itemCount = 1;
 
     // In ticks
     int despawnDuration = 6000;

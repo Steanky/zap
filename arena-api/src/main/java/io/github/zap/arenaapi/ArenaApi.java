@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLib;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -100,6 +101,7 @@ public final class ArenaApi extends JavaPlugin {
         module.addDeserializer(BoundingBox.class, new BoundingBoxDeserializer());
 
         mapper = new ObjectMapper();
+        mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         mapper.registerModule(module);
 
         mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()

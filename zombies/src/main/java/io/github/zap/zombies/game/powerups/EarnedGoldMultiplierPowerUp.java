@@ -15,9 +15,4 @@ public class EarnedGoldMultiplierPowerUp extends DurationPowerUp {
     public EarnedGoldMultiplierPowerUp(EarnedGoldMultiplierPowerUpData data, ZombiesArena arena, int refreshRate) {
         super(data, arena, refreshRate);
     }
-
-    @Override
-    public void activate() {
-
-    }
 }
