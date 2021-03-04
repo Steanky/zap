@@ -10,7 +10,7 @@ import org.bukkit.util.Vector;
 
 public class BreakWindow extends ZombiesPathfinder {
     private static final int DISTANCE_CHECK_TICKS = 5;
-    private static final double MIN_TARGET_DISTANCE = 3D;
+    private static final double MIN_TARGET_DISTANCE = 2D;
 
     private ZombiesArena arena;
     private SpawnpointData spawnpoint;
