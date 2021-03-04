@@ -140,7 +140,7 @@ public class WindowData {
      * @return Whether or not the window is within the specified distance from the standing vector
      */
     public boolean inRange(Vector standing, double distance) {
-        return VectorUtils.manhattanDistance(standing, getCenter()) < distance;
+        return standing.distanceSquared(getCenter()) < distance;
     }
 
     /**
