@@ -18,7 +18,7 @@ public class WrappedArrowShoot extends MythicWrapper {
         super(entity, line, mlc);
         speed = mlc.getDouble("speed", 1);
         fireInterval = mlc.getInteger("fireInterval", 20);
-        targetDistance = mlc.getFloat("targetDistance", 1);
+        targetDistance = mlc.getFloat("targetDistance", 10);
     }
 
     @Override

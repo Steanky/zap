@@ -27,7 +27,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Getter
     private ZombiesPlayer target;
 
-    private int attemptRetarget = 19;
+    private int locateInitial = 19;
     private int counter;
 
     public WrappedZombiesPathfinder(AbstractEntity entity, PathfinderGoal wrappedGoal, int retargetInterval) {
@@ -44,13 +44,15 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
             arena = getMetadata(Zombies.ARENA_METADATA_NAME);
         }
 
-        if(target == null && ++attemptRetarget == 20) {
-            attemptRetarget = 0;
-            target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
+        if(target == null) { //if our target is null, periodically keep trying to find it
+            if(++locateInitial == 20) {
+                locateInitial = 0;
+                target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
 
-            if(target != null) {
-                getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
-                return wrappedGoal.a();
+                if(target != null) {
+                    getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
+                    return wrappedGoal.a();
+                }
             }
 
             return false;
@@ -72,8 +74,9 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Override
     public void onEnd() {
         getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, true);
+        getHandle().getNavigation().stopPathfinding(); //necessary for some aigoals to work right
         target = null;
-        attemptRetarget = 19;
+        locateInitial = 19;
         wrappedGoal.d();
     }
 
