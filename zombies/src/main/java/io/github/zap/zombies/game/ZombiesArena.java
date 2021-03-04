@@ -577,7 +577,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
             getPlayerMap().forEach((l,r) -> {
                 var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
-                        currentRound.getCustomMessage() : ChatColor.RED + " " + currentRoundIndex + 1;
+                        currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (currentRoundIndex + 1);
                 r.getPlayer().sendTitle(messageTitle, "");
                 r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 0.5f);
             });
