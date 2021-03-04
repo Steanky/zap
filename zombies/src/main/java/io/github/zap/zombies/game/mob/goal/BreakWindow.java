@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import org.bukkit.entity.Entity;
@@ -10,7 +9,7 @@ import org.bukkit.util.Vector;
 
 public class BreakWindow extends ZombiesPathfinder {
     private static final int DISTANCE_CHECK_TICKS = 5;
-    private static final double MIN_TARGET_DISTANCE = 3D;
+    private static final double MIN_TARGET_DISTANCE_SQUARED = 3D;
 
     private ZombiesArena arena;
     private WindowData window;
@@ -41,7 +40,7 @@ public class BreakWindow extends ZombiesPathfinder {
                     destination = window.getTarget();
 
                     if(destination == null) {
-                        Zombies.warning("Entity " + getEntity().getUniqueId() + " spawned with a window that does not" +
+                        Zombies.warning("Entity " + getEntity().getUniqueId() + " spawned in a window that does not" +
                                 " supply a target destination!");
                         completed = true;
                         return false;
@@ -87,7 +86,7 @@ public class BreakWindow extends ZombiesPathfinder {
 
         if(counter % DISTANCE_CHECK_TICKS == 0) {
             if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ())
-                    < MIN_TARGET_DISTANCE && destination.getY() == getHandle().locY()) {
+                    < MIN_TARGET_DISTANCE_SQUARED && destination.getY() == getHandle().locY()) {
                 Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
                 if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
                     window.getAttackingEntityProperty().setValue(arena, null);
