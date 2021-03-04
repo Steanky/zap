@@ -7,6 +7,9 @@ import io.github.zap.zombies.game.data.powerups.BarricadeCountModificationPowerU
 import io.github.zap.zombies.game.util.MathUtils;
 import org.bukkit.Material;
 
+/**
+ * Modify the number of barricade block on a window using a function f(x) = x * multiplier + amount
+ */
 @PowerUpType(name = "Barricade-Count-Modification")
 public class BarricadeCountModificationPowerUp extends PowerUp{
     public BarricadeCountModificationPowerUp(BarricadeCountModificationPowerUpData data, ZombiesArena arena) {

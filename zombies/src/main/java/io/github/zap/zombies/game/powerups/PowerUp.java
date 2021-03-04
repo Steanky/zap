@@ -20,6 +20,9 @@ import org.bukkit.util.Vector;
 
 import java.util.Collections;
 
+/**
+ * The base class for all power ups
+ */
 public abstract class PowerUp {
     public static float ITEM_SPIN_ANGULAR_VELOCITY = 180; // deg/s
 
@@ -59,6 +62,10 @@ public abstract class PowerUp {
         this.refreshRate = refreshRate;
     }
 
+    /**
+     * Drop the power up
+     * @param location the location to drop
+     */
     public void spawnItem(Location location) {
         if(state != PowerUpState.NONE)
             throw new IllegalStateException("Cannot summon item in this state!");
@@ -149,6 +156,9 @@ public abstract class PowerUp {
         spawnedTimeStamp = System.currentTimeMillis();
     }
 
+    /**
+     * Activate the power up
+     */
     public abstract void activate();
 
     public  void deactivate() {

@@ -24,6 +24,10 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 
+/**
+ * Manages loaded power ups that use json format
+ * order of add/register: Power-up type -> Power-up / spawn rule type -> spawn rule
+ */
 public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoading {
     private final FieldTypeDeserializer<PowerUpData> powerUpDataDeserializer = new FieldTypeDeserializer<>("type");
     private final FieldTypeDeserializer<SpawnRuleData> spawnRuleDataFieldTypeDeserializer = new FieldTypeDeserializer<>("type");
@@ -41,9 +45,9 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     private final DataLoader dataLoader;
 
     @Getter
-    private final JacksonPowerUpDataManagerOptions options;
+    private final JacksonPowerUpManagerOptions options;
 
-    public JacksonPowerUpManager(DataLoader dataLoader, JacksonPowerUpDataManagerOptions options) {
+    public JacksonPowerUpManager(DataLoader dataLoader, JacksonPowerUpManagerOptions options) {
         this.dataLoader = dataLoader;
         this.options = options;
         ArenaApi.getInstance().addDeserializer(PowerUpData.class, powerUpDataDeserializer);
@@ -81,7 +85,12 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             Validate.isAssignableFrom(typeMap.get(data.getPowerUpType()).right, data.getClass(), "The provided power up type does not accept this data type");
             dataMap.put(data.getName(), data);
         } catch (IllegalArgumentException e) {
-            if(throwOnError) throw e;
+            if(throwOnError) {
+                throw e;
+            } else {
+                Zombies.log(Level.WARNING, "Error while loading power up data!");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -110,7 +119,12 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             Validate.isAssignableFrom(spawnRuleTypeMap.get(spawnRuleData.getSpawnRuleType()).right, spawnRuleData.getClass(), "The provided spawn rule type doesn't accept this data type!");
             spawnRuleDataMap.put(spawnRuleData.getName(), spawnRuleData);
         } catch (Exception e) {
-            if (throwOnError) throw e;
+            if (throwOnError) {
+                throw e;
+            } else {
+                Zombies.log(Level.WARNING, "Error while loading power up data!");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -278,10 +292,15 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             registerPowerUp(EarnedGoldMultiplierPowerUp.class);
             registerPowerUp(PlayerGoldModificationPowerUp.class);
             registerPowerUp(BarricadeCountModificationPowerUp.class);
+            registerPowerUp(DamageModificationPowerUp.class);
 
+            // TODO: remove test code
             //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {Zombies.log(Level.WARNING, x.getName()); e.printStackTrace(); return null;}})
+                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {
+                        Zombies.log(Level.WARNING, x.getName());
+                        e.printStackTrace();
+                        return null;}})
                     .filter(Objects::nonNull)
                     .forEach(x -> addPowerUpData(x, false));
 

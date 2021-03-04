@@ -11,6 +11,9 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+/**
+ * The default spawnrule that similar to Hypixel
+ */
 @SpawnRuleType(getName = "Default")
 public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpawnRuleData> implements Disposable {
     public DefaultPowerUpSpawnRule(String spawnTargetName, DefaultPowerUpSpawnRuleData data, ZombiesArena arena) {

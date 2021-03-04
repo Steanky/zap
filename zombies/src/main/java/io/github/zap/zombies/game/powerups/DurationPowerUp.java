@@ -7,6 +7,9 @@ import lombok.Getter;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+/**
+ * Base class for all power ups that have long lasting effect
+ */
 @PowerUpType(name = "Duration")
 public class DurationPowerUp extends PowerUp {
     @Getter
@@ -27,6 +30,9 @@ public class DurationPowerUp extends PowerUp {
         restartTimeoutTimer();
     }
 
+    /**
+     * Reset the activated duration
+     */
     protected void restartTimeoutTimer() {
         if(getState() != PowerUpState.ACTIVATED)
             throw new IllegalStateException("The perk must be activated to call this method!");
@@ -45,6 +51,9 @@ public class DurationPowerUp extends PowerUp {
         estimatedEndTimeStamp = System.currentTimeMillis() + duration * 50;
     }
 
+    /**
+     * Cancel the task which deactivate the power up
+     */
     protected void stopTimeoutTimer() {
         if(timeoutTask != null && !timeoutTask.isCancelled()) {
             timeoutTask.cancel();

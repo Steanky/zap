@@ -11,6 +11,10 @@ import org.bukkit.Location;
 
 import java.util.Collections;
 
+/**
+ * This class or its subclasses create Power ups when a condition is met
+ * @param <T>
+ */
 public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
     @Getter
     private final T data;
@@ -30,12 +34,20 @@ public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
         this.spawnTargetName = spawnTargetName;
     }
 
+    /**
+     * Determines whether the current round restrict power up (eg: Boss rounds)
+     * @return Whether this round disables power up
+     */
     public boolean isDisabledRound() {
         var disabledRounds = getArena().getMap().getDisablePowerUpRound();
         var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena()) + 1;
         return disabledRounds.contains(currentRound);
     }
 
+    /**
+     * Spawn the targeted power up
+     * @param loc the location to spawn
+     */
     protected void spawn(Location loc) {
         var pu = getArena().getPowerUpManager().createPowerUp(getSpawnTargetName(), getArena());
         pu.spawnItem(loc);

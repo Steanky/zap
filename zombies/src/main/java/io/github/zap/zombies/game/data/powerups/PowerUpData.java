@@ -8,6 +8,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 
+/**
+ * The base class of all power up data
+ */
 @Getter
 @Setter
 public class PowerUpData {

@@ -4,6 +4,9 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
 import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
 
+/**
+ * Modify the damage dealt by players using a modifier function f(x) = x * multiplier
+ */
 @PowerUpType(name = "Damage-Modification")
 public class DamageModificationPowerUp extends DurationPowerUp{
     public DamageModificationPowerUp(DamageModificationPowerUpData data, ZombiesArena arena) {

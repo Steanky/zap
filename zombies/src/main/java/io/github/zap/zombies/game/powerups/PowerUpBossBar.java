@@ -26,6 +26,9 @@ import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+/**
+ * This class displays information about activated power ups
+ */
 public class PowerUpBossBar extends BukkitRunnable implements Disposable, CommandExecutor {
     final BossBar bukkitBossBar;
     final BukkitTask updateTask;

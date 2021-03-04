@@ -8,6 +8,9 @@ import io.github.zap.zombies.game.data.powerups.ModifierModificationPowerUpData;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.util.MathUtils;
 
+/**
+ * This power up apply a function f(x) = x * multiplier + amount to all players ammo
+ */
 @PowerUpType(name = "Ammo-Modification")
 // Apply multiplier before amount (addition), allow negative val
 public class AmmoModificationPowerUp extends PowerUp {

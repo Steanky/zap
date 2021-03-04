@@ -4,6 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.boss.BarColor;
 
+/**
+ * The base class for all power up has long lasting effects
+ */
 @Getter
 @Setter
 public class DurationPowerUpData extends PowerUpData {

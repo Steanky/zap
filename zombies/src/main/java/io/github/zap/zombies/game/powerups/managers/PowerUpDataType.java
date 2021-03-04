@@ -3,6 +3,9 @@ package io.github.zap.zombies.game.powerups.managers;
 import io.github.zap.zombies.game.data.powerups.*;
 import lombok.Getter;
 
+/**
+ * All data type defined by zap dev team
+ */
 public enum PowerUpDataType implements PowerUpDataTypeLinker {
     BASIC("basic", PowerUpData.class),
     DURATION("duration", DurationPowerUpData.class),
