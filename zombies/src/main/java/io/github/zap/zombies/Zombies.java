@@ -18,8 +18,7 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.mob.goal.BreakWindow;
-import io.github.zap.zombies.game.mob.goal.MeleeAttack;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.*;
 import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
@@ -119,7 +118,8 @@ public final class Zombies extends JavaPlugin implements Listener {
             initConfig();
             initProxy();
             initDependencies();
-            initPathfinding(MeleeAttack.class, BreakWindow.class);
+            initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class,
+                    WrappedArrowShoot.class);
             initMechanics(CobwebMechanic.class);
             initPlayerDataManager();
             initLocalization();

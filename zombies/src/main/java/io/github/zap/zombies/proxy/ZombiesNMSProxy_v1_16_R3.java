@@ -82,6 +82,11 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
+    public void lookAtPosition(ControllerLook look, double x, double y, double z, float f1, float f2) {
+        look.a(x, y, z, f1, f2);
+    }
+
+    @Override
     public void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent) {
         entity.setGoalTarget(target, reason, fireEvent);
     }

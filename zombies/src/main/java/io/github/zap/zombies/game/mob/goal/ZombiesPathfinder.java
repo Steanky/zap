@@ -3,44 +3,88 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
-import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
 import lombok.Getter;
+import net.minecraft.server.v1_16_R3.Entity;
 import net.minecraft.server.v1_16_R3.EntityInsentient;
+import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
+//TODO: make this not directly use NMS or put in v1_16_3 package and load according to version
+
 /**
- * General pathfinding class. Supports loading of MythicMobs entity metadata and exposes the ZombiesNMSProxy.
+ * General pathfinding class for Zombies. Supports lazy loading of entity metadata from MythicMobs; subclass pathfinding
+ * functions will not be called until all required metadata has been loaded.
  */
-public abstract class ZombiesPathfinder extends Pathfinder implements PathfindingGoal {
-    private final Map<String, Object> metadata = new HashMap<>();
-    private final String[] keys;
-    private boolean metadataLoaded;
+public abstract class ZombiesPathfinder extends PathfinderGoal {
+    @Getter
+    private final AbstractEntity entity;
 
     @Getter
-    private final EntityInsentient nmsEntity;
+    private final EntityInsentient handle;
+
+    @Getter
+    private final String[] metadataKeys;
 
     @Getter
     private final ZombiesNMSProxy proxy;
 
-    public ZombiesPathfinder(AbstractEntity entity, String line, MythicLineConfig mlc, String... metadataKeys) {
-        super(entity, line, mlc);
-        keys = metadataKeys;
-        nmsEntity = (EntityInsentient) ((CraftEntity)entity.getBukkitEntity()).getHandle();
-        proxy = Zombies.getInstance().getNmsProxy();
+    private final Map<String, Object> metadata = new HashMap<>();
+    private boolean metadataLoaded;
+
+    public ZombiesPathfinder(AbstractEntity entity, String... metadataKeys) {
+        super();
+        this.entity = entity;
+
+        Entity nmsEntity = ((CraftEntity)entity.getBukkitEntity()).getHandle();
+        if(nmsEntity instanceof EntityInsentient) {
+            this.handle = (EntityInsentient)nmsEntity;
+            this.metadataKeys = metadataKeys;
+            this.metadataLoaded = metadataKeys.length == 0;
+            proxy = Zombies.getInstance().getNmsProxy();
+        }
+        else {
+            throw new UnsupportedOperationException("Tried to add PathfinderGoal to an Entity that does not subclass" +
+                    " EntityInsentient!");
+        }
     }
 
-    private boolean loadMetadata() {
+    /**
+     * Gets the metadata value for the given string. Will throw ClassCastException if the metadata type does not match.
+     * Null values for metadata are not permitted.
+     * @param key The name of the metadata to get
+     * @param <T> The type of the metadata
+     * @return The metadata, after casting to T
+     */
+    public <T> T getMetadata(String key) {
+        //noinspection unchecked
+        return Objects.requireNonNull((T)metadata.get(key), "Metadata " + key + " does not exist!");
+    }
+
+    /**
+     * Gets the metadata value for the given string. Will throw ClassCastException if the metadata type does not match.
+     * Accepts a generic Class, to whose type the metadata will be cast. Null values for metadata are not permitted.
+     * @param key The name of the metadata to get
+     * @param dummy The Class which supplies the generic type parameter
+     * @param <T> The type of the metadata
+     * @return The metadata, after casting to T
+     */
+    public <T> T getMetadata(String key, Class<T> dummy) {
+        //noinspection unchecked
+        return Objects.requireNonNull((T)metadata.get(key), "Metadata " + key + " does not exist!");
+    }
+
+    @Override
+    public final boolean shouldActivate() {
         if(!metadataLoaded) {
-            for(String key : keys) {
-                Optional<Object> object = entity.getMetadata(key);
-                if(object.isPresent()) {
-                    metadata.put(key, object.get());
+            for(String key : metadataKeys) {
+                Optional<Object> optional = entity.getMetadata(key);
+                if(optional.isPresent()) {
+                    metadata.put(key, optional.get());
                 }
                 else {
                     return false;
@@ -50,25 +94,36 @@ public abstract class ZombiesPathfinder extends Pathfinder implements Pathfindin
             metadataLoaded = true;
         }
 
-        return true;
-    }
-
-    public <T> T getMetadata(String name) {
-        //noinspection unchecked
-        return (T)metadata.get(name);
+        return canStart();
     }
 
     @Override
-    public final boolean shouldStart() {
-        return loadMetadata() && canStart();
+    public final boolean shouldStayActive() {
+        return stayActive();
     }
 
     @Override
-    public final boolean shouldEnd() {
-        return canEnd();
+    public final void start() {
+        onStart();
+    }
+
+    @Override
+    public final void onTaskReset() {
+        onEnd();
+    }
+
+    @Override
+    public final void tick() {
+        doTick();
     }
 
     public abstract boolean canStart();
 
-    public abstract boolean canEnd();
+    public abstract boolean stayActive();
+
+    public abstract void onStart();
+
+    public abstract void onEnd();
+
+    public abstract void doTick();
 }

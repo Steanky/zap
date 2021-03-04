@@ -34,6 +34,8 @@ public interface ZombiesNMSProxy extends NMSProxy {
 
     void lookAtEntity(ControllerLook look, Entity target, float f1, float f2);
 
+    void lookAtPosition(ControllerLook look, double x, double y, double z, float f1, float f2);
+
     void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent);
 
     void setAttributeFor(EntityLiving entity, AttributeBase attribute, double value);
