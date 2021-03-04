@@ -5,125 +5,91 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.mobs.ai.Pathfinder;
-import io.lumine.xikage.mythicmobs.mobs.ai.PathfindingGoal;
-import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-import java.util.Optional;
-
-@MythicAIGoal (
-        name = "breakWindow"
-)
-public class BreakWindow extends Pathfinder implements PathfindingGoal {
-    private boolean metadataLoaded;
-
-    private final int breakTicks;
-    private final double breakReachSquared;
-    private final int breakCount;
+public class BreakWindow extends ZombiesPathfinder {
+    private static final int DISTANCE_CHECK_TICKS = 5;
+    private static final double MIN_TARGET_DISTANCE = 3D;
 
     private ZombiesArena arena;
+    private SpawnpointData spawnpoint;
     private WindowData window;
-    private AbstractLocation destination;
+    private Vector destination;
+    private boolean completed;
 
-    private int counter = 0;
+    private int counter;
 
-    private boolean complete = false;
+    private final int breakTicks;
+    private final int breakCount;
+    private final double breakReachSquared;
 
-    public BreakWindow(AbstractEntity entity, String line, MythicLineConfig mlc) {
-        super(entity, line, mlc);
-        this.goalType = GoalType.MOVE_LOOK;
-
-        breakTicks = mlc.getInteger("breakTicks", 20);
-        breakReachSquared = mlc.getDouble("breakReachSquared", 4);
-        breakCount = mlc.getInteger("breakCount", 1);
+    public BreakWindow(AbstractEntity entity, int breakTicks, int breakCount, double breakReachSquared) {
+        super(entity, Zombies.ARENA_METADATA_NAME, Zombies.SPAWNPOINT_METADATA_NAME);
+        this.breakTicks = breakTicks;
+        this.breakCount = breakCount;
+        this.breakReachSquared = breakReachSquared;
     }
 
-    private boolean loadMetadata() {
-        Optional<Object> arenaOptional = entity.getMetadata(Zombies.ARENA_METADATA_NAME);
-        Optional<Object> spawnpointOptional = entity.getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
-
-        if(arenaOptional.isPresent() && spawnpointOptional.isPresent()) {
-            arena = (ZombiesArena) arenaOptional.get();
-            SpawnpointData spawnpoint = (SpawnpointData) spawnpointOptional.get();
-
-            Vector target = spawnpoint.getTarget();
-
-            if(target != null) {
-                destination = BukkitAdapter.adapt(new Location(BukkitAdapter.adapt(entity.getWorld()), target.getX() + 0.5,
-                        target.getY(), target.getZ() + 0.5));
-
+    @Override
+    public boolean canStart() {
+        if(!completed) {
+            if(arena == null && spawnpoint == null && window == null) {
+                arena = getMetadata(Zombies.ARENA_METADATA_NAME);
+                spawnpoint = getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
                 window = arena.getMap().windowAt(spawnpoint.getWindowFace());
-            }
-            else {
-                window = null;
-                destination = null;
-                complete = true;
+
+                destination = spawnpoint.getTarget();
+                if(destination == null) { //don't start if we have no destination
+                    completed = true;
+                    return false;
+                }
             }
 
             return true;
         }
-        else {
-            arena = null;
-            window = null;
-            destination = null;
-            complete = true;
 
-            return false;
-        }
+        return false;
     }
 
     @Override
-    public boolean shouldStart() {
-        if(!metadataLoaded) {
-            metadataLoaded = loadMetadata();
-
-            if(!metadataLoaded) {
-                return false;
-            }
-        }
-
-        return !complete && arena.runAI() && window != null;
+    public boolean stayActive() {
+        return !completed && arena.runAI();
     }
 
     @Override
-    public void start() {
-        ai().navigateToLocation(entity, destination, 0);
+    public void onStart() {
+
     }
 
     @Override
-    public void tick() {
+    public void onEnd() {
+
+    }
+
+    @Override
+    public void doTick() {
         if(++counter == breakTicks) {
-            if(window.getCenter().distanceSquared(BukkitAdapter.adapt(entity.getLocation().toVector())) < breakReachSquared) {
-                arena.tryBreakWindow(BukkitAdapter.adapt(entity), window, breakCount);
+            Vector center = window.getCenter();
+            if(getProxy().getDistanceToSquared(getHandle(), center.getX(), center.getY(), center.getZ()) < breakReachSquared) {
+                arena.tryBreakWindow(getHandle().getBukkitEntity(), window, breakCount);
             }
 
             counter = 0;
         }
 
-        if(entity.getLocation().distanceSquared(destination) < 2) {
-            complete = true;
+        if(counter % DISTANCE_CHECK_TICKS == 0) {
+            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ()) < MIN_TARGET_DISTANCE) {
+                Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
+                if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
+                    window.getAttackingEntityProperty().setValue(arena, null);
+                }
 
-            Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
-
-            if(attackingEntity != null && entity.getUniqueId() == attackingEntity.getUniqueId()) {
-                window.getAttackingEntityProperty().setValue(arena, null);
+                completed = true;
             }
         }
 
-        ai().navigateToLocation(entity, destination, 0);
+        getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(), destination.getZ(), 30.0F, 30.0F);
+        getProxy().navigateToLocation(getHandle(), destination.getX(), destination.getY(), destination.getZ(), 1);
     }
-
-    @Override
-    public boolean shouldEnd() {
-        return complete || !arena.runAI() || window == null;
-    }
-
-    @Override
-    public void end() { }
 }

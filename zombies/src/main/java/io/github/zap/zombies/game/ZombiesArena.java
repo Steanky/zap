@@ -548,13 +548,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         startTimeStamp = System.currentTimeMillis();
         doRound();
         state = ZombiesArenaState.STARTED;
-
-        for (ZombiesPlayer player : getPlayerMap().values()) {
-            EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
-                    player.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
-            int slot = equipmentObjectGroup.getNextEmptySlot();
-            equipmentObjectGroup.setHotbarObject(slot, equipmentManager.createEquipment(this, player, slot, "test", "pistol"));
-        }
     }
 
     private void doRound() {

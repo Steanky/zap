@@ -7,8 +7,10 @@ import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.api.exceptions.WorldInUseException;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
+import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
+import com.grinderwolf.swm.plugin.config.WorldData;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.Zombies;
 import org.bukkit.Bukkit;
@@ -51,8 +53,18 @@ public class SlimeWorldLoader implements WorldLoader {
                     String worldName = Files.getNameWithoutExtension(worldFileName);
 
                     try {
-                        preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
-                                ConfigManager.getWorldConfig().getWorlds().get(worldName).toPropertyMap()));
+                        WorldData swmData = ConfigManager.getWorldConfig().getWorlds().get(worldName);
+
+                        if(swmData != null) {
+                            preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
+                                    swmData.toPropertyMap()));
+                        }
+                        else {
+                            Zombies.warning("Could not find configuration file for world " + worldName + "; using " +
+                                    "default SlimePropertyMap.");
+                            preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
+                                    new SlimePropertyMap()));
+                        }
                     }
                     catch(IOException | CorruptedWorldException | WorldInUseException | NewerFormatException |
                             UnknownWorldException e) {
