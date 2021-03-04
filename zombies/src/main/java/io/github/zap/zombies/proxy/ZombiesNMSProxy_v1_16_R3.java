@@ -29,6 +29,15 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         }
     }
 
+    /**
+     * Returns the nearest ZombiesPlayer in the given arena, using path length instead of vector distance for AI that
+     * should prioritize rationally. Uses a predicate — ZombiesPlayers who fail the predicate will not be considered.
+     * @param entity The entity to navigate for
+     * @param arena The arena to search in
+     * @param filter The predicate to use
+     * @return The nearest ZombiesPlayer using path length, or null if none exist that are reachable and match the
+     * predicate
+     */
     @Override
     public ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, Predicate<ZombiesPlayer> filter) {
         Pair<Float, ZombiesPlayer> bestCandidate = ImmutablePair.of(Float.MAX_VALUE, null);
@@ -57,7 +66,8 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     @Override
     public void navigateToLocation(EntityInsentient entity, double x, double y, double z, double speed) {
         if(entity.isAlive()) {
-            entity.getNavigation().a(x, y, z, speed);
+            NavigationAbstract navigationAbstract = entity.getNavigation();
+            entity.getNavigation().a(navigationAbstract.a(x, y, z, 0), speed);
         }
     }
 
