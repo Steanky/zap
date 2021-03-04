@@ -50,8 +50,14 @@ public class WindowData {
 
     /**
      * The coordinate considered the 'base' of the window, to which players are teleported if they enter the interior
+     * It is also the location that mobs navigate to when they leave the window
      */
-    Vector base = new Vector();
+    Vector target = new Vector();
+
+    /**
+     * The spawnpoints held in this window
+     */
+    List<SpawnpointData> spawnpoints = new ArrayList<>();
 
     /**
      * The sound that is played when a single block from the window breaks
@@ -93,7 +99,7 @@ public class WindowData {
 
     private WindowData() { }
 
-    public WindowData(World from, BoundingBox faceBounds) {
+    public WindowData(World from, BoundingBox faceBounds, Vector target) {
         this.faceBounds = faceBounds;
 
         Vector min = faceBounds.getMin();
@@ -107,6 +113,8 @@ public class WindowData {
                 }
             }
         }
+
+        this.target = target;
     }
 
     /**

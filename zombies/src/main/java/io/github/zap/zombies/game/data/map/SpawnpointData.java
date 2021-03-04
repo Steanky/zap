@@ -18,17 +18,6 @@ public class SpawnpointData {
     Vector spawn = new Vector();
 
     /**
-     * this is the vector to which mobs should pathfind after being spawned. if == to spawn, no pathfinding will occur
-     */
-    Vector target = new Vector();
-
-    /**
-     * A vector corresponding to the location of the window to which this spawnpoint belongs. This will be ignored if
-     * the spawnpoint is not inside of a window.
-     */
-    Vector windowFace = new Vector();
-
-    /**
      * Used to retrieve an object that defines the behavior of the spawnpoint (what mobs it can spawn, what mobs it
      * can't spawn, etc)
      */

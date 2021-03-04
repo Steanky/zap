@@ -40,8 +40,7 @@ public class NewRoomSpawnpointForm extends CommandForm<RoomSelectionData> {
 
     @Override
     public String execute(Context context, Object[] arguments, RoomSelectionData data) {
-        data.getRoom().getSpawnpoints().add(new SpawnpointData(data.getContext().getTarget(), null, null,
-                (String)arguments[2]));
+        data.getRoom().getSpawnpoints().add(new SpawnpointData(data.getContext().getTarget(), (String)arguments[2]));
         data.getContext().updateRenderable(EditorContext.Renderables.SPAWNPOINTS);
         return "Added spawnpoint.";
     }

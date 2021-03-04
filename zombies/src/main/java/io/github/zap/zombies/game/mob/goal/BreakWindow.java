@@ -13,7 +13,6 @@ public class BreakWindow extends ZombiesPathfinder {
     private static final double MIN_TARGET_DISTANCE = 3D;
 
     private ZombiesArena arena;
-    private SpawnpointData spawnpoint;
     private WindowData window;
     private Vector destination;
     private boolean completed;
@@ -25,7 +24,7 @@ public class BreakWindow extends ZombiesPathfinder {
     private final double breakReachSquared;
 
     public BreakWindow(AbstractEntity entity, int breakTicks, int breakCount, double breakReachSquared) {
-        super(entity, Zombies.ARENA_METADATA_NAME, Zombies.SPAWNPOINT_METADATA_NAME);
+        super(entity, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
@@ -34,13 +33,21 @@ public class BreakWindow extends ZombiesPathfinder {
     @Override
     public boolean canStart() {
         if(!completed) {
-            if(arena == null && spawnpoint == null && window == null) {
+            if(arena == null && destination == null && window == null) {
                 arena = getMetadata(Zombies.ARENA_METADATA_NAME);
-                spawnpoint = getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
-                window = arena.getMap().windowAt(spawnpoint.getWindowFace());
+                window = getMetadata(Zombies.WINDOW_METADATA_NAME);
 
-                destination = spawnpoint.getTarget();
-                if(destination == null) { //don't start if we have no destination
+                if(window != null) {
+                    destination = window.getTarget();
+
+                    if(destination == null) {
+                        Zombies.warning("Entity " + getEntity().getUniqueId() + " spawned with a window that does not" +
+                                " supply a target destination!");
+                        completed = true;
+                        return false;
+                    }
+                }
+                else {
                     completed = true;
                     return false;
                 }
