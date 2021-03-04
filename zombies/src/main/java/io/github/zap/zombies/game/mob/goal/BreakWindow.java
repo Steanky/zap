@@ -86,7 +86,8 @@ public class BreakWindow extends ZombiesPathfinder {
         }
 
         if(counter % DISTANCE_CHECK_TICKS == 0) {
-            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ()) < MIN_TARGET_DISTANCE) {
+            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ())
+                    < MIN_TARGET_DISTANCE && destination.getY() == getHandle().locY()) {
                 Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
                 if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
                     window.getAttackingEntityProperty().setValue(arena, null);
