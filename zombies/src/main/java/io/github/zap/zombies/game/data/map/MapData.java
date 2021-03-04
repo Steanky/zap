@@ -121,11 +121,6 @@ public class MapData {
     int mobSpawnLevel = 1;
 
     /**
-     * The number of ticks mobs will wait before switching to a closer target. Set to -1 to disable retargeting.
-     */
-    int mobRetargetTicks = -1;
-
-    /**
      * The material that should replace door blocks when they are opened.
      */
     Material doorFillMaterial = Material.AIR;
