@@ -62,6 +62,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
         this.mapLoader = mapLoader;
+
     }
 
     @Override

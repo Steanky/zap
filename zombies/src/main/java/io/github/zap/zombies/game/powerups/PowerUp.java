@@ -163,6 +163,7 @@ public abstract class PowerUp {
 
     public  void deactivate() {
         if(arena.getPowerUps().contains(this)) {
+            removePowerUpItem();
             getArena().getPowerUps().remove(this);
             var eventArgs = new PowerUpChangedEventArgs(ChangedAction.REMOVE, Collections.singleton(this));
             getArena().getPowerUpChangedEvent().callEvent(eventArgs);

@@ -63,7 +63,7 @@ public class MapData {
     /**
      * The duration of the game start countdown timer, in seconds
      */
-    int countdownSeconds = 20;
+    int countdownSeconds = 3;
 
     /**
      * The number of coins each player should start with

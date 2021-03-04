@@ -583,9 +583,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             });
 
             if(getMap().getDisablePowerUpRound().contains(currentRoundIndex + 1)) {
-                getPowerUps().stream()
+                var items =getPowerUps().stream()
                         .filter(x -> x.getState() == PowerUpState.NONE || x.getState() == PowerUpState.DROPPED)
-                        .forEach(PowerUp::deactivate);
+                        .collect(Collectors.toSet());
+                items.forEach(PowerUp::deactivate);
             }
         }
         else {

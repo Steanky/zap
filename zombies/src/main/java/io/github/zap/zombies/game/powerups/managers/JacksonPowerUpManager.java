@@ -272,7 +272,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
         ensureLoad();
         Validate.isTrue(spawnRuleDataMap.containsKey(name), " spawn rule does not exist");
         var data = spawnRuleDataMap.get(name);
-        return spawnRuleTypeMap.get(data.getSpawnRuleType()).left.construct(name, data, arena);
+        return spawnRuleTypeMap.get(data.getSpawnRuleType()).left.construct(powerUpName, data, arena);
     }
 
     @Override
@@ -343,7 +343,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
         var wave = new HashSet<Integer>();
         wave.add(1);
-        var spawnRuleData = new DefaultPowerUpSpawnRuleData("Default", "Default", "Default", pattern, wave);
+        var spawnRuleData = new DefaultPowerUpSpawnRuleData();
         addSpawnRuleData(spawnRuleData);
     }
 

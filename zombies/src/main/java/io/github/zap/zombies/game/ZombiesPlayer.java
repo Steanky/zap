@@ -157,15 +157,15 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
             for (var item : optGM) {
                 if(count != 0)
-                    sb.append(", ");
+                    sb.append(ChatColor.RESET).append(ChatColor.GOLD).append(", ");
                 sb.append(ChatColor.RESET).append(item.getData().getDisplayName());
                 multiplier *= ((EarnedGoldMultiplierPowerUpData)item.getData()).getMultiplier();
                 count ++;
             }
 
-            var fullMsg = sb.toString();
+            var fullMsg = sb.append(ChatColor.RESET).append(ChatColor.GOLD).toString();
             amount *= multiplier;
-            if(fullMsg.isEmpty())
+            if(ChatColor.stripColor(fullMsg).isEmpty())
                 getPlayer().sendMessage(String.format("%s+%d Gold!", ChatColor.GOLD, amount));
             else
                 getPlayer().sendMessage(String.format("%s+%d Gold (%s)!", ChatColor.GOLD, amount, fullMsg));

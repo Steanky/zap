@@ -2,16 +2,15 @@ package io.github.zap.zombies.game.data.powerups.spawnrules;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.Value;
 
-@RequiredArgsConstructor
+@Getter
+@Setter
 public class SpawnRuleData {
-    @Getter
-    private final String name;
+    private String name;
 
-    @Getter
-    private final String type;
+    private String type;
 
-    @Getter
-    private final String spawnRuleType;
+    private String spawnRuleType;
 }

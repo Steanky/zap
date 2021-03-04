@@ -3,10 +3,12 @@ package io.github.zap.zombies.game.powerups.spawnrules;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.map.SpawnEntryData;
 import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -42,24 +44,25 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
         if(isRound) {
             var waveMeta = e.getEntity().getMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME);
-            if(waveMeta.size() > 1 && waveMeta.get(0).value() == chosenWave) {
+            if(waveMeta.size() == 1 && ((FixedMetadataValue) waveMeta.get(0).value()).value() == chosenWave) {
                 if(deathCountUntilDrops == roundDeathCount && !isDisabledRound()) {
                     spawn(e.getEntity().getLocation());
                 }
 
                 roundDeathCount++;
+                System.out.println("z" + roundDeathCount + "/" + deathCountUntilDrops);
             }
         }
 
     }
 
     private void chooseLuckyZombie(int currentRound) {
-        var waves = getArena().getMap().getRounds().get(currentRound).getWaves();
+        var waves = getArena().getMap().getRounds().get(currentRound - 1).getWaves();
         var waveCount = waves.size();
         var list = getData().getWaves().stream().filter(x -> x <= waveCount).collect(Collectors.toList());
-        chosenWave = waves.get(list.get(random.nextInt(list.size())));
+        chosenWave = waves.get(list.get(random.nextInt(list.size())) - 1);
         final MutableInt waveMobCount = new MutableInt(0);
-        waves.stream().flatMap(x -> x.getSpawnEntries().stream()).forEach(x -> waveMobCount.add(x.getMobCount()));
+        chosenWave.getSpawnEntries().stream().map(SpawnEntryData::getMobCount).forEach(waveMobCount::add);
         deathCountUntilDrops = random.nextInt(waveMobCount.getValue());
     }
 

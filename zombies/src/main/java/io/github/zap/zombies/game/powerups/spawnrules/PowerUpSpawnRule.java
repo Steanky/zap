@@ -40,7 +40,7 @@ public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
      */
     public boolean isDisabledRound() {
         var disabledRounds = getArena().getMap().getDisablePowerUpRound();
-        var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena()) + 1;
+        var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena());
         return disabledRounds.contains(currentRound);
     }
 
