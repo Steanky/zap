@@ -25,7 +25,6 @@ public class BarricadeCountModificationPowerUp extends PowerUp{
     public void activate() {
         var cData = (BarricadeCountModificationPowerUpData) getData();
 
-        // TODO: Implement
         getArena().getMap().getRooms().stream().flatMap(x -> x.getWindows().stream())
                 .filter(x -> cData.isAffectAll() || x.inRange(getDropLocation().toVector(), cData.getAffectedRange()))
                 .forEach(x -> modWindow(x, cData));

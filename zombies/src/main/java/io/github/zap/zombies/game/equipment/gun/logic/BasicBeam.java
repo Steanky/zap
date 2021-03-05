@@ -245,8 +245,7 @@ public class BasicBeam {
             var isHeadShot = determineIfHeadshot(rayTraceResult, mob);
             inflictDamage(mob, damage, isHeadShot);
             mob.playEffect(EntityEffect.HURT);
-            mob.setHealth(mob.getHealth() - damage);
-            zombiesPlayer.addCoins(goldPerHeadshot);
+            zombiesPlayer.addCoins(isHeadShot ? goldPerHeadshot : goldPerShot);
             player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isHeadShot ? 2F : 1.5F, 1.0F);
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
 

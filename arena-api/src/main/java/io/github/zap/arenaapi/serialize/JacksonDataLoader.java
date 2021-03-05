@@ -43,7 +43,6 @@ public class JacksonDataLoader implements DataLoader {
             return reader.readValue(new File(rootDirectory,filename + EXTENSION), objectClass);
         } catch (IOException e) {
             ArenaApi.warning(String.format("IOException when reading data from file: %s.", e.getMessage()));
-            e.printStackTrace();
         }
 
         return null;

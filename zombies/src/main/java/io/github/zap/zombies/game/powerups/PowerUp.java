@@ -161,7 +161,6 @@ public abstract class PowerUp {
             asName.remove();
         }
 
-        // TODO: Despawn
         spawnedTimeStamp = System.currentTimeMillis();
     }
 

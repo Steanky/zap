@@ -16,6 +16,4 @@ public class DamageModificationPowerUp extends DurationPowerUp{
     public DamageModificationPowerUp(DamageModificationPowerUpData data, ZombiesArena arena, int refreshRate) {
         super(data, arena, refreshRate);
     }
-
-    // TODO: Implement
 }

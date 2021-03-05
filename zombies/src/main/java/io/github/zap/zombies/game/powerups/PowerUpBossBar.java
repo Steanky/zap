@@ -107,6 +107,7 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable, Comman
         arena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
         arena.getPlayerLeaveEvent().removeHandler(this::onPlayerLeave);
         bukkitBossBar.removeAll();
+        Zombies.getInstance().getCommand("pu").setExecutor(null);
     }
 
     // TODO: Test code
