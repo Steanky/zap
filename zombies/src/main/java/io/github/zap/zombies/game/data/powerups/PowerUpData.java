@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.powerups;
 
+import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -16,11 +17,10 @@ import org.bukkit.Sound;
 public class PowerUpData {
     String type;
     String name;
-    String powerUpType = ChatColor.GOLD + "ads";
+    String powerUpType;
 
+    ItemStackDescription itemRepresentation;
     String displayName;
-    Material itemRepresentation = Material.GOLD_BLOCK;
-    int itemCount = 1;
 
     // In ticks
     int despawnDuration = 6000;

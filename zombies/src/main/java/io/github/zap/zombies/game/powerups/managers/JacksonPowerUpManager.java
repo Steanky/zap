@@ -313,39 +313,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
                     .filter(Objects::nonNull)
                     .forEach(x -> addSpawnRuleData(x, false));
 
-            //createTest();
-
             loaded = true;
         }
-    }
-
-    private void createTest() {
-        var maxAmmoData = new PowerUpData();
-        maxAmmoData.setName("MaxAmmo");
-        maxAmmoData.setPowerUpType("Max Ammo");
-        maxAmmoData.setDisplayName(ChatColor.BLUE + "Max Ammo");
-        maxAmmoData.setItemRepresentation(Material.ARROW);
-
-        addPowerUpData(maxAmmoData);
-
-        var instaKillData = new DurationPowerUpData();
-        instaKillData.setName("InstaKill");
-        instaKillData.setPowerUpType("Duration");
-        instaKillData.setDisplayName(ChatColor.RED + "Insta Kill");
-        instaKillData.setItemRepresentation(Material.SKELETON_SKULL);
-        instaKillData.setDuration(600);
-
-        addPowerUpData(instaKillData);
-
-        var pattern = new HashSet<Integer>();
-        pattern.add(1);
-        pattern.add(2);
-        pattern.add(3);
-
-        var wave = new HashSet<Integer>();
-        wave.add(1);
-        var spawnRuleData = new DefaultPowerUpSpawnRuleData();
-        addSpawnRuleData(spawnRuleData);
     }
 
     private void ensureLoad() {

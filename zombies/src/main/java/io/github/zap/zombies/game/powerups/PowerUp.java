@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.powerups;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
@@ -9,6 +10,7 @@ import lombok.Getter;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -19,6 +21,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.Collections;
+import java.util.logging.Level;
 
 /**
  * The base class for all power ups
@@ -74,7 +77,13 @@ public abstract class PowerUp {
         removePowerUpItem();
         dropLocation = location;
         itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
-        itemEntity.setItemStack(new ItemStack(getData().getItemRepresentation(), getData().getItemCount()));
+        try {
+            itemEntity.setItemStack(Zombies.getInstance().getNmsProxy().getItemStackFromDescription(getData().getItemRepresentation()));
+        } catch (CommandSyntaxException e) {
+            itemEntity.setItemStack(new ItemStack(Material.REDSTONE_BLOCK));
+            Zombies.log(Level.WARNING, "Invalid item representation! Fallback to REDSTONE_BLOCK!");
+            e.printStackTrace();
+        }
         itemEntity.setCustomName(getData().getDisplayName());
         itemEntity.setCustomNameVisible(true);
         itemEntity.setWillAge(false);
