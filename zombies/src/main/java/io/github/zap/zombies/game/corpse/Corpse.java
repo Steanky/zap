@@ -137,6 +137,8 @@ public class Corpse {
             active = false;
             zombiesPlayer.kill();
             hologram.destroy();
+
+            zombiesPlayer.getArena().getAvailableCorpses().remove(this);
         } else {
             hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(deathTime)));
             deathTime -= 2;
