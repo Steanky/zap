@@ -74,11 +74,6 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
                 if(bukkitEventClass.isAssignableFrom(event.getClass())) {
                     callEvent(bukkitEventClass.cast(event));
                 }
-                else {
-                    ArenaApi.info("Bukkit tried to pass " + event.getEventName() + " to an EventExecutor that was " +
-                            "registered under " + bukkitEventClass.getName() + ". This makes me salty, and therefore " +
-                            "I am logging it.");
-                }
             };
 
             if(handlerList != null) {

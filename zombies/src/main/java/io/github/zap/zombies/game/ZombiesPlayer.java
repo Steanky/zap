@@ -321,7 +321,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             MapData map = arena.getMap();
 
             if(targetWindow == null) { //our target window is null, so look for one
-                WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius());
+                WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared());
 
                 if(window != null) {
                     targetWindow = window;
@@ -329,7 +329,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 }
             }
             else { //we already have a target window - make sure it's still in range
-                if(targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadius())) {
+                if(targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())) {
                     tryRepairWindow(targetWindow);
                 }
                 else {

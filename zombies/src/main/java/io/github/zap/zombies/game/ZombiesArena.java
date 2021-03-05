@@ -38,6 +38,7 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import lombok.Value;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -89,6 +90,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      */
     @RequiredArgsConstructor
     private class BasicSpawner implements Spawner {
+        @Value
+        private class SpawnContext {
+            SpawnpointData spawnpointData;
+            WindowData window;
+        }
+
         @Override
         public void spawnWave(WaveData wave) {
             spawnMobInternal(wave.getSpawnEntries(), wave.getMethod(), wave.getSlaSquared(), wave.isRandomizeSpawnpoints())
@@ -97,7 +104,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
 
         private List<ActiveMob> spawnMobInternal(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
-            List<SpawnpointData> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
+            List<SpawnContext> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
             List<ActiveMob> spawnedEntites = new ArrayList<>();
 
             if(spawnpoints.size() == 0) {
@@ -115,14 +122,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                 while(amt > 0) {
                     int startAmt = amt;
-                    for(SpawnpointData spawnpointData : spawnpoints) {
-                        if(spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
-                            spawnMob(spawnEntryData.getMobName(), spawnpointData.getSpawn(), entity -> {
+                    for(SpawnContext spawnContext : spawnpoints) {
+                        if(spawnContext.spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
+                            spawnMob(spawnEntryData.getMobName(), spawnContext.spawnpointData.getSpawn(), entity -> {
                                 entity.getEntity().setMetadata(Zombies.ARENA_METADATA_NAME, ZombiesArena.this);
-                                entity.getEntity().setMetadata(Zombies.SPAWNPOINT_METADATA_NAME, spawnpointData);
+                                entity.getEntity().setMetadata(Zombies.WINDOW_METADATA_NAME, spawnContext.window);
                                 entity.getEntity().setMetadata(Zombies.SPAWNINFO_ENTRY_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnEntryData));
                                 spawnedEntites.add(entity);
-                        });
+                            });
 
                             amt--;
                         }
@@ -184,19 +191,48 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
          * @param slaSquared The distance from the player that all mobs must spawn, squared
          * @return A list of SpawnpointData objects that have been properly filtered.
          */
-        private List<SpawnpointData> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
-            return map.getRooms().stream()
-                    .filter(roomData -> roomData.isSpawn() || method == SpawnMethod.FORCE || roomData.getOpenProperty()
-                            .getValue(ZombiesArena.this))
-                    .flatMap(roomData -> roomData.getSpawnpoints().stream()).filter(spawnpointData -> mobs.stream()
-                            .anyMatch(spawnEntryData -> spawnpointData.canSpawn(spawnEntryData.getMobName(), map)))
-                    .filter(spawnpointData -> getPlayerMap()
-                            .values()
-                            .stream()
-                            .anyMatch(player -> method != SpawnMethod.RANGED || player.getPlayer()
-                                    .getLocation()
-                                    .toVector().distanceSquared(spawnpointData.getSpawn()) <= slaSquared))
-                    .collect(Collectors.toList());
+        private List<SpawnContext> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared) {
+            List<SpawnContext> filtered = new ArrayList<>();
+
+            for(RoomData room : map.getRooms()) { //iterate rooms
+                if(room.isSpawn() || method == SpawnMethod.FORCE || room.getOpenProperty().getValue(ZombiesArena.this)) {
+                    for(SpawnpointData sample : room.getSpawnpoints()) { //check room spawnpoints first
+                        if(canSpawnAny(sample, mobs, method, slaSquared)) {
+                            filtered.add(new SpawnContext(sample, null));
+                        }
+                    }
+
+                    for(WindowData window : room.getWindows()) {
+                        for(SpawnpointData sample : window.getSpawnpoints()) {
+                            if(canSpawnAny(sample, mobs, method, slaSquared)) {
+                                filtered.add(new SpawnContext(sample, window));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return filtered;
+        }
+
+        private boolean canSpawnAny(SpawnpointData spawnpoint, List<SpawnEntryData> entry, SpawnMethod method, double slaSquared) {
+            for(SpawnEntryData data : entry) {
+                if(spawnpoint.canSpawn(data.getMobName(), map)) {
+                    return method != SpawnMethod.RANGED || inRange(spawnpoint, slaSquared);
+                }
+            }
+
+            return false;
+        }
+
+        private boolean inRange(SpawnpointData target, double slaSquared) {
+            for(ZombiesPlayer player : getPlayerMap().values()) {
+                if(player.getPlayer().getLocation().toVector().distanceSquared(target.getSpawn()) <= slaSquared) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 

@@ -27,7 +27,8 @@ public class NewWindowForm extends CommandForm<RoomSelectionData> {
 
     @Override
     public String execute(Context context, Object[] arguments, RoomSelectionData data) {
-        data.getRoom().getWindows().add(new WindowData(data.getPlayer().getWorld(), data.getSelection()));
+        data.getRoom().getWindows().add(new WindowData(data.getPlayer().getWorld(), data.getSelection(),
+                data.getPlayer().getLocation().toVector()));
         data.getContext().updateRenderable(EditorContext.Renderables.WINDOWS);
         return "Added window.";
     }

@@ -110,7 +110,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
     public static final String SPAWNINFO_ENTRY_METADATA_NAME = "spawninfo_metadata";
     public static final String SPAWNINFO_WAVE_METADATA_NAME = "spawninfo_wave_metadata";
-
+    public static final String WINDOW_METADATA_NAME = "spawn_window";
     @Override
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();
