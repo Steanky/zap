@@ -298,10 +298,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             // TODO: remove test code
             //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {
-                        Zombies.log(Level.WARNING, x.getName());
-                        e.printStackTrace();
-                        return null;}})
+                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {return null;}})
                     .filter(Objects::nonNull)
                     .forEach(x -> addPowerUpData(x, false));
 
