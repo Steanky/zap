@@ -12,6 +12,7 @@ public enum PowerUpDataType implements PowerUpDataTypeLinker {
     EARNED_GOLD_MOD("earned_gold_mod", EarnedGoldMultiplierPowerUpData.class),
     BARRICADE_COUNT_MOD("window_barricade_count_mod", BarricadeCountModificationPowerUpData.class),
     MULTIPLIER("multiplier", ModifierModificationPowerUpData.class),
+    MULTIPLIER_WITH_MODE("multiplier+", ModifierModeModificationPowerUpData.class),
     DAMAGE_MOD("damage_mod", DamageModificationPowerUpData.class);
 
     @Getter

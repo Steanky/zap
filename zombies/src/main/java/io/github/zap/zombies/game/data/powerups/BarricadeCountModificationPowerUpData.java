@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class BarricadeCountModificationPowerUpData extends ModifierModificationPowerUpData {
+public class BarricadeCountModificationPowerUpData extends ModifierModeModificationPowerUpData {
     boolean affectAll; // For performance: when set to true ignore affectedRange
     double affectedRange;
     int rewardGold;

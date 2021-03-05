@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.BarricadeCountModificationPowerUpData;
+import io.github.zap.zombies.game.data.powerups.ModifierMode;
 import io.github.zap.zombies.game.util.MathUtils;
 import org.bukkit.Material;
 
@@ -32,7 +33,11 @@ public class BarricadeCountModificationPowerUp extends PowerUp{
     }
 
     private void modWindow(WindowData windowData, BarricadeCountModificationPowerUpData data) {
-        var i = windowData.getCurrentIndexProperty().getValue(getArena()) + 1;
+        var i = data.getModifierMode() == ModifierMode.RELATIVE ?
+                windowData.getCurrentIndexProperty().getValue(getArena()) + 1 :
+                windowData.getFaceVectors().size();
+
+
         var valToChange = (int) MathUtils.clamp(i * data.getMultiplier() + data.getAmount(), 0, windowData.getVolume());
         windowData.getCurrentIndexProperty().setValue(getArena(), valToChange - 1);
         // TODO: Change this after @Steank Change Breaking pattern

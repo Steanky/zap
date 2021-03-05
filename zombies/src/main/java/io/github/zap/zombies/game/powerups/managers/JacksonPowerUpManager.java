@@ -281,6 +281,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             isLoading = true;
             addDataLoader(PowerUpDataType.EARNED_GOLD_MOD);
             addDataLoader(PowerUpDataType.MULTIPLIER);
+            addDataLoader(PowerUpDataType.MULTIPLIER_WITH_MODE);
             addDataLoader(PowerUpDataType.DAMAGE_MOD);
             addDataLoader(PowerUpDataType.BARRICADE_COUNT_MOD);
             addDataLoader(PowerUpDataType.DURATION);
