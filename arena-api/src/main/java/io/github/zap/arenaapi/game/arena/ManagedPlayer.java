@@ -3,21 +3,24 @@ package io.github.zap.arenaapi.game.arena;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 /**
- * Encapsulates some sort of Arena-managed player
+ * Encapsulates some sort of Arena-managed player.
  */
-@RequiredArgsConstructor
 @Getter
 public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
         Disposable {
     private final V arena;
-    private final Player player;
+    private final ArenaPlayer arenaPlayer;
     private boolean inGame = true;
+
+    public ManagedPlayer(V arena, ArenaPlayer arenaPlayer) {
+        this.arena = arena;
+        this.arenaPlayer = arenaPlayer;
+    }
 
     @Override
     public int hashCode() {
@@ -35,7 +38,11 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
 
     @Override
     public UUID getId() {
-        return player.getUniqueId();
+        return arenaPlayer.getPlayer().getUniqueId();
+    }
+
+    public Player getPlayer() {
+        return arenaPlayer.getPlayer();
     }
 
     /**

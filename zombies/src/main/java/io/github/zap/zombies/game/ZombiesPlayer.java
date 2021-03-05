@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.game.arena.ArenaPlayer;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -73,17 +74,18 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * @param player The underlying Player instance
      * @param equipmentManager The equipment manager for the map equipment
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player, EquipmentManager equipmentManager) {
+    public ZombiesPlayer(ZombiesArena arena, ArenaPlayer player, EquipmentManager equipmentManager) {
         super(arena, player);
+
         this.arena = arena;
         this.coins = arena.getMap().getStartingCoins();
 
-        hotbarManager = new ZombiesHotbarManager(player);
+        hotbarManager = new ZombiesHotbarManager(getPlayer());
 
         for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap()
                 .getHotbarObjectGroupSlots().entrySet()) {
             hotbarManager.addEquipmentObjectGroup(equipmentManager
-                    .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,
+                    .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), getPlayer(),
                     hotbarObjectGroupSlot.getValue()));
         }
 

@@ -2,10 +2,12 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
+import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
@@ -40,6 +42,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Consumer;
@@ -279,6 +282,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private BukkitTask gameEndTimeoutTask;
 
+    //the initial settings applied to the player when they first join (before the game starts)
+    private static final ConditionStage initialCondition = new ConditionStage(player -> {
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.setInvulnerable(true);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.getInventory().setStorageContents(new ItemStack[player.getInventory().getSize()]);
+    }, player -> {
+
+    });
+
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      *
@@ -287,8 +301,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, player,
-                manager.getEquipmentManager()));
+        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, ArenaApi.getInstance()
+                .getArenaPlayer(player.getUniqueId()), manager.getEquipmentManager()));
 
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();
@@ -328,8 +342,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     @Override
-    protected ZombiesArena getArena() {
+    public ZombiesArena getArena() {
         return this;
+    }
+
+    @Override
+    public ConditionStage getInitialCondition() {
+        return initialCondition;
     }
 
     @Override
@@ -349,17 +368,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     @Override
-    protected boolean allowPlayers() {
+    public boolean allowPlayers() {
         return state != ZombiesArenaState.ENDED && (state != ZombiesArenaState.STARTED || map.isAllowRejoin());
     }
 
     @Override
-    protected boolean allowPlayerJoin(List<Player> players) {
+    public boolean allowPlayerJoin(List<Player> players) {
         return (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) &&
                 getOnlineCount() + players.size() <= map.getMaximumCapacity();
     }
 
-    protected boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
+    public boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
         return state == ZombiesArenaState.STARTED && map.isAllowRejoin();
     }
 
@@ -370,11 +389,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         for(Player player : args.getPlayers()) {
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
-            player.setGameMode(GameMode.ADVENTURE);
             player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
-
-            player.setHealth(20);
-            player.setFoodLevel(20);
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
