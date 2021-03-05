@@ -94,26 +94,15 @@ public class MapData {
      */
     boolean allowRejoin = true;
 
-
-    /**
-     * The squared distance in blocks from which zombies *must* spawn from a player
-     */
-    int spawnRadiusSquared = 1600;
-
     /**
      * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
      */
-    int windowRepairRadius = 6;
+    int windowRepairRadiusSquared = 16;
 
     /**
      * The base delay, in Minecraft server ticks (20ths of a second) that occurs between window blocks being repaired
      */
     int windowRepairTicks = 20;
-
-    /**
-     * The base rate at which mobs break through windows, in server ticks
-     */
-    int windowBreakTicks = 40;
 
     /**
      * The time it takes, in Minecraft server ticks, for a corpse to die and for players to no longer be able to revive
@@ -122,7 +111,7 @@ public class MapData {
     int corpseDeathTime;
 
     /**
-     * The minimum (Manhattan) distance in blocks that players must be from a window in order to repair it
+     * The minimum distance in blocks that players must be from a player corpse in order to revive it
      */
     int reviveRadius = 3;
 
@@ -130,11 +119,6 @@ public class MapData {
      * The MythicMobs mob level that mobs will spawn at
      */
     int mobSpawnLevel = 1;
-
-    /**
-     * The number of ticks mobs will wait before switching to a closer target. Set to -1 to disable retargeting.
-     */
-    int mobRetargetTicks = -1;
 
     /**
      * The material that should replace door blocks when they are opened.
@@ -284,16 +268,15 @@ public class MapData {
     }
 
     /**
-     * Gets the window that may be within range of the specified vector. Uses Manhattan distance for fast calculations.
+     * Gets the window that may be within range of the specified vector.
      * @param standing The vector used as the origin for the distance check
-     * @param distance The distance limit
      * @return The WindowData, or null if there is none in range
      */
-    public WindowData windowAtRange(Vector standing, double distance) {
+    public WindowData windowAtRange(Vector standing, double distanceSquared) {
         if(mapBounds.contains(standing)) {
             for(RoomData roomData : rooms) {
                 for(WindowData window : roomData.getWindows()) {
-                    if(window.inRange(standing, distance)) {
+                    if(window.inRange(standing, distanceSquared)) {
                         return window;
                     }
                 }

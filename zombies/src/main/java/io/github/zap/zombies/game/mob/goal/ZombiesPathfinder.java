@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-//TODO: make this not directly use NMS or put in v1_16_3 package and load according to version
-
 /**
  * General pathfinding class for Zombies. Supports lazy loading of entity metadata from MythicMobs; subclass pathfinding
  * functions will not be called until all required metadata has been loaded.
@@ -55,14 +53,13 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
 
     /**
      * Gets the metadata value for the given string. Will throw ClassCastException if the metadata type does not match.
-     * Null values for metadata are not permitted.
      * @param key The name of the metadata to get
      * @param <T> The type of the metadata
      * @return The metadata, after casting to T
      */
     public <T> T getMetadata(String key) {
         //noinspection unchecked
-        return Objects.requireNonNull((T)metadata.get(key), "Metadata " + key + " does not exist!");
+        return (T)metadata.get(key);
     }
 
     /**
@@ -75,7 +72,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
      */
     public <T> T getMetadata(String key, Class<T> dummy) {
         //noinspection unchecked
-        return Objects.requireNonNull((T)metadata.get(key), "Metadata " + key + " does not exist!");
+        return (T)metadata.get(key);
     }
 
     @Override

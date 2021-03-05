@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import org.bukkit.entity.Entity;
@@ -10,10 +9,9 @@ import org.bukkit.util.Vector;
 
 public class BreakWindow extends ZombiesPathfinder {
     private static final int DISTANCE_CHECK_TICKS = 5;
-    private static final double MIN_TARGET_DISTANCE = 2D;
+    private static final double MIN_TARGET_DISTANCE_SQUARED = 3D;
 
     private ZombiesArena arena;
-    private SpawnpointData spawnpoint;
     private WindowData window;
     private Vector destination;
     private boolean completed;
@@ -25,7 +23,7 @@ public class BreakWindow extends ZombiesPathfinder {
     private final double breakReachSquared;
 
     public BreakWindow(AbstractEntity entity, int breakTicks, int breakCount, double breakReachSquared) {
-        super(entity, Zombies.ARENA_METADATA_NAME, Zombies.SPAWNPOINT_METADATA_NAME);
+        super(entity, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
@@ -34,13 +32,21 @@ public class BreakWindow extends ZombiesPathfinder {
     @Override
     public boolean canStart() {
         if(!completed) {
-            if(arena == null && spawnpoint == null && window == null) {
+            if(arena == null && destination == null && window == null) {
                 arena = getMetadata(Zombies.ARENA_METADATA_NAME);
-                spawnpoint = getMetadata(Zombies.SPAWNPOINT_METADATA_NAME);
-                window = arena.getMap().windowAt(spawnpoint.getWindowFace());
+                window = getMetadata(Zombies.WINDOW_METADATA_NAME);
 
-                destination = spawnpoint.getTarget();
-                if(destination == null) { //don't start if we have no destination
+                if(window != null) {
+                    destination = window.getTarget();
+
+                    if(destination == null) {
+                        Zombies.warning("Entity " + getEntity().getUniqueId() + " spawned in a window that does not" +
+                                " supply a target destination!");
+                        completed = true;
+                        return false;
+                    }
+                }
+                else {
                     completed = true;
                     return false;
                 }
@@ -79,7 +85,8 @@ public class BreakWindow extends ZombiesPathfinder {
         }
 
         if(counter % DISTANCE_CHECK_TICKS == 0) {
-            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ()) < MIN_TARGET_DISTANCE) {
+            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ())
+                    < MIN_TARGET_DISTANCE_SQUARED && destination.getY() == getHandle().locY()) {
                 Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
                 if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
                     window.getAttackingEntityProperty().setValue(arena, null);

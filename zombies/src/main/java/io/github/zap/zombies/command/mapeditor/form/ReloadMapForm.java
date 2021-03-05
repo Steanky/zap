@@ -11,6 +11,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.command.mapeditor.EditorContext;
 import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.form.data.EditorContextData;
+import io.github.zap.zombies.game.data.map.MapData;
 
 public class ReloadMapForm extends CommandForm<EditorContextData> {
     private static final Parameter[] parameters = new Parameter[] {
@@ -39,7 +40,13 @@ public class ReloadMapForm extends CommandForm<EditorContextData> {
             zombies.getArenaManager().loadMaps();
 
             for(EditorContext editorContext : zombies.getContextManager().getContexts()) {
-                editorContext.setMap(null);
+                MapData current = editorContext.getMap();
+                if(zombies.getArenaManager().hasMap(current.getName())) {
+                    editorContext.setMap(zombies.getArenaManager().getMap(current.getName()));
+                }
+                else {
+                    editorContext.setMap(null);
+                }
             }
         }
         catch (LoadFailureException e) {

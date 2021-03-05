@@ -187,14 +187,19 @@ public class EditorContext implements Disposable {
                 for(RoomData room : map.getRooms()) {
                     for(SpawnpointData spawnpoint : room.getSpawnpoints()) {
                         Vector spawn = spawnpoint.getSpawn();
-                        Vector target = spawnpoint.getTarget();
 
                         if(spawn != null) {
                             vectorProviders.add(new RectangularPrism(BoundingBox.of(spawn, spawn.clone().add(UNIT)), 3));
                         }
+                    }
 
-                        if(target != null) {
-                            vectorProviders.add(new RectangularPrism(BoundingBox.of(target, target.clone().add(UNIT)), 3));
+                    for(WindowData windowData : room.getWindows()) {
+                        for(SpawnpointData spawnpoint : windowData.getSpawnpoints()) {
+                            Vector spawn = spawnpoint.getSpawn();
+
+                            if(spawn != null) {
+                                vectorProviders.add(new RectangularPrism(BoundingBox.of(spawn, spawn.clone().add(UNIT)), 3));
+                            }
                         }
                     }
                 }
