@@ -11,8 +11,9 @@ import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.RoomSelectionData;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
+import io.github.zap.zombies.game.data.map.WindowData;
 
-public class NewRoomSpawnpointForm extends CommandForm<RoomSelectionData> {
+public class NewSpawnpointForm extends CommandForm<RoomSelectionData> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("spawn"),
             new Parameter("create"),
@@ -29,8 +30,8 @@ public class NewRoomSpawnpointForm extends CommandForm<RoomSelectionData> {
         return ValidationResult.of(true, null, roomSelectionData);
     }, MapeditorValidators.HAS_ROOM_SELECTION);
 
-    public NewRoomSpawnpointForm() {
-        super("Creates a new spawnpoint in a room.", Permissions.OPERATOR, parameters);
+    public NewSpawnpointForm() {
+        super("Creates a new spawnpoint in a room or window.", Permissions.OPERATOR, parameters);
     }
 
     @Override
@@ -40,9 +41,17 @@ public class NewRoomSpawnpointForm extends CommandForm<RoomSelectionData> {
 
     @Override
     public String execute(Context context, Object[] arguments, RoomSelectionData data) {
-        data.getRoom().getSpawnpoints().add(new SpawnpointData(data.getContext().getTarget(), null, null,
-                (String)arguments[2]));
+        SpawnpointData spawnpointData = new SpawnpointData(data.getContext().getTarget(), (String)arguments[2]);
+        for(WindowData windowData : data.getRoom().getWindows()) {
+            if(windowData.getInteriorBounds().contains(data.getSelection())) {
+                windowData.getSpawnpoints().add(spawnpointData);
+                data.getContext().updateRenderable(EditorContext.Renderables.SPAWNPOINTS);
+                return "Added spawnpoint to window.";
+            }
+        }
+
+        data.getRoom().getSpawnpoints().add(spawnpointData);
         data.getContext().updateRenderable(EditorContext.Renderables.SPAWNPOINTS);
-        return "Added spawnpoint.";
+        return "Added spawnpoint to room.";
     }
 }
