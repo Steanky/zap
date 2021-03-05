@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class MoveWaterFallAfterBeta implements Listener {
     @Getter
@@ -28,10 +31,17 @@ public class MoveWaterFallAfterBeta implements Listener {
     private void onArenaDisposing(ManagingArena.ArenaEventArgs<?, ? extends ManagedPlayer<?, ?>> arenaEventArgs) {
         arenaEventArgs.getArena().getPlayerMap().forEach((l,r) -> {
             if(r.isInGame()) {
+                //TODO: REMOVE THIS AFTER BETA!!! this is a really bad way to do this
                 r.getPlayer().teleport(lobbyLocation);
                 r.getPlayer().setHealth(20);
                 r.getPlayer().setLevel(0);
-                r.getPlayer().serialize();
+                r.getPlayer().setAllowFlight(false);
+                r.getPlayer().setFoodLevel(20);
+                r.getPlayer().setInvulnerable(true);
+                r.getPlayer().setInvisible(false);
+                r.getPlayer().setArrowsInBody(0); //i love that this is a thing lol
+                r.getPlayer().getInventory().setStorageContents(new ItemStack[0]); //if we add items in lobby, replace this
+                r.getPlayer().setWalkSpeed(2);
             }
         });
     }

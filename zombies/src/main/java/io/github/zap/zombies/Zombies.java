@@ -386,4 +386,8 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static void severe(String message) {
         log(Level.SEVERE, message);
     }
+
+    //ugly, temporary code for lobby when people join
+    //this is bad and should be replaced with something not-bad after beta xd
+
 }
