@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ArenaPlayer;
+import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -27,6 +28,42 @@ import java.util.Map;
 import java.util.Set;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
+    public static final String DEAD_CONDITION = "dead";
+    public static final String ALIVE_CONDITION = "alive";
+    public static final String KNOCKED_CONDITION = "knocked";
+
+    private static final ConditionStage dead = new ConditionStage(player -> {
+        player.setHealth(20);
+        player.setAllowFlight(true);
+        player.setInvisible(true);
+        player.setFlySpeed(2);
+        player.setInvulnerable(true);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, false));
+    }, player -> {
+        player.setAllowFlight(false);
+        player.setInvisible(false);
+        player.setFlySpeed(1);
+        player.setInvulnerable(false);
+        player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+    }, false);
+
+    private static final ConditionStage alive = new ConditionStage(player -> {
+        player.setHealth(20);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 3, false, false, false));
+    }, player -> player.removePotionEffect(PotionEffectType.SLOW_DIGGING), false);
+
+    private static final ConditionStage knocked = new ConditionStage(player -> {
+        player.setWalkSpeed(0);
+        player.setInvisible(true);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
+                true, false, false));
+        player.removePotionEffect(PotionEffectType.SPEED);
+    }, player -> {
+        player.setWalkSpeed(1);
+        player.setInvisible(false);
+        player.removePotionEffect(PotionEffectType.JUMP);
+    }, false);
+
     @Getter
     private final ZombiesArena arena;
 
@@ -106,6 +143,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         perks = new ZombiesPerks(this);
         windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
                 this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
+
+        getArenaPlayer().registerCondition(arena.toString(), DEAD_CONDITION, dead);
+        getArenaPlayer().registerCondition(arena.toString(), ALIVE_CONDITION, alive);
+        getArenaPlayer().registerCondition(arena.toString(), KNOCKED_CONDITION, knocked);
     }
 
     public void quit() {
@@ -208,11 +249,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             corpse = new Corpse(this);
 
             getPerks().getPerk(PerkType.SPEED).disable();
-            Player player = getPlayer();
-            player.setWalkSpeed(0);
-            player.setInvisible(true);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
-                    true, false, false));
+            getArenaPlayer().applyConditionFor(arena.toString(), KNOCKED_CONDITION);
 
             disableRepair();
             disableRevive();
@@ -227,12 +264,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.DEAD;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
-
-            Player player = getPlayer();
-            player.setWalkSpeed(0.2F);
-            player.removePotionEffect(PotionEffectType.JUMP);
-            player.setAllowFlight(true);
-            player.setFlying(true);
+            getArenaPlayer().applyConditionFor(arena.toString(), DEAD_CONDITION);
         }
     }
 
@@ -251,13 +283,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             }
 
             getPerks().getPerk(PerkType.SPEED).activate();
-            Player player = getPlayer();
-            player.removePotionEffect(PotionEffectType.JUMP);
-            player.setInvisible(false);
-            player.setFlying(false);
-            player.setAllowFlight(false);
+            getArenaPlayer().applyConditionFor(arena.toString(), KNOCKED_CONDITION);
 
-            if (player.isSneaking()) {
+            if (getPlayer().isSneaking()) {
                 activateRepair();
                 activateRevive();
             }

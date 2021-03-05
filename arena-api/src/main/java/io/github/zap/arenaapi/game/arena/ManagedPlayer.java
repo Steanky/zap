@@ -20,6 +20,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public ManagedPlayer(V arena, ArenaPlayer arenaPlayer) {
         this.arena = arena;
         this.arenaPlayer = arenaPlayer;
+        arenaPlayer.registerCondition(arena.toString(), "initial", arena.getInitialCondition());
     }
 
     @Override
@@ -59,6 +60,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void quit() {
         if(inGame) {
             inGame = false;
+            arenaPlayer.removeAllConditionsFor(arena.toString());
         }
     }
 

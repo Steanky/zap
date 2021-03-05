@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.game.arena;
 
 import io.github.zap.arenaapi.ArenaApi;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
@@ -11,6 +12,10 @@ public class ConditionStage {
     private final Consumer<Player> applyConsumer;
     private final Consumer<Player> removeConsumer;
 
+    @Getter
+    private final boolean additive;
+
+    @Getter
     private boolean active = false;
 
     public void apply(Player player) {
@@ -18,18 +23,12 @@ public class ConditionStage {
             applyConsumer.accept(player);
             active = true;
         }
-        else {
-            ArenaApi.warning("Tried to apply a PlayerCondition twice!");
-        }
     }
 
     public void remove(Player player) {
         if(active) {
             removeConsumer.accept(player);
             active = false;
-        }
-        else {
-            ArenaApi.warning("Tried to remove a PlayerCondition that was not applied yet!");
         }
     }
 }

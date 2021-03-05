@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Managed player. Instances of these are created when someone joins the server and are stored in ArenaApi.
@@ -16,27 +15,42 @@ public class ArenaPlayer {
     @Getter
     private final Player player;
 
-    private final Map<String, Deque<ConditionStage>> conditionMap = new HashMap<>();
+    private final Map<String, Map<String, ConditionStage>> conditionMap = new HashMap<>();
 
     /**
      * Applies a new condition to the internal player.
-     * @param applyCondition The consumer which will apply the condition
-     * @param removeCondition The consumer that will undo the condition
+     * @param stage The stage we will apply under the given context
      */
-    public void applyCondition(String context, Consumer<Player> applyCondition, Consumer<Player> removeCondition) {
-        conditionMap.getOrDefault(context, new ArrayDeque<>()).push(new ConditionStage(applyCondition, removeCondition));
-        applyCondition.accept(player);
+    public void registerCondition(String context, String effectName, ConditionStage stage) {
+        conditionMap.getOrDefault(context, new HashMap<>()).put(effectName, stage);
     }
 
     /**
-     * Removes one condition from the player. If there are no active conditions, this will perform no operation.
+     * Removes one condition from the player. If there are no active conditions, this will perform no operation. Does
+     * not remove anything from the internal map.
      */
-    public void retractConditionFor(String context) {
-        Deque<ConditionStage> conditions = conditionMap.get(context);
+    public void removeConditionFor(String context, String effectName) {
+        Map<String, ConditionStage> conditions = conditionMap.get(context);
         if(conditions != null) {
-            ConditionStage condition  = conditions.poll();
+            ConditionStage condition  = conditions.get(effectName);
             if(condition != null) {
-                condition.apply(player);
+                condition.remove(player);
+            }
+        }
+        else {
+            ArenaApi.warning("Tried to fetch condition map for unknown context " + context);
+        }
+    }
+
+    /**
+     * Removes all conditions for a given context.
+     * @param context The condition context
+     */
+    public void removeAllConditionsFor(String context) {
+        Map<String, ConditionStage> conditions = conditionMap.get(context);
+        if(conditions != null) {
+            for(ConditionStage condition : conditions.values()) {
+                condition.remove(player);
             }
         }
         else {
@@ -44,18 +58,21 @@ public class ArenaPlayer {
         }
     }
 
-    public void removeAllConditions(String context) {
-        Deque<ConditionStage> conditions = conditionMap.get(context);
-        if(conditions != null) {
-            while(conditions.size() > 0) {
-                ConditionStage condition = conditions.poll();
-                condition.remove(player);
+    public void removeConditionContext(String context) {
+        removeAllConditionsFor(context);
+        conditionMap.remove(context);
+    }
+
+    public void applyConditionFor(String context, String conditionName) {
+        Map<String, ConditionStage> conditions = conditionMap.get(context);
+        if(conditions != null && conditions.containsKey(conditionName)) {
+            for(ConditionStage conditionStage : conditions.values()) {
+                if(!conditionStage.isAdditive()) {
+                    conditionStage.remove(player);
+                }
             }
 
-            conditionMap.remove(context);
-        }
-        else {
-            ArenaApi.warning("Tried to fetch condition stack for unknown context " + context);
+            conditions.get(conditionName).apply(player);
         }
     }
 

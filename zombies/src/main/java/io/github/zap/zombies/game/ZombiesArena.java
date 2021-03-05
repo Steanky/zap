@@ -291,7 +291,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         player.getInventory().setStorageContents(new ItemStack[player.getInventory().getSize()]);
     }, player -> {
 
-    });
+    }, true);
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
