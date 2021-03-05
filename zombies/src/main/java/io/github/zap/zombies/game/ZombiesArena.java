@@ -7,6 +7,7 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
+import io.github.zap.arenaapi.game.arena.ArenaPlayer;
 import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -282,17 +283,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private BukkitTask gameEndTimeoutTask;
 
-    //the initial settings applied to the player when they first join (before the game starts)
-    private static final ConditionStage initialCondition = new ConditionStage(player -> {
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.setInvulnerable(true);
-        player.setGameMode(GameMode.ADVENTURE);
-        player.getInventory().setStorageContents(new ItemStack[player.getInventory().getSize()]);
-    }, player -> {
-
-    }, true);
-
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      *
@@ -344,11 +334,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public ZombiesArena getArena() {
         return this;
-    }
-
-    @Override
-    public ConditionStage getInitialCondition() {
-        return initialCondition;
     }
 
     @Override
@@ -551,7 +536,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     public void startGame() {
-        getPlayerMap().forEach((l,r) -> r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies started! You probably wanna change this!"));
+        for(ZombiesPlayer player : getPlayerMap().values()) {
+            if(player.isInGame()) {
+                player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
+                player.getArenaPlayer().applyConditionFor(toString(), ZombiesPlayer.ALIVE_CONDITION);
+            }
+        }
+
         startTimeStamp = System.currentTimeMillis();
         doRound();
         state = ZombiesArenaState.STARTED;

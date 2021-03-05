@@ -316,6 +316,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         onDisposing.callEvent(new ArenaEventArgs<>(this));
 
         for(S player : playerMap.values()) { //close players
+            player.getArenaPlayer().removeConditionContext(toString());
             player.dispose();
         }
 
@@ -356,10 +357,4 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * @return The implementing arena
      */
     public abstract T getArena();
-
-    /**
-     * Returns the initial condition applied to the player.
-     * @return The initial condition
-     */
-    public abstract ConditionStage getInitialCondition();
 }

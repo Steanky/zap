@@ -22,7 +22,7 @@ public class ArenaPlayer {
      * @param stage The stage we will apply under the given context
      */
     public void registerCondition(String context, String effectName, ConditionStage stage) {
-        conditionMap.getOrDefault(context, new HashMap<>()).put(effectName, stage);
+        conditionMap.computeIfAbsent(context, key -> new HashMap<>()).put(effectName, stage);
     }
 
     /**
