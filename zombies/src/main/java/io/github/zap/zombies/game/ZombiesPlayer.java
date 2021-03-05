@@ -315,12 +315,15 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      */
     private void tryRepairWindow(WindowData targetWindow) {
         Property<Entity> attackingEntityProperty = targetWindow.getAttackingEntityProperty();
+        Entity attacker = attackingEntityProperty.getValue(arena);
 
-        if(attackingEntityProperty.getValue(arena) == null) {
+        if(attacker == null || attacker.isDead()) {
+            attackingEntityProperty.setValue(arena, null);
+
             Property<ZombiesPlayer> currentRepairerProperty = targetWindow.getRepairingPlayerProperty();
             ZombiesPlayer currentRepairer = currentRepairerProperty.getValue(arena);
 
-            if(currentRepairer == null) {
+            if(currentRepairer == null || !currentRepairer.isAlive()) {
                 currentRepairer = this;
                 currentRepairerProperty.setValue(arena, this);
             }
