@@ -720,6 +720,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         return state == ZombiesArenaState.STARTED;
     }
 
+    public Event<ShopEventArgs> getShopEvent(ShopType type) {
+        return shopEvents.get(type);
+    }
+
     /**
      * Loads shops; should be called just before the game begins
      */
