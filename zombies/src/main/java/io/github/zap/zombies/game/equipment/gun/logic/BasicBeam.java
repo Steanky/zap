@@ -239,7 +239,7 @@ public class BasicBeam {
     protected void damageEntity(RayTraceResult rayTraceResult) {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
-        if (mob != null && bukkitAPIHelper.isMythicMob(mob)) {
+        if (mob != null && getZombiesPlayer().getArena().getMobs().contains(mob.getUniqueId())) {
             Player player = zombiesPlayer.getPlayer();
 
             var isHeadShot = determineIfHeadshot(rayTraceResult, mob);

@@ -8,8 +8,11 @@ import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.Random;
@@ -54,7 +57,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
             var waveMeta = e.getEntity().getMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME);
             if(waveMeta.size() == 1 && ((FixedMetadataValue) waveMeta.get(0).value()).value() == chosenWave) {
                 if(deathCountUntilDrops == roundDeathCount && !isDisabledRound()) {
-                    spawn(getSuitableLocation(e.getEntity().getLocation()));
+                    spawn(getSuitableLocation(e.getMob().getEntity().getBukkitEntity()));
                 }
 
                 roundDeathCount++;
@@ -74,16 +77,16 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
         deathCountUntilDrops = random.nextInt(waveMobCount.getValue());
     }
 
-    private Location getSuitableLocation(Location location) {
+    private Location getSuitableLocation(Entity entity) {
         for(var window : windows) {
-            if(window.getFaceBounds().overlaps(location.toVector(), location.toVector()) ||
-                    window.getInteriorBounds().contains(location.toVector())) {
+            if(window.getFaceBounds().overlaps(entity.getBoundingBox()) ||
+                    window.getInteriorBounds().overlaps(entity.getBoundingBox())) {
                 var newSpawnVec = window.getTarget();
-                return new Location(location.getWorld(), newSpawnVec.getX(), newSpawnVec.getY(), newSpawnVec.getZ());
+                return newSpawnVec.toLocation(entity.getWorld());
             }
         }
 
-        return location;
+        return entity.getLocation();
     }
 
 
