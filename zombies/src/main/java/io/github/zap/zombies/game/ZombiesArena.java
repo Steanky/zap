@@ -121,10 +121,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 Collections.shuffle(spawnpoints); //shuffle small candidate set of spawnpoints
             }
 
-            outer:
             for(SpawnEntryData spawnEntryData : mobs) {
                 int amt = spawnEntryData.getMobCount();
 
+                outer:
                 while(true) {
                     int startAmt = amt;
                     for(SpawnContext spawnContext : spawnpoints) {
