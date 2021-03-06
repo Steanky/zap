@@ -31,7 +31,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        getZombiesArena().getShopEvents().get(getShopType()).registerHandler(args -> {
+        getZombiesArena().getShopEvent(getShopType()).registerHandler(args -> {
             if (args.getShop().equals(this)) {
                 displayTo(args.getZombiesPlayer().getPlayer());
             }
@@ -49,7 +49,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     ).getMaterial()
             );
             item = world.dropItem(
-                    getShopData().getRootLocation().toLocation(world).add(0.5, 0.48125, 0.5),
+                    getShopData().getRootLocation().toLocation(world),
                     itemStack
             );
             item.setGravity(false);
@@ -86,7 +86,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                             if (gun.getEquipmentData().getName().equals(gunName)) {
                                 firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunName);
                                 secondHologramLine =
-                                        String.format("%s%d Gold", ChatColor.GREEN, gunShopData.getRefillCost());
+                                        String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getRefillCost());
                                 break;
                             }
                         }

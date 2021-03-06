@@ -38,7 +38,7 @@ public class GuardianBeam extends BasicBeam {
 
             if (determineIfHeadshot(rayTraceResult, mob)) {
                 mob.playEffect(EntityEffect.HURT);
-                mob.setHealth(mob.getHealth() - getDamage());
+                mob.setHealth(Math.max(mob.getHealth() - getDamage(), 0));
                 zombiesPlayer.addCoins(getGoldPerHeadshot());
 
                 player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);

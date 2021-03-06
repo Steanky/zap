@@ -44,11 +44,6 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    protected void registerArenaEvents() {
-        super.registerArenaEvents();
-    }
-
-    @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
         for (Hologram hologram : doorSideHologramMap.values()) {
             for (Player player : args.getPlayers()) {

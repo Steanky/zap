@@ -30,7 +30,7 @@ public abstract class Shop<D extends ShopData> {
      * Registers all events from the zombie arena that will be monitored by the shop
      */
     protected void registerArenaEvents() {
-        zombiesArena.getShopEvents().get(ShopType.POWER_SWITCH).registerHandler(args -> {
+        zombiesArena.getShopEvent(ShopType.POWER_SWITCH).registerHandler(args -> {
             powered = true;
             display();
         });
@@ -52,7 +52,7 @@ public abstract class Shop<D extends ShopData> {
      * @param zombiesPlayer The purchasing player
      */
     protected void onPurchaseSuccess(ZombiesPlayer zombiesPlayer) {
-        zombiesArena.getShopEvents().get(getShopType()).callEvent(new ShopEventArgs(this, zombiesPlayer));
+        zombiesArena.getShopEvent(getShopType()).callEvent(new ShopEventArgs(this, zombiesPlayer));
     }
 
     /**
