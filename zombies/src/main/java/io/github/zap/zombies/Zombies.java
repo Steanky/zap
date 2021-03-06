@@ -103,9 +103,13 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
+    public static final String POWERUPS_FOLDER_NAME = "powerups";
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     public static final String ARENA_METADATA_NAME = "zombies_arena";
+    public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
+    public static final String SPAWNINFO_ENTRY_METADATA_NAME = "spawninfo_metadata";
+    public static final String SPAWNINFO_WAVE_METADATA_NAME = "spawninfo_wave_metadata";
     public static final String WINDOW_METADATA_NAME = "spawn_window";
     @Override
     public void onEnable() {
@@ -306,10 +310,13 @@ public final class Zombies extends JavaPlugin implements Listener {
                 DataLoader equipmentLoader = new JacksonDataLoader(new File(getDataFolder().getPath(),
                         EQUIPMENT_FOLDER_NAME));
 
+                DataLoader powerupLoader = new JacksonDataLoader(new File(getDataFolder().getPath(),
+                        POWERUPS_FOLDER_NAME));
+
                 DataLoader mapLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), MAP_FOLDER_NAME));
 
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn), mapLoader,
-                        equipmentLoader, config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+                        equipmentLoader, powerupLoader, config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaManager.loadMaps();
                 arenaApi.registerArenaManager(arenaManager);
             }
