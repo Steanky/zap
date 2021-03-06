@@ -47,7 +47,6 @@ import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
@@ -243,7 +242,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Map<ShopType, List<Shop<?>>> shopMap = new HashMap<>();
 
-    @Getter
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
     private final PacketContainer createTeamPacketContainer =
@@ -539,6 +537,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void startGame() {
         getPlayerMap().forEach((l,r) -> r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies started! You probably wanna change this!"));
         startTimeStamp = System.currentTimeMillis();
+        loadShops();
         doRound();
         state = ZombiesArenaState.STARTED;
     }
@@ -668,15 +667,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Shop<?> shop = shopManager.createShop(this, shopData);
             shops.add(shop);
             shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
-            shopEvents.computeIfAbsent(shopData.getType(), (ShopType type) -> new Event<>());
+            getShopEvent(shop.getShopType());
+            shop.display();
         }
 
         for(DoorData doorData : map.getDoors()) {
             Shop<DoorData> shop = shopManager.createShop(this, doorData);
             shops.add(shop);
             shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
-            shopEvents.computeIfAbsent(doorData.getType(), (ShopType type) -> new Event<>());
+            shop.display();
         }
+        getShopEvent(ShopType.DOOR);
 
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
         if (chestEvent != null) {
@@ -700,4 +701,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             });
         }
     }
+
+    public Event<ShopEventArgs> getShopEvent(ShopType shopType) {
+        return shopEvents.computeIfAbsent(shopType, (ShopType type) -> new Event<>());
+    }
+
 }

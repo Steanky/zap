@@ -76,8 +76,8 @@ public class BasicBeam {
 
         if (AIR_MATERIALS.contains(targetBlock.getType())) {
             Location location = targetBlock.getLocation();
-            boundingBox = new BoundingBox(location.getX(), targetBlock.getY(), targetBlock.getZ(),
-                    location.getX() + 1, location.getY() + 1, targetBlock.getZ() + 1);
+            boundingBox = new BoundingBox(location.getX(), location.getY(), location.getZ(),
+                    location.getX() + 1, location.getY() + 1, location.getZ() + 1);
         } else {
             boundingBox = targetBlock.getBoundingBox();
         }
@@ -105,7 +105,16 @@ public class BasicBeam {
             targetBlock = iterator.next();
 
             Material material = targetBlock.getType();
-            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) != null) {
+            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
+                if (!targetBlock.getType().isBlock()) {
+                    BoundingBox boundingBox = targetBlock.getBoundingBox();
+                    RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,range + 1.74);
+
+                    if (rayTraceResult != null) {
+                        break;
+                    }
+                }
+
                 break;
             }
         }
@@ -239,7 +248,7 @@ public class BasicBeam {
 
             if (determineIfHeadshot(rayTraceResult, mob)) {
                 mob.playEffect(EntityEffect.HURT);
-                mob.setHealth(mob.getHealth() - damage);
+                mob.setHealth(Math.max(mob.getHealth() - getDamage(), 0));
                 zombiesPlayer.addCoins(goldPerHeadshot);
 
                 // TODO: this sound is clearly not correct

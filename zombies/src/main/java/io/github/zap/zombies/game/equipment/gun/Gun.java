@@ -58,6 +58,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
             if (currentClipAmmo < clipAmmo && clipAmmo <= currentAmmo) {
                 canReload = false;
+                canShoot = false;
                 Player player = getPlayer();
                 player.playSound(player.getLocation(), Sound.ENTITY_HORSE_GALLOP, 1F, 0.5F);
 
@@ -117,7 +118,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         player.setExp(1);
                     }
 
-                    canShoot = true;
+                    if (canReload) {
+                        canShoot = true;
+                    }
                     cancel();
                 }
             }
