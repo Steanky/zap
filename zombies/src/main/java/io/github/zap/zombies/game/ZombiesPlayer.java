@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -38,17 +39,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.setInvulnerable(true);
         player.setGameMode(GameMode.ADVENTURE);
         player.getInventory().setStorageContents(new ItemStack[35]);
-    }, player -> {
-        player.setInvulnerable(false);
-    }, false);
+        player.setFallDistance(0);
+        player.setWalkSpeed(0.2f);
+        player.setInvisible(false);
+    }, player -> player.setInvulnerable(false), false);
 
     private static final ConditionStage dead = new ConditionStage(player -> {
         player.setHealth(20);
         player.setAllowFlight(true);
         player.setInvisible(true);
-        player.setFlySpeed(2);
+        player.setFlySpeed(0.1f);
         player.setInvulnerable(true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1,
+                false, false, false));
+        player.setFallDistance(0);
     }, player -> {
         player.setAllowFlight(false);
         player.setInvisible(false);
@@ -59,7 +63,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     private static final ConditionStage alive = new ConditionStage(player -> {
         player.setHealth(20);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 3, false, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 3,
+                false, false, false));
+        player.setFallDistance(0);
     }, player -> player.removePotionEffect(PotionEffectType.SLOW_DIGGING), false);
 
     private static final ConditionStage knocked = new ConditionStage(player -> {
@@ -68,8 +74,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
                 true, false, false));
         player.removePotionEffect(PotionEffectType.SPEED);
+        player.setFallDistance(0);
     }, player -> {
-        player.setWalkSpeed(1);
+        player.setWalkSpeed(0.2f);
         player.setInvisible(false);
         player.removePotionEffect(PotionEffectType.JUMP);
     }, false);
@@ -121,7 +128,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * @param player The underlying Player instance
      * @param equipmentManager The equipment manager for the map equipment
      */
-    public ZombiesPlayer(ZombiesArena arena, ArenaPlayer player, EquipmentManager equipmentManager) {
+    public ZombiesPlayer(ZombiesArena arena, Player player, EquipmentManager equipmentManager) {
         super(arena, player);
 
         this.arena = arena;
@@ -154,12 +161,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
                 this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
 
-        getArenaPlayer().registerCondition(arena.toString(), PREGAME_CONDITION, pregame);
-        getArenaPlayer().registerCondition(arena.toString(), DEAD_CONDITION, dead);
-        getArenaPlayer().registerCondition(arena.toString(), ALIVE_CONDITION, alive);
-        getArenaPlayer().registerCondition(arena.toString(), KNOCKED_CONDITION, knocked);
+        ArenaPlayer arenaPlayer = getArenaPlayer();
+        arenaPlayer.registerCondition(arena.toString(), PREGAME_CONDITION, pregame);
+        arenaPlayer.registerCondition(arena.toString(), DEAD_CONDITION, dead);
+        arenaPlayer.registerCondition(arena.toString(), ALIVE_CONDITION, alive);
+        arenaPlayer.registerCondition(arena.toString(), KNOCKED_CONDITION, knocked);
 
-        getArenaPlayer().applyConditionFor(arena.toString(), PREGAME_CONDITION);
+        arenaPlayer.applyConditionFor(arena.toString(), PREGAME_CONDITION);
     }
 
     public void quit() {
@@ -390,6 +398,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
         else {
             getPlayer().sendMessage(ChatColor.RED + "A mob is attacking that window!");
+            getArena().getWorld().getBlockAt(0, 0, 0).isSolid();
         }
     }
 

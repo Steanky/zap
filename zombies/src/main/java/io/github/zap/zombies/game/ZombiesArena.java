@@ -109,10 +109,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 Collections.shuffle(spawnpoints); //shuffle small candidate set of spawnpoints
             }
 
+            outer:
             for(SpawnEntryData spawnEntryData : mobs) {
                 int amt = spawnEntryData.getMobCount();
 
-                while(amt > 0) {
+                while(true) {
                     int startAmt = amt;
                     for(SpawnContext spawnContext : spawnpoints) {
                         if(spawnContext.spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
@@ -121,7 +122,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                                 entity.getEntity().setMetadata(Zombies.WINDOW_METADATA_NAME, spawnContext.window);
                             });
 
-                            amt--;
+                            if(--amt == 0) {
+                                break outer;
+                            }
                         }
                     }
 
@@ -291,8 +294,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, ArenaApi.getInstance()
-                .getArenaPlayer(player.getUniqueId()), manager.getEquipmentManager()));
+        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, player,
+                manager.getEquipmentManager()));
 
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();

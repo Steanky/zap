@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.game.arena;
 
-import io.github.zap.arenaapi.ArenaApi;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
@@ -37,9 +36,6 @@ public class ArenaPlayer {
                 condition.remove(player);
             }
         }
-        else {
-            ArenaApi.warning("Tried to fetch condition map for unknown context " + context);
-        }
     }
 
     /**
@@ -52,9 +48,6 @@ public class ArenaPlayer {
             for(ConditionStage condition : conditions.values()) {
                 condition.remove(player);
             }
-        }
-        else {
-            ArenaApi.warning("Tried to fetch condition stack for unknown context " + context);
         }
     }
 

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
@@ -14,12 +15,12 @@ import java.util.UUID;
 public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
         Disposable {
     private final V arena;
-    private final ArenaPlayer arenaPlayer;
+    private final Player player;
     private boolean inGame = true;
 
-    public ManagedPlayer(V arena, ArenaPlayer arenaPlayer) {
+    public ManagedPlayer(V arena, Player player) {
         this.arena = arena;
-        this.arenaPlayer = arenaPlayer;
+        this.player = player;
     }
 
     @Override
@@ -38,11 +39,15 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
 
     @Override
     public UUID getId() {
-        return arenaPlayer.getPlayer().getUniqueId();
+        return player.getUniqueId();
     }
 
     public Player getPlayer() {
-        return arenaPlayer.getPlayer();
+        return player;
+    }
+
+    public ArenaPlayer getArenaPlayer() {
+        return ArenaApi.getInstance().getArenaPlayer(player.getUniqueId());
     }
 
     /**
@@ -59,7 +64,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void quit() {
         if(inGame) {
             inGame = false;
-            arenaPlayer.removeAllConditionsFor(arena.toString());
+            getArenaPlayer().removeAllConditionsFor(arena.toString());
         }
     }
 

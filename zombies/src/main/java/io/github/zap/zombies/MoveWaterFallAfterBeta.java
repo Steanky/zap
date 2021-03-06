@@ -1,9 +1,7 @@
 package io.github.zap.zombies;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.game.arena.Arena;
-import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.game.arena.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -13,6 +11,12 @@ public class MoveWaterFallAfterBeta implements Listener {
     @Getter
     @Setter
     private Location lobbyLocation;
+
+    private final ConditionStage lobbyStage = new ConditionStage(player -> {
+
+    }, player -> {
+
+    }, false);
 
     public MoveWaterFallAfterBeta() {
         ArenaApi.getInstance().getArenaMangers().forEach((l,r) -> r.getArenaCreated().registerHandler(this::onArenaCreated));
@@ -29,6 +33,9 @@ public class MoveWaterFallAfterBeta implements Listener {
         arenaEventArgs.getArena().getPlayerMap().forEach((l,r) -> {
             if(r.isInGame()) {
                 r.getPlayer().teleport(lobbyLocation);
+                ArenaPlayer player = ArenaApi.getInstance().getArenaPlayer(r.getPlayer().getUniqueId());
+                player.removeConditionContext(arenaEventArgs.getArena().toString());
+                ArenaApi.getInstance().applyDefaultStage(player);
             }
         });
     }
