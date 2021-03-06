@@ -737,7 +737,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
             shopEvents.computeIfAbsent(doorData.getType(), (ShopType type) -> new Event<>());
         }
-        getShopEvent(ShopType.DOOR);
 
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
         if (chestEvent != null) {
