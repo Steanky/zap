@@ -42,10 +42,6 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
         return player.getUniqueId();
     }
 
-    public Player getPlayer() {
-        return player;
-    }
-
     public ArenaPlayer getArenaPlayer() {
         return ArenaApi.getInstance().getArenaPlayer(player.getUniqueId());
     }
