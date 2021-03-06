@@ -2,16 +2,20 @@ package io.github.zap.zombies.proxy;
 
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import com.mojang.authlib.properties.Property;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Collection;
 import java.util.function.Predicate;
@@ -88,5 +92,14 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         if(modifiableAttribute != null) {
             modifiableAttribute.setValue(value);
         }
+    }
+
+    @Override
+    public ItemStack getItemStackFromDescription(ItemStackDescription info) throws CommandSyntaxException {
+        var nbt = MojangsonParser.parse(info.getNbt());
+        var itemStack = new ItemStack(info.getMaterial(), info.getCount());
+        var nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
+        nmsItemStack.setTag(nbt);
+        return nmsItemStack.getBukkitStack();
     }
 }

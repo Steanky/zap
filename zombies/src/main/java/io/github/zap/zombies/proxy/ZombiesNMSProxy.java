@@ -1,10 +1,12 @@
 package io.github.zap.zombies.proxy;
 
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -12,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.function.Predicate;
 
@@ -39,4 +42,6 @@ public interface ZombiesNMSProxy extends NMSProxy {
     void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent);
 
     void setAttributeFor(EntityLiving entity, AttributeBase attribute, double value);
+
+    ItemStack getItemStackFromDescription(ItemStackDescription info) throws CommandSyntaxException;
 }
