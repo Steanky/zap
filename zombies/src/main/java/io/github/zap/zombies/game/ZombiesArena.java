@@ -319,6 +319,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private PowerUpBossBar powerUpBossBar = new PowerUpBossBar(this, 5);
 
+    @Getter
+    private int zombieLefts;
+
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      *
@@ -460,7 +463,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onMobDeath(MythicMobDeathEvent args) {
         if(mobs.remove(args.getEntity().getUniqueId())) {
-            if(mobs.size() == 0 && state == ZombiesArenaState.STARTED){
+            zombieLefts--;
+            if(getZombieLefts() == 0 && state == ZombiesArenaState.STARTED){
                 doRound();
             }
         }
@@ -599,6 +603,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         List<RoundData> rounds = map.getRounds();
         if(currentRoundIndex < rounds.size()) {
             RoundData currentRound = rounds.get(currentRoundIndex);
+            zombieLefts = rounds.get(currentRoundIndex).getWaves().stream()
+                    .flatMap(x -> x.getSpawnEntries().stream())
+                    .map(SpawnEntryData::getMobCount)
+                    .reduce(0, Integer::sum);
 
             long cumulativeDelay = 0;
             for (WaveData wave : currentRound.getWaves()) {
