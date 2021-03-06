@@ -295,7 +295,6 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             registerPowerUp(BarricadeCountModificationPowerUp.class);
             registerPowerUp(DamageModificationPowerUp.class);
 
-            // TODO: remove test code
             //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
                     .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {return null;}})
