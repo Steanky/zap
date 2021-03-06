@@ -149,7 +149,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(arena.getMap().getName(), equipment);
 
             //this allows the current testing branch to work with only guns
-            Integer slot = hotbarManager.getHotbarObjectGroup("GUN").getNextEmptySlot();
+            Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {
                 hotbarManager.setHotbarObject(

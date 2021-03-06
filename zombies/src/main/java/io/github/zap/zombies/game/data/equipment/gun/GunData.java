@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -91,4 +92,8 @@ public class GunData<L extends GunLevel> extends EquipmentData<L> {
         return ChatColor.GOLD;
     }
 
+    @Override
+    public String getEquipmentType() {
+        return EquipmentType.GUN.name();
+    }
 }

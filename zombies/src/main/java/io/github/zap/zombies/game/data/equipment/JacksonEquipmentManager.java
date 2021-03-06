@@ -117,7 +117,7 @@ public class JacksonEquipmentManager implements EquipmentManager {
                                                                            ZombiesPlayer zombiesPlayer, int slot,
                                                                            D equipmentData) {
         EquipmentCreator.EquipmentMapping<D, L> equipmentMapping = (EquipmentCreator.EquipmentMapping<D, L>)
-                equipmentCreator.getEquipmentMappings().get(equipmentData.getEquipmentType());
+                equipmentCreator.getEquipmentMappings().get(equipmentData.getType());
 
         return equipmentMapping.createEquipment(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
