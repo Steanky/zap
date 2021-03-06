@@ -12,12 +12,6 @@ public class MoveWaterFallAfterBeta implements Listener {
     @Setter
     private Location lobbyLocation;
 
-    private final ConditionStage lobbyStage = new ConditionStage(player -> {
-
-    }, player -> {
-
-    }, false);
-
     public MoveWaterFallAfterBeta() {
         ArenaApi.getInstance().getArenaMangers().forEach((l,r) -> r.getArenaCreated().registerHandler(this::onArenaCreated));
     }
