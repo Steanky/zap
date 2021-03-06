@@ -96,10 +96,16 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
 
     @Override
     public ItemStack getItemStackFromDescription(ItemStackDescription info) throws CommandSyntaxException {
-        var nbt = MojangsonParser.parse(info.getNbt());
+
         var itemStack = new ItemStack(info.getMaterial(), info.getCount());
-        var nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
-        nmsItemStack.setTag(nbt);
-        return nmsItemStack.getBukkitStack();
+        if(info.getNbt() != null && !info.getNbt().isEmpty()) {
+            var nbt = MojangsonParser.parse(info.getNbt());
+            var nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
+            nmsItemStack.setTag(nbt);
+            return nmsItemStack.getBukkitStack();
+        } else {
+            return itemStack;
+        }
+
     }
 }
