@@ -27,6 +27,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
@@ -41,6 +42,9 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public final class ArenaApi extends JavaPlugin implements Listener {
+    public static final String LOBBY_CONTEXT = "lobby";
+    public static final String DEFAULT_STAGE = "stage";
+
     @Getter
     private static ArenaApi instance;
 
@@ -67,6 +71,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setFlying(false);
         player.setGameMode(GameMode.ADVENTURE);
         player.setFallDistance(0);
+        player.getInventory().setStorageContents(new ItemStack[35]);
     }, player -> {
 
     }, false);
@@ -94,6 +99,14 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
+    @Override
+    public void onDisable() {
+        for(ArenaPlayer arenaPlayer : players.values()) {
+            for(String context : arenaPlayer.getConditionContexts()) {
+                arenaPlayer.removeAllConditionsFor(context);
+            }
+        }
+    }
 
     private void initProxy() throws LoadFailureException {
         switch (Bukkit.getBukkitVersion()) {
@@ -219,7 +232,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     }
 
     public void applyDefaultStage(ArenaPlayer player) {
-        player.applyConditionFor("lobby", "default");
+        player.applyConditionFor(LOBBY_CONTEXT, DEFAULT_STAGE);
     }
 
     @EventHandler
@@ -228,8 +241,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         ArenaPlayer arenaPlayer = new ArenaPlayer(player);
         players.put(player.getUniqueId(), arenaPlayer);
 
-        arenaPlayer.registerCondition("lobby", "default", lobby);
-        arenaPlayer.applyConditionFor("lobby", "default");
+        arenaPlayer.registerCondition(LOBBY_CONTEXT, DEFAULT_STAGE, lobby);
+        arenaPlayer.applyConditionFor(LOBBY_CONTEXT, DEFAULT_STAGE);
     }
 
 
