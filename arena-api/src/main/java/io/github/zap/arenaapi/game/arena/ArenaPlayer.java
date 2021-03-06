@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 /**
- * Managed player. Instances of these are created when someone joins the server and are stored in ArenaApi.
+ * Instances of these are created when someone joins the server and are stored in ArenaApi.
  */
 @RequiredArgsConstructor
 public class ArenaPlayer {
