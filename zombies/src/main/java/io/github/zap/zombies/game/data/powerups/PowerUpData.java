@@ -15,20 +15,20 @@ import org.bukkit.Sound;
 @Getter
 @Setter
 public class PowerUpData {
-    String type;
-    String name;
-    String powerUpType;
+    private String type;
+    private String name;
+    private String powerUpType;
 
-    ItemStackDescription itemRepresentation;
-    String displayName;
+    private ItemStackDescription itemRepresentation;
+    private String displayName;
 
     // In ticks
-    int despawnDuration = 6000;
-    double pickupRange = 1;
+    private int despawnDuration = 6000;
+    private double pickupRange = 1;
 
-    Sound pickupSound = Sound.ENTITY_ITEM_PICKUP;
+    private Sound pickupSound = Sound.ENTITY_ITEM_PICKUP;
 
-    float pickupSoundVolume = 1;
+    private float pickupSoundVolume = 1;
 
-    float pickupSoundPitch = 1;
+    private float pickupSoundPitch = 1;
 }

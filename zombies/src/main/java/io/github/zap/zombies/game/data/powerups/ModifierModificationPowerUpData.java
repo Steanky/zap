@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ModifierModificationPowerUpData extends PowerUpData {
-    double multiplier;
-    double amount;
+    private double multiplier;
+    private double amount;
 }

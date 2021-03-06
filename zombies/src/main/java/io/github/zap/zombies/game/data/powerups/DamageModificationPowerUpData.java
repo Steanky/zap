@@ -9,7 +9,7 @@ import org.bukkit.Sound;
 @Getter
 @Setter
 public class DamageModificationPowerUpData extends DurationPowerUpData {
-    boolean isInstaKill;
-    double multiplier;
-    double additionalDamage;
+    private boolean isInstaKill;
+    private double multiplier;
+    private double additionalDamage;
 }

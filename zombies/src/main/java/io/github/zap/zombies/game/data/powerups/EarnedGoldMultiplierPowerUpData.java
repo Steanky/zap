@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EarnedGoldMultiplierPowerUpData extends DurationPowerUpData {
-    double multiplier;
+    private double multiplier;
 }

@@ -8,7 +8,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class DefaultPowerUpSpawnRuleData extends SpawnRuleData {
-    public Set<Integer> pattern;
+    private Set<Integer> pattern;
 
-    public Set<Integer> waves;
+    private Set<Integer> waves;
 }

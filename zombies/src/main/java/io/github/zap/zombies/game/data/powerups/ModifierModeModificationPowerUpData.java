@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ModifierModeModificationPowerUpData extends ModifierModificationPowerUpData {
-    ModifierMode modifierMode;
+    private ModifierMode modifierMode;
 }
