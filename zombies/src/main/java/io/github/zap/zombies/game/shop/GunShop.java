@@ -45,7 +45,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
             ItemStack itemStack = new ItemStack(
                     getZombiesArena().getEquipmentManager().getEquipmentData(
-                            getZombiesArena().getMap().getMapNameKey(), getShopData().getGunName()
+                            getZombiesArena().getMap().getName(), getShopData().getGunName()
                     ).getMaterial()
             );
             item = world.dropItem(
