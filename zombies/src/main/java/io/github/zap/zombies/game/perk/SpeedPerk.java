@@ -22,8 +22,10 @@ public class SpeedPerk extends Perk<EmptyEventArgs> {
 
     @Override
     public void execute(EmptyEventArgs args) {
-        getOwner().getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, effectDuration,
-                baseAmplifier * getCurrentLevel(), true, false, false));
+        if(getOwner().isAlive()) {
+            getOwner().getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, effectDuration,
+                    baseAmplifier * getCurrentLevel(), true, false, false));
+        }
     }
 
     @Override

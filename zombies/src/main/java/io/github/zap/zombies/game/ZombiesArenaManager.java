@@ -10,6 +10,9 @@ import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
+import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
+import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -31,6 +34,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final EquipmentManager equipmentManager;
 
     @Getter
+    private final PowerUpManager powerUpManager;
+
+    @Getter
     private final ShopManager shopManager;
 
     @Getter
@@ -46,14 +52,17 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Set<String> markedForDeletion = new HashSet<>();
 
-    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, int arenaCapacity,
+    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, DataLoader powerUpLoader, int arenaCapacity,
                                int arenaTimeout) {
         super(NAME, hubLocation);
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
+        this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpManagerOptions());
+        ((JacksonPowerUpManager) this.powerUpManager).load();
         this.shopManager = new JacksonShopManager();
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
         this.mapLoader = mapLoader;
+
     }
 
     @Override

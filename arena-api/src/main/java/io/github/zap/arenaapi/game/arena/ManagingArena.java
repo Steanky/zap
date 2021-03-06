@@ -316,6 +316,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         onDisposing.callEvent(new ArenaEventArgs<>(this));
 
         for(S player : playerMap.values()) { //close players
+            player.getArenaPlayer().removeConditionContext(toString());
             player.dispose();
         }
 
@@ -335,25 +336,25 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * Returns true if this arena is in a state to allow players to join or rejoin the game. Returns false otherwise.
      * @return True if joining/rejoining is allowed, false otherwise
      */
-    protected abstract boolean allowPlayers();
+    public abstract boolean allowPlayers();
 
     /**
      * Returns true if the provided list of new players should ALL be allowed to join the game.
      * @param players The players that are trying to join
      * @return True if they can join, false otherwise
      */
-    protected abstract boolean allowPlayerJoin(List<Player> players);
+    public abstract boolean allowPlayerJoin(List<Player> players);
 
     /**
      * Returns true if the provided list of players should be able to rejoin the game.
      * @param players The players that are trying to rejoin
      * @return True if they can rejoin, false otherwise
      */
-    protected abstract boolean allowPlayerRejoin(List<S> players);
+    public abstract boolean allowPlayerRejoin(List<S> players);
 
     /**
      * Helper method; gets the implementing arena
      * @return The implementing arena
      */
-    protected abstract T getArena();
+    public abstract T getArena();
 }

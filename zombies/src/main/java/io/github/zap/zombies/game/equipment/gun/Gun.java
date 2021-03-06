@@ -151,7 +151,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * Sets the ammo of the weapon
      * @param ammo The new ammo
      */
-    protected void setAmmo(int ammo) {
+    public void setAmmo(int ammo) {
         currentAmmo = ammo;
         if (isVisible()) {
             updateAmmo();
@@ -166,7 +166,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * Sets the clip ammo of the weapon
      * @param clipAmmo The new clip ammo
      */
-    protected void setClipAmmo(int clipAmmo) {
+    public void setClipAmmo(int clipAmmo) {
         this.currentClipAmmo = clipAmmo;
 
         if (isVisible()) {

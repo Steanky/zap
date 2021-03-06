@@ -74,18 +74,11 @@ public class ZapperBeam extends LinearBeam {
             ZombiesPlayer zombiesPlayer = getZombiesPlayer();
             Player player = zombiesPlayer.getPlayer();
 
-            if (determineIfHeadshot(rayTraceResult, mob)) {
-                mob.playEffect(EntityEffect.HURT);
-                mob.setHealth(Math.max(mob.getHealth() - getDamage(), 0));
-                zombiesPlayer.addCoins(getGoldPerHeadshot());
-
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 2.0F, 1.0F);
-            } else {
-                mob.damage(getDamage());
-                zombiesPlayer.addCoins(getGoldPerShot());
-                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1.5F, 1.0F);
-            }
-
+            var isCrit = determineIfHeadshot(rayTraceResult, mob);
+            mob.playEffect(EntityEffect.HURT);
+            inflictDamage(mob, getDamage(), isCrit);
+            zombiesPlayer.addCoins(getGoldPerHeadshot());
+            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isCrit ? 2.0F : 1.5F, 1.0F);
             mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));
 
             hitMobs.add(mob);

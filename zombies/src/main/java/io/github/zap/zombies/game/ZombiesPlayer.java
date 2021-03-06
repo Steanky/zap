@@ -1,6 +1,8 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.game.arena.ArenaPlayer;
+import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -11,21 +13,77 @@ import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
-import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
+import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
+import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
+    public static final String PREGAME_CONDITION = "pregame";
+    public static final String DEAD_CONDITION = "dead";
+    public static final String ALIVE_CONDITION = "alive";
+    public static final String KNOCKED_CONDITION = "knocked";
+
+    private static final ConditionStage pregame = new ConditionStage(player -> {
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.setInvulnerable(true);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.getInventory().setStorageContents(new ItemStack[35]);
+        player.setFallDistance(0);
+        player.setWalkSpeed(0.2f);
+        player.setInvisible(false);
+    }, player -> player.setInvulnerable(false), false);
+
+    private static final ConditionStage dead = new ConditionStage(player -> {
+        player.setHealth(20);
+        player.setAllowFlight(true);
+        player.setInvisible(true);
+        player.setFlySpeed(0.1f);
+        player.setInvulnerable(true);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1,
+                false, false, false));
+        player.setFallDistance(0);
+    }, player -> {
+        player.setAllowFlight(false);
+        player.setInvisible(false);
+        player.setFlySpeed(1);
+        player.setInvulnerable(false);
+        player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+    }, false);
+
+    private static final ConditionStage alive = new ConditionStage(player -> {
+        player.setHealth(20);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 3,
+                false, false, false));
+        player.setFallDistance(0);
+    }, player -> player.removePotionEffect(PotionEffectType.SLOW_DIGGING), false);
+
+    private static final ConditionStage knocked = new ConditionStage(player -> {
+        player.setWalkSpeed(0);
+        player.setInvisible(true);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
+                true, false, false));
+        player.removePotionEffect(PotionEffectType.SPEED);
+        player.setFallDistance(0);
+    }, player -> {
+        player.setWalkSpeed(0.2f);
+        player.setInvisible(false);
+        player.removePotionEffect(PotionEffectType.JUMP);
+    }, false);
+
     @Getter
     private final ZombiesArena arena;
 
@@ -75,15 +133,16 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      */
     public ZombiesPlayer(ZombiesArena arena, Player player, EquipmentManager equipmentManager) {
         super(arena, player);
+
         this.arena = arena;
         this.coins = arena.getMap().getStartingCoins();
 
-        hotbarManager = new ZombiesHotbarManager(player);
+        hotbarManager = new ZombiesHotbarManager(getPlayer());
 
         for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap()
                 .getHotbarObjectGroupSlots().entrySet()) {
             hotbarManager.addEquipmentObjectGroup(equipmentManager
-                    .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player,
+                    .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), getPlayer(),
                     hotbarObjectGroupSlot.getValue()));
         }
 
@@ -104,6 +163,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         perks = new ZombiesPerks(this);
         windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
                 this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
+
+        ArenaPlayer arenaPlayer = getArenaPlayer();
+        arenaPlayer.registerCondition(arena.toString(), PREGAME_CONDITION, pregame);
+        arenaPlayer.registerCondition(arena.toString(), DEAD_CONDITION, dead);
+        arenaPlayer.registerCondition(arena.toString(), ALIVE_CONDITION, alive);
+        arenaPlayer.registerCondition(arena.toString(), KNOCKED_CONDITION, knocked);
+
+        arenaPlayer.applyConditionFor(arena.toString(), PREGAME_CONDITION);
     }
 
     public void quit() {
@@ -121,7 +188,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         super.rejoin();
 
         state = ZombiesPlayerState.DEAD;
-        getPlayer().setGameMode(GameMode.SPECTATOR);
+        getArenaPlayer().applyConditionFor(arena.toString(), DEAD_CONDITION);
 
         perks.activateAll();
     }
@@ -135,8 +202,38 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     public void addCoins(int amount) {
+        addCoins(amount, "");
+    }
+
+    public void addCoins(int amount, String msg) {
         if(amount > 0) {
-            getPlayer().sendMessage(String.format("%s+%d Gold", ChatColor.GOLD, amount));
+            StringBuilder sb = new StringBuilder();
+            double multiplier = 1;
+            int count = 0;
+            var optGM = getArena().getPowerUps().stream()
+                    .filter(x -> x instanceof EarnedGoldMultiplierPowerUp)
+                    .collect(Collectors.toSet());
+            if(msg != null && !msg.isEmpty()) {
+                sb.append(msg);
+                count++;
+            }
+
+
+            for (var item : optGM) {
+                if(count != 0)
+                    sb.append(ChatColor.RESET).append(ChatColor.GOLD).append(", ");
+                sb.append(ChatColor.RESET).append(item.getData().getDisplayName());
+                multiplier *= ((EarnedGoldMultiplierPowerUpData)item.getData()).getMultiplier();
+                count ++;
+            }
+
+            var fullMsg = sb.append(ChatColor.RESET).append(ChatColor.GOLD).toString();
+            amount *= multiplier;
+            if(ChatColor.stripColor(fullMsg).isEmpty())
+                getPlayer().sendMessage(String.format("%s+%d Gold!", ChatColor.GOLD, amount));
+            else
+                getPlayer().sendMessage(String.format("%s+%d Gold (%s)!", ChatColor.GOLD, amount, fullMsg));
+
             coins += amount;
         }
     }
@@ -209,12 +306,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
             corpse = new Corpse(this);
 
-            getPerks().getPerk(PerkType.SPEED).disable();
-            Player player = getPlayer();
-            player.setWalkSpeed(0);
-            player.setInvisible(true);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
-                    true, false, false));
+            getPerks().disableAll();
+            getArenaPlayer().applyConditionFor(arena.toString(), KNOCKED_CONDITION);
 
             disableRepair();
             disableRevive();
@@ -229,12 +322,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.DEAD;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
-
-            Player player = getPlayer();
-            player.setWalkSpeed(0.2F);
-            player.removePotionEffect(PotionEffectType.JUMP);
-            player.setAllowFlight(true);
-            player.setFlying(true);
+            getArenaPlayer().applyConditionFor(arena.toString(), DEAD_CONDITION);
         }
     }
 
@@ -252,14 +340,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 corpse = null;
             }
 
-            getPerks().getPerk(PerkType.SPEED).activate();
-            Player player = getPlayer();
-            player.removePotionEffect(PotionEffectType.JUMP);
-            player.setInvisible(false);
-            player.setFlying(false);
-            player.setAllowFlight(false);
+            getPerks().activateAll();
+            getArenaPlayer().applyConditionFor(arena.toString(), ALIVE_CONDITION);
 
-            if (player.isSneaking()) {
+            if (getPlayer().isSneaking()) {
                 activateRepair();
                 activateRevive();
             }
@@ -354,6 +438,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
         else {
             getPlayer().sendMessage(ChatColor.RED + "A mob is attacking that window!");
+            getArena().getWorld().getBlockAt(0, 0, 0).isSolid();
         }
     }
 
