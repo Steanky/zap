@@ -147,8 +147,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
         for(String equipment : arena.getMap().getDefaultEquipments()) {
             EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(arena.getMap().getName(), equipment);
-
-            //this allows the current testing branch to work with only guns
             Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
 
             if (slot != null) {
@@ -437,7 +435,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
         else {
             getPlayer().sendMessage(ChatColor.RED + "A mob is attacking that window!");
-            getArena().getWorld().getBlockAt(0, 0, 0).isSolid();
         }
     }
 
