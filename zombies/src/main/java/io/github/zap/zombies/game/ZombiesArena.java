@@ -587,17 +587,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     public void startGame() {
+        loadShops();
+
+        state = ZombiesArenaState.STARTED;
+        startTimeStamp = System.currentTimeMillis();
+
         for(ZombiesPlayer player : getPlayerMap().values()) {
             if(player.isInGame()) {
                 player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
                 player.getArenaPlayer().applyConditionFor(toString(), ZombiesPlayer.ALIVE_CONDITION);
             }
         }
-
-        startTimeStamp = System.currentTimeMillis();
-        loadShops();
         doRound();
-        state = ZombiesArenaState.STARTED;
     }
 
     private void doRound() {

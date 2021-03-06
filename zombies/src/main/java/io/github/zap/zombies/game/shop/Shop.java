@@ -23,7 +23,11 @@ public abstract class Shop<D extends ShopData> {
         this.zombiesArena = zombiesArena;
         this.shopData = shopData;
 
-        registerArenaEvents();
+        /*
+        calling this in the constructor results in an NPE when loading door data; removing it seems to work
+        also registerArenaEvents() will be called multiple times by various constructors
+         */
+        //registerArenaEvents();
     }
 
     /**

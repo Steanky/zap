@@ -229,6 +229,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         players.put(player.getUniqueId(), arenaPlayer);
 
         arenaPlayer.registerCondition("lobby", "default", lobby);
+        arenaPlayer.applyConditionFor("lobby", "default");
     }
 
 
