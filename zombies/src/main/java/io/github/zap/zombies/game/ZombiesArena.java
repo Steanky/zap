@@ -60,6 +60,7 @@ import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
