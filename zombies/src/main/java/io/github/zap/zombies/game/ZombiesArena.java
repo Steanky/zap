@@ -2,10 +2,13 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
+import io.github.zap.arenaapi.game.arena.ArenaPlayer;
+import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
@@ -49,6 +52,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -120,7 +124,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             for(SpawnEntryData spawnEntryData : mobs) {
                 int amt = spawnEntryData.getMobCount();
 
-                while(amt > 0) {
+                outer:
+                while(true) {
                     int startAmt = amt;
                     for(SpawnContext spawnContext : spawnpoints) {
                         if(spawnContext.spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
@@ -131,7 +136,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                                 spawnedEntites.add(entity);
                             });
 
-                            amt--;
+                            if(--amt == 0) {
+                                break outer;
+                            }
                         }
                     }
 
@@ -375,7 +382,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     @Override
-    protected ZombiesArena getArena() {
+    public ZombiesArena getArena() {
         return this;
     }
 
@@ -396,17 +403,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     @Override
-    protected boolean allowPlayers() {
+    public boolean allowPlayers() {
         return state != ZombiesArenaState.ENDED && (state != ZombiesArenaState.STARTED || map.isAllowRejoin());
     }
 
     @Override
-    protected boolean allowPlayerJoin(List<Player> players) {
+    public boolean allowPlayerJoin(List<Player> players) {
         return (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) &&
                 getOnlineCount() + players.size() <= map.getMaximumCapacity();
     }
 
-    protected boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
+    public boolean allowPlayerRejoin(List<ZombiesPlayer> players) {
         return state == ZombiesArenaState.STARTED && map.isAllowRejoin();
     }
 
@@ -417,11 +424,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         for(Player player : args.getPlayers()) {
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
-            player.setGameMode(GameMode.ADVENTURE);
             player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
-
-            player.setHealth(20);
-            player.setFoodLevel(20);
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
@@ -584,7 +587,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     public void startGame() {
-        getPlayerMap().forEach((l,r) -> r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies started! You probably wanna change this!"));
+        for(ZombiesPlayer player : getPlayerMap().values()) {
+            if(player.isInGame()) {
+                player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
+                player.getArenaPlayer().applyConditionFor(toString(), ZombiesPlayer.ALIVE_CONDITION);
+            }
+        }
+
         startTimeStamp = System.currentTimeMillis();
         doRound();
         state = ZombiesArenaState.STARTED;

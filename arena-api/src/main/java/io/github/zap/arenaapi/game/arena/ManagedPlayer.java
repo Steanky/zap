@@ -1,23 +1,27 @@
 package io.github.zap.arenaapi.game.arena;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 /**
- * Encapsulates some sort of Arena-managed player
+ * Encapsulates some sort of Arena-managed player.
  */
-@RequiredArgsConstructor
 @Getter
 public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
         Disposable {
     private final V arena;
     private final Player player;
     private boolean inGame = true;
+
+    public ManagedPlayer(V arena, Player player) {
+        this.arena = arena;
+        this.player = player;
+    }
 
     @Override
     public int hashCode() {
@@ -38,6 +42,10 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
         return player.getUniqueId();
     }
 
+    public ArenaPlayer getArenaPlayer() {
+        return ArenaApi.getInstance().getArenaPlayer(player.getUniqueId());
+    }
+
     /**
      * Returns true if the player is currently in the arena. Returns false otherwise.
      * @return true if the player is in the arena, false otherwise
@@ -52,6 +60,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void quit() {
         if(inGame) {
             inGame = false;
+            getArenaPlayer().removeAllConditionsFor(arena.toString());
         }
     }
 

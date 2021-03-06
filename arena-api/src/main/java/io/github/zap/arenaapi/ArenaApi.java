@@ -8,7 +8,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.github.zap.arenaapi.game.arena.ArenaPlayer;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
+import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
@@ -19,8 +21,12 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
@@ -30,10 +36,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public final class ArenaApi extends JavaPlugin {
+public final class ArenaApi extends JavaPlugin implements Listener {
     @Getter
     private static ArenaApi instance;
 
@@ -51,6 +58,19 @@ public final class ArenaApi extends JavaPlugin {
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
+    private final Map<UUID, ArenaPlayer> players = new HashMap<>();
+
+    private static final ConditionStage lobby = new ConditionStage(player -> {
+        player.setInvulnerable(true);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.setFlying(false);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.setFallDistance(0);
+    }, player -> {
+
+    }, false);
+
     @Override
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();
@@ -60,6 +80,7 @@ public final class ArenaApi extends JavaPlugin {
             initProxy();
             initDependencies();
             initMapper();
+            Bukkit.getPluginManager().registerEvents(this, this);
         }
         catch(LoadFailureException exception)
         {
@@ -137,6 +158,10 @@ public final class ArenaApi extends JavaPlugin {
         }
     }
 
+    public ArenaPlayer getArenaPlayer(UUID uuid) {
+        return players.get(uuid);
+    }
+
     /**
      * Adds a deserializer to the module
      * @param type The type of the class to deserialize
@@ -191,6 +216,19 @@ public final class ArenaApi extends JavaPlugin {
 
     public void sendPacketToPlayer(Player player, PacketContainer packetContainer) {
         sendPacketToPlayer(this, player, packetContainer);
+    }
+
+    public void applyDefaultStage(ArenaPlayer player) {
+        player.applyConditionFor("lobby", "default");
+    }
+
+    @EventHandler
+    private void playerJoinEvent(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        ArenaPlayer arenaPlayer = new ArenaPlayer(player);
+        players.put(player.getUniqueId(), arenaPlayer);
+
+        arenaPlayer.registerCondition("lobby", "default", lobby);
     }
 
 
