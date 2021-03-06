@@ -37,7 +37,6 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        getZombiesArena().getPlayerInteractEvent().registerHandler(this::purchase);
     }
 
     @Override

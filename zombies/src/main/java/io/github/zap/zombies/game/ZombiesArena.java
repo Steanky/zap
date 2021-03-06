@@ -2,13 +2,10 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.ProxyEvent;
-import io.github.zap.arenaapi.game.arena.ArenaPlayer;
-import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
@@ -24,8 +21,6 @@ import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
-import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.LuckyChest;
 import io.github.zap.zombies.game.shop.Shop;
@@ -40,8 +35,8 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import lombok.Value;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -52,7 +47,6 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -721,8 +715,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         return state == ZombiesArenaState.STARTED;
     }
 
-    public Event<ShopEventArgs> getShopEvent(ShopType type) {
-        return shopEvents.get(type);
+    /**
+     * Gets the shop event for a shop type or creates a new one
+     * @param shopType The shop type
+     * @return The shop type's event
+     */
+    public Event<ShopEventArgs> getShopEvent(ShopType shopType) {
+        return shopEvents.computeIfAbsent(shopType, (ShopType type) -> new Event<>());
     }
 
     /**
@@ -733,15 +732,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Shop<?> shop = shopManager.createShop(this, shopData);
             shops.add(shop);
             shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
-            shopEvents.computeIfAbsent(shopData.getType(), (ShopType type) -> new Event<>());
+            getShopEvent(shop.getShopType());
+            shop.display();
         }
 
         for(DoorData doorData : map.getDoors()) {
             Shop<DoorData> shop = shopManager.createShop(this, doorData);
             shops.add(shop);
             shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
-            shopEvents.computeIfAbsent(doorData.getType(), (ShopType type) -> new Event<>());
+            shop.display();
         }
+        getShopEvent(ShopType.DOOR);
 
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
         if (chestEvent != null) {
