@@ -273,7 +273,7 @@ public class BasicBeam {
             mob.setHealth(0);
         } else {
             if(isCritical) {
-                mob.setHealth(mob.getHealth() - finalDmg.getValue());
+                mob.setHealth(Math.max(mob.getHealth() - finalDmg.getValue(), 0));
             } else {
                 mob.damage(finalDmg.getValue());
             }

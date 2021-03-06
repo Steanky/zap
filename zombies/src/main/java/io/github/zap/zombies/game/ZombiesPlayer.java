@@ -41,7 +41,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.setFoodLevel(20);
         player.setInvulnerable(true);
         player.setGameMode(GameMode.ADVENTURE);
-        player.getInventory().setStorageContents(new ItemStack[35]);
         player.setFallDistance(0);
         player.setWalkSpeed(0.2f);
         player.setInvisible(false);
@@ -146,11 +145,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                     hotbarObjectGroupSlot.getValue()));
         }
 
-        for (String equipment : arena.getMap().getDefaultEquipments()) {
-            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(
-                    arena.getMap().getMapNameKey(), equipment
-            );
-            Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
+        for(String equipment : arena.getMap().getDefaultEquipments()) {
+            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(arena.getMap().getName(), equipment);
+
+            //this allows the current testing branch to work with only guns
+            Integer slot = hotbarManager.getHotbarObjectGroup("GUN").getNextEmptySlot();
 
             if (slot != null) {
                 hotbarManager.setHotbarObject(
