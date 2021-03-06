@@ -9,3 +9,5 @@ commands:
     description: "Generic command used by this plugin for various things."
   mapeditor:
     description: "Mapeditor command."
+  pu:
+    description: "ZZ"

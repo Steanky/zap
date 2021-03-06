@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLib;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -13,13 +14,11 @@ import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
-import io.github.zap.arenaapi.serialize.BoundingBoxDeserializer;
-import io.github.zap.arenaapi.serialize.BoundingBoxSerializer;
-import io.github.zap.arenaapi.serialize.VectorDeserializer;
-import io.github.zap.arenaapi.serialize.VectorSerializer;
+import io.github.zap.arenaapi.serialize.*;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -120,7 +119,10 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         module.addSerializer(BoundingBox.class, new BoundingBoxSerializer());
         module.addDeserializer(BoundingBox.class, new BoundingBoxDeserializer());
 
+        module.addDeserializer(ImmutablePair.class, new StringPairSerializer());
+
         mapper = new ObjectMapper();
+        mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         mapper.registerModule(module);
 
         mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
