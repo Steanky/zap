@@ -6,7 +6,6 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
-import io.github.zap.zombies.game.data.powerups.ModifierModificationPowerUpData;
 import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
@@ -242,11 +241,11 @@ public class BasicBeam {
         if (mob != null && getZombiesPlayer().getArena().getMobs().contains(mob.getUniqueId())) {
             Player player = zombiesPlayer.getPlayer();
 
-            var isHeadShot = determineIfHeadshot(rayTraceResult, mob);
-            inflictDamage(mob, damage, isHeadShot);
+            var isCritical = determineIfHeadshot(rayTraceResult, mob);
+            inflictDamage(mob, damage, isCritical);
             mob.playEffect(EntityEffect.HURT);
-            zombiesPlayer.addCoins(isHeadShot ? goldPerHeadshot : goldPerShot);
-            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isHeadShot ? 2F : 1.5F, 1.0F);
+            zombiesPlayer.addCoins(isCritical ? goldPerHeadshot : goldPerShot);
+            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isCritical ? 2F : 1.5F, 1.0F);
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
 
             if (mob.getHealth() <= 0) {
@@ -271,12 +270,10 @@ public class BasicBeam {
                 });
         if(instaKill.getValue()) { // TODO: Maybe set a entity metadata that can defy instakill
             mob.setHealth(0);
+        } else if(isCritical) {
+            mob.setHealth(Math.max(mob.getHealth() - finalDmg.getValue(), 0));
         } else {
-            if(isCritical) {
-                mob.setHealth(Math.max(mob.getHealth() - finalDmg.getValue(), 0));
-            } else {
-                mob.damage(finalDmg.getValue());
-            }
+            mob.damage(finalDmg.getValue());
         }
     }
 

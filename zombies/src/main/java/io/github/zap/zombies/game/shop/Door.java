@@ -15,6 +15,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,31 +61,25 @@ public class Door extends Shop<DoorData> {
             for (Map.Entry<DoorSide, Hologram> entry : doorSideHologramMap.entrySet()) {
                 Hologram hologram = entry.getValue();
 
-                // TODO: figure out how to write door names with localization api
-                /*
-                LocalizationManager localizationManager = getLocalizationManager();
                 StringBuilder stringBuilder = new StringBuilder(ChatColor.GREEN.toString());
                 List<String> opensTo = entry.getKey().getOpensTo();
                 if (opensTo.size() > 0) {
                     stringBuilder.append(
-                            localizationManager.getLocalizedMessageFor(player, opensTo.get(0))
+                            opensTo.get(0)
                     );
                     for (int i = 1; i < opensTo.size(); i++) {
                         stringBuilder.append(" & ");
                         stringBuilder.append(
-                                localizationManager.getLocalizedMessageFor(player, opensTo.get(i))
+                                opensTo.get(i)
                         );
                     }
                 }
 
-                hologram.setLineFor(player, 0, stringBuilder.toString());
-                hologram.setLineFor(
-                        player,
+                hologram.updateLineForEveryone(0, stringBuilder.toString());
+                hologram.updateLineForEveryone(
                         1,
-                        ChatColor.GOLD.toString() + entry.getKey().getCost() + " "
-                                + localizationManager.getLocalizedMessageFor(player, MessageKey.GOLD.getKey())
+                        ChatColor.GOLD.toString() + entry.getKey().getCost() + " Gold"
                 );
-                 */
             }
         }
     }

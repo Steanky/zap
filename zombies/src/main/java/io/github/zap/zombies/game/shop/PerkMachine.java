@@ -94,7 +94,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                                     zombiesArena,
                                                     zombiesPlayer,
                                                     slot,
-                                                    zombiesArena.getMap().getMapNameKey(),
+                                                    zombiesArena.getMap().getName(),
                                                     perkMachineData.getPerkType().name()
                                             ));
 

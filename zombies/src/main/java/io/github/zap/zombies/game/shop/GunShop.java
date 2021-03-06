@@ -188,7 +188,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     getZombiesArena(),
                     zombiesPlayer,
                     slot,
-                    getZombiesArena().getMap().getMapNameKey(),
+                    getZombiesArena().getMap().getName(),
                     gunShopData.getGunName()));
 
             return true;
