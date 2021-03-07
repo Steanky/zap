@@ -37,6 +37,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Setter
     private ZombiesPlayerState state = ZombiesPlayerState.ALIVE;
 
+    private final ItemStack[] equipment;
+
     private Corpse corpse;
 
     @Setter
@@ -81,12 +83,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         super(arena, player);
 
         this.arena = arena;
+        this.equipment = player.getEquipment().getArmorContents();
         this.coins = arena.getMap().getStartingCoins();
 
-        hotbarManager = new ZombiesHotbarManager(getPlayer());
+        this.hotbarManager = new ZombiesHotbarManager(getPlayer());
 
-        perks = new ZombiesPerks(this);
-        windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+        this.perks = new ZombiesPerks(this);
+        this.windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
                 this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
     }
 
@@ -161,6 +164,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void subtractCoins(int amount) {
         getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
         coins -= amount;
+    }
+
+    /**
+     * Updates the player's equipment
+     * @param newEquipment The player's new equipment
+     */
+    public void updateEquipment(ItemStack[] newEquipment) {
+        System.arraycopy(newEquipment, 0, equipment, 0, newEquipment.length);
+        if (isAlive() && isInGame()) {
+            getPlayer().getEquipment().setArmorContents(equipment);
+        }
     }
 
     public boolean isAlive() {
@@ -411,6 +425,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void setKnockedState() {
         Player player = getPlayer();
         ArenaApi.getInstance().applyDefaultCondition(player);
+        player.getEquipment().setArmorContents(new ItemStack[4]);
         player.setWalkSpeed(0);
         player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128, false,
                 false, false));
@@ -421,6 +436,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void setAliveState() {
         Player player = getPlayer();
         ArenaApi.getInstance().applyDefaultCondition(player);
+        player.getEquipment().setArmorContents(equipment);
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                 false, false));
         player.setInvulnerable(false);

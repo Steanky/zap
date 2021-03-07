@@ -131,7 +131,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
                         }
 
-                        player.getEquipment().setArmorContents(current);
+                        zombiesPlayer.updateEquipment(current);
                         zombiesPlayer.subtractCoins(cost);
 
                         displayTo(player);
