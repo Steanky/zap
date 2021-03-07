@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
-import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
@@ -29,6 +28,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -59,19 +59,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private ObjectMapper mapper;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
-
-    private static final ConditionStage lobby = new ConditionStage(player -> {
-        player.setInvulnerable(true);
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.setFlying(false);
-        player.setGameMode(GameMode.ADVENTURE);
-        player.setFallDistance(0);
-        player.getInventory().setStorageContents(new ItemStack[35]);
-        player.setFlySpeed(0.2f);
-    }, player -> {
-
-    }, false);
 
     @Override
     public void onEnable() {
@@ -232,10 +219,10 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setFallDistance(0);
         player.setFlySpeed(0.1f);
         player.setGameMode(GameMode.ADVENTURE);
-        player.setLevel(0);
         player.setArrowsInBody(0);
-        player.getInventory().setStorageContents(new ItemStack[35]);
-        player.setTotalExperience(0);
+        for(PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
     }
 
     @EventHandler

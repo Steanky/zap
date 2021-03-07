@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -29,63 +29,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
-    public static final String PREGAME_CONDITION = "pregame";
-    public static final String DEAD_CONDITION = "dead";
-    public static final String ALIVE_CONDITION = "alive";
-    public static final String KNOCKED_CONDITION = "knocked";
-
-    private static final ConditionStage pregame = new ConditionStage(player -> {
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.setInvulnerable(true);
-        player.setGameMode(GameMode.ADVENTURE);
-        player.setFallDistance(0);
-        player.setWalkSpeed(0.2f);
-    }, player -> player.setInvulnerable(false), false);
-
-    private static final ConditionStage dead = new ConditionStage(player -> {
-        player.setHealth(20);
-        player.setAllowFlight(true);
-        player.setInvisible(true);
-        player.setFlySpeed(0.1f);
-        player.setInvulnerable(true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1,
-                false, false, false));
-        player.setFallDistance(0);
-    }, player -> {
-        player.setAllowFlight(false);
-        player.setInvisible(false);
-        player.setFlySpeed(0.1f);
-        player.setInvulnerable(false);
-        player.removePotionEffect(PotionEffectType.NIGHT_VISION);
-    }, false);
-
-    private static final ConditionStage alive = new ConditionStage(player -> {
-        player.setHealth(20);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 3,
-                false, false, false));
-        player.setFallDistance(0);
-    }, player -> player.removePotionEffect(PotionEffectType.SLOW_DIGGING), false);
-
-    private static final ConditionStage knocked = new ConditionStage(player -> {
-        player.setWalkSpeed(0);
-        player.setInvisible(true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
-                true, false, false));
-        player.removePotionEffect(PotionEffectType.SPEED);
-        player.setFallDistance(0);
-    }, player -> {
-        player.setWalkSpeed(0.2f);
-        player.setInvisible(false);
-        player.removePotionEffect(PotionEffectType.JUMP);
-    }, false);
-
     @Getter
     private final ZombiesArena arena;
 
     @Getter
     @Setter
-    private ZombiesPlayerState state;
+    private ZombiesPlayerState state = ZombiesPlayerState.ALIVE;
 
     private Corpse corpse;
 
@@ -175,6 +124,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
         state = ZombiesPlayerState.DEAD;
         perks.activateAll();
+        setDeadState();
     }
 
     @Override
@@ -183,6 +133,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         Bukkit.getScheduler().cancelTask(reviveTaskId);
+        ArenaApi.getInstance().applyDefaultCondition(getPlayer());
     }
 
     public void addCoins(int amount) {
@@ -294,6 +245,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
             disableRepair();
             disableRevive();
+
+            setKnockedState();
         }
     }
 
@@ -303,8 +256,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void kill() {
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
-
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
+            setDeadState();
         }
     }
 
@@ -323,6 +276,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             }
 
             getPerks().activateAll();
+            setAliveState();
 
             if (getPlayer().isSneaking()) {
                 activateRepair();
@@ -337,7 +291,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void respawn() {
         if(isInGame()) {
             revive();
-            state = ZombiesPlayerState.ALIVE;
             getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
         }
     }
@@ -467,7 +420,28 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
     }
 
-    private void setDeadState() {
+    public void setKnockedState() {
+        Player player = getPlayer();
+        ArenaApi.getInstance().applyDefaultCondition(player);
+        player.setWalkSpeed(0);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128, false,
+                false, false));
+        player.setInvulnerable(true);
+        player.setInvisible(true);
+    }
 
+    public void setAliveState() {
+        Player player = getPlayer();
+        ArenaApi.getInstance().applyDefaultCondition(player);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
+                false, false));
+        player.setInvulnerable(false);
+    }
+
+    public void setDeadState() {
+        Player player = getPlayer();
+        ArenaApi.getInstance().applyDefaultCondition(player);
+        player.setFlying(true);
+        player.setInvisible(true);
     }
 }
