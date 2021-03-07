@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.serialize;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.gson.stream.JsonReader;
 import io.github.zap.arenaapi.ArenaApi;
 
 import java.io.File;

@@ -59,6 +59,7 @@ public class Hologram {
                                     .BLOCK_PLACE);
                             fakePacketContainer.getHands().write(0, packetContainer.getHands()
                                     .read(0));
+                            fakePacketContainer.getLongs().write(0, System.currentTimeMillis());
 
                             try {
                                 manager.recieveClientPacket(event.getPlayer(), fakePacketContainer);

@@ -5,14 +5,20 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +47,9 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
             InventoryClickEvent inventoryClickEvent = args.getEvent();
 
             if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
+                HumanEntity humanEntity = inventoryClickEvent.getWhoClicked();
                 ZombiesPlayer zombiesPlayer = zombiesArena.getPlayerMap()
-                        .get(inventoryClickEvent.getWhoClicked().getUniqueId());
+                        .get(humanEntity.getUniqueId());
 
                 if (zombiesPlayer != null) {
                     TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
@@ -53,13 +60,22 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                         for (Player player : zombiesArena.getWorld().getPlayers()) {
                             player.sendMessage(
                                     String.format(
-                                            "%sPlayer %s purchased %s from the team machine!",
+                                            "%sPlayer %s purchased %s from the Team Machine!",
                                             ChatColor.YELLOW,
                                             player.getName(),
                                             teamMachineTask.getDisplayName()
                                     )
                             );
                         }
+                        humanEntity.closeInventory();
+
+                        Sound sound = Sound.sound(
+                                Key.key("minecraft:entity.player.levelup"),
+                                Sound.Source.MASTER,
+                                1.0F,
+                                1.5F
+                                );
+                        humanEntity.playSound(sound);
 
                         onPurchaseSuccess(zombiesPlayer);
                     }
@@ -106,41 +122,56 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
      * @return The resulting inventory
      */
     private Inventory prepareInventory() {
+        Inventory inventory;
         List<TeamMachineTask> teamMachineTasks = getShopData().getTeamMachineTasks();
-
         int num = teamMachineTasks.size();
-        int width = (int) Math.ceil(Math.sqrt(num));
-        int height = (int) Math.ceil((double) num / width);
-        int remainderLine = Math.min(6, height) / 2;
-        // this is the first line offset
-        int offset = (height <= 4) ? 1 : 0;
-        // If the height go higher than 6 we need to change our calculation
-        if (height > 6) {
-            width = (int) Math.ceil((double) num / 6);
-        }
-        int finalLine = num % width;
-        if (finalLine == 0) {
-            finalLine = width;
-        }
 
-        int guiSize = 9 * Math.min(6, height + 2);
-        // TODO: localization aaaaaaaaa
-        Inventory inventory = Bukkit.createInventory(null, guiSize, "Team Machine");
-
-        int index = 0;
-
-        for (int h = 0; h < height; h++) {
-            int lineCount = (h == remainderLine) ? finalLine : width;
-            for (int w = 0; w < lineCount && index < num; w++) {
-                int slot = (18 * w + 9) / (2 * lineCount);
-                int pos = (h + offset) * 9 + slot;
-
-                TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
-                inventory.setItem(pos, new ItemStack(teamMachineTask.getDisplayMaterial()));
-                slotMap.put(pos, teamMachineTask);
-
-                index++;
+        if (num > 0) {
+            int width = (int) Math.ceil(Math.sqrt(num));
+            int height = (int) Math.ceil((double) num / width);
+            int remainderLine = Math.min(6, height) / 2;
+            // this is the first line offset
+            int offset = (height <= 4) ? 1 : 0;
+            // If the height go higher than 6 we need to change our calculation
+            if (height > 6) {
+                width = (int) Math.ceil((double) num / 6);
             }
+            int finalLine = num % width;
+            if (finalLine == 0) {
+                finalLine = width;
+            }
+
+            int guiSize = 9 * Math.min(6, height + 2);
+            inventory = Bukkit.createInventory(null, guiSize, Component.text("Team Machine"));
+
+            int index = 0;
+
+            for (int h = 0; h < height; h++) {
+                int lineCount = (h == remainderLine) ? finalLine : width;
+                for (int w = 0; w < lineCount && index < num; w++) {
+                    int slot = (18 * w + 9) / (2 * lineCount);
+                    int pos = (h + offset) * 9 + slot;
+
+                    TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
+
+                    ItemStack itemStack = new ItemStack(teamMachineTask.getDisplayMaterial());
+                    ItemMeta itemMeta = itemStack.getItemMeta();
+                    itemMeta.displayName(Component.text(teamMachineTask.getDisplayName()));
+                    List<Component> lore = new ArrayList<>();
+                    for (String line : teamMachineTask.getLore()) {
+                        lore.add(Component.text(line));
+                    }
+                    itemMeta.lore(lore);
+
+
+                    inventory.setItem(pos, itemStack);
+                    slotMap.put(pos, teamMachineTask);
+
+                    index++;
+                }
+            }
+        } else {
+            inventory = Bukkit.createInventory(null, 9, Component.text("Team Machine"));
         }
 
         return inventory;

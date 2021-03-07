@@ -6,6 +6,8 @@ import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
+import java.util.List;
+
 /**
  * Represents a task usable by a team machine
  */
@@ -15,6 +17,8 @@ public abstract class TeamMachineTask {
     private final String type;
 
     private String displayName;
+
+    private List<String> lore;
 
     private Material displayMaterial;
 

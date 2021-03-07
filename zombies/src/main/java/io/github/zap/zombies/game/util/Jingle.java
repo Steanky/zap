@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.util;
 
 import io.github.zap.zombies.Zombies;
 import lombok.Getter;
-import lombok.Value;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -76,7 +75,7 @@ public class Jingle {
     /**
      * A single note of a jingle
      */
-    @Value
+    @Getter
     public static class Note {
 
         Sound sound;
@@ -85,6 +84,10 @@ public class Jingle {
 
         float pitch;
 
+        private Note() {
+
+
+        }
     }
 
     /**

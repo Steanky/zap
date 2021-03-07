@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.data.equipment.gun;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,6 +16,8 @@ import java.util.List;
  */
 @Getter
 public class GunData<L extends GunLevel> extends EquipmentData<L> {
+
+    private Jingle.Note note;
 
     private final transient String unchangedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
             + ChatColor.GREEN + "%s";

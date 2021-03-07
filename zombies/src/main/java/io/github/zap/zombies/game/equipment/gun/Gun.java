@@ -7,7 +7,9 @@ import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -132,6 +134,16 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 player.sendMessage(ChatColor.RED + "no ammo, bro.");
             }
         }
+
+        D equipmentData = getEquipmentData();
+        Jingle.Note note = equipmentData.getNote();
+        net.kyori.adventure.sound.Sound sound = net.kyori.adventure.sound.Sound.sound(
+                Key.key(note.getSound().getKey().toString().toLowerCase()),
+                net.kyori.adventure.sound.Sound.Source.MASTER,
+                note.getVolume(),
+                note.getPitch()
+        );
+        player.playSound(sound);
     }
 
     /**
