@@ -23,7 +23,7 @@ public class PerkObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public ItemStack createPlaceholderItemStack(int placeholderNumber) {
-        ItemStack itemStack = new ItemStack(Material.LIGHT_GRAY_DYE);
+        ItemStack itemStack = new ItemStack(Material.GRAY_DYE);
         TextComponent name = Component.text(String.format("Perk #%d", placeholderNumber)).color(NamedTextColor.BLUE);
 
         ItemMeta itemMeta = itemStack.getItemMeta();

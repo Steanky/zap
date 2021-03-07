@@ -4,7 +4,6 @@ import io.github.zap.zombies.game.data.util.RomanNumeral;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -57,9 +56,6 @@ public abstract class EquipmentData<L> {
 
             itemMeta.setDisplayName(getFormattedDisplayName(player, level));
 
-            if (level > 0) {
-                itemMeta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1, true);
-            }
             itemMeta.setLore(getLore(player, level));
             itemStack.setItemMeta(itemMeta);
 
@@ -97,12 +93,12 @@ public abstract class EquipmentData<L> {
     public String getFormattedDisplayNameWithChatColor(ChatColor chatColor, Player player, int level) {
         String formattedDisplayName = displayName;
         if (level > 0) {
-            formattedDisplayName = ChatColor.BOLD.toString() + formattedDisplayName;
-            formattedDisplayName += " Ultimate";
-
-            if (level > 1) {
-                formattedDisplayName += " " + RomanNumeral.toRoman(level);
-            }
+            formattedDisplayName = String.format(
+                    "%s%s %s",
+                    ChatColor.BOLD.toString(),
+                    formattedDisplayName,
+                    RomanNumeral.toRoman(level + 1)
+            );
         }
 
         return chatColor + formattedDisplayName;

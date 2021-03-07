@@ -23,7 +23,7 @@ public class SkillObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public ItemStack createPlaceholderItemStack(int placeholderNumber) {
-        ItemStack itemStack = new ItemStack(Material.LIGHT_GRAY_DYE);
+        ItemStack itemStack = new ItemStack(Material.GRAY_DYE);
         TextComponent name = Component.text(String.format("Skill #%d", placeholderNumber)).color(NamedTextColor.AQUA);
 
         ItemMeta itemMeta = itemStack.getItemMeta();

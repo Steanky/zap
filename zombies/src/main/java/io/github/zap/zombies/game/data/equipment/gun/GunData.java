@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
-import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.data.equipment.UltimateableData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.util.List;
  * @param <L> The gun level type
  */
 @Getter
-public class GunData<L extends GunLevel> extends EquipmentData<L> {
+public class GunData<L extends GunLevel> extends UltimateableData<L> {
 
     private Jingle.Note note;
 

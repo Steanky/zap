@@ -5,6 +5,8 @@ import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.perk.PerkType;
 import lombok.Getter;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Data for a perk
@@ -16,6 +18,14 @@ public class PerkData extends EquipmentData<PerkLevel> {
 
     private PerkData() {
 
+    }
+
+    @Override
+    public ItemStack createItemStack(Player player, int level) {
+        ItemStack itemStack = super.createItemStack(player, level);
+        itemStack.setAmount(level + 1);
+
+        return itemStack;
     }
 
     @Override
