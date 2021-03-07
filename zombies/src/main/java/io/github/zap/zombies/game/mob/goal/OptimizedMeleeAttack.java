@@ -87,11 +87,11 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
             if (!proxy.navigateAlongPath(self, path, speed)) {
                 /*
-                if we fail to find a path, add a five-second delay on top of whatever we already have. this generally
-                should not happen unless there's an exploit, and we want to avoid constantly running the pathfinder if
-                someone is cheating or out of bounds.
+                if we fail to find a path, add a one-second delay on top of whatever we already have. this generally
+                should not happen unless there's an exploit or glitch, and we also want to avoid constantly running the
+                pathfinder if someone is cheating or out of bounds.
                  */
-                this.navigationCounter += 100;
+                this.navigationCounter += 20;
             }
         }
 

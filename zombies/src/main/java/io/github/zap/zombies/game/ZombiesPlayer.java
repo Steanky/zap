@@ -21,6 +21,7 @@ import org.bukkit.Location;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -114,6 +115,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
         Bukkit.getScheduler().cancelTask(windowRepairTaskId);
         Bukkit.getScheduler().cancelTask(reviveTaskId);
+
+        getPlayer().getInventory().setStorageContents(new ItemStack[35]);
+        getPlayer().giveExpLevels(-getPlayer().getExpToLevel());
         ArenaApi.getInstance().applyDefaultCondition(getPlayer());
     }
 

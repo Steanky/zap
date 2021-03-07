@@ -4,7 +4,9 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
@@ -56,6 +58,8 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void quit() {
         if(inGame) {
             inGame = false;
+            player.getInventory().setStorageContents(new ItemStack[35]);
+            player.giveExpLevels(-player.getExpToLevel());
             ArenaApi.getInstance().applyDefaultCondition(player);
         }
     }
