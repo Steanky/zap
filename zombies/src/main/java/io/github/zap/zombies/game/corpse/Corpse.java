@@ -13,6 +13,7 @@ import io.github.zap.zombies.game.perk.FastRevive;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -29,6 +30,7 @@ public class Corpse {
 
     private final ZombiesNMSProxy nmsProxy;
 
+    @Getter
     private final ZombiesPlayer zombiesPlayer;
 
     @Getter
@@ -126,8 +128,31 @@ public class Corpse {
         if (reviveTime <= 0) {
             active = false;
             zombiesPlayer.revive();
+            zombiesPlayer.getPlayer().sendActionBar(Component.text());
+            reviver.getPlayer().sendActionBar(Component.text());
         } else {
-            hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(reviveTime)));
+            double timeRemaining = convertTicksToSeconds(reviveTime);
+            String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
+            hologram.updateLine(2, secondsRemainingString);
+            zombiesPlayer.getPlayer().sendActionBar(Component.text(
+                    String.format(
+                            "%sYou are being revived by %s%s! %s- %s!",
+                            ChatColor.RED,
+                            ChatColor.YELLOW,
+                            reviver.getPlayer().getName(),
+                            ChatColor.WHITE,
+                            secondsRemainingString)
+            ));
+            reviver.getPlayer().sendActionBar(Component.text(
+                    String.format(
+                            "%sReviving %s%s... %s- %s!",
+                            ChatColor.RED,
+                            ChatColor.YELLOW,
+                            zombiesPlayer.getPlayer().getName(),
+                            ChatColor.WHITE,
+                            secondsRemainingString)
+            ));
+
             reviveTime -= 2;
         }
     }
@@ -150,8 +175,14 @@ public class Corpse {
             zombiesPlayer.kill();
             hologram.destroy();
             zombiesPlayer.getArena().getAvailableCorpses().remove(this);
+            zombiesPlayer.getPlayer().sendActionBar(Component.text());
         } else {
-            hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(deathTime)));
+            double timeRemaining = convertTicksToSeconds(deathTime);
+            String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
+            hologram.updateLine(2, secondsRemainingString);
+            zombiesPlayer.getPlayer().sendActionBar(Component.text(
+                    String.format("%sYou will die in %s%s!", ChatColor.RED, ChatColor.YELLOW, secondsRemainingString)
+            ));
             deathTime -= 2;
         }
     }

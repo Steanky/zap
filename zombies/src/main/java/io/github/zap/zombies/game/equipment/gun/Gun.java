@@ -10,6 +10,8 @@ import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -62,6 +64,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 canReload = false;
                 canShoot = false;
                 Player player = getPlayer();
+                player.sendActionBar(Component.text("RELOADING").color(TextColor.color(16777045)));
                 player.playSound(player.getLocation(), Sound.ENTITY_HORSE_GALLOP, 1F, 0.5F);
 
                 new BukkitRunnable() {
@@ -79,6 +82,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
                             int newClip = Math.min(clipAmmo, currentAmmo);
                             setClipAmmo(newClip);
+
+                            getPlayer().sendActionBar(Component.text());
 
                             canReload = true;
                             canShoot = true;

@@ -15,6 +15,8 @@ import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -68,10 +70,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     private WindowData targetWindow;
 
     private boolean repairOn;
-    private int windowRepairTaskId;
+    private int windowRepairTaskId = -1;
 
+    private boolean reviveOn;
+    private int reviveTaskId = -1;
     private Corpse targetCorpse;
-    private int reviveTaskId;
 
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
@@ -89,16 +92,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
 
         this.perks = new ZombiesPerks(this);
-        this.windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
     }
 
     public void quit() {
         super.quit();
 
         state = ZombiesPlayerState.DEAD;
-        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-        windowRepairTaskId = -1;
+        endShiftTasks();
 
         perks.disableAll();
     }
@@ -116,8 +116,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void dispose() {
         perks.dispose();
 
-        Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-        Bukkit.getScheduler().cancelTask(reviveTaskId);
+        endShiftTasks();
 
         getPlayer().getInventory().setStorageContents(new ItemStack[35]);
         getPlayer().giveExpLevels(-getPlayer().getExpToLevel());
@@ -182,6 +181,39 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     /**
+     * Starts tasks related to when the player shifts
+     */
+    public void startShiftTasks() {
+        if (windowRepairTaskId == -1) {
+            windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+                    this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
+        }
+
+        if (reviveTaskId == -1) {
+            reviveTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
+                    Zombies.getInstance(),
+                    this::checkForCorpses,
+                    0L,
+                    2L
+            );
+        }
+    }
+
+    /**
+     * Ends tasks related to when the player shifts
+     */
+    public void endShiftTasks() {
+        if (windowRepairTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(windowRepairTaskId);
+            windowRepairTaskId = -1;
+        }
+        if (reviveTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(reviveTaskId);
+            reviveTaskId = -1;
+        }
+    }
+
+    /**
      * Puts the player into a window repairing state.
      */
     public void activateRepair() {
@@ -206,28 +238,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Puts the player into a reviving state
      */
     public void activateRevive() {
-        if (reviveTaskId == -1) {
-            reviveTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                    Zombies.getInstance(),
-                    this::checkForCorpses,
-                    0L,
-                    2L
-            );
-        }
+        reviveOn = true;
     }
 
     /**
      * Disables revive state
      */
     public void disableRevive() {
-        if (reviveTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(reviveTaskId);
-            reviveTaskId = -1;
-            if (targetCorpse != null) {
-                targetCorpse.setReviver(null);
-                targetCorpse = null;
-            }
+        if (targetCorpse != null) {
+            getPlayer().sendActionBar(Component.text());
+            targetCorpse.setReviver(null);
+            targetCorpse = null;
         }
+
+        reviveOn = false;
     }
 
     /**
@@ -309,24 +333,30 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Tries to find and repair a window.
      */
     private void checkForWindow() {
-        if(repairOn) {
-            MapData map = arena.getMap();
+        MapData map = arena.getMap();
 
-            if(targetWindow == null) { //our target window is null, so look for one
-                WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared());
+        if(targetWindow == null) { //our target window is null, so look for one
+            WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared());
 
-                if(window != null) {
+            if(window != null) {
+                if (repairOn) {
                     targetWindow = window;
                     tryRepairWindow(targetWindow);
+                    getPlayer().sendActionBar(Component.text());
+                } else {
+                    getPlayer().sendActionBar(
+                            Component.text("Hold SHIFT to repair!").color(TextColor.color(16777045))
+                    );
                 }
             }
-            else { //we already have a target window - make sure it's still in range
-                if(targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())) {
-                    tryRepairWindow(targetWindow);
-                }
-                else {
-                    targetWindow = null;
-                }
+        }
+        else { //we already have a target window - make sure it's still in range
+            if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
+                    && repairOn) {
+                tryRepairWindow(targetWindow);
+            }
+            else {
+                targetWindow = null;
             }
         }
     }
@@ -387,15 +417,18 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if (targetCorpse == null) {
             selectNewCorpse();
         } else if (!targetCorpse.isActive()) {
+            getPlayer().sendActionBar(Component.text());
             targetCorpse = null;
+
             selectNewCorpse();
         } else {
             double distance
                     = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
 
-            if (distance < maxDistance) {
+            if (distance < maxDistance && reviveOn) {
                 targetCorpse.continueReviving();
             } else {
+                getPlayer().sendActionBar(Component.text());
                 targetCorpse.setReviver(null);
                 targetCorpse = null;
 
@@ -414,9 +447,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             double distance
                     = getPlayer().getLocation().toVector().distanceSquared(corpse.getLocation().toVector());
             if (distance <= maxDistance) {
-                targetCorpse = corpse;
-                targetCorpse.setReviver(this);
-                targetCorpse.continueReviving();
+                if (reviveOn) {
+                    targetCorpse = corpse;
+                    targetCorpse.setReviver(this);
+                    targetCorpse.continueReviving();
+                } else {
+                    getPlayer().sendActionBar(Component.text(
+                            String.format("Hold SHIFT to Revive %s!", corpse.getZombiesPlayer().getPlayer().getName())
+                            ).color(TextColor.color(16777045))
+                    );
+                }
+
                 break;
             }
         }
@@ -431,6 +472,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 false, false));
         player.setInvulnerable(true);
         player.setInvisible(true);
+        endShiftTasks();
     }
 
     public void setAliveState() {
@@ -440,6 +482,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                 false, false));
         player.setInvulnerable(false);
+        startShiftTasks();
     }
 
     public void setDeadState() {
