@@ -3,7 +3,6 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -11,10 +10,10 @@ import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
-import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
@@ -29,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
+    
     @Getter
     private final ZombiesArena arena;
 
@@ -235,7 +235,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Knocks down this player.
      */
     public void knock() {
-        if(state == ZombiesPlayerState.ALIVE && isInGame()) {
+        if(isAlive() && isInGame()) {
             state = ZombiesPlayerState.KNOCKED;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
@@ -265,7 +265,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Revives this player.
      */
     public void revive() {
-        if((state == ZombiesPlayerState.KNOCKED || state == ZombiesPlayerState.DEAD) && isInGame()) {
+        if (!isAlive() && isInGame()) {
             state = ZombiesPlayerState.ALIVE;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
@@ -381,13 +381,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     private void checkForCorpses() {
         int maxDistance = arena.getMap().getReviveRadius();
 
-        if (targetCorpse == null || !targetCorpse.isActive()) {
+        if (targetCorpse == null) {
+            selectNewCorpse();
+        } else if (!targetCorpse.isActive()) {
+            targetCorpse = null;
             selectNewCorpse();
         } else {
-            double distance = VectorUtils.manhattanDistance(
-                    getPlayer().getLocation().toVector(),
-                    targetCorpse.getLocation().toVector()
-            );
+            double distance
+                    = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
 
             if (distance < maxDistance) {
                 targetCorpse.continueReviving();
@@ -407,10 +408,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         int maxDistance = arena.getMap().getReviveRadius();
 
         for (Corpse corpse : arena.getAvailableCorpses()) {
-            double distance = VectorUtils.manhattanDistance(
-                    getPlayer().getLocation().toVector(),
-                    corpse.getLocation().toVector()
-            );
+            double distance
+                    = getPlayer().getLocation().toVector().distanceSquared(corpse.getLocation().toVector());
             if (distance <= maxDistance) {
                 targetCorpse = corpse;
                 targetCorpse.setReviver(this);

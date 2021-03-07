@@ -109,7 +109,16 @@ public class BasicBeam {
             targetBlock = iterator.next();
 
             Material material = targetBlock.getType();
-            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) != null) {
+            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
+                if (!targetBlock.getType().isBlock()) {
+                    BoundingBox boundingBox = targetBlock.getBoundingBox();
+                    RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,range + 1.74);
+
+                    if (rayTraceResult != null) {
+                        break;
+                    }
+                }
+
                 break;
             }
         }
