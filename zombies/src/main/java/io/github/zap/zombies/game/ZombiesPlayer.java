@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
-    
+
     @Getter
     private final ZombiesArena arena;
 
@@ -83,6 +83,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         this.coins = arena.getMap().getStartingCoins();
 
         hotbarManager = new ZombiesHotbarManager(getPlayer());
+        hotbarManager.switchProfile(ZombiesHotbarManager.PREGAME_PROFILE_NAME);
 
         for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap()
                 .getHotbarObjectGroupSlots().entrySet()) {

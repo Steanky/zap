@@ -143,7 +143,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             if (hotbarObject instanceof Gun<?, ?>) {
                 Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
-                if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
+                if (gun.getCurrentAmmo() == gun.getCurrentLevel().getAmmo()) {
+                    zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "Your gun is already filled!");
+                } else if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
                     int refillCost = gunShopData.getRefillCost();
                     if (zombiesPlayer.getCoins() < refillCost) {
                         zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");

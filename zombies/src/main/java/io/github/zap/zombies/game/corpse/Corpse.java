@@ -105,7 +105,6 @@ public class Corpse {
         if (reviveTime <= 0) {
             active = false;
             zombiesPlayer.revive();
-            hologram.destroy();
         } else {
             hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(reviveTime)));
             reviveTime -= 2;
@@ -127,7 +126,7 @@ public class Corpse {
     /**
      * Removes 0.1s of death time from the corpse
      */
-    public void continueDying() {
+    private void continueDying() {
         if (deathTime <= 0) {
             active = false;
             zombiesPlayer.kill();
@@ -248,6 +247,10 @@ public class Corpse {
         killPacketContainer.getIntegerArrays().write(0, new int[] { id });
 
         sendPacket(killPacketContainer);
+
+        if (hologram.getHologramLines().size() > 0) {
+            hologram.destroy();
+        }
 
         zombiesPlayer.getArena().getCorpses().remove(this);
         zombiesPlayer.getArena().getAvailableCorpses().remove(this);
