@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -589,7 +590,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         for(ZombiesPlayer player : getPlayerMap().values()) {
             if(player.isInGame()) {
                 player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
-                player.getArenaPlayer().applyConditionFor(toString(), ZombiesPlayer.ALIVE_CONDITION);
+                ArenaApi.getInstance().applyDefaultCondition(player.getPlayer());
             }
         }
         doRound();

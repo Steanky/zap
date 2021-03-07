@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.game.arena.ArenaPlayer;
 import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.VectorUtils;
@@ -21,7 +20,6 @@ import lombok.Setter;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -43,7 +41,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.setGameMode(GameMode.ADVENTURE);
         player.setFallDistance(0);
         player.setWalkSpeed(0.2f);
-        player.setInvisible(false);
     }, player -> player.setInvulnerable(false), false);
 
     private static final ConditionStage dead = new ConditionStage(player -> {
@@ -160,14 +157,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         perks = new ZombiesPerks(this);
         windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
                 this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
-
-        ArenaPlayer arenaPlayer = getArenaPlayer();
-        arenaPlayer.registerCondition(arena.toString(), PREGAME_CONDITION, pregame);
-        arenaPlayer.registerCondition(arena.toString(), DEAD_CONDITION, dead);
-        arenaPlayer.registerCondition(arena.toString(), ALIVE_CONDITION, alive);
-        arenaPlayer.registerCondition(arena.toString(), KNOCKED_CONDITION, knocked);
-
-        arenaPlayer.applyConditionFor(arena.toString(), PREGAME_CONDITION);
     }
 
     public void quit() {
@@ -185,8 +174,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         super.rejoin();
 
         state = ZombiesPlayerState.DEAD;
-        getArenaPlayer().applyConditionFor(arena.toString(), DEAD_CONDITION);
-
         perks.activateAll();
     }
 
@@ -304,7 +291,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             corpse = new Corpse(this);
 
             getPerks().disableAll();
-            getArenaPlayer().applyConditionFor(arena.toString(), KNOCKED_CONDITION);
 
             disableRepair();
             disableRevive();
@@ -319,7 +305,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.DEAD;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
-            getArenaPlayer().applyConditionFor(arena.toString(), DEAD_CONDITION);
         }
     }
 
@@ -338,7 +323,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             }
 
             getPerks().activateAll();
-            getArenaPlayer().applyConditionFor(arena.toString(), ALIVE_CONDITION);
 
             if (getPlayer().isSneaking()) {
                 activateRepair();
@@ -483,4 +467,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
     }
 
+    private void setDeadState() {
+
+    }
 }

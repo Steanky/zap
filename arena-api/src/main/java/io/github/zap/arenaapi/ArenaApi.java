@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.github.zap.arenaapi.game.arena.ArenaPlayer;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
@@ -37,7 +36,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -61,8 +59,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private ObjectMapper mapper;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
-
-    private final Map<UUID, ArenaPlayer> players = new HashMap<>();
 
     private static final ConditionStage lobby = new ConditionStage(player -> {
         player.setInvulnerable(true);
@@ -102,11 +98,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        for(ArenaPlayer arenaPlayer : players.values()) {
-            for(String context : arenaPlayer.getConditionContexts()) {
-                arenaPlayer.removeAllConditionsFor(context);
-            }
-        }
+
     }
 
     private void initProxy() throws LoadFailureException {
@@ -172,10 +164,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         }
     }
 
-    public ArenaPlayer getArenaPlayer(UUID uuid) {
-        return players.get(uuid);
-    }
-
     /**
      * Adds a deserializer to the module
      * @param type The type of the class to deserialize
@@ -232,18 +220,27 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         sendPacketToPlayer(this, player, packetContainer);
     }
 
-    public void applyDefaultStage(ArenaPlayer player) {
-        player.applyConditionFor(LOBBY_CONTEXT, DEFAULT_STAGE);
+    public void applyDefaultCondition(Player player) {
+        player.setFoodLevel(20);
+        player.setSaturation(20);
+        player.setHealth(20);
+        player.setInvulnerable(true);
+        player.setWalkSpeed(0.2f);
+        player.setInvisible(false);
+        player.setFallDistance(0);
+        player.setFlying(false);
+        player.setFallDistance(0);
+        player.setFlySpeed(0.1f);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.setLevel(0);
+        player.setArrowsInBody(0);
+        player.getInventory().setStorageContents(new ItemStack[35]);
+        player.setTotalExperience(0);
     }
 
     @EventHandler
     private void playerJoinEvent(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        ArenaPlayer arenaPlayer = new ArenaPlayer(player);
-        players.put(player.getUniqueId(), arenaPlayer);
-
-        arenaPlayer.registerCondition(LOBBY_CONTEXT, DEFAULT_STAGE, lobby);
-        arenaPlayer.applyConditionFor(LOBBY_CONTEXT, DEFAULT_STAGE);
+        applyDefaultCondition(event.getPlayer());
     }
 
 
