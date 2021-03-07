@@ -42,10 +42,6 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
         return player.getUniqueId();
     }
 
-    public ArenaPlayer getArenaPlayer() {
-        return ArenaApi.getInstance().getArenaPlayer(player.getUniqueId());
-    }
-
     /**
      * Returns true if the player is currently in the arena. Returns false otherwise.
      * @return true if the player is in the arena, false otherwise
@@ -60,7 +56,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public void quit() {
         if(inGame) {
             inGame = false;
-            getArenaPlayer().removeAllConditionsFor(arena.toString());
+            ArenaApi.getInstance().applyDefaultCondition(player);
         }
     }
 

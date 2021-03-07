@@ -30,9 +30,6 @@ public class MoveWaterFallAfterBeta implements Listener {
         arenaEventArgs.getArena().getPlayerMap().forEach((l,r) -> {
             if(r.isInGame()) {
                 r.getPlayer().teleport(lobbyLocation);
-                ArenaPlayer player = ArenaApi.getInstance().getArenaPlayer(r.getPlayer().getUniqueId());
-                player.removeConditionContext(arenaEventArgs.getArena().toString());
-                ArenaApi.getInstance().applyDefaultStage(player);
             }
         });
     }

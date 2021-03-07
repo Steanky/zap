@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -581,18 +582,24 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     public void startGame() {
-        loadShops();
+        if(state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) {
+            loadShops();
 
-        state = ZombiesArenaState.STARTED;
-        startTimeStamp = System.currentTimeMillis();
+            state = ZombiesArenaState.STARTED;
+            startTimeStamp = System.currentTimeMillis();
 
-        for(ZombiesPlayer player : getPlayerMap().values()) {
-            if(player.isInGame()) {
-                player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
-                player.getArenaPlayer().applyConditionFor(toString(), ZombiesPlayer.ALIVE_CONDITION);
+            for(ZombiesPlayer player : getPlayerMap().values()) {
+                if(player.isInGame()) {
+                    player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
+                    player.setAliveState();
+
+                    Vector spawn = map.getSpawn();
+                    player.getPlayer().teleport(new Location(world, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5));
+                }
             }
+
+            doRound();
         }
-        doRound();
     }
 
     private void doRound() {
