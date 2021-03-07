@@ -5,6 +5,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 public class BreakWindow extends ZombiesPathfinder {
@@ -84,19 +85,18 @@ public class BreakWindow extends ZombiesPathfinder {
             counter = 0;
         }
 
-        if(counter % DISTANCE_CHECK_TICKS == 0) {
-            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ())
-                    < MIN_TARGET_DISTANCE_SQUARED && destination.getY() == getHandle().locY()) {
-                Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
-                if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
-                    window.getAttackingEntityProperty().setValue(arena, null);
-                }
-
-                completed = true;
+        if(!(window.getFaceBounds().contains(getHandle().locX(), getHandle().locY(), getHandle().locZ()) ||
+                window.getInteriorBounds().contains(getHandle().locX(), getHandle().locY(), getHandle().locZ()))) {
+            Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
+            if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
+                window.getAttackingEntityProperty().setValue(arena, null);
             }
-        }
 
-        getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(), destination.getZ(), 30.0F, 30.0F);
-        getProxy().navigateToLocation(getHandle(), destination.getX(), destination.getY(), destination.getZ(), 1);
+            completed = true;
+        }
+        else {
+            getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(), destination.getZ(), 30.0F, 30.0F);
+            getProxy().navigateToLocation(getHandle(), destination.getX(), destination.getY(), destination.getZ(), 1);
+        }
     }
 }

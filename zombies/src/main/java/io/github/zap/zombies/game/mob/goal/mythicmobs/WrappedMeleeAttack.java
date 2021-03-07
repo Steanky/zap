@@ -22,7 +22,7 @@ public class WrappedMeleeAttack extends MythicWrapper {
     @Override
     public PathfinderGoal create() {
         return new WrappedZombiesPathfinder(entity, new PathfinderGoalMeleeAttack((EntityCreature)getHandle(),
-                speed, true), getRetargetInterval());
+                speed, false), getRetargetInterval());
     }
 
     @Override
