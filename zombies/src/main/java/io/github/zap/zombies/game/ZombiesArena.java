@@ -364,6 +364,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
         getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
         getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
+        getPlayerItemDamageEvent().registerHandler(this::onPlayerItemDamage);
         getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
         getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
         getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
@@ -573,6 +574,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerItemConsume(ProxyArgs<PlayerItemConsumeEvent> args) {
         args.getEvent().setCancelled(true); // TODO: might need to change this one day
+    }
+
+    private void onPlayerItemDamage(ProxyArgs<PlayerItemDamageEvent> args) {
+        args.getEvent().setCancelled(true);
     }
 
     private void onPlayerAttemptPickupItem(ProxyArgs<PlayerAttemptPickupItemEvent> args) {

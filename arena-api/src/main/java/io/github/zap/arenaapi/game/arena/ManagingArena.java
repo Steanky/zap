@@ -172,6 +172,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent;
     private final Event<ProxyArgs<PlayerItemHeldEvent>> playerItemHeldEvent;
     private final Event<ProxyArgs<PlayerItemConsumeEvent>> playerItemConsumeEvent;
+    private final Event<ProxyArgs<PlayerItemDamageEvent>> playerItemDamageEvent;
     private final Event<ProxyArgs<PlayerAttemptPickupItemEvent>> playerAttemptPickupItemEvent;
     private final Event<ProxyArgs<PlayerArmorStandManipulateEvent>> playerArmorStandManipulateEvent;
     private final Event<ProxyArgs<FoodLevelChangeEvent>> playerFoodLevelChangeEvent;
@@ -193,6 +194,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
         playerItemConsumeEvent = new AdaptedPlayerEvent<>(PlayerItemConsumeEvent.class);
+        playerItemDamageEvent = new AdaptedPlayerEvent<>(PlayerItemDamageEvent.class);
         playerAttemptPickupItemEvent = new AdaptedPlayerEvent<>(PlayerAttemptPickupItemEvent.class);
         playerArmorStandManipulateEvent = new AdaptedPlayerEvent<>(PlayerArmorStandManipulateEvent.class);
         playerFoodLevelChangeEvent = new AdaptedEntityEvent<>(FoodLevelChangeEvent.class);
