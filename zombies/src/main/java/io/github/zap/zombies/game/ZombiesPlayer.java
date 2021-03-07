@@ -440,7 +440,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void setDeadState() {
         Player player = getPlayer();
         ArenaApi.getInstance().applyDefaultCondition(player);
-        player.setFlying(true);
+        player.setAllowFlight(true);
         player.setInvisible(true);
     }
 }

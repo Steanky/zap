@@ -491,6 +491,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
         }
 
+        for(ZombiesPlayer player : getPlayerMap().values()) {
+            player.kill();
+        }
+
         doLoss(); //there are no players alive, so end the game
     }
 

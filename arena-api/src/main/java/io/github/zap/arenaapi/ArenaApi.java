@@ -215,7 +215,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setWalkSpeed(0.2f);
         player.setInvisible(false);
         player.setFallDistance(0);
-        player.setFlying(false);
+        player.setAllowFlight(false);
         player.setFallDistance(0);
         player.setFlySpeed(0.1f);
         player.setGameMode(GameMode.ADVENTURE);
