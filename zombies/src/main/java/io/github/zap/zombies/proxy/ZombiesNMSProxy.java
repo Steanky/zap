@@ -41,7 +41,13 @@ public interface ZombiesNMSProxy extends NMSProxy {
 
     void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent);
 
-    void setAttributeFor(EntityLiving entity, AttributeBase attribute, double value);
+    void setDoubleFor(EntityLiving entity, AttributeBase attribute, double value);
 
     ItemStack getItemStackFromDescription(ItemStackDescription info) throws CommandSyntaxException;
+
+    PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation);
+
+    PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation);
+
+    boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed);
 }

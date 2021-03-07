@@ -3,12 +3,10 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
 import net.minecraft.server.v1_16_R3.GenericAttributes;
 import net.minecraft.server.v1_16_R3.PathfinderGoal;
-import net.minecraft.server.v1_16_R3.PathfinderGoalMeleeAttack;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.event.entity.EntityTargetEvent;
 
@@ -36,7 +34,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         super(entity, Zombies.ARENA_METADATA_NAME);
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
-        getProxy().setAttributeFor(getHandle(), GenericAttributes.FOLLOW_RANGE, Double.MAX_VALUE);
+        getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, Float.MAX_VALUE);
         counter = retargetInterval > 0 ? getHandle().getRandom().nextInt(retargetInterval) : -1;
     }
 
@@ -80,8 +78,6 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         target = null;
         locateInitial = 19;
         wrappedGoal.d();
-
-        Zombies.info("WrappedZombiesPathfinder onEnd() called");
     }
 
     @Override

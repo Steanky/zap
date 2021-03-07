@@ -49,9 +49,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             if(filter.test(player)) {
                 Player bukkitPlayer = player.getPlayer();
-                Location location = bukkitPlayer.getLocation();
-
-                PathEntity path = entity.getNavigation().a(new BlockPosition(location.getX(), location.getY(), location.getZ()), 0);
+                PathEntity path = getPathToUnbounded(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
 
                 if(path != null) {
                     PathPoint finalPoint = path.getFinalPoint();
@@ -96,7 +94,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public void setAttributeFor(EntityLiving entity, AttributeBase attribute, double value) {
+    public void setDoubleFor(EntityLiving entity, AttributeBase attribute, double value) {
         AttributeModifiable modifiableAttribute = entity.getAttributeMap().a(attribute);
 
         if(modifiableAttribute != null) {
@@ -117,5 +115,28 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
             return itemStack;
         }
 
+    }
+
+    @Override
+    public PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation) {
+        NavigationAbstract navigationAbstract = entity.getNavigation();
+        navigationAbstract.a(Float.MAX_VALUE);
+        PathEntity path = navigationAbstract.a(x, y, z, deviation);
+        navigationAbstract.g();
+        return path;
+    }
+
+    @Override
+    public PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation) {
+        NavigationAbstract navigationAbstract = entity.getNavigation();
+        navigationAbstract.a(Float.MAX_VALUE);
+        PathEntity path = navigationAbstract.calculateDestination(target);
+        navigationAbstract.g();
+        return path;
+    }
+
+    @Override
+    public boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed) {
+        return entity.getNavigation().a(path, speed);
     }
 }
