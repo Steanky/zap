@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ArenaPlayer;
 import io.github.zap.arenaapi.game.arena.ConditionStage;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.util.VectorUtils;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -12,16 +11,15 @@ import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
+import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
-import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -73,14 +71,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     private static final ConditionStage knocked = new ConditionStage(player -> {
         player.setWalkSpeed(0);
         player.setInvisible(true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128,
-                true, false, false));
         player.removePotionEffect(PotionEffectType.SPEED);
         player.setFallDistance(0);
     }, player -> {
         player.setWalkSpeed(0.2f);
         player.setInvisible(false);
-        player.removePotionEffect(PotionEffectType.JUMP);
     }, false);
 
     @Getter
@@ -297,7 +292,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Knocks down this player.
      */
     public void knock() {
-        if(state == ZombiesPlayerState.ALIVE && isInGame()) {
+        if(isAlive() && isInGame()) {
             state = ZombiesPlayerState.KNOCKED;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
@@ -327,7 +322,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Revives this player.
      */
     public void revive() {
-        if((state == ZombiesPlayerState.KNOCKED || state == ZombiesPlayerState.DEAD) && isInGame()) {
+        if (!isAlive() && isInGame()) {
             state = ZombiesPlayerState.ALIVE;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
@@ -444,13 +439,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     private void checkForCorpses() {
         int maxDistance = arena.getMap().getReviveRadius();
 
-        if (targetCorpse == null || !targetCorpse.isActive()) {
+        if (targetCorpse == null) {
+            selectNewCorpse();
+        } else if (!targetCorpse.isActive()) {
+            targetCorpse = null;
             selectNewCorpse();
         } else {
-            double distance = VectorUtils.manhattanDistance(
-                    getPlayer().getLocation().toVector(),
-                    targetCorpse.getLocation().toVector()
-            );
+            double distance
+                    = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
 
             if (distance < maxDistance) {
                 targetCorpse.continueReviving();
@@ -470,10 +466,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         int maxDistance = arena.getMap().getReviveRadius();
 
         for (Corpse corpse : arena.getAvailableCorpses()) {
-            double distance = VectorUtils.manhattanDistance(
-                    getPlayer().getLocation().toVector(),
-                    corpse.getLocation().toVector()
-            );
+            double distance
+                    = getPlayer().getLocation().toVector().distanceSquared(corpse.getLocation().toVector());
             if (distance <= maxDistance) {
                 targetCorpse = corpse;
                 targetCorpse.setReviver(this);

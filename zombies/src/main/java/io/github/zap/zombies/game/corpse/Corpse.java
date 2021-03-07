@@ -40,9 +40,6 @@ public class Corpse {
 
     private final Hologram hologram;
 
-    @Getter
-    private final PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
-
     private final int defaultDeathTime;
 
     private int deathTaskId;
@@ -109,7 +106,6 @@ public class Corpse {
             active = false;
             zombiesPlayer.revive();
             hologram.destroy();
-            destroy();
         } else {
             hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(reviveTime)));
             reviveTime -= 2;
@@ -136,7 +132,6 @@ public class Corpse {
             active = false;
             zombiesPlayer.kill();
             hologram.destroy();
-
             zombiesPlayer.getArena().getAvailableCorpses().remove(this);
         } else {
             hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(deathTime)));
@@ -176,6 +171,7 @@ public class Corpse {
         sendPacketToPlayer(createSpawnPlayerPacketContainer(), player);
         sendPacketToPlayer(createSleepingPacketContainer(), player);
 
+        PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
         addCorpseToTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
         addCorpseToTeamPacket.getIntegers().write(0, 3);
         addCorpseToTeamPacket.getSpecificModifier(Collection.class)
@@ -240,12 +236,18 @@ public class Corpse {
      * Destroys the corpse and removes its trace from the arena it is in
      */
     public void destroy() {
+        PacketContainer removeCorpseFromTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+        removeCorpseFromTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
+        removeCorpseFromTeamPacket.getIntegers().write(0, 4);
+        removeCorpseFromTeamPacket.getSpecificModifier(Collection.class)
+                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
+
+        sendPacket(removeCorpseFromTeamPacket);
+
         PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
         killPacketContainer.getIntegerArrays().write(0, new int[] { id });
 
-        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
-            sendPacketToPlayer(killPacketContainer, player);
-        }
+        sendPacket(killPacketContainer);
 
         zombiesPlayer.getArena().getCorpses().remove(this);
         zombiesPlayer.getArena().getAvailableCorpses().remove(this);
