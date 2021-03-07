@@ -294,7 +294,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setGravity(false);
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
-            gunName = new Hologram(chestLocation.clone(), 1);
+            gunName = new Hologram(chestLocation.clone());
             gunName.addLine("");
 
             PacketContainer packetContainer = getChestPacket();
@@ -312,16 +312,10 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         @Override
         public void onEnd(List<Pair<List<Jingle.Note>, Long>> jingle) {
-            timeRemaining = new Hologram(
-                    chestLocation.clone().add(0, 1, 0),
-                    2
-            );
+            timeRemaining = new Hologram(chestLocation.clone().add(0, 1, 0));
             timeRemaining.addLine(String.format("%s%ds", ChatColor.RED, sittingTime));
 
-            rightClickToClaim = new Hologram(
-                    chestLocation.clone().add(0, 0.25, 0),
-                    1
-            );
+            rightClickToClaim = new Hologram(chestLocation.clone().add(0, 0.25, 0));
             rightClickToClaim.addLine("Right Click to Claim");
 
             collectable = true;

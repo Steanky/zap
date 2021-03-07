@@ -61,8 +61,7 @@ public class Corpse {
         this.zombiesPlayer = zombiesPlayer;
         this.location = zombiesPlayer.getPlayer().getLocation();
         this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
-        this.hologram =
-                new Hologram(location.clone().add(0, 2, 0));
+        this.hologram = new Hologram(location.clone().add(0, 2, 0));
         this.deathTime = defaultDeathTime;
 
         hologram.addLine(ChatColor.YELLOW + "----------------------------------");

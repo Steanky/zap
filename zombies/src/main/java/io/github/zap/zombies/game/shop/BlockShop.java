@@ -27,10 +27,7 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
 
         World world = zombiesArena.getWorld();
 
-        hologram = new Hologram(
-                shopData.getHologramLocation().toLocation(world),
-                2
-        );
+        hologram = new Hologram(shopData.getHologramLocation().toLocation(world));
         block = world.getBlockAt(shopData.getBlockLocation().toLocation(world));
     }
 

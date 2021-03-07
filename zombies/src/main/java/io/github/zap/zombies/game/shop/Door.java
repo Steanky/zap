@@ -34,10 +34,7 @@ public class Door extends Shop<DoorData> {
 
         World world = zombiesArena.getWorld();
         for (DoorSide doorSide : getShopData().getDoorSides()) {
-            Hologram hologram = new Hologram(
-                    doorSide.getHologramLocation().toLocation(world),
-                    2
-            );
+            Hologram hologram = new Hologram(doorSide.getHologramLocation().toLocation(world));
             while (hologram.getHologramLines().size() < 2) {
                 hologram.addLine("");
             }
