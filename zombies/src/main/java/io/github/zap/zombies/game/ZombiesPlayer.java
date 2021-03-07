@@ -239,6 +239,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.DEAD;
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
             setDeadState();
+
+            if(corpse != null) {
+                corpse.terminate();
+            }
         }
     }
 

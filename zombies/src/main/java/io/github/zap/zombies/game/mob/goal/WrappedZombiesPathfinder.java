@@ -3,10 +3,12 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
 import net.minecraft.server.v1_16_R3.GenericAttributes;
 import net.minecraft.server.v1_16_R3.PathfinderGoal;
+import net.minecraft.server.v1_16_R3.PathfinderGoalMeleeAttack;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.event.entity.EntityTargetEvent;
 
@@ -78,6 +80,8 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         target = null;
         locateInitial = 19;
         wrappedGoal.d();
+
+        Zombies.info("WrappedZombiesPathfinder onEnd() called");
     }
 
     @Override
