@@ -58,7 +58,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }, player -> {
         player.setAllowFlight(false);
         player.setInvisible(false);
-        player.setFlySpeed(1);
+        player.setFlySpeed(0.1f);
         player.setInvulnerable(false);
         player.removePotionEffect(PotionEffectType.NIGHT_VISION);
     }, false);
@@ -327,7 +327,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Revives this player.
      */
     public void revive() {
-        if(state == ZombiesPlayerState.KNOCKED && isInGame()) {
+        if((state == ZombiesPlayerState.KNOCKED || state == ZombiesPlayerState.DEAD) && isInGame()) {
             state = ZombiesPlayerState.ALIVE;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);

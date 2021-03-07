@@ -1,10 +1,12 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
 import org.bukkit.ChatColor;
@@ -109,6 +111,17 @@ public class Door extends Shop<DoorData> {
                                     zombiesArena.getMap().getDoorFillMaterial()
                             );
                             zombiesPlayer.subtractCoins(cost);
+
+                            for(String openedRoom : doorSide.getOpensTo()) {
+                                RoomData room = zombiesArena.getMap().getNamedRoom(openedRoom);
+                                Property<Boolean> openPropery = room.getOpenProperty();
+                                if(!openPropery.getValue(zombiesArena)) {
+                                    openPropery.setValue(zombiesArena, true);
+
+                                    //TODO: send player title showing which rooms they opened
+
+                                }
+                            }
 
                             for (Hologram hologram : doorSideHologramMap.values()) {
                                 hologram.destroy();

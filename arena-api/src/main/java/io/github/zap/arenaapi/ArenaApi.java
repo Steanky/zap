@@ -72,6 +72,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setGameMode(GameMode.ADVENTURE);
         player.setFallDistance(0);
         player.getInventory().setStorageContents(new ItemStack[35]);
+        player.setFlySpeed(0.2f);
     }, player -> {
 
     }, false);

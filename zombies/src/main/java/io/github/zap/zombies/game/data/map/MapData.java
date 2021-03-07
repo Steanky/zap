@@ -109,7 +109,7 @@ public class MapData {
      * The time it takes, in Minecraft server ticks, for a corpse to die and for players to no longer be able to revive
      * the corpse
      */
-    int corpseDeathTime;
+    int corpseDeathTime = 500;
 
     /**
      * The minimum distance in blocks that players must be from a player corpse in order to revive it
@@ -187,7 +187,7 @@ public class MapData {
     /**
      * The default number of ticks it takes for a player to be revived
      */
-    int defaultReviveTime;
+    int defaultReviveTime = 30;
 
     /**
      * The amount of ticks subtracted from the revive time per each level
@@ -307,6 +307,16 @@ public class MapData {
                 if(room.getBounds().contains(target)) {
                     return room;
                 }
+            }
+        }
+
+        return null;
+    }
+
+    public RoomData getNamedRoom(String roomName) {
+        for(RoomData room : rooms) {
+            if(room.getName().equals(roomName)) {
+                return room;
             }
         }
 
