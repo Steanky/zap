@@ -592,6 +592,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 if(player.isInGame()) {
                     player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
                     player.setAliveState();
+
+                    Vector spawn = map.getSpawn();
+                    player.getPlayer().teleport(new Location(world, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5));
                 }
             }
 
