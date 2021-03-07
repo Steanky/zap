@@ -316,7 +316,6 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         onDisposing.callEvent(new ArenaEventArgs<>(this));
 
         for(S player : playerMap.values()) { //close players
-            player.getArenaPlayer().removeConditionContext(toString());
             player.dispose();
         }
 
