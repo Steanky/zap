@@ -10,8 +10,6 @@ import org.bukkit.entity.Player;
  */
 public class ZombiesHotbarManager extends HotbarManager {
 
-    public final static String PREGAME_PROFILE_NAME = "Pregame";
-
     public final static String KNOCKED_DOWN_PROFILE_NAME = "Knocked";
 
     public final static String DEAD_PROFILE_NAME = "Dead";

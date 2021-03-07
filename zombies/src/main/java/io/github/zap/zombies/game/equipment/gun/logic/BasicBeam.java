@@ -110,16 +110,17 @@ public class BasicBeam {
 
             Material material = targetBlock.getType();
             if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
-                if (!targetBlock.getType().isBlock()) {
-                    BoundingBox boundingBox = targetBlock.getBoundingBox();
+                BoundingBox boundingBox = targetBlock.getBoundingBox();
+                if (boundingBox.getWidthX() != 1.0D
+                        || boundingBox.getHeight() != 1.0D || boundingBox.getWidthZ() != 1.0D) {
                     RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,range + 1.74);
 
                     if (rayTraceResult != null) {
                         break;
                     }
+                } else {
+                    break;
                 }
-
-                break;
             }
         }
 

@@ -6,7 +6,6 @@ import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
-import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
@@ -16,15 +15,16 @@ import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
@@ -83,26 +83,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         this.coins = arena.getMap().getStartingCoins();
 
         hotbarManager = new ZombiesHotbarManager(getPlayer());
-        hotbarManager.switchProfile(ZombiesHotbarManager.PREGAME_PROFILE_NAME);
-
-        for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : arena.getMap()
-                .getHotbarObjectGroupSlots().entrySet()) {
-            hotbarManager.addEquipmentObjectGroup(equipmentManager
-                    .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), getPlayer(),
-                    hotbarObjectGroupSlot.getValue()));
-        }
-
-        for(String equipment : arena.getMap().getDefaultEquipments()) {
-            EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(arena.getMap().getName(), equipment);
-            Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
-
-            if (slot != null) {
-                hotbarManager.setHotbarObject(
-                        slot,
-                        equipmentManager.createEquipment(arena, this, slot, equipmentData)
-                );
-            }
-        }
 
         perks = new ZombiesPerks(this);
         windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),

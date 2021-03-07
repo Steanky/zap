@@ -117,9 +117,13 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 GunObjectGroup gunObjectGroup = (GunObjectGroup)
                         hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
 
-                if (tryRefill(zombiesPlayer, gunObjectGroup) != null || tryBuy(zombiesPlayer, gunObjectGroup)) {
+                Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
+                if (refillAttempt == null) {
+                    if (tryBuy(zombiesPlayer, gunObjectGroup)) {
+                        onPurchaseSuccess(zombiesPlayer);
+                    }
+                } else if (refillAttempt) {
                     onPurchaseSuccess(zombiesPlayer);
-                    // TODO: ye
                 }
             } else {
                 player.sendMessage(ChatColor.RED + "The power is not active yet!");
@@ -143,19 +147,22 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             if (hotbarObject instanceof Gun<?, ?>) {
                 Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
-                if (gun.getCurrentAmmo() == gun.getCurrentLevel().getAmmo()) {
-                    zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "Your gun is already filled!");
-                } else if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
-                    int refillCost = gunShopData.getRefillCost();
-                    if (zombiesPlayer.getCoins() < refillCost) {
-                        zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
-
+                if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
+                    if (gun.getCurrentAmmo() == gun.getCurrentLevel().getAmmo()) {
+                        zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "Your gun is already filled!");
                         return false;
                     } else {
-                        zombiesPlayer.subtractCoins(refillCost);
-                        gun.refill();
+                        int refillCost = gunShopData.getRefillCost();
+                        if (zombiesPlayer.getCoins() < refillCost) {
+                            zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
 
-                        return true;
+                            return false;
+                        } else {
+                            zombiesPlayer.subtractCoins(refillCost);
+                            gun.refill();
+
+                            return true;
+                        }
                     }
                 }
             }

@@ -10,11 +10,13 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpBossBar;
 import io.github.zap.zombies.game.powerups.PowerUpState;
@@ -611,7 +613,30 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     player.setAliveState();
 
                     Vector spawn = map.getSpawn();
-                    player.getPlayer().teleport(new Location(world, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5));
+                    player.getPlayer().teleport(
+                            new Location(world, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5)
+                    );
+
+                    ZombiesHotbarManager hotbarManager = player.getHotbarManager();
+                    for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : map
+                            .getHotbarObjectGroupSlots().entrySet()) {
+                        hotbarManager.addEquipmentObjectGroup(equipmentManager
+                                .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player.getPlayer(),
+                                        hotbarObjectGroupSlot.getValue()));
+                    }
+
+                    for(String equipment : map.getDefaultEquipments()) {
+                        EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(map.getName(), equipment);
+                        Integer slot
+                                = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
+
+                        if (slot != null) {
+                            hotbarManager.setHotbarObject(
+                                    slot,
+                                    equipmentManager.createEquipment(this, player, slot, equipmentData)
+                            );
+                        }
+                    }
                 }
             }
 
