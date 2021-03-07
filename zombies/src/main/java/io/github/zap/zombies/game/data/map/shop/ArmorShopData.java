@@ -13,6 +13,9 @@ import java.util.List;
  */
 @Getter
 public class ArmorShopData extends ArmorStandShopData {
+
+    private float armorStandDirection;
+
     private List<ArmorLevel> armorLevels = new ArrayList<>();
 
     private ArmorShopData() {
@@ -28,11 +31,11 @@ public class ArmorShopData extends ArmorStandShopData {
      */
     @Getter
     public static class ArmorLevel {
-        private final String name = "default";
+        private String name = "default";
 
-        private final int cost = 0;
+        private int cost = 0;
 
-        private final Material[] materials = new Material[0];
+        private Material[] materials = new Material[0];
 
         private ArmorLevel() { }
     }
