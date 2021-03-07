@@ -2,7 +2,6 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
@@ -46,6 +45,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -365,6 +365,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
         getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
         getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
+        getInventoryClickEvent().registerHandler(this::onPlayerInventoryClick);
 
         createTeamPacketContainer.getStrings().write(0, UUID.randomUUID().toString().substring(0, 16));
         createTeamPacketContainer.getIntegers().write(0, 0);
@@ -583,6 +584,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
+    }
+
+    private void onPlayerInventoryClick(ManagedInventoryEventArgs<InventoryClickEvent> args) {
+        InventoryClickEvent event = args.getEvent();
+        ZombiesPlayer managedPlayer = getPlayerMap().get(event.getWhoClicked().getUniqueId());
+        if (managedPlayer != null) {
+            Player player = managedPlayer.getPlayer();
+
+            if (player.getInventory().equals(event.getClickedInventory())) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     public void startGame() {

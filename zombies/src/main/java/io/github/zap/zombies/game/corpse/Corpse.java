@@ -60,6 +60,7 @@ public class Corpse {
         this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
         this.hologram = new Hologram(location.clone().add(0, 2, 0));
         this.deathTime = defaultDeathTime;
+        this.id = this.nmsProxy.nextEntityId();
 
         hologram.addLine(ChatColor.YELLOW + "----------------------------------");
         hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
@@ -72,10 +73,30 @@ public class Corpse {
         zombiesArena.getAvailableCorpses().add(this);
         zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
 
-        id = this.nmsProxy.nextEntityId();
-
         spawnDeadBody();
         startDying();
+    }
+
+    /**
+     * Terminates the corpse's execution early.
+     */
+    public void terminate() {
+        if (active) {
+            active = false;
+
+            if (hologram.getHologramLines().size() > 0) {
+                hologram.destroy();
+            }
+
+            ZombiesArena zombiesArena = zombiesPlayer.getArena();
+            zombiesArena.getCorpses().remove(this);
+            zombiesArena.getAvailableCorpses().remove(this);
+            zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+
+            if (deathTaskId != -1) {
+                Bukkit.getScheduler().cancelTask(deathTaskId);
+            }
+        }
     }
 
     /**
@@ -123,9 +144,6 @@ public class Corpse {
         );
     }
 
-    /**
-     * Removes 0.1s of death time from the corpse
-     */
     private void continueDying() {
         if (deathTime <= 0) {
             active = false;
