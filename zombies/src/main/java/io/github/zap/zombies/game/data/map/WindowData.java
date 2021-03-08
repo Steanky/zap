@@ -44,10 +44,10 @@ public class WindowData {
     /**
      * A BoundingBox containing the face of the window
      */
-    BoundingBox faceBounds = new BoundingBox();
+    BoundingBox faceBounds;
 
     /**
-     * The bounds of the window interior - used for player position checking
+     * The bounds of the window interior - used for player position checking and entity AI
      */
     MultiBoundingBox interiorBounds = new MultiBoundingBox();
 
@@ -55,7 +55,7 @@ public class WindowData {
      * The coordinate considered the 'base' of the window, to which players are teleported if they enter the interior
      * It is also the location that mobs navigate to when they leave the window
      */
-    Vector target = new Vector();
+    Vector target;
 
     /**
      * The spawnpoints held in this window
@@ -139,11 +139,11 @@ public class WindowData {
     /**
      * Performs a range check on the window.
      * @param standing The vector to base the check from
-     * @param distance The distance to base the range check off of
+     * @param distanceSquared The distance to base the range check off of
      * @return Whether or not the window is within the specified distance from the standing vector
      */
-    public boolean inRange(Vector standing, double distance) {
-        return standing.distanceSquared(getCenter()) < distance;
+    public boolean inRange(Vector standing, double distanceSquared) {
+        return standing.distanceSquared(getCenter()) < distanceSquared;
     }
 
     /**

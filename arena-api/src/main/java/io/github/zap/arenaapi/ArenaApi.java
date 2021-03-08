@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
@@ -37,6 +38,7 @@ import org.bukkit.util.Vector;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -235,6 +237,15 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @EventHandler
     private void playerJoinEvent(PlayerJoinEvent event) {
         applyDefaultCondition(event.getPlayer());
+    }
+
+    /**
+     * Gets an iterator for every arena managed by this instance of ArenaApi.
+     * @return An iterator that will iterate through each arena
+     */
+    public Iterator<? extends Arena<?>> arenaIterator() {
+        return arenaManagers.values().stream().flatMap(arenaManager ->
+                arenaManager.getArenas().values().stream()).iterator();
     }
 
     /**

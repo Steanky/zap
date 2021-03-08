@@ -24,14 +24,8 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
 
     protected Map<UUID, T> managedArenas = new HashMap<>();
 
-    protected Collection<T> arenas = managedArenas.values();
-
     @Getter
     private final Event<Arena<T>> arenaCreated = new Event<>();
-
-    public Map<UUID, T> getManagedArenas () {
-        return Collections.unmodifiableMap(managedArenas);
-    }
 
     /**
      * Handle the specified JoinInformation. This method should create arenas as necessary to handle join requests.
@@ -63,4 +57,12 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
     public abstract void removeArena(T arena);
 
     public abstract boolean hasMap(String mapName);
+
+    /**
+     * Returns a read-only view of the Arena instances managed by this ArenaManager.
+     * @return a read-only view of the Arena instances managed by this ArenaManager
+     */
+    public Map<UUID, Arena<T>> getArenas() {
+        return Collections.unmodifiableMap(managedArenas);
+    }
 }

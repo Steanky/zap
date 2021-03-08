@@ -15,6 +15,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
@@ -32,14 +33,19 @@ public class MapData {
     String name;
 
     /**
-     * The resource key of the map name
+     * The display name of this map
      */
-    String mapNameKey;
+    String mapDisplayName;
 
     /**
      * The name of the world corresponding to this map
      */
     String worldName;
+
+    /**
+     * The time the world should be set at.
+     */
+    long worldTime;
 
     /**
      * The bounds of the map, inside which every component should exist
@@ -64,7 +70,7 @@ public class MapData {
     /**
      * The duration of the game start countdown timer, in seconds
      */
-    int countdownSeconds = 3;
+    int countdownSeconds = 20;
 
     /**
      * The number of coins each player should start with
@@ -140,9 +146,9 @@ public class MapData {
     int speedMaxLevel = 1;
 
     /**
-     * The strength of the speed effect given by the speed perk.
+     * The strength of the speed effect given by the speed perk. Multiplicative with the current speed level.
      */
-    int speedAmplifier = 2;
+    int speedAmplifier = 1;
 
     /**
      * The duration of the effect given by the speed perk.
@@ -158,12 +164,6 @@ public class MapData {
      * Gets the maximum quick fire level supported by this map.
      */
     int quickFireMaxLevel = 1;
-
-    /**
-     * The amount of ticks subtracted from base weapon fire delay when quick fire is active. Actual value scales
-     * according to xy, where x is the delay reduction and y is the number of levels.
-     */
-    int quickFireDelayReduction = 5;
 
     /**
      * The maximum level of extra health
@@ -201,6 +201,38 @@ public class MapData {
     int rollsPerChest = 5;
 
     /**
+     * Equipments given at the start of the game by their name
+     */
+    List<String> defaultEquipments = new ArrayList<>();
+
+    /**
+     * A map of SpawnRule objects which are used to define the behavior of spawnpoints.
+     */
+    Map<String, SpawnRule> spawnRules = new HashMap<>();
+
+    /**
+     * Map of hotbar object group names to the slots allocated for them
+     */
+    Map<String, Set<Integer>> hotbarObjectGroupSlots = new HashMap<>();
+
+    /**
+     * Define conditions to spawn power up
+     * Left String are SpawnRule data
+     * Right String are PowerUp names
+     */
+    Set<ImmutablePair<String, String>> powerUpSpawnRules = new HashSet<>();
+
+    /**
+     * Rounds that cannot spawn powerups.
+     */
+    Set<Integer> disablePowerUpRound = new HashSet<>();
+
+    /**
+     * All the rounds in the game
+     */
+    List<RoundData> rounds = new ArrayList<>();
+
+    /**
      * The list of rooms managed by this map
      */
     List<RoomData> rooms = new ArrayList<>();
@@ -215,37 +247,6 @@ public class MapData {
      */
     List<ShopData> shops = new ArrayList<>();
 
-    /**
-     * All the rounds in the game
-     */
-    List<RoundData> rounds = new ArrayList<>();
-
-    /**
-     * Map of hotbar object group names to the slots allocated for them
-     */
-    Map<String, Set<Integer>> hotbarObjectGroupSlots = new HashMap<>();
-
-    /**
-     * Equipments given at the start of the game by their name
-     */
-    List<String> defaultEquipments = new ArrayList<>();
-
-    double fireRatePerkMultiplier = 0.25;
-
-    /**
-     * A map of SpawnRule objects which are used to define the behavior of spawnpoints.
-     */
-    Map<String, SpawnRule> spawnRules = new HashMap<>();
-
-    /**
-     * Define conditions to spawn power up
-     * Left String are SpawnRule data
-     * Right String are PowerUp names
-     */
-    Set<ImmutablePair<String, String>> powerUpSpawnRules = new HashSet<>();
-
-    Set<Integer> disablePowerUpRound = new HashSet<>();
-
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
     private MapData() {}
@@ -253,7 +254,7 @@ public class MapData {
     public MapData(String mapName, String worldName, BoundingBox bounds) {
         this.name = mapName;
         this.worldName = worldName;
-        this.mapNameKey = String.format("map.%s.name", mapName);
+        this.mapDisplayName = mapName;
         this.mapBounds = bounds;
     }
 
@@ -279,21 +280,15 @@ public class MapData {
     }
 
     /**
-     * Gets a window that may be within range of the specified vector which is available for use.
-     * @param accessor The accessor used to check if a window is not repaired and available
-     * @param standing The vector used as the origin for the distance check
-     * @param distanceSquared The distance used as a bound
-     * @return The WindowData, or null if there is none in range
+     * Searches for a window that matches the given predicate. Will return null if no matching window exists.
+     * @param predicate The predicate to test windows for
+     * @return The first window matching the predicate, or null if none could be found
      */
-    public WindowData validWindowAtRange(Unique accessor, Vector standing, double distanceSquared) {
-        if(mapBounds.contains(standing)) {
-            for(RoomData roomData : rooms) {
-                for(WindowData window : roomData.getWindows()) {
-                    if (!window.isFullyRepaired(accessor)
-                            && window.getRepairingPlayerProperty().getValue(accessor) == null
-                            && window.inRange(standing, distanceSquared)) {
-                        return window;
-                    }
+    public WindowData windowMatching(Predicate<WindowData> predicate) {
+        for(RoomData roomData : rooms) {
+            for(WindowData window : roomData.getWindows()) {
+                if(predicate.test(window)) {
+                    return window;
                 }
             }
         }

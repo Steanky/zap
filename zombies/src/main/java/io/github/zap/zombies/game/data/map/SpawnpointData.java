@@ -15,7 +15,7 @@ public class SpawnpointData {
     /**
      * The location of this spawnpoint
      */
-    Vector spawn = new Vector();
+    Vector spawn;
 
     /**
      * Used to retrieve an object that defines the behavior of the spawnpoint (what mobs it can spawn, what mobs it

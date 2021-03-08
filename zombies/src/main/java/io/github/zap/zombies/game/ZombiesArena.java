@@ -756,13 +756,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             WorldUtils.getBlockAt(world, targetWindow.getFaceVectors().get(i)).setType(Material.AIR);
 
             Vector center = targetWindow.getCenter();
-            Location centerLocation = new Location(world, center.getX(), center.getY(), center.getZ());
-
             if(i > 0) {
-                world.playSound(targetWindow.getBlockBreakSound());
+                world.playSound(targetWindow.getBlockBreakSound(), center.getX(), center.getY(), center.getZ());
             }
             else {
-                world.playSound(targetWindow.getWindowBreakSound());
+                world.playSound(targetWindow.getWindowBreakSound(), center.getX(), center.getY(), center.getZ());
             }
         }
     }
