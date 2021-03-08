@@ -98,9 +98,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         super.quit();
 
         state = ZombiesPlayerState.DEAD;
-        endShiftTasks();
 
         perks.disableAll();
+        endShiftTasks();
     }
 
     @Override
@@ -116,11 +116,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void dispose() {
         perks.dispose();
 
-        endShiftTasks();
-
-        getPlayer().getInventory().setStorageContents(new ItemStack[35]);
-        getPlayer().giveExpLevels(-getPlayer().getExpToLevel());
-        ArenaApi.getInstance().applyDefaultCondition(getPlayer());
+        if(isInGame()) {
+            quit();
+        }
     }
 
     public void addCoins(int amount) {
