@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.arenaapi.util.VectorUtils;
+import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -183,5 +184,9 @@ public class WindowData {
         }
 
         return 0;
+    }
+
+    public boolean isFullyRepaired(Unique accessor) {
+        return currentIndexProperty.getValue(accessor) == getVolume() - 1;
     }
 }

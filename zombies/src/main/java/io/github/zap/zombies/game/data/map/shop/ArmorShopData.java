@@ -29,6 +29,7 @@ public class ArmorShopData extends ArmorStandShopData {
     /**
      * A level of an armor shop's available armor levels
      */
+
     @Getter
     public static class ArmorLevel {
         private String name = "default";

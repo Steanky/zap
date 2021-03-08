@@ -182,7 +182,7 @@ public class BasicBeam {
     }
 
     /**
-     * Fills the queue up with entities until it has reached the maxmimum hit entities
+     * Fills the queue up with entities until it has reached the maximum hit entities
      * @param queue The queue to fill up
      * @param iterator The entity iterable iterator
      */
