@@ -311,17 +311,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private BukkitTask gameEndTimeoutTask;
 
     @Getter
-    private Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
+    private final Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
 
     // Contains both active and has not been picked up
     @Getter
-    private Set<PowerUp> powerUps = new HashSet<>();
+    private final Set<PowerUp> powerUps = new HashSet<>();
 
     @Getter
-    private Event<PowerUpChangedEventArgs> powerUpChangedEvent = new Event<>();
+    private final Event<PowerUpChangedEventArgs> powerUpChangedEvent = new Event<>();
 
     @Getter
-    private PowerUpBossBar powerUpBossBar = new PowerUpBossBar(this, 5);
+    private final PowerUpBossBar powerUpBossBar = new PowerUpBossBar(this, 5);
 
     @Getter
     private int zombieLefts;
