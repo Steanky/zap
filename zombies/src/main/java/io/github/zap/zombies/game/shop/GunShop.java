@@ -96,7 +96,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         }
 
         if (firstHologramLine == null) {
-            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunName);
+            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunShopData.getGunDisplayName());
             secondHologramLine = String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getCost());
         }
 

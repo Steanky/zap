@@ -336,9 +336,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         MapData map = arena.getMap();
 
         if(targetWindow == null) { //our target window is null, so look for one
-            WindowData window = map.windowAtRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared());
+            WindowData window = map.validWindowAtRange(
+                    arena,
+                    getPlayer().getLocation().toVector(),
+                    map.getWindowRepairRadiusSquared()
+            );
 
-            if(window != null) {
+            if (window != null) {
                 if (repairOn) {
                     targetWindow = window;
                     tryRepairWindow(targetWindow);
@@ -348,6 +352,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                             Component.text("Hold SHIFT to repair!").color(TextColor.color(16777045))
                     );
                 }
+            } else {
+                getPlayer().sendActionBar(Component.text());
             }
         }
         else { //we already have a target window - make sure it's still in range

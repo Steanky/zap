@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.Unique;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
@@ -278,15 +279,19 @@ public class MapData {
     }
 
     /**
-     * Gets the window that may be within range of the specified vector.
+     * Gets a window that may be within range of the specified vector which is available for use.
+     * @param accessor The accessor used to check if a window is not repaired and available
      * @param standing The vector used as the origin for the distance check
+     * @param distanceSquared The distance used as a bound
      * @return The WindowData, or null if there is none in range
      */
-    public WindowData windowAtRange(Vector standing, double distanceSquared) {
+    public WindowData validWindowAtRange(Unique accessor, Vector standing, double distanceSquared) {
         if(mapBounds.contains(standing)) {
             for(RoomData roomData : rooms) {
                 for(WindowData window : roomData.getWindows()) {
-                    if(window.inRange(standing, distanceSquared)) {
+                    if (!window.isFullyRepaired(accessor)
+                            && window.getRepairingPlayerProperty().getValue(accessor) == null
+                            && window.inRange(standing, distanceSquared)) {
                         return window;
                     }
                 }

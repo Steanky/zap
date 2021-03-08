@@ -11,6 +11,8 @@ import org.bukkit.util.Vector;
 public class GunShopData extends ArmorStandShopData {
     private String gunName = "NONE";
 
+    private String gunDisplayName = "NONE";
+
     private int cost = 0;
 
     private int refillCost = 0;
