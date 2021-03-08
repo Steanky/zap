@@ -28,6 +28,10 @@ public abstract class ParticleDataWrapper<D> {
             super(DUST_DATA_NAME, dustOptions);
         }
 
+        private DustParticleDataWrapper() {
+            super(DUST_DATA_NAME, null);
+        }
+
     }
 
     public static class BlockParticleDataWrapper extends ParticleDataWrapper<BlockData> {
@@ -36,12 +40,20 @@ public abstract class ParticleDataWrapper<D> {
             super(BLOCK_DATA_NAME, blockData);
         }
 
+        private BlockParticleDataWrapper() {
+            super(BLOCK_DATA_NAME, null);
+        }
+
     }
 
     public static class ItemStackParticleDataWrapper extends ParticleDataWrapper<ItemStack> {
 
         public ItemStackParticleDataWrapper(ItemStack itemStack) {
             super(ITEM_STACK_DATA_NAME, itemStack);
+        }
+
+        private ItemStackParticleDataWrapper() {
+            super(ITEM_STACK_DATA_NAME, null);
         }
 
     }

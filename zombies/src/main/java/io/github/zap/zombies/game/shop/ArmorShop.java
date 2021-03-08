@@ -93,7 +93,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
         sendArmorStandUpdatePackets(player, armorLevel);
 
-        hologram.updateLineForPlayer(player, 0, armorLevel.getName());
+        hologram.updateLineForPlayer(player, 0, ChatColor.GREEN + armorLevel.getName());
         hologram.updateLineForPlayer(player, 1, secondHologramLine);
     }
 

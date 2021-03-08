@@ -68,6 +68,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
+        String gunDisplayName = gunShopData.getGunDisplayName();
 
         String firstHologramLine = null;
         String secondHologramLine = null;
@@ -84,7 +85,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                             Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
                             if (gun.getEquipmentData().getName().equals(gunName)) {
-                                firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunName);
+                                firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunDisplayName);
                                 secondHologramLine =
                                         String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getRefillCost());
                                 break;
@@ -96,7 +97,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         }
 
         if (firstHologramLine == null) {
-            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunShopData.getGunDisplayName());
+            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunDisplayName);
             secondHologramLine = String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getCost());
         }
 

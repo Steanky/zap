@@ -98,13 +98,16 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     /**
      * Updates the item stack after shooting the gun
      * (you win the award for the longest method name in the plugin, congratulations) --Steank
+     * March 7, 2021: Award revoked due to method doing more than previously written
+     * R.I.P. updateRepresentingItemStackAfterShooting
      */
-    protected void updateRepresentingItemStackAfterShooting() {
+    protected void updateAfterShooting() {
         canShoot = false;
 
         setAmmo(currentAmmo - 1);
         setClipAmmo(currentClipAmmo - 1);
 
+        long initial = System.currentTimeMillis();
         Player player = getPlayer();
         // Animate xp bar
         new BukkitRunnable() {
@@ -118,7 +121,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 if (step < goal) {
                     step++;
                     if (isSelected()) {
-                        player.setExp(++step * stepVal);
+                        player.setExp(step * stepVal);
                     }
                 } else {
                     if (isSelected()) {
@@ -246,7 +249,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
         if (canShoot) {
             shoot();
-            updateRepresentingItemStackAfterShooting();
+            updateAfterShooting();
         }
     }
 
