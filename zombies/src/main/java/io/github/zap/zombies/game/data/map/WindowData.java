@@ -4,14 +4,11 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.github.zap.zombies.game.util.Jingle;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import net.kyori.adventure.sound.Sound;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -34,7 +31,7 @@ public class WindowData {
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
-    List<Pair<Material, String>> repairedData = new ArrayList<>();
+    List<String> repairedData = new ArrayList<>();
 
     /**
      * A list of vectors corresponding to the blocks of window face
@@ -112,7 +109,8 @@ public class WindowData {
             for(int y = min.getBlockY(); y < max.getBlockY(); y++) {
                 for(int z = min.getBlockZ(); z < max.getBlockZ(); z++) {
                     Block block = from.getBlockAt(x, y, z);
-                    repairedData.add(ImmutablePair.of(block.getType(), block.getBlockData().getAsString()));
+                    repairedData.add(block.getBlockData().getAsString());
+                    faceVectors.add(new Vector(x, y, z));
                 }
             }
         }

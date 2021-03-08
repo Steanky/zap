@@ -86,7 +86,6 @@ public class Jingle {
 
         private Note() {
 
-
         }
     }
 

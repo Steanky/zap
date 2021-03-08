@@ -24,8 +24,8 @@ public class SoundDeserializer extends StdDeserializer<Sound> {
         JsonNode node = parser.getCodec().readTree(parser);
         String sound = node.get("sound").textValue();
         Sound.Source source = Sound.Source.valueOf(node.get("source").textValue());
-        float volume = (float)node.get("volume").numberValue();
-        float pitch = (float)node.get("pitch").numberValue();
+        float volume = node.get("volume").numberValue().floatValue();
+        float pitch = node.get("pitch").numberValue().floatValue();
 
         return Sound.sound(Key.key(sound), source, volume, pitch);
     }

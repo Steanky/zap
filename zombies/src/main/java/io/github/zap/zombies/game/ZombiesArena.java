@@ -106,7 +106,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         private List<ActiveMob> spawnMobInternal(List<SpawnEntryData> mobs, SpawnMethod method, int slaSquared, boolean randomize) {
             List<SpawnContext> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
-            List<ActiveMob> spawnedEntites = new ArrayList<>();
+            List<ActiveMob> spawnedEntities = new ArrayList<>();
 
             if(spawnpoints.size() == 0) {
                 Zombies.warning("There are no available spawnpoints for this mob set. This likely indicates an error " +
@@ -127,10 +127,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     for(SpawnContext spawnContext : spawnpoints) {
                         if(spawnContext.spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
                             spawnMob(spawnEntryData.getMobName(), spawnContext.spawnpointData.getSpawn(), entity -> {
-                                entity.getEntity().setMetadata(Zombies.ARENA_METADATA_NAME, ZombiesArena.this);
-                                entity.getEntity().setMetadata(Zombies.WINDOW_METADATA_NAME, spawnContext.window);
+                                Entity bukkitEntity = entity.getEntity().getBukkitEntity();
+                                bukkitEntity.setMetadata(Zombies.ARENA_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), ZombiesArena.this));
+                                bukkitEntity.setMetadata(Zombies.WINDOW_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnContext.window));
+
                                 entity.getEntity().setMetadata(Zombies.SPAWNINFO_ENTRY_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnEntryData));
-                                spawnedEntites.add(entity);
+                                spawnedEntities.add(entity);
                             });
 
                             if(--amt == 0) {
@@ -146,7 +148,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
             }
 
-            return spawnedEntites;
+            return spawnedEntities;
         }
 
         @Override
@@ -623,8 +625,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     );
 
                     ZombiesHotbarManager hotbarManager = player.getHotbarManager();
-                    for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : map
-                            .getHotbarObjectGroupSlots().entrySet()) {
+                    for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : map.getHotbarObjectGroupSlots().entrySet()) {
                         hotbarManager.addEquipmentObjectGroup(equipmentManager
                                 .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player.getPlayer(),
                                         hotbarObjectGroupSlot.getValue()));

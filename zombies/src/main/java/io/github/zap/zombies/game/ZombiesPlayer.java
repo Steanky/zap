@@ -119,6 +119,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if(isInGame()) {
             quit();
         }
+
+        if(corpse != null) {
+            corpse.destroy();
+            corpse = null;
+        }
     }
 
     public void addCoins(int amount) {
@@ -336,13 +341,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if(targetWindow == null) { //our target window is null, so look for one to repair
             WindowData window = map.windowMatching(windowData -> !windowData.isFullyRepaired(arena)
                     && windowData.getRepairingPlayerProperty().getValue(arena) == null
-                    && windowData.getAttackingEntityProperty().getValue(arena) == null
                     && windowData.inRange(getPlayer().getLocation().toVector(), arena.getMap().getWindowRepairRadiusSquared()));
 
             if (window != null) {
                 if (repairOn) {
                     targetWindow = window;
-                    repairWindow(targetWindow); //directly repair window; no need to perform checks
+                    tryRepairWindow(targetWindow); //directly repair window; no need to perform checks
                     getPlayer().sendActionBar(Component.text());
                 } else {
                     getPlayer().sendActionBar(
@@ -384,7 +388,22 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
             if(currentRepairer == this) {
                 //advance repair state
-                repairWindow(targetWindow);
+                int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
+                int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
+                for(int i = previousIndex; i < previousIndex + blocksRepaired; i++) {
+                    Block target = WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i + 1));
+                    target.setBlockData(Bukkit.createBlockData(targetWindow.getRepairedData().get(i + 1)));
+
+                    Vector center = targetWindow.getCenter();
+                    if(i < targetWindow.getVolume() - 2) {
+                        arena.getWorld().playSound(targetWindow.getBlockRepairSound(), center.getX(), center.getY(), center.getZ());
+                    }
+                    else {
+                        arena.getWorld().playSound(targetWindow.getWindowRepairSound(), center.getX(), center.getY(), center.getZ());
+                    }
+                }
+
+                addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
             }
             else {
                 getPlayer().sendMessage(ChatColor.RED + "Someone is already repairing that window!");
@@ -394,28 +413,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             getPlayer().sendMessage(ChatColor.RED + "A mob is attacking that window!");
         }
     }
-
-    private void repairWindow(WindowData targetWindow) {
-        int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
-        int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
-        for(int i = previousIndex; i < previousIndex + blocksRepaired; i++) {
-            Block target = WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i + 1));
-
-            Pair<Material, String> data = targetWindow.getRepairedData().get(i + 1);
-            target.setBlockData(Bukkit.createBlockData(data.getLeft(), data.getRight()));
-
-            Vector center = targetWindow.getCenter();
-            if(i < targetWindow.getVolume() - 2) {
-                arena.getWorld().playSound(targetWindow.getBlockRepairSound(), center.getX(), center.getY(), center.getZ());
-            }
-            else {
-                arena.getWorld().playSound(targetWindow.getWindowRepairSound(), center.getX(), center.getY(), center.getZ());
-            }
-        }
-
-        addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
-    }
-
     /**
      * Checks for corpses to revive or continues reviving the current corpse
      */

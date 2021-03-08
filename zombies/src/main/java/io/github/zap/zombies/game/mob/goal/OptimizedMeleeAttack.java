@@ -23,13 +23,17 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     protected final EntityCreature self;
     private final double speed;
     private final int attackInterval;
+    private final float attackReach;
     private int navigationCounter;
     private int attackTimer;
 
-    public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval) {
+    private PathEntity currentPath;
+
+    public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval, float attackReach) {
         this.self = self;
         this.speed = speed;
         this.attackInterval = attackInterval;
+        this.attackReach = attackReach;
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
         proxy = Zombies.getInstance().getNmsProxy();
@@ -67,9 +71,9 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             this.navigationCounter = 4 + this.self.getRandom().nextInt(7);
 
             //calculate the path
-            PathEntity path = proxy.getPathToUnbounded(self, target, 0);
+            currentPath = proxy.getPathToUnbounded(self, target, 0);
 
-            if(path != null) {
+            if(currentPath != null) {
                 /*
                 optimization: for very long/complex paths, wait longer to recalculate
                 a path with 300 nodes will result in 300 / 5 = 60 ticks (3 seconds) before next recalculation
@@ -79,24 +83,19 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 if we're less than 100 nodes (arbitrary), we assume that the zombie is probably visible to the player
                 and we should not delay its path recalculation at all
                  */
-                int nodes = path.getPoints().size();
+                int nodes = currentPath.getPoints().size();
                 if(nodes >= 100) {
-                    navigationCounter += path.getPoints().size() / 5;
+                    navigationCounter += currentPath.getPoints().size() / 5;
+                    Zombies.info("Path has an extremely large number of nodes!");
                 }
-            }
-
-            if (!proxy.navigateAlongPath(self, path, speed)) {
-                /*
-                if we fail to find a path, add a one-second delay on top of whatever we already have. this generally
-                should not happen unless there's an exploit or glitch, and we also want to avoid constantly running the
-                pathfinder if someone is cheating or out of bounds.
-                 */
-                this.navigationCounter += 20;
             }
         }
 
-        this.attackTimer = Math.max(this.attackTimer - 1, 0);
-        this.tryAttack(target);
+        if(currentPath != null) {
+            proxy.navigateAlongPath(self, currentPath, speed);
+            this.attackTimer = Math.max(this.attackTimer - 1, 0);
+            this.tryAttack(target);
+        }
     }
 
     private void tryAttack(EntityLiving target) {
@@ -114,6 +113,6 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     }
 
     private double boundsDistance(EntityLiving target) {
-        return (this.self.getWidth() * 2.0F * this.self.getWidth() * 2.0F + target.getWidth());
+        return (this.self.getWidth() * attackReach * this.self.getWidth() * attackReach + target.getWidth());
     }
 }

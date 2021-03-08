@@ -15,17 +15,19 @@ import java.util.EnumSet;
 public class WrappedMeleeAttack extends MythicWrapper {
     private final double speed;
     private final int attackInterval;
+    private final float attackReach;
 
     public WrappedMeleeAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
         speed = mlc.getDouble("speed", 1);
-        attackInterval = mlc.getInteger("attackInterval", 20);
+        attackInterval = mlc.getInteger("attackTicks", 20);
+        attackReach = mlc.getFloat("attackReach", 2);
     }
 
     @Override
     public PathfinderGoal create() {
         return new WrappedZombiesPathfinder(entity, new OptimizedMeleeAttack((EntityCreature)getHandle(),
-                speed, attackInterval), getRetargetInterval());
+                speed, attackInterval, attackReach), getRetargetInterval());
     }
 
     @Override

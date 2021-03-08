@@ -47,8 +47,7 @@ public class BarricadeCountModificationPowerUp extends PowerUp{
         for(int s = 0; s < windowData.getVolume(); s++) {
             BlockData blockData;
             if(s <= valToChange - 1) {
-                Pair<Material, String> pair = windowData.getRepairedData().get(s);
-                blockData = Bukkit.createBlockData(pair.getLeft(), pair.getRight());
+                blockData = Bukkit.createBlockData(windowData.getRepairedData().get(s));
             }
             else {
                 blockData = Bukkit.createBlockData(Material.AIR);
