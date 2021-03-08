@@ -103,6 +103,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
         perks.disableAll();
         endTasks();
+
+        getPlayer().getEquipment().setArmorContents(new ItemStack[0]);
     }
 
     @Override
@@ -112,6 +114,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         state = ZombiesPlayerState.DEAD;
         perks.activateAll();
         setDeadState();
+
+        getPlayer().getEquipment().setArmorContents(equipment);
     }
 
     @Override
@@ -126,6 +130,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             corpse.destroy();
             corpse = null;
         }
+
+        getPlayer().getInventory().setStorageContents(new ItemStack[35]);
     }
 
     public void addCoins(int amount) {
@@ -166,8 +172,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     public void subtractCoins(int amount) {
-        getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
-        coins -= amount;
+        if(amount > 0) {
+            getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
+            coins -= amount;
+        }
     }
 
     /**
