@@ -8,6 +8,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
@@ -17,7 +18,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -71,6 +71,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     private boolean repairOn;
     private int windowRepairTaskId = -1;
 
+    private int boundsCheckTaskId = -1;
+
     private boolean reviveOn;
     private int reviveTaskId = -1;
     private Corpse targetCorpse;
@@ -100,7 +102,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         state = ZombiesPlayerState.DEAD;
 
         perks.disableAll();
-        endShiftTasks();
+        endTasks();
     }
 
     @Override
@@ -186,7 +188,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     /**
      * Starts tasks related to when the player shifts
      */
-    public void startShiftTasks() {
+    public void startTasks() {
         if (windowRepairTaskId == -1) {
             windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
                     this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
@@ -200,12 +202,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                     2L
             );
         }
+
+        if(boundsCheckTaskId == -1) {
+            boundsCheckTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+                    this::ensureInBounds, 0, 5);
+        }
     }
 
     /**
      * Ends tasks related to when the player shifts
      */
-    public void endShiftTasks() {
+    public void endTasks() {
         if (windowRepairTaskId != -1) {
             Bukkit.getScheduler().cancelTask(windowRepairTaskId);
             windowRepairTaskId = -1;
@@ -213,6 +220,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if (reviveTaskId != -1) {
             Bukkit.getScheduler().cancelTask(reviveTaskId);
             reviveTaskId = -1;
+        }
+
+        if(boundsCheckTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(boundsCheckTaskId);
+            boundsCheckTaskId = -1;
         }
     }
 
@@ -368,6 +380,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
     }
 
+    private void ensureInBounds() {
+        MapData map = arena.getMap();
+        RoomData roomIn = map.roomAt(getPlayer().getLocation().toVector());
+
+        if(roomIn != null) {
+            for(WindowData windowData : roomIn.getWindows()) {
+                if(windowData.playerInside(getPlayer().getLocation().toVector())) {
+                    Vector target = windowData.getTarget();
+                    getPlayer().teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ()));
+                }
+            }
+        }
+    }
+
     /**
      * Attempts to repair the given window.
      */
@@ -476,7 +502,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 false, false));
         player.setInvulnerable(true);
         player.setInvisible(true);
-        endShiftTasks();
+        endTasks();
     }
 
     public void setAliveState() {
@@ -486,7 +512,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                 false, false));
         player.setInvulnerable(false);
-        startShiftTasks();
+        startTasks();
     }
 
     public void setDeadState() {

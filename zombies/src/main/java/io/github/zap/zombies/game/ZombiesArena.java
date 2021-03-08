@@ -644,7 +644,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         }
                     }
 
-                    player.startShiftTasks();
+                    player.startTasks();
                 }
             }
 

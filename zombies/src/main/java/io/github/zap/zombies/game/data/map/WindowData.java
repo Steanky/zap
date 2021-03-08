@@ -189,4 +189,12 @@ public class WindowData {
     public boolean isFullyRepaired(Unique accessor) {
         return currentIndexProperty.getValue(accessor) == getVolume() - 1;
     }
+
+    public boolean playerInside(Vector location) {
+        if(getInteriorBounds().contains(location) || faceBounds.clone().expandDirectional(0.3, 0.3, 0.3).contains(location)) {
+            return true;
+        }
+
+        return false;
+    }
 }
