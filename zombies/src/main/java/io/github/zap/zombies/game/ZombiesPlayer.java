@@ -17,10 +17,9 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.SoundCategory;
+import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -86,6 +85,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         super(arena, player);
 
         this.arena = arena;
+        //noinspection ConstantConditions
         this.equipment = player.getEquipment().getArmorContents();
         this.coins = arena.getMap().getStartingCoins();
 
@@ -390,16 +390,18 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
                 int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
                 for(int i = previousIndex; i < previousIndex + blocksRepaired; i++) {
-                    WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i + 1))
-                            .setType(targetWindow.getRepairedMaterials().get(i + 1));
+                    Block target = WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i + 1));
+
+                    Pair<Material, String> data = targetWindow.getRepairedData().get(i + 1);
+                    target.setBlockData(Bukkit.createBlockData(data.getLeft(), data.getRight()));
 
                     Vector center = targetWindow.getCenter();
                     Location centerLocation = new Location(arena.getWorld(), center.getX(), center.getY(), center.getZ());
                     if(i < targetWindow.getVolume() - 2) {
-                        arena.getWorld().playSound(centerLocation, targetWindow.getBlockRepairSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
+                        arena.getWorld().playSound(targetWindow.getBlockRepairSound());
                     }
                     else {
-                        arena.getWorld().playSound(centerLocation, targetWindow.getWindowRepairSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
+                        arena.getWorld().playSound(targetWindow.getWindowRepairSound());
                     }
                 }
 
@@ -428,8 +430,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
             selectNewCorpse();
         } else {
-            double distance
-                    = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
+            double distance = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
 
             if (distance < maxDistance && reviveOn) {
                 targetCorpse.continueReviving();

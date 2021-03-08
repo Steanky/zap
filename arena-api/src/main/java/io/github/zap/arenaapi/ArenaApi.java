@@ -14,6 +14,7 @@ import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
 import lombok.Getter;
+import net.kyori.adventure.sound.Sound;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -112,6 +113,9 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         module.addSerializer(BoundingBox.class, new BoundingBoxSerializer());
         module.addDeserializer(BoundingBox.class, new BoundingBoxDeserializer());
+
+        module.addSerializer(Sound.class, new SoundSerializer());
+        module.addDeserializer(Sound.class, new SoundDeserializer());
 
         module.addDeserializer(ImmutablePair.class, new StringPairSerializer());
         module.addDeserializer(Color.class, new ColorDeserializer());

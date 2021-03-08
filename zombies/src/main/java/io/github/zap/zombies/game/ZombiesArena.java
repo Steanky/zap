@@ -759,10 +759,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Location centerLocation = new Location(world, center.getX(), center.getY(), center.getZ());
 
             if(i > 0) {
-                world.playSound(centerLocation, targetWindow.getBlockBreakSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
+                world.playSound(targetWindow.getBlockBreakSound());
             }
             else {
-                world.playSound(centerLocation, targetWindow.getWindowBreakSound(), SoundCategory.BLOCKS, 5.0F, 1.0F);
+                world.playSound(targetWindow.getWindowBreakSound());
             }
         }
     }

@@ -3,16 +3,18 @@ package io.github.zap.zombies.game.data.map;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
-import io.github.zap.arenaapi.util.VectorUtils;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.util.Jingle;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import net.kyori.adventure.sound.Sound;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -32,7 +34,7 @@ public class WindowData {
      * The materials that should be used to repair this window. Each index corresponds to the coordinate located at
      * the same index in faceVectors.
      */
-    List<Material> repairedMaterials = new ArrayList<>();
+    List<Pair<Material, String>> repairedData = new ArrayList<>();
 
     /**
      * A list of vectors corresponding to the blocks of window face
@@ -63,22 +65,22 @@ public class WindowData {
     /**
      * The sound that is played when a single block from the window breaks
      */
-    Sound blockBreakSound = Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR;
+    Sound blockBreakSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_BREAK.getKey(), Sound.Source.HOSTILE, 5F, 0.8F);
 
     /**
      * The sound that plays when the window is entirely broken
      */
-    Sound windowBreakSound = Sound.BLOCK_ANVIL_DESTROY;
+    Sound windowBreakSound = Sound.sound(org.bukkit.Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR.getKey(), Sound.Source.HOSTILE, 5F, 1F);
 
     /**
      * The sound that plays when a single block is repaired
      */
-    Sound blockRepairSound = Sound.BLOCK_WOOD_PLACE;
+    Sound blockRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_PLACE.getKey(), Sound.Source.HOSTILE, 5F, 1F);
 
     /**
      * The sound that plays when the entire window has been repaired
      */
-    Sound windowRepairSound = Sound.BLOCK_ANVIL_PLACE;
+    Sound windowRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE.getKey(), Sound.Source.HOSTILE, 5F, 1F);
 
     /**
      * Arena specific state: the current index at which the window is being repaired or broken. This points to the index
@@ -109,8 +111,8 @@ public class WindowData {
         for(int x = min.getBlockX(); x < max.getBlockX(); x++) {
             for(int y = min.getBlockY(); y < max.getBlockY(); y++) {
                 for(int z = min.getBlockZ(); z < max.getBlockZ(); z++) {
-                    repairedMaterials.add(from.getBlockAt(x, y, z).getType());
-                    faceVectors.add(new Vector(x, y, z));
+                    Block block = from.getBlockAt(x, y, z);
+                    repairedData.add(ImmutablePair.of(block.getType(), block.getBlockData().getAsString()));
                 }
             }
         }
