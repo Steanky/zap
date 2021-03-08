@@ -113,7 +113,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         new BukkitRunnable() {
             private final int goal =
                     (int) (getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier());
-            private final int stepVal = 1 / goal;
+            private final float stepVal = 1F / goal;
             private int step = 0;
 
             @Override
