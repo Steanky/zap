@@ -258,7 +258,7 @@ public class BasicBeam {
             mob.playEffect(EntityEffect.HURT);
             zombiesPlayer.addCoins(isCritical ? goldPerHeadshot : goldPerShot);
             player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.arrow.hit.player"),
+                    Key.key("minecraft:entity.arrow.hit_player"),
                     Sound.Source.MASTER,
                     1.0F,
                     isCritical ? 2.0F : 1.5F

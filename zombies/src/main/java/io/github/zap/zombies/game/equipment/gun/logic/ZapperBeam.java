@@ -81,7 +81,7 @@ public class ZapperBeam extends LinearBeam {
             inflictDamage(mob, getDamage(), isCritical);
             zombiesPlayer.addCoins(isCritical ? getGoldPerHeadshot() : getGoldPerShot());
             player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.arrow.hit.player"),
+                    Key.key("minecraft:entity.arrow.hit_player"),
                     Sound.Source.MASTER,
                     1.0F,
                     isCritical ? 2.0F : 1.5F
