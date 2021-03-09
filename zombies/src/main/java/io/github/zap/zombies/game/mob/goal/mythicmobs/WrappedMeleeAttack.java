@@ -6,6 +6,7 @@ import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Sound;
 
 import java.util.EnumSet;
 
@@ -27,7 +28,9 @@ public class WrappedMeleeAttack extends MythicWrapper {
     @Override
     public PathfinderGoal create() {
         return new WrappedZombiesPathfinder(entity, new OptimizedMeleeAttack((EntityCreature)getHandle(),
-                speed, attackInterval, attackReach), getRetargetInterval());
+                speed, attackInterval, attackReach), getRetargetInterval(),
+                new WrappedZombiesPathfinder.AttributeValue(GenericAttributes.ATTACK_DAMAGE, 2.0D),
+                new WrappedZombiesPathfinder.AttributeValue(GenericAttributes.ATTACK_KNOCKBACK, 0.0D));
     }
 
     @Override

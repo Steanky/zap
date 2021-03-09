@@ -95,10 +95,15 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
 
     @Override
     public void setDoubleFor(EntityLiving entity, AttributeBase attribute, double value) {
-        AttributeModifiable modifiableAttribute = entity.getAttributeMap().a(attribute);
+        AttributeMapBase attributeMap = entity.getAttributeMap();
+        AttributeModifiable modifiableAttribute = attributeMap.a(attribute);
 
         if(modifiableAttribute != null) {
             modifiableAttribute.setValue(value);
+        }
+        else {
+            attributeMap.registerAttribute(attribute);
+            attributeMap.a(attribute).setValue(value);
         }
     }
 
@@ -130,5 +135,10 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     @Override
     public boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed) {
         return entity.getNavigation().a(path, speed);
+    }
+
+    @Override
+    public boolean hasAttribute(EntityInsentient entity, AttributeBase attribute) {
+        return entity.getAttributeMap().b(attribute);
     }
 }

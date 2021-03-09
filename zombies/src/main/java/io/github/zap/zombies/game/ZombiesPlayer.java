@@ -3,6 +3,7 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -104,7 +105,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         perks.disableAll();
         endTasks();
 
-        getPlayer().getEquipment().setArmorContents(new ItemStack[0]);
+        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
+        hotbarManager.switchProfile(HotbarManager.DEFAULT_PROFILE_NAME);
     }
 
     @Override

@@ -227,7 +227,8 @@ public class Corpse {
 
         sendPacketToPlayer(addCorpseToTeamPacket, player);
 
-        //sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
+        Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), ()->
+                sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player), 1);
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
