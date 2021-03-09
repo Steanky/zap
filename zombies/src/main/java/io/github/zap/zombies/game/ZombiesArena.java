@@ -44,6 +44,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -375,6 +376,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
         getPlayerDamageEvent().registerHandler(this::onPlayerDamage);
+        getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
         getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
@@ -503,7 +505,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerDamage(ProxyArgs<EntityDamageEvent> args) {
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
-        if (!managedPlayer.isAlive()) {
+        if (managedPlayer != null && !managedPlayer.isAlive()) {
+            args.getEvent().setCancelled(true);
+        }
+    }
+
+    private void onEntityDamageByEntity(ProxyArgs<EntityDamageByEntityEvent> args) {
+        Entity damager = args.getEvent().getDamager();
+        ZombiesPlayer damagingPlayer = getPlayerMap().get(damager.getUniqueId());
+        if(damagingPlayer != null && !damagingPlayer.isAlive()) {
             args.getEvent().setCancelled(true);
         }
     }
