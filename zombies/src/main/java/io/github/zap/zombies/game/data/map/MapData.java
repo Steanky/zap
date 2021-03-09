@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.data.map;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.Unique;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import lombok.AccessLevel;
@@ -21,7 +20,6 @@ import java.util.function.Predicate;
  * This class represents a Zombies map. It is effectively a pure data class; it only contains helper functions for
  * retrieving and manipulating its own data values.
  */
-@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -249,6 +247,7 @@ public class MapData {
 
     transient final Property<Integer> currentRoundProperty = new Property<>(0);
 
+    @SuppressWarnings("unused")
     private MapData() {}
 
     public MapData(String mapName, String worldName, BoundingBox bounds) {

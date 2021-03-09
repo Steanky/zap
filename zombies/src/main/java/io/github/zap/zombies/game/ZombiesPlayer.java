@@ -7,7 +7,6 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
-import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
@@ -18,11 +17,11 @@ import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.bukkit.*;
-import org.bukkit.block.Block;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -84,9 +83,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
-     * @param equipmentManager The equipment manager for the map equipment
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player, EquipmentManager equipmentManager) {
+    public ZombiesPlayer(ZombiesArena arena, Player player) {
         super(arena, player);
 
         this.arena = arena;
@@ -99,7 +97,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         this.perks = new ZombiesPerks(this);
     }
 
-    @SuppressWarnings("ConstantConditions")
     public void quit() {
         super.quit();
 
@@ -108,11 +105,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         perks.disableAll();
         endTasks();
 
+        //noinspection ConstantConditions
         getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
         hotbarManager.switchProfile(HotbarManager.DEFAULT_PROFILE_NAME);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void rejoin() {
         super.rejoin();
@@ -121,6 +118,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         perks.activateAll();
         setDeadState();
 
+        //noinspection ConstantConditions
         getPlayer().getEquipment().setArmorContents(equipment);
     }
 
@@ -191,6 +189,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void updateEquipment(ItemStack[] newEquipment) {
         System.arraycopy(newEquipment, 0, equipment, 0, newEquipment.length);
         if (isAlive() && isInGame()) {
+            //noinspection ConstantConditions
             getPlayer().getEquipment().setArmorContents(equipment);
         }
     }
@@ -512,6 +511,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void setKnockedState() {
         Player player = getPlayer();
         ArenaApi.getInstance().applyDefaultCondition(player);
+        //noinspection ConstantConditions
         player.getEquipment().setArmorContents(new ItemStack[4]);
         player.setWalkSpeed(0);
         player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128, false,
@@ -524,6 +524,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     public void setAliveState() {
         Player player = getPlayer();
         ArenaApi.getInstance().applyDefaultCondition(player);
+        //noinspection ConstantConditions
         player.getEquipment().setArmorContents(equipment);
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                 false, false));

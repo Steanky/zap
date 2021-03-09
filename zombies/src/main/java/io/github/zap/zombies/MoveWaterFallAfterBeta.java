@@ -1,14 +1,13 @@
 package io.github.zap.zombies;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.game.arena.*;
+import io.github.zap.arenaapi.game.arena.Arena;
+import io.github.zap.arenaapi.game.arena.ManagedPlayer;
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 public class MoveWaterFallAfterBeta implements Listener {
     @Getter

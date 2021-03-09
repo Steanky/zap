@@ -72,12 +72,12 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable, Comman
 
         StringBuilder sb = new StringBuilder();
         sb.append(longest.getData().getDisplayName());
-        items.stream().limit(3).forEach(x -> sb.append(ChatColor.RESET).append(ChatColor.GRAY + ", ").append(x.getData().getDisplayName()));
+        items.stream().limit(3).forEach(x -> sb.append(ChatColor.RESET).append(ChatColor.GRAY).append(", ").append(x.getData().getDisplayName()));
         if(items.size() > 3) {
-            sb.append(ChatColor.DARK_GRAY + "...");
+            sb.append(ChatColor.DARK_GRAY).append("...");
         }
         var millis = (longest.getEstimatedEndTimeStamp() - System.currentTimeMillis());
-        sb.append("" + ChatColor.GRAY + " - ").append(formatter.format(millis / 1000f)).append("seconds");
+        sb.append(ChatColor.GRAY).append(" - ").append(formatter.format(millis / 1000f)).append("seconds");
 
         if(!bukkitBossBar.isVisible()) bukkitBossBar.setVisible(true);
         bukkitBossBar.setTitle(sb.toString());

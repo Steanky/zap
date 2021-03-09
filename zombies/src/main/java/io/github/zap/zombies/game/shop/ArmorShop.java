@@ -115,6 +115,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                     } else {
                         // Choose the best equipments
                         Material[] materials = armorLevel.getMaterials();
+                        //noinspection ConstantConditions
                         ItemStack[] current = player.getEquipment().getArmorContents();
                         for (int i = 0; i < 4; i++) {
                             Material material = materials[i];
@@ -159,6 +160,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
      * @return The armor level of the player, or null if the player's armor is better than the shop can provide
      */
     private ArmorShopData.ArmorLevel determineArmorLevel(Player player) {
+        //noinspection ConstantConditions
         ItemStack[] equipment = player.getEquipment().getArmorContents();
         for (ArmorShopData.ArmorLevel armorLevel : getShopData().getArmorLevels()) {
             Material[] materials = armorLevel.getMaterials();
@@ -184,6 +186,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
      * @param armorLevel The armor level to compare the player's armor against
      */
     private void sendArmorStandUpdatePackets(Player player, ArmorShopData.ArmorLevel armorLevel) {
+        //noinspection ConstantConditions
         ItemStack[] equipment = player.getEquipment().getArmorContents();
         Material[] materials = armorLevel.getMaterials();
 

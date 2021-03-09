@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Data for an armor shop
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class ArmorShopData extends ArmorStandShopData {
 
@@ -29,7 +30,7 @@ public class ArmorShopData extends ArmorStandShopData {
     /**
      * A level of an armor shop's available armor levels
      */
-
+    @SuppressWarnings("FieldMayBeFinal")
     @Getter
     public static class ArmorLevel {
         private String name = "default";

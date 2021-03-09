@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Data for a perk machine
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class PerkMachineData extends BlockShopData {
 

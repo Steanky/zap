@@ -6,7 +6,6 @@ import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.data.powerups.ModifierMode;
 import io.github.zap.zombies.game.data.powerups.ModifierModeModificationPowerUpData;
-import io.github.zap.zombies.game.data.powerups.ModifierModificationPowerUpData;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.util.MathUtils;
 

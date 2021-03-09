@@ -5,7 +5,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 public class BreakWindow extends ZombiesPathfinder {

@@ -7,6 +7,7 @@ import org.bukkit.util.Vector;
 /**
  * Data for an ultimate machine
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class UltimateMachineData extends BlockShopData {
 

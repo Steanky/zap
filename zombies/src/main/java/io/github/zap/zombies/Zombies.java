@@ -54,9 +54,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Filter;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 
 public final class Zombies extends JavaPlugin implements Listener {
     @Getter

@@ -32,11 +32,6 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
     }
 
     @Override
-    protected void registerArenaEvents() {
-        super.registerArenaEvents();
-    }
-
-    @Override
     public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
         Hologram hologram = getHologram();
         for (Player player : args.getPlayers()) {

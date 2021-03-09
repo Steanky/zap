@@ -5,17 +5,15 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
-import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import io.github.zap.zombies.game.powerups.*;
-import io.github.zap.zombies.game.powerups.spawnrules.*;
+import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRule;
+import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
+import io.github.zap.zombies.game.powerups.spawnrules.SpawnRuleType;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
 import java.lang.reflect.Constructor;
@@ -295,7 +293,6 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             registerPowerUp(BarricadeCountModificationPowerUp.class);
             registerPowerUp(DamageModificationPowerUp.class);
 
-            //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
                     .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {return null;}})
                     .filter(Objects::nonNull)
@@ -303,7 +300,6 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
 
             registerSpawnRule(DefaultPowerUpSpawnRule.class);
 
-            //noinspection ConstantConditions
             Arrays.stream(dataLoader.getRootDirectory().listFiles())
                     .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), SpawnRuleData.class); } catch (Exception e) {return null;}})
                     .filter(Objects::nonNull)

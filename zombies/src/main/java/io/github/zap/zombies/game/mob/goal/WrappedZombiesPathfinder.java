@@ -6,7 +6,10 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
 import lombok.Value;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.server.v1_16_R3.AttributeBase;
+import net.minecraft.server.v1_16_R3.EntityInsentient;
+import net.minecraft.server.v1_16_R3.GenericAttributes;
+import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.event.entity.EntityTargetEvent;
 

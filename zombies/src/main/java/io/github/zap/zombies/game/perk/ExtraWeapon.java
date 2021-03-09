@@ -12,7 +12,7 @@ public class ExtraWeapon extends MarkerPerk {
         super(owner, maxLevel, resetOnQuit);
     }
 
-    private Stack<Integer> ewSlots = new Stack<>();
+    private final Stack<Integer> ewSlots = new Stack<>();
 
     // don't return Stack directly to avoid caller accidentally mutate our ewSlots
     public List<Integer> getSlots() {

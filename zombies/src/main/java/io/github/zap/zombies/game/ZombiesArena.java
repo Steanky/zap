@@ -284,9 +284,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
-    private final PacketContainer createTeamPacketContainer =
-            new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
-
     @Getter
     private final String corpseTeamName = UUID.randomUUID().toString().substring(0, 16);
 
@@ -345,8 +342,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(Zombies.getInstance(), manager, world, (arena, player) -> new ZombiesPlayer(arena, player,
-                manager.getEquipmentManager()));
+        super(Zombies.getInstance(), manager, world, ZombiesPlayer::new);
 
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();
@@ -381,6 +377,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
         getInventoryClickEvent().registerHandler(this::onPlayerInventoryClick);
 
+        PacketContainer createTeamPacketContainer = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
         createTeamPacketContainer.getStrings().write(0, UUID.randomUUID().toString().substring(0, 16));
         createTeamPacketContainer.getIntegers().write(0, 0);
         createTeamPacketContainer.getStrings()

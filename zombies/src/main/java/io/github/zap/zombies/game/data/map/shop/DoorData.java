@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Data for a door
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class DoorData extends ShopData {
     private MultiBoundingBox doorBounds = new MultiBoundingBox();
