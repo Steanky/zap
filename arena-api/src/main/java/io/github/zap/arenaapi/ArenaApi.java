@@ -89,7 +89,9 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-
+        for(ArenaManager<?> manager : arenaManagers.values()) {
+            manager.dispose();
+        }
     }
 
     private void initProxy() throws LoadFailureException {
