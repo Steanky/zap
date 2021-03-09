@@ -119,20 +119,12 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
 
     @Override
     public PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation) {
-        NavigationAbstract navigationAbstract = entity.getNavigation();
-        navigationAbstract.a(Float.MAX_VALUE);
-        PathEntity path = navigationAbstract.a(x, y, z, deviation);
-        navigationAbstract.g();
-        return path;
+        return entity.getNavigation().a(x, y, z, deviation);
     }
 
     @Override
     public PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation) {
-        NavigationAbstract navigationAbstract = entity.getNavigation();
-        navigationAbstract.a(Float.MAX_VALUE);
-        PathEntity path = navigationAbstract.calculateDestination(target);
-        navigationAbstract.g();
-        return path;
+        return entity.getNavigation().calculateDestination(target);
     }
 
     @Override

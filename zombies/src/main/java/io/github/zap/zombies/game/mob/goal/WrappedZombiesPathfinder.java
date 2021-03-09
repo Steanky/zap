@@ -35,6 +35,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
         getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, Float.MAX_VALUE);
+        getHandle().getNavigation().a(Float.MAX_VALUE);
         counter = retargetInterval > 0 ? getHandle().getRandom().nextInt(retargetInterval) : -1;
     }
 

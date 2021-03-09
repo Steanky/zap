@@ -86,7 +86,6 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 int nodes = currentPath.getPoints().size();
                 if(nodes >= 100) {
                     navigationCounter += currentPath.getPoints().size() / 5;
-                    Zombies.info("Path has an extremely large number of nodes!");
                 }
             }
         }
