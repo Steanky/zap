@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game.mob.goal.mythicmobs;
 
+import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ai.WrappedPathfindingGoal;
@@ -15,9 +17,13 @@ public abstract class MythicWrapper extends WrappedPathfindingGoal implements Pa
     @Getter
     private final Entity handle;
 
+    @Getter
+    private final ZombiesNMSProxy proxy;
+
     public MythicWrapper(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
         retargetInterval = mlc.getInteger("retargetInterval", -1);
         handle = ((CraftEntity) entity.getBukkitEntity()).getHandle();
+        proxy = Zombies.getInstance().getNmsProxy();
     }
 }

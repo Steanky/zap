@@ -8,9 +8,6 @@ import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Sound;
-
-import java.util.EnumSet;
 
 @MythicAIGoal(
         name = "unboundedMeleeAttack"
@@ -19,8 +16,9 @@ public class WrappedMeleeAttack extends MythicWrapper {
     private final double speed;
     private final int attackInterval;
     private final float attackReach;
-    private final double damage;
     private final double knockback;
+
+    private final WrappedZombiesPathfinder.AttributeValue[] attributes;
 
     public WrappedMeleeAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
@@ -30,15 +28,30 @@ public class WrappedMeleeAttack extends MythicWrapper {
         knockback = mlc.getDouble("knockback", 0);
 
         ActiveMob mob = MythicMobs.inst().getAPIHelper().getMythicMobInstance(entity.getBukkitEntity());
-        damage = mob == null ? 2 : mob.getDamage();
+        if(mob != null) {
+            Entity nmsEntity = getHandle();
+            if(nmsEntity instanceof EntityInsentient && !getProxy().hasAttribute((EntityInsentient)nmsEntity, GenericAttributes.ATTACK_DAMAGE)) {
+                ActiveMob mythicMob = MythicMobs.inst().getAPIHelper().getMythicMobInstance(entity.getBukkitEntity());
+
+                attributes = new WrappedZombiesPathfinder.AttributeValue[] {
+                        new WrappedZombiesPathfinder.AttributeValue(GenericAttributes.ATTACK_DAMAGE,
+                                mythicMob == null || mythicMob.getDamage() == 0 ? 2f : mythicMob.getDamage()),
+                        new WrappedZombiesPathfinder.AttributeValue(GenericAttributes.ATTACK_KNOCKBACK, knockback)
+                };
+            }
+            else {
+                attributes = new WrappedZombiesPathfinder.AttributeValue[0];
+            }
+        }
+        else {
+            attributes = new WrappedZombiesPathfinder.AttributeValue[0];
+        }
     }
 
     @Override
     public PathfinderGoal create() {
         return new WrappedZombiesPathfinder(entity, new OptimizedMeleeAttack((EntityCreature)getHandle(),
-                speed, attackInterval, attackReach), getRetargetInterval(),
-                new WrappedZombiesPathfinder.AttributeValue(GenericAttributes.ATTACK_DAMAGE, damage),
-                new WrappedZombiesPathfinder.AttributeValue(GenericAttributes.ATTACK_KNOCKBACK, knockback));
+                speed, attackInterval, attackReach), getRetargetInterval(), attributes);
     }
 
     @Override

@@ -120,9 +120,9 @@ public class Door extends Shop<DoorData> {
                             List<String> newlyOpened = new ArrayList<>();
                             for(String openedRoom : doorSide.getOpensTo()) {
                                 RoomData room = zombiesArena.getMap().getNamedRoom(openedRoom);
-                                Property<Boolean> openPropery = room.getOpenProperty();
-                                if(!openPropery.getValue(zombiesArena)) {
-                                    openPropery.setValue(zombiesArena, true);
+                                Property<Boolean> openProperty = room.getOpenProperty();
+                                if(!openProperty.getValue(zombiesArena)) {
+                                    openProperty.setValue(zombiesArena, true);
                                     newlyOpened.add(room.getRoomDisplayName());
                                 }
                             }

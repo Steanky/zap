@@ -61,22 +61,22 @@ public class WindowData {
     /**
      * The sound that is played when a single block from the window breaks
      */
-    Sound blockBreakSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_BREAK.getKey(), Sound.Source.HOSTILE, 5F, 0.8F);
+    Sound blockBreakSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_BREAK.getKey(), Sound.Source.HOSTILE, 3F, 0.8F);
 
     /**
      * The sound that plays when the window is entirely broken
      */
-    Sound windowBreakSound = Sound.sound(org.bukkit.Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR.getKey(), Sound.Source.HOSTILE, 5F, 1F);
+    Sound windowBreakSound = Sound.sound(org.bukkit.Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR.getKey(), Sound.Source.HOSTILE, 3F, 1F);
 
     /**
      * The sound that plays when a single block is repaired
      */
-    Sound blockRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_PLACE.getKey(), Sound.Source.HOSTILE, 5F, 1F);
+    Sound blockRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_PLACE.getKey(), Sound.Source.HOSTILE, 3F, 1F);
 
     /**
      * The sound that plays when the entire window has been repaired
      */
-    Sound windowRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE.getKey(), Sound.Source.HOSTILE, 5F, 1F);
+    Sound windowRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE.getKey(), Sound.Source.HOSTILE, 3F, 1F);
 
     /**
      * Arena specific state: the current index at which the window is being repaired or broken. This points to the index
@@ -190,10 +190,6 @@ public class WindowData {
     }
 
     public boolean playerInside(Vector location) {
-        if(getInteriorBounds().contains(location) || faceBounds.clone().expand(0.3).contains(location)) {
-            return true;
-        }
-
-        return false;
+        return getInteriorBounds().contains(location) || faceBounds.clone().expand(0.3).contains(location);
     }
 }
