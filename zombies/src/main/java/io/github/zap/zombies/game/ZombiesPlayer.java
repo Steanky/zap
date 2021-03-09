@@ -3,11 +3,13 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
@@ -16,6 +18,7 @@ import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -71,6 +74,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     private boolean repairOn;
     private int windowRepairTaskId = -1;
 
+    private int boundsCheckTaskId = -1;
+
     private boolean reviveOn;
     private int reviveTaskId = -1;
     private Corpse targetCorpse;
@@ -94,17 +99,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         this.perks = new ZombiesPerks(this);
     }
 
+    @SuppressWarnings("ConstantConditions")
     public void quit() {
         super.quit();
-
-        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
 
         state = ZombiesPlayerState.DEAD;
 
         perks.disableAll();
-        endShiftTasks();
+        endTasks();
+
+        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
+        hotbarManager.switchProfile(HotbarManager.DEFAULT_PROFILE_NAME);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void rejoin() {
         super.rejoin();
@@ -112,6 +120,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         state = ZombiesPlayerState.DEAD;
         perks.activateAll();
         setDeadState();
+
+        getPlayer().getEquipment().setArmorContents(equipment);
     }
 
     @Override
@@ -126,6 +136,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             corpse.destroy();
             corpse = null;
         }
+
+        getPlayer().getInventory().setStorageContents(new ItemStack[35]);
     }
 
     public void addCoins(int amount) {
@@ -166,8 +178,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     }
 
     public void subtractCoins(int amount) {
-        getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
-        coins -= amount;
+        if(amount > 0) {
+            getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
+            coins -= amount;
+        }
     }
 
     /**
@@ -188,7 +202,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     /**
      * Starts tasks related to when the player shifts
      */
-    public void startShiftTasks() {
+    public void startTasks() {
         if (windowRepairTaskId == -1) {
             windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
                     this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
@@ -202,12 +216,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                     2L
             );
         }
+
+        if(boundsCheckTaskId == -1) {
+            boundsCheckTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
+                    this::ensureInBounds, 0, 5);
+        }
     }
 
     /**
      * Ends tasks related to when the player shifts
      */
-    public void endShiftTasks() {
+    public void endTasks() {
         if (windowRepairTaskId != -1) {
             Bukkit.getScheduler().cancelTask(windowRepairTaskId);
             windowRepairTaskId = -1;
@@ -215,6 +234,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if (reviveTaskId != -1) {
             Bukkit.getScheduler().cancelTask(reviveTaskId);
             reviveTaskId = -1;
+        }
+
+        if(boundsCheckTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(boundsCheckTaskId);
+            boundsCheckTaskId = -1;
         }
     }
 
@@ -370,6 +394,22 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
     }
 
+    private void ensureInBounds() {
+        MapData map = arena.getMap();
+        RoomData roomIn = map.roomAt(getPlayer().getLocation().toVector());
+
+        if(roomIn != null) {
+            for(WindowData windowData : roomIn.getWindows()) {
+                if(windowData.playerInside(getPlayer().getLocation().toVector())) {
+                    Player player = getPlayer();
+                    Location current = player.getLocation();
+                    Vector target = windowData.getTarget();
+                    player.teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ(), current.getYaw(), current.getPitch()));
+                }
+            }
+        }
+    }
+
     /**
      * Attempts to repair the given window.
      */
@@ -478,7 +518,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 false, false));
         player.setInvulnerable(true);
         player.setInvisible(true);
-        endShiftTasks();
+        endTasks();
     }
 
     public void setAliveState() {
@@ -488,7 +528,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                 false, false));
         player.setInvulnerable(false);
-        startShiftTasks();
+        startTasks();
     }
 
     public void setDeadState() {

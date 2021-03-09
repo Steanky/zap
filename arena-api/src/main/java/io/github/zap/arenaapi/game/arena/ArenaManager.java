@@ -54,7 +54,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      * done without impacting other arenas).
      * @param arena The arena to remove
      */
-    public abstract void removeArena(T arena);
+    public abstract void unloadArena(T arena);
 
     public abstract boolean hasMap(String mapName);
 

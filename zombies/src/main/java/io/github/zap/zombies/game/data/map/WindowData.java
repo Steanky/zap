@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import net.kyori.adventure.sound.Sound;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -188,5 +187,13 @@ public class WindowData {
 
     public boolean isFullyRepaired(Unique accessor) {
         return currentIndexProperty.getValue(accessor) == getVolume() - 1;
+    }
+
+    public boolean playerInside(Vector location) {
+        if(getInteriorBounds().contains(location) || faceBounds.clone().expand(0.3).contains(location)) {
+            return true;
+        }
+
+        return false;
     }
 }

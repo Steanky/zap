@@ -5,8 +5,8 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
-import net.minecraft.server.v1_16_R3.GenericAttributes;
-import net.minecraft.server.v1_16_R3.PathfinderGoal;
+import lombok.Value;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.event.entity.EntityTargetEvent;
 
@@ -16,6 +16,12 @@ import org.bukkit.event.entity.EntityTargetEvent;
  * to Double.MAX_VALUE, which makes the AI high iq.
  */
 public class WrappedZombiesPathfinder extends ZombiesPathfinder {
+    @Value
+    public static class AttributeValue {
+        AttributeBase attribute;
+        double value;
+    }
+
     private final int retargetInterval;
 
     @Getter
@@ -30,12 +36,21 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     private int locateInitial = 19;
     private int counter;
 
-    public WrappedZombiesPathfinder(AbstractEntity entity, PathfinderGoal wrappedGoal, int retargetInterval) {
+    public WrappedZombiesPathfinder(AbstractEntity entity, PathfinderGoal wrappedGoal, int retargetInterval,
+                                    AttributeValue...values) {
         super(entity, Zombies.ARENA_METADATA_NAME);
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
         getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, Float.MAX_VALUE);
-        counter = retargetInterval > 0 ? getHandle().getRandom().nextInt(retargetInterval) : -1;
+
+        EntityInsentient entityInsentient = getHandle();
+        entityInsentient.getNavigation().a(Float.MAX_VALUE);
+
+        counter = retargetInterval > 0 ? entityInsentient.getRandom().nextInt(retargetInterval) : -1;
+
+        for(AttributeValue value : values) {
+            getProxy().setDoubleFor(entityInsentient, value.attribute, value.value);
+        }
     }
 
     @Override

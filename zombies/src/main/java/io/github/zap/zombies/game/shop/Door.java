@@ -10,6 +10,7 @@ import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -107,6 +108,8 @@ public class Door extends Shop<DoorData> {
                                     doorData.getDoorBounds(),
                                     zombiesArena.getMap().getDoorFillMaterial()
                             );
+                            Location playerLoc = player.getLocation();
+                            zombiesArena.getWorld().playSound(doorData.getOpenSound(), playerLoc.getX(), playerLoc.getY(), playerLoc.getZ());
                             zombiesPlayer.subtractCoins(cost);
 
                             for(String openedRoom : doorSide.getOpensTo()) {

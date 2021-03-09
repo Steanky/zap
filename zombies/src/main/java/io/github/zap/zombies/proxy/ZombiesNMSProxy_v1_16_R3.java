@@ -95,10 +95,15 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
 
     @Override
     public void setDoubleFor(EntityLiving entity, AttributeBase attribute, double value) {
-        AttributeModifiable modifiableAttribute = entity.getAttributeMap().a(attribute);
+        AttributeMapBase attributeMap = entity.getAttributeMap();
+        AttributeModifiable modifiableAttribute = attributeMap.a(attribute);
 
         if(modifiableAttribute != null) {
             modifiableAttribute.setValue(value);
+        }
+        else {
+            attributeMap.registerAttribute(attribute);
+            attributeMap.a(attribute).setValue(value);
         }
     }
 
@@ -119,24 +124,21 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
 
     @Override
     public PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation) {
-        NavigationAbstract navigationAbstract = entity.getNavigation();
-        navigationAbstract.a(Float.MAX_VALUE);
-        PathEntity path = navigationAbstract.a(x, y, z, deviation);
-        navigationAbstract.g();
-        return path;
+        return entity.getNavigation().a(x, y, z, deviation);
     }
 
     @Override
     public PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation) {
-        NavigationAbstract navigationAbstract = entity.getNavigation();
-        navigationAbstract.a(Float.MAX_VALUE);
-        PathEntity path = navigationAbstract.calculateDestination(target);
-        navigationAbstract.g();
-        return path;
+        return entity.getNavigation().calculateDestination(target);
     }
 
     @Override
     public boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed) {
         return entity.getNavigation().a(path, speed);
+    }
+
+    @Override
+    public boolean hasAttribute(EntityInsentient entity, AttributeBase attribute) {
+        return entity.getAttributeMap().b(attribute);
     }
 }

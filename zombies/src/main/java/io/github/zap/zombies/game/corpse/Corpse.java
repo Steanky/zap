@@ -227,7 +227,8 @@ public class Corpse {
 
         sendPacketToPlayer(addCorpseToTeamPacket, player);
 
-        //sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
+        Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), ()->
+                sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player), 1);
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
@@ -296,14 +297,15 @@ public class Corpse {
         killPacketContainer.getIntegerArrays().write(0, new int[] { id });
 
         sendPacket(killPacketContainer);
+        terminate();
 
-        if (hologram.getHologramLines().size() > 0) {
-            hologram.destroy();
-        }
+        //if (hologram.getHologramLines().size() > 0) {
+        //    hologram.destroy();
+        //}
 
-        zombiesPlayer.getArena().getCorpses().remove(this);
-        zombiesPlayer.getArena().getAvailableCorpses().remove(this);
-        zombiesPlayer.getArena().getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        //zombiesPlayer.getArena().getCorpses().remove(this);
+        //zombiesPlayer.getArena().getAvailableCorpses().remove(this);
+        //zombiesPlayer.getArena().getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
     }
 
     @Override

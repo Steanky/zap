@@ -103,6 +103,11 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
                         world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
                         world.setGameRule(GameRule.MOB_GRIEFING, false);
+                        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+                        world.setGameRule(GameRule.LOG_ADMIN_COMMANDS, false);
+                        world.setGameRule(GameRule.COMMAND_BLOCK_OUTPUT, false);
+                        world.setGameRule(GameRule.SEND_COMMAND_FEEDBACK, false);
+                        world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
 
                         world.setTime(mapData.getWorldTime());
 
@@ -155,7 +160,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void removeArena(ZombiesArena arena) {
+    public void unloadArena(ZombiesArena arena) {
         managedArenas.remove(arena.getId());
 
         //we are doing a single-world, single-arena approach so no need to check for other arenas sharing this world
