@@ -20,7 +20,7 @@ import java.util.List;
         name = "spawnMobs",
         description = "General skill used for spawning mobs in Zombies games."
 )
-public class SpawnMobMechanic extends SkillMechanic implements ITargetedEntitySkill {
+public class SpawnMobMechanic extends SkillMechanic implements INoTargetSkill {
     private final String mobType;
     private final int mobCount;
     private final boolean useSpawnpoints;
@@ -38,7 +38,7 @@ public class SpawnMobMechanic extends SkillMechanic implements ITargetedEntitySk
     }
 
     @Override
-    public boolean castAtEntity(SkillMetadata skillMetadata, AbstractEntity abstractEntity) {
+    public boolean cast(SkillMetadata skillMetadata) {
         List<MetadataValue> metadata = skillMetadata.getCaster().getEntity().getBukkitEntity().getMetadata(Zombies.ARENA_METADATA_NAME);
         for(MetadataValue value : metadata) {
             if(value.getOwningPlugin() == Zombies.getInstance()) {
@@ -55,6 +55,8 @@ public class SpawnMobMechanic extends SkillMechanic implements ITargetedEntitySk
                                     .getLocation().toVector());
                         }
                     }
+
+                    return true;
                 }
             }
         }
