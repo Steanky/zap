@@ -7,8 +7,10 @@ import org.bukkit.util.Vector;
 /**
  * Data for a power switch
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class PowerSwitchData extends BlockShopData {
+
     private int cost = 0;
 
     private PowerSwitchData() {

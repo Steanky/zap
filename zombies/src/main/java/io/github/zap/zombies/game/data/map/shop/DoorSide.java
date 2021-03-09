@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Data for a side of a door
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 public class DoorSide {

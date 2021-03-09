@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.util.Vector;
 
-@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -23,6 +22,7 @@ public class SpawnpointData {
      */
     String ruleName;
 
+    @SuppressWarnings("unused")
     private SpawnpointData() {}
 
     public boolean canSpawn(String mob, MapData map) {

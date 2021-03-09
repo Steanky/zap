@@ -223,7 +223,7 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, TextWriter {
      */
     @Override
     public void onTextFragmentChanged(ITextFragment fragment) {
-        if(isAutoUpdate() && fragments.indexOf(fragment) != -1) update();
+        if(isAutoUpdate() && fragments.contains(fragment)) update();
     }
 
     /**

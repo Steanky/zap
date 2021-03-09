@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
-import io.github.zap.zombies.game.equipment.EquipmentType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

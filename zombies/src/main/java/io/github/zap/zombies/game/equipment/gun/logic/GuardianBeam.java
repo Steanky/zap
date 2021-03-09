@@ -6,9 +6,10 @@ import io.github.zap.zombies.game.data.equipment.gun.GuardianGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -20,7 +21,7 @@ import org.bukkit.util.RayTraceResult;
  */
 public class GuardianBeam extends BasicBeam {
 
-    private int freezeTime;
+    private final int freezeTime;
 
     public GuardianBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, GuardianGunLevel level) {
         super(mapData, zombiesPlayer, root, level);
@@ -30,32 +31,40 @@ public class GuardianBeam extends BasicBeam {
     @Override
     protected void damageEntity(RayTraceResult rayTraceResult) {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
-        ActiveMob activeMob = getBukkitAPIHelper().getMythicMobInstance(mob);
 
-        if (activeMob != null) {
-            ZombiesPlayer zombiesPlayer = getZombiesPlayer();
-            Player player = zombiesPlayer.getPlayer();
+        if (mob != null) {
+            ActiveMob activeMob = getBukkitAPIHelper().getMythicMobInstance(mob);
 
-            boolean isCritical = determineIfHeadshot(rayTraceResult, mob);
-            mob.playEffect(EntityEffect.HURT);
-            inflictDamage(mob, getDamage(), isCritical);
-            zombiesPlayer.addCoins(isCritical ? getGoldPerHeadshot() : getGoldPerShot());
-            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isCritical ? 2.0F : 1.5F, 1.0F);
+            if (activeMob != null) {
+                ZombiesPlayer zombiesPlayer = getZombiesPlayer();
+                Player player = zombiesPlayer.getPlayer();
 
-            AbstractEntity abstractEntity = activeMob.getEntity();
-            abstractEntity.setMovementSpeed(0.0D);
-            new BukkitRunnable() {
+                boolean isCritical = determineIfHeadshot(rayTraceResult, mob);
+                mob.playEffect(EntityEffect.HURT);
+                inflictDamage(mob, getDamage(), isCritical);
+                zombiesPlayer.addCoins(isCritical ? getGoldPerHeadshot() : getGoldPerShot());
+                player.playSound(Sound.sound(
+                        Key.key("minecraft:entity.arrow.hit.player"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        isCritical ? 2.0F : 1.5F
+                ));
 
-                @Override
-                public void run() {
-                    double speed = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getDefaultValue();
-                    abstractEntity.setMovementSpeed(speed);
+                AbstractEntity abstractEntity = activeMob.getEntity();
+                abstractEntity.setMovementSpeed(0.0D);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        //noinspection ConstantConditions
+                        double speed = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getDefaultValue();
+                        abstractEntity.setMovementSpeed(speed);
+                    }
+                }.runTaskLater(Zombies.getInstance(), freezeTime);
+                mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));
+
+                if (mob.getHealth() <= 0) {
+                    getZombiesPlayer().incrementKills();
                 }
-            }.runTaskLater(Zombies.getInstance(), freezeTime);
-            mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));
-
-            if (mob.getHealth() <= 0) {
-                getZombiesPlayer().incrementKills();
             }
         }
     }

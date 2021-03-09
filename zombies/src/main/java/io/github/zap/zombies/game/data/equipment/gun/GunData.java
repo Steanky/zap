@@ -2,8 +2,10 @@ package io.github.zap.zombies.game.data.equipment.gun;
 
 import io.github.zap.zombies.game.data.equipment.UltimateableData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
-import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -17,7 +19,7 @@ import java.util.List;
 @Getter
 public class GunData<L extends GunLevel> extends UltimateableData<L> {
 
-    private Jingle.Note note;
+    private Sound sound;
 
     private final transient String unchangedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
             + ChatColor.GREEN + "%s";
@@ -91,8 +93,8 @@ public class GunData<L extends GunLevel> extends UltimateableData<L> {
     }
 
     @Override
-    public ChatColor getDefaultChatColor() {
-        return ChatColor.GOLD;
+    public TextColor getDefaultChatColor() {
+        return NamedTextColor.GOLD;
     }
 
     @Override

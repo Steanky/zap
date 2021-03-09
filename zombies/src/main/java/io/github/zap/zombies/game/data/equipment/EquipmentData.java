@@ -2,6 +2,8 @@ package io.github.zap.zombies.game.data.equipment;
 
 import io.github.zap.zombies.game.data.util.RomanNumeral;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -54,7 +56,7 @@ public abstract class EquipmentData<L> {
             ItemStack itemStack = new ItemStack(material);
             ItemMeta itemMeta = itemStack.getItemMeta();
 
-            itemMeta.setDisplayName(getFormattedDisplayName(player, level));
+            itemMeta.displayName(Component.text(getFormattedDisplayName(player, level), getDefaultChatColor()));
 
             itemMeta.setLore(getLore(player, level));
             itemStack.setItemMeta(itemMeta);
@@ -80,17 +82,6 @@ public abstract class EquipmentData<L> {
      * @return The formatted version of the display name
      */
     public String getFormattedDisplayName(Player player, int level) {
-        return getFormattedDisplayNameWithChatColor(getDefaultChatColor(), player, level);
-    }
-
-    /**
-     * Gets the formatted version of the display name with a certain chat color
-     * @param chatColor The prefix chat color
-     * @param player The player for which the equipment is given to
-     * @param level The level of the equipment display
-     * @return The formatted version of the display name with a certain chat color
-     */
-    public String getFormattedDisplayNameWithChatColor(ChatColor chatColor, Player player, int level) {
         String formattedDisplayName = displayName;
         if (level > 0) {
             formattedDisplayName = String.format(
@@ -101,14 +92,14 @@ public abstract class EquipmentData<L> {
             );
         }
 
-        return chatColor + formattedDisplayName;
+        return formattedDisplayName;
     }
 
     /**
      * Get the default chat color of the equipment
      * @return The default chat color of the equipment
      */
-    public abstract ChatColor getDefaultChatColor();
+    public abstract TextColor getDefaultChatColor();
 
     /**
      * Gets the string representation of the type of the equipment

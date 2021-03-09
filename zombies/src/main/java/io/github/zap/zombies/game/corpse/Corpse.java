@@ -114,7 +114,7 @@ public class Corpse {
                 Bukkit.getScheduler().cancelTask(deathTaskId);
             }
 
-            this.reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
+            reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
             hologram.updateLine(1, ChatColor.RED + "Reviving...");
         }
 
@@ -128,8 +128,8 @@ public class Corpse {
         if (reviveTime <= 0) {
             active = false;
             zombiesPlayer.revive();
-            zombiesPlayer.getPlayer().sendActionBar(Component.text());
-            reviver.getPlayer().sendActionBar(Component.text());
+            zombiesPlayer.getPlayer().sendActionBar(Component.empty());
+            reviver.getPlayer().sendActionBar(Component.empty());
         } else {
             double timeRemaining = convertTicksToSeconds(reviveTime);
             String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);

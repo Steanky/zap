@@ -2,8 +2,9 @@ package io.github.zap.zombies.game.data.equipment.melee;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -41,8 +42,8 @@ public class MeleeData extends EquipmentData<MeleeLevel> {
     }
 
     @Override
-    public ChatColor getDefaultChatColor() {
-        return ChatColor.GREEN;
+    public TextColor getDefaultChatColor() {
+        return NamedTextColor.GREEN;
     }
 
     @Override

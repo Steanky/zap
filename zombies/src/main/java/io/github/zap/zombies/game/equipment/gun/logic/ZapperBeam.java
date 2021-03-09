@@ -4,6 +4,8 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.*;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -78,7 +80,12 @@ public class ZapperBeam extends LinearBeam {
             mob.playEffect(EntityEffect.HURT);
             inflictDamage(mob, getDamage(), isCritical);
             zombiesPlayer.addCoins(isCritical ? getGoldPerHeadshot() : getGoldPerShot());
-            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isCritical ? 2.0F : 1.5F, 1.0F);
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.arrow.hit.player"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    isCritical ? 2.0F : 1.5F
+            ));
             mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));
 
             hitMobs.add(mob);

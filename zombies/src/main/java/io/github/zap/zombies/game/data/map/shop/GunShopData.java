@@ -8,8 +8,10 @@ import org.bukkit.util.Vector;
 /**
  * Data for a gun shop
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class GunShopData extends ArmorStandShopData {
+
     private String gunName = "NONE";
 
     private String gunDisplayName = "NONE";

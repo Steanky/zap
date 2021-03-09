@@ -76,7 +76,7 @@ public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, Te
 
     @Override
     public void onTextFragmentChanged(ITextFragment fragment) {
-        if(getWriter().isAutoUpdate() && fragments.indexOf(fragment) != -1) getWriter().update();
+        if(getWriter().isAutoUpdate() && fragments.contains(fragment)) getWriter().update();
     }
 
 

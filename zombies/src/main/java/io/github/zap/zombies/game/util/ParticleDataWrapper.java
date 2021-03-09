@@ -17,10 +17,10 @@ public abstract class ParticleDataWrapper<D> {
     public final static String BLOCK_DATA_NAME = "block";
     public final static String ITEM_STACK_DATA_NAME = "itemStack";
 
-    private String type;
+    private final String type;
 
     @Getter
-    private D data;
+    private final D data;
 
     public static class DustParticleDataWrapper extends ParticleDataWrapper<Particle.DustOptions> {
 
