@@ -9,6 +9,9 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -17,6 +20,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,22 +117,40 @@ public class Door extends Shop<DoorData> {
                             zombiesArena.getWorld().playSound(doorData.getOpenSound(), playerLoc.getX(), playerLoc.getY(), playerLoc.getZ());
                             zombiesPlayer.subtractCoins(cost);
 
+                            List<String> newlyOpened = new ArrayList<>();
                             for(String openedRoom : doorSide.getOpensTo()) {
                                 RoomData room = zombiesArena.getMap().getNamedRoom(openedRoom);
                                 Property<Boolean> openPropery = room.getOpenProperty();
                                 if(!openPropery.getValue(zombiesArena)) {
                                     openPropery.setValue(zombiesArena, true);
+                                    newlyOpened.add(room.getRoomDisplayName());
+                                }
+                            }
 
-                                    //TODO: send player title showing which rooms they opened
+                            if(newlyOpened.size() > 0) {
+                                StringBuilder msg = new StringBuilder("opened ");
+                                int i = 0;
+                                for(String opened : newlyOpened) {
+                                    msg.append(opened);
 
+                                    if(i < newlyOpened.size() - 1) {
+                                        msg.append(", ");
+                                    }
+                                }
+
+                                for(ZombiesPlayer otherPlayer : zombiesArena.getPlayerMap().values()) {
+                                    otherPlayer.getPlayer().showTitle(Title.title(Component.text(player.getName())
+                                            .color(TextColor.color(255, 255, 0)), Component.text(msg.toString())
+                                            .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                            Duration.ofSeconds(3), Duration.ofSeconds(1))));
                                 }
                             }
 
                             for (Hologram hologram : doorSideHologramMap.values()) {
                                 hologram.destroy();
                             }
-                            opened = true;
 
+                            opened = true;
                             onPurchaseSuccess(zombiesPlayer);
                         }
 
