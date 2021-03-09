@@ -84,7 +84,7 @@ public class ZapperBeam extends LinearBeam {
                     Key.key("minecraft:entity.arrow.hit_player"),
                     Sound.Source.MASTER,
                     1.0F,
-                    isCritical ? 2.0F : 1.5F
+                    isCritical ? 1.5F : 2.0F
             ));
             mob.setVelocity(mob.getVelocity().add(getDirectionVector().clone().multiply(getKnockbackFactor())));
 

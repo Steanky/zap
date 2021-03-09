@@ -261,7 +261,7 @@ public class BasicBeam {
                     Key.key("minecraft:entity.arrow.hit_player"),
                     Sound.Source.MASTER,
                     1.0F,
-                    isCritical ? 2.0F : 1.5F
+                    isCritical ? 1.5F : 2F
             ));
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
 
