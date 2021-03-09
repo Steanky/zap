@@ -16,10 +16,10 @@ import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
-import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.*;
 import org.bukkit.block.Block;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -96,6 +96,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     public void quit() {
         super.quit();
+
+        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
 
         state = ZombiesPlayerState.DEAD;
 
@@ -249,7 +251,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      */
     public void disableRevive() {
         if (targetCorpse != null) {
-            getPlayer().sendActionBar(Component.text());
+            getPlayer().sendActionBar(Component.empty());
             targetCorpse.setReviver(null);
             targetCorpse = null;
         }
@@ -350,7 +352,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                     getPlayer().sendActionBar(Component.text());
                 } else {
                     getPlayer().sendActionBar(
-                            Component.text("Hold SHIFT to repair!").color(TextColor.color(16777045))
+                            Component.text("Hold SHIFT to repair!").color(NamedTextColor.YELLOW)
                     );
                 }
             } else {
@@ -458,7 +460,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 } else {
                     getPlayer().sendActionBar(Component.text(
                             String.format("Hold SHIFT to Revive %s!", corpse.getZombiesPlayer().getPlayer().getName())
-                            ).color(TextColor.color(16777045))
+                            ).color(NamedTextColor.YELLOW)
                     );
                 }
 

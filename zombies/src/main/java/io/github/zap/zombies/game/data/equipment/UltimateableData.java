@@ -27,7 +27,7 @@ public abstract class UltimateableData<L> extends EquipmentData<L> {
     }
 
     @Override
-    public String getFormattedDisplayNameWithChatColor(ChatColor chatColor, Player player, int level) {
+    public String getFormattedDisplayName(Player player, int level) {
         String formattedDisplayName = getDisplayName();
         if (level > 0) {
             formattedDisplayName = ChatColor.BOLD.toString() + formattedDisplayName;
@@ -38,7 +38,7 @@ public abstract class UltimateableData<L> extends EquipmentData<L> {
             }
         }
 
-        return chatColor + formattedDisplayName;
+        return formattedDisplayName;
     }
 
 }

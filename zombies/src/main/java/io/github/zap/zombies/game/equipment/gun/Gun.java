@@ -7,13 +7,12 @@ import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
-import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -63,9 +62,17 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
             if (currentClipAmmo < clipAmmo && clipAmmo <= currentAmmo) {
                 canReload = false;
                 canShoot = false;
+
                 Player player = getPlayer();
-                player.sendActionBar(Component.text("RELOADING").color(TextColor.color(16777045)));
-                player.playSound(player.getLocation(), Sound.ENTITY_HORSE_GALLOP, 1F, 0.5F);
+                player.sendActionBar(Component.text("RELOADING").color(NamedTextColor.YELLOW));
+                player.playSound(
+                        Sound.sound(
+                                Key.key("minecraft:entity.horse.gallop"),
+                                Sound.Source.MASTER,
+                                1F,
+                                0.5F
+                        )
+                );
 
                 new BukkitRunnable() {
                     private final int reloadRate = level.getReloadRate();
@@ -107,8 +114,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         setAmmo(currentAmmo - 1);
         setClipAmmo(currentClipAmmo - 1);
 
-        long initial = System.currentTimeMillis();
         Player player = getPlayer();
+
         // Animate xp bar
         new BukkitRunnable() {
             private final int goal =
@@ -143,14 +150,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
             }
         }
 
-        D equipmentData = getEquipmentData();
-        Jingle.Note note = equipmentData.getNote();
-        net.kyori.adventure.sound.Sound sound = net.kyori.adventure.sound.Sound.sound(
-                Key.key(note.getSound().getKey().toString().toLowerCase()),
-                net.kyori.adventure.sound.Sound.Source.MASTER,
-                note.getVolume(),
-                note.getPitch()
-        );
+        Sound sound = getEquipmentData().getSound();
         player.playSound(sound);
     }
 
@@ -204,7 +204,6 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         }
         setRepresentingItemStack(getRepresentingItemStack());
 
-        // TODO: work around for item not updating meta twice in 1 server thread iteration
         getPlayer().updateInventory();
     }
 

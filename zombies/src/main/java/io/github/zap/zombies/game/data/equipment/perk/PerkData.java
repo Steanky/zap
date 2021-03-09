@@ -4,6 +4,8 @@ import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.perk.PerkType;
 import lombok.Getter;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -29,8 +31,8 @@ public class PerkData extends EquipmentData<PerkLevel> {
     }
 
     @Override
-    public ChatColor getDefaultChatColor() {
-        return ChatColor.BLUE;
+    public TextColor getDefaultChatColor() {
+        return NamedTextColor.BLUE;
     }
 
     @Override
