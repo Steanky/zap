@@ -64,4 +64,11 @@ public abstract class Arena<T extends Arena<T>> implements Unique, Disposable {
      * @param leaving The leaving players
      */
     public abstract void handleLeave(List<Player> leaving);
+
+    /**
+     * Returns whether or not the player is currently managed by the arena.
+     * @param id The UUID of the player
+     * @return Whether or not they are being managed by this arena
+     */
+    public abstract boolean hasPlayer(UUID id);
 }

@@ -314,6 +314,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     @Override
+    public boolean hasPlayer(UUID id) {
+        return playerMap.containsKey(id) && playerMap.get(id).isInGame();
+    }
+
+    @Override
     public void dispose() {
         onDisposing.callEvent(new ArenaEventArgs<>(this));
 

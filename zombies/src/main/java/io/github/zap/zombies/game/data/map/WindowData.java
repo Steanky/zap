@@ -71,12 +71,12 @@ public class WindowData {
     /**
      * The sound that plays when a single block is repaired
      */
-    Sound blockRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_PLACE.getKey(), Sound.Source.HOSTILE, 3F, 1F);
+    Sound blockRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOOD_PLACE.getKey(), Sound.Source.PLAYER, 3F, 1F);
 
     /**
      * The sound that plays when the entire window has been repaired
      */
-    Sound windowRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE.getKey(), Sound.Source.HOSTILE, 3F, 1F);
+    Sound windowRepairSound = Sound.sound(org.bukkit.Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE.getKey(), Sound.Source.PLAYER, 3F, 1F);
 
     /**
      * Arena specific state: the current index at which the window is being repaired or broken. This points to the index

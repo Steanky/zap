@@ -443,7 +443,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         for(Player player : args.getPlayers()) {
             player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
-            player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
+
+            if(state == ZombiesArenaState.PREGAME) {
+                player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
+            }
         }
 
         resetTimeout(); //if arena was in timeout state, reset that
@@ -476,10 +479,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 break;
         }
 
-        if(!map.isAllowRejoin()) {
-            for(ZombiesPlayer player : args.getPlayers()) {
+        for(ZombiesPlayer player : args.getPlayers()) {
+            if(!map.isAllowRejoin()) {
                 super.removePlayer(player);
             }
+
+            player.getPlayer().teleport(getManager().getHubLocation());
         }
     }
 
