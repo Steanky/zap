@@ -399,11 +399,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             if(frozenBullets.getCurrentLevel() > 0) {
                 AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
                 if(speed != null) {
-                    AttributeModifier speedMod = new AttributeModifier("josh's parents don't love him",
-                            1D / frozenBullets.getSlowdownFactor(), AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+                    double oldValue = speed.getBaseValue();
+                    speed.setBaseValue(speed.getBaseValue() / ((double)frozenBullets.getCurrentLevel() + 1D));
 
-                    speed.addModifier(speedMod);
-                    Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.removeModifier(speedMod),
+                    Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.setBaseValue(oldValue),
                             frozenBullets.getDuration());
                 }
             }
