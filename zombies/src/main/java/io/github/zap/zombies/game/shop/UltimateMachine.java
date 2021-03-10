@@ -49,8 +49,11 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
             Player player = zombiesPlayer.getPlayer();
 
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                if (zombiesPlayer.getCoins() < getShopData().getCost()) {
+            UltimateMachineData shopData = getShopData();
+            if (!shopData.isRequiresPower() || isPowered()) {
+                int cost = shopData.getCost();
+
+                if (zombiesPlayer.getCoins() < cost) {
                     player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                 } else {
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
@@ -60,14 +63,15 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                         UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
                         if (upgradeableEquipment.getLevel()
                                 < upgradeableEquipment.getEquipmentData().getLevels().size()) {
-
                             upgradeableEquipment.upgrade();
+
+                            zombiesPlayer.subtractCoins(cost);
                             onPurchaseSuccess(zombiesPlayer);
                         } else {
                             player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "Choose a slot to receive this item in!");
+                        player.sendMessage(ChatColor.RED + "Choose a slot to receive the upgrade for!");
                     }
                 }
             } else {

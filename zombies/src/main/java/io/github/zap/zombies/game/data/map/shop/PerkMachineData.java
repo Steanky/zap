@@ -11,9 +11,13 @@ import java.util.List;
 /**
  * Data for a perk machine
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class PerkMachineData extends BlockShopData {
+
     private PerkType perkType = PerkType.DEFAULT;
+
+    private String perkName = "DEFAULT";
 
     private List<Integer> costs = new ArrayList<>();
 
@@ -24,4 +28,5 @@ public class PerkMachineData extends BlockShopData {
     public PerkMachineData(Vector blockLocation, Vector hologramLocation) {
         super(ShopType.PERK_MACHINE, true, blockLocation, hologramLocation);
     }
+
 }

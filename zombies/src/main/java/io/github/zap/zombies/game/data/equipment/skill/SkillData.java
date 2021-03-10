@@ -3,7 +3,8 @@ package io.github.zap.zombies.game.data.equipment.skill;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import lombok.Getter;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
 
 import java.util.List;
@@ -28,8 +29,8 @@ public class SkillData extends EquipmentData<SkillLevel> {
     }
 
     @Override
-    public ChatColor getDefaultChatColor() {
-        return ChatColor.AQUA;
+    public TextColor getDefaultChatColor() {
+        return NamedTextColor.AQUA;
     }
 
     @Override

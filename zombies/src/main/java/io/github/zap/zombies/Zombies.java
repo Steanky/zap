@@ -18,8 +18,12 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.*;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedArrowShoot;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
 import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
+import io.github.zap.zombies.game.mob.mechanic.SpawnMobMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -123,7 +127,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             initDependencies();
             initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class,
                     WrappedArrowShoot.class);
-            initMechanics(CobwebMechanic.class);
+            initMechanics(CobwebMechanic.class, SpawnMobMechanic.class);
             initPlayerDataManager();
             initLocalization();
             initWorldLoader();

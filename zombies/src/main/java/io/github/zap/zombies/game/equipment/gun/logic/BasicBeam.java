@@ -6,11 +6,12 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
-import io.github.zap.zombies.game.data.powerups.ModifierModificationPowerUpData;
 import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -81,8 +82,8 @@ public class BasicBeam {
 
         if (AIR_MATERIALS.contains(targetBlock.getType())) {
             Location location = targetBlock.getLocation();
-            boundingBox = new BoundingBox(location.getX(), targetBlock.getY(), targetBlock.getZ(),
-                    location.getX() + 1, location.getY() + 1, targetBlock.getZ() + 1);
+            boundingBox = new BoundingBox(location.getX(), location.getY(), location.getZ(),
+                    location.getX() + 1, location.getY() + 1, location.getZ() + 1);
         } else {
             boundingBox = targetBlock.getBoundingBox();
         }
@@ -110,8 +111,18 @@ public class BasicBeam {
             targetBlock = iterator.next();
 
             Material material = targetBlock.getType();
-            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) != null) {
-                break;
+            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
+                BoundingBox boundingBox = targetBlock.getBoundingBox();
+                if (boundingBox.getWidthX() != 1.0D
+                        || boundingBox.getHeight() != 1.0D || boundingBox.getWidthZ() != 1.0D) {
+                    RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,range + 1.74);
+
+                    if (rayTraceResult != null) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
             }
         }
 
@@ -173,7 +184,7 @@ public class BasicBeam {
     }
 
     /**
-     * Fills the queue up with entities until it has reached the maxmimum hit entities
+     * Fills the queue up with entities until it has reached the maximum hit entities
      * @param queue The queue to fill up
      * @param iterator The entity iterable iterator
      */
@@ -242,11 +253,16 @@ public class BasicBeam {
         if (mob != null && getZombiesPlayer().getArena().getMobs().contains(mob.getUniqueId())) {
             Player player = zombiesPlayer.getPlayer();
 
-            var isHeadShot = determineIfHeadshot(rayTraceResult, mob);
-            inflictDamage(mob, damage, isHeadShot);
+            var isCritical = determineIfHeadshot(rayTraceResult, mob);
+            inflictDamage(mob, damage, isCritical);
             mob.playEffect(EntityEffect.HURT);
-            zombiesPlayer.addCoins(isHeadShot ? goldPerHeadshot : goldPerShot);
-            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, isHeadShot ? 2F : 1.5F, 1.0F);
+            zombiesPlayer.addCoins(isCritical ? goldPerHeadshot : goldPerShot);
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.arrow.hit_player"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    isCritical ? 1.5F : 2F
+            ));
             mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
 
             if (mob.getHealth() <= 0) {
@@ -271,12 +287,10 @@ public class BasicBeam {
                 });
         if(instaKill.getValue()) { // TODO: Maybe set a entity metadata that can defy instakill
             mob.setHealth(0);
+        } else if(isCritical) {
+            mob.setHealth(Math.max(mob.getHealth() - finalDmg.getValue(), 0));
         } else {
-            if(isCritical) {
-                mob.setHealth(mob.getHealth() - finalDmg.getValue());
-            } else {
-                mob.damage(finalDmg.getValue());
-            }
+            mob.damage(finalDmg.getValue());
         }
     }
 

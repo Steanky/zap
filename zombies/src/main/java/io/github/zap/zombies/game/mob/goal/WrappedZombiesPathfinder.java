@@ -5,6 +5,9 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
+import lombok.Value;
+import net.minecraft.server.v1_16_R3.AttributeBase;
+import net.minecraft.server.v1_16_R3.EntityInsentient;
 import net.minecraft.server.v1_16_R3.GenericAttributes;
 import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -16,6 +19,12 @@ import org.bukkit.event.entity.EntityTargetEvent;
  * to Double.MAX_VALUE, which makes the AI high iq.
  */
 public class WrappedZombiesPathfinder extends ZombiesPathfinder {
+    @Value
+    public static class AttributeValue {
+        AttributeBase attribute;
+        double value;
+    }
+
     private final int retargetInterval;
 
     @Getter
@@ -27,15 +36,24 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Getter
     private ZombiesPlayer target;
 
-    private int attemptRetarget = 19;
+    private int locateInitial = 19;
     private int counter;
 
-    public WrappedZombiesPathfinder(AbstractEntity entity, PathfinderGoal wrappedGoal, int retargetInterval) {
+    public WrappedZombiesPathfinder(AbstractEntity entity, PathfinderGoal wrappedGoal, int retargetInterval,
+                                    AttributeValue...values) {
         super(entity, Zombies.ARENA_METADATA_NAME);
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
-        getProxy().setAttributeFor(getHandle(), GenericAttributes.FOLLOW_RANGE, Double.MAX_VALUE);
-        counter = retargetInterval > 0 ? getHandle().getRandom().nextInt(retargetInterval) : -1;
+        getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, Float.MAX_VALUE);
+
+        EntityInsentient entityInsentient = getHandle();
+        entityInsentient.getNavigation().a(Float.MAX_VALUE);
+
+        counter = retargetInterval > 0 ? entityInsentient.getRandom().nextInt(retargetInterval) : -1;
+
+        for(AttributeValue value : values) {
+            getProxy().setDoubleFor(entityInsentient, value.attribute, value.value);
+        }
     }
 
     @Override
@@ -44,13 +62,15 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
             arena = getMetadata(Zombies.ARENA_METADATA_NAME);
         }
 
-        if(target == null && ++attemptRetarget == 20) {
-            attemptRetarget = 0;
-            target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
+        if(target == null) { //if our target is null, periodically keep trying to find it
+            if(++locateInitial == 20) {
+                locateInitial = 0;
+                target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
 
-            if(target != null) {
-                getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
-                return wrappedGoal.a();
+                if(target != null) {
+                    getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
+                    return wrappedGoal.a();
+                }
             }
 
             return false;
@@ -72,8 +92,9 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Override
     public void onEnd() {
         getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, true);
+        getHandle().getNavigation().stopPathfinding(); //necessary for some aigoals to work right
         target = null;
-        attemptRetarget = 19;
+        locateInitial = 19;
         wrappedGoal.d();
     }
 

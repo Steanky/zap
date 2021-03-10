@@ -8,11 +8,10 @@ import net.minecraft.server.v1_16_R3.Entity;
 import net.minecraft.server.v1_16_R3.EntityInsentient;
 import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * General pathfinding class for Zombies. Supports lazy loading of entity metadata from MythicMobs; subclass pathfinding
@@ -64,7 +63,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
 
     /**
      * Gets the metadata value for the given string. Will throw ClassCastException if the metadata type does not match.
-     * Accepts a generic Class, to whose type the metadata will be cast. Null values for metadata are not permitted.
+     * Accepts a generic Class, to whose type the metadata will be cast.
      * @param key The name of the metadata to get
      * @param dummy The Class which supplies the generic type parameter
      * @param <T> The type of the metadata
@@ -79,11 +78,16 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
     public final boolean shouldActivate() {
         if(!metadataLoaded) {
             for(String key : metadataKeys) {
-                Optional<Object> optional = entity.getMetadata(key);
-                if(optional.isPresent()) {
-                    metadata.put(key, optional.get());
+                boolean gotMetadata = false;
+                for(MetadataValue metadata : entity.getBukkitEntity().getMetadata(key)) {
+                    if(metadata.getOwningPlugin() == Zombies.getInstance()) {
+                        this.metadata.put(key, metadata.value());
+                        gotMetadata = true;
+                        break;
+                    }
                 }
-                else {
+
+                if(!gotMetadata) {
                     return false;
                 }
             }

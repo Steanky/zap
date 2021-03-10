@@ -8,11 +8,9 @@ import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.Random;
@@ -39,7 +37,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
     // The zombies died at this death count will drop power up
     private int deathCountUntilDrops;
     private int roundDeathCount;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     private void onMobDeath(MythicMobDeathEvent e) {
         var patterns = getData().getPattern();

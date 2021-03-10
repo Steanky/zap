@@ -6,7 +6,9 @@ import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.BarricadeCountModificationPowerUpData;
 import io.github.zap.zombies.game.data.powerups.ModifierMode;
 import io.github.zap.zombies.game.util.MathUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
 
 /**
  * Modify the number of barricade block on a window using a function f(x) = x * multiplier + amount
@@ -39,10 +41,18 @@ public class BarricadeCountModificationPowerUp extends PowerUp{
 
         var valToChange = (int) MathUtils.clamp(i * data.getMultiplier() + data.getAmount(), 0, windowData.getVolume());
         windowData.getCurrentIndexProperty().setValue(getArena(), valToChange - 1);
+
         // TODO: Change this after @Steank Change Breaking pattern
         for(int s = 0; s < windowData.getVolume(); s++) {
-            WorldUtils.getBlockAt(getDropLocation().getWorld(), windowData.getFaceVectors().get(s))
-                    .setType(s <= valToChange - 1 ? windowData.getRepairedMaterials().get(s) : Material.AIR);
+            BlockData blockData;
+            if(s <= valToChange - 1) {
+                blockData = Bukkit.createBlockData(windowData.getRepairedData().get(s));
+            }
+            else {
+                blockData = Bukkit.createBlockData(Material.AIR);
+            }
+
+            WorldUtils.getBlockAt(getDropLocation().getWorld(), windowData.getFaceVectors().get(s)).setBlockData(blockData);
         }
     }
 }

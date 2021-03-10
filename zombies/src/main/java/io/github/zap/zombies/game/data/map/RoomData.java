@@ -21,12 +21,12 @@ public class RoomData {
     /**
      * The unique, non-user-friendly name of this room.
      */
-    String name = "new_room";
+    String name;
 
     /**
      * The message key of the room name
      */
-    String roomNameKey = "room.new_room.name";
+    String roomDisplayName;
 
     /**
      * The bounds of this room, used for knockdown messages and other things
@@ -57,6 +57,6 @@ public class RoomData {
 
     public RoomData(String name) {
         this.name = name;
-        this.roomNameKey = "room." + name + ".name";
+        this.roomDisplayName = name;
     }
 }

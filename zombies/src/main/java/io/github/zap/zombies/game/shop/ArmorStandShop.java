@@ -28,16 +28,13 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
         World world = zombiesArena.getWorld();
 
         armorStand = world.spawn(
-                getShopData().getRootLocation().toLocation(world).add(0.5, -1.0, 0.5),
+                getShopData().getRootLocation().toLocation(world).add(0.0D, -1.0D, 0.0D),
                 ArmorStand.class
         );
         armorStand.setGravity(false);
         armorStand.setVisible(false);
 
-        hologram = new Hologram(
-                getShopData().getRootLocation().toLocation(world).add(0.5, -2.0, 0.5),
-                2
-        );
+        hologram = new Hologram(getShopData().getRootLocation().toLocation(world).add(0.0D, -2.0D, 0.0D));
     }
 
     @Override

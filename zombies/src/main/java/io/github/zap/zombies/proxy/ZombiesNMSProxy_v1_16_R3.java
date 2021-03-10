@@ -10,7 +10,6 @@ import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -33,6 +32,15 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         }
     }
 
+    /**
+     * Returns the nearest ZombiesPlayer in the given arena, using path length instead of vector distance for AI that
+     * should prioritize rationally. Uses a predicate — ZombiesPlayers who fail the predicate will not be considered.
+     * @param entity The entity to navigate for
+     * @param arena The arena to search in
+     * @param filter The predicate to use
+     * @return The nearest ZombiesPlayer using path length, or null if none exist that are reachable and match the
+     * predicate
+     */
     @Override
     public ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, Predicate<ZombiesPlayer> filter) {
         Pair<Float, ZombiesPlayer> bestCandidate = ImmutablePair.of(Float.MAX_VALUE, null);
@@ -40,9 +48,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             if(filter.test(player)) {
                 Player bukkitPlayer = player.getPlayer();
-                Location location = bukkitPlayer.getLocation();
-
-                PathEntity path = entity.getNavigation().a(new BlockPosition(location.getX(), location.getY(), location.getZ()), 0);
+                PathEntity path = getPathToUnbounded(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
 
                 if(path != null) {
                     PathPoint finalPoint = path.getFinalPoint();
@@ -61,7 +67,8 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     @Override
     public void navigateToLocation(EntityInsentient entity, double x, double y, double z, double speed) {
         if(entity.isAlive()) {
-            entity.getNavigation().a(x, y, z, speed);
+            NavigationAbstract navigationAbstract = entity.getNavigation();
+            entity.getNavigation().a(navigationAbstract.a(x, y, z, 0), speed);
         }
     }
 
@@ -86,11 +93,16 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public void setAttributeFor(EntityLiving entity, AttributeBase attribute, double value) {
-        AttributeModifiable modifiableAttribute = entity.getAttributeMap().a(attribute);
+    public void setDoubleFor(EntityLiving entity, AttributeBase attribute, double value) {
+        AttributeMapBase attributeMap = entity.getAttributeMap();
+        AttributeModifiable modifiableAttribute = attributeMap.a(attribute);
 
         if(modifiableAttribute != null) {
             modifiableAttribute.setValue(value);
+        }
+        else {
+            attributeMap.registerAttribute(attribute);
+            attributeMap.a(attribute).setValue(value);
         }
     }
 
@@ -107,5 +119,25 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
             return itemStack;
         }
 
+    }
+
+    @Override
+    public PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation) {
+        return entity.getNavigation().a(x, y, z, deviation);
+    }
+
+    @Override
+    public PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation) {
+        return entity.getNavigation().calculateDestination(target);
+    }
+
+    @Override
+    public boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed) {
+        return entity.getNavigation().a(path, speed);
+    }
+
+    @Override
+    public boolean hasAttribute(EntityInsentient entity, AttributeBase attribute) {
+        return entity.getAttributeMap().b(attribute);
     }
 }

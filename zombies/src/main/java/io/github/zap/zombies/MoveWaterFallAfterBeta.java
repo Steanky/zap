@@ -28,7 +28,7 @@ public class MoveWaterFallAfterBeta implements Listener {
     private void onArenaDisposing(ManagingArena.ArenaEventArgs<?, ? extends ManagedPlayer<?, ?>> arenaEventArgs) {
         arenaEventArgs.getArena().getPlayerMap().forEach((l,r) -> {
             if(r.isInGame()) {
-                r.getPlayer().teleport(r.getArena().getManager().getHubLocation());
+                r.getPlayer().teleport(lobbyLocation);
             }
         });
     }

@@ -17,5 +17,10 @@ public enum SpawnMethod {
     /**
      * Mobs will spawn even in rooms that are closed, regardless of player distance
      */
-    FORCE
+    FORCE,
+
+    /**
+     * Mobs spawn with SLA and not in closed rooms, but ignore spawnpoint spawnrules
+     */
+    IGNORE_SPAWNRULE
 }

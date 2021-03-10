@@ -11,10 +11,7 @@ import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -124,23 +121,13 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                     EventPriority.NORMAL, false), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
-                if(managedPlayer != null && managedPlayer.isInGame()) {
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
+                if(managedPlayer != null) {
+                    if(managedPlayer.isInGame()) {
+                        return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
+                    }
                 }
-
-                return ImmutablePair.of(false, null);
-            });
-        }
-    }
-
-    private class AdaptedPlayerDeathEvent extends MappingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
-        public AdaptedPlayerDeathEvent() {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
-                    EventPriority.NORMAL, false), event -> {
-                S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
-
-                if(managedPlayer != null && managedPlayer.isInGame()) {
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
+                else {
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, null));
                 }
 
                 return ImmutablePair.of(false, null);
@@ -171,10 +158,12 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerAnimationEvent>> playerAnimationEvent;
     private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent;
     private final Event<ProxyArgs<EntityDamageEvent>> playerDamageEvent;
+    private final Event<ProxyArgs<EntityDamageByEntityEvent>> entityDamageByEntityEvent;
     private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent;
     private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent;
     private final Event<ProxyArgs<PlayerItemHeldEvent>> playerItemHeldEvent;
     private final Event<ProxyArgs<PlayerItemConsumeEvent>> playerItemConsumeEvent;
+    private final Event<ProxyArgs<PlayerItemDamageEvent>> playerItemDamageEvent;
     private final Event<ProxyArgs<PlayerAttemptPickupItemEvent>> playerAttemptPickupItemEvent;
     private final Event<ProxyArgs<PlayerArmorStandManipulateEvent>> playerArmorStandManipulateEvent;
     private final Event<ProxyArgs<FoodLevelChangeEvent>> playerFoodLevelChangeEvent;
@@ -192,10 +181,12 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerAnimationEvent = new AdaptedPlayerEvent<>(PlayerAnimationEvent.class);
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
         playerDamageEvent = new AdaptedEntityEvent<>(EntityDamageEvent.class);
-        playerDeathEvent = new AdaptedPlayerDeathEvent();
+        entityDamageByEntityEvent = new AdaptedEntityEvent<>(EntityDamageByEntityEvent.class);
+        playerDeathEvent = new AdaptedEntityEvent<>(PlayerDeathEvent.class);
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
         playerItemConsumeEvent = new AdaptedPlayerEvent<>(PlayerItemConsumeEvent.class);
+        playerItemDamageEvent = new AdaptedPlayerEvent<>(PlayerItemDamageEvent.class);
         playerAttemptPickupItemEvent = new AdaptedPlayerEvent<>(PlayerAttemptPickupItemEvent.class);
         playerArmorStandManipulateEvent = new AdaptedPlayerEvent<>(PlayerArmorStandManipulateEvent.class);
         playerFoodLevelChangeEvent = new AdaptedEntityEvent<>(FoodLevelChangeEvent.class);
@@ -312,6 +303,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     @Override
+    public boolean hasPlayer(UUID id) {
+        return playerMap.containsKey(id) && playerMap.get(id).isInGame();
+    }
+
+    @Override
     public void dispose() {
         onDisposing.callEvent(new ArenaEventArgs<>(this));
 
@@ -335,25 +331,25 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * Returns true if this arena is in a state to allow players to join or rejoin the game. Returns false otherwise.
      * @return True if joining/rejoining is allowed, false otherwise
      */
-    protected abstract boolean allowPlayers();
+    public abstract boolean allowPlayers();
 
     /**
      * Returns true if the provided list of new players should ALL be allowed to join the game.
      * @param players The players that are trying to join
      * @return True if they can join, false otherwise
      */
-    protected abstract boolean allowPlayerJoin(List<Player> players);
+    public abstract boolean allowPlayerJoin(List<Player> players);
 
     /**
      * Returns true if the provided list of players should be able to rejoin the game.
      * @param players The players that are trying to rejoin
      * @return True if they can rejoin, false otherwise
      */
-    protected abstract boolean allowPlayerRejoin(List<S> players);
+    public abstract boolean allowPlayerRejoin(List<S> players);
 
     /**
      * Helper method; gets the implementing arena
      * @return The implementing arena
      */
-    protected abstract T getArena();
+    public abstract T getArena();
 }

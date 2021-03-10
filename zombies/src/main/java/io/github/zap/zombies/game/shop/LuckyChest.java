@@ -7,17 +7,16 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.shop.LuckyChestData;
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.sound.Sound;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -48,7 +47,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
     private final Block left, right;
 
-    private final Roller roller;
+    // private final Roller roller;
 
     private UUID rollingPlayerId = null;
 
@@ -61,9 +60,9 @@ public class LuckyChest extends Shop<LuckyChestData> {
         super(zombiesArena, shopData);
 
         EquipmentManager equipmentManager = zombiesArena.getEquipmentManager();
-        String mapNameKey = getZombiesArena().getMap().getMapNameKey();
+        String mapName = getZombiesArena().getMap().getName();
         for (String equipmentName : shopData.getEquipments()) {
-            equipments.add(equipmentManager.getEquipmentData(mapNameKey, equipmentName));
+            equipments.add(equipmentManager.getEquipmentData(mapName, equipmentName));
         }
 
         World world = zombiesArena.getWorld();
@@ -75,7 +74,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         left = world.getBlockAt(Objects.requireNonNull(doubleChestInventory.getLeftSide().getLocation()));
         right = world.getBlockAt(Objects.requireNonNull(doubleChestInventory.getRightSide().getLocation()));
 
-        roller = new Roller(this);
+        // roller = new Roller(this);
     }
 
     /**
@@ -103,7 +102,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         for (Player player : args.getPlayers()) {
             if (hologram != null) {
                 hologram.renderToPlayer(player);
-                roller.displayTo(player);
+                // roller.displayTo(player);
             }
         }
     }
@@ -144,10 +143,10 @@ public class LuckyChest extends Shop<LuckyChestData> {
                             } else {
                                 rollingPlayerId = zombiesPlayer.getPlayer().getUniqueId();
                                 playerInteractEvent.setCancelled(true);
-                                Jingle.play(luckyChestData.getJingle(), roller, chestLocation);
+                                // Jingle.play(luckyChestData.getJingle(), roller, chestLocation);
                             }
                         } else if (zombiesPlayer.getId().equals(rollingPlayerId)) {
-                            if (roller.isCollectable()) {
+                            /* if (roller.isCollectable()) {
                                 EquipmentData<?> equipmentData = equipments.get(roller.getRollIndex());
 
                                 HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
@@ -178,6 +177,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
                             } else {
                                 player.sendMessage(ChatColor.RED + "The chest is not done rolling yet!");
                             }
+
+                             */
                         } else {
                             player.sendMessage(ChatColor.RED + "Somebody else is rolling!");
                         }
@@ -285,7 +286,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         }
 
         @Override
-        public void onStart(List<Pair<List<Jingle.Note>, Long>> jingle) {
+        public void onStart(List<Pair<List<Sound>, Long>> jingle) {
             toggle(false);
             rollingItem = world.dropItem(
                     chestLocation.clone().add(0, 0.981250, 0),
@@ -294,7 +295,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             rollingItem.setGravity(false);
             rollingItem.setVelocity(new Vector(0, 0, 0));
 
-            gunName = new Hologram(chestLocation.clone(), 1);
+            gunName = new Hologram(chestLocation.clone());
             gunName.addLine("");
 
             PacketContainer packetContainer = getChestPacket();
@@ -311,17 +312,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
 
         @Override
-        public void onEnd(List<Pair<List<Jingle.Note>, Long>> jingle) {
-            timeRemaining = new Hologram(
-                    chestLocation.clone().add(0, 1, 0),
-                    2
-            );
+        public void onEnd(List<Pair<List<Sound>, Long>> jingle) {
+            timeRemaining = new Hologram(chestLocation.clone().add(0, 1, 0));
             timeRemaining.addLine(String.format("%s%ds", ChatColor.RED, sittingTime));
 
-            rightClickToClaim = new Hologram(
-                    chestLocation.clone().add(0, 0.25, 0),
-                    1
-            );
+            rightClickToClaim = new Hologram(chestLocation.clone().add(0, 0.25, 0));
             rightClickToClaim.addLine("Right Click to Claim");
 
             collectable = true;
@@ -343,7 +338,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         }
 
         @Override
-        public void onNotePlayed(List<Pair<List<Jingle.Note>, Long>> jingle) {
+        public void onNotePlayed(List<Pair<List<Sound>, Long>> jingle) {
             EquipmentData<?> equipmentData = equipments.get(rollIndex = random.nextInt(jingle.size()));
 
             rollingItem.getItemStack().setType(equipmentData.getMaterial());

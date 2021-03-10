@@ -15,7 +15,7 @@ import org.bukkit.World;
 @Getter
 public class LinearBeam extends BasicBeam {
 
-    public final static int DEFAULT_PARTICLE_COUNT = 50; // TODO: check
+    public final static int DEFAULT_PARTICLE_COUNT = 4;
 
     private final Particle particle;
     private final ParticleDataWrapper<?> particleDataWrapper;

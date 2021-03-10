@@ -31,7 +31,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        getZombiesArena().getShopEvents().get(getShopType()).registerHandler(args -> {
+        getZombiesArena().getShopEvent(getShopType()).registerHandler(args -> {
             if (args.getShop().equals(this)) {
                 displayTo(args.getZombiesPlayer().getPlayer());
             }
@@ -45,11 +45,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
             ItemStack itemStack = new ItemStack(
                     getZombiesArena().getEquipmentManager().getEquipmentData(
-                            getZombiesArena().getMap().getMapNameKey(), getShopData().getGunName()
+                            getZombiesArena().getMap().getName(), getShopData().getGunName()
                     ).getMaterial()
             );
             item = world.dropItem(
-                    getShopData().getRootLocation().toLocation(world).add(0.5, 0.48125, 0.5),
+                    getShopData().getRootLocation().toLocation(world),
                     itemStack
             );
             item.setGravity(false);
@@ -68,6 +68,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
+        String gunDisplayName = gunShopData.getGunDisplayName();
 
         String firstHologramLine = null;
         String secondHologramLine = null;
@@ -84,9 +85,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                             Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
                             if (gun.getEquipmentData().getName().equals(gunName)) {
-                                firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunName);
+                                firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunDisplayName);
                                 secondHologramLine =
-                                        String.format("%s%d Gold", ChatColor.GREEN, gunShopData.getRefillCost());
+                                        String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getRefillCost());
                                 break;
                             }
                         }
@@ -96,7 +97,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         }
 
         if (firstHologramLine == null) {
-            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunName);
+            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunDisplayName);
             secondHologramLine = String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getCost());
         }
 
@@ -117,9 +118,13 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 GunObjectGroup gunObjectGroup = (GunObjectGroup)
                         hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
 
-                if (tryRefill(zombiesPlayer, gunObjectGroup) != null || tryBuy(zombiesPlayer, gunObjectGroup)) {
+                Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
+                if (refillAttempt == null) {
+                    if (tryBuy(zombiesPlayer, gunObjectGroup)) {
+                        onPurchaseSuccess(zombiesPlayer);
+                    }
+                } else if (refillAttempt) {
                     onPurchaseSuccess(zombiesPlayer);
-                    // TODO: ye
                 }
             } else {
                 player.sendMessage(ChatColor.RED + "The power is not active yet!");
@@ -144,16 +149,21 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
 
                 if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
-                    int refillCost = gunShopData.getRefillCost();
-                    if (zombiesPlayer.getCoins() < refillCost) {
-                        zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
-
+                    if (gun.getCurrentAmmo() == gun.getCurrentLevel().getAmmo()) {
+                        zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "Your gun is already filled!");
                         return false;
                     } else {
-                        zombiesPlayer.subtractCoins(refillCost);
-                        gun.refill();
+                        int refillCost = gunShopData.getRefillCost();
+                        if (zombiesPlayer.getCoins() < refillCost) {
+                            zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
 
-                        return true;
+                            return false;
+                        } else {
+                            zombiesPlayer.subtractCoins(refillCost);
+                            gun.refill();
+
+                            return true;
+                        }
                     }
                 }
             }
@@ -188,7 +198,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     getZombiesArena(),
                     zombiesPlayer,
                     slot,
-                    getZombiesArena().getMap().getMapNameKey(),
+                    getZombiesArena().getMap().getName(),
                     gunShopData.getGunName()));
 
             return true;

@@ -38,6 +38,16 @@ public class MultiBoundingBox implements Iterable<BoundingBox> {
         return false;
     }
 
+    public boolean contains(double x, double y, double z) {
+        for(BoundingBox boundingBox : boundingBoxes) {
+            if(boundingBox.contains(x, y, z)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Returns true if all bounds for this MultiBoundingBox are contained in the given BoundingBox. Returns false
      * otherwise

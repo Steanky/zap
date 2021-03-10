@@ -56,7 +56,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
         hologram.updateLineForPlayer(
                 player,
                 0,
-                perkMachineData.getPerkType().name()
+                String.format("%sBuy %s", ChatColor.BLUE, perkMachineData.getPerkName())
         );
         hologram.updateLineForPlayer(player, 1, secondHologramLine);
     }
@@ -94,8 +94,8 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                                     zombiesArena,
                                                     zombiesPlayer,
                                                     slot,
-                                                    zombiesArena.getMap().getMapNameKey(),
-                                                    perkMachineData.getPerkType().name()
+                                                    zombiesArena.getMap().getName(),
+                                                    perkMachineData.getPerkName()
                                             ));
 
                                     onPurchaseSuccess(zombiesPlayer);
@@ -123,7 +123,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                             onPurchaseSuccess(zombiesPlayer);
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "You have already unlocked this item!");
+                        player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
                     }
                 }
             } else {

@@ -10,12 +10,13 @@ import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
-import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
+import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
@@ -83,7 +84,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             MapData mapData = maps.get(mapName);
 
             if(mapData != null) {
-                for(ZombiesArena arena : arenas) {
+                for(ZombiesArena arena : managedArenas.values()) {
                     if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information.getJoinable().getPlayers())) {
                         onCompletion.accept(ImmutablePair.of(true, null));
                         return;
@@ -95,6 +96,21 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     Zombies.info(String.format("JoinInformation that triggered this load: '%s'.", information));
 
                     Zombies.getInstance().getWorldLoader().loadWorld(mapData.getWorldName(), (world) -> {
+                        world.setGameRule(GameRule.DO_FIRE_TICK, false);
+                        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                        world.setGameRule(GameRule.DO_INSOMNIA, false);
+                        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+                        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+                        world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
+                        world.setGameRule(GameRule.MOB_GRIEFING, false);
+                        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+                        world.setGameRule(GameRule.LOG_ADMIN_COMMANDS, false);
+                        world.setGameRule(GameRule.COMMAND_BLOCK_OUTPUT, false);
+                        world.setGameRule(GameRule.SEND_COMMAND_FEEDBACK, false);
+                        world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
+
+                        world.setTime(mapData.getWorldTime());
+
                         ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                         managedArenas.put(arena.getId(), arena);
                         getArenaCreated().callEvent(arena);
@@ -144,7 +160,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void removeArena(ZombiesArena arena) {
+    public void unloadArena(ZombiesArena arena) {
         managedArenas.remove(arena.getId());
 
         //we are doing a single-world, single-arena approach so no need to check for other arenas sharing this world
@@ -158,7 +174,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     @Override
     public void dispose() {
-        for(ZombiesArena arena : arenas) {
+        for(ZombiesArena arena : managedArenas.values()) {
             arena.dispose();
         }
     }

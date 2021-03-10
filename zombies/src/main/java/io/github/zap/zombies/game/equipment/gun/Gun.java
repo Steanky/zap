@@ -8,8 +8,11 @@ import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -58,8 +61,18 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
             if (currentClipAmmo < clipAmmo && clipAmmo <= currentAmmo) {
                 canReload = false;
+                canShoot = false;
+
                 Player player = getPlayer();
-                player.playSound(player.getLocation(), Sound.ENTITY_HORSE_GALLOP, 1F, 0.5F);
+                player.sendActionBar(Component.text("RELOADING").color(NamedTextColor.YELLOW));
+                player.playSound(
+                        Sound.sound(
+                                Key.key("minecraft:entity.horse.gallop"),
+                                Sound.Source.MASTER,
+                                1F,
+                                0.5F
+                        )
+                );
 
                 new BukkitRunnable() {
                     private final int reloadRate = level.getReloadRate();
@@ -77,6 +90,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                             int newClip = Math.min(clipAmmo, currentAmmo);
                             setClipAmmo(newClip);
 
+                            getPlayer().sendActionBar(Component.text());
+
                             canReload = true;
                             canShoot = true;
                             cancel();
@@ -90,19 +105,22 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     /**
      * Updates the item stack after shooting the gun
      * (you win the award for the longest method name in the plugin, congratulations) --Steank
+     * March 7, 2021: Award revoked due to method doing more than previously written
+     * R.I.P. updateRepresentingItemStackAfterShooting
      */
-    protected void updateRepresentingItemStackAfterShooting() {
+    protected void updateAfterShooting() {
         canShoot = false;
 
         setAmmo(currentAmmo - 1);
         setClipAmmo(currentClipAmmo - 1);
 
         Player player = getPlayer();
+
         // Animate xp bar
         new BukkitRunnable() {
             private final int goal =
                     (int) (getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier());
-            private final int stepVal = 1 / goal;
+            private final float stepVal = 1F / goal;
             private int step = 0;
 
             @Override
@@ -110,23 +128,30 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 if (step < goal) {
                     step++;
                     if (isSelected()) {
-                        player.setExp(++step * stepVal);
+                        player.setExp(step * stepVal);
                     }
                 } else {
                     if (isSelected()) {
                         player.setExp(1);
                     }
 
-                    canShoot = true;
+                    if (canReload) {
+                        canShoot = true;
+                    }
                     cancel();
                 }
             }
         }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
-        if (currentAmmo > 0) {
-            reload();
-        } else {
-            player.sendMessage(ChatColor.RED + "no ammo, bro.");
+        if (currentClipAmmo == 0) {
+            if (currentAmmo > 0) {
+                reload();
+            } else {
+                player.sendMessage(ChatColor.RED + "no ammo, bro.");
+            }
         }
+
+        Sound sound = getEquipmentData().getSound();
+        player.playSound(sound);
     }
 
     /**
@@ -179,7 +204,6 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         }
         setRepresentingItemStack(getRepresentingItemStack());
 
-        // TODO: work around for item not updating meta twice in 1 server thread iteration
         getPlayer().updateInventory();
     }
 
@@ -224,7 +248,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
         if (canShoot) {
             shoot();
-            updateRepresentingItemStackAfterShooting();
+            updateAfterShooting();
         }
     }
 

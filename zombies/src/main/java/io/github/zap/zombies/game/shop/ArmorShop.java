@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.Pair;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hologram.HologramLine;
 import io.github.zap.zombies.Zombies;
@@ -12,6 +13,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
@@ -19,6 +21,7 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,14 +47,17 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         ArmorStand armorStand = getArmorStand();
-        armorStand.teleport(getArmorStand().getLocation().clone().add(0, 1.5, 0));
+        Location armorStandLocation = getArmorStand().getLocation().clone();
+        armorStandLocation.add(0, 1.5, 0);
+        armorStandLocation.setYaw(getShopData().getArmorStandDirection());
+        armorStand.teleport(armorStandLocation);
         armorStand.setSmall(true);
     }
 
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        getZombiesArena().getShopEvents().get(getShopType()).registerHandler(args -> display());
+        getZombiesArena().getShopEvent(getShopType()).registerHandler(args -> display());
     }
 
     @Override
@@ -87,7 +93,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
         sendArmorStandUpdatePackets(player, armorLevel);
 
-        hologram.updateLineForPlayer(player, 0, armorLevel.getName());
+        hologram.updateLineForPlayer(player, 0, ChatColor.GREEN + armorLevel.getName());
         hologram.updateLineForPlayer(player, 1, secondHologramLine);
     }
 
@@ -109,6 +115,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                     } else {
                         // Choose the best equipments
                         Material[] materials = armorLevel.getMaterials();
+                        //noinspection ConstantConditions
                         ItemStack[] current = player.getEquipment().getArmorContents();
                         for (int i = 0; i < 4; i++) {
                             Material material = materials[i];
@@ -125,7 +132,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
                         }
 
-                        player.getEquipment().setArmorContents(current);
+                        zombiesPlayer.updateEquipment(current);
                         zombiesPlayer.subtractCoins(cost);
 
                         displayTo(player);
@@ -153,6 +160,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
      * @return The armor level of the player, or null if the player's armor is better than the shop can provide
      */
     private ArmorShopData.ArmorLevel determineArmorLevel(Player player) {
+        //noinspection ConstantConditions
         ItemStack[] equipment = player.getEquipment().getArmorContents();
         for (ArmorShopData.ArmorLevel armorLevel : getShopData().getArmorLevels()) {
             Material[] materials = armorLevel.getMaterials();
@@ -178,10 +186,13 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
      * @param armorLevel The armor level to compare the player's armor against
      */
     private void sendArmorStandUpdatePackets(Player player, ArmorShopData.ArmorLevel armorLevel) {
+        //noinspection ConstantConditions
         ItemStack[] equipment = player.getEquipment().getArmorContents();
         Material[] materials = armorLevel.getMaterials();
 
         int armorStandId = getArmorStand().getEntityId();
+
+        List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentSlotStackPairList = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             Material material = materials[i];
             ItemStack itemStack = equipment[i];
@@ -194,19 +205,19 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                 }
             }
 
+            equipmentSlotStackPairList.add(new Pair<>(ITEM_SLOT_MAP.get(i + 2), itemStack));
+        }
 
-            PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_EQUIPMENT);
-            packetContainer.getIntegers().write(0, armorStandId);
-            packetContainer.getItemSlots().write(0, ITEM_SLOT_MAP.get(i + 2));
-            packetContainer.getItemModifier().write(0, itemStack);
+        PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_EQUIPMENT);
+        packetContainer.getIntegers().write(0, armorStandId);
+        packetContainer.getSlotStackPairLists().write(0, equipmentSlotStackPairList);
 
-            try {
-                protocolManager.sendServerPacket(player, packetContainer);
-            } catch (InvocationTargetException exception) {
-                Zombies.getInstance().getLogger().warning(
-                        String.format("Error creating armor shop equipment packets for entity id %d", armorStandId)
-                );
-            }
+        try {
+            protocolManager.sendServerPacket(player, packetContainer);
+        } catch (InvocationTargetException exception) {
+            Zombies.warning(
+                    String.format("Error creating armor shop equipment packets for entity id %d", armorStandId)
+            );
         }
     }
 

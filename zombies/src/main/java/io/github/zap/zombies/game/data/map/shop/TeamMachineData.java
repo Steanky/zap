@@ -11,8 +11,10 @@ import java.util.List;
 /**
  * Data for a team machine
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class TeamMachineData extends BlockShopData {
+
     private List<TeamMachineTask> teamMachineTasks = new ArrayList<>();
 
     private TeamMachineData() {
