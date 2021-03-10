@@ -39,6 +39,8 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
 
     private BukkitTask updateTask;
 
+    private boolean isDisposed;
+
     public GameScoreboard(ZombiesArena zombiesArena) {
         this(zombiesArena, 10);
     }
@@ -69,8 +71,11 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
         getCurrentState().update();
     }
 
+
     @Override
     public void dispose() {
+        if(isDisposed)   return;
+        isDisposed = true;
         // stop the update task
         if(updateTask != null && !updateTask.isCancelled())
             updateTask.cancel();
