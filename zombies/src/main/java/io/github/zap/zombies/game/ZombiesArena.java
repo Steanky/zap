@@ -310,7 +310,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
 
             double before = mob.getHealth();
-            if(instaKill) { // TODO: Maybe set a entity metadata that can defy instakill
+
+            Optional<ActiveMob> activeMob = MythicMobs.inst().getMobManager().getActiveMob(mob.getUniqueId());
+            boolean resistInstakill = false;
+            if(activeMob.isPresent()) {
+                resistInstakill = activeMob.get().getType().getConfig().getBoolean("ResistInstakill", false);
+            }
+
+            if(instaKill && !resistInstakill) {
                 mob.setHealth(0);
             } else if(ignoreArmor) {
                 mob.setHealth(Math.max(mob.getHealth() - damage, 0));

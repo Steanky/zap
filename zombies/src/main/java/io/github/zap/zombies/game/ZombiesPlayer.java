@@ -117,7 +117,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         //noinspection ConstantConditions
         getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
-        hotbarManager.switchProfile(HotbarManager.DEFAULT_PROFILE_NAME);
+        hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
+
+        getPlayer().setExp(0);
+        getPlayer().setLevel(0);
     }
 
     @Override
@@ -130,6 +133,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         //noinspection ConstantConditions
         getPlayer().getEquipment().setArmorContents(equipment);
+        hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
     }
 
     @Override

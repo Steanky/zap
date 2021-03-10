@@ -115,6 +115,8 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String SPAWNINFO_ENTRY_METADATA_NAME = "spawninfo_metadata";
     public static final String SPAWNINFO_WAVE_METADATA_NAME = "spawninfo_wave_metadata";
     public static final String WINDOW_METADATA_NAME = "spawn_window";
+    public static final String IGNORES_INSTAKILL = "ignores_instakill";
+
     @Override
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();
