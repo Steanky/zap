@@ -59,7 +59,6 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
                 }
 
                 roundDeathCount++;
-                System.out.println("z" + roundDeathCount + "/" + deathCountUntilDrops);
             }
         }
 
