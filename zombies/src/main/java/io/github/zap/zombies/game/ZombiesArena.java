@@ -298,7 +298,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             boolean instaKill = false;
 
             for(PowerUp powerup : getPowerUps()) {
-                if(powerup instanceof DamageModificationPowerUp) {
+                if(powerup instanceof DamageModificationPowerUp && powerup.getState() == PowerUpState.ACTIVATED) {
                     var data = (DamageModificationPowerUpData) powerup.getData();
                     if(data.isInstaKill()) {
                         instaKill = true;

@@ -17,6 +17,7 @@ import io.github.zap.zombies.game.perk.FrozenBullets;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
+import io.github.zap.zombies.game.powerups.PowerUpState;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -158,7 +159,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             double multiplier = 1;
             int count = 0;
             var optGM = getArena().getPowerUps().stream()
-                    .filter(x -> x instanceof EarnedGoldMultiplierPowerUp)
+                    .filter(x -> x instanceof EarnedGoldMultiplierPowerUp && x.getState() == PowerUpState.ACTIVATED)
                     .collect(Collectors.toSet());
             if(msg != null && !msg.isEmpty()) {
                 sb.append(msg);
@@ -372,7 +373,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         int coins = attempt.getCoins(this, damaged);
 
         if (attempt.ignoresArmor(this, damaged)) {
-            addCoins(coins, "Critical Hit!");
+            addCoins(coins, "Critical Hit");
         } else {
             addCoins(coins);
         }
