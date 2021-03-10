@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * This class displays information about activated power ups
  */
-public class PowerUpBossBar extends BukkitRunnable implements Disposable, CommandExecutor {
+public class PowerUpBossBar extends BukkitRunnable implements Disposable {
     final BossBar bukkitBossBar;
     final BukkitTask updateTask;
     final ZombiesArena arena;
@@ -44,8 +44,6 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable, Comman
         arena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         arena.getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
         bukkitBossBar.setVisible(false);
-
-        Zombies.getInstance().getCommand("pu").setExecutor(this);
     }
 
     private void onPlayerLeave(ManagingArena<ZombiesArena, ZombiesPlayer>.ManagedPlayerListArgs managedPlayerListArgs) {
@@ -107,26 +105,5 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable, Comman
         arena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
         arena.getPlayerLeaveEvent().removeHandler(this::onPlayerLeave);
         bukkitBossBar.removeAll();
-        Zombies.getInstance().getCommand("pu").setExecutor(null);
-    }
-
-    // TODO: Test code
-    @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if(commandSender instanceof Player) {
-            Location loc = new Location(
-                    ((Player) commandSender).getLocation().getWorld(),
-                    Integer.parseInt(strings[0]),
-                    Integer.parseInt(strings[1]),
-                    Integer.parseInt(strings[2]));
-
-            var pu = arena.getPowerUpManager().createPowerUp(strings[3], arena);
-
-            pu.spawnItem(loc);
-            var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ADD, Collections.singleton(pu));
-            arena.getPowerUps().add(pu);
-            arena.getPowerUpChangedEvent().callEvent(eventArgs);
-        }
-        return true;
     }
 }

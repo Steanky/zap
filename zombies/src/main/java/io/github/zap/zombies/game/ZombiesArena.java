@@ -289,9 +289,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                 damager.onDealsDamage(with, target, deltaHealth);
             }
-            else {
-                Zombies.warning("Attempt made to damage entity " + target.getUniqueId() + " that is not part of the arena!");
-            }
         }
 
         private double inflictDamage(Mob mob, double damage, boolean ignoreArmor) {
@@ -480,13 +477,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
+
         gameScoreboard.dispose(); // dispose resource related to managing game scoreboard
+
         //unregister tasks
         BukkitScheduler scheduler = Bukkit.getScheduler();
         scheduler.cancelTask(timeoutTaskId);
 
         for(int taskId : waveSpawnerTasks) {
             scheduler.cancelTask(taskId);
+        }
+
+        if(powerUpBossBar != null) {
+            powerUpBossBar.dispose();
         }
 
         //cleanup mappings and remove arena from manager
@@ -526,23 +529,31 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerLeave(ManagedPlayerListArgs args) {
+        for(ZombiesPlayer player : args.getPlayers()) { //quit has already been called for these players
+            if(!map.isAllowRejoin()) {
+                super.removePlayer(player);
+            }
+
+            player.getPlayer().teleport(getManager().getHubLocation());
+        }
+
         switch (state) {
             case PREGAME:
+                removePlayers(args.getPlayers());
+
                 if (getOnlineCount() == 0) {
                     startTimeout();
                 }
-
-                removePlayers(args.getPlayers());
                 break;
             case COUNTDOWN:
+                removePlayers(args.getPlayers());
+
                 if (getOnlineCount() == 0) {
                     startTimeout();
                 }
                 if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
                 }
-
-                removePlayers(args.getPlayers());
                 break;
             case STARTED:
                 if (getOnlineCount() == 0) {
@@ -550,14 +561,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     dispose(); //shut everything down immediately if everyone leaves mid-game
                 }
                 break;
-        }
-
-        for(ZombiesPlayer player : args.getPlayers()) {
-            if(!map.isAllowRejoin()) {
-                super.removePlayer(player);
-            }
-
-            player.getPlayer().teleport(getManager().getHubLocation());
         }
     }
 
