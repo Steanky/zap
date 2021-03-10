@@ -12,6 +12,9 @@ import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
+import io.github.zap.zombies.game.perk.FlamingBullets;
+import io.github.zap.zombies.game.perk.FrozenBullets;
+import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import lombok.Getter;
@@ -23,6 +26,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -380,6 +386,26 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         if(damaged.getHealth() <= 0) {
             incrementKills();
+        }
+        else {
+            FrozenBullets frozenBullets = (FrozenBullets)getPerks().getPerk(PerkType.FROZEN_BULLETS);
+            FlamingBullets flamingBullets = (FlamingBullets) getPerks().getPerk(PerkType.FLAME_BULLETS);
+
+            if(frozenBullets.getCurrentLevel() > 0) {
+                AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                if(speed != null) {
+                    AttributeModifier speedMod = new AttributeModifier("josh's parents don't love him",
+                            1D / frozenBullets.getSlowdownFactor(), AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+
+                    speed.addModifier(speedMod);
+                    Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.removeModifier(speedMod),
+                            frozenBullets.getDuration());
+                }
+            }
+
+            if(flamingBullets.getCurrentLevel() > 0) {
+                damaged.setFireTicks(flamingBullets.getDuration());
+            }
         }
     }
 

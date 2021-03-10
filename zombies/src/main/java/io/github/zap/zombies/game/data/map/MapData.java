@@ -184,6 +184,31 @@ public class MapData {
     int fastReviveMaxLevel = 1;
 
     /**
+     * The maximum level of frozen bullets.
+     */
+    int frozenBulletsMaxLevel = 1;
+
+    /**
+     * The duration, in ticks, of the frozen bullet effect
+     */
+    int frozenBulletsEffectDuration = 50;
+
+    /**
+     * The factor by which speed is reduced when mobs are hit with frozen bullets
+     */
+    double frozenBulletSpeedReductionFactor = 0.5;
+
+    /**
+     * Duration of flaming bullets, in ticks
+     */
+    int flamingBulletsDuration = 69;
+
+    /**
+     * Why would you ever want this...
+     */
+    int flamingBulletsMaxLevel = 1;
+
+    /**
      * The default number of ticks it takes for a player to be revived
      */
     int defaultReviveTime = 30;
