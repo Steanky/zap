@@ -22,7 +22,11 @@ public class ExtraWeapon extends MarkerPerk {
     @Override
     public void activate() {
         super.activate();
-        while(ewSlots.size() < getCurrentLevel()) {
+        setEffect(getCurrentLevel());
+    }
+
+    private void setEffect(int level) {
+        while(ewSlots.size() < level) {
             // Get the next empty slot for additional gun slot
             var gunGroup = getOwner().getHotbarManager().getHotbarObjectGroup(HotbarManager.DEFAULT_PROFILE_NAME);
             var newSlot = gunGroup.getNextEmptySlot();
@@ -31,9 +35,15 @@ public class ExtraWeapon extends MarkerPerk {
             ewSlots.push(newSlot);
         }
 
-        while (ewSlots.size() > getCurrentLevel()) {
+        while (ewSlots.size() > level) {
             var gunGroup = getOwner().getHotbarManager().getHotbarObjectGroup(HotbarManager.DEFAULT_PROFILE_NAME);
             gunGroup.remove(ewSlots.pop(), false);
         }
+    }
+
+    @Override
+    public void disable() {
+        super.disable();
+        setEffect(0);
     }
 }
