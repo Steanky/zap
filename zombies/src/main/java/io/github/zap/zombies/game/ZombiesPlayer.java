@@ -14,8 +14,11 @@ import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -23,16 +26,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Collectors;
 
-public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
-
+public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager {
     @Getter
     private final ZombiesArena arena;
 
@@ -356,6 +360,22 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      */
     public void incrementKills() {
         kills++;
+    }
+
+    @Override
+    public void onDamageDealt(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth) {
+        addCoins(item.getCoins());
+
+        getPlayer().playSound(Sound.sound(
+                Key.key("minecraft:entity.arrow.hit_player"),
+                Sound.Source.MASTER,
+                1.0F,
+                item.ignoresArmor() ? 1.5F : 2F
+        ));
+
+        if(damaged.getHealth() <= 0) {
+            incrementKills();
+        }
     }
 
     /**

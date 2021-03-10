@@ -20,7 +20,6 @@ import java.util.Set;
  * Beam that "zaps" nearby entities when it hits a target entity
  */
 public class ZapperBeam extends LinearBeam {
-
     private final Set<Mob> hitMobs = new HashSet<>();
 
     private final int maxChainedEntities;
@@ -70,9 +69,12 @@ public class ZapperBeam extends LinearBeam {
 
     @Override
     protected void damageEntity(RayTraceResult rayTraceResult) {
+        super.damageEntity(rayTraceResult);
+
+        /*
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
-        if (mob != null && getBukkitAPIHelper().isMythicMob(mob)) {
+        if (mob != null) {
             ZombiesPlayer zombiesPlayer = getZombiesPlayer();
             Player player = zombiesPlayer.getPlayer();
 
@@ -93,6 +95,6 @@ public class ZapperBeam extends LinearBeam {
             if (mob.getHealth() <= 0) {
                 getZombiesPlayer().incrementKills();
             }
-        }
+        } */
     }
 }

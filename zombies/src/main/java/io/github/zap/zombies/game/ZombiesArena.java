@@ -40,9 +40,6 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import net.kyori.adventure.key.Key;
-import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -63,7 +60,6 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,14 +89,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ActiveMob spawnAt(String mobType, Vector vector);
     }
 
-    public interface Damager {
+    /**
+     * General interface for an implementation that handles damaging all entities.
+     */
+    public interface DamageHandler {
         /**
          * Damages an entity.
          * @param target The ActiveMob to damage
-         * @param damage The amount of damage to deal
-         * @param ignoreArmor Whether the damage should ignore armor
          */
-        void damageEntity(@NotNull DamageSource source, @NotNull ActiveMob target, double damage, boolean ignoreArmor, Vector directionVector, double knockbackFactor);
+        void damageEntity(@NotNull Damager comesFrom, @NotNull DamageAttempt with, @NotNull Mob target);
     }
 
     /**
@@ -281,18 +278,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public class BasicDamager implements Damager {
+    public class BasicDamageHandler implements DamageHandler {
         @Override
-        public void damageEntity(@NotNull DamageSource source, @NotNull ActiveMob target, double damage,
-                                 boolean ignoreArmor, Vector directionVector, double knockbackFactor) {
+        public void damageEntity(@NotNull Damager damager, @NotNull DamageAttempt with, @NotNull Mob target) {
             if (mobs.contains(target.getUniqueId())) {
-                Entity targetEntity = target.getEntity().getBukkitEntity();
-                targetEntity.playEffect(EntityEffect.HURT);
+                target.playEffect(EntityEffect.HURT);
 
-                double damageDealt = inflictDamage((Mob)target.getEntity().getBukkitEntity(), damage, ignoreArmor);
-                targetEntity.setVelocity(targetEntity.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
+                double deltaHealth = inflictDamage(target, with.damageAmount(), with.ignoresArmor());
+                target.setVelocity(target.getVelocity().add(with.directionVector().clone().multiply(with.knockbackFactor())));
 
-                source.onDamageDealt(target, damageDealt, ignoreArmor);
+                damager.onDamageDealt(with, target, deltaHealth);
+            }
+            else {
+                Zombies.warning("Attempt made to damage entity " + target.getUniqueId() + " that is not part of the arena!");
             }
         }
 
@@ -301,13 +299,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
             for(PowerUp powerup : getPowerUps()) {
                 if(powerup instanceof DamageModificationPowerUp) {
-                    var cData = (DamageModificationPowerUpData) powerup.getData();
-                    if(cData.isInstaKill()) {
+                    var data = (DamageModificationPowerUpData) powerup.getData();
+                    if(data.isInstaKill()) {
                         instaKill = true;
                         break;
                     }
 
-                    damage = damage * cData.getMultiplier() + cData.getAdditionalDamage();
+                    damage = damage * data.getMultiplier() + data.getAdditionalDamage();
                 }
             }
 
@@ -347,7 +345,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final Spawner spawner;
 
     @Getter
-    private final Damager damager;
+    private final DamageHandler damageHandler;
 
     @Getter
     private final Set<UUID> mobs = new HashSet<>();
@@ -427,7 +425,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
-        this.damager = new BasicDamager();
+        this.damageHandler = new BasicDamageHandler();
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
