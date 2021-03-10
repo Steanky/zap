@@ -44,7 +44,7 @@ public abstract class Perk<T> implements Disposable {
      */
     public boolean upgrade() {
         if(currentLevel < maxLevel) {
-            if(++currentLevel == 1) {
+            if(++currentLevel == 1 && actionTriggerEvent != null) {
                 actionTriggerEvent.registerHandler(this::execute);
             }
 
@@ -62,7 +62,9 @@ public abstract class Perk<T> implements Disposable {
     public boolean downgrade() {
         if(currentLevel > 0) {
             if(--currentLevel == 0) {
-                actionTriggerEvent.removeHandler(this::execute);
+                if(actionTriggerEvent != null) {
+                    actionTriggerEvent.removeHandler(this::execute);
+                }
                 disable();
                 return true;
             }
