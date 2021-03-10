@@ -362,14 +362,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     }
 
     @Override
-    public void onDealsDamage(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth) {
-        addCoins(item.getCoins(this, damaged));
+    public void onDealsDamage(@NotNull DamageAttempt attempt, @NotNull Mob damaged, double deltaHealth) {
+        int coins = attempt.getCoins(this, damaged);
+
+        if (attempt.ignoresArmor(this, damaged)) {
+            addCoins(coins, "Critical Hit!");
+        } else {
+            addCoins(coins);
+        }
 
         getPlayer().playSound(Sound.sound(
                 Key.key("minecraft:entity.arrow.hit_player"),
                 Sound.Source.MASTER,
                 1.0F,
-                item.ignoresArmor(this, damaged) ? 1.5F : 2F
+                attempt.ignoresArmor(this, damaged) ? 1.5F : 2F
         ));
 
         if(damaged.getHealth() <= 0) {
