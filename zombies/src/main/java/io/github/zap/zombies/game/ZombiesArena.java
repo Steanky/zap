@@ -93,16 +93,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ActiveMob spawnAt(String mobType, Vector vector);
     }
 
-    public interface Damager {
-        /**
-         * Damages an entity.
-         * @param target The ActiveMob to damage
-         * @param damage The amount of damage to deal
-         * @param ignoreArmor Whether the damage should ignore armor
-         */
-        void damageEntity(@NotNull DamageSource source, @NotNull ActiveMob target, double damage, boolean ignoreArmor, Vector directionVector, double knockbackFactor);
-    }
-
     /**
      * Basic spawner implementation.
      */
@@ -281,50 +271,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public class BasicDamager implements Damager {
-        @Override
-        public void damageEntity(@NotNull DamageSource source, @NotNull ActiveMob target, double damage,
-                                 boolean ignoreArmor, Vector directionVector, double knockbackFactor) {
-            if (mobs.contains(target.getUniqueId())) {
-                Entity targetEntity = target.getEntity().getBukkitEntity();
-                targetEntity.playEffect(EntityEffect.HURT);
-
-                double damageDealt = inflictDamage((Mob)target.getEntity().getBukkitEntity(), damage, ignoreArmor);
-                targetEntity.setVelocity(targetEntity.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
-
-                source.onDamageDealt(target, damageDealt, ignoreArmor);
-            }
-        }
-
-        private double inflictDamage(Mob mob, double damage, boolean isCritical) {
-            boolean instaKill = false;
-
-            for(PowerUp powerup : getPowerUps()) {
-                if(powerup instanceof DamageModificationPowerUp) {
-                    var cData = (DamageModificationPowerUpData) powerup.getData();
-                    if(cData.isInstaKill()) {
-                        instaKill = true;
-                        break;
-                    }
-
-                    damage = damage * cData.getMultiplier() + cData.getAdditionalDamage();
-                }
-            }
-
-            double before = mob.getHealth();
-            if(instaKill) { // TODO: Maybe set a entity metadata that can defy instakill
-                mob.setHealth(0);
-            } else if(isCritical) {
-                mob.setHealth(Math.max(mob.getHealth() - damage, 0));
-            } else {
-                mob.damage(damage);
-            }
-
-            mob.playEffect(EntityEffect.HURT);
-            return before - mob.getHealth();
-        }
-    }
-
     @Getter
     private final MapData map;
 
@@ -345,9 +291,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private final Spawner spawner;
-
-    @Getter
-    private final Damager damager;
 
     @Getter
     private final Set<UUID> mobs = new HashSet<>();
@@ -427,7 +370,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
-        this.damager = new BasicDamager();
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
