@@ -2,28 +2,26 @@ package io.github.zap.zombies.game.equipment.gun.logic;
 
 import com.google.common.collect.Sets;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.DamageAttempt;
+import io.github.zap.zombies.game.Damager;
+import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
-import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
-import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.apache.commons.lang3.mutable.MutableDouble;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -33,6 +31,35 @@ import java.util.function.Predicate;
  */
 @Getter
 public class BasicBeam {
+    @RequiredArgsConstructor
+    private class BeamDamageAttempt implements DamageAttempt {
+        private final boolean isHeadshot;
+
+        @Override
+        public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
+            return isHeadshot ? goldPerHeadshot : goldPerShot;
+        }
+
+        @Override
+        public double damageAmount(@NotNull Damager damager, @NotNull Mob target) {
+            return damage;
+        }
+
+        @Override
+        public boolean ignoresArmor(@NotNull Damager damager, @NotNull Mob target) {
+            return isHeadshot;
+        }
+
+        @Override
+        public @NotNull Vector directionVector(@NotNull Damager damager, @NotNull Mob target) {
+            return directionVector;
+        }
+
+        @Override
+        public double knockbackFactor(@NotNull Damager damager, @NotNull Mob target) {
+            return knockbackFactor;
+        }
+    }
 
     private final static Set<Material> AIR_MATERIALS =
             Sets.newHashSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
@@ -250,47 +277,10 @@ public class BasicBeam {
     protected void damageEntity(RayTraceResult rayTraceResult) {
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
-        if (mob != null && getZombiesPlayer().getArena().getMobs().contains(mob.getUniqueId())) {
-            Player player = zombiesPlayer.getPlayer();
-
-            var isCritical = determineIfHeadshot(rayTraceResult, mob);
-            inflictDamage(mob, damage, isCritical);
-            mob.playEffect(EntityEffect.HURT);
-            zombiesPlayer.addCoins(isCritical ? goldPerHeadshot : goldPerShot);
-            player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.arrow.hit_player"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    isCritical ? 1.5F : 2F
-            ));
-            mob.setVelocity(mob.getVelocity().add(directionVector.clone().multiply(knockbackFactor)));
-
-            if (mob.getHealth() <= 0) {
-                zombiesPlayer.incrementKills();
-            }
-        }
-    }
-
-    protected void inflictDamage(Mob mob, double damage, boolean isCritical) {
-        final MutableDouble finalDmg = new MutableDouble(damage);
-        final MutableBoolean instaKill = new MutableBoolean(false);
-        getZombiesPlayer().getArena().getPowerUps().stream()
-                .filter(x -> x instanceof DamageModificationPowerUp)
-                .forEach(x -> {
-                    var cData = (DamageModificationPowerUpData) x.getData();
-                    if(cData.isInstaKill()) {
-                        instaKill.setTrue();
-                        return;
-                    }
-
-                    finalDmg.setValue(finalDmg.getValue() * cData.getMultiplier() + cData.getAdditionalDamage());
-                });
-        if(instaKill.getValue()) { // TODO: Maybe set a entity metadata that can defy instakill
-            mob.setHealth(0);
-        } else if(isCritical) {
-            mob.setHealth(Math.max(mob.getHealth() - finalDmg.getValue(), 0));
-        } else {
-            mob.damage(finalDmg.getValue());
+        if (mob != null) {
+            ZombiesArena arena = getZombiesPlayer().getArena();
+            arena.getDamageHandler().damageEntity(getZombiesPlayer(),
+                    new BeamDamageAttempt(determineIfHeadshot(rayTraceResult, mob)), mob);
         }
     }
 
