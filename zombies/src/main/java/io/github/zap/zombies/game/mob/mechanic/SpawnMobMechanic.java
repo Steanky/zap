@@ -46,8 +46,8 @@ public class SpawnMobMechanic extends SkillMechanic implements INoTargetSkill, L
         mobCountMax = mlc.getInteger("mobCountMax", 1);
         mobCap = mlc.getInteger("mobCap", 5);
         useSpawnpoints = mlc.getBoolean("useSpawnpoints", false);
-        spawnRadiusSquared = mlc.getDouble("spawnRadiusSquared", 4096);
         ignoreSpawnrule = mlc.getBoolean("ignoreSpawnrule", false);
+        spawnRadiusSquared = mlc.getDouble("spawnRadiusSquared", 4096);
 
         Zombies.getInstance().getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }

@@ -30,6 +30,9 @@ public class GuardianBeam extends BasicBeam {
 
     @Override
     protected void damageEntity(RayTraceResult rayTraceResult) {
+        super.damageEntity(rayTraceResult);
+
+        /*
         Mob mob = (Mob) rayTraceResult.getHitEntity();
 
         if (mob != null) {
@@ -66,6 +69,6 @@ public class GuardianBeam extends BasicBeam {
                     getZombiesPlayer().incrementKills();
                 }
             }
-        }
+        }*/
     }
 }

@@ -21,7 +21,6 @@ public class ExtraWeapon extends MarkerPerk {
 
     @Override
     public void activate() {
-        super.activate();
         setEffect(getCurrentLevel());
     }
 
@@ -42,8 +41,7 @@ public class ExtraWeapon extends MarkerPerk {
     }
 
     @Override
-    public void disable() {
-        super.disable();
+    public void deactivate() {
         setEffect(0);
     }
 }

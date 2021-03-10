@@ -256,5 +256,4 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * Shoots the gun
      */
     public abstract void shoot();
-
 }

@@ -34,7 +34,7 @@ public class SpeedPerk extends Perk<EmptyEventArgs> {
     }
 
     @Override
-    public void disable() {
+    public void deactivate() {
         event.stop();
     }
 }

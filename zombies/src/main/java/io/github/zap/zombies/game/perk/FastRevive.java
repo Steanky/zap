@@ -3,9 +3,7 @@ package io.github.zap.zombies.game.perk;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.Getter;
 
-// Thamid already done xd, Accept his version
 public class FastRevive extends MarkerPerk {
-
     private final int defaultReviveTime;
 
     private final int tickReductionPerLevel;
@@ -24,5 +22,10 @@ public class FastRevive extends MarkerPerk {
     @Override
     public void activate() {
         reviveTime = defaultReviveTime - tickReductionPerLevel * getCurrentLevel();
+    }
+
+    @Override
+    public void deactivate() {
+        reviveTime = defaultReviveTime;
     }
 }
