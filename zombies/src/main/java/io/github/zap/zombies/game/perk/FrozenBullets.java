@@ -14,7 +14,7 @@ public class FrozenBullets extends MarkerPerk {
 
     @Override
     public void activate() {
-
+        slowdownFactor = getCurrentLevel();
     }
 
     @Override
