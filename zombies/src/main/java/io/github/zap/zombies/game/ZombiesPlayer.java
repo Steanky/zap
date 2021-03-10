@@ -14,7 +14,6 @@ import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -363,14 +362,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     }
 
     @Override
-    public void onDamageDealt(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth) {
-        addCoins(item.getCoins());
+    public void onDealsDamage(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth) {
+        addCoins(item.getCoins(this, damaged));
 
         getPlayer().playSound(Sound.sound(
                 Key.key("minecraft:entity.arrow.hit_player"),
                 Sound.Source.MASTER,
                 1.0F,
-                item.ignoresArmor() ? 1.5F : 2F
+                item.ignoresArmor(this, damaged) ? 1.5F : 2F
         ));
 
         if(damaged.getHealth() <= 0) {

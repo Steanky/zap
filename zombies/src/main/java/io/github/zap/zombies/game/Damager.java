@@ -13,5 +13,5 @@ public interface Damager {
      * @param damaged The mob that was damaged
      * @param deltaHealth The change (reduction) in mob health
      */
-    void onDamageDealt(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth);
+    void onDealsDamage(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth);
 }

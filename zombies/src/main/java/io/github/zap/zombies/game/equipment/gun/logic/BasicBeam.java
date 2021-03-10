@@ -2,29 +2,21 @@ package io.github.zap.zombies.game.equipment.gun.logic;
 
 import com.google.common.collect.Sets;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.DamageAttempt;
+import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
-import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
-import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
@@ -44,27 +36,27 @@ public class BasicBeam {
         private final boolean isHeadshot;
 
         @Override
-        public int getCoins() {
+        public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
             return isHeadshot ? goldPerHeadshot : goldPerShot;
         }
 
         @Override
-        public double damageAmount() {
+        public double damageAmount(@NotNull Damager damager, @NotNull Mob target) {
             return damage;
         }
 
         @Override
-        public boolean ignoresArmor() {
+        public boolean ignoresArmor(@NotNull Damager damager, @NotNull Mob target) {
             return isHeadshot;
         }
 
         @Override
-        public @NotNull Vector directionVector() {
+        public @NotNull Vector directionVector(@NotNull Damager damager, @NotNull Mob target) {
             return directionVector;
         }
 
         @Override
-        public double knockbackFactor() {
+        public double knockbackFactor(@NotNull Damager damager, @NotNull Mob target) {
             return knockbackFactor;
         }
     }

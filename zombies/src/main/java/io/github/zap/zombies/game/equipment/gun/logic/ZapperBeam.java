@@ -1,17 +1,15 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
 import io.github.zap.zombies.game.DamageAttempt;
+import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
 import org.bukkit.*;
 import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -29,27 +27,27 @@ public class ZapperBeam extends LinearBeam {
         private final Vector directionVector;
 
         @Override
-        public int getCoins() {
+        public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
             return getGoldPerShot();
         }
 
         @Override
-        public double damageAmount() {
+        public double damageAmount(@NotNull Damager damager, @NotNull Mob target) {
             return getDamage() * aoeDamageFactor;
         }
 
         @Override
-        public boolean ignoresArmor() {
+        public boolean ignoresArmor(@NotNull Damager damager, @NotNull Mob target) {
             return false;
         }
 
         @Override
-        public @NotNull Vector directionVector() {
+        public @NotNull Vector directionVector(@NotNull Damager damager, @NotNull Mob target) {
             return directionVector;
         }
 
         @Override
-        public double knockbackFactor() {
+        public double knockbackFactor(@NotNull Damager damager, @NotNull Mob target) {
             return getKnockbackFactor();
         }
     }
