@@ -1,11 +1,10 @@
 package io.github.zap.zombies.game;
 
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a thing that can damage entities in a Zombies game (a gun, melee weapon, possibly the arena itself, etc).
+ * Represents a specific attempt to deal damage to something.
  */
 public interface DamageAttempt {
     /**
@@ -23,7 +22,13 @@ public interface DamageAttempt {
      */
     boolean ignoresArmor();
 
+    /**
+     * Gets the vector that indicates to which direction the mob should be knocked back as a result of this DamageAttempt.
+     */
     @NotNull Vector directionVector();
 
+    /**
+     * Gets the amount of knockback this DamageAttempt should deal.
+     */
     double knockbackFactor();
 }
