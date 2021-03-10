@@ -18,8 +18,7 @@ public class ExtraHealth extends MarkerPerk {
     }
 
     @Override
-    public void disable() {
-        super.disable();
+    public void deactivate() {
         getOwner().getPlayer().setHealth(BASE_HP);
     }
 }

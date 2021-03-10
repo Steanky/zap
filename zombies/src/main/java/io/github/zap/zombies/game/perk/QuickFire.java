@@ -10,8 +10,12 @@ public class QuickFire extends MarkerPerk {
 
     @Override
     public void activate() {
-        super.activate();
         getOwner().setFireRateMultiplier(getOwner().getFireRateMultiplier() / getMultiplier(lastLevel) * getMultiplier(getCurrentLevel()));
+    }
+
+    @Override
+    public void deactivate() {
+        getOwner().setFireRateMultiplier(1);
     }
 
     @Override

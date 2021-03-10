@@ -79,16 +79,24 @@ public abstract class Perk<T> implements Disposable {
      * brings the perk down one level but is still not 0). It is also called when perks should be re-activated, such
      * as when the player rejoins the game.
      */
-    public void activate() { }
+    public abstract void activate();
+
+    /**
+     * Removes the perk's effects. This is called when the player leaves the game, or when the perk's level has been
+     * reduced to 0.
+     */
+    public abstract void deactivate();
 
     /**
      * Disables any effects applied by the perk. Called once by downgrade() if the downgrade brought this perk to 0, or
      * externally when the player leaves the game.
      */
-    public void disable() {
+    public final void disable() {
         if(resetLevelOnDisable) {
             currentLevel = 0;
         }
+
+        deactivate();
     }
 
     @Override

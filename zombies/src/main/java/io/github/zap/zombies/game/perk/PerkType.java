@@ -9,5 +9,7 @@ public enum PerkType {
     EXTRA_HEALTH,
     EXTRA_WEAPON,
     FAST_REVIVE,
+    FROZEN_BULLETS,
+    FLAME_BULLETS,
     DEFAULT
 }
