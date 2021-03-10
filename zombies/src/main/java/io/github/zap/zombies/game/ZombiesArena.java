@@ -54,6 +54,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -443,6 +444,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
+        getPlayerDropItemEvent().registerHandler(this::onPlayerDropItem);
+        getPlayerSwapHandItemsEvent().registerHandler(this::onPlayerSwapHandItems);
         getPlayerDamageEvent().registerHandler(this::onPlayerDamage);
         getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
@@ -630,6 +633,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    private void onPlayerSwapHandItems(ProxyArgs<PlayerSwapHandItemsEvent> args) {
+        args.getEvent().setCancelled(true);
+    }
+
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
         PlayerInteractAtEntityEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
@@ -645,6 +652,20 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if (noPurchases) {
                 player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
             }
+        }
+    }
+
+    private void onPlayerDropItem(ProxyArgs<PlayerDropItemEvent> args) {
+        PlayerDropItemEvent event = args.getEvent();
+        ItemStack stack = event.getPlayer().getInventory().getItem(EquipmentSlot.HAND);
+
+        if(stack == null || stack.getType() == Material.AIR) {
+            event.setCancelled(true);
+        }
+        else {
+            event.getItemDrop().remove();
+            stack.setAmount(stack.getAmount() + 1);
+            event.getPlayer().updateInventory();
         }
     }
 
