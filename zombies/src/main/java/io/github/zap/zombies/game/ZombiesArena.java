@@ -290,10 +290,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 target.playEffect(EntityEffect.HURT);
 
                 double deltaHealth = inflictDamage(target, with.damageAmount(damager, target), with.ignoresArmor(damager, target));
-                Vector resultingVelocity = target.getVelocity().add(with.directionVector(damager, target).clone().multiply(with.knockbackFactor(damager, target)));
+                Vector resultingVelocity = target.getVelocity().add(with.directionVector(damager, target).clone()
+                        .multiply(with.knockbackFactor(damager, target)));
 
                 try {
-                    resultingVelocity.checkFinite();
                     target.setVelocity(resultingVelocity);
                 }
                 catch (IllegalArgumentException ignored) {
