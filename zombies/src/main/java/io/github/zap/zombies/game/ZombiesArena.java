@@ -445,6 +445,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
         getPlayerDropItemEvent().registerHandler(this::onPlayerDropItem);
+        getPlayerMoveEvent().registerHandler(this::onPlayerMove);
         getPlayerSwapHandItemsEvent().registerHandler(this::onPlayerSwapHandItems);
         getPlayerDamageEvent().registerHandler(this::onPlayerDamage);
         getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
@@ -666,6 +667,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             event.getItemDrop().remove();
             stack.setAmount(stack.getAmount() + 1);
             event.getPlayer().updateInventory();
+        }
+    }
+
+    private void onPlayerMove(ProxyArgs<PlayerMoveEvent> args) {
+        if(args.getManagedPlayer().getState() == ZombiesPlayerState.KNOCKED) {
+            args.getEvent().setCancelled(true);
         }
     }
 
