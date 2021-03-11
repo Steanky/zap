@@ -3,7 +3,6 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -29,7 +28,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -71,8 +69,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     // Allow other class to modify the fire rate without modify the logic code itself. Only support
     // Mollification and Division. Also why remove old multiplier Thamid?
     @Getter
-    @Setter
-    private double fireRateMultiplier = 1;
+    private final State<Double> fireRateMultiplier = new State<>(1D);
 
     @Getter
     private final ZombiesPerks perks;

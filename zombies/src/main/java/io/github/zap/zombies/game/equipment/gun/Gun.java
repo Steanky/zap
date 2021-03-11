@@ -120,7 +120,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         // Animate xp bar
         new BukkitRunnable() {
             private final int goal =
-                    (int) (getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier());
+                    (int)Math.round(getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier().getValue());
             private final float stepVal = 1F / goal;
             private int step = 0;
 

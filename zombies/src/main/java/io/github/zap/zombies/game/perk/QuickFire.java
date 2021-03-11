@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.perk;
 import io.github.zap.zombies.game.ZombiesPlayer;
 
 public class QuickFire extends MarkerPerk {
+    private static final String MODIFIER_NAME = "quick_fire";
+
     public QuickFire(ZombiesPlayer owner, int maxLevel, boolean resetOnQuit) {
         super(owner, maxLevel, resetOnQuit);
     }
@@ -10,12 +12,12 @@ public class QuickFire extends MarkerPerk {
 
     @Override
     public void activate() {
-        getOwner().setFireRateMultiplier(getOwner().getFireRateMultiplier() / getMultiplier(lastLevel) * getMultiplier(getCurrentLevel()));
+        getOwner().getFireRateMultiplier().registerModifier(MODIFIER_NAME, d -> d == null ? 1D : d / getMultiplier(lastLevel) * getMultiplier(getCurrentLevel()));
     }
 
     @Override
     public void deactivate() {
-        getOwner().setFireRateMultiplier(1);
+        getOwner().getFireRateMultiplier().removeModifier(MODIFIER_NAME);
     }
 
     @Override

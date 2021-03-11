@@ -20,6 +20,7 @@ import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.*;
 import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
+import io.github.zap.zombies.game.mob.mechanic.SlowFireRateMechanic;
 import io.github.zap.zombies.game.mob.mechanic.SpawnMobMechanic;
 import io.github.zap.zombies.game.mob.mechanic.StealCoinsMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -127,7 +128,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             initDependencies();
             initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class,
                     WrappedArrowShoot.class);
-            initMechanics(CobwebMechanic.class, SpawnMobMechanic.class, StealCoinsMechanic.class);
+            initMechanics(CobwebMechanic.class, SpawnMobMechanic.class, StealCoinsMechanic.class, SlowFireRateMechanic.class);
             initPlayerDataManager();
             initLocalization();
             initWorldLoader();
