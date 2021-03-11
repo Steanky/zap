@@ -672,7 +672,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerMove(ProxyArgs<PlayerMoveEvent> args) {
         if(args.getManagedPlayer().getState() == ZombiesPlayerState.KNOCKED) {
-            args.getEvent().setCancelled(true);
+            //disgusting! but works (allows head rotation but not movement)
+            if(!args.getEvent().getFrom().toVector().equals(args.getEvent().getTo().toVector())) {
+                args.getEvent().setCancelled(true);
+            }
         }
     }
 
