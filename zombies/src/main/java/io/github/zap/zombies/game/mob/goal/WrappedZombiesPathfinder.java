@@ -15,8 +15,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 
 /**
  * Generic implementation for a pathfinder that is based off of vanilla AI rather than an entirely custom goal. The
- * AI's target is only selected from current, living players in the ZombiesArena. GenericAttributes.FOLLOW_RANGE is set
- * to Double.MAX_VALUE, which makes the AI high iq.
+ * AI's target is only selected from current, living players in the ZombiesArena.
  */
 public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Value
@@ -65,10 +64,11 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         if(target == null) { //if our target is null, periodically keep trying to find it
             if(++locateInitial == 20) {
                 locateInitial = 0;
-                target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
+                target = getProxy().findClosest(getHandle(), arena, 0, ZombiesPlayer::isAlive);
 
                 if(target != null) {
-                    getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
+                    getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(),
+                            EntityTargetEvent.TargetReason.CUSTOM, true);
                     return wrappedGoal.a();
                 }
             }
@@ -100,10 +100,25 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
 
     @Override
     public void doTick() {
-        if(counter > -1 && ++counter == retargetInterval) {
-            target = getProxy().findClosest(getHandle(), arena, ZombiesPlayer::isAlive);
-            getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle());
+        /*
+        periodic target recalculation; this by default doesn't happen
+         */
+        if((counter > -1 && ++counter == retargetInterval)) {
+            target = getProxy().findClosest(getHandle(), arena, 0, ZombiesPlayer::isAlive);
+
+            if(target != null) {
+                getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle());
+            }
+
             counter = 0;
+        }
+
+        /*
+        if some NMS pathfinder sets the goal target to null, and we have a ZombiesPlayer to target, re-set the goal
+        target. This generally should not happen, but poorly behaved pathfinders may exist.
+         */
+        if(target != null && getHandle().getGoalTarget() == null) {
+            getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle());
         }
 
         wrappedGoal.e();
