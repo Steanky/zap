@@ -60,7 +60,7 @@ public class Corpse {
         this.zombiesPlayer = zombiesPlayer;
         this.location = zombiesPlayer.getPlayer().getLocation();
         this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
-        this.hologram = new Hologram(location.clone().add(0, 2, 0));
+        this.hologram = new Hologram(location.clone().add(0, 1, 0));
         this.deathTime = defaultDeathTime;
         this.id = this.nmsProxy.nextEntityId();
 
@@ -83,21 +83,19 @@ public class Corpse {
      * Terminates the corpse's execution early.
      */
     public void terminate() {
-        if (active) {
-            active = false;
+        active = false;
 
-            if (hologram.getHologramLines().size() > 0) {
-                hologram.destroy();
-            }
+        if (hologram.getHologramLines().size() > 0) {
+            hologram.destroy();
+        }
 
-            ZombiesArena zombiesArena = zombiesPlayer.getArena();
-            zombiesArena.getCorpses().remove(this);
-            zombiesArena.getAvailableCorpses().remove(this);
-            zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        ZombiesArena zombiesArena = zombiesPlayer.getArena();
+        zombiesArena.getCorpses().remove(this);
+        zombiesArena.getAvailableCorpses().remove(this);
+        zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
 
-            if (deathTaskId != -1) {
-                Bukkit.getScheduler().cancelTask(deathTaskId);
-            }
+        if (deathTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(deathTaskId);
         }
     }
 
@@ -130,6 +128,7 @@ public class Corpse {
             zombiesPlayer.revive();
             zombiesPlayer.getPlayer().sendActionBar(Component.empty());
             reviver.getPlayer().sendActionBar(Component.empty());
+            destroy();
         } else {
             double timeRemaining = convertTicksToSeconds(reviveTime);
             String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);

@@ -13,6 +13,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -151,7 +152,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         }
 
         Sound sound = getEquipmentData().getSound();
-        player.playSound(sound);
+
+        Location playerLoc = player.getLocation();
+        player.getWorld().playSound(sound, playerLoc.getX(), playerLoc.getY(), playerLoc.getZ());
     }
 
     /**

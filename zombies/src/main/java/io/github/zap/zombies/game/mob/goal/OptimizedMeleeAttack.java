@@ -99,7 +99,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
     private void tryAttack(EntityLiving target) {
         if(this.attackTimer <= 0) {
-            if(this.self.h(target.locX(), target.locY(), target.locZ()) <= this.boundsDistance(target)) {
+            if(this.self.h(target.locX(), target.locY(), target.locZ()) <= this.checkDistance(target)) {
                 this.resetAttackTimer();
                 this.self.swingHand(EnumHand.MAIN_HAND);
                 this.self.attackEntity(target);
@@ -111,7 +111,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.attackTimer = attackInterval;
     }
 
-    private double boundsDistance(EntityLiving target) {
+    private double checkDistance(EntityLiving target) {
         return (this.self.getWidth() * attackReach * this.self.getWidth() * attackReach + target.getWidth());
     }
 }
