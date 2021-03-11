@@ -54,7 +54,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     private Corpse corpse;
 
-    @Setter
     @Getter
     private int coins;
 
@@ -195,6 +194,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
             coins -= amount;
         }
+    }
+
+    public void setCoins(int amount) {
+        coins = Math.max(0, amount);
     }
 
     /**
