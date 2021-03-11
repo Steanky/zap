@@ -6,12 +6,11 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
 import lombok.Value;
-import net.minecraft.server.v1_16_R3.AttributeBase;
-import net.minecraft.server.v1_16_R3.EntityInsentient;
-import net.minecraft.server.v1_16_R3.GenericAttributes;
-import net.minecraft.server.v1_16_R3.PathfinderGoal;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.event.entity.EntityTargetEvent;
+
+import java.lang.reflect.Field;
 
 /**
  * Generic implementation for a pathfinder that is based off of vanilla AI rather than an entirely custom goal. The
@@ -39,7 +38,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     private int counter;
 
     public WrappedZombiesPathfinder(AbstractEntity entity, PathfinderGoal wrappedGoal, int retargetInterval,
-                                    AttributeValue...values) {
+                                    AttributeValue... values) {
         super(entity, Zombies.ARENA_METADATA_NAME);
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
@@ -52,6 +51,26 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
 
         for(AttributeValue value : values) {
             getProxy().setDoubleFor(entityInsentient, value.attribute, value.value);
+        }
+
+        /*
+        disgusting reflection needed to fix skeleton AI because mojang registers some equipment-related ai goals for
+        skeletons after everything else, and we want to make sure those pathfindergoals are absolutely useless and do
+        nothing.
+         */
+        if(entityInsentient instanceof EntitySkeletonAbstract) {
+            try {
+                Field bowShootGoal = EntitySkeletonAbstract.class.getDeclaredField("b");
+                Field meleeAttackGoal = EntitySkeletonAbstract.class.getDeclaredField("c");
+
+                bowShootGoal.setAccessible(true);
+                meleeAttackGoal.setAccessible(true);
+
+                bowShootGoal.set(entityInsentient, new DummyPathfinderGoalBowShoot<>((EntitySkeletonAbstract)entityInsentient));
+                meleeAttackGoal.set(entityInsentient, new DummyPathfinderGoalMeleeAttack((EntityCreature)entityInsentient));
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                Zombies.warning("Failed to set AI field on EntitySkeletonAbstract due to a reflection-related exception.");
+            }
         }
     }
 
@@ -87,6 +106,8 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Override
     public void onStart() {
         wrappedGoal.c();
+
+        Zombies.info("Goal started.");
     }
 
     @Override
@@ -103,7 +124,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         /*
         periodic target recalculation; this by default doesn't happen
          */
-        if((counter > -1 && ++counter == retargetInterval)) {
+        if(counter > -1 && ++counter == retargetInterval) {
             target = getProxy().findClosest(getHandle(), arena, 0, ZombiesPlayer::isAlive);
 
             if(target != null) {

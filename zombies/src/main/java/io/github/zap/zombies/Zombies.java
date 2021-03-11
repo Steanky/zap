@@ -18,10 +18,7 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedArrowShoot;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.*;
 import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
 import io.github.zap.zombies.game.mob.mechanic.SpawnMobMechanic;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -113,11 +110,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     public static final String ARENA_METADATA_NAME = "zombies_arena";
-    public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
     public static final String SPAWNINFO_ENTRY_METADATA_NAME = "spawninfo_metadata";
     public static final String SPAWNINFO_WAVE_METADATA_NAME = "spawninfo_wave_metadata";
     public static final String WINDOW_METADATA_NAME = "spawn_window";
-    public static final String IGNORES_INSTAKILL = "ignores_instakill";
 
     @Override
     public void onEnable() {
