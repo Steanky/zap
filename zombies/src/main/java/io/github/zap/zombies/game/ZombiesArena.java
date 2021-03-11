@@ -40,6 +40,9 @@ import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.title.Title;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -62,6 +65,7 @@ import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -286,7 +290,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 target.playEffect(EntityEffect.HURT);
 
                 double deltaHealth = inflictDamage(target, with.damageAmount(damager, target), with.ignoresArmor(damager, target));
-                target.setVelocity(target.getVelocity().add(with.directionVector(damager, target).clone().multiply(with.knockbackFactor(damager, target))));
+                Vector resultingVelocity = target.getVelocity().add(with.directionVector(damager, target).clone().multiply(with.knockbackFactor(damager, target)));
+
+                try {
+                    resultingVelocity.checkFinite();
+                    target.setVelocity(resultingVelocity);
+                }
+                catch (IllegalArgumentException ignored) {
+                    Zombies.warning("Attempted to set velocity for entity " + target.getUniqueId() + " to a vector " +
+                            "with a non-finite value " + resultingVelocity.toString());
+                }
 
                 damager.onDealsDamage(with, target, deltaHealth);
             }
@@ -599,11 +612,25 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
         args.getEvent().setCancelled(true); //cancel death event
 
-        ZombiesPlayer managedPlayer = args.getManagedPlayer();
-        managedPlayer.knock();
+        ZombiesPlayer knocked = args.getManagedPlayer();
+        knocked.knock();
 
         for(ZombiesPlayer player : getPlayerMap().values()) {
             if(player.isAlive()) {
+                Player knockedBukkitPlayer = knocked.getPlayer();
+                RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
+                String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+
+                //display death message only if necessary
+                for(ZombiesPlayer otherPlayer : getPlayerMap().values()) {
+                    if(otherPlayer != knocked) {
+                        otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
+                                .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
+                                .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                    }
+                }
+
                 return; //return if there are any players still alive
             }
         }
@@ -791,11 +818,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void doRound() {
-        for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
-            if(!player.isAlive()) {
-                player.respawn();
-            }
-        }
+        //respawn players
+        getPlayerMap().values().stream().filter(player -> !player.isAlive()).forEach(ZombiesPlayer::respawn);
 
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
         int currentRoundIndex = currentRoundProperty.getValue(this);

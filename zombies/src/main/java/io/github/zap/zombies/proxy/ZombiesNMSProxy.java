@@ -40,9 +40,9 @@ public interface ZombiesNMSProxy extends NMSProxy {
 
     ItemStack getItemStackFromDescription(ItemStackDescription info) throws CommandSyntaxException;
 
-    PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation);
+    PathEntity getPathTo(EntityInsentient entity, double x, double y, double z, int deviation);
 
-    PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation);
+    PathEntity getPathTo(EntityInsentient entity, Entity target, int deviation);
 
     boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed);
 

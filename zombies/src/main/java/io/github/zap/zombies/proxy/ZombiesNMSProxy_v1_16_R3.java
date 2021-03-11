@@ -48,7 +48,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             if(filter.test(player)) {
                 Player bukkitPlayer = player.getPlayer();
-                PathEntity path = getPathToUnbounded(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
+                PathEntity path = getPathTo(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
 
                 if(path != null) {
                     PathPoint finalPoint = path.getFinalPoint();
@@ -102,6 +102,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         }
         else {
             attributeMap.registerAttribute(attribute);
+            //noinspection ConstantConditions
             attributeMap.a(attribute).setValue(value);
         }
     }
@@ -122,12 +123,12 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation) {
+    public PathEntity getPathTo(EntityInsentient entity, double x, double y, double z, int deviation) {
         return entity.getNavigation().a(x, y, z, deviation);
     }
 
     @Override
-    public PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation) {
+    public PathEntity getPathTo(EntityInsentient entity, Entity target, int deviation) {
         return entity.getNavigation().calculateDestination(target);
     }
 

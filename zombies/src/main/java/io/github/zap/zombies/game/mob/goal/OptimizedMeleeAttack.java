@@ -71,7 +71,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             this.navigationCounter = 4 + this.self.getRandom().nextInt(7);
 
             //calculate the path
-            currentPath = proxy.getPathToUnbounded(self, target, 0);
+            currentPath = proxy.getPathTo(self, target, 0);
 
             if(currentPath != null) {
                 /*

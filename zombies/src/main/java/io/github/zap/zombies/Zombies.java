@@ -35,6 +35,7 @@ import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import io.lumine.xikage.mythicmobs.volatilecode.handlers.VolatileAIHandler;
 import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16_R3;
+import io.papermc.paper.adventure.PaperAdventure;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
@@ -46,6 +47,7 @@ import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import org.spigotmc.WatchdogThread;
 
 import java.io.File;
 import java.io.IOException;
@@ -252,7 +254,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                     }
                 }
             } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-                warning("Reflection-related exception when initializing pathfinding.");
+                throw new LoadFailureException("Reflection-related exception when initializing pathfinding.");
             }
         }
         else {
@@ -282,11 +284,11 @@ public final class Zombies extends JavaPlugin implements Listener {
                     info("Loaded custom MythicMobs mechanic " + customMechanic.getName());
                 }
                 else {
-                    warning("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
+                    throw new LoadFailureException("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-            warning("Reflection-related exception when initializing mechanics.");
+            throw new LoadFailureException("Reflection-related exception when initializing mechanics.");
         }
     }
 
