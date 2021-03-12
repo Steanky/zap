@@ -135,6 +135,21 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         }
     }
 
+    private class AdaptedPlayerDeathEvent extends MappingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
+        public AdaptedPlayerDeathEvent() {
+            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
+                    EventPriority.NORMAL, false), event -> {
+                S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
+
+                if(managedPlayer != null && managedPlayer.isInGame()) {
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedPlayer));
+                }
+
+                return ImmutablePair.of(false, null);
+            });
+        }
+    }
+
     private final Plugin plugin;
     private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
 
@@ -188,7 +203,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
         playerDamageEvent = new AdaptedEntityEvent<>(EntityDamageEvent.class);
         entityDamageByEntityEvent = new AdaptedEntityEvent<>(EntityDamageByEntityEvent.class);
-        playerDeathEvent = new AdaptedEntityEvent<>(PlayerDeathEvent.class);
+        playerDeathEvent = new AdaptedPlayerDeathEvent();
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
         playerItemConsumeEvent = new AdaptedPlayerEvent<>(PlayerItemConsumeEvent.class);

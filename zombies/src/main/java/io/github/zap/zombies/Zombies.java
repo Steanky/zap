@@ -52,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -101,7 +102,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private MoveWaterFallAfterBeta mockedWaterfall;
 
     public static final String DEFAULT_LOCALE = "en_US";
-    public static final String DEFAULT_LOBBY_WORLD = "world";
+    public static final String DEFAULT_LOBBY_WORLD = "lobby";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
@@ -148,7 +149,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initMockedWaterfall() {
         mockedWaterfall = new MoveWaterFallAfterBeta();
         getServer().getPluginManager().registerEvents(mockedWaterfall, this);
-        var world = Validate.notNull(getServer().getWorld("world"), "Cannot find lobby world!");
+        var world = Validate.notNull(getServer().getWorld(Objects.requireNonNull(getConfig().getString(ConfigNames.LOBBY_WORLD))), "Cannot find lobby world!");
         mockedWaterfall.setLobbyLocation(world.getSpawnLocation());
     }
 

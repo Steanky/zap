@@ -29,6 +29,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -102,6 +103,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
 
         this.perks = new ZombiesPerks(this);
+
+        setAliveState();
     }
 
     public void quit() {
@@ -417,11 +420,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             if(frozenBullets.getCurrentLevel() > 0) {
                 AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
-                if(speed != null) {
-                    double oldValue = speed.getBaseValue();
-                    speed.setBaseValue(speed.getBaseValue() / ((double)frozenBullets.getCurrentLevel() + 1D));
+                if(speed != null && speed.getModifiers().stream().noneMatch(attributeModifier -> attributeModifier.getName().equals("zz slow low iq"))) {
+                    AttributeModifier modifier = new AttributeModifier("zz slow low iq",
+                            -(1D / ((double)frozenBullets.getCurrentLevel() + 1D)), AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+                    speed.addModifier(modifier);
 
-                    Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.setBaseValue(oldValue),
+                    Zombies.info("Speed after applying slowness mod: " + speed.getValue());
+
+                    Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.removeModifier(modifier),
                             frozenBullets.getDuration());
                 }
             }
