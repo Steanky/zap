@@ -25,10 +25,7 @@ import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
-import io.github.zap.zombies.game.shop.LuckyChest;
-import io.github.zap.zombies.game.shop.Shop;
-import io.github.zap.zombies.game.shop.ShopEventArgs;
-import io.github.zap.zombies.game.shop.ShopType;
+import io.github.zap.zombies.game.shop.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -978,18 +975,27 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
         if (chestEvent != null) {
             chestEvent.registerHandler(new EventHandler<>() {
+
                 private final Random random = new Random();
                 int rolls = 0;
+
+                {
+                    List<Shop<?>> chests = new ArrayList<>(shopMap.get(ShopType.LUCKY_CHEST));
+                    LuckyChest luckyChest
+                            = (LuckyChest) chests.get(random.nextInt(chests.size()));
+                    luckyChest.setActive(true);
+                    ((LuckyChest) chests.get(random.nextInt(chests.size()))).setActive(true);
+                }
 
                 @Override
                 public void handleEvent(ShopEventArgs args) {
                     if (++rolls == map.getRollsPerChest()) {
                         LuckyChest luckyChest = (LuckyChest) args.getShop();
-                        luckyChest.toggle(false);
+                        luckyChest.setActive(false);
                         List<Shop<?>> chests = new ArrayList<>(shopMap.get(luckyChest.getShopType()));
                         chests.remove(luckyChest);
 
-                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).toggle(true);
+                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).setActive(true);
                         // TODO: set where the chest is
                         rolls = 0;
                     }

@@ -6,6 +6,7 @@ import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -67,7 +68,7 @@ public class Corpse {
         hologram.addLine(ChatColor.YELLOW + "----------------------------------");
         hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
 
-        hologram.addLine(String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
+        hologram.addLine(String.format("%s%fs", ChatColor.RED, TimeUtil.convertTicksToSeconds(defaultDeathTime)));
         hologram.addLine(ChatColor.YELLOW + "----------------------------------");
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
@@ -130,7 +131,7 @@ public class Corpse {
             reviver.getPlayer().sendActionBar(Component.empty());
             destroy();
         } else {
-            double timeRemaining = convertTicksToSeconds(reviveTime);
+            double timeRemaining = TimeUtil.convertTicksToSeconds(reviveTime);
             String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
             hologram.updateLine(2, secondsRemainingString);
             zombiesPlayer.getPlayer().sendActionBar(Component.text(
@@ -176,7 +177,7 @@ public class Corpse {
             zombiesPlayer.getArena().getAvailableCorpses().remove(this);
             zombiesPlayer.getPlayer().sendActionBar(Component.text());
         } else {
-            double timeRemaining = convertTicksToSeconds(deathTime);
+            double timeRemaining = TimeUtil.convertTicksToSeconds(deathTime);
             String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
             hologram.updateLine(2, secondsRemainingString);
             zombiesPlayer.getPlayer().sendActionBar(Component.text(
@@ -191,10 +192,6 @@ public class Corpse {
             spawnDeadBodyForPlayer(player);
             hologram.renderToPlayer(player);
         }
-    }
-
-    private double convertTicksToSeconds(int ticks) {
-        return (double) (ticks / 20) + 0.05D * (ticks % 20);
     }
 
     private void sendPacketToPlayer(PacketContainer packetContainer, Player player) {

@@ -305,6 +305,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             state = ZombiesPlayerState.KNOCKED;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
+
+            Player player = getPlayer();
+            Location ground = player.getLocation();
+            ground.setY(player.getWorld().getHighestBlockYAt(ground));
+            player.teleport(ground);
             corpse = new Corpse(this);
 
             getPerks().disableAll();

@@ -12,6 +12,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -65,7 +66,6 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 canShoot = false;
 
                 Player player = getPlayer();
-                player.sendActionBar(Component.text("RELOADING").color(NamedTextColor.YELLOW));
                 player.playSound(
                         Sound.sound(
                                 Key.key("minecraft:entity.horse.gallop"),
@@ -76,6 +76,12 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 );
 
                 new BukkitRunnable() {
+
+                    private final Component reloadingComponent = Component
+                            .text("RELOADING")
+                            .color(NamedTextColor.RED)
+                            .decorate(TextDecoration.BOLD);
+
                     private final int reloadRate = level.getReloadRate();
                     private final int maxVal = getEquipmentData().getMaterial().getMaxDurability();
 
@@ -85,13 +91,18 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                     public void run() {
                         if (step < reloadRate) {
                             setItemDamage(maxVal - (++step * maxVal) / reloadRate);
+                            if (isSelected()) {
+                                player.sendActionBar(reloadingComponent);
+                            }
                         } else {
                             setItemDamage(0);
 
                             int newClip = Math.min(clipAmmo, currentAmmo);
                             setClipAmmo(newClip);
 
-                            getPlayer().sendActionBar(Component.text());
+                            if (isSelected()) {
+                                getPlayer().sendActionBar(Component.text());
+                            }
 
                             canReload = true;
                             canShoot = true;
