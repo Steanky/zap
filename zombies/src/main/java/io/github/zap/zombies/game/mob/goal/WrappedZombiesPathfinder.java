@@ -106,8 +106,6 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Override
     public void onStart() {
         wrappedGoal.c();
-
-        Zombies.info("Goal started.");
     }
 
     @Override

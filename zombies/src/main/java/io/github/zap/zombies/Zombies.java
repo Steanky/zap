@@ -112,7 +112,6 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     public static final String ARENA_METADATA_NAME = "zombies_arena";
-    public static final String SPAWNINFO_ENTRY_METADATA_NAME = "spawninfo_metadata";
     public static final String SPAWNINFO_WAVE_METADATA_NAME = "spawninfo_wave_metadata";
     public static final String WINDOW_METADATA_NAME = "spawn_window";
 
