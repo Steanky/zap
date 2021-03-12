@@ -13,7 +13,7 @@ public abstract class ZombiesPlayerSkill extends ZombiesArenaSkill {
     }
 
     @Override
-    public boolean cast(SkillMetadata metadata, ZombiesArena arena) {
+    public boolean cast(@NotNull SkillMetadata metadata, @NotNull ZombiesArena arena) {
         AbstractEntity target = metadata.getCaster().getEntity().getTarget();
 
         if(target != null) {

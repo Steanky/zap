@@ -7,10 +7,12 @@ import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.skills.INoTargetSkill;
 import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
 import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ZombiesArenaSkill extends SkillMechanic implements INoTargetSkill {
     public ZombiesArenaSkill(String skill, MythicLineConfig mlc) {
         super(skill, mlc);
+        setAsyncSafe(false);
     }
 
     @Override
@@ -25,5 +27,5 @@ public abstract class ZombiesArenaSkill extends SkillMechanic implements INoTarg
         return false;
     }
 
-    public abstract boolean cast(SkillMetadata metadata, ZombiesArena arena);
+    public abstract boolean cast(@NotNull SkillMetadata metadata, @NotNull ZombiesArena arena);
 }

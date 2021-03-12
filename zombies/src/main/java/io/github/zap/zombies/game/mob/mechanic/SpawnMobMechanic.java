@@ -14,7 +14,7 @@ import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.metadata.MetadataValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -53,7 +53,7 @@ public class SpawnMobMechanic extends ZombiesArenaSkill implements Listener {
     }
 
     @Override
-    public boolean cast(SkillMetadata metadata, ZombiesArena arena) {
+    public boolean cast(@NotNull SkillMetadata metadata, @NotNull ZombiesArena arena) {
         AbstractEntity caster = metadata.getCaster().getEntity();
         Set<UUID> spawnedMobs = mobs.computeIfAbsent(caster.getUniqueId(), uuid -> new HashSet<>());
 
@@ -63,10 +63,10 @@ public class SpawnMobMechanic extends ZombiesArenaSkill implements Listener {
 
             if(useSpawnpoints) {
                 List<ActiveMob> spawned = arena.getSpawner().spawnMobs(ImmutableList.of(new SpawnEntryData(mobType, spawnAmount)),
-                        ignoreSpawnrule ? SpawnMethod.IGNORE_SPAWNRULE : SpawnMethod.RANGED,
-                        spawnpointData -> caster.getBukkitEntity().getLocation().toVector()
-                                .distanceSquared(spawnpointData.getSpawn()) < originRadiusSquared,
-                        spawnRadiusSquared, true, true);
+                        ignoreSpawnrule ? SpawnMethod.IGNORE_SPAWNRULE : SpawnMethod.RANGED, spawnpointData ->
+                                caster.getBukkitEntity().getLocation().toVector().distanceSquared(
+                                        spawnpointData.getSpawn()) < originRadiusSquared, spawnRadiusSquared,
+                        true, true);
 
                 for(ActiveMob mob : spawned) {
                     registerMob(spawnedMobs, mob, caster.getUniqueId());

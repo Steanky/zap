@@ -29,6 +29,7 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
         super(skill, mlc);
         decayTime = mlc.getInteger("decay",40);
         rangeSquared = mlc.getDouble("rangeSquared", 256);
+        setAsyncSafe(false);
     }
 
     @Override
