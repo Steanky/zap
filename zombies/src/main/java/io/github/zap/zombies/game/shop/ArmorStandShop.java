@@ -31,6 +31,7 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
                 getShopData().getRootLocation().toLocation(world).add(0.0D, -1.0D, 0.0D),
                 ArmorStand.class
         );
+        armorStand.setCollidable(false);
         armorStand.setGravity(false);
         armorStand.setVisible(false);
 

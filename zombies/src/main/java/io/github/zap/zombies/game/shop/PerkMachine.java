@@ -85,6 +85,12 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                     (PerkObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.PERK.name());
                             if (perkObjectGroup != null) {
                                 Integer slot = perkObjectGroup.getNextEmptySlot();
+                                if (slot == null) {
+                                    int heldSlot = player.getInventory().getHeldItemSlot();
+                                    if (perkObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
+                                        slot = heldSlot;
+                                    }
+                                }
                                 if (slot != null) {
                                     zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
 
