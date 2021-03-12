@@ -1,19 +1,20 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
-import com.google.common.collect.Sets;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.util.AirUtil;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -61,9 +62,6 @@ public class BasicBeam {
         }
     }
 
-    private final static Set<Material> AIR_MATERIALS =
-            Sets.newHashSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
-
     private final BukkitAPIHelper bukkitAPIHelper;
 
     private final MapData mapData;
@@ -107,7 +105,7 @@ public class BasicBeam {
         Block targetBlock = getTargetBlock();
         BoundingBox boundingBox;
 
-        if (AIR_MATERIALS.contains(targetBlock.getType())) {
+        if (AirUtil.AIR_MATERIALS.contains(targetBlock.getType())) {
             Location location = targetBlock.getLocation();
             boundingBox = new BoundingBox(location.getX(), location.getY(), location.getZ(),
                     location.getX() + 1, location.getY() + 1, location.getZ() + 1);
@@ -119,9 +117,7 @@ public class BasicBeam {
         if (rayTraceResult != null) {
             return rayTraceResult.getHitPosition().distance(root);
         } else {
-            Zombies.warning("ray trace in getDistance() method in BasicBeam returned null, shot not fired");
-
-            return 0.0D;
+            return range;
         }
     }
 
@@ -138,7 +134,8 @@ public class BasicBeam {
             targetBlock = iterator.next();
 
             Material material = targetBlock.getType();
-            if (!AIR_MATERIALS.contains(material) && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
+            if (!AirUtil.AIR_MATERIALS.contains(material)
+                    && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
                 BoundingBox boundingBox = targetBlock.getBoundingBox();
                 if (boundingBox.getWidthX() != 1.0D
                         || boundingBox.getHeight() != 1.0D || boundingBox.getWidthZ() != 1.0D) {

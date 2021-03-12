@@ -381,6 +381,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
     @Getter
+    private String luckyChestRoom;
+
+    @Getter
     private final String corpseTeamName = UUID.randomUUID().toString().substring(0, 16);
 
     @Getter
@@ -984,7 +987,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     LuckyChest luckyChest
                             = (LuckyChest) chests.get(random.nextInt(chests.size()));
                     luckyChest.setActive(true);
-                    ((LuckyChest) chests.get(random.nextInt(chests.size()))).setActive(true);
+
+                    RoomData room = map.roomAt(luckyChest.getShopData().getChestLocation());
+                    luckyChestRoom = room != null ? room.getName() : null;
                 }
 
                 @Override
@@ -996,7 +1001,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         chests.remove(luckyChest);
 
                         ((LuckyChest) chests.get(random.nextInt(chests.size()))).setActive(true);
-                        // TODO: set where the chest is
+                        RoomData room = map.roomAt(luckyChest.getShopData().getChestLocation());
+                        luckyChestRoom = room != null ? room.getName() : null;
+
                         rolls = 0;
                     }
                 }

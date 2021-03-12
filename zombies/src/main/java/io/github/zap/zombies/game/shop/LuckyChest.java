@@ -151,9 +151,15 @@ public class LuckyChest extends Shop<LuckyChestData> {
                             .color(NamedTextColor.RED)
                     );
                 } else if (!active) {
+                    String notActive = "This Lucky Chest is not active right now!";
+                    String luckyChestRoom = getZombiesArena().getLuckyChestRoom();
+                    if (luckyChestRoom != null) {
+                        notActive += " Find the Lucky Chest in " + luckyChestRoom + "!";
+                    }
+
                     player.sendMessage(Component
-                            .text("This Lucky Chest is not active right now!").
-                            color(NamedTextColor.RED));
+                            .text(notActive)
+                            .color(NamedTextColor.RED));
                 } else if (roller != null) {
                     if (player.getUniqueId().equals(roller)) {
                         if (doneRolling) {
@@ -233,7 +239,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
                         Jingle.play(
                                 getShopData().getJingle(),
-                                gunSwapper = new GunSwapper(player.getWorld()),
+                                gunSwapper = new GunSwapper(zombiesPlayer),
                                 chestLocation.clone().add(0, 1, 0)
                         );
                     }
@@ -257,6 +263,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private final PacketContainer openChestContainer = new PacketContainer(PacketType.Play.Server.BLOCK_ACTION);
 
+        private final ZombiesPlayer zombiesPlayer;
+
         private final Item item;
 
         private EquipmentData<?> currentEquipment;
@@ -268,7 +276,10 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private final Hologram endHologram;
 
-        public GunSwapper(World world) {
+        public GunSwapper(ZombiesPlayer zombiesPlayer) {
+            this.zombiesPlayer = zombiesPlayer;
+
+            World world = zombiesPlayer.getPlayer().getWorld();
             openChestContainer.getBlockPositionModifier().write(
                     0,
                     new BlockPosition(chestLocation.toVector())
@@ -356,6 +367,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
             roller = null;
             gunSwapper = null;
             display();
+
+            onPurchaseSuccess(zombiesPlayer);
         }
 
     }

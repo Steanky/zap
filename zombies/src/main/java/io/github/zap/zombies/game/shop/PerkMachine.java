@@ -104,6 +104,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                                     perkMachineData.getPerkName()
                                             ));
 
+                                    zombiesPlayer.subtractCoins(cost);
                                     onPurchaseSuccess(zombiesPlayer);
                                 } else {
                                     player.sendMessage(ChatColor.RED + "Choose a slot to receive the perk in!");

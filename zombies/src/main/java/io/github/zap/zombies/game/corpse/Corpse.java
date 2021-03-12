@@ -81,7 +81,7 @@ public class Corpse {
     }
 
     /**
-     * Terminates the corpse's execution early.
+     * Terminates the corpse's execution.
      */
     public void terminate() {
         active = false;
@@ -91,9 +91,7 @@ public class Corpse {
         }
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
-        zombiesArena.getCorpses().remove(this);
         zombiesArena.getAvailableCorpses().remove(this);
-        zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
 
         if (deathTaskId != -1) {
             Bukkit.getScheduler().cancelTask(deathTaskId);
@@ -126,9 +124,11 @@ public class Corpse {
     public void continueReviving() {
         if (reviveTime <= 0) {
             active = false;
+
             zombiesPlayer.revive();
             zombiesPlayer.getPlayer().sendActionBar(Component.empty());
             reviver.getPlayer().sendActionBar(Component.empty());
+
             destroy();
         } else {
             double timeRemaining = TimeUtil.convertTicksToSeconds(reviveTime);
@@ -172,9 +172,10 @@ public class Corpse {
     private void continueDying() {
         if (deathTime <= 0) {
             active = false;
+
             zombiesPlayer.kill();
-            hologram.destroy();
-            zombiesPlayer.getArena().getAvailableCorpses().remove(this);
+            terminate();
+
             zombiesPlayer.getPlayer().sendActionBar(Component.text());
         } else {
             double timeRemaining = TimeUtil.convertTicksToSeconds(deathTime);
@@ -293,15 +294,11 @@ public class Corpse {
         killPacketContainer.getIntegerArrays().write(0, new int[] { id });
 
         sendPacket(killPacketContainer);
+
+        ZombiesArena zombiesArena = getZombiesPlayer().getArena();;
         terminate();
-
-        //if (hologram.getHologramLines().size() > 0) {
-        //    hologram.destroy();
-        //}
-
-        //zombiesPlayer.getArena().getCorpses().remove(this);
-        //zombiesPlayer.getArena().getAvailableCorpses().remove(this);
-        //zombiesPlayer.getArena().getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        zombiesArena.getCorpses().remove(this);
+        zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
     }
 
     @Override

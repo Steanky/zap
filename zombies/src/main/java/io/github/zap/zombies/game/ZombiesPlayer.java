@@ -17,6 +17,7 @@ import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
+import io.github.zap.zombies.game.util.AirUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -308,8 +309,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             Player player = getPlayer();
             Location ground = player.getLocation();
-            ground.setY(player.getWorld().getHighestBlockYAt(ground));
-            player.teleport(ground);
+
+            for (double y = ground.getY(); y >= 0D; y--){
+                ground.setY(y);
+                if (!AirUtil.AIR_MATERIALS.contains(player.getWorld().getBlockAt(ground).getType())) {
+                    player.teleport(ground);
+                }
+            }
+
             corpse = new Corpse(this);
 
             getPerks().disableAll();
@@ -329,10 +336,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             state = ZombiesPlayerState.DEAD;
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
             setDeadState();
-
-            if(corpse != null) {
-                corpse.terminate();
-            }
         }
     }
 
@@ -445,7 +448,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         }
         else { //we already have a target window - make sure it's still in range
             if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
-                    && repairOn) {
+                    && repairOn && isAlive()) {
                 tryRepairWindow(targetWindow);
             }
             else {
@@ -519,27 +522,31 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Checks for corpses to revive or continues reviving the current corpse
      */
     private void checkForCorpses() {
-        int maxDistance = arena.getMap().getReviveRadius();
+        if (isAlive()) {
+            int maxDistance = arena.getMap().getReviveRadius();
 
-        if (targetCorpse == null) {
-            selectNewCorpse();
-        } else if (!targetCorpse.isActive()) {
-            getPlayer().sendActionBar(Component.text());
-            targetCorpse = null;
-
-            selectNewCorpse();
-        } else {
-            double distance = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
-
-            if (distance < maxDistance && reviveOn) {
-                targetCorpse.continueReviving();
-            } else {
+            if (targetCorpse == null) {
+                selectNewCorpse();
+            } else if (!targetCorpse.isActive()) {
                 getPlayer().sendActionBar(Component.text());
-                targetCorpse.setReviver(null);
                 targetCorpse = null;
 
                 selectNewCorpse();
+            } else {
+                double distance = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
+
+                if (distance < maxDistance && reviveOn) {
+                    targetCorpse.continueReviving();
+                } else {
+                    getPlayer().sendActionBar(Component.text());
+                    targetCorpse.setReviver(null);
+                    targetCorpse = null;
+
+                    selectNewCorpse();
+                }
             }
+        } else if (targetCorpse != null) {
+            targetCorpse.setReviver(null);
         }
     }
 

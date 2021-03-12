@@ -21,9 +21,9 @@ public class LuckyChestData extends ShopData {
 
     private List<String> equipments;
 
-    private long sittingTime;
+    private long sittingTime = 200;
 
-    private int cost;
+    private int cost = 1000;
 
     public LuckyChestData(Vector chestLocation, boolean requiresPower) {
         super(ShopType.LUCKY_CHEST, requiresPower);
