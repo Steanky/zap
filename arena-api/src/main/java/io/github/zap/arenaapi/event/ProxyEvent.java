@@ -72,7 +72,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
 
             EventExecutor executor = (listener, event) -> {
                 if(bukkitEventClass.isAssignableFrom(event.getClass())) {
-                    if(event.isAsynchronous()) {
+                    if(!event.isAsynchronous()) {
                         callEvent(bukkitEventClass.cast(event));
                     }
                     else {
