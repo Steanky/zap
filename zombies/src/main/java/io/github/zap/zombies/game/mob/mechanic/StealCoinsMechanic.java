@@ -1,15 +1,11 @@
 package io.github.zap.zombies.game.mob.mechanic;
 
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
-import io.lumine.xikage.mythicmobs.skills.ITargetedEntitySkill;
-import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
 import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
-import org.bukkit.metadata.MetadataValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -17,7 +13,7 @@ import java.util.*;
         name = "stealCoins",
         description = "Steals coins from the target ZombiesPlayer."
 )
-public class StealCoinsMechanic extends SkillMechanic implements ITargetedEntitySkill {
+public class StealCoinsMechanic extends ZombiesPlayerSkill {
     private static final Random RNG = new Random();
 
     private final int stealMax;
@@ -30,26 +26,8 @@ public class StealCoinsMechanic extends SkillMechanic implements ITargetedEntity
     }
 
     @Override
-    public boolean castAtEntity(SkillMetadata skillMetadata, AbstractEntity target) {
-        AbstractEntity caster = skillMetadata.getCaster().getEntity();
-        List<MetadataValue> metadata = caster.getBukkitEntity().getMetadata(Zombies.ARENA_METADATA_NAME);
-
-        for(MetadataValue value : metadata) {
-            if(value.getOwningPlugin() == Zombies.getInstance()) {
-                ZombiesArena arena = (ZombiesArena)value.value();
-
-                if(arena != null) {
-                    ZombiesPlayer zombiesPlayer = arena.getPlayerMap().get(target.getUniqueId());
-
-                    if(zombiesPlayer != null) {
-                        zombiesPlayer.setCoins(zombiesPlayer.getCoins() - (stealMin + RNG.nextInt(stealMax - stealMin)));
-                    }
-                }
-
-                break;
-            }
-        }
-
-        return false;
+    public boolean castAtPlayer(@NotNull SkillMetadata skillMetadata, @NotNull ZombiesArena arena, @NotNull ZombiesPlayer target) {
+        target.setCoins(target.getCoins() - (stealMin + RNG.nextInt(stealMax - stealMin)));
+        return true;
     }
 }
