@@ -16,6 +16,8 @@ import io.github.zap.zombies.game.data.map.shop.LuckyChestData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.util.Jingle;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -200,6 +202,12 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                                         equipmentData
                                                 )
                                         );
+                                        player.playSound(Sound.sound(
+                                                Key.key("minecraft:block.note_block.pling"),
+                                                Sound.Source.MASTER,
+                                                1.0F,
+                                                2.0F
+                                        ));
                                     } else {
                                         player.sendMessage(Component
                                                 .text("Choose a slot to receive the item in!")

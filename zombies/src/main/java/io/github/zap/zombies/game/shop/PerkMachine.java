@@ -10,6 +10,8 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -103,6 +105,13 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                                     zombiesArena.getMap().getName(),
                                                     perkMachineData.getPerkName()
                                             ));
+
+                                    player.playSound(Sound.sound(
+                                            Key.key("minecraft:entity.firework_rocket.twinkle"),
+                                            Sound.Source.MASTER,
+                                            1.0F,
+                                            1.0F
+                                    ));
 
                                     zombiesPlayer.subtractCoins(cost);
                                     onPurchaseSuccess(zombiesPlayer);

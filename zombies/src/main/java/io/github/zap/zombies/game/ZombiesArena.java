@@ -3,7 +3,10 @@ package io.github.zap.zombies.game;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.event.*;
+import io.github.zap.arenaapi.event.Event;
+import io.github.zap.arenaapi.event.EventHandler;
+import io.github.zap.arenaapi.event.FilteredEvent;
+import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -25,7 +28,10 @@ import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
-import io.github.zap.zombies.game.shop.*;
+import io.github.zap.zombies.game.shop.LuckyChest;
+import io.github.zap.zombies.game.shop.Shop;
+import io.github.zap.zombies.game.shop.ShopEventArgs;
+import io.github.zap.zombies.game.shop.ShopType;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -35,6 +41,8 @@ import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
 import lombok.Value;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
@@ -635,6 +643,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                                 .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
                                 .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
                                 Duration.ofSeconds(3), Duration.ofSeconds(1))));
+
+
+                        otherPlayer.getPlayer().playSound(Sound.sound(
+                                Key.key("minecraft:entity.ender_dragon.growl"),
+                                Sound.Source.MASTER,
+                                1.0F,
+                                0.5F
+                        ));
                     }
                 }
 
@@ -861,7 +877,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
                         currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (currentRoundIndex + 1);
                 r.getPlayer().sendTitle(messageTitle, "");
-                r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 0.5f);
+                r.getPlayer().playSound(Sound.sound(
+                        Key.key("minecraft:entity.wither.spawn"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        0.5F
+                ));
             });
 
             if(getMap().getDisablePowerUpRound().contains(currentRoundIndex + 1)) {

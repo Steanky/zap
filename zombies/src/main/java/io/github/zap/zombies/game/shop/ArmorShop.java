@@ -12,6 +12,8 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorShopData;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -131,6 +133,13 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                             }
 
                         }
+
+                        player.playSound(Sound.sound(
+                                Key.key("block.note_block.pling"),
+                                Sound.Source.MASTER,
+                                1.0F,
+                                2.0F
+                        ));
 
                         zombiesPlayer.updateEquipment(current);
                         zombiesPlayer.subtractCoins(cost);

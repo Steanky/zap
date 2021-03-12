@@ -308,12 +308,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
             Player player = getPlayer();
-            Location ground = player.getLocation();
+            Location location = player.getLocation();
 
-            for (double y = ground.getY(); y >= 0D; y--){
-                ground.setY(y);
-                if (!AirUtil.AIR_MATERIALS.contains(player.getWorld().getBlockAt(ground).getType())) {
-                    player.teleport(ground);
+            for (double y = location.getY(); y >= 0D; y--){
+                location.setY(y);
+                if (!AirUtil.AIR_MATERIALS.contains(player.getWorld().getBlockAt(location).getType())) {
+                    player.teleport(location);
                 }
             }
 
@@ -335,6 +335,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
+
+            Location corpseLocation = corpse.getLocation();
+            for (Player player : getPlayer().getWorld().getPlayers()) {
+                player.playSound(Sound.sound(
+                        Key.key("minecraft:entity.player.hurt"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        1.0F
+                ), corpseLocation.getX(), corpseLocation.getY(), corpseLocation.getZ());
+            }
+
             setDeadState();
         }
     }

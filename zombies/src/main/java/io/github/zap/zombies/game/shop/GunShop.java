@@ -9,6 +9,8 @@ import io.github.zap.zombies.game.data.map.shop.GunShopData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
@@ -121,9 +123,21 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
                 if (refillAttempt == null) {
                     if (tryBuy(zombiesPlayer, gunObjectGroup)) {
+                        player.playSound(Sound.sound(
+                                Key.key("block.note_block.pling"),
+                                Sound.Source.MASTER,
+                                1.0F,
+                                2.0F
+                        ));
                         onPurchaseSuccess(zombiesPlayer);
                     }
                 } else if (refillAttempt) {
+                    player.playSound(Sound.sound(
+                            Key.key("block.note_block.pling"),
+                            Sound.Source.MASTER,
+                            1.0F,
+                            2.0F
+                    ));
                     onPurchaseSuccess(zombiesPlayer);
                 }
             } else {

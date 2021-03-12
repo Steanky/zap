@@ -8,6 +8,8 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -64,6 +66,14 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                         if (upgradeableEquipment.getLevel()
                                 < upgradeableEquipment.getEquipmentData().getLevels().size()) {
                             upgradeableEquipment.upgrade();
+
+
+                            player.playSound(Sound.sound(
+                                    Key.key("minecraft:entity.player.levelup"),
+                                    Sound.Source.MASTER,
+                                    1.0F,
+                                    1.0F
+                            ));
 
                             zombiesPlayer.subtractCoins(cost);
                             onPurchaseSuccess(zombiesPlayer);
