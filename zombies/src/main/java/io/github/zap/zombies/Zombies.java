@@ -18,7 +18,10 @@ import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.*;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedArrowShoot;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
 import io.github.zap.zombies.game.mob.mechanic.*;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
@@ -31,9 +34,7 @@ import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import io.lumine.xikage.mythicmobs.volatilecode.handlers.VolatileAIHandler;
 import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16_R3;
-import io.papermc.paper.adventure.PaperAdventure;
 import lombok.Getter;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -43,7 +44,6 @@ import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
-import org.spigotmc.WatchdogThread;
 
 import java.io.File;
 import java.io.IOException;
@@ -145,11 +145,16 @@ public final class Zombies extends JavaPlugin implements Listener {
         info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
-    private void initMockedWaterfall() {
+    private void initMockedWaterfall() throws LoadFailureException {
         mockedWaterfall = new MoveWaterFallAfterBeta();
         getServer().getPluginManager().registerEvents(mockedWaterfall, this);
-        var world = Validate.notNull(getServer().getWorld("world"), "Cannot find lobby world!");
-        mockedWaterfall.setLobbyLocation(world.getSpawnLocation());
+
+        World world = Bukkit.getWorld(nmsProxy.getDefaultWorldName());
+        if (world != null) {
+            mockedWaterfall.setLobbyLocation(world.getSpawnLocation());
+        } else {
+            throw new LoadFailureException("server.properties does not contain a correct default world!");
+        }
     }
 
     @Override

@@ -660,6 +660,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         for(ZombiesPlayer player : getPlayerMap().values()) {
             player.kill();
+            Corpse corpse = player.getCorpse();
+            if (corpse != null) {
+                corpse.destroy();
+            }
         }
 
         doLoss(); //there are no players alive, so end the game
