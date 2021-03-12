@@ -76,7 +76,7 @@ public class Hologram {
 
     public Hologram(Location location, double lineSpace) {
         this.arenaApi = ArenaApi.getInstance();
-        this.rootLocation = location;
+        this.rootLocation = location.clone().add(0, 1.975, 0);
         this.lineSpace = lineSpace;
     }
 

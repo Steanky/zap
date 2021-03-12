@@ -66,9 +66,14 @@ public class TextLine extends HologramLine<String> {
         WrappedDataWatcher.WrappedDataWatcherObject customNameVisible =
                 new WrappedDataWatcher.WrappedDataWatcherObject(3, customNameVisibleSerializer);
 
+        WrappedDataWatcher.Serializer markerSerializer = WrappedDataWatcher.Registry.get(Byte.class);
+        WrappedDataWatcher.WrappedDataWatcherObject marker =
+                new WrappedDataWatcher.WrappedDataWatcherObject(14, markerSerializer);
+
         wrappedDataWatcher.setObject(invisible, (byte) 0x20);
         wrappedDataWatcher.setObject(customName, opt);
         wrappedDataWatcher.setObject(customNameVisible, true);
+        wrappedDataWatcher.setObject(marker, (byte) 0x10);
         packetContainer.getWatchableCollectionModifier().write(0, wrappedDataWatcher.getWatchableObjects());
 
         return packetContainer;

@@ -327,7 +327,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                         double timeRemaining = TimeUtil.convertTicksToSeconds(sittingTime);
                         endHologram.updateLineForEveryone(
                                 1,
-                                String.format("%s%.1f", ChatColor.RED, timeRemaining)
+                                String.format("%s%.1fs", ChatColor.RED, timeRemaining)
                         );
 
                         sittingTime -= 2;
