@@ -142,8 +142,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
             Block clickedBlock = playerInteractEvent.getClickedBlock();
 
             if (left.equals(clickedBlock) || right.equals(clickedBlock)) {
-                playerInteractEvent.setCancelled(true);
-
                 LuckyChestData luckyChestData = getShopData();
                 ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
                 Player player = zombiesPlayer.getPlayer();

@@ -682,6 +682,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.getHotbarManager().click(event.getAction());
             }
         }
+
+        event.setCancelled(true);
     }
 
     private void onPlayerSwapHandItems(ProxyArgs<PlayerSwapHandItemsEvent> args) {
