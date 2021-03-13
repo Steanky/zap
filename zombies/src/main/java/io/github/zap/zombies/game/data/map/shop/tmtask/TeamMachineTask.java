@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.data.map.shop.tmtask;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
@@ -40,6 +42,13 @@ public abstract class TeamMachineTask {
         int cost = getCost();
         if (zombiesPlayer.getCoins() < cost) {
             zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
+
+            zombiesPlayer.getPlayer().playSound(Sound.sound(
+                    Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    0.5F
+            ));
         } else {
             timesUsed++;
             zombiesPlayer.subtractCoins(cost);

@@ -146,12 +146,20 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
                         displayTo(player);
                         onPurchaseSuccess(zombiesPlayer);
+                        return true;
                     }
                 }
 
             } else {
                 player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
+
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    0.5F
+            ));
 
             return true;
         }

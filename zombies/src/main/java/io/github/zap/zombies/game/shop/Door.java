@@ -9,6 +9,8 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
@@ -153,11 +155,20 @@ public class Door extends Shop<DoorData> {
 
                             opened = true;
                             onPurchaseSuccess(zombiesPlayer);
+
+                            return true;
                         }
 
                         break;
                     }
                 }
+
+                player.playSound(Sound.sound(
+                        Key.key("minecraft:entity.enderman.teleport"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        0.5F
+                ));
 
                 return true;
             }
