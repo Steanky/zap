@@ -171,7 +171,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ProxyArgs<PlayerSwapHandItemsEvent>> playerSwapHandItemsEvent;
     private final Event<ProxyArgs<PlayerAnimationEvent>> playerAnimationEvent;
     private final Event<ProxyArgs<PlayerToggleSneakEvent>> playerToggleSneakEvent;
-    private final Event<ProxyArgs<EntityDamageEvent>> playerDamageEvent;
+    private final Event<ProxyArgs<EntityDamageEvent>> playerDamagedEvent;
     private final Event<ProxyArgs<EntityDamageByEntityEvent>> entityDamageByEntityEvent;
     private final Event<ProxyArgs<PlayerDeathEvent>> playerDeathEvent;
     private final Event<ProxyArgs<PlayerQuitEvent>> playerQuitEvent;
@@ -197,7 +197,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerSwapHandItemsEvent = new AdaptedPlayerEvent<>(PlayerSwapHandItemsEvent.class);
         playerAnimationEvent = new AdaptedPlayerEvent<>(PlayerAnimationEvent.class);
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
-        playerDamageEvent = new AdaptedEntityEvent<>(EntityDamageEvent.class);
+        playerDamagedEvent = new AdaptedEntityEvent<>(EntityDamageEvent.class);
         entityDamageByEntityEvent = new AdaptedEntityEvent<>(EntityDamageByEntityEvent.class);
         playerDeathEvent = new AdaptedPlayerDeathEvent();
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);

@@ -316,17 +316,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
-            Player player = getPlayer();
-            Location location = player.getLocation();
-
-            for (double y = location.getY(); y >= 0D; y--){
-                location.setY(y);
-                if (!player.getWorld().getBlockAt(location).getType().isAir()) {
-                    boolean succ  = player.teleport(location.add(0, 1, 0));
-                    break;
-                }
-            }
-
             corpse = new Corpse(this);
 
             getPerks().disableAll();

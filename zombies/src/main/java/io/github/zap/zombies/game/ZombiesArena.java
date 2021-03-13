@@ -48,6 +48,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -482,6 +483,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerDropItemEvent().registerHandler(this::onPlayerDropItem);
         getPlayerMoveEvent().registerHandler(this::onPlayerMove);
         getPlayerSwapHandItemsEvent().registerHandler(this::onPlayerSwapHandItems);
+        getPlayerDamagedEvent().registerHandler(this::onPlayerDamaged);
         getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
@@ -631,6 +633,24 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onMobDespawn(MythicMobDespawnEvent args) {
         onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
+    }
+
+    private void onPlayerDamaged(ProxyArgs<EntityDamageEvent> args) {
+        EntityDamageEvent event = args.getEvent();
+        Player player = args.getManagedPlayer().getPlayer();
+
+        if (player.getHealth() <= event.getFinalDamage()) {
+            Location location = player.getLocation();
+
+            for (double y = location.getY(); y >= 0D; y--){
+                location.setY(y);
+                Block block = player.getWorld().getBlockAt(location);
+                if (!block.getType().isAir()) {
+                    player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
+                    break;
+                }
+            }
+        }
     }
 
     private void onEntityDamageByEntity(ProxyArgs<EntityDamageByEntityEvent> args) {
