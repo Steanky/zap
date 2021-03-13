@@ -6,6 +6,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.corpse.Corpse;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -87,6 +88,10 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
             // Add their in game scoreboard for every player still in the game
             if(player.getValue().isInGame())
                 player.getValue().getPlayer().setScoreboard(bukkitScoreboard);
+
+            for (Corpse corpse : gameScoreboard.getZombiesArena().getCorpses()) {
+                corpse.addCorpseToScoreboardTeamForPlayer(player.getValue().getPlayer());
+            }
 
             playScoreboards.put(player.getKey(), new IngamePlayerScoreboardInformation(bukkitScoreboard, this, objHealth, objKills, writer, zombieKills));
         }

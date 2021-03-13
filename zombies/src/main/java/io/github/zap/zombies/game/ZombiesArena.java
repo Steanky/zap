@@ -665,6 +665,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
         }
 
+        doLoss(); //there are no players alive, so end the game
+
+        // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
         for(ZombiesPlayer player : getPlayerMap().values()) {
             player.kill();
             Corpse corpse = player.getCorpse();
@@ -672,8 +675,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 corpse.terminate();
             }
         }
-
-        doLoss(); //there are no players alive, so end the game
     }
 
     private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
@@ -952,6 +953,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
             r.getPlayer().sendActionBar(Component.text());
         });
+        gameScoreboard.run();
         waitAndDispose(200);
     }
 

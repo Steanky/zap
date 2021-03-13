@@ -4,7 +4,9 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -79,6 +81,10 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
         // stop the update task
         if(updateTask != null && !updateTask.isCancelled())
             updateTask.cancel();
+
+        for (ZombiesPlayer zombiesPlayer : zombiesArena.getPlayerMap().values()) {
+            zombiesPlayer.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        }
 
         if(currentState != null && currentState instanceof Disposable) {
             ((Disposable) currentState).dispose();

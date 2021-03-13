@@ -157,6 +157,20 @@ public class Corpse {
         }
     }
 
+    /**
+     * Adds the corpse to a scoreboard team for nametag invisibility
+     * @param player The player to send the packet to
+     */
+    public void addCorpseToScoreboardTeamForPlayer(Player player) {
+        PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+        addCorpseToTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
+        addCorpseToTeamPacket.getIntegers().write(0, 3);
+        addCorpseToTeamPacket.getSpecificModifier(Collection.class)
+                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
+
+        sendPacketToPlayer(addCorpseToTeamPacket, player);
+    }
+
     private void startDying() {
         deathTime = defaultDeathTime;
         hologram.updateLine(1, ChatColor.RED + "help this noob");
@@ -215,14 +229,7 @@ public class Corpse {
         sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER), player);
         sendPacketToPlayer(createSpawnPlayerPacketContainer(), player);
         sendPacketToPlayer(createSleepingPacketContainer(), player);
-
-        PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
-        addCorpseToTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
-        addCorpseToTeamPacket.getIntegers().write(0, 3);
-        addCorpseToTeamPacket.getSpecificModifier(Collection.class)
-                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
-
-        sendPacketToPlayer(addCorpseToTeamPacket, player);
+        addCorpseToScoreboardTeamForPlayer(player);
 
         Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), ()->
                 sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player), 1);
