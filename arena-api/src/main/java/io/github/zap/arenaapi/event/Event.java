@@ -55,7 +55,7 @@ public class Event<T> implements Disposable {
 
     /**
      * Registers a handler with this event. If handlers are currently in the process of being called, the specified
-     * handler will be removed only after all the handlers have been called once.
+     * handler will be added only after all the handlers have been called once.
      * @param handler The handler to register
      */
     public void registerHandler(EventHandler<T> handler) {

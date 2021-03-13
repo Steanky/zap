@@ -494,23 +494,24 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void registerArenaEvents() {
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
-        getPlayerDropItemEvent().registerHandler(this::onPlayerDropItem);
-        getPlayerMoveEvent().registerHandler(this::onPlayerMove);
-        getPlayerSwapHandItemsEvent().registerHandler(this::onPlayerSwapHandItems);
-        getPlayerDamagedEvent().registerHandler(this::onEntityDamaged);
-        getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
-        getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
-        getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
-        getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
-        getPlayerAnimationEvent().registerHandler(this::onPlayerAnimation);
-        getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
-        getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
-        getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
-        getPlayerItemDamageEvent().registerHandler(this::onPlayerItemDamage);
-        getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
-        getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
-        getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
-        getInventoryClickEvent().registerHandler(this::onPlayerInventoryClick);
+
+        getProxyFor(PlayerDropItemEvent.class).registerHandler(this::onPlayerDropItem);
+        getProxyFor(PlayerMoveEvent.class).registerHandler(this::onPlayerMove);
+        getProxyFor(PlayerSwapHandItemsEvent.class).registerHandler(this::onPlayerSwapHandItems);
+        getProxyFor(EntityDamageEvent.class).registerHandler(this::onEntityDamaged);
+        getProxyFor(EntityDamageByEntityEvent.class).registerHandler(this::onEntityDamageByEntity);
+        getProxyFor(PlayerDeathEvent.class).registerHandler(this::onPlayerDeath);
+        getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
+        getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
+        getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
+        getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
+        getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
+        getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
+        getProxyFor(PlayerItemDamageEvent.class).registerHandler(this::onPlayerItemDamage);
+        getProxyFor(PlayerAttemptPickupItemEvent.class).registerHandler(this::onPlayerAttemptPickupItem);
+        getProxyFor(PlayerArmorStandManipulateEvent.class).registerHandler(this::onPlayerArmorStandManipulate);
+        getProxyFor(FoodLevelChangeEvent.class).registerHandler(this::onFoodLevelChange);
+        getProxyFor(InventoryClickEvent.class).registerHandler(this::onPlayerInventoryClick);
     }
 
     private void registerDisposables() {
@@ -568,8 +569,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
             }
         }
-
-        resetTimeout(); //if arena was in timeout state, reset that
     }
 
     private void onPlayerLeave(ManagedPlayerListArgs args) {
@@ -582,17 +581,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         switch (state) {
             case PREGAME:
                 removePlayers(args.getPlayers());
-
-                if (getOnlineCount() == 0) {
-                    startTimeout();
-                }
                 break;
             case COUNTDOWN:
                 removePlayers(args.getPlayers());
 
-                if (getOnlineCount() == 0) {
-                    startTimeout();
-                }
                 if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
                 }
@@ -785,7 +777,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
+    private void onPlayerToggleSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
         PlayerToggleSneakEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
@@ -824,12 +816,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         args.getEvent().setCancelled(true);
     }
 
-    private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
+    private void onFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
     }
 
-    private void onPlayerInventoryClick(ManagedInventoryEventArgs<InventoryClickEvent> args) {
+    private void onPlayerInventoryClick(ProxyArgs<InventoryClickEvent> args) {
         InventoryClickEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = getPlayerMap().get(event.getWhoClicked().getUniqueId());
         if (managedPlayer != null) {
@@ -945,20 +937,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public void startTimeout() {
-        if(timeoutTaskId == -1) {
-            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::dispose,
-                    emptyTimeout);
-        }
-    }
-
-    public void resetTimeout() {
-        if(timeoutTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(timeoutTaskId);
-            timeoutTaskId = -1;
-        }
-    }
-
     /**
      * Win code here
      */
@@ -970,7 +948,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
         });
-        disposeAfter(200);
+
+        //TODO: reimpl dispose code
     }
 
     /**
@@ -986,7 +965,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendActionBar(Component.text());
         });
         gameScoreboard.run();
-        disposeAfter(200);
+
+        //TODO: reimpl dispose code
     }
 
     /**
