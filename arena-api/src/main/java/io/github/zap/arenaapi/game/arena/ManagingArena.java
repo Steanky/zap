@@ -161,10 +161,6 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<PlayerListArgs> playerJoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerRejoinEvent = new Event<>();
     private final Event<ManagedPlayerListArgs> playerLeaveEvent = new Event<>();
-    /**
-     * Called right before the arena get disposed
-     */
-    private final Event<ArenaEventArgs<T,S>> onDisposing = new Event<>();
 
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
     //more will be added as needed
@@ -228,7 +224,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     /**
-     * Removes a managed player from the internal map, if they exist.
+     * Removes a managed player from the internal map, if they exist. They will no longer be managed by this arena.
      * @param id The UUID of the managed player
      */
     public void removePlayer(UUID id) {
@@ -330,8 +326,6 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
     @Override
     public void dispose() {
-        onDisposing.callEvent(new ArenaEventArgs<>(this));
-
         for(S player : playerMap.values()) { //close players
             player.dispose();
         }

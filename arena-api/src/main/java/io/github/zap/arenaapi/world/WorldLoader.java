@@ -23,7 +23,7 @@ public interface WorldLoader {
      * Unloads the specified world.
      * @param world The world to unload
      */
-    void unloadWorld(World world);
+    boolean unloadWorld(World world);
 
     /**
      * Determine if the specified world exists. It may not be loaded.
