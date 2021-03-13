@@ -22,9 +22,10 @@ import java.util.Set;
  * Beam that "zaps" nearby entities when it hits a target entity
  */
 public class ZapperBeam extends LinearBeam {
+    private static final Vector ORIGIN = new Vector(0, 0, 0);
     @RequiredArgsConstructor
     private class ZapperAoeDamageAttempt implements DamageAttempt {
-        private final Vector directionVector;
+        private final Vector kbDirectionVector;
 
         @Override
         public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
@@ -43,7 +44,7 @@ public class ZapperBeam extends LinearBeam {
 
         @Override
         public @NotNull Vector directionVector(@NotNull Damager damager, @NotNull Mob target) {
-            return directionVector;
+            return kbDirectionVector.clone();
         }
 
         @Override
@@ -80,8 +81,8 @@ public class ZapperBeam extends LinearBeam {
 
         World world = getWorld();
         Set<Mob> attackedMobs = new HashSet<>(hitMobs);
-        for (Mob mob : hitMobs) {
-            Iterator<Mob> mobsToZap = world.getNearbyEntitiesByType(Mob.class, mob.getLocation(), maxChainDistance)
+        for (Mob hitMob : hitMobs) {
+            Iterator<Mob> mobsToZap = world.getNearbyEntitiesByType(Mob.class, hitMob.getLocation(), maxChainDistance)
                     .iterator();
             int counter = 0;
 
@@ -90,9 +91,16 @@ public class ZapperBeam extends LinearBeam {
 
                 if (!attackedMobs.contains(mobToZap) && !hitMobs.contains(mobToZap)) {
                     ZombiesArena arena = getZombiesPlayer().getArena();
-                    arena.getDamageHandler().damageEntity(getZombiesPlayer(),
-                            new ZapperAoeDamageAttempt(mobToZap.getLocation().subtract(mob.getLocation())
-                                    .toVector().normalize().multiply(getKnockbackFactor())), mobToZap);
+                    Vector unnormalized = mobToZap.getLocation().subtract(hitMob.getLocation()).toVector();
+                    Vector normalized;
+                    if(unnormalized.equals(ORIGIN)) {
+                        normalized = new Vector(Vector.getEpsilon(), Vector.getEpsilon(), Vector.getEpsilon()).add(Vector.getRandom());
+                    }
+                    else {
+                        normalized = unnormalized.normalize();
+                    }
+
+                    arena.getDamageHandler().damageEntity(getZombiesPlayer(), new ZapperAoeDamageAttempt(normalized), mobToZap);
 
                     attackedMobs.add(mobToZap);
                     counter++;

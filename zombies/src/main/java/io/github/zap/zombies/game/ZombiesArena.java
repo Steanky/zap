@@ -200,10 +200,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                                 }
                             }
                             else {
-                                //mob failed to spawn
+                                //mob failed to spawn; if we're part of a wave, reduce the amt of zombies
                                 if(!updateCount) {
-                                    //if we're part of a wave, reduce the amt of zombies
                                     zombiesLeft--;
+                                    tryNextRound();
                                 }
                             }
 
@@ -308,7 +308,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 target.playEffect(EntityEffect.HURT);
 
                 double deltaHealth = inflictDamage(target, with.damageAmount(damager, target), with.ignoresArmor(damager, target));
-                Vector resultingVelocity = target.getVelocity().add(with.directionVector(damager, target).clone()
+                Vector resultingVelocity = target.getVelocity().add(with.directionVector(damager, target)
                         .multiply(with.knockbackFactor(damager, target)));
 
                 try {
@@ -606,9 +606,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onMobDeath(MythicMobDeathEvent args) {
         if(mobs.remove(args.getEntity().getUniqueId())) {
             zombiesLeft--;
-            if(getZombiesLeft() == 0 && state == ZombiesArenaState.STARTED){
-                doRound();
-            }
+        }
+
+        tryNextRound();
+    }
+
+    private void tryNextRound() {
+        if(zombiesLeft <= 0 && state == ZombiesArenaState.STARTED){
+            doRound();
         }
     }
 
