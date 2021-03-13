@@ -21,6 +21,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -41,22 +42,28 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * Wraps Bukkit events. Contains
      * @param <U>
      */
-    @Value
     public class ProxyArgs<U extends org.bukkit.event.Event> {
         /**
          * The Bukkit event wrapped by this instance.
          */
-        U event;
+        @Getter
+        private final U event;
 
         /**
          * The managed players involved in this event.
          */
-        List<S> managedPlayers;
+        private final List<S> managedPlayers;
 
         /**
          * The managed entities involved in this event.
          */
-        List<UUID> managedEntities;
+        private final List<UUID> managedEntities;
+
+        public ProxyArgs(@NotNull U event, @NotNull List<S> managedPlayers, @NotNull List<UUID> managedEntities) {
+            this.event = Objects.requireNonNull(event, "event cannot be null");
+            this.managedPlayers = Objects.requireNonNull(managedPlayers, "managedPlayers cannot be null");
+            this.managedEntities = Objects.requireNonNull(managedEntities, "managedEntities cannot be null");
+        }
 
         /**
          * Returns the managed player associated with this event, assuming this event is a PlayerEvent
@@ -140,7 +147,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 }
                 else {
                     if(entitySet.contains(entityUUID)) { //only managed entities trigger event
-                        return ImmutablePair.of(true, new ProxyArgs<>(event, null, Lists.newArrayList(entityUUID)));
+                        return ImmutablePair.of(true, new ProxyArgs<>(event, new ArrayList<>(), Lists.newArrayList(entityUUID)));
                     }
                 }
 
@@ -155,7 +162,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, Lists.newArrayList(managedPlayer), null));
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, Lists.newArrayList(managedPlayer), new ArrayList<>()));
                 }
 
                 return ImmutablePair.of(false, null);

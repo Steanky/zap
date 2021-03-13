@@ -20,8 +20,8 @@ public class State<T> {
          * Applies a modification to the base value. This should not change baseValue itself; rather, it must return a
          * new, changed copy of baseValue.
          *
-         * Modifiers are expected to be stateless; that is, for any value X, they should always return value Y
-         * under any circumstance. This allows for value caching.
+         * Modifiers are expected to be stateless and repeatable; that is, for any value X, they should always return
+         * value Y no matter when they are called. This allows for value caching.
          * @param value baseValue, or a copy of baseValue that has already been modified
          * @return A copy of baseValue, with modifications applied
          */

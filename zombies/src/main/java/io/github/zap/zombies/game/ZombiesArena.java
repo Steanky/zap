@@ -372,16 +372,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final ShopManager shopManager;
 
     @Getter
-    protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
-
-    @Getter
-    private final long emptyTimeout;
+    private final DamageHandler damageHandler;
 
     @Getter
     private final Spawner spawner;
 
     @Getter
-    private final DamageHandler damageHandler;
+    protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
+
+    @Getter
+    private final long emptyTimeout;
 
     @Getter
     private final List<Shop<?>> shops = new ArrayList<>();
@@ -427,7 +427,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private long endTimeStamp = -1;
 
-    private final List<Integer> waveSpawnerTasks = new ArrayList<>();
+    //private final List<Integer> waveSpawnerTasks = new ArrayList<>();
 
     @Getter
     private final Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
@@ -529,13 +529,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
-
-        //unregister tasks
-        BukkitScheduler scheduler = Bukkit.getScheduler();
-
-        for(int taskId : waveSpawnerTasks) {
-            scheduler.cancelTask(taskId);
-        }
 
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
@@ -897,7 +890,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
 
-                waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
+                runTaskLater(cumulativeDelay, () -> {
                     List<ActiveMob> spawnedMobs = spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
                             wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false);
 
@@ -905,9 +898,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
                     }
-
-                    waveSpawnerTasks.remove(0);
-                }, cumulativeDelay));
+                });
             }
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
@@ -948,8 +939,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
         });
-
-        //TODO: reimpl dispose code
+        runTaskLater(200L, this::dispose);
     }
 
     /**
@@ -965,8 +955,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendActionBar(Component.text());
         });
         gameScoreboard.run();
-
-        //TODO: reimpl dispose code
+        runTaskLater(200L, this::dispose);
     }
 
     /**

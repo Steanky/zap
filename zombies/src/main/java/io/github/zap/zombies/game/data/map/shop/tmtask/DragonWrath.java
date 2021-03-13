@@ -61,22 +61,19 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     public boolean execute(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
         if (super.execute(zombiesArena, zombiesPlayer)) {
             Location location = zombiesPlayer.getPlayer().getLocation();
-            Set<UUID> mobIds = zombiesArena.getMobs();
+            Set<UUID> mobIds = zombiesArena.getEntitySet();
 
             World world = zombiesArena.getWorld();
             world.playSound(location, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0F, 1.0F);
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    for (Mob mob : world.getNearbyEntitiesByType(Mob.class, location, radius)) {
-                        if (mobIds.contains(mob.getUniqueId())) {
-                            world.strikeLightningEffect(mob.getLocation());
-                            zombiesArena.getDamageHandler().damageEntity(DragonWrath.this, new DragonWrathDamage(), mob);
-                        }
+            zombiesArena.runTaskLater(20L * delay, () -> {
+                for (Mob mob : world.getNearbyEntitiesByType(Mob.class, location, radius)) {
+                    if (mobIds.contains(mob.getUniqueId())) {
+                        world.strikeLightningEffect(mob.getLocation());
+                        zombiesArena.getDamageHandler().damageEntity(DragonWrath.this, new DragonWrathDamage(), mob);
                     }
                 }
-            }.runTaskLater(Zombies.getInstance(), 20L * delay);
+            });
 
             return true;
         }
