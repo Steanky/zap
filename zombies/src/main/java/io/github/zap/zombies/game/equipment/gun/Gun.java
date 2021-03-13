@@ -13,6 +13,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -20,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
 
 /**
  * Represents a basic gun
@@ -36,7 +38,11 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     private boolean canReload = true;
 
+    private int reloadTask = -1;
+
     private boolean canShoot = true;
+
+    private int fireDelayTask = -1;
 
     public Gun(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
         super(zombiesArena, zombiesPlayer, slot, equipmentData);
@@ -51,6 +57,16 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         GunLevel gunLevel = getCurrentLevel();
         setAmmo(gunLevel.getAmmo());
         setClipAmmo(gunLevel.getClipAmmo());
+
+        BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
+        if (reloadTask != -1) {
+            bukkitScheduler.cancelTask(reloadTask);
+        }
+        if (fireDelayTask != -1) {
+            bukkitScheduler.cancelTask(fireDelayTask);
+        }
+
+        canReload = canShoot = true;
     }
 
     /**
@@ -75,7 +91,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         )
                 );
 
-                new BukkitRunnable() {
+                reloadTask = new BukkitRunnable() {
 
                     private final Component reloadingComponent = Component
                             .text("RELOADING")
@@ -105,11 +121,14 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                             }
 
                             canReload = true;
-                            canShoot = true;
+                            if (fireDelayTask == -1 && currentAmmo > 0) {
+                                canShoot = true;
+                            }
+                            reloadTask = -1;
                             cancel();
                         }
                     }
-                }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
+                }.runTaskTimer(Zombies.getInstance(), 0L, 1L).getTaskId();
             }
         }
     }
@@ -129,7 +148,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         Player player = getPlayer();
 
         // Animate xp bar
-        new BukkitRunnable() {
+        fireDelayTask = new BukkitRunnable() {
             private final int goal =
                     (int)Math.round(getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier().getValue());
             private final float stepVal = 1F / goal;
@@ -147,13 +166,14 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         player.setExp(1);
                     }
 
-                    if (canReload) {
+                    if (canReload && currentAmmo > 0) {
                         canShoot = true;
                     }
+                    fireDelayTask = -1;
                     cancel();
                 }
             }
-        }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
+        }.runTaskTimer(Zombies.getInstance(), 0L, 1L).getTaskId();
         if (currentClipAmmo == 0) {
             if (currentAmmo > 0) {
                 reload();
@@ -164,8 +184,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
         Sound sound = getEquipmentData().getSound();
 
-        Location playerLoc = player.getLocation();
-        player.getWorld().playSound(sound, playerLoc.getX(), playerLoc.getY(), playerLoc.getZ());
+        Location playerLocation = player.getLocation();
+        player.getWorld().playSound(sound, playerLocation.getX(), playerLocation.getY(), playerLocation.getZ());
     }
 
     /**
