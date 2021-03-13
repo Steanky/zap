@@ -135,7 +135,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         /*
         if some NMS pathfinder sets the goal target to null, and we have a ZombiesPlayer to target, re-set the goal
         target. This generally should not happen, but poorly behaved pathfinders may exist.
-         */
+        */
         if(target != null && getHandle().getGoalTarget() == null) {
             getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle());
         }

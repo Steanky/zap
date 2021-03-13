@@ -52,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -147,7 +148,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initMockedWaterfall() throws LoadFailureException {
         mockedWaterfall = new MoveWaterFallAfterBeta();
         getServer().getPluginManager().registerEvents(mockedWaterfall, this);
-
+        
         World world = Bukkit.getWorld(nmsProxy.getDefaultWorldName());
         if (world != null) {
             mockedWaterfall.setLobbyLocation(world.getSpawnLocation());

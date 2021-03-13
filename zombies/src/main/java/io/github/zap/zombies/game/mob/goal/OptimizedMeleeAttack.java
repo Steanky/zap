@@ -3,6 +3,7 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Particle;
 
 import java.util.EnumSet;
 
@@ -70,7 +71,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
         if (this.navigationCounter <= 0) {
             //randomly offset the delay by 4-10 ticks
-            this.navigationCounter = 4 + this.self.getRandom().nextInt(7);
+            this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
             //calculate the path
             currentPath = proxy.getPathTo(self, target, targetDeviation);
