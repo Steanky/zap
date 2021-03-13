@@ -637,17 +637,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerDamaged(ProxyArgs<EntityDamageEvent> args) {
         EntityDamageEvent event = args.getEvent();
-        Player player = args.getManagedPlayer().getPlayer();
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
-        if (player.getHealth() <= event.getFinalDamage()) {
-            Location location = player.getLocation();
+        if (managedPlayer != null) {
+            Player player = managedPlayer.getPlayer();
 
-            for (double y = location.getY(); y >= 0D; y--){
-                location.setY(y);
-                Block block = player.getWorld().getBlockAt(location);
-                if (!block.getType().isAir()) {
-                    player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
-                    break;
+            if (player.getHealth() <= event.getFinalDamage()) {
+                Location location = player.getLocation();
+
+                for (double y = location.getY(); y >= 0D; y--) {
+                    location.setY(y);
+                    Block block = player.getWorld().getBlockAt(location);
+                    if (!block.getType().isAir()) {
+                        player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
+                        break;
+                    }
                 }
             }
         }
