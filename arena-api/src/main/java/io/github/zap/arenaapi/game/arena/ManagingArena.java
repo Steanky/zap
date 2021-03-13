@@ -1,13 +1,17 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.DisposableBukkitRunnable;
+import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import lombok.Getter;
 import lombok.Value;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -18,6 +22,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -74,7 +79,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      */
     private class AdaptedPlayerEvent<U extends PlayerEvent> extends MappingEvent<U, ProxyArgs<U>> {
         public AdaptedPlayerEvent(Class<U> bukkitEventClass) {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
+            super(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL,
                     false), event -> {
                 S managedPlayer = playerMap.get(event.getPlayer().getUniqueId());
 
@@ -84,6 +89,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
                 return ImmutablePair.of(false, null);
             });
+
+            resourceManager.addDisposable(this);
         }
     }
 
@@ -93,8 +100,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      */
     private class AdaptedInventoryEvent<U extends InventoryEvent> extends MappingEvent<U, ManagedInventoryEventArgs<U>> {
         public AdaptedInventoryEvent(Class<U> bukkitEventClass) {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, bukkitEventClass, EventPriority.NORMAL,
-                    false), event -> {
+            super(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
                 List<HumanEntity> viewers = event.getViewers();
                 List<S> managedViewers = new ArrayList<>();
 
@@ -112,14 +118,16 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
                 return ImmutablePair.of(false, null); //no ingame managed players are involved
             });
+
+            resourceManager.addDisposable(this);
         }
     }
 
     private class AdaptedEntityEvent<U extends EntityEvent> extends MappingEvent<U, ProxyArgs<U>> {
         public AdaptedEntityEvent(Class<U> eventClass) {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, eventClass,
-                    EventPriority.NORMAL, false), event -> {
-                S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
+            super(new ProxyEvent<>(plugin, eventClass, EventPriority.NORMAL, false), event -> {
+                UUID entityUUID = event.getEntity().getUniqueId();
+                S managedPlayer = playerMap.get(entityUUID);
 
                 if(managedPlayer != null) {
                     if(managedPlayer.isInGame()) {
@@ -127,18 +135,21 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                     }
                 }
                 else {
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, null));
+                    if(entitySet.contains(entityUUID)) { //only managed entities trigger
+                        return ImmutablePair.of(true, new ProxyArgs<>(event, null));
+                    }
                 }
 
                 return ImmutablePair.of(false, null);
             });
+
+            resourceManager.addDisposable(this);
         }
     }
 
     private class AdaptedPlayerDeathEvent extends MappingEvent<PlayerDeathEvent, ProxyArgs<PlayerDeathEvent>> {
         public AdaptedPlayerDeathEvent() {
-            super(new ProxyEvent<>(plugin, ManagingArena.this, PlayerDeathEvent.class,
-                    EventPriority.NORMAL, false), event -> {
+            super(new ProxyEvent<>(plugin, PlayerDeathEvent.class, EventPriority.NORMAL, false), event -> {
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
@@ -147,13 +158,21 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
                 return ImmutablePair.of(false, null);
             });
+
+            resourceManager.addDisposable(this);
         }
     }
 
     private final Plugin plugin;
     private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
+    private final long timeoutTicks;
+
+    private final BukkitRunnable timeoutRunnable;
+
+    private final ResourceManager resourceManager; //manages disposable resources
 
     private final Map<UUID, S> playerMap = new HashMap<>(); //holds managed player instances
+    private final Set<UUID> entitySet = new HashSet<>(); //holds entities spawned over the course of this arena's life
 
     private int onlineCount;
 
@@ -185,10 +204,22 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     private final Event<ManagedInventoryEventArgs<InventoryOpenEvent>> inventoryOpenEvent;
     private final Event<ManagedInventoryEventArgs<InventoryClickEvent>> inventoryClickEvent;
 
-    public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper) {
+    public ManagingArena(Plugin plugin, ArenaManager<T> manager, World world, ManagedPlayerBuilder<S, T> wrapper,
+                         long timeoutTicks) {
         super(manager, world);
         this.plugin = plugin;
         this.wrapper = wrapper;
+        this.timeoutTicks = timeoutTicks;
+
+        timeoutRunnable = new BukkitRunnable() {
+            @Override
+            public void run() {
+                dispose();
+            }
+        };
+        timeoutRunnable.runTaskLater(plugin, timeoutTicks);
+
+        this.resourceManager = new ResourceManager(plugin);
 
         playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
         playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
@@ -198,7 +229,6 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerAnimationEvent = new AdaptedPlayerEvent<>(PlayerAnimationEvent.class);
         playerToggleSneakEvent = new AdaptedPlayerEvent<>(PlayerToggleSneakEvent.class);
         playerDamagedEvent = new AdaptedEntityEvent<>(EntityDamageEvent.class);
-        entityDamageByEntityEvent = new AdaptedEntityEvent<>(EntityDamageByEntityEvent.class);
         playerDeathEvent = new AdaptedPlayerDeathEvent();
         playerQuitEvent = new AdaptedPlayerEvent<>(PlayerQuitEvent.class);
         playerItemHeldEvent = new AdaptedPlayerEvent<>(PlayerItemHeldEvent.class);
@@ -207,6 +237,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         playerAttemptPickupItemEvent = new AdaptedPlayerEvent<>(PlayerAttemptPickupItemEvent.class);
         playerArmorStandManipulateEvent = new AdaptedPlayerEvent<>(PlayerArmorStandManipulateEvent.class);
         playerFoodLevelChangeEvent = new AdaptedEntityEvent<>(FoodLevelChangeEvent.class);
+
+        entityDamageByEntityEvent = new AdaptedEntityEvent<>(EntityDamageByEntityEvent.class);
 
         inventoryOpenEvent = new AdaptedInventoryEvent<>(InventoryOpenEvent.class);
         inventoryClickEvent = new AdaptedInventoryEvent<>(InventoryClickEvent.class);
@@ -235,6 +267,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         }
     }
 
+    /**
+     * Removes a managed player from the internal map, if they exist. They will no longer be managed by this arena.
+     * @param player The player to remove
+     */
     public void removePlayer(S player) {
         removePlayer(player.getId());
     }
@@ -317,6 +353,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         if(leftPlayers.size() > 0) {
             playerLeaveEvent.callEvent(new ManagedPlayerListArgs(leftPlayers));
         }
+
+        if(playerMap.size() == 0 && timeoutRunnable.isCancelled()) {
+            timeoutRunnable.runTaskLater(plugin, timeoutTicks);
+        }
     }
 
     @Override
@@ -324,16 +364,70 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         return playerMap.containsKey(id) && playerMap.get(id).isInGame();
     }
 
+    /**
+     * Returns whether or not this ManagingArena contains the specific entity.
+     * @param entity The entity UUID
+     * @return Whether or not this entity exists
+     */
+    public boolean hasEntity(UUID entity) {
+        return entitySet.contains(entity);
+    }
+
+    /**
+     * Schedules a new sync repeating task for this ManagingArena. The task will be cancelled automatically by the
+     * ManagingArena when it is disposed, if necessary.
+     * @param delay The initial delay
+     * @param period The period (length between iterations)
+     * @param task The Runnable to run
+     */
+    public BukkitTask runTaskTimer(long delay, long period, Runnable task) {
+        DisposableBukkitRunnable runnable = new DisposableBukkitRunnable() {
+            @Override
+            public void run() {
+                task.run();
+            }
+        };
+
+        resourceManager.addDisposable(runnable);
+        return runnable.runTaskTimer(plugin, delay, period);
+    }
+
+    /**
+     * Schedules a new sync task, which will be automatically cancelled by this ManagingArena when it is disposed, if
+     * necessary. It will run once.
+     * @param delay The initial delay
+     * @param task The task torun
+     */
+    public BukkitTask runTaskLater(long delay, Runnable task) {
+        DisposableBukkitRunnable runnable = new DisposableBukkitRunnable() {
+            @Override
+            public void run() {
+                task.run();
+            }
+        };
+
+        resourceManager.addDisposable(runnable);
+        return runnable.runTaskLater(plugin, delay);
+    }
+
     @Override
     public void dispose() {
-        for(S player : playerMap.values()) { //close players
+        resourceManager.dispose(); //clear resources
+
+        for(S player : playerMap.values()) { //dispose players
             player.dispose();
         }
 
-        ProxyEvent.closeAll(this); //closes proxy events
+        for(UUID entity : entitySet) { //remove entities
+            Entity bukkitEntity = Bukkit.getEntity(entity);
+
+            if(bukkitEntity != null) {
+                bukkitEntity.remove();
+            }
+        }
     }
 
-    protected void waitAndDispose(int ticks) {
+    protected void disposeAfter(int ticks) {
         new BukkitRunnable() {
             @Override
             public void run() {
