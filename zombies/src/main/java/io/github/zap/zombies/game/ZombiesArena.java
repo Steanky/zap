@@ -199,6 +199,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                                     zombiesLeft++;
                                 }
                             }
+                            else {
+                                //mob failed to spawn
+                                if(!updateCount) {
+                                    //if we're part of a wave, reduce the amt of zombies
+                                    zombiesLeft--;
+                                }
+                            }
 
                             if(--amt == 0) {
                                 break outer;
