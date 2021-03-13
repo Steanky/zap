@@ -165,6 +165,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     //bukkit events concerning players, but passed through our custom API and filtered to only fire for managed players
     //more will be added as needed
     private final Event<ProxyArgs<PlayerInteractEvent>> playerInteractEvent;
+    private final Event<ProxyArgs<PlayerInteractEntityEvent>> playerInteractEntityEvent;
     private final Event<ProxyArgs<PlayerInteractAtEntityEvent>> playerInteractAtEntityEvent;
     private final Event<ProxyArgs<PlayerDropItemEvent>> playerDropItemEvent;
     private final Event<ProxyArgs<PlayerMoveEvent>> playerMoveEvent;
@@ -191,6 +192,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         this.wrapper = wrapper;
 
         playerInteractEvent = new AdaptedPlayerEvent<>(PlayerInteractEvent.class);
+        playerInteractEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractEntityEvent.class);
         playerInteractAtEntityEvent = new AdaptedPlayerEvent<>(PlayerInteractAtEntityEvent.class);
         playerDropItemEvent = new AdaptedPlayerEvent<>(PlayerDropItemEvent.class);
         playerMoveEvent = new AdaptedPlayerEvent<>(PlayerMoveEvent.class);

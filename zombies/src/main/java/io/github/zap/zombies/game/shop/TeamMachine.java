@@ -16,9 +16,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +52,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                 if (zombiesPlayer != null) {
                     TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
 
-                    if (teamMachineTask != null && teamMachineTask.execute(zombiesArena, zombiesPlayer)) {
+                    if (teamMachineTask != null && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
                         inventoryClickEvent.setCancelled(true);
 
                         for (Player player : zombiesArena.getWorld().getPlayers()) {
@@ -76,6 +74,8 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                                 1.5F
                                 );
                         humanEntity.playSound(sound);
+
+                        inventory.setItem(inventoryClickEvent.getSlot(), teamMachineTask.getItemStackRepresentation());
 
                         onPurchaseSuccess(zombiesPlayer);
                     }
@@ -153,18 +153,9 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                     int pos = (h + offset) * 9 + slot;
 
                     TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
+                    ItemStack teamMachineItemStackRepresentation = teamMachineTask.getItemStackRepresentation();
 
-                    ItemStack itemStack = new ItemStack(teamMachineTask.getDisplayMaterial());
-                    ItemMeta itemMeta = itemStack.getItemMeta();
-                    itemMeta.displayName(Component.text(teamMachineTask.getDisplayName()));
-                    List<Component> lore = new ArrayList<>();
-                    for (String line : teamMachineTask.getLore()) {
-                        lore.add(Component.text(line));
-                    }
-                    itemMeta.lore(lore);
-
-
-                    inventory.setItem(pos, itemStack);
+                    inventory.setItem(pos, teamMachineItemStackRepresentation);
                     slotMap.put(pos, teamMachineTask);
 
                     index++;

@@ -2,11 +2,10 @@ package io.github.zap.zombies.game.data.equipment.melee;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
+import lombok.Getter;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,12 +14,18 @@ import java.util.List;
 
 /**
  * Data for a melee weapon
+ * @param <L> The level type of the melee weapon
  */
-public class MeleeData extends EquipmentData<MeleeLevel> {
-    public MeleeData(String name, String displayName, Material material, List<String> lore, List<MeleeLevel> levels) {
-        super(EquipmentType.MELEE.name(), name, displayName, lore, levels, material);
+@SuppressWarnings("FieldMayBeFinal")
+@Getter
+public class MeleeData<L extends MeleeLevel> extends EquipmentData<L> {
+
+    public MeleeData(String type, String name, String displayName, Material material, List<String> lore,
+                     List<L> levels) {
+        super(type, name, displayName, lore, levels, material);
     }
-    private MeleeData() {
+
+    protected MeleeData() {
 
     }
 
@@ -31,9 +36,9 @@ public class MeleeData extends EquipmentData<MeleeLevel> {
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.setUnbreakable(true);
 
-        MeleeLevel meleeLevel = getLevels().get(level);
-        for (Pair<Enchantment, Integer> pair : meleeLevel.getEnchantments()) {
-            itemMeta.addEnchant(pair.getLeft(), pair.getRight(), true);
+        L meleeLevel = getLevels().get(level);
+        for (MeleeLevel.EnchantmentLevel enchantmentLevel : meleeLevel.getEnchantments()) {
+            itemMeta.addEnchant(enchantmentLevel.getEnchantment(), enchantmentLevel.getLevel(), true);
         }
 
         itemStack.setItemMeta(itemMeta);

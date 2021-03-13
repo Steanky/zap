@@ -1,17 +1,138 @@
 package io.github.zap.zombies.game.equipment.melee;
 
+import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.DamageAttempt;
+import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import lombok.Getter;
+import org.bukkit.Material;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a weapon that uses melee combat
+ * @param <D> The data type of the weapon
+ * @param <L> The level type of the weapon
  */
-public class MeleeWeapon extends UpgradeableEquipment<MeleeData, MeleeLevel> implements Ultimateable {
-    public MeleeWeapon(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, MeleeData equipmentData) {
+public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> extends UpgradeableEquipment<D, L>
+        implements Ultimateable {
+
+    protected class MeleeDamageAttempt implements DamageAttempt {
+
+        private final L meleeLevel = getCurrentLevel();
+
+        private final Player player = getPlayer();
+
+        private final boolean isCritical = player.getVelocity().getY() < 0;
+
+        @Override
+        public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
+            return isCritical ? meleeLevel.getGoldPerCritical() : meleeLevel.getGoldPerHit();
+        }
+
+        @Override
+        public double damageAmount(@NotNull Damager damager, @NotNull Mob target) {
+            return meleeLevel.getDamage();
+        }
+
+        @Override
+        public boolean ignoresArmor(@NotNull Damager damager, @NotNull Mob target) {
+            return isCritical;
+        }
+
+        @Override
+        public @NotNull Vector directionVector(@NotNull Damager damager, @NotNull Mob target) {
+            return target.getLocation().subtract(player.getLocation()).toVector().normalize();
+        }
+
+        @Override
+        public double knockbackFactor(@NotNull Damager damager, @NotNull Mob target) {
+            return meleeLevel.getKnockbackFactor();
+        }
+    }
+
+    @Getter
+    private boolean usable = true;
+
+    public MeleeWeapon(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
         super(zombiesArena, zombiesPlayer, slot, equipmentData);
     }
+
+    /**
+     * Called when the melee weapon is meant to attack a mob
+     * @param mob The mob to attack
+     */
+    public abstract void attack(Mob mob);
+
+    @Override
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
+        if (getCurrentLevel().isUsesShields()) {
+            EntityEquipment equipment = getPlayer().getEquipment();
+
+            if (visible) {
+                //noinspection ConstantConditions
+                if (equipment.getItemInOffHand().getType() != Material.SHIELD) {
+                    equipment.setItemInOffHand(new ItemStack(Material.SHIELD));
+                }
+            } else {
+                //noinspection ConstantConditions
+                if (equipment.getItemInOffHand().getType() == Material.SHIELD) {
+                    equipment.setItemInOffHand(new ItemStack(Material.SHIELD));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onLeftClick() {
+        super.onLeftClick();
+
+        usable = false;
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                usable = true;
+            }
+        }.runTaskLater(Zombies.getInstance(), getCurrentLevel().getDelayTicks());
+    }
+
+    @Override
+    public void onSlotSelected() {
+        super.onSlotSelected();
+
+        if (getCurrentLevel().isUsesShields()) {
+            EntityEquipment equipment = getPlayer().getEquipment();
+
+            //noinspection ConstantConditions
+            if (equipment.getItemInOffHand().getType() != Material.SHIELD) {
+                getPlayer().getEquipment().setItemInOffHand(new ItemStack(Material.SHIELD));
+            }
+        }
+    }
+
+    @Override
+    public void onSlotDeselected() {
+        super.onSlotDeselected();
+
+        if (getCurrentLevel().isUsesShields()) {
+            EntityEquipment equipment = getPlayer().getEquipment();
+
+            //noinspection ConstantConditions
+            if (equipment.getItemInOffHand().getType() == Material.SHIELD) {
+                getPlayer().getEquipment().setItemInOffHand(new ItemStack(Material.AIR));
+            }
+        }
+    }
+
 }

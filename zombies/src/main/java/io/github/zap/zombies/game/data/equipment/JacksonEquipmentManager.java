@@ -9,7 +9,8 @@ import io.github.zap.zombies.game.data.equipment.gun.GuardianGunData;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunData;
 import io.github.zap.zombies.game.data.equipment.gun.SprayGunData;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunData;
-import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
+import io.github.zap.zombies.game.data.equipment.melee.AOEMeleeData;
+import io.github.zap.zombies.game.data.equipment.melee.BasicMeleeData;
 import io.github.zap.zombies.game.data.equipment.perk.PerkData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
 import io.github.zap.zombies.game.equipment.Equipment;
@@ -17,8 +18,9 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupCreator;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.*;
+import io.github.zap.zombies.game.equipment.melee.AOEMeleeWeapon;
+import io.github.zap.zombies.game.equipment.melee.BasicMeleeWeapon;
 import io.github.zap.zombies.game.equipment.melee.MeleeObjectGroup;
-import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
 import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
@@ -56,7 +58,8 @@ public class JacksonEquipmentManager implements EquipmentManager {
     private boolean loaded = false;
 
     {
-        addEquipmentType(EquipmentType.MELEE.name(), MeleeData.class, MeleeWeapon::new);
+        addEquipmentType(EquipmentType.BASIC_MELEE.name(), BasicMeleeData.class, BasicMeleeWeapon::new);
+        addEquipmentType(EquipmentType.AOE_MELEE.name(), AOEMeleeData.class, AOEMeleeWeapon::new);
         addEquipmentType(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new);
         addEquipmentType(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new);
         addEquipmentType(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);

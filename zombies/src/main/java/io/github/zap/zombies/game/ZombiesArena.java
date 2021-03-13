@@ -8,6 +8,8 @@ import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.FilteredEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
@@ -19,6 +21,7 @@ import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
+import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUp;
@@ -50,6 +53,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -487,6 +491,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
+        getPlayerInteractEntityEvent().removeHandler(this::onPlayerInteractEntity);
         getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
         getPlayerAnimationEvent().registerHandler(this::onPlayerAnimation);
         getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
@@ -658,15 +663,27 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onEntityDamageByEntity(ProxyArgs<EntityDamageByEntityEvent> args) {
-        Entity damager = args.getEvent().getDamager();
+        EntityDamageByEntityEvent event = args.getEvent();
+        Entity entity = event.getEntity(), damager = event.getDamager();
         ZombiesPlayer damagingPlayer = getPlayerMap().get(damager.getUniqueId());
 
-        if(damagingPlayer != null) {
+        if (damagingPlayer != null && entity instanceof Mob) {
+            Mob mob = (Mob) entity;
+
             if(!damagingPlayer.isAlive()) {
-                args.getEvent().setCancelled(true);
-            }
-            else if(!mobs.contains(args.getEvent().getEntity().getUniqueId())) {
-                args.getEvent().setCancelled(true);
+                event.setCancelled(true);
+            } else if (mobs.contains(mob.getUniqueId())) {
+                HotbarManager hotbarManager = damagingPlayer.getHotbarManager();
+                HotbarObject hotbarObject = hotbarManager.getSelectedObject();
+
+                if (hotbarObject instanceof MeleeWeapon) {
+                    MeleeWeapon<?, ?> meleeWeapon = (MeleeWeapon<?, ?>) hotbarObject;
+                    event.setCancelled(true);
+
+                    if (meleeWeapon.isUsable()) {
+                        meleeWeapon.attack(mob);
+                    }
+                }
             }
         }
     }
@@ -738,8 +755,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         event.setCancelled(true);
     }
 
-    private void onPlayerSwapHandItems(ProxyArgs<PlayerSwapHandItemsEvent> args) {
-        args.getEvent().setCancelled(true);
+    private void onPlayerInteractEntity(ProxyArgs<PlayerInteractEntityEvent> args) {
+        PlayerInteractEntityEvent event = args.getEvent();
+        Entity clickedEntity = event.getRightClicked();
+
+        if (clickedEntity instanceof ItemFrame) {
+            event.setCancelled(true);
+        }
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
@@ -758,6 +780,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
             }
         }
+    }
+
+    private void onPlayerSwapHandItems(ProxyArgs<PlayerSwapHandItemsEvent> args) {
+        args.getEvent().setCancelled(true);
     }
 
     private void onPlayerDropItem(ProxyArgs<PlayerDropItemEvent> args) {

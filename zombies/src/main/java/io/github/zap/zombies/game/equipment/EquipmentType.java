@@ -10,6 +10,9 @@ public enum EquipmentType {
     SKILL,
     PERK,
 
+    BASIC_MELEE,
+    AOE_MELEE,
+
     LINEAR_GUN,
     SPRAY_GUN,
     ZAPPER,
