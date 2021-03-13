@@ -3,6 +3,7 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
+import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -43,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager {
+    private static final String FROZEN_BULLETS_ATTRIBUTE_NAME = "frozen_bullets_slowdown";
+
     @Getter
     private final ZombiesArena arena;
 
@@ -422,12 +425,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             if(frozenBullets.getCurrentLevel() > 0) {
                 AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
-                if(speed != null && speed.getModifiers().stream().noneMatch(attributeModifier -> attributeModifier.getName().equals("zz slow low iq"))) {
-                    AttributeModifier modifier = new AttributeModifier("zz slow low iq",
-                            -(1D / ((double)frozenBullets.getCurrentLevel() + 1D)), AttributeModifier.Operation.MULTIPLY_SCALAR_1);
-                    speed.addModifier(modifier);
 
-                    Zombies.info("Speed after applying slowness mod: " + speed.getValue());
+                if(speed != null && !AttributeHelper.hasModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME)) {
+                    AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
+                            -1D / ((double)frozenBullets.getCurrentLevel() + 1D), AttributeModifier.Operation.ADD_SCALAR);
+
+                    speed.addModifier(modifier);
 
                     Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.removeModifier(modifier),
                             frozenBullets.getDuration());
