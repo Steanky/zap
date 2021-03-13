@@ -670,45 +670,47 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
         args.getEvent().setCancelled(true); //cancel death event
 
-        ZombiesPlayer knocked = args.getManagedPlayer();
-        knocked.knock();
+        if(state == ZombiesArenaState.STARTED) {
+            ZombiesPlayer knocked = args.getManagedPlayer();
+            knocked.knock();
 
-        for(ZombiesPlayer player : getPlayerMap().values()) {
-            if(player.isAlive()) {
-                Player knockedBukkitPlayer = knocked.getPlayer();
-                RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
-                String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+            for(ZombiesPlayer player : getPlayerMap().values()) {
+                if(player.isAlive()) {
+                    Player knockedBukkitPlayer = knocked.getPlayer();
+                    RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
+                    String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
 
-                //display death message only if necessary
-                for(ZombiesPlayer otherPlayer : getPlayerMap().values()) {
-                    if(otherPlayer != knocked) {
-                        otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
-                                .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
-                                .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
-                                Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                    //display death message only if necessary
+                    for(ZombiesPlayer otherPlayer : getPlayerMap().values()) {
+                        if(otherPlayer != knocked) {
+                            otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
+                                    .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
+                                    .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                    Duration.ofSeconds(3), Duration.ofSeconds(1))));
 
 
-                        otherPlayer.getPlayer().playSound(Sound.sound(
-                                Key.key("minecraft:entity.ender_dragon.growl"),
-                                Sound.Source.MASTER,
-                                1.0F,
-                                0.5F
-                        ));
+                            otherPlayer.getPlayer().playSound(Sound.sound(
+                                    Key.key("minecraft:entity.ender_dragon.growl"),
+                                    Sound.Source.MASTER,
+                                    1.0F,
+                                    0.5F
+                            ));
+                        }
                     }
+
+                    return; //return if there are any players still alive
                 }
-
-                return; //return if there are any players still alive
             }
-        }
 
-        doLoss(); //there are no players alive, so end the game
+            doLoss(); //there are no players alive, so end the game
 
-        // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
-        for(ZombiesPlayer player : getPlayerMap().values()) {
-            player.kill();
-            Corpse corpse = player.getCorpse();
-            if (corpse != null) {
-                corpse.terminate();
+            // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
+            for(ZombiesPlayer player : getPlayerMap().values()) {
+                player.kill();
+                Corpse corpse = player.getCorpse();
+                if (corpse != null) {
+                    corpse.terminate();
+                }
             }
         }
     }
