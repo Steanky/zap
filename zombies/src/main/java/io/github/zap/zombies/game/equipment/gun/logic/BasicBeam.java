@@ -6,14 +6,12 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.util.AirUtil;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -105,7 +103,7 @@ public class BasicBeam {
         Block targetBlock = getTargetBlock();
         BoundingBox boundingBox;
 
-        if (AirUtil.AIR_MATERIALS.contains(targetBlock.getType())) {
+        if (targetBlock.getType().isAir()) {
             Location location = targetBlock.getLocation();
             boundingBox = new BoundingBox(location.getX(), location.getY(), location.getZ(),
                     location.getX() + 1, location.getY() + 1, location.getZ() + 1);
@@ -133,9 +131,7 @@ public class BasicBeam {
         while (iterator.hasNext()) {
             targetBlock = iterator.next();
 
-            Material material = targetBlock.getType();
-            if (!AirUtil.AIR_MATERIALS.contains(material)
-                    && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
+            if (!targetBlock.getType().isAir() && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
                 BoundingBox boundingBox = targetBlock.getBoundingBox();
                 if (boundingBox.getWidthX() != 1.0D
                         || boundingBox.getHeight() != 1.0D || boundingBox.getWidthZ() != 1.0D) {

@@ -61,12 +61,7 @@ public class HotbarObjectGroup {
      */
     public void remove(int slot, boolean replace) {
         if (hotbarObjectMap.containsKey(slot)) {
-            HotbarObject remove;
-            if (!replace) {
-                remove = hotbarObjectMap.remove(slot);
-            } else {
-                remove = hotbarObjectMap.get(slot);
-            }
+            HotbarObject remove = (!replace) ? hotbarObjectMap.remove(slot) : hotbarObjectMap.get(slot);
             remove.remove();
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not manage slot %s!", slot));

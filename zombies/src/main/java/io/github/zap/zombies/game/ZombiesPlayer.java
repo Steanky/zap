@@ -17,7 +17,6 @@ import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
-import io.github.zap.zombies.game.util.AirUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -316,7 +315,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             for (double y = location.getY(); y >= 0D; y--){
                 location.setY(y);
-                if (!AirUtil.AIR_MATERIALS.contains(player.getWorld().getBlockAt(location).getType())) {
+                if (!player.getWorld().getBlockAt(location).getType().isAir()) {
                     player.teleport(location.clone().add(0, 1, 0));
                     break;
                 }
