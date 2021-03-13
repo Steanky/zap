@@ -25,6 +25,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -604,6 +605,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 false, false));
         player.setInvulnerable(true);
         player.setInvisible(true);
+        player.setGameMode(GameMode.ADVENTURE);
         endTasks();
     }
 
@@ -615,6 +617,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                 false, false));
         player.setInvulnerable(false);
+        player.setGameMode(GameMode.ADVENTURE);
         startTasks();
     }
 
@@ -623,5 +626,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         ArenaApi.getInstance().applyDefaultCondition(player);
         player.setAllowFlight(true);
         player.setInvisible(true);
+        player.setGameMode(GameMode.ADVENTURE);
     }
 }
