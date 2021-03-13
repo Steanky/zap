@@ -23,8 +23,8 @@ public class JacksonShopManager implements ShopManager {
 
     public JacksonShopManager() {
         ArenaApi arenaApi = ArenaApi.getInstance();
-        arenaApi.addDeserializer(ShopData.class, shopDataDeserializer);
 
+        arenaApi.addDeserializer(ShopData.class, shopDataDeserializer);
         addShop(ShopType.ARMOR_SHOP, ArmorShopData.class, ArmorShop::new);
         addShop(ShopType.DOOR, DoorData.class, Door::new);
         addShop(ShopType.GUN_SHOP, GunShopData.class, GunShop::new);

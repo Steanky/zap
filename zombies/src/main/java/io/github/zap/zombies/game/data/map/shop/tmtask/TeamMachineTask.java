@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.map.shop.tmtask;
 
+import io.github.zap.arenaapi.Property;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
@@ -32,7 +33,7 @@ public abstract class TeamMachineTask {
 
     private int initialCost;
 
-    private transient int timesUsed = 0;
+    private final transient Property<Integer> timesUsed = new Property<>(0);
 
     public TeamMachineTask(String type) {
         this.type = type;
@@ -46,7 +47,7 @@ public abstract class TeamMachineTask {
      * @return Whether the execution was successful
      */
     public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        int cost = getCost();
+        int cost = getCostForTeamMachine(teamMachine);
         if (zombiesPlayer.getCoins() < cost) {
             zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
 
@@ -57,7 +58,7 @@ public abstract class TeamMachineTask {
                     0.5F
             ));
         } else {
-            timesUsed++;
+            timesUsed.setValue(teamMachine, timesUsed.getValue(teamMachine) + 1);
             zombiesPlayer.subtractCoins(cost);
 
             return true;
@@ -67,16 +68,17 @@ public abstract class TeamMachineTask {
     }
 
     /**
-     * Gets the current cost of the team machine task to purchase
-     * @return The current cost
+     * Gets the current cost of the team machine task to purchase for a single team machine
+     * @return The current cost for the team machine
      */
-    protected abstract int getCost();
+    protected abstract int getCostForTeamMachine(TeamMachine teamMachine);
 
     /**
      * Gets the item stack representation of the team machine task to be used in a team machine
+     * @param teamMachine The team machine to get the task's cost for
      * @return The item stack representation of the team machine task
      */
-    public ItemStack getItemStackRepresentation() {
+    public ItemStack getItemStackRepresentationForTeamMachine(TeamMachine teamMachine) {
         ItemStack itemStack = new ItemStack(displayMaterial);
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.displayName(Component.text(displayName));
@@ -90,7 +92,7 @@ public abstract class TeamMachineTask {
                 .text("Cost: ")
                 .color(NamedTextColor.GRAY)
                 .append(Component
-                        .text(String.format("%d Gold", getCost()))
+                        .text(String.format("%d Gold", getCostForTeamMachine(teamMachine)))
                         .color(NamedTextColor.GOLD)
                 )
         );

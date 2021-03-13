@@ -104,8 +104,8 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     }
 
     @Override
-    public int getCost() {
-        return getInitialCost() + (costIncrement * getTimesUsed());
+    public int getCostForTeamMachine(TeamMachine teamMachine) {
+        return getInitialCost() + (costIncrement * getTimesUsed().getValue(teamMachine));
     }
 
     @Override

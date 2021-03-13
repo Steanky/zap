@@ -77,7 +77,7 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
     @Override
     public void setVisible(boolean visible) {
         super.setVisible(visible);
-        if (getCurrentLevel().isUsesShields()) {
+        if (isSelected() && getCurrentLevel().isUsesShields()) {
             EntityEquipment equipment = getPlayer().getEquipment();
 
             if (visible) {
@@ -88,7 +88,7 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
             } else {
                 //noinspection ConstantConditions
                 if (equipment.getItemInOffHand().getType() == Material.SHIELD) {
-                    equipment.setItemInOffHand(new ItemStack(Material.SHIELD));
+                    equipment.setItemInOffHand(new ItemStack(Material.AIR));
                 }
             }
         }

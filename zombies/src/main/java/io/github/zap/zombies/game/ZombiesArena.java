@@ -31,10 +31,7 @@ import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
-import io.github.zap.zombies.game.shop.LuckyChest;
-import io.github.zap.zombies.game.shop.Shop;
-import io.github.zap.zombies.game.shop.ShopEventArgs;
-import io.github.zap.zombies.game.shop.ShopType;
+import io.github.zap.zombies.game.shop.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -551,6 +548,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
 
         //cleanup mappings and remove arena from manager
+        for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
+            TeamMachine teamMachine = (TeamMachine) shop;
+            Property.removeMappingsFor(teamMachine);
+        }
+
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
     }

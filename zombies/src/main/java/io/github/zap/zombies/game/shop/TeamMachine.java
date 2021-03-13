@@ -1,10 +1,12 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -20,11 +22,15 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Machine with various tasks helpful for teams
  */
-public class TeamMachine extends BlockShop<TeamMachineData> {
+public class TeamMachine extends BlockShop<TeamMachineData> implements Unique {
+
+    @Getter
+    private final UUID id = UUID.randomUUID();
 
     private final Inventory inventory;
 
@@ -50,10 +56,11 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                         .get(humanEntity.getUniqueId());
 
                 if (zombiesPlayer != null) {
+                    inventoryClickEvent.setCancelled(true);
                     TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
 
-                    if (teamMachineTask != null && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
-                        inventoryClickEvent.setCancelled(true);
+                    if (teamMachineTask != null
+                            && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
 
                         for (Player player : zombiesArena.getWorld().getPlayers()) {
                             player.sendMessage(
@@ -75,7 +82,10 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                                 );
                         humanEntity.playSound(sound);
 
-                        inventory.setItem(inventoryClickEvent.getSlot(), teamMachineTask.getItemStackRepresentation());
+                        inventory.setItem(
+                                inventoryClickEvent.getSlot(),
+                                teamMachineTask.getItemStackRepresentationForTeamMachine(this)
+                        );
 
                         onPurchaseSuccess(zombiesPlayer);
                     }
@@ -153,7 +163,8 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                     int pos = (h + offset) * 9 + slot;
 
                     TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
-                    ItemStack teamMachineItemStackRepresentation = teamMachineTask.getItemStackRepresentation();
+                    ItemStack teamMachineItemStackRepresentation
+                            = teamMachineTask.getItemStackRepresentationForTeamMachine(this);
 
                     inventory.setItem(pos, teamMachineItemStackRepresentation);
                     slotMap.put(pos, teamMachineTask);

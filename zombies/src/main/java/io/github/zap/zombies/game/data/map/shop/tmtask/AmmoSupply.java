@@ -41,7 +41,7 @@ public class AmmoSupply extends TeamMachineTask {
     }
 
     @Override
-    public int getCost() {
+    public int getCostForTeamMachine(TeamMachine teamMachine) {
         return getInitialCost();
     }
 }
