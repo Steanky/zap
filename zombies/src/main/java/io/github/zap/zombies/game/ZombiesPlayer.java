@@ -125,6 +125,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         getPlayer().setExp(0);
         getPlayer().setLevel(0);
+
+        getPlayer().teleport(arena.getManager().getHubLocation());
     }
 
     @Override

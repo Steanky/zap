@@ -516,6 +516,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
+        Zombies.info("Shutting down arena...");
 
         gameScoreboard.dispose(); // dispose resource related to managing game scoreboard
 
@@ -529,6 +530,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         if(powerUpBossBar != null) {
             powerUpBossBar.dispose();
+        }
+
+        for(Player player : world.getPlayers()) {
+            player.teleport(manager.getHubLocation());
+        }
+
+        for(UUID entityUUID : getMobs()) {
+            Entity entity = Bukkit.getEntity(entityUUID);
+
+            if(entity != null) {
+                entity.remove();
+            }
         }
 
         //cleanup mappings and remove arena from manager
@@ -572,8 +585,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(!map.isAllowRejoin()) {
                 super.removePlayer(player);
             }
-
-            player.getPlayer().teleport(getManager().getHubLocation());
         }
 
         switch (state) {
@@ -604,11 +615,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onMobDeath(MythicMobDeathEvent args) {
-        if(mobs.remove(args.getEntity().getUniqueId())) {
-            zombiesLeft--;
-        }
+        if(state == ZombiesArenaState.STARTED) {
+            if(mobs.remove(args.getEntity().getUniqueId()) && zombiesLeft > 0) {
+                zombiesLeft--;
+            }
 
-        tryNextRound();
+            tryNextRound();
+        }
     }
 
     private void tryNextRound() {
