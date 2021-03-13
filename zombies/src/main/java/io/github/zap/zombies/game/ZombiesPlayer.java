@@ -320,7 +320,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             for (double y = location.getY(); y >= 0D; y--){
                 location.setY(y);
                 if (!player.getWorld().getBlockAt(location).getType().isAir()) {
-                    player.teleport(location.clone().add(0, 1, 0));
+                    boolean succ  = player.teleport(location.add(0, 1, 0));
                     break;
                 }
             }
