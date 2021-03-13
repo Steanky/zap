@@ -482,7 +482,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerDropItemEvent().registerHandler(this::onPlayerDropItem);
         getPlayerMoveEvent().registerHandler(this::onPlayerMove);
         getPlayerSwapHandItemsEvent().registerHandler(this::onPlayerSwapHandItems);
-        getPlayerDamageEvent().registerHandler(this::onPlayerDamage);
         getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
         getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
         getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
@@ -634,18 +633,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
     }
 
-    private void onPlayerDamage(ProxyArgs<EntityDamageEvent> args) {
-        ZombiesPlayer managedPlayer = args.getManagedPlayer();
-        if (managedPlayer != null && !managedPlayer.isAlive()) {
-            args.getEvent().setCancelled(true);
-        }
-    }
-
     private void onEntityDamageByEntity(ProxyArgs<EntityDamageByEntityEvent> args) {
         Entity damager = args.getEvent().getDamager();
         ZombiesPlayer damagingPlayer = getPlayerMap().get(damager.getUniqueId());
-        if(damagingPlayer != null && !damagingPlayer.isAlive()) {
-            args.getEvent().setCancelled(true);
+
+        if(damagingPlayer != null) {
+            if(!damagingPlayer.isAlive()) {
+                args.getEvent().setCancelled(true);
+            }
+            else if(!mobs.contains(args.getEvent().getEntity().getUniqueId())) {
+                args.getEvent().setCancelled(true);
+            }
         }
     }
 

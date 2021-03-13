@@ -97,9 +97,6 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private CommandManager commandManager;
 
-    @Getter
-    private MoveWaterFallAfterBeta mockedWaterfall;
-
     public static final String DEFAULT_LOCALE = "en_US";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
@@ -129,7 +126,6 @@ public final class Zombies extends JavaPlugin implements Listener {
             initLocalization();
             initWorldLoader();
             initArenaManagers();
-            initMockedWaterfall();
             initCommands();
         }
         catch(LoadFailureException exception)
@@ -142,18 +138,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         timer.stop();
         info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-    }
-
-    private void initMockedWaterfall() throws LoadFailureException {
-        mockedWaterfall = new MoveWaterFallAfterBeta();
-        getServer().getPluginManager().registerEvents(mockedWaterfall, this);
-
-        World world = Bukkit.getWorld(nmsProxy.getDefaultWorldName());
-        if (world != null) {
-            mockedWaterfall.setLobbyLocation(world.getSpawnLocation());
-        } else {
-            throw new LoadFailureException("server.properties does not contain a correct default world!");
-        }
     }
 
     @Override
