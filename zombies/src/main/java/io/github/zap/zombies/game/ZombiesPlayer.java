@@ -314,7 +314,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             for (double y = location.getY(); y >= 0D; y--){
                 location.setY(y);
                 if (!AirUtil.AIR_MATERIALS.contains(player.getWorld().getBlockAt(location).getType())) {
-                    player.teleport(location);
+                    player.teleport(location.clone().add(0, 1, 0));
+                    break;
                 }
             }
 

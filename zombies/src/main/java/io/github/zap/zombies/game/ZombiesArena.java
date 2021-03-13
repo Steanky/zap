@@ -662,7 +662,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             player.kill();
             Corpse corpse = player.getCorpse();
             if (corpse != null) {
-                corpse.destroy();
+                corpse.terminate();
             }
         }
 
@@ -943,6 +943,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerMap().forEach((l,r) -> {
             r.getPlayer().sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+            r.getPlayer().sendActionBar(Component.text());
         });
         waitAndDispose(200);
     }

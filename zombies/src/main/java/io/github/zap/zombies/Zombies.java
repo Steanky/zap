@@ -101,7 +101,6 @@ public final class Zombies extends JavaPlugin implements Listener {
     private MoveWaterFallAfterBeta mockedWaterfall;
 
     public static final String DEFAULT_LOCALE = "en_US";
-    public static final String DEFAULT_LOBBY_WORLD = "world";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
@@ -119,8 +118,8 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
-            initConfig();
             initProxy();
+            initConfig();
             initDependencies();
             initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class,
                     WrappedArrowShoot.class);
@@ -199,7 +198,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
-        config.addDefault(ConfigNames.LOBBY_WORLD, DEFAULT_LOBBY_WORLD);
+        config.addDefault(ConfigNames.LOBBY_WORLD, nmsProxy.getDefaultWorldName());
 
         config.options().copyDefaults(true);
         saveConfig();

@@ -10,6 +10,8 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
+import io.github.zap.zombies.game.perk.Perk;
+import io.github.zap.zombies.game.perk.ZombiesPerks;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
@@ -86,11 +88,20 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                             PerkObjectGroup perkObjectGroup =
                                     (PerkObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.PERK.name());
                             if (perkObjectGroup != null) {
+                                ZombiesPerks zombiesPerks = zombiesPlayer.getPerks();
                                 Integer slot = perkObjectGroup.getNextEmptySlot();
                                 if (slot == null) {
                                     int heldSlot = player.getInventory().getHeldItemSlot();
                                     if (perkObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
-                                        slot = heldSlot;
+                                        HotbarObject perkObject = perkObjectGroup.getHotbarObject(slot = heldSlot);
+                                        if (perkObject instanceof PerkEquipment) {
+                                            Perk<?> perk = zombiesPerks.getPerk(
+                                                    (((PerkEquipment) perkObject).getEquipmentData().getPerkType())
+                                            );
+                                            while (perk.getCurrentLevel() > 0) {
+                                                perk.downgrade();
+                                            }
+                                        }
                                     }
                                 }
                                 if (slot != null) {

@@ -9,6 +9,7 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import io.github.zap.zombies.game.util.AirUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
@@ -100,7 +101,8 @@ public class Door extends Shop<DoorData> {
             PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
             Block block = playerInteractEvent.getClickedBlock();
 
-            if (block != null && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
+            if (block != null && !AirUtil.AIR_MATERIALS.contains(block.getType())
+                    && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
                 for (DoorSide doorSide : doorData.getDoorSides()) {
                     if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
                         int cost = doorSide.getCost();

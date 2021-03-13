@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.proxy;
 
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.entity.EntityType;
 
 import java.util.Optional;
@@ -25,6 +27,10 @@ public class NMSProxy_v1_16_R3 implements NMSProxy {
 
     @Override
     public String getDefaultWorldName() {
-        return MinecraftServer.c.getLevelName();
+        CraftServer craftServer = (CraftServer) Bukkit.getServer();
+        DedicatedServer dedicatedServer = craftServer.getServer();
+        DedicatedServerProperties dedicatedServerProperties = dedicatedServer.getDedicatedServerProperties();
+
+        return dedicatedServerProperties.levelName;
     }
 }
