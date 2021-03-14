@@ -189,7 +189,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             else
                 getPlayer().sendMessage(String.format("%s+%d Gold (%s)!", ChatColor.GOLD, amount, fullMsg));
 
-            coins += amount;
+            // integer overflow check
+            if(Integer.MAX_VALUE - coins - amount > 0)
+                coins += amount;
+            else
+                coins = Integer.MAX_VALUE;
         }
     }
 
