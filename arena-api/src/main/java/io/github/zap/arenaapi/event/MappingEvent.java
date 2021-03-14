@@ -9,6 +9,8 @@ import org.apache.commons.lang3.tuple.Pair;
  * @param <U> The argument type of this event
  */
 public class MappingEvent<T, U> extends Event<U> {
+    private final Event<T> underlyingEvent;
+
     /**
      * Creates a new MappingEvent attached to the provided Event, to which a handler is registered. When the given
      * Event is invoked, this MappingEvent will attempt to perform a validation and mapping conversion before calling
@@ -18,11 +20,20 @@ public class MappingEvent<T, U> extends Event<U> {
      * @param mapper The mapper to test and convert event arguments
      */
     public MappingEvent(Event<T> event, MappingPredicate<T, U> mapper) {
+        underlyingEvent = event;
+
         event.registerHandler((args) -> {
             Pair<Boolean, U> result = mapper.tryMap(args);
             if(result.getLeft()) {
                 callEvent(result.getRight());
             }
         });
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+
+        underlyingEvent.dispose();
     }
 }

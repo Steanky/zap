@@ -64,7 +64,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -233,7 +232,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         0.5, blockPosition.getY(), blockPosition.getZ() + 0.5), map.getMobSpawnLevel());
 
                 if(activeMob != null) {
-                    mobs.add(activeMob.getUniqueId());
+                    getEntitySet().add(activeMob.getUniqueId());
                     MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(), Zombies.ARENA_METADATA_NAME,
                             Zombies.getInstance(), ZombiesArena.this);
                     return activeMob;
@@ -306,7 +305,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public class BasicDamageHandler implements DamageHandler {
         @Override
         public void damageEntity(@NotNull Damager damager, @NotNull DamageAttempt with, @NotNull Mob target) {
-            if (mobs.contains(target.getUniqueId())) {
+            if (hasEntity(target.getUniqueId())) {
                 target.playEffect(EntityEffect.HURT);
 
                 double deltaHealth = inflictDamage(target, with.damageAmount(damager, target), with.ignoresArmor(damager, target));
@@ -374,19 +373,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final ShopManager shopManager;
 
     @Getter
-    protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
-
-    @Getter
-    private final long emptyTimeout;
+    private final DamageHandler damageHandler;
 
     @Getter
     private final Spawner spawner;
 
     @Getter
-    private final DamageHandler damageHandler;
+    protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
 
     @Getter
-    private final Set<UUID> mobs = new HashSet<>();
+    private final long emptyTimeout;
 
     @Getter
     private final List<Shop<?>> shops = new ArrayList<>();
@@ -415,6 +411,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Event<MythicMobDeathEvent> mythicMobDeathEvent;
 
+    @Getter
+    private final Event<MythicMobDespawnEvent> mythicMobDespawnEvent;
+
     /**
      * Indicate when the game start using System.currentTimeMillis()
      * return -1 if the game hasn't start
@@ -428,11 +427,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      */
     @Getter
     private long endTimeStamp = -1;
-
-    private final List<Integer> waveSpawnerTasks = new ArrayList<>();
-    private int timeoutTaskId = -1;
-
-    private BukkitTask gameEndTimeoutTask;
 
     @Getter
     private final Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
@@ -458,7 +452,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(Zombies.getInstance(), manager, world, ZombiesPlayer::new);
+        super(Zombies.getInstance(), manager, world, ZombiesPlayer::new, emptyTimeout);
 
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();
@@ -470,35 +464,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
-        mythicMobDeathEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(), this,
-                MythicMobDeathEvent.class), event -> event.getEntity() != null && mobs.contains(event.getEntity().getUniqueId()));
+        mythicMobDeathEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(), MythicMobDeathEvent.class),
+                event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
 
-        Event<MythicMobDespawnEvent> mythicMobDespawnEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(), this,
-                MythicMobDespawnEvent.class), event -> event.getEntity() != null && mobs.contains(event.getEntity().getUniqueId()));
+        mythicMobDespawnEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(),
+                MythicMobDespawnEvent.class), event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
 
-        mythicMobDeathEvent.registerHandler(this::onMobDeath);
-        mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
-
-        getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
-        getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
-        getPlayerDropItemEvent().registerHandler(this::onPlayerDropItem);
-        getPlayerMoveEvent().registerHandler(this::onPlayerMove);
-        getPlayerSwapHandItemsEvent().registerHandler(this::onPlayerSwapHandItems);
-        getPlayerDamagedEvent().registerHandler(this::onPlayerDamaged);
-        getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
-        getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
-        getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
-        getPlayerInteractEntityEvent().removeHandler(this::onPlayerInteractEntity);
-        getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
-        getPlayerAnimationEvent().registerHandler(this::onPlayerAnimation);
-        getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
-        getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
-        getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
-        getPlayerItemDamageEvent().registerHandler(this::onPlayerItemDamage);
-        getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
-        getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
-        getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
-        getInventoryClickEvent().registerHandler(this::onPlayerInventoryClick);
+        registerMythicMobsEvents();
+        registerArenaEvents();
+        registerDisposables();
 
         PacketContainer createTeamPacketContainer = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
         createTeamPacketContainer.getStrings().write(0, UUID.randomUUID().toString().substring(0, 16));
@@ -511,6 +485,41 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 .forEach(x -> powerUpSpawnRules.add(ImmutablePair.of(getPowerUpManager().createSpawnRule(x.left, x.right, this), x.right)));
     }
 
+    private void registerMythicMobsEvents() {
+        mythicMobDeathEvent.registerHandler(this::onMobDeath);
+        mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
+    }
+
+    private void registerArenaEvents() {
+        getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
+
+        getProxyFor(PlayerDropItemEvent.class).registerHandler(this::onPlayerDropItem);
+        getProxyFor(PlayerMoveEvent.class).registerHandler(this::onPlayerMove);
+        getProxyFor(PlayerSwapHandItemsEvent.class).registerHandler(this::onPlayerSwapHandItems);
+        getProxyFor(EntityDamageEvent.class).registerHandler(this::onEntityDamaged);
+        getProxyFor(EntityDamageByEntityEvent.class).registerHandler(this::onEntityDamageByEntity);
+        getProxyFor(PlayerDeathEvent.class).registerHandler(this::onPlayerDeath);
+        getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
+        getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
+        getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
+        getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
+        getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
+        getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
+        getProxyFor(PlayerItemDamageEvent.class).registerHandler(this::onPlayerItemDamage);
+        getProxyFor(PlayerAttemptPickupItemEvent.class).registerHandler(this::onPlayerAttemptPickupItem);
+        getProxyFor(PlayerArmorStandManipulateEvent.class).registerHandler(this::onPlayerArmorStandManipulate);
+        getProxyFor(FoodLevelChangeEvent.class).registerHandler(this::onFoodLevelChange);
+        getProxyFor(InventoryClickEvent.class).registerHandler(this::onPlayerInventoryClick);
+    }
+
+    private void registerDisposables() {
+        getResourceManager().addDisposable(mythicMobDeathEvent);
+        getResourceManager().addDisposable(mythicMobDespawnEvent);
+        getResourceManager().addDisposable(gameScoreboard);
+        getResourceManager().addDisposable(powerUpBossBar);
+    }
+
     @Override
     public ZombiesArena getArena() {
         return this;
@@ -519,33 +528,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
-        Zombies.info("Shutting down arena...");
-
-        gameScoreboard.dispose(); // dispose resource related to managing game scoreboard
-
-        //unregister tasks
-        BukkitScheduler scheduler = Bukkit.getScheduler();
-        scheduler.cancelTask(timeoutTaskId);
-
-        for(int taskId : waveSpawnerTasks) {
-            scheduler.cancelTask(taskId);
-        }
-
-        if(powerUpBossBar != null) {
-            powerUpBossBar.dispose();
-        }
-
-        for(Player player : world.getPlayers()) {
-            player.teleport(manager.getHubLocation());
-        }
-
-        for(UUID entityUUID : getMobs()) {
-            Entity entity = Bukkit.getEntity(entityUUID);
-
-            if(entity != null) {
-                entity.remove();
-            }
-        }
 
         //cleanup mappings and remove arena from manager
         for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
@@ -584,8 +566,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
             }
         }
-
-        resetTimeout(); //if arena was in timeout state, reset that
     }
 
     private void onPlayerLeave(ManagedPlayerListArgs args) {
@@ -598,17 +578,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         switch (state) {
             case PREGAME:
                 removePlayers(args.getPlayers());
-
-                if (getOnlineCount() == 0) {
-                    startTimeout();
-                }
                 break;
             case COUNTDOWN:
                 removePlayers(args.getPlayers());
 
-                if (getOnlineCount() == 0) {
-                    startTimeout();
-                }
                 if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
                 }
@@ -624,7 +597,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onMobDeath(MythicMobDeathEvent args) {
         if(state == ZombiesArenaState.STARTED) {
-            if(mobs.remove(args.getEntity().getUniqueId()) && zombiesLeft > 0) {
+            if(getEntitySet().remove(args.getEntity().getUniqueId()) && zombiesLeft > 0) {
                 zombiesLeft--;
             }
 
@@ -642,17 +615,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
     }
 
-    private void onPlayerDamaged(ProxyArgs<EntityDamageEvent> args) {
+    private void onEntityDamaged(ProxyArgs<EntityDamageEvent> args) {
         EntityDamageEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
         if (managedPlayer != null) {
             Player player = managedPlayer.getPlayer();
-
-            if (player.getHealth() <= event.getFinalDamage()) {
+            if(player.getHealth() <= event.getFinalDamage()) {
                 Location location = player.getLocation();
 
-                for (double y = location.getY(); y >= 0D; y--) {
+                for (double y = location.getY(); y >= 0D; y--){
                     location.setY(y);
                     Block block = player.getWorld().getBlockAt(location);
                     if (!block.getType().isAir()) {
@@ -674,7 +646,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
             if(!damagingPlayer.isAlive()) {
                 event.setCancelled(true);
-            } else if (mobs.contains(mob.getUniqueId())) {
+            } else if (getEntitySet().contains(mob.getUniqueId())) {
                 HotbarManager hotbarManager = damagingPlayer.getHotbarManager();
                 HotbarObject hotbarObject = hotbarManager.getSelectedObject();
 
@@ -693,45 +665,47 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
         args.getEvent().setCancelled(true); //cancel death event
 
-        ZombiesPlayer knocked = args.getManagedPlayer();
-        knocked.knock();
+        if(state == ZombiesArenaState.STARTED) {
+            ZombiesPlayer knocked = args.getManagedPlayer();
+            knocked.knock();
 
-        for(ZombiesPlayer player : getPlayerMap().values()) {
-            if(player.isAlive()) {
-                Player knockedBukkitPlayer = knocked.getPlayer();
-                RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
-                String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+            for(ZombiesPlayer player : getPlayerMap().values()) {
+                if(player.isAlive()) {
+                    Player knockedBukkitPlayer = knocked.getPlayer();
+                    RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
+                    String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
 
-                //display death message only if necessary
-                for(ZombiesPlayer otherPlayer : getPlayerMap().values()) {
-                    if(otherPlayer != knocked) {
-                        otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
-                                .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
-                                .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
-                                Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                    //display death message only if necessary
+                    for(ZombiesPlayer otherPlayer : getPlayerMap().values()) {
+                        if(otherPlayer != knocked) {
+                            otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
+                                    .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
+                                    .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                    Duration.ofSeconds(3), Duration.ofSeconds(1))));
 
 
-                        otherPlayer.getPlayer().playSound(Sound.sound(
-                                Key.key("minecraft:entity.ender_dragon.growl"),
-                                Sound.Source.MASTER,
-                                1.0F,
-                                0.5F
-                        ));
+                            otherPlayer.getPlayer().playSound(Sound.sound(
+                                    Key.key("minecraft:entity.ender_dragon.growl"),
+                                    Sound.Source.MASTER,
+                                    1.0F,
+                                    0.5F
+                            ));
+                        }
                     }
+
+                    return; //return if there are any players still alive
                 }
-
-                return; //return if there are any players still alive
             }
-        }
 
-        doLoss(); //there are no players alive, so end the game
+            doLoss(); //there are no players alive, so end the game
 
-        // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
-        for(ZombiesPlayer player : getPlayerMap().values()) {
-            player.kill();
-            Corpse corpse = player.getCorpse();
-            if (corpse != null) {
-                corpse.terminate();
+            // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
+            for(ZombiesPlayer player : getPlayerMap().values()) {
+                player.kill();
+                Corpse corpse = player.getCorpse();
+                if (corpse != null) {
+                    corpse.terminate();
+                }
             }
         }
     }
@@ -821,7 +795,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
+    private void onPlayerToggleSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
         PlayerToggleSneakEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
@@ -860,12 +834,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         args.getEvent().setCancelled(true);
     }
 
-    private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
+    private void onFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
     }
 
-    private void onPlayerInventoryClick(ManagedInventoryEventArgs<InventoryClickEvent> args) {
+    private void onPlayerInventoryClick(ProxyArgs<InventoryClickEvent> args) {
         InventoryClickEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = getPlayerMap().get(event.getWhoClicked().getUniqueId());
         if (managedPlayer != null) {
@@ -941,7 +915,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
 
-                waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
+                runTaskLater(cumulativeDelay, () -> {
                     List<ActiveMob> spawnedMobs = spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
                             wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false);
 
@@ -949,9 +923,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
                     }
-
-                    waveSpawnerTasks.remove(0);
-                }, cumulativeDelay));
+                });
             }
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
@@ -981,20 +953,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public void startTimeout() {
-        if(timeoutTaskId == -1) {
-            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::dispose,
-                    emptyTimeout);
-        }
-    }
-
-    public void resetTimeout() {
-        if(timeoutTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(timeoutTaskId);
-            timeoutTaskId = -1;
-        }
-    }
-
     /**
      * Win code here
      */
@@ -1006,7 +964,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
         });
-        waitAndDispose(200);
+        runTaskLater(200L, this::dispose);
     }
 
     /**
@@ -1022,7 +980,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendActionBar(Component.text());
         });
         gameScoreboard.run();
-        waitAndDispose(200);
+        runTaskLater(200L, this::dispose);
     }
 
     /**

@@ -72,8 +72,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Getter
     private final ZombiesHotbarManager hotbarManager;
 
-    // Allow other class to modify the fire rate without modify the logic code itself. Only support
-    // Mollification and Division. Also why remove old multiplier Thamid?
     @Getter
     private final State<Double> fireRateMultiplier = new State<>(1D);
 

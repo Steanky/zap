@@ -68,7 +68,7 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
         if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
             Location location = teamMachine.getBlock().getLocation();
-            Set<UUID> mobIds = zombiesArena.getMobs();
+            Set<UUID> mobIds = zombiesArena.getEntitySet();
 
             World world = zombiesArena.getWorld();
             world.playSound(Sound.sound(
@@ -78,24 +78,18 @@ public class DragonWrath extends TeamMachineTask implements Damager {
                     1.0F
             ), location.getX(), location.getY(), location.getZ());
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Collection<Mob> mobs = world.getNearbyEntitiesByType(Mob.class, location, radius);
-
-                    for (Mob mob : mobs) {
-                        if (mobIds.contains(mob.getUniqueId())) {
-                            world.strikeLightningEffect(mob.getLocation());
-                            zombiesArena.getDamageHandler()
-                                    .damageEntity(DragonWrath.this, new DragonWrathDamage(), mob);
-                        }
+            zombiesArena.runTaskLater(20L * delay, () -> {
+                for (Mob mob : world.getNearbyEntitiesByType(Mob.class, location, radius)) {
+                    if (mobIds.contains(mob.getUniqueId())) {
+                        world.strikeLightningEffect(mob.getLocation());
+                        zombiesArena.getDamageHandler().damageEntity(DragonWrath.this, new DragonWrathDamage(), mob);
                     }
-
-                    zombiesPlayer.getPlayer().sendMessage(
-                            Component.text(String.format("Killed %d mobs!", mobs.size())).color(NamedTextColor.GREEN)
-                    );
                 }
-            }.runTaskLater(Zombies.getInstance(), delay);
+
+                zombiesPlayer.getPlayer().sendMessage(
+                        Component.text(String.format("Killed %d mobs!", zombiesArena.getEntitySet().size())).color(NamedTextColor.GREEN)
+                );
+            });
 
             return true;
         }
