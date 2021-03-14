@@ -3,6 +3,7 @@ package io.github.zap.zombies.game;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.FilteredEvent;
@@ -63,7 +64,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -514,10 +514,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void registerDisposables() {
-        getResourceManager().addDisposable(mythicMobDeathEvent);
-        getResourceManager().addDisposable(mythicMobDespawnEvent);
-        getResourceManager().addDisposable(gameScoreboard);
-        getResourceManager().addDisposable(powerUpBossBar);
+        ResourceManager resourceManager = getResourceManager();
+
+        resourceManager.addDisposable(mythicMobDeathEvent);
+        resourceManager.addDisposable(mythicMobDespawnEvent);
+        resourceManager.addDisposable(gameScoreboard);
+        resourceManager.addDisposable(powerUpBossBar);
     }
 
     @Override
@@ -530,11 +532,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         super.dispose(); //dispose of superclass-specific resources
 
         //cleanup mappings and remove arena from manager
-        for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
-            TeamMachine teamMachine = (TeamMachine) shop;
-            Property.removeMappingsFor(teamMachine);
-        }
-
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
     }
@@ -1037,6 +1034,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             shop.display();
         }
         getShopEvent(ShopType.DOOR);
+        
+        for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
+            TeamMachine teamMachine = (TeamMachine) shop;
+            getResourceManager().addDisposable(teamMachine);
+        }
 
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
         if (chestEvent != null) {

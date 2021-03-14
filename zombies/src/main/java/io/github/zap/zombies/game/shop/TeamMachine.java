@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -27,7 +29,7 @@ import java.util.UUID;
 /**
  * Machine with various tasks helpful for teams
  */
-public class TeamMachine extends BlockShop<TeamMachineData> implements Unique {
+public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, Disposable {
 
     @Getter
     private final UUID id = UUID.randomUUID();
@@ -183,4 +185,10 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique {
     public ShopType getShopType() {
         return ShopType.TEAM_MACHINE;
     }
+
+    @Override
+    public void dispose() {
+        Property.removeMappingsFor(this);
+    }
+
 }
