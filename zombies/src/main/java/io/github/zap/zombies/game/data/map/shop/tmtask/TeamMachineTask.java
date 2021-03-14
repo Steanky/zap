@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -47,21 +48,25 @@ public abstract class TeamMachineTask {
      * @return Whether the execution was successful
      */
     public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        int cost = getCostForTeamMachine(teamMachine);
-        if (zombiesPlayer.getCoins() < cost) {
-            zombiesPlayer.getPlayer().sendMessage(ChatColor.RED + "You cannot afford this item!");
+        Player player = zombiesPlayer.getPlayer();
 
-            zombiesPlayer.getPlayer().playSound(Sound.sound(
-                    Key.key("minecraft:entity.enderman.teleport"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    0.5F
-            ));
-        } else {
-            timesUsed.setValue(teamMachine, timesUsed.getValue(teamMachine) + 1);
-            zombiesPlayer.subtractCoins(cost);
+        if (player != null) {
+            int cost = getCostForTeamMachine(teamMachine);
+            if (zombiesPlayer.getCoins() < cost) {
+                player.sendMessage(ChatColor.RED + "You cannot afford this item!");
 
-            return true;
+                player.playSound(Sound.sound(
+                        Key.key("minecraft:entity.enderman.teleport"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        0.5F
+                ));
+            } else {
+                timesUsed.setValue(teamMachine, timesUsed.getValue(teamMachine) + 1);
+                zombiesPlayer.subtractCoins(cost);
+
+                return true;
+            }
         }
 
         return false;

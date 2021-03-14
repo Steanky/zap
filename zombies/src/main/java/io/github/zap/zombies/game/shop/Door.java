@@ -12,6 +12,7 @@ import io.github.zap.zombies.game.data.map.shop.DoorSide;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.ChatColor;
@@ -102,8 +103,10 @@ public class Door extends Shop<DoorData> {
             PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
             Block block = playerInteractEvent.getClickedBlock();
 
-            if (block != null && !block.getType().isAir()
+            if (player != null && block != null && !block.getType().isAir()
                     && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
+
+                boolean anySide = false;
                 for (DoorSide doorSide : doorData.getDoorSides()) {
                     if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
                         int cost = doorSide.getCost();
@@ -159,8 +162,16 @@ public class Door extends Shop<DoorData> {
                             return true;
                         }
 
+                        anySide = true;
                         break;
                     }
+                }
+
+                if (!anySide) {
+                    player.sendMessage(Component
+                            .text("You can't open the door from here!")
+                            .color(NamedTextColor.RED)
+                    );
                 }
 
                 player.playSound(Sound.sound(

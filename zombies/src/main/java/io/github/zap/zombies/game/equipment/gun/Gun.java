@@ -90,7 +90,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         )
                 );
 
-                reloadTask = getZombiesArena().runTaskTimer(0L, 1L, new Runnable() {
+                reloadTask = getZombiesArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
                     private final Component reloadingComponent = Component
                             .text("RELOADING")
@@ -124,7 +124,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                                 canShoot = true;
                             }
                             reloadTask = -1;
-                            getZombiesArena();
+                            cancel();
                         }
                     }
 
@@ -151,7 +151,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         fireDelayTask = getZombiesArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
             private final int goal =
-                    (int)Math.round(getCurrentLevel().getFireRate()
+                    (int) Math.round(getCurrentLevel().getFireRate()
                             * getZombiesPlayer().getFireRateMultiplier().getValue());
             private final float stepVal = 1F / goal;
             private int step = 0;
