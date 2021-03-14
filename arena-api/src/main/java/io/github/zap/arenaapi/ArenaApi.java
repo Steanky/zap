@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
@@ -35,12 +36,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -156,6 +155,16 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         ArenaManager<?> arenaManager = arenaManagers.get(gameName);
 
         if(arenaManager != null) {
+            List<Player> leavingPlayers = information.getJoinable().getPlayers();
+
+            for(Player player : leavingPlayers) {
+                Arena<?> currentArena = arenaIn(player);
+
+                if(currentArena != null) {
+                    currentArena.handleLeave(Lists.newArrayList(player));
+                }
+            }
+
             arenaManager.handleJoin(information, onCompletion);
         }
         else {
@@ -254,6 +263,20 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     public void evacuatePlayer(@NotNull Arena<?> from, @NotNull Player player) {
         player.teleport(from.getManager().getHubLocation());
+    }
+
+    public @Nullable Arena<?> arenaIn(@NotNull Player player) {
+        Iterator<? extends Arena<?>> arenaIterator = arenaIterator();
+
+        while(arenaIterator.hasNext()) {
+            Arena<?> arena = arenaIterator.next();
+
+            if(arena.hasPlayer(player.getUniqueId())) {
+                return arena;
+            }
+        }
+
+        return null;
     }
 
     /**
