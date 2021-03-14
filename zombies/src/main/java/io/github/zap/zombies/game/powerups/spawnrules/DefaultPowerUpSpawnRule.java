@@ -43,6 +43,8 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
     private int roundDeathCount;
     private final Random random = new Random();
 
+    private boolean disposed = false;
+
     private void onMobDeath(MythicMobDeathEvent e) {
         var patterns = getData().getPattern();
         var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena());
@@ -95,6 +97,10 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
     @Override
     public void dispose() {
+        if(disposed) {
+            return;
+        }
+
         getArena().getMythicMobDeathEvent().removeHandler(this::onMobDeath);
     }
 }

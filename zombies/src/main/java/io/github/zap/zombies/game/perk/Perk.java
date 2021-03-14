@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.perk;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.ObjectDisposedException;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.Getter;
@@ -24,6 +25,8 @@ public abstract class Perk<T> implements Disposable {
     @Getter
     private int currentLevel;
 
+    protected boolean disposed = false;
+
     /**
      * Creates a new perk instance for this player.
      * @param owner The player to whom the perk applies
@@ -43,6 +46,10 @@ public abstract class Perk<T> implements Disposable {
      * @return True if the perk level changed as a result of this call; false otherwise
      */
     public boolean upgrade() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         if(currentLevel < maxLevel) {
             if(++currentLevel == 1 && actionTriggerEvent != null) {
                 actionTriggerEvent.registerHandler(this::execute);
@@ -60,6 +67,10 @@ public abstract class Perk<T> implements Disposable {
      * @return True if the perk level changed as a result of this call, false otherwise
      */
     public boolean downgrade() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         if(currentLevel > 0) {
             if(--currentLevel == 0) {
                 if(actionTriggerEvent != null) {
@@ -94,6 +105,10 @@ public abstract class Perk<T> implements Disposable {
      * externally when the player leaves the game.
      */
     public final void disable() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         if(resetLevelOnDisable) {
             currentLevel = 0;
         }
@@ -103,11 +118,17 @@ public abstract class Perk<T> implements Disposable {
 
     @Override
     public void dispose() {
+        if(disposed) {
+            return;
+        }
+
         disable();
 
         if(actionTriggerEvent != null) {
             actionTriggerEvent.dispose();
         }
+
+        disposed = true;
     }
 
     /**

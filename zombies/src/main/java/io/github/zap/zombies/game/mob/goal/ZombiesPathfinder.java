@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
@@ -78,16 +79,12 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
     public final boolean shouldActivate() {
         if(!metadataLoaded) {
             for(String key : metadataKeys) {
-                boolean gotMetadata = false;
-                for(MetadataValue metadata : entity.getBukkitEntity().getMetadata(key)) {
-                    if(metadata.getOwningPlugin() == Zombies.getInstance()) {
-                        this.metadata.put(key, metadata.value());
-                        gotMetadata = true;
-                        break;
-                    }
+                Object metaKey = MetadataHelper.getMetadataFor(entity.getBukkitEntity(), Zombies.getInstance(), key);
+                if(metaKey != null) {
+                    this.metadata.put(key, metaKey);
+                    return true;
                 }
-
-                if(!gotMetadata) {
+                else {
                     return false;
                 }
             }

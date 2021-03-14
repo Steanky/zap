@@ -416,6 +416,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         return runnable.runTaskTimer(plugin, delay, period);
     }
 
+    public BukkitTask runTaskTimer(long delay, long period, DisposableBukkitRunnable runnable) {
+        resourceManager.addDisposable(runnable);
+        return runnable.runTaskTimer(plugin, delay, period);
+    }
+
     /**
      * Schedules a new sync task, which will be automatically cancelled by this ManagingArena when it is disposed, if
      * necessary. It will run once.
@@ -430,6 +435,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
             }
         };
 
+        resourceManager.addDisposable(runnable);
+        return runnable.runTaskLater(plugin, delay);
+    }
+
+    public BukkitTask runTaskLater(long delay, DisposableBukkitRunnable runnable) {
         resourceManager.addDisposable(runnable);
         return runnable.runTaskLater(plugin, delay);
     }

@@ -137,7 +137,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         target. This generally should not happen, but poorly behaved pathfinders may exist.
         */
         if(target != null && getHandle().getGoalTarget() == null) {
-            getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle());
+            getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
         }
 
         wrappedGoal.e();

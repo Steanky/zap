@@ -97,6 +97,10 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
 
     @Override
     public void dispose() {
+        if(super.disposed) {
+            return;
+        }
+
         super.dispose();
 
         if(eventRegistered) {

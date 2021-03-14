@@ -81,7 +81,7 @@ public abstract class DisposableBukkitRunnable extends BukkitRunnable implements
     @Override
     public void dispose() {
         if(disposed) {
-            throw new ObjectDisposedException();
+            return;
         }
 
         if(!isCancelled()) {

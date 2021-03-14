@@ -25,7 +25,7 @@ public class Event<T> implements Disposable {
     private boolean clearPending = false;
     private boolean invokingHandlers = false;
 
-    private boolean disposed = false;
+    protected boolean disposed = false;
 
     /**
      * Creates a new event with the specified exception handling policy.
@@ -109,7 +109,7 @@ public class Event<T> implements Disposable {
     @Override
     public void dispose() {
         if(disposed) {
-            throw new ObjectDisposedException();
+            return;
         }
 
         if(invokingHandlers) {

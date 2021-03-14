@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.perk;
 
+import io.github.zap.arenaapi.ObjectDisposedException;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.Getter;
 
@@ -21,11 +22,19 @@ public class FastRevive extends MarkerPerk {
 
     @Override
     public void activate() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         reviveTime = defaultReviveTime - tickReductionPerLevel * getCurrentLevel();
     }
 
     @Override
     public void deactivate() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         reviveTime = defaultReviveTime;
     }
 }

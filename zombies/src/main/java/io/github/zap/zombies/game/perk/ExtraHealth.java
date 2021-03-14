@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.perk;
 
+import io.github.zap.arenaapi.ObjectDisposedException;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import org.bukkit.attribute.Attribute;
@@ -18,6 +19,10 @@ public class ExtraHealth extends MarkerPerk {
 
     @Override
     public void activate() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         AttributeInstance attribute = getOwner().getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH);
 
         if(attribute != null) {
@@ -36,6 +41,10 @@ public class ExtraHealth extends MarkerPerk {
 
     @Override
     public void deactivate() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         AttributeInstance attribute = getOwner().getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH);
 
         if(attribute != null && currentMod != null) {

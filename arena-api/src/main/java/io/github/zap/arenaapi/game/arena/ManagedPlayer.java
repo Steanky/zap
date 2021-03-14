@@ -17,7 +17,7 @@ import java.util.UUID;
 public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
         Disposable {
     protected final V arena;
-    protected final Player player;
+    private final Player player;
     private boolean inGame = true;
 
     public ManagedPlayer(V arena, Player player) {

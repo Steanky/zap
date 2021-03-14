@@ -1,6 +1,7 @@
 package io.github.zap.zombies.command.mapeditor;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.ObjectDisposedException;
 import io.github.zap.arenaapi.particle.*;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
@@ -67,6 +68,8 @@ public class EditorContext implements Disposable {
 
     private static final Shader SHOP_SHADER = new SolidShader(Particle.REDSTONE, 1,
             new Particle.DustOptions(Color.AQUA, 1));
+
+    private boolean disposed = false;
 
     private class SelectionRenderable extends ShadedRenderable {
         @Override
@@ -320,21 +323,37 @@ public class EditorContext implements Disposable {
     }
 
     private void addRenderable(Renderable renderable) {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         renderer.add(renderable);
         renderables.add(renderable);
     }
 
     public void updateRenderable(Renderables renderable) {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         renderables.get(renderable.index).update();
     }
 
     public void updateAllRenderables() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         for(Renderable renderable : renderables) {
             renderable.update();
         }
     }
 
     public void setMap(MapData map) {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         if(this.map != map) {
             this.map = map;
 
@@ -345,6 +364,10 @@ public class EditorContext implements Disposable {
     }
 
     public void handleClicked(Block at) {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         Vector clickedVector = at.getLocation().toVector();
 
         if(firstClicked == null && secondClicked == null) {
@@ -366,6 +389,10 @@ public class EditorContext implements Disposable {
      * @return A new BoundingBox representing the selection the player currently has
      */
     public BoundingBox getSelection() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         if(firstClicked != null && secondClicked != null) {
             return BoundingBox.of(firstClicked, secondClicked).expandDirectional(UNIT);
         }
@@ -377,6 +404,10 @@ public class EditorContext implements Disposable {
     }
 
     public Vector getTarget() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         if(firstClicked != null && secondClicked == null) {
             return firstClicked.clone();
         }
@@ -388,15 +419,28 @@ public class EditorContext implements Disposable {
     }
 
     public Vector getFirst() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         return firstClicked == null ? null : firstClicked.clone();
     }
 
     public Vector getSecond() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         return secondClicked == null ? getFirst() : secondClicked.clone();
     }
 
     @Override
     public void dispose() {
+        if(disposed) {
+            return;
+        }
+
         renderer.stop();
+        disposed = true;
     }
 }

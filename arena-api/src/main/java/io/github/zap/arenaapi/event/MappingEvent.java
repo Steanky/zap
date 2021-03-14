@@ -32,6 +32,10 @@ public class MappingEvent<T, U> extends Event<U> {
 
     @Override
     public void dispose() {
+        if(super.disposed) {
+            return;
+        }
+
         super.dispose();
 
         underlyingEvent.dispose();

@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.perk;
 
+import io.github.zap.arenaapi.ObjectDisposedException;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
@@ -24,6 +25,10 @@ public class ExtraWeapon extends MarkerPerk {
 
     @Override
     public void activate() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         setEffect(getCurrentLevel());
     }
 
@@ -54,6 +59,10 @@ public class ExtraWeapon extends MarkerPerk {
 
     @Override
     public void deactivate() {
+        if(disposed) {
+            throw new ObjectDisposedException();
+        }
+
         setEffect(0);
     }
 }
