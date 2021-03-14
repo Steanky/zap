@@ -87,7 +87,7 @@ public class DragonWrath extends TeamMachineTask implements Damager {
                 }
 
                 zombiesPlayer.getPlayer().sendMessage(
-                        Component.text(String.format("Killed %d mobs!", mobs.size())).color(NamedTextColor.GREEN)
+                        Component.text(String.format("Killed %d mobs!", zombiesArena.getEntitySet().size())).color(NamedTextColor.GREEN)
                 );
             });
 
