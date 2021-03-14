@@ -16,9 +16,13 @@ public class FreeGoldLol extends TeamMachineTask {
     public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
         if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
             for (ZombiesPlayer otherZombiesPlayer : zombiesArena.getPlayerMap().values()) {
-                otherZombiesPlayer.addCoins(100000);
+                otherZombiesPlayer.addCoins(gold);
             }
+
+            return true;
         }
+
+        return false;
     }
 
     @Override
