@@ -67,7 +67,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique {
                                     String.format(
                                             "%sPlayer %s purchased %s from the Team Machine!",
                                             ChatColor.YELLOW,
-                                            player.getName(),
+                                            zombiesPlayer.getPlayer().getName(),
                                             teamMachineTask.getDisplayName()
                                     )
                             );
