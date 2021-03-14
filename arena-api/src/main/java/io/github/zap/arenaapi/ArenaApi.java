@@ -182,10 +182,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         module.addDeserializer(type, deserializer);
     }
 
-    /*
-    Static utility functions below
-     */
-
     public static <T extends Plugin> T getRequiredPlugin(String pluginName, boolean requireEnabled)
             throws LoadFailureException {
         Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
