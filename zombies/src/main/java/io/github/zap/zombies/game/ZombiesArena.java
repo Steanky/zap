@@ -357,7 +357,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(instaKill && !resistInstakill) {
                 mob.setHealth(0);
             } else if(ignoreArmor) {
-                mob.setHealth(Math.max(mob.getHealth() - damage, 0));
+                mob.setHealth(Math.max(mob.getHealth() - damage, 0D));
             } else {
                 mob.damage(damage);
             }

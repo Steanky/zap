@@ -12,7 +12,7 @@
 
     <properties>
         <aswm.version>2.5.4-SNAPSHOT</aswm.version>
-        <mythicmobs.version>4.11.0-BETA</mythicmobs.version>
+        <mythicmobs.version>4.11.0</mythicmobs.version>
     </properties>
 
     <artifactId>zombies</artifactId>
