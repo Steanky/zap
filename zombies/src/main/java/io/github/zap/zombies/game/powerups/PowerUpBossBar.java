@@ -2,34 +2,23 @@ package io.github.zap.zombies.game.powerups;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
-import io.github.zap.zombies.game.powerups.events.ChangedAction;
-import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
  * This class displays information about activated power ups
  */
-public class PowerUpBossBar extends BukkitRunnable implements Disposable {
+public class PowerUpBossBar implements Disposable, Runnable {
     final BossBar bukkitBossBar;
     final BukkitTask updateTask;
     final ZombiesArena arena;
@@ -39,7 +28,7 @@ public class PowerUpBossBar extends BukkitRunnable implements Disposable {
     public PowerUpBossBar(ZombiesArena arena, int refreshRate) {
         this.arena = arena;
         bukkitBossBar = Bukkit.createBossBar("", BarColor.BLUE, BarStyle.SOLID);
-        updateTask = runTaskTimer(Zombies.getInstance(), 0, refreshRate);
+        updateTask = arena.runTaskTimer(0L, refreshRate, this);
         formatter = new DecimalFormat("##.#");
         arena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         arena.getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);

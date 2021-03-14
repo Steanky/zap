@@ -420,8 +420,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
                     speed.addModifier(modifier);
 
-                    Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.removeModifier(modifier),
-                            frozenBullets.getDuration());
+                    arena.runTaskLater(frozenBullets.getDuration(), () -> speed.removeModifier(modifier));
                 }
             }
 

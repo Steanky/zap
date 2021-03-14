@@ -33,7 +33,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -245,6 +244,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                         doneRolling = false;
 
                         Jingle.play(
+                                getZombiesArena(),
                                 getShopData().getJingle(),
                                 gunSwapper = new GunSwapper(zombiesPlayer),
                                 chestLocation.clone().add(0, 1, 0)
@@ -343,7 +343,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
             endHologram.addLine(ChatColor.RED + "Right Click to Claim!");
             endHologram.addLine("");
 
-            sittingTaskId = new BukkitRunnable() {
+            sittingTaskId = getZombiesArena().runTaskTimer(0L, 2L, new Runnable() {
 
                 private long sittingTime = getShopData().getSittingTime();
 
@@ -362,7 +362,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     }
                 }
 
-            }.runTaskTimer(Zombies.getInstance(), 0L, 2L).getTaskId();
+            }).getTaskId();
         }
 
 

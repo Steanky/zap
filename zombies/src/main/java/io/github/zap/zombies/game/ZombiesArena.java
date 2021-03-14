@@ -1034,7 +1034,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             shop.display();
         }
         getShopEvent(ShopType.DOOR);
-        
+
         for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
             TeamMachine teamMachine = (TeamMachine) shop;
             getResourceManager().addDisposable(teamMachine);

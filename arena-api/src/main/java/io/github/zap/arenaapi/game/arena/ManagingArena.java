@@ -402,7 +402,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * ManagingArena when it is disposed, if necessary.
      * @param delay The initial delay
      * @param period The period (length between iterations)
-     * @param task The Runnable to run
+     * @param task The task to run
      */
     public BukkitTask runTaskTimer(long delay, long period, Runnable task) {
         DisposableBukkitRunnable runnable = new DisposableBukkitRunnable() {
@@ -420,7 +420,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * Schedules a new sync task, which will be automatically cancelled by this ManagingArena when it is disposed, if
      * necessary. It will run once.
      * @param delay The initial delay
-     * @param task The task torun
+     * @param task The task to run
      */
     public BukkitTask runTaskLater(long delay, Runnable task) {
         DisposableBukkitRunnable runnable = new DisposableBukkitRunnable() {
@@ -432,6 +432,29 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
         resourceManager.addDisposable(runnable);
         return runnable.runTaskLater(plugin, delay);
+    }
+
+    /**
+     * Schedules a new sync repeating task for this ManagingArena. The task will be cancelled automatically by the
+     * ManagingArena when it is disposed, if necessary.
+     * @param delay The initial delay
+     * @param period The period (length between iterations)
+     * @param task The task to run
+     */
+    public BukkitTask runTaskTimer(long delay, long period, DisposableBukkitRunnable task) {
+        resourceManager.addDisposable(task);
+        return task.runTaskTimer(plugin, delay, period);
+    }
+
+    /**
+     * Schedules a new sync task, which will be automatically cancelled by this ManagingArena when it is disposed, if
+     * necessary. It will run once.
+     * @param delay The initial delay
+     * @param task The task to run
+     */
+    public BukkitTask runTaskLater(long delay, DisposableBukkitRunnable task) {
+        resourceManager.addDisposable(task);
+        return task.runTaskLater(plugin, delay);
     }
 
     @Override

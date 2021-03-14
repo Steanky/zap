@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun;
 
-import io.github.zap.zombies.Zombies;
+import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
@@ -20,7 +20,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 
 /**
@@ -91,7 +90,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         )
                 );
 
-                reloadTask = new BukkitRunnable() {
+                reloadTask = getZombiesArena().runTaskTimer(0L, 1L, new Runnable() {
 
                     private final Component reloadingComponent = Component
                             .text("RELOADING")
@@ -125,10 +124,11 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                                 canShoot = true;
                             }
                             reloadTask = -1;
-                            cancel();
+                            getZombiesArena();
                         }
                     }
-                }.runTaskTimer(Zombies.getInstance(), 0L, 1L).getTaskId();
+
+                }).getTaskId();
             }
         }
     }
@@ -148,9 +148,11 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         Player player = getPlayer();
 
         // Animate xp bar
-        fireDelayTask = new BukkitRunnable() {
+        fireDelayTask = getZombiesArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
+
             private final int goal =
-                    (int)Math.round(getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier().getValue());
+                    (int)Math.round(getCurrentLevel().getFireRate()
+                            * getZombiesPlayer().getFireRateMultiplier().getValue());
             private final float stepVal = 1F / goal;
             private int step = 0;
 
@@ -173,7 +175,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                     cancel();
                 }
             }
-        }.runTaskTimer(Zombies.getInstance(), 0L, 1L).getTaskId();
+
+        }).getTaskId();
         if (currentClipAmmo == 0) {
             if (currentAmmo > 0) {
                 reload();

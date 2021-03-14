@@ -231,8 +231,13 @@ public class Corpse {
         sendPacketToPlayer(createSleepingPacketContainer(), player);
         addCorpseToScoreboardTeamForPlayer(player);
 
-        Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), ()->
-                sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player), 1);
+        zombiesPlayer.getArena().runTaskLater(
+                1L,
+                () -> sendPacketToPlayer(
+                        createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER),
+                        player
+                )
+        );
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {

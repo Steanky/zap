@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.equipment.skill;
 
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
@@ -11,7 +10,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Represents a skill
@@ -41,17 +39,14 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
             itemStack.setAmount(timeRemaining[0]);
             setRepresentingItemStack(itemStack);
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (--timeRemaining[0] == 0) {
-                        setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), getLevel()));
-                        usable = true;
-                    } else {
-                        itemStack.setAmount(timeRemaining[0]);
-                    }
+            getZombiesArena().runTaskTimer(20L, 20L, () -> {
+                if (--timeRemaining[0] == 0) {
+                    setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), getLevel()));
+                    usable = true;
+                } else {
+                    itemStack.setAmount(timeRemaining[0]);
                 }
-            }.runTaskTimer(Zombies.getInstance(), 20L, 20L);
+            });
         }
     }
 }
