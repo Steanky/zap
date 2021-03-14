@@ -38,6 +38,7 @@ public class JacksonShopManager implements ShopManager {
         addTeamMachineTask(TeamMachineTaskType.AMMO_SUPPLY.name(), AmmoSupply.class);
         addTeamMachineTask(TeamMachineTaskType.FULL_REVIVE.name(), FullRevive.class);
         addTeamMachineTask(TeamMachineTaskType.DRAGON_WRATH.name(), DragonWrath.class);
+        addTeamMachineTask(TeamMachineTaskType.FREE_GOLD_LOL.name(), FreeGoldLol.class);
     }
 
     @Override
