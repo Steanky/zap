@@ -104,7 +104,4 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     public int getCostForTeamMachine(TeamMachine teamMachine) {
         return getInitialCost() + (costIncrement * getTimesUsed().getValue(teamMachine));
     }
-
-    @Override
-    public void onDealsDamage(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth) { }
 }
