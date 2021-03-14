@@ -153,8 +153,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             corpse = null;
         }
 
-        getPlayer().getInventory().setStorageContents(new ItemStack[35]);
-        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
+        getPlayer().getInventory().clear();
     }
 
     public void addCoins(int amount) {

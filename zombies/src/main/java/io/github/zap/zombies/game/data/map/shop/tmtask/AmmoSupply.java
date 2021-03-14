@@ -6,6 +6,7 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
+import io.github.zap.zombies.game.shop.TeamMachine;
 
 /**
  * Task which refills all gun ammo in a player team
@@ -17,8 +18,8 @@ public class AmmoSupply extends TeamMachineTask {
     }
 
     @Override
-    public boolean execute(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        if (super.execute(zombiesArena, zombiesPlayer)) {
+    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
+        if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
             for (ZombiesPlayer otherZombiesPlayer : zombiesArena.getPlayerMap().values()) {
                 GunObjectGroup gunObjectGroup = (GunObjectGroup)
                         otherZombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
@@ -40,7 +41,7 @@ public class AmmoSupply extends TeamMachineTask {
     }
 
     @Override
-    public int getCost() {
+    public int getCostForTeamMachine(TeamMachine teamMachine) {
         return getInitialCost();
     }
 }

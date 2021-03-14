@@ -8,6 +8,8 @@ import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.event.FilteredEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
@@ -19,6 +21,7 @@ import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
+import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUp;
@@ -28,10 +31,7 @@ import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
-import io.github.zap.zombies.game.shop.LuckyChest;
-import io.github.zap.zombies.game.shop.Shop;
-import io.github.zap.zombies.game.shop.ShopEventArgs;
-import io.github.zap.zombies.game.shop.ShopType;
+import io.github.zap.zombies.game.shop.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -50,6 +50,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -427,8 +428,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private long endTimeStamp = -1;
 
-    //private final List<Integer> waveSpawnerTasks = new ArrayList<>();
-
     @Getter
     private final Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
 
@@ -531,6 +530,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         super.dispose(); //dispose of superclass-specific resources
 
         //cleanup mappings and remove arena from manager
+        for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
+            TeamMachine teamMachine = (TeamMachine) shop;
+            Property.removeMappingsFor(teamMachine);
+        }
+
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
     }
@@ -633,15 +637,27 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onEntityDamageByEntity(ProxyArgs<EntityDamageByEntityEvent> args) {
-        Entity damager = args.getEvent().getDamager();
+        EntityDamageByEntityEvent event = args.getEvent();
+        Entity entity = event.getEntity(), damager = event.getDamager();
         ZombiesPlayer damagingPlayer = getPlayerMap().get(damager.getUniqueId());
 
-        if(damagingPlayer != null) {
+        if (damagingPlayer != null && entity instanceof Mob) {
+            Mob mob = (Mob) entity;
+
             if(!damagingPlayer.isAlive()) {
-                args.getEvent().setCancelled(true);
-            }
-            else if(!getEntitySet().contains(args.getEvent().getEntity().getUniqueId())) {
-                args.getEvent().setCancelled(true);
+                event.setCancelled(true);
+            } else if (getEntitySet().contains(mob.getUniqueId())) {
+                HotbarManager hotbarManager = damagingPlayer.getHotbarManager();
+                HotbarObject hotbarObject = hotbarManager.getSelectedObject();
+
+                if (hotbarObject instanceof MeleeWeapon) {
+                    MeleeWeapon<?, ?> meleeWeapon = (MeleeWeapon<?, ?>) hotbarObject;
+                    event.setCancelled(true);
+
+                    if (meleeWeapon.isUsable()) {
+                        meleeWeapon.attack(mob);
+                    }
+                }
             }
         }
     }
@@ -715,8 +731,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         event.setCancelled(true);
     }
 
-    private void onPlayerSwapHandItems(ProxyArgs<PlayerSwapHandItemsEvent> args) {
-        args.getEvent().setCancelled(true);
+    private void onPlayerInteractEntity(ProxyArgs<PlayerInteractEntityEvent> args) {
+        PlayerInteractEntityEvent event = args.getEvent();
+        Entity clickedEntity = event.getRightClicked();
+
+        if (clickedEntity instanceof ItemFrame) {
+            event.setCancelled(true);
+        }
     }
 
     private void onPlayerInteractAtEntity(ProxyArgs<PlayerInteractAtEntityEvent> args) {
@@ -735,6 +756,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
             }
         }
+    }
+
+    private void onPlayerSwapHandItems(ProxyArgs<PlayerSwapHandItemsEvent> args) {
+        args.getEvent().setCancelled(true);
     }
 
     private void onPlayerDropItem(ProxyArgs<PlayerDropItemEvent> args) {

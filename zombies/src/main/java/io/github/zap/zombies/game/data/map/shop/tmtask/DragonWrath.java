@@ -5,21 +5,28 @@ import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.shop.TeamMachine;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Mob;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Task which kills all zombies within a certain radius of the activating player
  */
+@SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
 public class DragonWrath extends TeamMachineTask implements Damager {
+
     private static class DragonWrathDamage implements DamageAttempt {
         @Override
         public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
@@ -47,24 +54,29 @@ public class DragonWrath extends TeamMachineTask implements Damager {
         }
     }
 
-    private int costIncrement;
+    private int costIncrement = 1000;
 
-    private int delay;
+    private int delay = 30;
 
-    private int radius;
+    private double radius = 15D;
 
     public DragonWrath() {
         super(TeamMachineTaskType.DRAGON_WRATH.name());
     }
 
     @Override
-    public boolean execute(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        if (super.execute(zombiesArena, zombiesPlayer)) {
-            Location location = zombiesPlayer.getPlayer().getLocation();
+    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
+        if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
+            Location location = teamMachine.getBlock().getLocation();
             Set<UUID> mobIds = zombiesArena.getEntitySet();
 
             World world = zombiesArena.getWorld();
-            world.playSound(location, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0F, 1.0F);
+            world.playSound(Sound.sound(
+                    Key.key("minecraft:entity.ender_dragon.growl"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    1.0F
+            ), location.getX(), location.getY(), location.getZ());
 
             zombiesArena.runTaskLater(20L * delay, () -> {
                 for (Mob mob : world.getNearbyEntitiesByType(Mob.class, location, radius)) {
@@ -73,6 +85,10 @@ public class DragonWrath extends TeamMachineTask implements Damager {
                         zombiesArena.getDamageHandler().damageEntity(DragonWrath.this, new DragonWrathDamage(), mob);
                     }
                 }
+
+                zombiesPlayer.getPlayer().sendMessage(
+                        Component.text(String.format("Killed %d mobs!", mobs.size())).color(NamedTextColor.GREEN)
+                );
             });
 
             return true;
@@ -82,8 +98,8 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     }
 
     @Override
-    public int getCost() {
-        return getInitialCost() + (costIncrement * getTimesUsed());
+    public int getCostForTeamMachine(TeamMachine teamMachine) {
+        return getInitialCost() + (costIncrement * getTimesUsed().getValue(teamMachine));
     }
 
     @Override

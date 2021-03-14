@@ -1,10 +1,12 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -16,17 +18,19 @@ import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Machine with various tasks helpful for teams
  */
-public class TeamMachine extends BlockShop<TeamMachineData> {
+public class TeamMachine extends BlockShop<TeamMachineData> implements Unique {
+
+    @Getter
+    private final UUID id = UUID.randomUUID();
 
     private final Inventory inventory;
 
@@ -52,17 +56,18 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                         .get(humanEntity.getUniqueId());
 
                 if (zombiesPlayer != null) {
+                    inventoryClickEvent.setCancelled(true);
                     TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
 
-                    if (teamMachineTask != null && teamMachineTask.execute(zombiesArena, zombiesPlayer)) {
-                        inventoryClickEvent.setCancelled(true);
+                    if (teamMachineTask != null
+                            && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
 
                         for (Player player : zombiesArena.getWorld().getPlayers()) {
                             player.sendMessage(
                                     String.format(
                                             "%sPlayer %s purchased %s from the Team Machine!",
                                             ChatColor.YELLOW,
-                                            player.getName(),
+                                            zombiesPlayer.getPlayer().getName(),
                                             teamMachineTask.getDisplayName()
                                     )
                             );
@@ -76,6 +81,11 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                                 1.5F
                                 );
                         humanEntity.playSound(sound);
+
+                        inventory.setItem(
+                                inventoryClickEvent.getSlot(),
+                                teamMachineTask.getItemStackRepresentationForTeamMachine(this)
+                        );
 
                         onPurchaseSuccess(zombiesPlayer);
                     }
@@ -153,18 +163,10 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
                     int pos = (h + offset) * 9 + slot;
 
                     TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
+                    ItemStack teamMachineItemStackRepresentation
+                            = teamMachineTask.getItemStackRepresentationForTeamMachine(this);
 
-                    ItemStack itemStack = new ItemStack(teamMachineTask.getDisplayMaterial());
-                    ItemMeta itemMeta = itemStack.getItemMeta();
-                    itemMeta.displayName(Component.text(teamMachineTask.getDisplayName()));
-                    List<Component> lore = new ArrayList<>();
-                    for (String line : teamMachineTask.getLore()) {
-                        lore.add(Component.text(line));
-                    }
-                    itemMeta.lore(lore);
-
-
-                    inventory.setItem(pos, itemStack);
+                    inventory.setItem(pos, teamMachineItemStackRepresentation);
                     slotMap.put(pos, teamMachineTask);
 
                     index++;

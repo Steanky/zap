@@ -65,8 +65,16 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
                     }
 
                     onPurchaseSuccess(zombiesPlayer);
+                    return true;
                 }
             }
+
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    0.5F
+            ));
 
             return true;
         }

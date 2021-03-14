@@ -28,14 +28,15 @@ public class ExtraWeapon extends MarkerPerk {
     }
 
     private void setEffect(int level) {
+        HotbarManager hotbarManager = getOwner().getHotbarManager();
+        HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+
         while(ewSlots.size() < level) {
             // Get the next empty slot for additional gun slot
-            HotbarManager hotbarManager = getOwner().getHotbarManager();
             HotbarObjectGroup gunGroup = hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
             HotbarObjectGroup defaultGroup
                     = hotbarManager.getHotbarObjectGroup(HotbarProfile.DEFAULT_HOTBAR_OBJECT_GROUP_KEY);
 
-            HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
             Integer newSlot = defaultGroup.getNextEmptySlot();
 
             if (newSlot != null) {
@@ -46,7 +47,7 @@ public class ExtraWeapon extends MarkerPerk {
         }
 
         while (ewSlots.size() > level) {
-            HotbarObjectGroup gunGroup = getOwner().getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+            HotbarObjectGroup gunGroup = defaultProfile.getHotbarObjectGroup(EquipmentType.GUN.name());
             gunGroup.remove(ewSlots.pop(), false);
         }
     }

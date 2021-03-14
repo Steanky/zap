@@ -84,7 +84,7 @@ public class HotbarObjectGroup {
      * @param slot The slot to add the empty hotbar object to
      */
     public void addHotbarObject(int slot) {
-        addHotbarObject(slot, new HotbarObject(player, slot));
+        addHotbarObject(slot, createDefaultHotbarObject(player, slot));
     }
 
     /**

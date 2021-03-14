@@ -23,8 +23,8 @@ public class JacksonShopManager implements ShopManager {
 
     public JacksonShopManager() {
         ArenaApi arenaApi = ArenaApi.getInstance();
-        arenaApi.addDeserializer(ShopData.class, shopDataDeserializer);
 
+        arenaApi.addDeserializer(ShopData.class, shopDataDeserializer);
         addShop(ShopType.ARMOR_SHOP, ArmorShopData.class, ArmorShop::new);
         addShop(ShopType.DOOR, DoorData.class, Door::new);
         addShop(ShopType.GUN_SHOP, GunShopData.class, GunShop::new);
@@ -38,6 +38,7 @@ public class JacksonShopManager implements ShopManager {
         addTeamMachineTask(TeamMachineTaskType.AMMO_SUPPLY.name(), AmmoSupply.class);
         addTeamMachineTask(TeamMachineTaskType.FULL_REVIVE.name(), FullRevive.class);
         addTeamMachineTask(TeamMachineTaskType.DRAGON_WRATH.name(), DragonWrath.class);
+        addTeamMachineTask(TeamMachineTaskType.FREE_GOLD_LOL.name(), FreeGoldLol.class);
     }
 
     @Override

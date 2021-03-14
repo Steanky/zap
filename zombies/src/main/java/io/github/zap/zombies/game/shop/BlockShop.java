@@ -20,6 +20,7 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
     @Getter
     private final Hologram hologram;
 
+    @Getter
     private final Block block;
 
     public BlockShop(ZombiesArena zombiesArena, D shopData) {

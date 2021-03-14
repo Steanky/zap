@@ -206,6 +206,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                                 1.0F,
                                                 2.0F
                                         ));
+                                        return true;
                                     } else {
                                         player.sendMessage(Component
                                                 .text("Choose a slot to receive the item in!")
@@ -248,8 +249,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                 gunSwapper = new GunSwapper(zombiesPlayer),
                                 chestLocation.clone().add(0, 1, 0)
                         );
+                        return true;
                     }
                 }
+
+                player.playSound(Sound.sound(
+                        Key.key("minecraft:entity.enderman.teleport"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        0.5F
+                ));
 
                 return true;
             }
