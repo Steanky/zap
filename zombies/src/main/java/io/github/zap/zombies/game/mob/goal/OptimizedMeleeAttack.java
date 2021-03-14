@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
+import io.lumine.xikage.mythicmobs.skills.mechanics.MountTargetMechanic;
 import net.minecraft.server.v1_16_R3.*;
 
 import java.util.EnumSet;
@@ -69,7 +70,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.self.getControllerLook().a(target, 30.0F, 30.0F);
         this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
         if (this.navigationCounter <= 0) {
-            //randomly offset the delay by 4-10 ticks
+            //randomly offset the delay
             this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
             //calculate the path

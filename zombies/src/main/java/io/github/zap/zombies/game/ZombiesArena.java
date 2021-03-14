@@ -207,6 +207,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                                     zombiesLeft--;
                                     tryNextRound();
                                 }
+
+                                Zombies.warning("Mob failed to spawn!");
                             }
 
                             if(--amt == 0) {

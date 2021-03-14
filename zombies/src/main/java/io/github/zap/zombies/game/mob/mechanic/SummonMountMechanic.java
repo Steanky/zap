@@ -37,13 +37,6 @@ public class SummonMountMechanic extends ZombiesArenaSkill {
                 return false;
             } else {
                 mount.getEntity().setPassenger(metadata.getCaster().getEntity());
-                Optional<ActiveMob> selfOptional = getPlugin().getMobManager().getActiveMob(mount.getUniqueId());
-
-                if(selfOptional.isPresent()) {
-                    ActiveMob self = selfOptional.get();
-                    self.setOwner(metadata.getCaster().getEntity().getUniqueId());
-                    self.setParent(metadata.getCaster());
-                }
                 return true;
             }
         }

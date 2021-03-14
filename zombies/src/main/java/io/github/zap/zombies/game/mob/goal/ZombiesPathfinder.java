@@ -81,7 +81,6 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
                 Object metaKey = MetadataHelper.getMetadataFor(entity.getBukkitEntity(), Zombies.getInstance(), key);
                 if(metaKey != null) {
                     this.metadata.put(key, metaKey);
-                    return true;
                 }
                 else {
                     return false;

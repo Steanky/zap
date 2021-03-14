@@ -36,11 +36,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     public @Nullable Player getPlayer() {
         if(player != null) { //check if we have the player stored
             if(player.isOnline()) { //they're online, return the store
-                if(isInGame()) {
-                    return player;
-                }
-
-                return null; //don't allow access to the player if they're not in the game
+                return player;
             }
             else {
                 player = null; //player is offline
@@ -48,20 +44,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
             }
         }
         else {
-            if(isInGame()) { //if we're in game and player == null, try to fetch the player from the UUID
-                player = Bukkit.getPlayer(playerUuid);
-
-                if(player == null) {
-                    arena.getPlugin().getLogger().warning("Could not fetch cached player " +
-                            playerUuid.toString() + ", even though the arena thinks they're online!");
-                    inGame = false;
-                }
-
-                return player;
-            }
-            else {
-                return null;
-            }
+            return Bukkit.getPlayer(playerUuid);
         }
     }
 
@@ -89,8 +72,6 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
      */
     public void quit() {
         if(inGame) {
-            inGame = false;
-
             Player player = getPlayer();
             if(player != null) {
                 player.getInventory().clear();
@@ -99,6 +80,8 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
                 ArenaApi.getInstance().applyDefaultCondition(player);
                 ArenaApi.getInstance().evacuatePlayer(getArena(), player);
             }
+
+            inGame = false;
         }
     }
 

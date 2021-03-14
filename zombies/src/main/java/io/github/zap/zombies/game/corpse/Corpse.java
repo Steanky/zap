@@ -193,12 +193,7 @@ public class Corpse {
         deathTime = defaultDeathTime;
         hologram.updateLine(1, ChatColor.RED + "help this noob");
 
-        deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                Zombies.getInstance(),
-                this::continueDying,
-                0L,
-                2L
-        );
+        deathTaskId = zombiesPlayer.getArena().runTaskTimer(0, 2, this::continueDying).getTaskId();
     }
 
     private void continueDying() {

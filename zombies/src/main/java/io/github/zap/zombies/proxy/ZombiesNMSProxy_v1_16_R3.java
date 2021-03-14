@@ -129,6 +129,11 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
+    public boolean navigateToEntity(EntityInsentient entity, Entity target, double speed) {
+        return entity.getNavigation().a(target, speed);
+    }
+
+    @Override
     public boolean hasAttribute(EntityInsentient entity, AttributeBase attribute) {
         return entity.getAttributeMap().b(attribute);
     }

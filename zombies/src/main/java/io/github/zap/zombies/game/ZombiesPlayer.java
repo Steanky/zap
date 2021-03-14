@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -18,6 +19,8 @@ import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
+import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitPlayer;
+import io.lumine.xikage.mythicmobs.adapters.bukkit.entities.BukkitPanda;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -69,6 +72,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Setter
     private int repairIncrement = 1;
 
+    private final ResourceManager resourceManager;
+
     @Getter
     private final ZombiesHotbarManager hotbarManager;
 
@@ -107,24 +112,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         this.perks = new ZombiesPerks(this);
 
         setAliveState();
+
+        resourceManager = new ResourceManager(arena.getPlugin());
+        resourceManager.addDisposable(perks);
     }
 
     public void quit() {
         super.quit();
 
-        state = ZombiesPlayerState.DEAD;
+        if(super.isInGame()) {
+            state = ZombiesPlayerState.DEAD;
 
-        perks.disableAll();
-        endTasks();
-
-        //noinspection ConstantConditions
-        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
-        hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
-
-        getPlayer().setExp(0);
-        getPlayer().setLevel(0);
-
-        getPlayer().teleport(arena.getManager().getHubLocation());
+            perks.disableAll();
+            endTasks();
+        }
     }
 
     @Override
@@ -143,14 +144,15 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Override
     public void dispose() {
         perks.dispose();
-
-        if(isInGame()) {
-            quit();
-        }
+        endTasks();
 
         if(corpse != null) {
             corpse.destroy();
             corpse = null;
+        }
+
+        if(isInGame()) {
+            super.quit();
         }
     }
 
@@ -223,22 +225,15 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      */
     public void startTasks() {
         if (windowRepairTaskId == -1) {
-            windowRepairTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                    this::checkForWindow, 0, arena.getMap().getWindowRepairTicks());
+            windowRepairTaskId = arena.runTaskTimer(0, arena.getMap().getWindowRepairTicks(), this::checkForWindow).getTaskId();
         }
 
         if (reviveTaskId == -1) {
-            reviveTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                    Zombies.getInstance(),
-                    this::checkForCorpses,
-                    0L,
-                    2L
-            );
+            reviveTaskId = arena.runTaskTimer(0, 2L, this::checkForCorpses).getTaskId();
         }
 
         if(boundsCheckTaskId == -1) {
-            boundsCheckTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Zombies.getInstance(),
-                    this::ensureInBounds, 0, 5);
+            boundsCheckTaskId = arena.runTaskTimer(0, 5, this::ensureInBounds).getTaskId();
         }
     }
 
@@ -250,6 +245,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             Bukkit.getScheduler().cancelTask(windowRepairTaskId);
             windowRepairTaskId = -1;
         }
+
         if (reviveTaskId != -1) {
             Bukkit.getScheduler().cancelTask(reviveTaskId);
             reviveTaskId = -1;
@@ -466,16 +462,21 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     private void ensureInBounds() {
         MapData map = arena.getMap();
-        RoomData roomIn = map.roomAt(getPlayer().getLocation().toVector());
 
-        if(roomIn != null) {
-            for(WindowData windowData : roomIn.getWindows()) {
-                if(windowData.playerInside(getPlayer().getLocation().toVector())) {
-                    Player player = getPlayer();
-                    Location current = player.getLocation();
-                    Vector target = windowData.getTarget();
-                    player.teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ(),
-                            current.getYaw(), current.getPitch()));
+        Player bukkitPlayer = getPlayer();
+
+        if(bukkitPlayer != null) {
+            RoomData roomIn = map.roomAt(getPlayer().getLocation().toVector());
+
+            if(roomIn != null) {
+                for(WindowData windowData : roomIn.getWindows()) {
+                    if(windowData.playerInside(getPlayer().getLocation().toVector())) {
+                        Player player = getPlayer();
+                        Location current = player.getLocation();
+                        Vector target = windowData.getTarget();
+                        player.teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ(),
+                                current.getYaw(), current.getPitch()));
+                    }
                 }
             }
         }
@@ -586,36 +587,45 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     public void setKnockedState() {
         Player player = getPlayer();
-        ArenaApi.getInstance().applyDefaultCondition(player);
-        //noinspection ConstantConditions
-        player.getEquipment().setArmorContents(new ItemStack[4]);
-        player.setWalkSpeed(0);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128, false,
-                false, false));
-        player.setInvulnerable(true);
-        player.setInvisible(true);
-        player.setGameMode(GameMode.ADVENTURE);
-        endTasks();
+
+        if(player != null) {
+            ArenaApi.getInstance().applyDefaultCondition(player);
+            //noinspection ConstantConditions
+            player.getEquipment().setArmorContents(new ItemStack[4]);
+            player.setWalkSpeed(0);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128, false,
+                    false, false));
+            player.setInvulnerable(true);
+            player.setInvisible(true);
+            player.setGameMode(GameMode.ADVENTURE);
+            endTasks();
+        }
     }
 
     public void setAliveState() {
         Player player = getPlayer();
-        ArenaApi.getInstance().applyDefaultCondition(player);
-        //noinspection ConstantConditions
-        player.getEquipment().setArmorContents(equipment);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
-                false, false));
-        player.setInvulnerable(false);
-        player.setGameMode(GameMode.ADVENTURE);
-        startTasks();
+
+        if(player != null) {
+            ArenaApi.getInstance().applyDefaultCondition(player);
+            //noinspection ConstantConditions
+            player.getEquipment().setArmorContents(equipment);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
+                    false, false));
+            player.setInvulnerable(false);
+            player.setGameMode(GameMode.ADVENTURE);
+            startTasks();
+        }
     }
 
     public void setDeadState() {
         Player player = getPlayer();
-        ArenaApi.getInstance().applyDefaultCondition(player);
-        player.setAllowFlight(true);
-        player.setInvisible(true);
-        player.setCollidable(false);
-        player.setGameMode(GameMode.ADVENTURE);
+
+        if(player != null) {
+            ArenaApi.getInstance().applyDefaultCondition(player);
+            player.setAllowFlight(true);
+            player.setInvisible(true);
+            player.setCollidable(false);
+            player.setGameMode(GameMode.ADVENTURE);
+        }
     }
 }

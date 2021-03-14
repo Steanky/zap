@@ -56,5 +56,7 @@ public interface ZombiesNMSProxy extends NMSProxy {
 
     boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed);
 
+    boolean navigateToEntity(EntityInsentient entity, Entity target, double speed);
+
     boolean hasAttribute(EntityInsentient entity, AttributeBase attribute);
 }

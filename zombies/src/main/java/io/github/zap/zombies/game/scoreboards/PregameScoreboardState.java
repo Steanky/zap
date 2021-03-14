@@ -59,7 +59,11 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
 
     private void onPlayerLeave(ManagingArena<ZombiesArena, ZombiesPlayer>.ManagedPlayerListArgs managedPlayerListArgs) {
         for(ZombiesPlayer player : managedPlayerListArgs.getPlayers()) {
-            player.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            Player bukkitPlayer = player.getPlayer();
+
+            if(bukkitPlayer != null) {
+                player.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            }
         }
     }
 

@@ -287,8 +287,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
      * @param player The player to remove
      */
     public void removePlayer(S player) {
-        player.quit();
         removePlayer(player.getId());
+        player.dispose();
     }
 
     /**
@@ -368,7 +368,6 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
             if(managedPlayer != null && managedPlayer.isInGame()) {
                 leftPlayers.add(managedPlayer);
-                managedPlayer.quit();
             }
         }
 
@@ -380,6 +379,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
         if(onlineCount == 0) {
             startTimeout(timeoutTicks);
+        }
+
+        for(S player : leftPlayers) {
+            player.quit();
         }
     }
 

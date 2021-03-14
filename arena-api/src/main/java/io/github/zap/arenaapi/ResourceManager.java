@@ -54,7 +54,7 @@ public class ResourceManager implements Disposable {
     @Override
     public void dispose() {
         if(disposed) {
-            throw new ObjectDisposedException();
+            return;
         }
 
         for(Disposable disposable : weakDisposableSet) {

@@ -25,8 +25,6 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
     private int strafeTimer = -1;
     private int navigationCounter = 0;
 
-    private PathEntity currentPath;
-
     public OptimizedBowAttack(T self, double speed, int attackInterval, float shootDistance, int targetDeviation) {
         this.self = self;
         this.speed = speed;
@@ -67,20 +65,6 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
     public void e() {
         EntityLiving target = this.self.getGoalTarget();
         if (target != null) {
-            this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
-
-            if (this.navigationCounter <= 0) {
-                this.navigationCounter = 4 + this.self.getRandom().nextInt(7);
-
-                currentPath = proxy.getPathTo(self, target, targetDeviation);
-                if(currentPath != null) {
-                    int nodes = currentPath.getPoints().size();
-                    if(nodes >= 100) {
-                        navigationCounter += currentPath.getPoints().size() / 5;
-                    }
-                }
-            }
-
             double distanceToTargetSquared = this.self.h(target.locX(), target.locY(), target.locZ());
             boolean hasSight = this.self.getEntitySenses().a(target);
             boolean bowPartiallyDrawn = this.drawTimer > 0;
@@ -98,7 +82,7 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
                 this.self.getNavigation().o();
                 ++this.strafeTimer;
             } else {
-                this.self.getNavigation().a(currentPath, this.speed);
+                this.self.getNavigation().a(target, this.speed);
                 this.strafeTimer = -1;
             }
 
