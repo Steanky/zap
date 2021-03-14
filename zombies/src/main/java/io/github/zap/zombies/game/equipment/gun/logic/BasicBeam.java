@@ -7,6 +7,7 @@ import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
 import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
+import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
@@ -275,10 +276,10 @@ public class BasicBeam {
         final MutableDouble finalDmg = new MutableDouble(damage);
         final MutableBoolean instaKill = new MutableBoolean(false);
         getZombiesPlayer().getArena().getPowerUps().stream()
-                .filter(x -> x instanceof DamageModificationPowerUp)
+                .filter(x -> x instanceof DamageModificationPowerUp && x.getState() == PowerUpState.ACTIVATED)
                 .forEach(x -> {
                     var cData = (DamageModificationPowerUpData) x.getData();
-                    if(cData.isInstaKill()) {
+                    if(cData.isInstaKill()) { Sound
                         instaKill.setTrue();
                         return;
                     }

@@ -170,18 +170,19 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
     @NotNull
     private String formatTime(long timeElapsedInMillis) {
-        var hours = timeElapsedInMillis / hourToMillis;
-        var minutes = (timeElapsedInMillis % hourToMillis) / minuteToMillis;
-        var seconds = (timeElapsedInMillis % minuteToMillis) / secondToMillis;
-
         // To avoid timer *lag* behind then *fast-forward* due to taskTimer is not precise we will round up the value
         // if the delta time is smaller than half of the interval
         long millis = timeElapsedInMillis % secondToMillis;
         long roundingMidPoint = (1000 - gameScoreboard.getRefreshRate() / 2 + previousMillis) % 1000;
         if(millis > roundingMidPoint) {
-            seconds++;
+            timeElapsedInMillis += secondToMillis;
         }
         previousMillis = millis;
+
+
+        var hours = timeElapsedInMillis / hourToMillis;
+        var minutes = (timeElapsedInMillis % hourToMillis) / minuteToMillis;
+        var seconds = (timeElapsedInMillis % minuteToMillis) / secondToMillis;
 
         var formatter = new DecimalFormat("00");
         StringBuilder sb = new StringBuilder();

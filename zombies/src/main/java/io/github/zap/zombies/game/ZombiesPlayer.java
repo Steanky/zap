@@ -14,6 +14,7 @@ import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
+import io.github.zap.zombies.game.powerups.PowerUpState;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -149,7 +150,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             double multiplier = 1;
             int count = 0;
             var optGM = getArena().getPowerUps().stream()
-                    .filter(x -> x instanceof EarnedGoldMultiplierPowerUp)
+                    .filter(x -> x instanceof EarnedGoldMultiplierPowerUp && x.getState() == PowerUpState.ACTIVATED)
                     .collect(Collectors.toSet());
             if(msg != null && !msg.isEmpty()) {
                 sb.append(msg);
@@ -172,7 +173,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             else
                 getPlayer().sendMessage(String.format("%s+%d Gold (%s)!", ChatColor.GOLD, amount, fullMsg));
 
-            coins += amount;
+            // integer overflow check
+            if(Integer.MAX_VALUE - coins - amount > 0)
+                coins += amount;
+            else
+                coins = Integer.MAX_VALUE;
         }
     }
 
