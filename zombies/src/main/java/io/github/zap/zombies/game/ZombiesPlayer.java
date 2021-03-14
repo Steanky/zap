@@ -477,7 +477,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                     Player player = getPlayer();
                     Location current = player.getLocation();
                     Vector target = windowData.getTarget();
-                    player.teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ(), current.getYaw(), current.getPitch()));
+                    player.teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ(),
+                            current.getYaw(), current.getPitch()));
                 }
             }
         }

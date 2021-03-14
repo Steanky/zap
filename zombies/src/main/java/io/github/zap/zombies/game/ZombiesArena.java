@@ -621,15 +621,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         if (managedPlayer != null) {
             Player player = managedPlayer.getPlayer();
-            if(player.getHealth() <= event.getFinalDamage()) {
-                Location location = player.getLocation();
 
-                for (double y = location.getY(); y >= 0D; y--){
-                    location.setY(y);
-                    Block block = player.getWorld().getBlockAt(location);
-                    if (!block.getType().isAir()) {
-                        player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
-                        break;
+            if(player != null) {
+                if(player.getHealth() <= event.getFinalDamage()) {
+                    Location location = player.getLocation();
+
+                    for (double y = location.getY(); y >= 0D; y--){
+                        location.setY(y);
+                        Block block = player.getWorld().getBlockAt(location);
+                        if (!block.getType().isAir()) {
+                            player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
+                            break;
+                        }
                     }
                 }
             }
@@ -858,20 +861,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.STARTED;
             startTimeStamp = System.currentTimeMillis();
 
-            for(ZombiesPlayer player : getPlayerMap().values()) {
-                if(player.isInGame()) {
-                    player.getPlayer().sendMessage(ChatColor.YELLOW + "Started!");
-                    player.setAliveState();
+            for(ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
+                Player bukkitPlayer = zombiesPlayer.getPlayer();
+
+                if(bukkitPlayer != null) {
+                    bukkitPlayer.sendMessage(ChatColor.YELLOW + "Started!");
+                    zombiesPlayer.setAliveState();
 
                     Vector spawn = map.getSpawn();
-                    player.getPlayer().teleport(
+                    zombiesPlayer.getPlayer().teleport(
                             new Location(world, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5)
                     );
 
-                    ZombiesHotbarManager hotbarManager = player.getHotbarManager();
+                    ZombiesHotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                     for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : map.getHotbarObjectGroupSlots().entrySet()) {
                         hotbarManager.addEquipmentObjectGroup(equipmentManager
-                                .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player.getPlayer(),
+                                .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), zombiesPlayer.getPlayer(),
                                         hotbarObjectGroupSlot.getValue()));
                     }
 
@@ -883,12 +888,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         if (slot != null) {
                             hotbarManager.setHotbarObject(
                                     slot,
-                                    equipmentManager.createEquipment(this, player, slot, equipmentData)
+                                    equipmentManager.createEquipment(this, zombiesPlayer, slot, equipmentData)
                             );
                         }
                     }
 
-                    player.startTasks();
+                    zombiesPlayer.startTasks();
                 }
             }
 
@@ -928,15 +933,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
             getPlayerMap().forEach((l,r) -> {
-                var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
-                        currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (currentRoundIndex + 1);
-                r.getPlayer().sendTitle(messageTitle, "");
-                r.getPlayer().playSound(Sound.sound(
-                        Key.key("minecraft:entity.wither.spawn"),
-                        Sound.Source.MASTER,
-                        1.0F,
-                        0.5F
-                ));
+                Player bukkitPlayer = r.getPlayer();
+                if(bukkitPlayer != null) {
+                    var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
+                            currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (currentRoundIndex + 1);
+                    bukkitPlayer.sendTitle(messageTitle, "");
+                    bukkitPlayer.playSound(Sound.sound(
+                            Key.key("minecraft:entity.wither.spawn"),
+                            Sound.Source.MASTER,
+                            1.0F,
+                            0.5F
+                    ));
+                }
             });
 
             if(getMap().getDisablePowerUpRound().contains(currentRoundIndex + 1)) {
@@ -975,9 +983,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         endTimeStamp = System.currentTimeMillis();
         var round = map.getCurrentRoundProperty().getValue(this);
         getPlayerMap().forEach((l,r) -> {
-            r.getPlayer().sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
-            r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
-            r.getPlayer().sendActionBar(Component.text());
+            Player bukkitPlayer = r.getPlayer();
+            if(bukkitPlayer != null) {
+                bukkitPlayer.sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
+                bukkitPlayer.sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+                bukkitPlayer.sendActionBar(Component.text());
+            }
         });
         gameScoreboard.run();
         runTaskLater(200L, this::dispose);
