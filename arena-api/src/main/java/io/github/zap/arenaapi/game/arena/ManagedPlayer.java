@@ -95,8 +95,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
 
             Player player = getPlayer();
             if(player != null) {
-                player.getInventory().setStorageContents(new ItemStack[35]);
-                player.getEquipment().setArmorContents(new ItemStack[4]);
+                player.getInventory().clear();
                 player.setExp(0);
                 player.updateInventory();
                 ArenaApi.getInstance().applyDefaultCondition(player);

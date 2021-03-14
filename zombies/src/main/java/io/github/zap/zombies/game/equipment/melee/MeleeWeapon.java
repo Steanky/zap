@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.equipment.melee;
 
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -15,7 +14,6 @@ import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -99,12 +97,7 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
         super.onLeftClick();
 
         usable = false;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                usable = true;
-            }
-        }.runTaskLater(Zombies.getInstance(), getCurrentLevel().getDelayTicks());
+        getZombiesArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
     }
 
     @Override

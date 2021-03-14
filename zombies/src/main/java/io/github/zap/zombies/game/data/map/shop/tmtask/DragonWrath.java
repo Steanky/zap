@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.data.map.shop.tmtask;
 
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -13,11 +12,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Mob;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
@@ -79,15 +76,21 @@ public class DragonWrath extends TeamMachineTask implements Damager {
             ), location.getX(), location.getY(), location.getZ());
 
             zombiesArena.runTaskLater(20L * delay, () -> {
+                int entitiesKilled = 0;
                 for (Mob mob : world.getNearbyEntitiesByType(Mob.class, location, radius)) {
                     if (mobIds.contains(mob.getUniqueId())) {
                         world.strikeLightningEffect(mob.getLocation());
-                        zombiesArena.getDamageHandler().damageEntity(DragonWrath.this, new DragonWrathDamage(), mob);
+                        zombiesArena.getDamageHandler().damageEntity(
+                                DragonWrath.this,
+                                new DragonWrathDamage(),
+                                mob
+                        );
+                        entitiesKilled++;
                     }
                 }
 
                 zombiesPlayer.getPlayer().sendMessage(
-                        Component.text(String.format("Killed %d mobs!", zombiesArena.getEntitySet().size())).color(NamedTextColor.GREEN)
+                        Component.text(String.format("Killed %d mobs!", entitiesKilled)).color(NamedTextColor.GREEN)
                 );
             });
 

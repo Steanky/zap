@@ -152,8 +152,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             corpse.destroy();
             corpse = null;
         }
-
-        getPlayer().getInventory().clear();
     }
 
     public void addCoins(int amount) {
@@ -420,8 +418,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
                     speed.addModifier(modifier);
 
-                    Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> speed.removeModifier(modifier),
-                            frozenBullets.getDuration());
+                    arena.runTaskLater(frozenBullets.getDuration(), () -> speed.removeModifier(modifier));
                 }
             }
 
@@ -618,6 +615,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         ArenaApi.getInstance().applyDefaultCondition(player);
         player.setAllowFlight(true);
         player.setInvisible(true);
+        player.setCollidable(false);
         player.setGameMode(GameMode.ADVENTURE);
     }
 }

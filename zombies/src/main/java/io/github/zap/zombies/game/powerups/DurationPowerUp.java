@@ -1,10 +1,8 @@
 package io.github.zap.zombies.game.powerups;
 
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
 import lombok.Getter;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
@@ -40,15 +38,13 @@ public class DurationPowerUp extends PowerUp {
         stopTimeoutTimer();
         var duration = ((DurationPowerUpData)getData()).getDuration();
 
-        timeoutTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if(getState() == PowerUpState.ACTIVATED)
-                    deactivate();
+        timeoutTask = getArena().runTaskLater(duration, () -> {
+            if(getState() == PowerUpState.ACTIVATED) {
+                deactivate();
             }
-        }.runTaskLater(Zombies.getInstance(), duration);
+        });
 
-        estimatedEndTimeStamp = System.currentTimeMillis() + duration * 50;
+        estimatedEndTimeStamp = System.currentTimeMillis() + duration * 50L;
     }
 
     /**
