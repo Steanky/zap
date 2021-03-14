@@ -8,8 +8,8 @@ public class FreeGoldLol extends TeamMachineTask {
 
     private int gold;
 
-    public FreeGoldLol(String type) {
-        super(type);
+    public FreeGoldLol() {
+        super(TeamMachineTaskType.FREE_GOLD_LOL.name());
     }
 
     @Override
