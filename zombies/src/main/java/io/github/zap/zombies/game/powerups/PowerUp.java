@@ -15,7 +15,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -98,49 +97,46 @@ public abstract class PowerUp {
 
         // Check distance & time-out
         powerUpItemLocation = location;
-        checkForDistTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                MutableBoolean isPickedUp = new MutableBoolean(false);
-                // Check for despawn timer
-                if((System.currentTimeMillis() - spawnedTimeStamp) / 50 > getData().getDespawnDuration()) {
-                    deactivate();
-                    checkForDistTask.cancel();
-                }
-
-                getArena().getPlayerMap().forEach((l,r) -> {
-                    var itemBox = new BoundingBox(
-                            powerUpItemLocation.getX(),
-                            powerUpItemLocation.getY(),
-                            powerUpItemLocation.getZ(),
-                            powerUpItemLocation.getX(),
-                            powerUpItemLocation.getY(),
-                            powerUpItemLocation.getZ()).expand(getData().getPickupRange());
-
-                    var collide = r.getPlayer().getBoundingBox().overlaps(itemBox);
-                    itemEntity.setCustomName(getData().getDisplayName());
-                    var pickupDist = getData().getPickupRange();
-                    if(collide && !(boolean)isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
-                        if(!checkForDistTask.isCancelled()) checkForDistTask.cancel();
-                        var sameType = getSamePowerUp();
-                        if(sameType != null) sameType.deactivate();
-                        isPickedUp.setValue(true);
-                        removePowerUpItem();
-                        var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ACTIVATED, Collections.singleton(getCurrent()));
-                        getArena().getPowerUpChangedEvent().callEvent(eventArgs);
-                        getArena().getPlayerMap().forEach((id,player) -> {
-                            player.getPlayer().sendTitle(getData().getDisplayName(), "");
-                            player.getPlayer().sendMessage(ChatColor.YELLOW +  r.getPlayer().getName() + " activated " + getData().getDisplayName());
-                            player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
-                        });
-
-                        state = PowerUpState.ACTIVATED;
-                        activatedTimeStamp = System.currentTimeMillis();
-                        activate();
-                    }
-                });
+        checkForDistTask = arena.runTaskTimer(0L, getRefreshRate(), () -> {
+            MutableBoolean isPickedUp = new MutableBoolean(false);
+            // Check for despawn timer
+            if((System.currentTimeMillis() - spawnedTimeStamp) / 50 > getData().getDespawnDuration()) {
+                deactivate();
+                checkForDistTask.cancel();
             }
-        }.runTaskTimer(Zombies.getInstance(), 0, getRefreshRate());
+
+            getArena().getPlayerMap().forEach((l,r) -> {
+                var itemBox = new BoundingBox(
+                        powerUpItemLocation.getX(),
+                        powerUpItemLocation.getY(),
+                        powerUpItemLocation.getZ(),
+                        powerUpItemLocation.getX(),
+                        powerUpItemLocation.getY(),
+                        powerUpItemLocation.getZ()).expand(getData().getPickupRange());
+
+                var collide = r.getPlayer().getBoundingBox().overlaps(itemBox);
+                itemEntity.setCustomName(getData().getDisplayName());
+                var pickupDist = getData().getPickupRange();
+                if(collide && !(boolean)isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
+                    if(!checkForDistTask.isCancelled()) checkForDistTask.cancel();
+                    var sameType = getSamePowerUp();
+                    if(sameType != null) sameType.deactivate();
+                    isPickedUp.setValue(true);
+                    removePowerUpItem();
+                    var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ACTIVATED, Collections.singleton(getCurrent()));
+                    getArena().getPowerUpChangedEvent().callEvent(eventArgs);
+                    getArena().getPlayerMap().forEach((id,player) -> {
+                        player.getPlayer().sendTitle(getData().getDisplayName(), "");
+                        player.getPlayer().sendMessage(ChatColor.YELLOW +  r.getPlayer().getName() + " activated " + getData().getDisplayName());
+                        player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
+                    });
+
+                    state = PowerUpState.ACTIVATED;
+                    activatedTimeStamp = System.currentTimeMillis();
+                    activate();
+                }
+            });
+        });
     }
 
     public PowerUp getSamePowerUp() {

@@ -1,18 +1,21 @@
 package io.github.zap.zombies.game.powerups.spawnrules;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.SpawnEntryData;
 import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
+import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,10 +30,11 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
         getArena().getMythicMobDeathEvent().registerHandler(this::onMobDeath);
 
         // Avoid spawning stuff inside windows
-        windows = getArena().getMap().getRooms().stream().flatMap(x -> x.getWindows().stream()).collect(Collectors.toSet());
+        windows = getArena().getMap().getRooms().stream().flatMap(x -> x.getWindows().stream()).collect(Collectors.toList());
     }
 
-    private final Set<WindowData> windows;
+    //changed this to a List (set is slow to iterate and you never call .contains which means list is optimal)
+    private final List<WindowData> windows;
 
     private boolean isRound;
     private WaveData chosenWave;
@@ -52,8 +56,10 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
         }
 
         if(isRound) {
-            var waveMeta = e.getEntity().getMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME);
-            if(waveMeta.size() == 1 && ((FixedMetadataValue) waveMeta.get(0).value()).value() == chosenWave) {
+            //using new MetadataHelper util class; the old code would have failed if another plugin happened to register metadata to that entity
+            WaveData waveData = MetadataHelper.getMetadataFor(e.getEntity(), Zombies.getInstance(), Zombies.SPAWNINFO_WAVE_METADATA_NAME);
+
+            if(waveData == chosenWave) {
                 if(deathCountUntilDrops == roundDeathCount && !isDisabledRound()) {
                     spawn(getSuitableLocation(e.getMob().getEntity().getBukkitEntity()));
                 }

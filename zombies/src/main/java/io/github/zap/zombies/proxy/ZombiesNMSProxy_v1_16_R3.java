@@ -32,23 +32,14 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         }
     }
 
-    /**
-     * Returns the nearest ZombiesPlayer in the given arena, using path length instead of vector distance for AI that
-     * should prioritize rationally. Uses a predicate — ZombiesPlayers who fail the predicate will not be considered.
-     * @param entity The entity to navigate for
-     * @param arena The arena to search in
-     * @param filter The predicate to use
-     * @return The nearest ZombiesPlayer using path length, or null if none exist that are reachable and match the
-     * predicate
-     */
     @Override
-    public ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, Predicate<ZombiesPlayer> filter) {
+    public ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, int deviation, Predicate<ZombiesPlayer> filter) {
         Pair<Float, ZombiesPlayer> bestCandidate = ImmutablePair.of(Float.MAX_VALUE, null);
 
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             if(filter.test(player)) {
                 Player bukkitPlayer = player.getPlayer();
-                PathEntity path = getPathToUnbounded(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
+                PathEntity path = getPathTo(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
 
                 if(path != null) {
                     PathPoint finalPoint = path.getFinalPoint();
@@ -102,6 +93,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         }
         else {
             attributeMap.registerAttribute(attribute);
+            //noinspection ConstantConditions
             attributeMap.a(attribute).setValue(value);
         }
     }
@@ -122,12 +114,12 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public PathEntity getPathToUnbounded(EntityInsentient entity, double x, double y, double z, int deviation) {
+    public PathEntity getPathTo(EntityInsentient entity, double x, double y, double z, int deviation) {
         return entity.getNavigation().a(x, y, z, deviation);
     }
 
     @Override
-    public PathEntity getPathToUnbounded(EntityInsentient entity, Entity target, int deviation) {
+    public PathEntity getPathTo(EntityInsentient entity, Entity target, int deviation) {
         return entity.getNavigation().calculateDestination(target);
     }
 

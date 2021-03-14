@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public class HotbarProfile {
 
-    private final static String DEFAULT_HOTBAR_OBJECT_GROUP_KEY = "Default";
+    public final static String DEFAULT_HOTBAR_OBJECT_GROUP_KEY = "Default";
 
     private final Map<String, HotbarObjectGroup> hotbarObjectGroupMap = new HashMap<>();
 
@@ -96,7 +96,6 @@ public class HotbarProfile {
     public void swapSlotOwnership(int slot, String newHotbarObjectGroupName) {
         HotbarObjectGroup hotbarObjectGroup = hotbarObjectGroupMap.get(newHotbarObjectGroupName);
         swapSlotOwnership(slot, hotbarObjectGroup);
-
     }
 
     /**

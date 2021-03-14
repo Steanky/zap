@@ -11,7 +11,7 @@
     </parent>
 
     <properties>
-        <swm.version>217988c</swm.version>
+        <aswm.version>2.5.4-SNAPSHOT</aswm.version>
         <mythicmobs.version>4.11.0-BETA</mythicmobs.version>
     </properties>
 
@@ -62,16 +62,16 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+                                    <groupId>com.grinderwolf</groupId>
                                     <artifactId>slimeworldmanager-plugin</artifactId>
-                                    <version>${swm.version}</version>
-                                    <destFileName>slimeworldmanager-${swm.version}.jar</destFileName>
+                                    <version>${aswm.version}</version>
+                                    <destFileName>slimeworldmanager-${aswm.version}.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+                                    <groupId>com.grinderwolf</groupId>
                                     <artifactId>slimeworldmanager-classmodifier</artifactId>
-                                    <version>${swm.version}</version>
+                                    <version>${aswm.version}</version>
                                     <outputDirectory>${serverDir}</outputDirectory>
                                     <destFileName>slimeworldmanager-classmodifier.jar</destFileName>
                                 </artifactItem>
@@ -190,6 +190,11 @@
             <id>dmulloy2-repo</id>
             <url>https://repo.dmulloy2.net/nexus/repository/public/</url>
         </repository>
+
+        <repository>
+            <id>rapture-snapshots</id>
+            <url>https://repo.rapture.pw/repository/maven-snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -242,23 +247,23 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <groupId>com.grinderwolf</groupId>
             <artifactId>slimeworldmanager-api</artifactId>
-            <version>${swm.version}</version>
+            <version>${aswm.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <groupId>com.grinderwolf</groupId>
             <artifactId>slimeworldmanager-classmodifier</artifactId>
-            <version>${swm.version}</version>
+            <version>${aswm.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.github.thamid-gamer.Slime-World-Manager</groupId>
+            <groupId>com.grinderwolf</groupId>
             <artifactId>slimeworldmanager-plugin</artifactId>
-            <version>${swm.version}</version>
+            <version>${aswm.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

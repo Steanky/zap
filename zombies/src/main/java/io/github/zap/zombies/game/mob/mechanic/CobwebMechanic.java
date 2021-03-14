@@ -23,10 +23,13 @@ import org.bukkit.util.Vector;
 )
 public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkill {
     private final int decayTime;
+    private final double rangeSquared;
 
     public CobwebMechanic(String skill, MythicLineConfig mlc) {
         super(skill, mlc);
         decayTime = mlc.getInteger("decay",40);
+        rangeSquared = mlc.getDouble("rangeSquared", 256);
+        setAsyncSafe(false);
     }
 
     @Override
@@ -34,7 +37,7 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
         SkillCaster caster = skillMetadata.getCaster();
         AbstractEntity entity = caster.getEntity();
 
-        if(target != null && entity.hasLineOfSight(target)) {
+        if(target != null && entity.hasLineOfSight(target) && entity.getLocation().distanceSquared(target.getLocation()) <= rangeSquared) {
             BukkitWorld world = (BukkitWorld)target.getLocation().getWorld();
             AbstractLocation targetLocation = target.getLocation();
             Block targetBlock = world.getBukkitWorld().getBlockAt(targetLocation.getBlockX(),
@@ -47,7 +50,7 @@ public class CobwebMechanic extends SkillMechanic implements ITargetedEntitySkil
             else {
                 targetBlock = WorldUtils.blockRelative(targetBlock, new Vector(0, 1, 0)); //check block above
 
-                if(targetBlock.getType().isAir()) { //place block at player's head, if it isn't air
+                if(targetBlock.getType().isAir()) { //place block at player's head, if it's currently air
                     placeCobweb(targetBlock);
                     return true;
                 }

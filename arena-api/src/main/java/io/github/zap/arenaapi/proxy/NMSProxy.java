@@ -27,4 +27,11 @@ public interface NMSProxy {
      * @return The entity typeid
      */
     int getEntityTypeId(EntityType entityType);
+
+    /**
+     * Gets the default world name of the server
+     * @return the default world name of the server
+     */
+    String getDefaultWorldName();
+
 }

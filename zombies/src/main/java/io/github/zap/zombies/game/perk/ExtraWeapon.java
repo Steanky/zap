@@ -1,7 +1,10 @@
 package io.github.zap.zombies.game.perk;
 
 import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,29 +24,36 @@ public class ExtraWeapon extends MarkerPerk {
 
     @Override
     public void activate() {
-        super.activate();
         setEffect(getCurrentLevel());
     }
 
     private void setEffect(int level) {
+        HotbarManager hotbarManager = getOwner().getHotbarManager();
+        HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+
         while(ewSlots.size() < level) {
             // Get the next empty slot for additional gun slot
-            var gunGroup = getOwner().getHotbarManager().getHotbarObjectGroup(HotbarManager.DEFAULT_PROFILE_NAME);
-            var newSlot = gunGroup.getNextEmptySlot();
-            var defaultProfile = getOwner().getHotbarManager().getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
-            defaultProfile.swapSlotOwnership(newSlot, gunGroup);
-            ewSlots.push(newSlot);
+            HotbarObjectGroup gunGroup = hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
+            HotbarObjectGroup defaultGroup
+                    = hotbarManager.getHotbarObjectGroup(HotbarProfile.DEFAULT_HOTBAR_OBJECT_GROUP_KEY);
+
+            Integer newSlot = defaultGroup.getNextEmptySlot();
+
+            if (newSlot != null) {
+                defaultProfile.swapSlotOwnership(newSlot, gunGroup);
+                ewSlots.push(newSlot);
+                break;
+            }
         }
 
         while (ewSlots.size() > level) {
-            var gunGroup = getOwner().getHotbarManager().getHotbarObjectGroup(HotbarManager.DEFAULT_PROFILE_NAME);
+            HotbarObjectGroup gunGroup = defaultProfile.getHotbarObjectGroup(EquipmentType.GUN.name());
             gunGroup.remove(ewSlots.pop(), false);
         }
     }
 
     @Override
-    public void disable() {
-        super.disable();
+    public void deactivate() {
         setEffect(0);
     }
 }

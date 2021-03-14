@@ -3,13 +3,14 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Particle;
 
 import java.util.EnumSet;
 
 /**
  * Effectively a copy of the NMS PathfinderGoalMeleeAttack, but modified so that zombies will not 'pause' when certain
- * situations occur. Should also be significantly faster without deviating significantly from vanilla behavior, when
- * not configured to do so.
+ * situations occur. Should also be significantly faster without deviating  from vanilla behavior, when not configured
+ * to do so.
  *
  * Certain unnecessary features, such as checking entity senses (forgetting targets when out of sight) are disabled.
  * This goal will not perform certain checks that are redundant when part of a WrappedZombiesPathfinder, for example,
@@ -24,16 +25,18 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     private final double speed;
     private final int attackInterval;
     private final float attackReach;
+    private final int targetDeviation;
     private int navigationCounter;
     private int attackTimer;
 
     private PathEntity currentPath;
 
-    public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval, float attackReach) {
+    public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval, float attackReach, int targetDeviation) {
         this.self = self;
         this.speed = speed;
         this.attackInterval = attackInterval;
         this.attackReach = attackReach;
+        this.targetDeviation = targetDeviation;
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
         proxy = Zombies.getInstance().getNmsProxy();
@@ -68,10 +71,10 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
         if (this.navigationCounter <= 0) {
             //randomly offset the delay by 4-10 ticks
-            this.navigationCounter = 4 + this.self.getRandom().nextInt(7);
+            this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
             //calculate the path
-            currentPath = proxy.getPathToUnbounded(self, target, 0);
+            currentPath = proxy.getPathTo(self, target, targetDeviation);
 
             if(currentPath != null) {
                 /*
@@ -99,7 +102,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
     private void tryAttack(EntityLiving target) {
         if(this.attackTimer <= 0) {
-            if(this.self.h(target.locX(), target.locY(), target.locZ()) <= this.boundsDistance(target)) {
+            if(this.self.h(target.locX(), target.locY(), target.locZ()) <= this.checkDistance(target)) {
                 this.resetAttackTimer();
                 this.self.swingHand(EnumHand.MAIN_HAND);
                 this.self.attackEntity(target);
@@ -111,7 +114,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.attackTimer = attackInterval;
     }
 
-    private double boundsDistance(EntityLiving target) {
+    private double checkDistance(EntityLiving target) {
         return (this.self.getWidth() * attackReach * this.self.getWidth() * attackReach + target.getWidth());
     }
 }

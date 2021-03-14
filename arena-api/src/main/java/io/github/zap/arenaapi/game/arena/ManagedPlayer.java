@@ -5,7 +5,6 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
@@ -15,8 +14,8 @@ import java.util.UUID;
 @Getter
 public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
         Disposable {
-    private final V arena;
-    private final Player player;
+    protected final V arena;
+    protected final Player player;
     private boolean inGame = true;
 
     public ManagedPlayer(V arena, Player player) {
@@ -44,22 +43,19 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     }
 
     /**
-     * Returns true if the player is currently in the arena. Returns false otherwise.
-     * @return true if the player is in the arena, false otherwise
-     */
-    public boolean inGame() {
-        return inGame;
-    }
-
-    /**
      * Called when the player leaves the arena.
      */
     public void quit() {
         if(inGame) {
             inGame = false;
-            player.getInventory().setStorageContents(new ItemStack[35]);
-            player.giveExpLevels(-player.getExpToLevel());
-            ArenaApi.getInstance().applyDefaultCondition(player);
+
+            if(player.isOnline()) {
+                player.getInventory().clear();
+                player.setExp(0);
+                player.teleport(getArena().getManager().getHubLocation());
+                player.updateInventory();
+                ArenaApi.getInstance().applyDefaultCondition(player);
+            }
         }
     }
 

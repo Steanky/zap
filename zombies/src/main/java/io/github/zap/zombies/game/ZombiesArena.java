@@ -3,10 +3,15 @@ package io.github.zap.zombies.game;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
+import io.github.zap.arenaapi.event.FilteredEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -16,7 +21,10 @@ import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
+import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
+import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpBossBar;
 import io.github.zap.zombies.game.powerups.PowerUpState;
@@ -24,10 +32,7 @@ import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
-import io.github.zap.zombies.game.shop.LuckyChest;
-import io.github.zap.zombies.game.shop.Shop;
-import io.github.zap.zombies.game.shop.ShopEventArgs;
-import io.github.zap.zombies.game.shop.ShopType;
+import io.github.zap.zombies.game.shop.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -36,12 +41,20 @@ import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDespawnEvent;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.title.Title;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -51,13 +64,13 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.Consumer;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -66,54 +79,108 @@ import java.util.stream.Collectors;
 public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> implements Listener {
     public interface Spawner {
         /**
-         * Spawns a wave.
-         * @param waveData The wave data to spawn
+         * Spawns the provided SpawnEntries in this arena.
+         * @param mobs The mobs to spawn
+         * @param method The SpawnMethod to use
+         * @param slaSquared The SLA to use
+         * @param randomize Whether or not spawnpoints are randomized
+         * @param updateCount Whether or not to update the total mob count
+         * @return The ActiveMobs that were spawned
          */
-        void spawnWave(WaveData waveData);
+        List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method, double slaSquared,
+                                  boolean randomize, boolean updateCount);
 
         /**
-         * Spawns mobs, outside of a wave.
-         * @param mobs The
+         * Spawns the provided SpawnEntries in this arena. Only spawnpoints that match the provided predicate can spawn
+         * mobs.
+         * @param mobs The mobs to spawn
+         * @param method The method to use while spawning
+         * @param spawnpointPredicate The predicate used to additionally filter spawnpoints
+         * @param slaSquared The value to use for SLA
+         * @param randomize Whether or not spawnpoints are shuffled
+         * @param updateCount Whether or not to update the total mob count
+         * @return The ActiveMobs that were spawned as a result of this operation
          */
-        List<ActiveMob> spawnMobs(List<SpawnEntryData> mobs, SpawnMethod method, double slaSquared, boolean randomize);
+        List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method,
+                                 @NotNull Predicate<SpawnpointData> spawnpointPredicate, double slaSquared,
+                                  boolean randomize, boolean updateCount);
 
         /**
-         * Spawns the mob at the given vector. Will not perform SLA or any validity checks whatsoever.
-         * @param mobType The type of mob to spawn
-         * @param vector The vector to spawn it at
+         * Spawns a mob at the specified vector, without performing range checks. If the mob is spawned inside of a
+         * window, it will have the appropriate metadata set.
+         * @param mobType The mob type to spawn
+         * @param vector The vector to spawn the mob at
+         * @return The mob that was spawned, or null if it failed to spawn
          */
-        ActiveMob spawnAt(String mobType, Vector vector);
+        ActiveMob spawnMobAt(@NotNull String mobType, @NotNull Vector vector, boolean updateCount);
+    }
+
+    /**
+     * General interface for an implementation that handles damaging all entities.
+     */
+    public interface DamageHandler {
+        /**
+         * Damages an entity.
+         * @param target The ActiveMob to damage
+         */
+        void damageEntity(@NotNull Damager comesFrom, @NotNull DamageAttempt with, @NotNull Mob target);
     }
 
     /**
      * Basic spawner implementation.
      */
-    @RequiredArgsConstructor
     public class BasicSpawner implements Spawner {
         @Value
         private class SpawnContext {
-            SpawnpointData spawnpointData;
+            SpawnpointData spawnpoint;
             WindowData window;
         }
 
         @Override
-        public void spawnWave(WaveData wave) {
-            spawnMobInternal(wave.getSpawnEntries(), wave.getMethod(), wave.getSlaSquared(), wave.isRandomizeSpawnpoints())
-                .forEach(x -> x.getEntity().setMetadata(Zombies.SPAWNINFO_WAVE_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), wave)));
+        public List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method,
+                                         double slaSquared, boolean randomize, boolean updateCount) {
+            return spawnMobs(mobs, method, spawnpointData -> true, slaSquared, randomize, updateCount);
         }
 
-        private List<ActiveMob> spawnMobInternal(List<SpawnEntryData> mobs, SpawnMethod method, double slaSquared, boolean randomize) {
-            List<SpawnContext> spawnpoints = filterSpawnpoints(mobs, method, slaSquared);
+        @Override
+        public ActiveMob spawnMobAt(@NotNull String mobType, @NotNull Vector vector, boolean updateCount) {
+            ActiveMob spawned = spawnMob(mobType, vector);
+
+            if(spawned != null) {
+                if(updateCount) {
+                    zombiesLeft++;
+                }
+
+                RoomData roomIn = map.roomAt(vector);
+                if(roomIn != null) {
+                    for(WindowData windowData : roomIn.getWindows()) {
+                        if(windowData.playerInside(vector)) {
+                            MetadataHelper.setMetadataFor(spawned.getEntity().getBukkitEntity(),
+                                    Zombies.WINDOW_METADATA_NAME, Zombies.getInstance(), windowData);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return spawned;
+        }
+
+        @Override
+        public List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method,
+                                         @NotNull Predicate<SpawnpointData> filter, double slaSquared,
+                                         boolean randomize, boolean updateCount) {
+            List<SpawnContext> spawns = filterSpawnpoints(mobs, method, filter, slaSquared);
             List<ActiveMob> spawnedEntities = new ArrayList<>();
 
-            if(spawnpoints.size() == 0) {
+            if(spawns.size() == 0) {
                 Zombies.warning("There are no available spawnpoints for this mob set. This likely indicates an error " +
                         "in map configuration.");
                 return Collections.emptyList();
             }
 
             if(randomize) {
-                Collections.shuffle(spawnpoints); //shuffle small candidate set of spawnpoints
+                Collections.shuffle(spawns); //shuffle small candidate set of spawnpoints
             }
 
             for(SpawnEntryData spawnEntryData : mobs) {
@@ -122,16 +189,25 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 outer:
                 while(true) {
                     int startAmt = amt;
-                    for(SpawnContext spawnContext : spawnpoints) {
-                        if(method == SpawnMethod.IGNORE_SPAWNRULE || spawnContext.spawnpointData.canSpawn(spawnEntryData.getMobName(), map)) {
-                            spawnMob(spawnEntryData.getMobName(), spawnContext.spawnpointData.getSpawn(), entity -> {
-                                Entity bukkitEntity = entity.getEntity().getBukkitEntity();
-                                bukkitEntity.setMetadata(Zombies.ARENA_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), ZombiesArena.this));
-                                bukkitEntity.setMetadata(Zombies.WINDOW_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnContext.window));
+                    for(SpawnContext context : spawns) {
+                        if(method == SpawnMethod.IGNORE_SPAWNRULE || context.spawnpoint.canSpawn(spawnEntryData.getMobName(), map)) {
+                            ActiveMob mob = spawnMob(spawnEntryData.getMobName(), context.spawnpoint.getSpawn());
 
-                                entity.getEntity().setMetadata(Zombies.SPAWNINFO_ENTRY_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), spawnEntryData));
-                                spawnedEntities.add(entity);
-                            });
+                            if(mob != null) {
+                                MetadataHelper.setMetadataFor(mob.getEntity().getBukkitEntity(),
+                                        Zombies.WINDOW_METADATA_NAME, Zombies.getInstance(), context.window);
+
+                                if(updateCount) {
+                                    zombiesLeft++;
+                                }
+                            }
+                            else {
+                                //mob failed to spawn; if we're part of a wave, reduce the amt of zombies
+                                if(!updateCount) {
+                                    zombiesLeft--;
+                                    tryNextRound();
+                                }
+                            }
 
                             if(--amt == 0) {
                                 break outer;
@@ -149,47 +225,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             return spawnedEntities;
         }
 
-        @Override
-        public List<ActiveMob> spawnMobs(List<SpawnEntryData> mobs, SpawnMethod method, double slaSquared, boolean randomize) {
-            List<ActiveMob> spawned = spawnMobInternal(mobs, method, slaSquared, randomize);
-            zombiesLeft += spawned.size();
-            return spawned;
-        }
-
-        @Override
-        public ActiveMob spawnAt(String mobType, Vector vector) {
-            ActiveMob spawned = spawnMob(mobType, vector, entity -> {
-                Entity bukkitEntity = entity.getEntity().getBukkitEntity();
-                bukkitEntity.setMetadata(Zombies.ARENA_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), ZombiesArena.this));
-                bukkitEntity.setMetadata(Zombies.WINDOW_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), null));
-
-                entity.getEntity().setMetadata(Zombies.SPAWNINFO_ENTRY_METADATA_NAME, new FixedMetadataValue(Zombies.getInstance(), new SpawnEntryData(mobType, 1)));
-            });
-
-            if(spawned != null) {
-                zombiesLeft++;
-            }
-
-            return spawned;
-        }
-
-        /**
-         * Spawns the mob at the specified vector.
-         * @param mobName The name of the MythicMob to spawn
-         * @param at The location to spawn the mob at, in this arena's world
-         * @param postSpawn The consumer to be called after the entity spawns (if it does). Useful for applying metadata.
-         * @return Whether or not the mob was successfully spawned
-         */
-        private ActiveMob spawnMob(String mobName, Vector at, Consumer<ActiveMob> postSpawn) {
+        private ActiveMob spawnMob(String mobName, Vector blockPosition) {
             MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
 
             if(mob != null) {
-                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), at.getX() + 0.5, at.getY(),
-                        at.getZ() + 0.5), map.getMobSpawnLevel());
+                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), blockPosition.getX() +
+                        0.5, blockPosition.getY(), blockPosition.getZ() + 0.5), map.getMobSpawnLevel());
 
                 if(activeMob != null) {
-                    mobs.add(activeMob.getUniqueId());
-                    postSpawn.accept(activeMob);
+                    getEntitySet().add(activeMob.getUniqueId());
+                    MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(), Zombies.ARENA_METADATA_NAME,
+                            Zombies.getInstance(), ZombiesArena.this);
                     return activeMob;
                 }
                 else {
@@ -203,33 +249,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             return null;
         }
 
-        /**
-         * This rather interesting function filters only the spawnpoints that matter for this particular operation.
-         * Spawnpoints that are in closed rooms, spawnpoints that can't spawn any of the mobs in this
-         * wave, and spawnpoints that are out of range are all filtered out, leaving only the ones that may be needed.
-         * We do all this filtering to minimize the set of spawnpoints that we have to shuffle/iterate through later
-         * @param mobs The mobs to spawn
-         * @param method The SpawnMethod to use
-         * @param slaSquared The distance from the player that all mobs must spawn, squared
-         * @return A list of SpawnpointData objects that have been properly filtered.
-         */
-        private List<SpawnContext> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method, double slaSquared) {
+        private List<SpawnContext> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method,
+                                                     Predicate<SpawnpointData> filter, double slaSquared) {
             List<SpawnContext> filtered = new ArrayList<>();
 
             for(RoomData room : map.getRooms()) { //iterate rooms
                 if(room.isSpawn() || method == SpawnMethod.FORCE || room.getOpenProperty().getValue(ZombiesArena.this)) {
-                    for(SpawnpointData sample : room.getSpawnpoints()) { //check room spawnpoints first
-                        if(canSpawnAny(sample, mobs, method, slaSquared)) {
-                            filtered.add(new SpawnContext(sample, null));
-                        }
-                    }
+                    //add all valid spawnpoints in the room
+                    addValidContext(filtered, room.getSpawnpoints(), mobs, method, filter, slaSquared, null);
 
-                    for(WindowData window : room.getWindows()) {
-                        for(SpawnpointData sample : window.getSpawnpoints()) {
-                            if(canSpawnAny(sample, mobs, method, slaSquared)) {
-                                filtered.add(new SpawnContext(sample, window));
-                            }
-                        }
+                    for(WindowData window : room.getWindows()) { //check window spawnpoints next
+                        addValidContext(filtered, window.getSpawnpoints(), mobs, method, filter, slaSquared, window);
                     }
                 }
             }
@@ -237,14 +267,24 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             return filtered;
         }
 
+        private void addValidContext(List<SpawnContext> addTo, List<SpawnpointData> spawnpoints, List<SpawnEntryData> mobs,
+                                     SpawnMethod method, Predicate<SpawnpointData> filter,
+                                     double slaSquared, WindowData window) {
+            for(SpawnpointData spawnpointData : spawnpoints) {
+                if(filter.test(spawnpointData) && canSpawnAny(spawnpointData, mobs, method, slaSquared)) {
+                    addTo.add(new SpawnContext(spawnpointData, window));
+                }
+            }
+        }
+
         private boolean canSpawnAny(SpawnpointData spawnpoint, List<SpawnEntryData> entry, SpawnMethod method, double slaSquared) {
             if(method == SpawnMethod.IGNORE_SPAWNRULE) {
-                return inRange(spawnpoint, slaSquared);
+                return checkSLA(spawnpoint, slaSquared);
             }
             else {
                 for(SpawnEntryData data : entry) {
                     if(spawnpoint.canSpawn(data.getMobName(), map)) {
-                        return method != SpawnMethod.RANGED || inRange(spawnpoint, slaSquared);
+                        return method != SpawnMethod.RANGED || checkSLA(spawnpoint, slaSquared);
                     }
                 }
             }
@@ -252,7 +292,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             return false;
         }
 
-        private boolean inRange(SpawnpointData target, double slaSquared) {
+        private boolean checkSLA(SpawnpointData target, double slaSquared) {
             for(ZombiesPlayer player : getPlayerMap().values()) {
                 if(player.getPlayer().getLocation().toVector().distanceSquared(target.getSpawn()) <= slaSquared) {
                     return true;
@@ -260,6 +300,64 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             }
 
             return false;
+        }
+    }
+
+    public class BasicDamageHandler implements DamageHandler {
+        @Override
+        public void damageEntity(@NotNull Damager damager, @NotNull DamageAttempt with, @NotNull Mob target) {
+            if (hasEntity(target.getUniqueId())) {
+                target.playEffect(EntityEffect.HURT);
+
+                double deltaHealth = inflictDamage(target, with.damageAmount(damager, target), with.ignoresArmor(damager, target));
+                Vector resultingVelocity = target.getVelocity().add(with.directionVector(damager, target)
+                        .multiply(with.knockbackFactor(damager, target)));
+
+                try {
+                    target.setVelocity(resultingVelocity);
+                }
+                catch (IllegalArgumentException ignored) {
+                    Zombies.warning("Attempted to set velocity for entity " + target.getUniqueId() + " to a vector " +
+                            "with a non-finite value " + resultingVelocity.toString());
+                }
+
+                damager.onDealsDamage(with, target, deltaHealth);
+            }
+        }
+
+        private double inflictDamage(Mob mob, double damage, boolean ignoreArmor) {
+            boolean instaKill = false;
+
+            for(PowerUp powerup : getPowerUps()) {
+                if(powerup instanceof DamageModificationPowerUp && powerup.getState() == PowerUpState.ACTIVATED) {
+                    var data = (DamageModificationPowerUpData) powerup.getData();
+                    if(data.isInstaKill()) {
+                        instaKill = true;
+                        break;
+                    }
+
+                    damage = damage * data.getMultiplier() + data.getAdditionalDamage();
+                }
+            }
+
+            double before = mob.getHealth();
+
+            Optional<ActiveMob> activeMob = MythicMobs.inst().getMobManager().getActiveMob(mob.getUniqueId());
+            boolean resistInstakill = false;
+            if(activeMob.isPresent()) {
+                resistInstakill = activeMob.get().getType().getConfig().getBoolean("ResistInstakill", false);
+            }
+
+            if(instaKill && !resistInstakill) {
+                mob.setHealth(0);
+            } else if(ignoreArmor) {
+                mob.setHealth(Math.max(mob.getHealth() - damage, 0));
+            } else {
+                mob.damage(damage);
+            }
+
+            mob.playEffect(EntityEffect.HURT);
+            return before - mob.getHealth();
         }
     }
 
@@ -276,16 +374,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final ShopManager shopManager;
 
     @Getter
-    protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
-
-    @Getter
-    private final long emptyTimeout;
+    private final DamageHandler damageHandler;
 
     @Getter
     private final Spawner spawner;
 
     @Getter
-    private final Set<UUID> mobs = new HashSet<>();
+    protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
+
+    @Getter
+    private final long emptyTimeout;
 
     @Getter
     private final List<Shop<?>> shops = new ArrayList<>();
@@ -295,6 +393,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     @Getter
     private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
+
+    @Getter
+    private String luckyChestRoom;
 
     @Getter
     private final String corpseTeamName = UUID.randomUUID().toString().substring(0, 16);
@@ -311,6 +412,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final Event<MythicMobDeathEvent> mythicMobDeathEvent;
 
+    @Getter
+    private final Event<MythicMobDespawnEvent> mythicMobDespawnEvent;
+
     /**
      * Indicate when the game start using System.currentTimeMillis()
      * return -1 if the game hasn't start
@@ -324,11 +428,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      */
     @Getter
     private long endTimeStamp = -1;
-
-    private final List<Integer> waveSpawnerTasks = new ArrayList<>();
-    private int timeoutTaskId = -1;
-
-    private BukkitTask gameEndTimeoutTask;
 
     @Getter
     private final Set<ImmutablePair<PowerUpSpawnRule<?>, String>> powerUpSpawnRules = new HashSet<>();
@@ -354,7 +453,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
      * @param emptyTimeout The time it will take the arena to close, if it is empty and in the pregame state
      */
     public ZombiesArena(ZombiesArenaManager manager, World world, MapData map, long emptyTimeout) {
-        super(Zombies.getInstance(), manager, world, ZombiesPlayer::new);
+        super(Zombies.getInstance(), manager, world, ZombiesPlayer::new, emptyTimeout);
 
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();
@@ -362,33 +461,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.shopManager = manager.getShopManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
+        this.damageHandler = new BasicDamageHandler();
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
-        mythicMobDeathEvent = new ProxyEvent<>(Zombies.getInstance(), this,
-                MythicMobDeathEvent.class);
-        Event<MythicMobDespawnEvent> mythicMobDespawnEvent = new ProxyEvent<>(Zombies.getInstance(), this,
-                MythicMobDespawnEvent.class);
+        mythicMobDeathEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(), MythicMobDeathEvent.class),
+                event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
 
-        mythicMobDeathEvent.registerHandler(this::onMobDeath);
-        mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
+        mythicMobDespawnEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(),
+                MythicMobDespawnEvent.class), event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
 
-        getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
-        getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
-        getPlayerDamageEvent().registerHandler(this::onPlayerDamage);
-        getEntityDamageByEntityEvent().registerHandler(this::onEntityDamageByEntity);
-        getPlayerDeathEvent().registerHandler(this::onPlayerDeath);
-        getPlayerInteractEvent().registerHandler(this::onPlayerInteract);
-        getPlayerInteractAtEntityEvent().registerHandler(this::onPlayerInteractAtEntity);
-        getPlayerAnimationEvent().registerHandler(this::onPlayerAnimation);
-        getPlayerToggleSneakEvent().registerHandler(this::onPlayerSneak);
-        getPlayerItemHeldEvent().registerHandler(this::onPlayerItemHeld);
-        getPlayerItemConsumeEvent().registerHandler(this::onPlayerItemConsume);
-        getPlayerItemDamageEvent().registerHandler(this::onPlayerItemDamage);
-        getPlayerAttemptPickupItemEvent().registerHandler(this::onPlayerAttemptPickupItem);
-        getPlayerArmorStandManipulateEvent().registerHandler(this::onPlayerArmorStandManipulate);
-        getPlayerFoodLevelChangeEvent().registerHandler(this::onPlayerFoodLevelChange);
-        getInventoryClickEvent().registerHandler(this::onPlayerInventoryClick);
+        registerMythicMobsEvents();
+        registerArenaEvents();
+        registerDisposables();
 
         PacketContainer createTeamPacketContainer = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
         createTeamPacketContainer.getStrings().write(0, UUID.randomUUID().toString().substring(0, 16));
@@ -399,6 +484,45 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         getMap().getPowerUpSpawnRules()
                 .forEach(x -> powerUpSpawnRules.add(ImmutablePair.of(getPowerUpManager().createSpawnRule(x.left, x.right, this), x.right)));
+
+        Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
+    }
+
+    private void registerMythicMobsEvents() {
+        mythicMobDeathEvent.registerHandler(this::onMobDeath);
+        mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
+    }
+
+    private void registerArenaEvents() {
+        getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
+
+        getProxyFor(PlayerDropItemEvent.class).registerHandler(this::onPlayerDropItem);
+        getProxyFor(PlayerMoveEvent.class).registerHandler(this::onPlayerMove);
+        getProxyFor(PlayerSwapHandItemsEvent.class).registerHandler(this::onPlayerSwapHandItems);
+        getProxyFor(EntityDamageEvent.class).registerHandler(this::onEntityDamaged);
+        getProxyFor(EntityDamageByEntityEvent.class).registerHandler(this::onEntityDamageByEntity);
+        getProxyFor(PlayerDeathEvent.class).registerHandler(this::onPlayerDeath);
+        getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
+        getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
+        getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
+        getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
+        getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
+        getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
+        getProxyFor(PlayerItemDamageEvent.class).registerHandler(this::onPlayerItemDamage);
+        getProxyFor(PlayerAttemptPickupItemEvent.class).registerHandler(this::onPlayerAttemptPickupItem);
+        getProxyFor(PlayerArmorStandManipulateEvent.class).registerHandler(this::onPlayerArmorStandManipulate);
+        getProxyFor(FoodLevelChangeEvent.class).registerHandler(this::onFoodLevelChange);
+        getProxyFor(InventoryClickEvent.class).registerHandler(this::onPlayerInventoryClick);
+    }
+
+    private void registerDisposables() {
+        ResourceManager resourceManager = getResourceManager();
+
+        resourceManager.addDisposable(mythicMobDeathEvent);
+        resourceManager.addDisposable(mythicMobDespawnEvent);
+        resourceManager.addDisposable(gameScoreboard);
+        resourceManager.addDisposable(powerUpBossBar);
     }
 
     @Override
@@ -409,18 +533,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
-        gameScoreboard.dispose(); // dispose resource related to managing game scoreboard
-        //unregister tasks
-        BukkitScheduler scheduler = Bukkit.getScheduler();
-        scheduler.cancelTask(timeoutTaskId);
-
-        for(int taskId : waveSpawnerTasks) {
-            scheduler.cancelTask(taskId);
-        }
 
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
+
+        HandlerList.unregisterAll(this);
     }
 
     @Override
@@ -450,28 +568,25 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
             }
         }
-
-        resetTimeout(); //if arena was in timeout state, reset that
     }
 
     private void onPlayerLeave(ManagedPlayerListArgs args) {
+        for(ZombiesPlayer player : args.getPlayers()) { //quit has already been called for these players
+            if(!map.isAllowRejoin()) {
+                super.removePlayer(player);
+            }
+        }
+
         switch (state) {
             case PREGAME:
-                if (getOnlineCount() == 0) {
-                    startTimeout();
-                }
-
                 removePlayers(args.getPlayers());
                 break;
             case COUNTDOWN:
-                if (getOnlineCount() == 0) {
-                    startTimeout();
-                }
+                removePlayers(args.getPlayers());
+
                 if (getOnlineCount() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
                 }
-
-                removePlayers(args.getPlayers());
                 break;
             case STARTED:
                 if (getOnlineCount() == 0) {
@@ -480,22 +595,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 }
                 break;
         }
-
-        for(ZombiesPlayer player : args.getPlayers()) {
-            if(!map.isAllowRejoin()) {
-                super.removePlayer(player);
-            }
-
-            player.getPlayer().teleport(getManager().getHubLocation());
-        }
     }
 
     private void onMobDeath(MythicMobDeathEvent args) {
-        if(mobs.remove(args.getEntity().getUniqueId())) {
-            zombiesLeft--;
-            if(getZombiesLeft() == 0 && state == ZombiesArenaState.STARTED){
-                doRound();
+        if(state == ZombiesArenaState.STARTED) {
+            if(getEntitySet().remove(args.getEntity().getUniqueId()) && zombiesLeft > 0) {
+                zombiesLeft--;
             }
+
+            tryNextRound();
+        }
+    }
+
+    private void tryNextRound() {
+        if(zombiesLeft <= 0 && state == ZombiesArenaState.STARTED){
+            doRound();
         }
     }
 
@@ -503,38 +617,111 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
     }
 
-    private void onPlayerDamage(ProxyArgs<EntityDamageEvent> args) {
+    private void onEntityDamaged(ProxyArgs<EntityDamageEvent> args) {
+        EntityDamageEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
-        if (managedPlayer != null && !managedPlayer.isAlive()) {
-            args.getEvent().setCancelled(true);
+
+        if (managedPlayer != null) {
+            Player player = managedPlayer.getPlayer();
+            if(player.getHealth() <= event.getFinalDamage()) {
+                Location location = player.getLocation();
+
+                for (double y = location.getY(); y >= 0D; y--){
+                    location.setY(y);
+                    Block block = player.getWorld().getBlockAt(location);
+                    if (!block.getType().isAir()) {
+                        player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    @org.bukkit.event.EventHandler
+    private void onNonManagedEntityDamage(EntityDamageEvent event) {
+        Entity entity = event.getEntity();
+
+        if (entity.getWorld().equals(world) && entity instanceof ItemFrame) {
+            event.setCancelled(true);
         }
     }
 
     private void onEntityDamageByEntity(ProxyArgs<EntityDamageByEntityEvent> args) {
-        Entity damager = args.getEvent().getDamager();
+        EntityDamageByEntityEvent event = args.getEvent();
+        Entity entity = event.getEntity(), damager = event.getDamager();
         ZombiesPlayer damagingPlayer = getPlayerMap().get(damager.getUniqueId());
-        if(damagingPlayer != null && !damagingPlayer.isAlive()) {
-            args.getEvent().setCancelled(true);
+
+        if (damagingPlayer != null && entity instanceof Mob) {
+            Mob mob = (Mob) entity;
+
+            if(!damagingPlayer.isAlive()) {
+                event.setCancelled(true);
+            } else if (getEntitySet().contains(mob.getUniqueId())) {
+                HotbarManager hotbarManager = damagingPlayer.getHotbarManager();
+                HotbarObject hotbarObject = hotbarManager.getSelectedObject();
+
+                if (hotbarObject instanceof MeleeWeapon) {
+                    MeleeWeapon<?, ?> meleeWeapon = (MeleeWeapon<?, ?>) hotbarObject;
+                    event.setCancelled(true);
+
+                    if (meleeWeapon.isUsable()) {
+                        meleeWeapon.attack(mob);
+                    }
+                }
+            }
         }
     }
 
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
         args.getEvent().setCancelled(true); //cancel death event
 
-        ZombiesPlayer managedPlayer = args.getManagedPlayer();
-        managedPlayer.knock();
+        if (state == ZombiesArenaState.STARTED) {
+            ZombiesPlayer knocked = args.getManagedPlayer();
 
-        for(ZombiesPlayer player : getPlayerMap().values()) {
-            if(player.isAlive()) {
-                return; //return if there are any players still alive
+            if (knocked != null) {
+                knocked.knock();
+
+                for (ZombiesPlayer player : getPlayerMap().values()) {
+                    if (player.isAlive()) {
+                        Player knockedBukkitPlayer = knocked.getPlayer();
+                        RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
+                        String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+
+                        //display death message only if necessary
+                        for (ZombiesPlayer otherPlayer : getPlayerMap().values()) {
+                            if (otherPlayer != knocked) {
+                                otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
+                                        .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
+                                        .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                        Duration.ofSeconds(3), Duration.ofSeconds(1))));
+
+
+                                otherPlayer.getPlayer().playSound(Sound.sound(
+                                        Key.key("minecraft:entity.ender_dragon.growl"),
+                                        Sound.Source.MASTER,
+                                        1.0F,
+                                        0.5F
+                                ));
+                            }
+                        }
+
+                        return; //return if there are any players still alive
+                    }
+                }
+
+                doLoss(); //there are no players alive, so end the game
+
+                // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
+                for (ZombiesPlayer player : getPlayerMap().values()) {
+                    player.kill();
+                    Corpse corpse = player.getCorpse();
+                    if (corpse != null) {
+                        corpse.terminate();
+                    }
+                }
             }
         }
-
-        for(ZombiesPlayer player : getPlayerMap().values()) {
-            player.kill();
-        }
-
-        doLoss(); //there are no players alive, so end the game
     }
 
     private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
@@ -553,6 +740,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if (noPurchases) {
                 player.getHotbarManager().click(event.getAction());
             }
+        }
+
+        event.setCancelled(true);
+    }
+
+    @org.bukkit.event.EventHandler
+    private void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        Entity entity = event.getRightClicked();
+
+        if (entity.getWorld().equals(world) && entity instanceof ItemFrame) {
+            event.setCancelled(true);
         }
     }
 
@@ -574,6 +772,33 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    private void onPlayerSwapHandItems(ProxyArgs<PlayerSwapHandItemsEvent> args) {
+        args.getEvent().setCancelled(true);
+    }
+
+    private void onPlayerDropItem(ProxyArgs<PlayerDropItemEvent> args) {
+        PlayerDropItemEvent event = args.getEvent();
+        ItemStack stack = event.getPlayer().getInventory().getItem(EquipmentSlot.HAND);
+
+        if(stack == null || stack.getType() == Material.AIR) {
+            event.setCancelled(true);
+        }
+        else {
+            event.getItemDrop().remove();
+            stack.setAmount(stack.getAmount() + 1);
+            event.getPlayer().updateInventory();
+        }
+    }
+
+    private void onPlayerMove(ProxyArgs<PlayerMoveEvent> args) {
+        if(args.getManagedPlayer().getState() == ZombiesPlayerState.KNOCKED) {
+            //disgusting! but works (allows head rotation but not movement)
+            if(!args.getEvent().getFrom().toVector().equals(args.getEvent().getTo().toVector())) {
+                args.getEvent().setCancelled(true);
+            }
+        }
+    }
+
     private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
         PlayerAnimationEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
@@ -584,7 +809,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onPlayerSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
+    private void onPlayerToggleSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
         PlayerToggleSneakEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
@@ -623,12 +848,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         args.getEvent().setCancelled(true);
     }
 
-    private void onPlayerFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
+    private void onFoodLevelChange(ProxyArgs<FoodLevelChangeEvent> args) {
         FoodLevelChangeEvent event = args.getEvent();
         event.setCancelled(true);
     }
 
-    private void onPlayerInventoryClick(ManagedInventoryEventArgs<InventoryClickEvent> args) {
+    private void onPlayerInventoryClick(ProxyArgs<InventoryClickEvent> args) {
         InventoryClickEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = getPlayerMap().get(event.getWhoClicked().getUniqueId());
         if (managedPlayer != null) {
@@ -686,11 +911,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void doRound() {
-        for(ZombiesPlayer player : getPlayerMap().values()) { //respawn players who may have died
-            if(!player.isAlive()) {
-                player.respawn();
-            }
-        }
+        //respawn players
+        getPlayerMap().values().stream().filter(player -> !player.isAlive()).forEach(ZombiesPlayer::respawn);
 
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
         int currentRoundIndex = currentRoundProperty.getValue(this);
@@ -707,10 +929,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
 
-                waveSpawnerTasks.add(Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), () -> {
-                    spawner.spawnWave(wave);
-                    waveSpawnerTasks.remove(0);
-                }, cumulativeDelay));
+                runTaskLater(cumulativeDelay, () -> {
+                    List<ActiveMob> spawnedMobs = spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
+                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false);
+
+                    for(ActiveMob activeMob : spawnedMobs) {
+                        MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
+                                Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
+                    }
+                });
             }
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
@@ -718,7 +945,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
                         currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (currentRoundIndex + 1);
                 r.getPlayer().sendTitle(messageTitle, "");
-                r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 0.5f);
+                r.getPlayer().playSound(Sound.sound(
+                        Key.key("minecraft:entity.wither.spawn"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        0.5F
+                ));
             });
 
             if(getMap().getDisablePowerUpRound().contains(currentRoundIndex + 1)) {
@@ -735,20 +967,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    public void startTimeout() {
-        if(timeoutTaskId == -1) {
-            timeoutTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(Zombies.getInstance(), this::dispose,
-                    emptyTimeout);
-        }
-    }
-
-    public void resetTimeout() {
-        if(timeoutTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(timeoutTaskId);
-            timeoutTaskId = -1;
-        }
-    }
-
     /**
      * Win code here
      */
@@ -760,7 +978,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
         });
-        waitAndDispose(200);
+        runTaskLater(200L, this::dispose);
     }
 
     /**
@@ -771,10 +989,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         endTimeStamp = System.currentTimeMillis();
         var round = map.getCurrentRoundProperty().getValue(this);
         getPlayerMap().forEach((l,r) -> {
-            r.getPlayer().sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
+            r.getPlayer().sendTitle(ChatColor.RED + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
             r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+            r.getPlayer().sendActionBar(Component.text());
         });
-        waitAndDispose(200);
+        gameScoreboard.run();
+        runTaskLater(200L, this::dispose);
     }
 
     /**
@@ -832,22 +1052,40 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
         getShopEvent(ShopType.DOOR);
 
+        for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
+            TeamMachine teamMachine = (TeamMachine) shop;
+            getResourceManager().addDisposable(teamMachine);
+        }
+
         Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
         if (chestEvent != null) {
             chestEvent.registerHandler(new EventHandler<>() {
+
                 private final Random random = new Random();
                 int rolls = 0;
+
+                {
+                    List<Shop<?>> chests = new ArrayList<>(shopMap.get(ShopType.LUCKY_CHEST));
+                    LuckyChest luckyChest
+                            = (LuckyChest) chests.get(random.nextInt(chests.size()));
+                    luckyChest.setActive(true);
+
+                    RoomData room = map.roomAt(luckyChest.getShopData().getChestLocation());
+                    luckyChestRoom = room != null ? room.getName() : null;
+                }
 
                 @Override
                 public void handleEvent(ShopEventArgs args) {
                     if (++rolls == map.getRollsPerChest()) {
                         LuckyChest luckyChest = (LuckyChest) args.getShop();
-                        luckyChest.toggle(false);
+                        luckyChest.setActive(false);
                         List<Shop<?>> chests = new ArrayList<>(shopMap.get(luckyChest.getShopType()));
                         chests.remove(luckyChest);
 
-                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).toggle(true);
-                        // TODO: set where the chest is
+                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).setActive(true);
+                        RoomData room = map.roomAt(luckyChest.getShopData().getChestLocation());
+                        luckyChestRoom = room != null ? room.getName() : null;
+
                         rolls = 0;
                     }
                 }

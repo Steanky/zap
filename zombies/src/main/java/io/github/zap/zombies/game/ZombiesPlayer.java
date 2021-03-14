@@ -3,7 +3,7 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -12,27 +12,39 @@ import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
+import io.github.zap.zombies.game.perk.FlamingBullets;
+import io.github.zap.zombies.game.perk.FrozenBullets;
+import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Collectors;
 
-public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
+public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager {
+    private static final String FROZEN_BULLETS_ATTRIBUTE_NAME = "frozen_bullets_slowdown";
 
     @Getter
     private final ZombiesArena arena;
@@ -43,9 +55,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
     private final ItemStack[] equipment;
 
+    @Getter
     private Corpse corpse;
 
-    @Setter
     @Getter
     private int coins;
 
@@ -60,11 +72,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
     @Getter
     private final ZombiesHotbarManager hotbarManager;
 
-    // Allow other class to modify the fire rate without modify the logic code itself. Only support
-    // Mollification and Division. Also why remove old multiplier Thamid?
     @Getter
-    @Setter
-    private double fireRateMultiplier = 1;
+    private final State<Double> fireRateMultiplier = new State<>(1D);
 
     @Getter
     private final ZombiesPerks perks;
@@ -96,6 +105,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
 
         this.perks = new ZombiesPerks(this);
+
+        setAliveState();
     }
 
     public void quit() {
@@ -108,7 +119,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
         //noinspection ConstantConditions
         getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
-        hotbarManager.switchProfile(HotbarManager.DEFAULT_PROFILE_NAME);
+        hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
+
+        getPlayer().setExp(0);
+        getPlayer().setLevel(0);
+
+        getPlayer().teleport(arena.getManager().getHubLocation());
     }
 
     @Override
@@ -121,6 +137,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
 
         //noinspection ConstantConditions
         getPlayer().getEquipment().setArmorContents(equipment);
+        hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
     }
 
     @Override
@@ -135,9 +152,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             corpse.destroy();
             corpse = null;
         }
-
-        getPlayer().getInventory().setStorageContents(new ItemStack[35]);
-        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
     }
 
     public void addCoins(int amount) {
@@ -186,6 +200,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             getPlayer().sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
             coins -= amount;
         }
+    }
+
+    public void setCoins(int amount) {
+        coins = Math.max(0, amount);
     }
 
     /**
@@ -296,6 +314,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
             state = ZombiesPlayerState.KNOCKED;
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
+
             corpse = new Corpse(this);
 
             getPerks().disableAll();
@@ -314,11 +333,18 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
-            setDeadState();
 
-            if(corpse != null) {
-                corpse.terminate();
+            Location corpseLocation = corpse.getLocation();
+            for (Player player : getPlayer().getWorld().getPlayers()) {
+                player.playSound(Sound.sound(
+                        Key.key("minecraft:entity.player.hurt"),
+                        Sound.Source.MASTER,
+                        1.0F,
+                        1.0F
+                ), corpseLocation.getX(), corpseLocation.getY(), corpseLocation.getZ());
             }
+
+            setDeadState();
         }
     }
 
@@ -363,6 +389,49 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         kills++;
     }
 
+    @Override
+    public void onDealsDamage(@NotNull DamageAttempt attempt, @NotNull Mob damaged, double deltaHealth) {
+        int coins = attempt.getCoins(this, damaged);
+
+        if (attempt.ignoresArmor(this, damaged)) {
+            addCoins(coins, "Critical Hit");
+        } else {
+            addCoins(coins);
+        }
+
+        getPlayer().playSound(Sound.sound(
+                Key.key("minecraft:entity.arrow.hit_player"),
+                Sound.Source.MASTER,
+                1.0F,
+                attempt.ignoresArmor(this, damaged) ? 1.5F : 2F
+        ));
+
+        if(damaged.getHealth() <= 0) {
+            incrementKills();
+        }
+        else {
+            FrozenBullets frozenBullets = (FrozenBullets)getPerks().getPerk(PerkType.FROZEN_BULLETS);
+            FlamingBullets flamingBullets = (FlamingBullets) getPerks().getPerk(PerkType.FLAME_BULLETS);
+
+            if(frozenBullets.getCurrentLevel() > 0) {
+                AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+
+                if(speed != null && !AttributeHelper.hasModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME)) {
+                    AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
+                            -1D / ((double)frozenBullets.getCurrentLevel() + 1D), AttributeModifier.Operation.ADD_SCALAR);
+
+                    speed.addModifier(modifier);
+
+                    arena.runTaskLater(frozenBullets.getDuration(), () -> speed.removeModifier(modifier));
+                }
+            }
+
+            if(flamingBullets.getCurrentLevel() > 0) {
+                damaged.setFireTicks(flamingBullets.getDuration());
+            }
+        }
+    }
+
     /**
      * Tries to find and repair a window.
      */
@@ -390,7 +459,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         }
         else { //we already have a target window - make sure it's still in range
             if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
-                    && repairOn) {
+                    && repairOn && isAlive()) {
                 tryRepairWindow(targetWindow);
             }
             else {
@@ -464,27 +533,31 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
      * Checks for corpses to revive or continues reviving the current corpse
      */
     private void checkForCorpses() {
-        int maxDistance = arena.getMap().getReviveRadius();
+        if (isAlive()) {
+            int maxDistance = arena.getMap().getReviveRadius();
 
-        if (targetCorpse == null) {
-            selectNewCorpse();
-        } else if (!targetCorpse.isActive()) {
-            getPlayer().sendActionBar(Component.text());
-            targetCorpse = null;
-
-            selectNewCorpse();
-        } else {
-            double distance = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
-
-            if (distance < maxDistance && reviveOn) {
-                targetCorpse.continueReviving();
-            } else {
+            if (targetCorpse == null) {
+                selectNewCorpse();
+            } else if (!targetCorpse.isActive()) {
                 getPlayer().sendActionBar(Component.text());
-                targetCorpse.setReviver(null);
                 targetCorpse = null;
 
                 selectNewCorpse();
+            } else {
+                double distance = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
+
+                if (distance < maxDistance && reviveOn) {
+                    targetCorpse.continueReviving();
+                } else {
+                    getPlayer().sendActionBar(Component.text());
+                    targetCorpse.setReviver(null);
+                    targetCorpse = null;
+
+                    selectNewCorpse();
+                }
             }
+        } else if (targetCorpse != null) {
+            targetCorpse.setReviver(null);
         }
     }
 
@@ -524,6 +597,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
                 false, false));
         player.setInvulnerable(true);
         player.setInvisible(true);
+        player.setGameMode(GameMode.ADVENTURE);
         endTasks();
     }
 
@@ -535,6 +609,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                 false, false));
         player.setInvulnerable(false);
+        player.setGameMode(GameMode.ADVENTURE);
         startTasks();
     }
 
@@ -543,5 +618,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> {
         ArenaApi.getInstance().applyDefaultCondition(player);
         player.setAllowFlight(true);
         player.setInvisible(true);
+        player.setCollidable(false);
+        player.setGameMode(GameMode.ADVENTURE);
     }
 }

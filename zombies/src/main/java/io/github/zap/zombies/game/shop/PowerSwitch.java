@@ -4,6 +4,8 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -50,15 +52,29 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
 
                     for (Player playerInWorld : getZombiesArena().getWorld().getPlayers()) {
                         playerInWorld.sendTitle(
-                                ChatColor.YELLOW + "Somebody turned on the power!",
-                                ChatColor.GOLD + "what should I put here?",
+                                ChatColor.YELLOW + player.getName() + " turned on the power!",
+                                ChatColor.GOLD + "Shops which require machines are now activated",
                                 20, 60, 20
                         );
+                        playerInWorld.playSound(Sound.sound(
+                                Key.key("minecraft:entity.blaze.death"),
+                                Sound.Source.MASTER,
+                                1.0F,
+                                2.0F
+                        ));
                     }
 
                     onPurchaseSuccess(zombiesPlayer);
+                    return true;
                 }
             }
+
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    0.5F
+            ));
 
             return true;
         }

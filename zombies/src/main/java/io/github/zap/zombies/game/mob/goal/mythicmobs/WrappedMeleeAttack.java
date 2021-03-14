@@ -16,6 +16,7 @@ public class WrappedMeleeAttack extends MythicWrapper {
     private final double speed;
     private final int attackInterval;
     private final float attackReachSquared;
+    private final int targetDeviation;
 
     private final WrappedZombiesPathfinder.AttributeValue[] attributes;
 
@@ -24,6 +25,7 @@ public class WrappedMeleeAttack extends MythicWrapper {
         speed = mlc.getDouble("speed", 1);
         attackInterval = mlc.getInteger("attackTicks", 20);
         attackReachSquared = mlc.getFloat("attackReachSquared", 2);
+        targetDeviation = mlc.getInteger("targetDeviation", 0);
         double knockback = mlc.getDouble("knockback", 0);
 
         ActiveMob mob = MythicMobs.inst().getAPIHelper().getMythicMobInstance(entity.getBukkitEntity());
@@ -50,7 +52,7 @@ public class WrappedMeleeAttack extends MythicWrapper {
     @Override
     public PathfinderGoal create() {
         return new WrappedZombiesPathfinder(entity, new OptimizedMeleeAttack((EntityCreature)getHandle(),
-                speed, attackInterval, attackReachSquared), getRetargetInterval(), attributes);
+                speed, attackInterval, attackReachSquared, targetDeviation), getRetargetInterval(), attributes);
     }
 
     @Override

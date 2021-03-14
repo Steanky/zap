@@ -7,9 +7,10 @@ import lombok.Getter;
  */
 @Getter
 public class ZapperGunLevel extends LinearGunLevel {
-
     private int maxChainedEntities;
 
     private double maxChainDistance;
+
+    private double aoeHitDamageFactor;
 
 }

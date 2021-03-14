@@ -8,6 +8,8 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -65,8 +67,18 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                                 < upgradeableEquipment.getEquipmentData().getLevels().size()) {
                             upgradeableEquipment.upgrade();
 
+
+                            player.playSound(Sound.sound(
+                                    Key.key("minecraft:entity.player.levelup"),
+                                    Sound.Source.MASTER,
+                                    1.0F,
+                                    1.0F
+                            ));
+
                             zombiesPlayer.subtractCoins(cost);
                             onPurchaseSuccess(zombiesPlayer);
+
+                            return true;
                         } else {
                             player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
                         }
@@ -77,6 +89,13 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
             } else {
                 player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
+
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    0.5F
+            ));
 
             return true;
         }

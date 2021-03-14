@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun;
 
-import io.github.zap.zombies.Zombies;
+import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
@@ -12,12 +12,15 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
 
 /**
  * Represents a basic gun
@@ -34,7 +37,11 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     private boolean canReload = true;
 
+    private int reloadTask = -1;
+
     private boolean canShoot = true;
+
+    private int fireDelayTask = -1;
 
     public Gun(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
         super(zombiesArena, zombiesPlayer, slot, equipmentData);
@@ -49,6 +56,16 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         GunLevel gunLevel = getCurrentLevel();
         setAmmo(gunLevel.getAmmo());
         setClipAmmo(gunLevel.getClipAmmo());
+
+        BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
+        if (reloadTask != -1) {
+            bukkitScheduler.cancelTask(reloadTask);
+        }
+        if (fireDelayTask != -1) {
+            bukkitScheduler.cancelTask(fireDelayTask);
+        }
+
+        canReload = canShoot = true;
     }
 
     /**
@@ -64,7 +81,6 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 canShoot = false;
 
                 Player player = getPlayer();
-                player.sendActionBar(Component.text("RELOADING").color(NamedTextColor.YELLOW));
                 player.playSound(
                         Sound.sound(
                                 Key.key("minecraft:entity.horse.gallop"),
@@ -74,7 +90,13 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         )
                 );
 
-                new BukkitRunnable() {
+                reloadTask = getZombiesArena().runTaskTimer(0L, 1L, new Runnable() {
+
+                    private final Component reloadingComponent = Component
+                            .text("RELOADING")
+                            .color(NamedTextColor.RED)
+                            .decorate(TextDecoration.BOLD);
+
                     private final int reloadRate = level.getReloadRate();
                     private final int maxVal = getEquipmentData().getMaterial().getMaxDurability();
 
@@ -84,20 +106,29 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                     public void run() {
                         if (step < reloadRate) {
                             setItemDamage(maxVal - (++step * maxVal) / reloadRate);
+                            if (isSelected()) {
+                                player.sendActionBar(reloadingComponent);
+                            }
                         } else {
                             setItemDamage(0);
 
                             int newClip = Math.min(clipAmmo, currentAmmo);
                             setClipAmmo(newClip);
 
-                            getPlayer().sendActionBar(Component.text());
+                            if (isSelected()) {
+                                getPlayer().sendActionBar(Component.text());
+                            }
 
                             canReload = true;
-                            canShoot = true;
-                            cancel();
+                            if (fireDelayTask == -1 && currentAmmo > 0) {
+                                canShoot = true;
+                            }
+                            reloadTask = -1;
+                            getZombiesArena();
                         }
                     }
-                }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
+
+                }).getTaskId();
             }
         }
     }
@@ -117,9 +148,11 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         Player player = getPlayer();
 
         // Animate xp bar
-        new BukkitRunnable() {
+        fireDelayTask = getZombiesArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
+
             private final int goal =
-                    (int) (getCurrentLevel().getFireRate() * getZombiesPlayer().getFireRateMultiplier());
+                    (int)Math.round(getCurrentLevel().getFireRate()
+                            * getZombiesPlayer().getFireRateMultiplier().getValue());
             private final float stepVal = 1F / goal;
             private int step = 0;
 
@@ -135,13 +168,15 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         player.setExp(1);
                     }
 
-                    if (canReload) {
+                    if (canReload && currentAmmo > 0) {
                         canShoot = true;
                     }
+                    fireDelayTask = -1;
                     cancel();
                 }
             }
-        }.runTaskTimer(Zombies.getInstance(), 0L, 1L);
+
+        }).getTaskId();
         if (currentClipAmmo == 0) {
             if (currentAmmo > 0) {
                 reload();
@@ -151,7 +186,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         }
 
         Sound sound = getEquipmentData().getSound();
-        player.playSound(sound);
+
+        Location playerLocation = player.getLocation();
+        player.getWorld().playSound(sound, playerLocation.getX(), playerLocation.getY(), playerLocation.getZ());
     }
 
     /**
@@ -173,7 +210,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      */
     public void setAmmo(int ammo) {
         currentAmmo = ammo;
-        if (isVisible()) {
+        if (isVisible() && isSelected()) {
             updateAmmo();
         }
     }
@@ -256,5 +293,4 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * Shoots the gun
      */
     public abstract void shoot();
-
 }

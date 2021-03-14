@@ -19,6 +19,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.*;
@@ -161,6 +162,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     @Override
     public void unloadArena(ZombiesArena arena) {
+        for(Player player : arena.getWorld().getPlayers()) { //tp out any players that could prevent us from unloading
+            player.teleport(getHubLocation());
+        }
+
         managedArenas.remove(arena.getId());
 
         //we are doing a single-world, single-arena approach so no need to check for other arenas sharing this world

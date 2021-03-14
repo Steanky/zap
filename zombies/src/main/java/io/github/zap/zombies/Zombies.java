@@ -22,8 +22,7 @@ import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedArrowShoot;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
-import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
-import io.github.zap.zombies.game.mob.mechanic.SpawnMobMechanic;
+import io.github.zap.zombies.game.mob.mechanic.*;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -36,7 +35,6 @@ import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import io.lumine.xikage.mythicmobs.volatilecode.handlers.VolatileAIHandler;
 import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16_R3;
 import lombok.Getter;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -99,11 +97,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private CommandManager commandManager;
 
-    @Getter
-    private MoveWaterFallAfterBeta mockedWaterfall;
-
     public static final String DEFAULT_LOCALE = "en_US";
-    public static final String DEFAULT_LOBBY_WORLD = "world";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
@@ -111,10 +105,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     public static final String ARENA_METADATA_NAME = "zombies_arena";
-    public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
-    public static final String SPAWNINFO_ENTRY_METADATA_NAME = "spawninfo_metadata";
     public static final String SPAWNINFO_WAVE_METADATA_NAME = "spawninfo_wave_metadata";
     public static final String WINDOW_METADATA_NAME = "spawn_window";
+
     @Override
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();
@@ -122,17 +115,17 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
-            initConfig();
             initProxy();
+            initConfig();
             initDependencies();
             initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class,
                     WrappedArrowShoot.class);
-            initMechanics(CobwebMechanic.class, SpawnMobMechanic.class);
+            initMechanics(CobwebMechanic.class, SpawnMobMechanic.class, StealCoinsMechanic.class,
+                    SlowFireRateMechanic.class, SummonMountMechanic.class, TeleportBehindTargetMechanic.class);
             initPlayerDataManager();
             initLocalization();
             initWorldLoader();
             initArenaManagers();
-            initMockedWaterfall();
             initCommands();
         }
         catch(LoadFailureException exception)
@@ -145,13 +138,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         timer.stop();
         info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-    }
-
-    private void initMockedWaterfall() {
-        mockedWaterfall = new MoveWaterFallAfterBeta();
-        getServer().getPluginManager().registerEvents(mockedWaterfall, this);
-        var world = Validate.notNull(getServer().getWorld("world"), "Cannot find lobby world!");
-        mockedWaterfall.setLobbyLocation(world.getSpawnLocation());
     }
 
     @Override
@@ -196,7 +182,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
-        config.addDefault(ConfigNames.LOBBY_WORLD, DEFAULT_LOBBY_WORLD);
+        config.addDefault(ConfigNames.LOBBY_WORLD, nmsProxy.getDefaultWorldName());
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -250,7 +236,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                     }
                 }
             } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-                warning("Reflection-related exception when initializing pathfinding.");
+                throw new LoadFailureException("Reflection-related exception when initializing pathfinding.");
             }
         }
         else {
@@ -280,11 +266,11 @@ public final class Zombies extends JavaPlugin implements Listener {
                     info("Loaded custom MythicMobs mechanic " + customMechanic.getName());
                 }
                 else {
-                    warning("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
+                    throw new LoadFailureException("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-            warning("Reflection-related exception when initializing mechanics.");
+            throw new LoadFailureException("Reflection-related exception when initializing mechanics.");
         }
     }
 

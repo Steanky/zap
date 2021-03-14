@@ -10,6 +10,10 @@ import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
+import io.github.zap.zombies.game.perk.Perk;
+import io.github.zap.zombies.game.perk.ZombiesPerks;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -84,7 +88,22 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                             PerkObjectGroup perkObjectGroup =
                                     (PerkObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.PERK.name());
                             if (perkObjectGroup != null) {
+                                ZombiesPerks zombiesPerks = zombiesPlayer.getPerks();
                                 Integer slot = perkObjectGroup.getNextEmptySlot();
+                                if (slot == null) {
+                                    int heldSlot = player.getInventory().getHeldItemSlot();
+                                    if (perkObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
+                                        HotbarObject perkObject = perkObjectGroup.getHotbarObject(slot = heldSlot);
+                                        if (perkObject instanceof PerkEquipment) {
+                                            Perk<?> perk = zombiesPerks.getPerk(
+                                                    (((PerkEquipment) perkObject).getEquipmentData().getPerkType())
+                                            );
+                                            while (perk.getCurrentLevel() > 0) {
+                                                perk.downgrade();
+                                            }
+                                        }
+                                    }
+                                }
                                 if (slot != null) {
                                     zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
 
@@ -98,7 +117,17 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                                     perkMachineData.getPerkName()
                                             ));
 
+                                    player.playSound(Sound.sound(
+                                            Key.key("minecraft:entity.firework_rocket.twinkle"),
+                                            Sound.Source.MASTER,
+                                            1.0F,
+                                            1.0F
+                                    ));
+
+                                    zombiesPlayer.subtractCoins(cost);
                                     onPurchaseSuccess(zombiesPlayer);
+
+                                    return true;
                                 } else {
                                     player.sendMessage(ChatColor.RED + "Choose a slot to receive the perk in!");
                                 }
@@ -121,6 +150,8 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                             zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
 
                             onPurchaseSuccess(zombiesPlayer);
+
+                            return true;
                         }
                     } else {
                         player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
@@ -129,6 +160,13 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
             } else {
                 player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
+
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    0.5F
+            ));
 
             return true;
         }

@@ -61,12 +61,7 @@ public class HotbarObjectGroup {
      */
     public void remove(int slot, boolean replace) {
         if (hotbarObjectMap.containsKey(slot)) {
-            HotbarObject remove;
-            if (!replace) {
-                remove = hotbarObjectMap.remove(slot);
-            } else {
-                remove = hotbarObjectMap.get(slot);
-            }
+            HotbarObject remove = (!replace) ? hotbarObjectMap.remove(slot) : hotbarObjectMap.get(slot);
             remove.remove();
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup does not manage slot %s!", slot));
@@ -89,7 +84,7 @@ public class HotbarObjectGroup {
      * @param slot The slot to add the empty hotbar object to
      */
     public void addHotbarObject(int slot) {
-        addHotbarObject(slot, new HotbarObject(player, slot));
+        addHotbarObject(slot, createDefaultHotbarObject(player, slot));
     }
 
     /**
