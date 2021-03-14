@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.ObjectDisposedException;
-import lombok.SneakyThrows;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

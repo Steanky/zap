@@ -10,6 +10,9 @@ public class FrozenBullets extends MarkerPerk {
     @Getter
     private final int duration;
 
+    @Getter
+    private double slowdownFactor;
+
     public FrozenBullets(ZombiesPlayer owner, int maxLevel, boolean resetLevelOnDisable, double slowdownFactor, int duration) {
         super(owner, maxLevel, resetLevelOnDisable);
         this.baseSlowdownFactor = slowdownFactor;
@@ -22,11 +25,11 @@ public class FrozenBullets extends MarkerPerk {
             throw new ObjectDisposedException();
         }
 
-        //slowdownFactor = baseSlowdownFactor / getCurrentLevel() + 2;
+        slowdownFactor = baseSlowdownFactor / getCurrentLevel() + 1;
     }
 
     @Override
     public void deactivate() {
-        //slowdownFactor = baseSlowdownFactor;
+        slowdownFactor = baseSlowdownFactor;
     }
 }

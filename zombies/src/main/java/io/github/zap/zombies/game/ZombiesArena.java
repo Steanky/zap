@@ -294,8 +294,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         private boolean checkSLA(SpawnpointData target, double slaSquared) {
             for(ZombiesPlayer player : getPlayerMap().values()) {
-                if(player.getPlayer().getLocation().toVector().distanceSquared(target.getSpawn()) <= slaSquared) {
-                    return true;
+                Player bukkitPlayer = player.getPlayer();
+
+                if(bukkitPlayer != null) {
+                    if(bukkitPlayer.getLocation().toVector().distanceSquared(target.getSpawn()) <= slaSquared) {
+                        return true;
+                    }
                 }
             }
 
@@ -686,15 +690,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 knocked.knock();
 
                 for (ZombiesPlayer player : getPlayerMap().values()) {
-                    if (player.isAlive()) {
-                        Player knockedBukkitPlayer = knocked.getPlayer();
-                        RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
+                    Player bukkitPlayer = player.getPlayer();
+
+                    if (player.isAlive() && bukkitPlayer != null) {
+                        RoomData knockedRoom = map.roomAt(bukkitPlayer.getLocation().toVector());
                         String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
 
                         //display death message only if necessary
                         for (ZombiesPlayer otherPlayer : getPlayerMap().values()) {
-                            if (otherPlayer != knocked) {
-                                otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
+                            Player otherBukkitPlayer = otherPlayer.getPlayer();
+
+                            if (otherPlayer != knocked && otherBukkitPlayer != null) {
+                                otherBukkitPlayer.showTitle(Title.title(Component.text(bukkitPlayer.getName())
                                         .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
                                         .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
                                         Duration.ofSeconds(3), Duration.ofSeconds(1))));
@@ -731,7 +738,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         PlayerInteractEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
 
-        if(event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+        if(player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
             boolean noPurchases = true;
             for (Shop<?> shop : shops) {
                 if (shop.purchase(args)) {
@@ -761,7 +768,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         PlayerInteractAtEntityEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
 
-        if (event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+        if (player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
             boolean noPurchases = true;
             for (Shop<?> shop : shops) {
                 if (shop.purchase(args)) {
@@ -794,7 +801,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerMove(ProxyArgs<PlayerMoveEvent> args) {
-        if(args.getManagedPlayer().getState() == ZombiesPlayerState.KNOCKED) {
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+
+        if(managedPlayer != null && managedPlayer.getState() == ZombiesPlayerState.KNOCKED) {
             //disgusting! but works (allows head rotation but not movement)
             if(!args.getEvent().getFrom().toVector().equals(args.getEvent().getTo().toVector())) {
                 args.getEvent().setCancelled(true);
@@ -807,7 +816,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer player = args.getManagedPlayer();
 
         // why does Bukkit only have one animation type?
-        if (event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
+        if (player != null && event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
             player.getHotbarManager().click(Action.LEFT_CLICK_BLOCK);
         }
     }
@@ -816,15 +825,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         PlayerToggleSneakEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
-        if(event.isSneaking()) {
-            if (managedPlayer.isAlive()) {
-                managedPlayer.activateRepair();
-                managedPlayer.activateRevive();
+        if(managedPlayer != null) {
+            if(event.isSneaking()) {
+                if (managedPlayer.isAlive()) {
+                    managedPlayer.activateRepair();
+                    managedPlayer.activateRevive();
+                }
             }
-        }
-        else {
-            managedPlayer.disableRepair();
-            managedPlayer.disableRevive();
+            else {
+                managedPlayer.disableRepair();
+                managedPlayer.disableRevive();
+            }
         }
     }
 
@@ -832,7 +843,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         PlayerItemHeldEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
-        managedPlayer.getHotbarManager().setSelectedSlot(event.getNewSlot());
+        if(managedPlayer != null) {
+            managedPlayer.getHotbarManager().setSelectedSlot(event.getNewSlot());
+        }
     }
 
     private void onPlayerItemConsume(ProxyArgs<PlayerItemConsumeEvent> args) {
@@ -862,7 +875,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         if (managedPlayer != null) {
             Player player = managedPlayer.getPlayer();
 
-            if (player.getInventory().equals(event.getClickedInventory())) {
+            if (player != null && player.getInventory().equals(event.getClickedInventory())) {
                 event.setCancelled(true);
             }
         }
@@ -983,8 +996,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         endTimeStamp = System.currentTimeMillis();
         var round = map.getCurrentRoundProperty().getValue(this);
         getPlayerMap().forEach((l,r) -> {
-            r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
-            r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+            Player bukkitPlayer = r.getPlayer();
+
+            if(bukkitPlayer != null) {
+                r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
+                r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+            }
         });
         runTaskLater(200L, this::dispose);
     }

@@ -103,65 +103,70 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
 
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
-                if (armorLevel == null) {
-                    player.sendMessage(ChatColor.RED + "You already have the max level of this armor!");
-                } else {
-                    int cost = armorLevel.getCost();
+            if(zombiesPlayer != null) {
+                Player bukkitPlayer = zombiesPlayer.getPlayer();
 
-                    if (zombiesPlayer.getCoins() < cost) {
-                        player.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                    } else {
-                        // Choose the best equipments
-                        Material[] materials = armorLevel.getMaterials();
-                        //noinspection ConstantConditions
-                        ItemStack[] current = player.getEquipment().getArmorContents();
-                        for (int i = 0; i < 4; i++) {
-                            Material material = materials[i];
-                            ItemStack itemStack = current[i];
+                if(bukkitPlayer != null) {
+                    if (!getShopData().isRequiresPower() || isPowered()) {
+                        ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(bukkitPlayer);
+                        if (armorLevel == null) {
+                            bukkitPlayer.sendMessage(ChatColor.RED + "You already have the max level of this armor!");
+                        } else {
+                            int cost = armorLevel.getCost();
 
-                            if (material != null) {
-                                if (itemStack != null
-                                        && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
-                                    itemStack.setType(material);
-                                } else {
-                                    current[i] = new ItemStack(material);
+                            if (zombiesPlayer.getCoins() < cost) {
+                                bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                            } else {
+                                // Choose the best equipments
+                                Material[] materials = armorLevel.getMaterials();
+                                //noinspection ConstantConditions
+                                ItemStack[] current = bukkitPlayer.getEquipment().getArmorContents();
+                                for (int i = 0; i < 4; i++) {
+                                    Material material = materials[i];
+                                    ItemStack itemStack = current[i];
+
+                                    if (material != null) {
+                                        if (itemStack != null
+                                                && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
+                                            itemStack.setType(material);
+                                        } else {
+                                            current[i] = new ItemStack(material);
+                                        }
+                                    }
+
                                 }
-                            }
 
+                                bukkitPlayer.playSound(Sound.sound(
+                                        Key.key("block.note_block.pling"),
+                                        Sound.Source.MASTER,
+                                        1.0F,
+                                        2.0F
+                                ));
+
+                                zombiesPlayer.updateEquipment(current);
+                                zombiesPlayer.subtractCoins(cost);
+
+                                displayTo(bukkitPlayer);
+                                onPurchaseSuccess(zombiesPlayer);
+                                return true;
+                            }
                         }
 
-                        player.playSound(Sound.sound(
-                                Key.key("block.note_block.pling"),
-                                Sound.Source.MASTER,
-                                1.0F,
-                                2.0F
-                        ));
-
-                        zombiesPlayer.updateEquipment(current);
-                        zombiesPlayer.subtractCoins(cost);
-
-                        displayTo(player);
-                        onPurchaseSuccess(zombiesPlayer);
-                        return true;
+                    } else {
+                        bukkitPlayer.sendMessage(ChatColor.RED + "The power is not active yet!");
                     }
+
+                    bukkitPlayer.playSound(Sound.sound(
+                            Key.key("minecraft:entity.enderman.teleport"),
+                            Sound.Source.MASTER,
+                            1.0F,
+                            0.5F
+                    ));
+
+                    return true;
                 }
-
-            } else {
-                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
-
-            player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.enderman.teleport"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    0.5F
-            ));
-
-            return true;
         }
         return false;
     }

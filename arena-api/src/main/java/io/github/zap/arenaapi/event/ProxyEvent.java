@@ -1,8 +1,6 @@
 package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.ObjectDisposedException;
-import io.github.zap.arenaapi.Unique;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -11,7 +9,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 
 /**
  * Class that proxies Bukkit events to ArenaApi ones for better encapsulation and control. Event registration with

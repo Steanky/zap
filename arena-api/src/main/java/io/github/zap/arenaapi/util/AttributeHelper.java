@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.util;
 
-import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.AttributeInstance;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,19 +1,9 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GuardianGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
-import org.bukkit.EntityEffect;
 import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 
 /**

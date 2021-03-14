@@ -8,16 +8,13 @@ import io.github.zap.zombies.game.data.map.SpawnEntryData;
 import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
-import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -102,5 +99,6 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
         }
 
         getArena().getMythicMobDeathEvent().removeHandler(this::onMobDeath);
+        disposed = true;
     }
 }

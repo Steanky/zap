@@ -5,9 +5,7 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;

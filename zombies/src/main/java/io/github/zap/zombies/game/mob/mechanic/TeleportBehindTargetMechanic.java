@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.mob.mechanic;
 
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
@@ -8,7 +7,6 @@ import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
-import net.minecraft.server.v1_16_R3.RayTrace;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.util.RayTraceResult;

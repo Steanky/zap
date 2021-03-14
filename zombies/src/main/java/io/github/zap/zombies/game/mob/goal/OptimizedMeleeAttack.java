@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Particle;
 
 import java.util.EnumSet;
 

@@ -59,25 +59,31 @@ public class Corpse {
     public Corpse(ZombiesPlayer zombiesPlayer) {
         this.nmsProxy = Zombies.getInstance().getNmsProxy();
         this.zombiesPlayer = zombiesPlayer;
-        this.location = zombiesPlayer.getPlayer().getLocation();
-        this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
-        this.hologram = new Hologram(location.clone().add(0, 1, 0));
-        this.deathTime = defaultDeathTime;
-        this.id = this.nmsProxy.nextEntityId();
 
-        hologram.addLine(ChatColor.YELLOW + "----------------------------------");
-        hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
+        if(zombiesPlayer.getPlayer() != null) {
+            this.location = zombiesPlayer.getPlayer().getLocation();
+            this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
+            this.hologram = new Hologram(location.clone().add(0, 1, 0));
+            this.deathTime = defaultDeathTime;
+            this.id = this.nmsProxy.nextEntityId();
 
-        hologram.addLine(String.format("%s%fs", ChatColor.RED, TimeUtil.convertTicksToSeconds(defaultDeathTime)));
-        hologram.addLine(ChatColor.YELLOW + "----------------------------------");
+            hologram.addLine(ChatColor.YELLOW + "----------------------------------");
+            hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
 
-        ZombiesArena zombiesArena = zombiesPlayer.getArena();
-        zombiesArena.getCorpses().add(this);
-        zombiesArena.getAvailableCorpses().add(this);
-        zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+            hologram.addLine(String.format("%s%fs", ChatColor.RED, TimeUtil.convertTicksToSeconds(defaultDeathTime)));
+            hologram.addLine(ChatColor.YELLOW + "----------------------------------");
 
-        spawnDeadBody();
-        startDying();
+            ZombiesArena zombiesArena = zombiesPlayer.getArena();
+            zombiesArena.getCorpses().add(this);
+            zombiesArena.getAvailableCorpses().add(this);
+            zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+
+            spawnDeadBody();
+            startDying();
+        }
+        else {
+            throw new IllegalArgumentException("Tried to construct a corpse for a player that does not exist!");
+        }
     }
 
     /**
@@ -126,34 +132,46 @@ public class Corpse {
             active = false;
 
             zombiesPlayer.revive();
-            zombiesPlayer.getPlayer().sendActionBar(Component.empty());
-            reviver.getPlayer().sendActionBar(Component.empty());
+
+            Player thisPlayer = zombiesPlayer.getPlayer();
+            Player reviverPlayer = reviver.getPlayer();
+
+            if(thisPlayer != null && reviverPlayer != null) {
+                thisPlayer.sendActionBar(Component.empty());
+                reviverPlayer.sendActionBar(Component.empty());
+            }
 
             destroy();
         } else {
             double timeRemaining = TimeUtil.convertTicksToSeconds(reviveTime);
             String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
             hologram.updateLine(2, secondsRemainingString);
-            zombiesPlayer.getPlayer().sendActionBar(Component.text(
-                    String.format(
-                            "%sYou are being revived by %s%s! %s- %s!",
-                            ChatColor.RED,
-                            ChatColor.YELLOW,
-                            reviver.getPlayer().getName(),
-                            ChatColor.WHITE,
-                            secondsRemainingString)
-            ));
-            reviver.getPlayer().sendActionBar(Component.text(
-                    String.format(
-                            "%sReviving %s%s... %s- %s!",
-                            ChatColor.RED,
-                            ChatColor.YELLOW,
-                            zombiesPlayer.getPlayer().getName(),
-                            ChatColor.WHITE,
-                            secondsRemainingString)
-            ));
 
-            reviveTime -= 2;
+            Player bukkitPlayer = zombiesPlayer.getPlayer();
+            Player reviverPlayer = reviver.getPlayer();
+
+            if(bukkitPlayer != null && reviverPlayer != null) {
+                bukkitPlayer.sendActionBar(Component.text(
+                        String.format(
+                                "%sYou are being revived by %s%s! %s- %s!",
+                                ChatColor.RED,
+                                ChatColor.YELLOW,
+                                reviverPlayer.getName(),
+                                ChatColor.WHITE,
+                                secondsRemainingString)
+                ));
+                reviverPlayer.sendActionBar(Component.text(
+                        String.format(
+                                "%sReviving %s%s... %s- %s!",
+                                ChatColor.RED,
+                                ChatColor.YELLOW,
+                                bukkitPlayer.getName(),
+                                ChatColor.WHITE,
+                                secondsRemainingString)
+                ));
+
+                reviveTime -= 2;
+            }
         }
     }
 
@@ -190,14 +208,21 @@ public class Corpse {
             zombiesPlayer.kill();
             terminate();
 
-            zombiesPlayer.getPlayer().sendActionBar(Component.text());
+            Player bukkitPlayer = zombiesPlayer.getPlayer();
+            if(bukkitPlayer != null) {
+                bukkitPlayer.sendActionBar(Component.text());
+            }
         } else {
             double timeRemaining = TimeUtil.convertTicksToSeconds(deathTime);
             String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
             hologram.updateLine(2, secondsRemainingString);
-            zombiesPlayer.getPlayer().sendActionBar(Component.text(
-                    String.format("%sYou will die in %s%s!", ChatColor.RED, ChatColor.YELLOW, secondsRemainingString)
-            ));
+
+            Player bukkitPlayer = zombiesPlayer.getPlayer();
+            if(bukkitPlayer != null) {
+                zombiesPlayer.getPlayer().sendActionBar(Component.text(
+                        String.format("%sYou will die in %s%s!", ChatColor.RED, ChatColor.YELLOW, secondsRemainingString)
+                ));
+            }
             deathTime -= 2;
         }
     }
@@ -214,14 +239,22 @@ public class Corpse {
     }
 
     private void sendPacket(PacketContainer packetContainer) {
-        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
-            sendPacketToPlayer(packetContainer, player);
+        Player bukkitPlayer = zombiesPlayer.getPlayer();
+
+        if(bukkitPlayer != null) {
+            for (Player player : bukkitPlayer.getWorld().getPlayers()) {
+                sendPacketToPlayer(packetContainer, player);
+            }
         }
     }
 
     private void spawnDeadBody() {
-        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
-            spawnDeadBodyForPlayer(player);
+        Player bukkitPlayer = zombiesPlayer.getPlayer();
+
+        if(bukkitPlayer != null) {
+            for (Player player : bukkitPlayer.getWorld().getPlayers()) {
+                spawnDeadBodyForPlayer(player);
+            }
         }
     }
 
@@ -267,13 +300,19 @@ public class Corpse {
         packetContainer.getIntegers().write(0, id);
         packetContainer.getUUIDs().write(0, uniqueId);
 
-        Location location = zombiesPlayer.getPlayer().getLocation();
-        packetContainer.getDoubles()
-                .write(0, location.getX())
-                .write(1, location.getY())
-                .write(2, location.getZ());
+        Player bukkitPlayer = zombiesPlayer.getPlayer();
 
-        return packetContainer;
+        if(bukkitPlayer != null) {
+            Location location = zombiesPlayer.getPlayer().getLocation();
+            packetContainer.getDoubles()
+                    .write(0, location.getX())
+                    .write(1, location.getY())
+                    .write(2, location.getZ());
+
+            return packetContainer;
+        }
+
+        throw new IllegalArgumentException("Tried to send packet container for player that does not exist!");
     }
 
     private PacketContainer createSleepingPacketContainer() {
@@ -317,7 +356,7 @@ public class Corpse {
 
         sendPacket(killPacketContainer);
 
-        ZombiesArena zombiesArena = getZombiesPlayer().getArena();;
+        ZombiesArena zombiesArena = getZombiesPlayer().getArena();
         terminate();
         zombiesArena.getCorpses().remove(this);
         zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);

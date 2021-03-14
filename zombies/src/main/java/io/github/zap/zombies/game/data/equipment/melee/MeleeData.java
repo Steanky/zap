@@ -16,7 +16,6 @@ import java.util.List;
  * Data for a melee weapon
  * @param <L> The level type of the melee weapon
  */
-@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class MeleeData<L extends MeleeLevel> extends EquipmentData<L> {
 
