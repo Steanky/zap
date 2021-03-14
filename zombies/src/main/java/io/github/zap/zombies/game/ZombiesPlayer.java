@@ -152,8 +152,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             corpse.destroy();
             corpse = null;
         }
-
-        getPlayer().getInventory().clear();
     }
 
     public void addCoins(int amount) {

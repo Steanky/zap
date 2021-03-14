@@ -4,9 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
@@ -52,8 +50,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
             inGame = false;
 
             if(player.isOnline()) {
-                player.getInventory().setStorageContents(new ItemStack[35]);
-                player.getEquipment().setArmorContents(new ItemStack[4]);
+                player.getInventory().clear();
                 player.setExp(0);
                 player.teleport(getArena().getManager().getHubLocation());
                 player.updateInventory();
