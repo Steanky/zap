@@ -278,7 +278,17 @@ public class Corpse {
         WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
 
         Object nmsPose = EnumWrappers.EntityPose.SLEEPING.toNms();
-        wrappedDataWatcher.setObject(6, WrappedDataWatcher.Registry.get(nmsPose.getClass()), nmsPose);
+        WrappedDataWatcher.Serializer poseSerializer = WrappedDataWatcher.Registry.get(nmsPose.getClass());
+        WrappedDataWatcher.WrappedDataWatcherObject pose
+                = new WrappedDataWatcher.WrappedDataWatcherObject(6, poseSerializer);
+
+        WrappedDataWatcher.Serializer overlaySerializer = WrappedDataWatcher.Registry.get(Byte.class);
+        WrappedDataWatcher.WrappedDataWatcherObject overlay
+                = new WrappedDataWatcher.WrappedDataWatcherObject(16, overlaySerializer);
+
+
+        wrappedDataWatcher.setObject(pose, nmsPose);
+        wrappedDataWatcher.setObject(overlay, (byte) 0x7F);
 
         packetContainer.getWatchableCollectionModifier().write(0, wrappedDataWatcher.getWatchableObjects());
 
