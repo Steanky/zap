@@ -207,7 +207,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      */
     public void setAmmo(int ammo) {
         currentAmmo = ammo;
-        if (isSelected()) {
+        if (isVisible() && isSelected()) {
             updateAmmo();
         }
     }
@@ -223,7 +223,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     public void setClipAmmo(int clipAmmo) {
         this.currentClipAmmo = clipAmmo;
 
-        if (isSelected()) {
+        if (isVisible()) {
             updateClipAmmo();
         }
     }
