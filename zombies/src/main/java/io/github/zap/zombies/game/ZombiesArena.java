@@ -57,10 +57,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
@@ -205,7 +202,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                                 //mob failed to spawn; if we're part of a wave, reduce the amt of zombies
                                 if(!updateCount) {
                                     zombiesLeft--;
-                                    tryNextRound();
+                                    checkNextRound();
                                 }
 
                                 Zombies.warning("Mob failed to spawn!");
@@ -477,7 +474,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         mythicMobDespawnEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(),
                 MythicMobDespawnEvent.class), event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
 
-        registerMythicMobsEvents();
         registerArenaEvents();
         registerDisposables();
 
@@ -494,15 +490,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
-    private void registerMythicMobsEvents() {
-        mythicMobDeathEvent.registerHandler(this::onMobDeath);
-        mythicMobDespawnEvent.registerHandler(this::onMobDespawn);
-    }
-
     private void registerArenaEvents() {
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
 
+        getProxyFor(EntityDeathEvent.class).registerHandler(this::onMobDeath);
         getProxyFor(PlayerDropItemEvent.class).registerHandler(this::onPlayerDropItem);
         getProxyFor(PlayerMoveEvent.class).registerHandler(this::onPlayerMove);
         getProxyFor(PlayerSwapHandItemsEvent.class).registerHandler(this::onPlayerSwapHandItems);
@@ -525,8 +517,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void registerDisposables() {
         ResourceManager resourceManager = getResourceManager();
 
-        resourceManager.addDisposable(mythicMobDeathEvent);
-        resourceManager.addDisposable(mythicMobDespawnEvent);
         resourceManager.addDisposable(gameScoreboard);
         resourceManager.addDisposable(powerUpBossBar);
     }
@@ -603,24 +593,20 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onMobDeath(MythicMobDeathEvent args) {
+    private void onMobDeath(ProxyArgs<EntityDeathEvent> args) {
         if(state == ZombiesArenaState.STARTED) {
-            if(getEntitySet().remove(args.getEntity().getUniqueId()) && zombiesLeft > 0) {
+            if(getEntitySet().remove(args.getManagedEntity())) {
                 zombiesLeft--;
             }
 
-            tryNextRound();
+            checkNextRound();
         }
     }
 
-    private void tryNextRound() {
-        if(zombiesLeft <= 0 && state == ZombiesArenaState.STARTED){
+    private void checkNextRound() {
+        if(zombiesLeft == 0 && state == ZombiesArenaState.STARTED){
             doRound();
         }
-    }
-
-    private void onMobDespawn(MythicMobDespawnEvent args) {
-        onMobDeath(new MythicMobDeathEvent(args.getMob(), null, null));
     }
 
     private void onEntityDamaged(ProxyArgs<EntityDamageEvent> args) {
@@ -629,8 +615,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         if (managedPlayer != null) {
             Player player = managedPlayer.getPlayer();
+            ZombiesPlayerState state = managedPlayer.getState();
 
-            if(player != null) {
+            if(player != null && state == ZombiesPlayerState.ALIVE) {
                 if(player.getHealth() <= event.getFinalDamage()) {
                     Location location = player.getLocation();
 
@@ -643,6 +630,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         }
                     }
                 }
+            }
+            else if(state == ZombiesPlayerState.DEAD) {
+                event.setCancelled(true);
             }
         }
     }
@@ -688,7 +678,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         if (state == ZombiesArenaState.STARTED) {
             ZombiesPlayer knocked = args.getManagedPlayer();
 
-            if (knocked != null) {
+            if (knocked != null && knocked.getState() == ZombiesPlayerState.ALIVE) {
                 knocked.knock();
 
                 for (ZombiesPlayer player : getPlayerMap().values()) {

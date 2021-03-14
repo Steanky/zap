@@ -138,16 +138,15 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         public AdaptedEntityEvent(Class<U> eventClass) {
             super(new ProxyEvent<>(plugin, eventClass, EventPriority.NORMAL, false), event -> {
                 UUID entityUUID = event.getEntity().getUniqueId();
-                S managedPlayer = playerMap.get(entityUUID);
 
-                if(managedPlayer != null) {
-                    if(managedPlayer.isInGame()) {
-                        return ImmutablePair.of(true, new ProxyArgs<>(event, Lists.newArrayList(managedPlayer), new ArrayList<>()));
-                    }
+                if(entitySet.contains(entityUUID)) { //only managed entities trigger event
+                    return ImmutablePair.of(true, new ProxyArgs<>(event, new ArrayList<>(), Lists.newArrayList(entityUUID)));
                 }
-                else {
-                    if(entitySet.contains(entityUUID)) { //only managed entities trigger event
-                        return ImmutablePair.of(true, new ProxyArgs<>(event, new ArrayList<>(), Lists.newArrayList(entityUUID)));
+                else if(playerMap.containsKey(entityUUID)) {
+                    S player = playerMap.get(entityUUID);
+
+                    if(player != null) {
+                        return ImmutablePair.of(true, new ProxyArgs<>(event, Lists.newArrayList(player), new ArrayList<>()));
                     }
                 }
 
