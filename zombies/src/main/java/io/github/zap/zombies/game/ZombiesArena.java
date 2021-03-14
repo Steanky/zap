@@ -54,6 +54,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -483,6 +484,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         getMap().getPowerUpSpawnRules()
                 .forEach(x -> powerUpSpawnRules.add(ImmutablePair.of(getPowerUpManager().createSpawnRule(x.left, x.right, this), x.right)));
+
+        Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
     private void registerMythicMobsEvents() {
@@ -534,6 +537,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
+
+        HandlerList.unregisterAll(this);
     }
 
     @Override
@@ -633,6 +638,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    @org.bukkit.event.EventHandler
+    private void onNonManagedEntityDamage(EntityDamageEvent event) {
+        Entity entity = event.getEntity();
+
+        if (entity.getWorld().equals(world) && entity instanceof ItemFrame) {
+            event.setCancelled(true);
+        }
+    }
+
     private void onEntityDamageByEntity(ProxyArgs<EntityDamageByEntityEvent> args) {
         EntityDamageByEntityEvent event = args.getEvent();
         Entity entity = event.getEntity(), damager = event.getDamager();
@@ -662,46 +676,49 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerDeath(ProxyArgs<PlayerDeathEvent> args) {
         args.getEvent().setCancelled(true); //cancel death event
 
-        if(state == ZombiesArenaState.STARTED) {
+        if (state == ZombiesArenaState.STARTED) {
             ZombiesPlayer knocked = args.getManagedPlayer();
-            knocked.knock();
 
-            for(ZombiesPlayer player : getPlayerMap().values()) {
-                if(player.isAlive()) {
-                    Player knockedBukkitPlayer = knocked.getPlayer();
-                    RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
-                    String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+            if (knocked != null) {
+                knocked.knock();
 
-                    //display death message only if necessary
-                    for(ZombiesPlayer otherPlayer : getPlayerMap().values()) {
-                        if(otherPlayer != knocked) {
-                            otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
-                                    .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
-                                    .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
-                                    Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                for (ZombiesPlayer player : getPlayerMap().values()) {
+                    if (player.isAlive()) {
+                        Player knockedBukkitPlayer = knocked.getPlayer();
+                        RoomData knockedRoom = map.roomAt(knockedBukkitPlayer.getLocation().toVector());
+                        String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+
+                        //display death message only if necessary
+                        for (ZombiesPlayer otherPlayer : getPlayerMap().values()) {
+                            if (otherPlayer != knocked) {
+                                otherPlayer.getPlayer().showTitle(Title.title(Component.text(knockedBukkitPlayer.getName())
+                                        .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
+                                        .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                        Duration.ofSeconds(3), Duration.ofSeconds(1))));
 
 
-                            otherPlayer.getPlayer().playSound(Sound.sound(
-                                    Key.key("minecraft:entity.ender_dragon.growl"),
-                                    Sound.Source.MASTER,
-                                    1.0F,
-                                    0.5F
-                            ));
+                                otherPlayer.getPlayer().playSound(Sound.sound(
+                                        Key.key("minecraft:entity.ender_dragon.growl"),
+                                        Sound.Source.MASTER,
+                                        1.0F,
+                                        0.5F
+                                ));
+                            }
                         }
+
+                        return; //return if there are any players still alive
                     }
-
-                    return; //return if there are any players still alive
                 }
-            }
 
-            doLoss(); //there are no players alive, so end the game
+                doLoss(); //there are no players alive, so end the game
 
-            // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
-            for(ZombiesPlayer player : getPlayerMap().values()) {
-                player.kill();
-                Corpse corpse = player.getCorpse();
-                if (corpse != null) {
-                    corpse.terminate();
+                // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
+                for (ZombiesPlayer player : getPlayerMap().values()) {
+                    player.kill();
+                    Corpse corpse = player.getCorpse();
+                    if (corpse != null) {
+                        corpse.terminate();
+                    }
                 }
             }
         }
@@ -728,11 +745,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         event.setCancelled(true);
     }
 
-    private void onPlayerInteractEntity(ProxyArgs<PlayerInteractEntityEvent> args) {
-        PlayerInteractEntityEvent event = args.getEvent();
-        Entity clickedEntity = event.getRightClicked();
+    @org.bukkit.event.EventHandler
+    private void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        Entity entity = event.getRightClicked();
 
-        if (clickedEntity instanceof ItemFrame) {
+        if (entity.getWorld().equals(world) && entity instanceof ItemFrame) {
             event.setCancelled(true);
         }
     }

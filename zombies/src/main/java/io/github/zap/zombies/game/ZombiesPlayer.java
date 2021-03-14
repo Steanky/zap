@@ -616,6 +616,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         ArenaApi.getInstance().applyDefaultCondition(player);
         player.setAllowFlight(true);
         player.setInvisible(true);
+        player.setCollidable(false);
         player.setGameMode(GameMode.ADVENTURE);
     }
 }
