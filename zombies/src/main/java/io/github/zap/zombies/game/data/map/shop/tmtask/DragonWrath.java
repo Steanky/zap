@@ -12,6 +12,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +64,8 @@ public class DragonWrath extends TeamMachineTask implements Damager {
 
     @Override
     public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
+        Player player = zombiesPlayer.getPlayer();
+        if (super.execute(teamMachine, zombiesArena, zombiesPlayer) && player != null) {
             Location location = teamMachine.getBlock().getLocation();
             Set<UUID> mobIds = zombiesArena.getEntitySet();
 
@@ -75,7 +77,7 @@ public class DragonWrath extends TeamMachineTask implements Damager {
                     1.0F
             ), location.getX(), location.getY(), location.getZ());
 
-            zombiesArena.runTaskLater(20L * delay, () -> {
+            zombiesArena.runTaskLater(delay, () -> {
                 int entitiesKilled = 0;
                 for (Mob mob : world.getNearbyEntitiesByType(Mob.class, location, radius)) {
                     if (mobIds.contains(mob.getUniqueId())) {
@@ -89,9 +91,9 @@ public class DragonWrath extends TeamMachineTask implements Damager {
                     }
                 }
 
-                zombiesPlayer.getPlayer().sendMessage(
-                        Component.text(String.format("Killed %d mobs!", entitiesKilled)).color(NamedTextColor.GREEN)
-                );
+                player.sendMessage(Component
+                        .text(String.format("Killed %d mobs!", entitiesKilled))
+                        .color(NamedTextColor.GREEN));
             });
 
             return true;
