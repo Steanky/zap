@@ -6,7 +6,6 @@ import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
@@ -19,8 +18,6 @@ import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitPlayer;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.entities.BukkitPanda;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -372,58 +369,62 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Respawns the player at the map spawn. Also revives them, if they were knocked down.
      */
     public void respawn() {
-        if(isInGame()) {
+        Player player = getPlayer();
+        if (player != null && isInGame()) {
             revive();
             getPlayer().teleport(WorldUtils.locationFrom(arena.getWorld(), arena.getMap().getSpawn()));
         }
     }
 
     /**
-     * Increments the player's kill counter
+     * Increases the player's kill counter
+     * @param kills The number of kills to add
      */
-    public void incrementKills() {
-        kills++;
+    public void addKills(int kills) {
+        this.kills += kills;
     }
 
     @Override
     public void onDealsDamage(@NotNull DamageAttempt attempt, @NotNull Mob damaged, double deltaHealth) {
-        int coins = attempt.getCoins(this, damaged);
+        Player player = getPlayer();
+        if (player != null) {
+            int coins = attempt.getCoins(this, damaged);
 
-        if (attempt.ignoresArmor(this, damaged)) {
-            addCoins(coins, "Critical Hit");
-        } else {
-            addCoins(coins);
-        }
-
-        getPlayer().playSound(Sound.sound(
-                Key.key("minecraft:entity.arrow.hit_player"),
-                Sound.Source.MASTER,
-                1.0F,
-                attempt.ignoresArmor(this, damaged) ? 1.5F : 2F
-        ));
-
-        if(damaged.getHealth() <= 0) {
-            incrementKills();
-        }
-        else {
-            FrozenBullets frozenBullets = (FrozenBullets)getPerks().getPerk(PerkType.FROZEN_BULLETS);
-            FlamingBullets flamingBullets = (FlamingBullets) getPerks().getPerk(PerkType.FLAME_BULLETS);
-
-            if(frozenBullets.getCurrentLevel() > 0) {
-                AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
-
-                if(speed != null && !AttributeHelper.hasModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME)) {
-                    AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
-                            -1D / ((double)frozenBullets.getCurrentLevel() + 1D), AttributeModifier.Operation.ADD_SCALAR);
-
-                    speed.addModifier(modifier);
-
-                    arena.runTaskLater(frozenBullets.getDuration(), () -> speed.removeModifier(modifier));
-                }
+            if (attempt.ignoresArmor(this, damaged)) {
+                addCoins(coins, "Critical Hit");
+            } else {
+                addCoins(coins);
             }
 
-            if(flamingBullets.getCurrentLevel() > 0) {
-                damaged.setFireTicks(flamingBullets.getDuration());
+            player.playSound(Sound.sound(
+                    Key.key("minecraft:entity.arrow.hit_player"),
+                    Sound.Source.MASTER,
+                    1.0F,
+                    attempt.ignoresArmor(this, damaged) ? 1.5F : 2F
+            ));
+
+            if (damaged.getHealth() <= 0) {
+                addKills(1);
+            } else {
+                FrozenBullets frozenBullets = (FrozenBullets) getPerks().getPerk(PerkType.FROZEN_BULLETS);
+                FlamingBullets flamingBullets = (FlamingBullets) getPerks().getPerk(PerkType.FLAME_BULLETS);
+
+                if (frozenBullets.getCurrentLevel() > 0) {
+                    AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+
+                    if (speed != null && !AttributeHelper.hasModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME)) {
+                        AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
+                                -1D / ((double) frozenBullets.getCurrentLevel() + 1D), AttributeModifier.Operation.ADD_SCALAR);
+
+                        speed.addModifier(modifier);
+
+                        arena.runTaskLater(frozenBullets.getDuration(), () -> speed.removeModifier(modifier));
+                    }
+                }
+
+                if (flamingBullets.getCurrentLevel() > 0) {
+                    damaged.setFireTicks(flamingBullets.getDuration());
+                }
             }
         }
     }
