@@ -397,6 +397,14 @@ public final class Zombies extends JavaPlugin implements Listener {
             (bukkit doesn't even have to sort the entities, while mine does so inherently)
              */
 
+            List<RayTraceResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 5,
+                    entity -> !(entity instanceof Player));
+
+            int i = 0;
+            for(RayTraceResult result :results) {
+                Zombies.info((++i) + ": " + result.toString());
+            }
+            /*
             int amt = 1000;
             long[] timesSorted = new long[amt];
             long[] timesClosest = new long[amt];
@@ -405,7 +413,6 @@ public final class Zombies extends JavaPlugin implements Listener {
                 long start = System.currentTimeMillis();
                 List<RayTraceResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 100,
                         entity -> !(entity instanceof Player));
-                Zombies.info("Results: "+results.size());
                 timesSorted[i] = System.currentTimeMillis() - start;
             }
 
@@ -425,6 +432,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             }
 
             Zombies.info("Bukkit average time: " + ((double)sumBukkit / (double)amt) + ". Steank average time: " + ((double)sumSteank / (double)amt));
+            */
         }
     }
 

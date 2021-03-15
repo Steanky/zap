@@ -45,6 +45,10 @@ public class MathUtils {
     private static Pair<Boolean, Integer> rayTraceInternal(int excludeIndex, List<RayTraceResult> results,
                                                            List<Entity> sampleEntities, Predicate<Entity> filter,
                                                            Vector origin, Vector direction, double rayLength, int entityCap) {
+        if(results.size() == entityCap || sampleEntities.size() == 0) {
+            return Pair.of(true, 0);
+        }
+
         int removedBeforeExclusion = 0;
         for(int i = sampleEntities.size() - 1; i > -1; i--) { //iterate through unsorted sample entities
             if(i == excludeIndex) {
@@ -60,9 +64,15 @@ public class MathUtils {
                 if(test != null) { //we have a hit
                     test = new RayTraceResult(test.getHitPosition(), sampleEntity, test.getHitBlockFace());
 
+                    Zombies.info(excludeIndex + " Sample entity before shift: " + sampleEntity.getUniqueId());
+
                     //check for closer entities. might be a better way to get the ray length rather than a call to distance()
                     Pair<Boolean, Integer> next = rayTraceInternal(i, results, sampleEntities,
                             filter, origin, direction, origin.distance(test.getHitPosition()), entityCap);
+
+                    if(results.size() == entityCap || sampleEntities.size() == 0) {
+                        return Pair.of(true, 0);
+                    }
 
                     //offset by any entities that were removed before i
                     int removedByNext = next.getRight();
@@ -70,9 +80,7 @@ public class MathUtils {
                     removedBeforeExclusion += removedByNext;
                     i -= removedByNext;
 
-                    if(results.size() == entityCap) {
-                        return Pair.of(true, removedBeforeExclusion);
-                    }
+                    Zombies.info(excludeIndex + " Sample entity after shifting: " + sampleEntities.get(i).getUniqueId());
 
                     //if there are no closer entities, add to results (up to entityCap)
                     if(!next.getLeft()) {
