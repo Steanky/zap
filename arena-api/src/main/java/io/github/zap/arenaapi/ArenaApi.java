@@ -19,7 +19,6 @@ import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -121,7 +120,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         module.addSerializer(Sound.class, new SoundSerializer());
         module.addDeserializer(Sound.class, new SoundDeserializer());
 
-        module.addDeserializer(ImmutablePair.class, new StringPairSerializer());
+        module.addDeserializer(Pair.class, new StringPairSerializer());
         module.addDeserializer(Color.class, new ColorDeserializer());
         module.addDeserializer(Particle.DustOptions.class, new DustOptionsDeserializer());
 
