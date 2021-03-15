@@ -619,7 +619,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
             if(player != null && state == ZombiesPlayerState.ALIVE) {
                 if(player.getHealth() <= event.getFinalDamage()) {
-                    Location location = player.getLocation();
+                    Location location = player.getLocation().toBlockLocation();
 
                     for (double y = location.getY(); y >= 0D; y--){
                         location.setY(y);
