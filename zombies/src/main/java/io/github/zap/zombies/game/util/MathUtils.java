@@ -45,7 +45,8 @@ public class MathUtils {
         return results;
     }
 
-    private static Pair<Boolean, Integer> rayTraceInternal(int excludeIndex, List<RayTraceResult> results, List<Entity> sampleEntities, Predicate<Entity> filter,
+    private static Pair<Boolean, Integer> rayTraceInternal(int excludeIndex, List<RayTraceResult> results,
+                                                           List<Entity> sampleEntities, Predicate<Entity> filter,
                                                            Vector origin, Vector direction, double rayLength, int entityCap) {
         int removedBeforeExclusion = 0;
         for(int i = sampleEntities.size() - 1; i > -1; i--) { //iterate through unsorted sample entities
