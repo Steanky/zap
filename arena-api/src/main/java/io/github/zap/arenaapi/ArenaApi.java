@@ -237,6 +237,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setFlySpeed(0.1f);
         player.setGameMode(GameMode.ADVENTURE);
         player.setArrowsInBody(0);
+        player.setLevel(0);
+        player.setExp(0F);
         for(PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
