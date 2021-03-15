@@ -91,6 +91,8 @@ public class DragonWrath extends TeamMachineTask implements Damager {
                     }
                 }
 
+                zombiesPlayer.addKills(entitiesKilled);
+
                 player.sendMessage(Component
                         .text(String.format("Killed %d mobs!", entitiesKilled))
                         .color(NamedTextColor.GREEN));
@@ -105,5 +107,10 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     @Override
     public int getCostForTeamMachine(TeamMachine teamMachine) {
         return getInitialCost() + (costIncrement * getTimesUsed().getValue(teamMachine));
+    }
+
+    @Override
+    public void onDealsDamage(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth) {
+
     }
 }
