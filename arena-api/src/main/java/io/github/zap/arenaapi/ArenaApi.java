@@ -29,6 +29,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -247,6 +248,15 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @EventHandler
     private void playerJoinEvent(PlayerJoinEvent event) {
         applyDefaultCondition(event.getPlayer());
+    }
+
+    @EventHandler
+    private void playerTeleportEvent(PlayerTeleportEvent event) {
+        Player player = event.getPlayer();
+        Arena<?> arena = arenaIn(player);
+        if(arena != null) {
+            arena.handleLeave(Lists.newArrayList(player));
+        }
     }
 
     /**
