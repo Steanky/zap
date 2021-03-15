@@ -485,7 +485,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 .write(2, "never");
 
         getMap().getPowerUpSpawnRules()
-                .forEach(x -> powerUpSpawnRules.add(ImmutablePair.of(getPowerUpManager().createSpawnRule(x.left, x.right, this), x.right)));
+                .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.left, x.right, this), x.right)));
 
         Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }

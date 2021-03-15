@@ -7,7 +7,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.corpse.Corpse;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.Criterias;
@@ -31,7 +31,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
     private GameScoreboard gameScoreboard;
 
-    private final Map<UUID, ImmutablePair<StringFragment, StringFragment>> playerStatues = new HashMap<>();
+    private final Map<UUID, Pair<StringFragment, StringFragment>> playerStatues = new HashMap<>();
     private final Map<UUID, IngamePlayerScoreboardInformation> playScoreboards = new HashMap<>();
 
     private final StringFragment round = new StringFragment();
@@ -48,7 +48,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
         for(var i : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
             var tfName = new StringFragment(i.getValue().getPlayer().getName());
             var tfState = new StringFragment();
-            playerStatues.put(i.getKey(), ImmutablePair.of(tfName, tfState));
+            playerStatues.put(i.getKey(), Pair.of(tfName, tfState));
         }
 
         for(var player : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
@@ -63,7 +63,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                     .line("Zombies Left: " + ChatColor.GREEN, zombieLeft)
                     .line();
 
-            playerStatues.forEach((l,r) -> writer.line(ChatColor.GRAY, r.left, ChatColor.WHITE + ": ", r.right));
+            playerStatues.forEach((l,r) -> writer.line(ChatColor.GRAY, r.getLeft(), ChatColor.WHITE + ": ", r.getRight()));
 
             writer.line()
                     .line("Zombie Kills: " + ChatColor.GREEN, zombieKills)
@@ -132,7 +132,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
         // Update player status
         for(var playerStatus : playerStatues.entrySet()) {
-            var tfStatus = playerStatus.getValue().right;
+            var tfStatus = playerStatus.getValue().getRight();
 
             if(playerMap.containsKey(playerStatus.getKey())) {
                 var player = playerMap.get(playerStatus.getKey());

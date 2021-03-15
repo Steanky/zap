@@ -14,7 +14,6 @@ import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -74,7 +73,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         if(!information.getJoinable().validate()) {
-            onCompletion.accept(ImmutablePair.of(false, "Someone is offline and therefore unable to join!"));
+            onCompletion.accept(Pair.of(false, "Someone is offline and therefore unable to join!"));
             return;
         }
 
@@ -87,7 +86,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             if(mapData != null) {
                 for(ZombiesArena arena : managedArenas.values()) {
                     if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information.getJoinable().getPlayers())) {
-                        onCompletion.accept(ImmutablePair.of(true, null));
+                        onCompletion.accept(Pair.of(true, null));
                         return;
                     }
                 }
@@ -116,11 +115,11 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                         managedArenas.put(arena.getId(), arena);
                         getArenaCreated().callEvent(arena);
                         if(arena.handleJoin(information.getJoinable().getPlayers())) {
-                            onCompletion.accept(ImmutablePair.of(true, null));
+                            onCompletion.accept(Pair.of(true, null));
                         }
                         else {
                             Zombies.warning(String.format("Newly created arena rejected join request '%s'.", information));
-                            onCompletion.accept(ImmutablePair.of(false, "Tried to make a new arena, but it couldn't accept all of the players!"));
+                            onCompletion.accept(Pair.of(false, "Tried to make a new arena, but it couldn't accept all of the players!"));
                         }
                     });
 
@@ -139,10 +138,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
             if(arena != null) {
                 if(arena.handleJoin(information.getJoinable().getPlayers())) {
-                    onCompletion.accept(ImmutablePair.of(true, null));
+                    onCompletion.accept(Pair.of(true, null));
                 }
                 else {
-                    onCompletion.accept(ImmutablePair.of(false, "The arena rejected the join request."));
+                    onCompletion.accept(Pair.of(false, "The arena rejected the join request."));
                 }
 
                 return;
@@ -152,7 +151,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             }
         }
 
-        onCompletion.accept(ImmutablePair.of(false, "An unknown error occurred."));
+        onCompletion.accept(Pair.of(false, "An unknown error occurred."));
     }
 
     @Override

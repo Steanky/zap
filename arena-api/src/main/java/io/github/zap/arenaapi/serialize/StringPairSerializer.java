@@ -16,7 +16,7 @@ public class StringPairSerializer extends JsonDeserializer<ImmutablePair<String,
         ObjectMapper objectMapper = (ObjectMapper) p.getCodec();
         JsonNode jsonNode = objectMapper.readTree(p);
         var entry = jsonNode.fields().next();
-        return ImmutablePair.of(entry.getKey(), entry.getValue().asText());
+        return Pair.of(entry.getKey(), entry.getValue().asText());
     }
 
 }
