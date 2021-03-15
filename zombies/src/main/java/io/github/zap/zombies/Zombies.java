@@ -45,6 +45,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -385,13 +386,43 @@ public final class Zombies extends JavaPlugin implements Listener {
         if(event.getAction() == Action.RIGHT_CLICK_AIR && event.getHand() == EquipmentSlot.HAND) {
             Location playerLoc = event.getPlayer().getEyeLocation();
 
-            List<RayTraceResult> rtResults = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(),
-                    100, 100, entity -> true);
+            /*
+            this comparison is inherently unfair, but it gives a good comparison. bukkit, without sorting entities by
+            distance or compiling them in a list, is about 8x faster on average
 
-            int i = 0;
-            for(RayTraceResult result : rtResults) {
-                Zombies.info("Result " + ++i + ": "+result.toString() + " Entity UUID: " + result.getHitEntity().getUniqueId());
+            for context it takes my algorithm a little over a tenth of a millisecond to make 1000 raycasts, each one
+            returning a list of about 50 data points. bukkit's algorithm does it in about 0.02 ms
+
+            with some optimizations, i think this can be made very comparable even considering how unfair this is
+            (bukkit doesn't even have to sort the entities, while mine does so inherently)
+             */
+            int amt = 1000;
+            long[] timesSorted = new long[amt];
+            long[] timesClosest = new long[amt];
+
+            for(int i = 0; i < amt; i++) {
+                long start = System.currentTimeMillis();
+                MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 100,
+                        entity -> !(entity instanceof Player));
+                timesSorted[i] = System.currentTimeMillis() - start;
             }
+
+            for(int i = 0; i < amt; i++) {
+                long start = System.currentTimeMillis();
+                playerLoc.getWorld().rayTraceEntities(playerLoc, playerLoc.getDirection(), 100,
+                        entity -> !(entity instanceof Player));
+                timesClosest[i] = System.currentTimeMillis() - start;
+            }
+
+            long sumBukkit = 0;
+            long sumSteank = 0;
+
+            for(int i = 0; i < amt; i++) {
+                sumBukkit += timesSorted[i];
+                sumSteank += timesClosest[i];
+            }
+
+            Zombies.info("Bukkit average time: " + ((double)sumBukkit / (double)amt) + ". Steank average time: " + ((double)sumSteank / (double)amt));
         }
     }
 

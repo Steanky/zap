@@ -35,13 +35,10 @@ public class MathUtils {
                                                               int entityCap, Predicate<Entity> filter) {
         List<RayTraceResult> results = new ArrayList<>();
         Vector originVector = origin.toVector();
-        Zombies.info("Starting raytrace.");
-        long startTime = System.currentTimeMillis();
         rayTraceInternal(-1, results, (List<Entity>)origin.getWorld()
                 .getNearbyEntities(BoundingBox.of(originVector, originVector).expandDirectional(direction.clone()
                         .normalize().multiply(maxDistance)), filter), filter, originVector, direction, maxDistance,
                 entityCap);
-        Zombies.info("Ending raytrace. Time elapsed: " + (System.currentTimeMillis() - startTime) + "ms");
         return results;
     }
 
