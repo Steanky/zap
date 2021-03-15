@@ -397,42 +397,41 @@ public final class Zombies extends JavaPlugin implements Listener {
             (bukkit doesn't even have to sort the entities, while mine does so inherently)
              */
 
-            List<RayTraceResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 5,
+            List<RayTraceResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 100,
                     entity -> !(entity instanceof Player));
 
-            int i = 0;
+            int j = 0;
             for(RayTraceResult result :results) {
-                Zombies.info((++i) + ": " + result.toString());
+                Zombies.info((++j) + ": " + result.toString());
+                result.getHitEntity().teleport(result.getHitEntity().getLocation().add(new Vector(0, 1, 0)));
             }
-            /*
+
             int amt = 1000;
-            long[] timesSorted = new long[amt];
-            long[] timesClosest = new long[amt];
+            long[] timesSteank = new long[amt];
+            long[] timesBukkit = new long[amt];
 
             for(int i = 0; i < amt; i++) {
                 long start = System.currentTimeMillis();
-                List<RayTraceResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 100,
+                MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 100,
                         entity -> !(entity instanceof Player));
-                timesSorted[i] = System.currentTimeMillis() - start;
+                timesSteank[i] = System.currentTimeMillis() - start;
             }
 
             for(int i = 0; i < amt; i++) {
                 long start = System.currentTimeMillis();
                 playerLoc.getWorld().rayTraceEntities(playerLoc, playerLoc.getDirection(), 100,
                         entity -> !(entity instanceof Player));
-                timesClosest[i] = System.currentTimeMillis() - start;
+                timesBukkit[i] = System.currentTimeMillis() - start;
             }
 
             long sumBukkit = 0;
             long sumSteank = 0;
-
             for(int i = 0; i < amt; i++) {
-                sumBukkit += timesSorted[i];
-                sumSteank += timesClosest[i];
+                sumBukkit += timesBukkit[i];
+                sumSteank += timesSteank[i];
             }
 
             Zombies.info("Bukkit average time: " + ((double)sumBukkit / (double)amt) + ". Steank average time: " + ((double)sumSteank / (double)amt));
-            */
         }
     }
 

@@ -1,11 +1,8 @@
 package io.github.zap.zombies.game.util;
 
-import io.github.zap.arenaapi.particle.RectangularPrism;
 import io.github.zap.zombies.Zombies;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
@@ -35,27 +32,24 @@ public class MathUtils {
                                                               int entityCap, Predicate<Entity> filter) {
         List<RayTraceResult> results = new ArrayList<>();
         Vector originVector = origin.toVector();
-        rayTraceInternal(-1, results, (List<Entity>)origin.getWorld()
+        rayTraceInternal(new HashSet<>(), -1, results, (List<Entity>)origin.getWorld()
                 .getNearbyEntities(BoundingBox.of(originVector, originVector).expandDirectional(direction.clone()
                         .normalize().multiply(maxDistance)), filter), filter, originVector, direction, maxDistance,
                 entityCap);
+
         return results;
     }
 
-    private static Pair<Boolean, Integer> rayTraceInternal(int excludeIndex, List<RayTraceResult> results,
+    private static Pair<Boolean, Integer> rayTraceInternal(Set<UUID> blacklist, int lastIndex, List<RayTraceResult> results,
                                                            List<Entity> sampleEntities, Predicate<Entity> filter,
                                                            Vector origin, Vector direction, double rayLength, int entityCap) {
-        if(results.size() == entityCap || sampleEntities.size() == 0) {
-            return Pair.of(true, 0);
-        }
-
-        int removedBeforeExclusion = 0;
+        int removedBeforeLast = 0;
         for(int i = sampleEntities.size() - 1; i > -1; i--) { //iterate through unsorted sample entities
-            if(i == excludeIndex) {
+            Entity sampleEntity = sampleEntities.get(i);
+
+            if(blacklist.contains(sampleEntity.getUniqueId())) {
                 continue;
             }
-
-            Entity sampleEntity = sampleEntities.get(i);
 
             if(filter.test(sampleEntity)) {
                 BoundingBox entityBounds = sampleEntity.getBoundingBox();
@@ -64,30 +58,32 @@ public class MathUtils {
                 if(test != null) { //we have a hit
                     test = new RayTraceResult(test.getHitPosition(), sampleEntity, test.getHitBlockFace());
 
-                    Zombies.info(excludeIndex + " Sample entity before shift: " + sampleEntity.getUniqueId());
+                    blacklist.add(sampleEntity.getUniqueId());
 
                     //check for closer entities. might be a better way to get the ray length rather than a call to distance()
-                    Pair<Boolean, Integer> next = rayTraceInternal(i, results, sampleEntities,
+                    Pair<Boolean, Integer> next = rayTraceInternal(blacklist, i, results, sampleEntities,
                             filter, origin, direction, origin.distance(test.getHitPosition()), entityCap);
 
                     if(results.size() == entityCap || sampleEntities.size() == 0) {
-                        return Pair.of(true, 0);
+                        return Pair.of(false, 0);
                     }
+
+                    blacklist.remove(sampleEntity.getUniqueId());
 
                     //offset by any entities that were removed before i
                     int removedByNext = next.getRight();
 
-                    removedBeforeExclusion += removedByNext;
+                    removedBeforeLast += removedByNext;
                     i -= removedByNext;
-
-                    Zombies.info(excludeIndex + " Sample entity after shifting: " + sampleEntities.get(i).getUniqueId());
 
                     //if there are no closer entities, add to results (up to entityCap)
                     if(!next.getLeft()) {
-                        sampleEntities.remove(i);
+                        if(i > -1 && i < sampleEntities.size()) {
+                            sampleEntities.remove(i);
 
-                        if(i <= excludeIndex) {
-                            removedBeforeExclusion++;
+                            if(i < lastIndex) {
+                                removedBeforeLast++;
+                            }
                         }
 
                         if(results.size() < entityCap) {
@@ -102,8 +98,8 @@ public class MathUtils {
                      */
                     sampleEntities.remove(i);
 
-                    if(i <= excludeIndex) {
-                        removedBeforeExclusion++;
+                    if(i < lastIndex) {
+                        removedBeforeLast++;
                     }
                 }
             }
@@ -111,12 +107,42 @@ public class MathUtils {
                 //if the predicate failed, remove the entity in all cases
                 sampleEntities.remove(i);
 
-                if(i <= excludeIndex) {
-                    removedBeforeExclusion++;
+                if(i < lastIndex) {
+                    removedBeforeLast++;
                 }
             }
         }
 
-        return Pair.of(false, removedBeforeExclusion);
+        return Pair.of(false, removedBeforeLast);
+    }
+
+    private static  List<RayTraceResult> rayTraceInternalIterative(List<Entity> sampleEntities, Predicate<Entity> filter,
+                                                           Vector origin, Vector direction, double rayLength, int entityCap) {
+        Deque<RayTraceResult> deque = new ArrayDeque<>();
+        double bestDistance = Double.MAX_VALUE;
+        int anchor = -1;
+
+        for(int i = sampleEntities.size() - 1; i > -1; i--) {
+            Entity sampleEntity = sampleEntities.get(i);
+
+            if(filter.test(sampleEntity)) {
+                BoundingBox bounds = sampleEntity.getBoundingBox();
+                RayTraceResult rayTrace = bounds.rayTrace(origin, direction, rayLength);
+
+                if(rayTrace != null) {
+                    if(anchor == -1 || origin.distance(sampleEntities.get(i).getLocation().toVector()) < bestDistance) {
+                        anchor = i;
+                    }
+                }
+                else if(BoundingBox.of(origin, direction.clone().multiply(rayLength)).contains(bounds)) {
+                    sampleEntities.remove(i);
+                }
+            }
+            else {
+                sampleEntities.remove(i);
+            }
+        }
+
+        return new ArrayList<>();
     }
 }
