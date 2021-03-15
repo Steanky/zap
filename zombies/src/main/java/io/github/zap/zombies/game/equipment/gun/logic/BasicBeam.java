@@ -23,6 +23,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Represents a beam used by guns
@@ -203,11 +204,11 @@ public class BasicBeam {
     private Collection<Entity> getNearbyEntities() {
         Vector dir = directionVector.clone().normalize().multiply(distance);
 
+        Set<UUID> entitySet = getZombiesPlayer().getArena().getEntitySet();
+        Predicate<Entity> filter = (Entity entity) -> entitySet.contains(entity.getUniqueId());
+
         BoundingBox aabb = BoundingBox.of(root, root).expandDirectional(dir);
-        return world.getNearbyEntities(
-                aabb,
-                (Entity entity) -> entity instanceof Mob
-        );
+        return world.getNearbyEntities(aabb, filter);
     }
 
     /**
