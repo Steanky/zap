@@ -10,7 +10,6 @@ import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -23,13 +22,14 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /**
  * Represents a beam used by guns
  */
 @Getter
 public class BasicBeam {
+
     @RequiredArgsConstructor
     private class BeamDamageAttempt implements DamageAttempt {
         private final boolean isHeadshot;
@@ -160,107 +160,63 @@ public class BasicBeam {
      * Performs a hitscan calculations on the entities to target
      */
     protected void hitScan() {
-        for (ImmutablePair<RayTraceResult, Double> hit : rayTrace()) {
-            damageEntity(hit.getLeft());
+        for (RayTraceResult rayTraceResult : rayTrace()) {
+            damageEntity(rayTraceResult);
         }
     }
 
     /**
-     * Gets all the entities hit by the beam's ray trace
-     * Uses modified ray trace from
-     * {@link org.bukkit.craftbukkit.v1_16_R3.CraftWorld#rayTraceEntities(Location, Vector, double, double, Predicate)}
-     * @return The entities that should be hit by the bullet
+     * Gets all the ray trace results hit by the bullet's ray trace
+     * @return The ray traces of the entities that should be hit by the bullet
      */
-    private Iterable<ImmutablePair<RayTraceResult, Double>> rayTrace() {
+    private List<RayTraceResult> rayTrace() {
         if (maxPierceableEntities == 0) {
-            return Collections.emptySet();
+            return Collections.emptyList();
         } else {
-            Queue<ImmutablePair<RayTraceResult, Double>> queue = new PriorityQueue<>(
-                    maxPierceableEntities,
-                    Comparator.comparingDouble(ImmutablePair::getRight)
-            );
+            List<Entity> entities = new ArrayList<>(getNearbyEntities());
 
-            Iterator<Entity> iterator = getEntitiesInPathIterator();
+            Map<Entity, Double> distances = new HashMap<>();
+            Function<Entity, Double> distanceComp
+                    = entity -> this.root.distanceSquared(entity.getLocation().toVector());
+            entities.sort((o1, o2) -> {
+                double d1 = distances.computeIfAbsent(o1, distanceComp);
+                double d2 = distances.computeIfAbsent(o2, distanceComp);
 
-            fillQueue(queue, iterator);
-            replaceFarthestEnqueuedEntities(queue, iterator);
+                return Double.compare(d1, d2);
+            });
 
-            return queue;
+            List<RayTraceResult> rayTraceResults = new ArrayList<>(maxPierceableEntities);
+
+            for (Entity entity : entities) {
+                BoundingBox entityBoundingBox = entity.getBoundingBox();
+                RayTraceResult hitResult = entityBoundingBox.rayTrace(root, directionVector, distance);
+
+                if (hitResult != null) {
+                    rayTraceResults.add(
+                            new RayTraceResult(hitResult.getHitPosition(), entity, hitResult.getHitBlockFace())
+                    );
+                }
+                if (rayTraceResults.size() == maxPierceableEntities) {
+                    break;
+                }
+            }
+
+            return rayTraceResults;
         }
     }
 
     /**
-     * Gets an iterator of all the entities within the bullet's path
-     * @return The iterator
+     * Gets an collection of all the entities near the bullet's path
+     * @return The bullet
      */
-    private Iterator<Entity> getEntitiesInPathIterator() {
+    private Collection<Entity> getNearbyEntities() {
         Vector dir = directionVector.clone().normalize().multiply(distance);
 
         BoundingBox aabb = BoundingBox.of(root, root).expandDirectional(dir);
         return world.getNearbyEntities(
                 aabb,
                 (Entity entity) -> entity instanceof Mob
-        ).iterator();
-    }
-
-    /**
-     * Fills the queue up with entities until it has reached the maximum hit entities
-     * @param queue The queue to fill up
-     * @param iterator The entity iterable iterator
-     */
-    private void fillQueue(Queue<ImmutablePair<RayTraceResult, Double>> queue, Iterator<Entity> iterator) {
-        while (iterator.hasNext() && queue.size() < maxPierceableEntities) {
-            Entity entity = iterator.next();
-            BoundingBox boundingBox = entity.getBoundingBox();
-            RayTraceResult hitResult = boundingBox.rayTrace(root, directionVector, distance);
-
-            if (hitResult != null) {
-                double distanceSq = root.distanceSquared(hitResult.getHitPosition());
-                queue.add(
-                        ImmutablePair.of(
-                                new RayTraceResult(hitResult.getHitPosition(), entity, hitResult.getHitBlockFace()),
-                                distanceSq
-                        )
-                );
-            }
-        }
-    }
-
-    /**
-     * Replaces the farthest entities within the queue so that only the closest entities are shot
-     * @param queue The queue to replace entities within
-     * @param iterator The entity iterable iterator
-     */
-    private void replaceFarthestEnqueuedEntities(Queue<ImmutablePair<RayTraceResult, Double>> queue,
-                                                 Iterator<Entity> iterator) {
-        double maxDist = (queue.size() > 0) ? queue.peek().getRight() : Double.POSITIVE_INFINITY;
-
-        while (iterator.hasNext()) {
-            Entity entity = iterator.next();
-            BoundingBox boundingBox = entity.getBoundingBox();
-            RayTraceResult hitResult = boundingBox.rayTrace(root, directionVector, distance);
-
-            if (hitResult != null) {
-                double distanceSq = root.distanceSquared(hitResult.getHitPosition());
-                if (distanceSq < maxDist) {
-                    queue.poll(); // Remove entity farthest away in queue
-                    queue.add(
-                            ImmutablePair.of(
-                                    new RayTraceResult(
-                                            hitResult.getHitPosition(),
-                                            entity, hitResult.getHitBlockFace()
-                                    ),
-                                    distanceSq
-                            )
-                    );
-
-                    // Get the distance of the farthest mob so we don't have to check again
-                    ImmutablePair<RayTraceResult, Double> pair = queue.peek();
-                    assert pair != null;
-                    maxDist = pair.getRight();
-                }
-            }
-        }
+        );
     }
 
     /**
@@ -281,7 +237,7 @@ public class BasicBeam {
      * Determines whether or not a bullet was a headshot
      * @param rayTraceResult The ray trace of the bullet
      * @param mob The targeted mob
-     * @return Whether or not the shot was a headshot
+     * @return Whether or not the shot was a headsh5ot
      */
     protected boolean determineIfHeadshot(RayTraceResult rayTraceResult, Mob mob) {
         double mobY = mob.getLocation().getY();
