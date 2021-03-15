@@ -679,47 +679,51 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             ZombiesPlayer knocked = args.getManagedPlayer();
 
             if (knocked != null && knocked.getState() == ZombiesPlayerState.ALIVE) {
-                knocked.knock();
+                Player bukkitKnocked = knocked.getPlayer();
 
-                for (ZombiesPlayer player : getPlayerMap().values()) {
-                    Player bukkitPlayer = player.getPlayer();
+                if (bukkitKnocked != null) {
+                    knocked.knock();
 
-                    if (player.isAlive() && bukkitPlayer != null) {
-                        RoomData knockedRoom = map.roomAt(bukkitPlayer.getLocation().toVector());
-                        String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+                    for (ZombiesPlayer player : getPlayerMap().values()) {
+                        Player bukkitPlayer = player.getPlayer();
 
-                        //display death message only if necessary
-                        for (ZombiesPlayer otherPlayer : getPlayerMap().values()) {
-                            Player otherBukkitPlayer = otherPlayer.getPlayer();
+                        if (player.isAlive() && bukkitPlayer != null) {
+                            RoomData knockedRoom = map.roomAt(bukkitPlayer.getLocation().toVector());
+                            String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
 
-                            if (otherPlayer != knocked && otherBukkitPlayer != null) {
-                                otherBukkitPlayer.showTitle(Title.title(Component.text(bukkitPlayer.getName())
-                                        .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
-                                        .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
-                                        Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                            //display death message only if necessary
+                            for (ZombiesPlayer otherPlayer : getPlayerMap().values()) {
+                                Player otherBukkitPlayer = otherPlayer.getPlayer();
+
+                                if (otherPlayer != knocked && otherBukkitPlayer != null) {
+                                    otherBukkitPlayer.showTitle(Title.title(Component.text(knocked.getPlayer().getName())
+                                            .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
+                                            .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                            Duration.ofSeconds(3), Duration.ofSeconds(1))));
 
 
-                                otherPlayer.getPlayer().playSound(Sound.sound(
-                                        Key.key("minecraft:entity.ender_dragon.growl"),
-                                        Sound.Source.MASTER,
-                                        1.0F,
-                                        0.5F
-                                ));
+                                    otherPlayer.getPlayer().playSound(Sound.sound(
+                                            Key.key("minecraft:entity.ender_dragon.growl"),
+                                            Sound.Source.MASTER,
+                                            1.0F,
+                                            0.5F
+                                    ));
+                                }
                             }
+
+                            return; //return if there are any players still alive
                         }
-
-                        return; //return if there are any players still alive
                     }
-                }
 
-                doLoss(); //there are no players alive, so end the game
+                    doLoss(); //there are no players alive, so end the game
 
-                // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
-                for (ZombiesPlayer player : getPlayerMap().values()) {
-                    player.kill();
-                    Corpse corpse = player.getCorpse();
-                    if (corpse != null) {
-                        corpse.terminate();
+                    // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
+                    for (ZombiesPlayer player : getPlayerMap().values()) {
+                        player.kill();
+                        Corpse corpse = player.getCorpse();
+                        if (corpse != null) {
+                            corpse.terminate();
+                        }
                     }
                 }
             }
