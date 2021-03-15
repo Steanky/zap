@@ -70,6 +70,10 @@ public class MathUtils {
                     removedBeforeExclusion += removedByNext;
                     i -= removedByNext;
 
+                    if(results.size() == entityCap) {
+                        return Pair.of(true, removedBeforeExclusion);
+                    }
+
                     //if there are no closer entities, add to results (up to entityCap)
                     if(!next.getLeft()) {
                         sampleEntities.remove(i);

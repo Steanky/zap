@@ -396,14 +396,16 @@ public final class Zombies extends JavaPlugin implements Listener {
             with some optimizations, i think this can be made very comparable even considering how unfair this is
             (bukkit doesn't even have to sort the entities, while mine does so inherently)
              */
+
             int amt = 1000;
             long[] timesSorted = new long[amt];
             long[] timesClosest = new long[amt];
 
             for(int i = 0; i < amt; i++) {
                 long start = System.currentTimeMillis();
-                MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 100,
+                List<RayTraceResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 100,
                         entity -> !(entity instanceof Player));
+                Zombies.info("Results: "+results.size());
                 timesSorted[i] = System.currentTimeMillis() - start;
             }
 
