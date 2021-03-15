@@ -52,7 +52,7 @@ public class BasicBeam {
 
         @Override
         public @NotNull Vector directionVector(@NotNull Damager damager, @NotNull Mob target) {
-            return directionVector;
+            return directionVector.clone();
         }
 
         @Override
