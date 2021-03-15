@@ -7,6 +7,7 @@ import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
+import io.github.zap.arenaapi.particle.*;
 import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.DataLoader;
@@ -23,6 +24,7 @@ import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
 import io.github.zap.zombies.game.mob.mechanic.*;
+import io.github.zap.zombies.game.util.MathUtils;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -37,12 +39,20 @@ import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.io.File;
@@ -50,6 +60,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -136,6 +147,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             return;
         }
 
+        getServer().getPluginManager().registerEvents(this, this);
         timer.stop();
         info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
@@ -345,6 +357,42 @@ public final class Zombies extends JavaPlugin implements Listener {
         commandManager.registerCommand(new MapeditorCommand());
 
         contextManager = new ContextManager();
+
+        renderer = new SimpleRenderer(Bukkit.getWorld("world"), 0, 5);
+        renderer.add(new SinglePrism());
+        renderer.start();
+    }
+
+
+    public static Renderer renderer;
+    public static BoundingBox boundsToRender;
+
+    public static final class SinglePrism extends ShadedRenderable {
+        @Override
+        public Shader getShader() {
+            return new SolidShader(Particle.FLAME, 1, null);
+        }
+
+        @Override
+        public VectorProvider vectorProvider() {
+            return boundsToRender == null ? null : new RectangularPrism(boundsToRender, 4);
+        }
+    }
+
+    //TEST CODE FOR RAYTRACING, remove eventually
+    @EventHandler
+    private void onPlayerInteract(PlayerInteractEvent event) {
+        if(event.getAction() == Action.RIGHT_CLICK_AIR && event.getHand() == EquipmentSlot.HAND) {
+            Location playerLoc = event.getPlayer().getEyeLocation();
+
+            List<RayTraceResult> rtResults = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(),
+                    100, 100, entity -> true);
+
+            int i = 0;
+            for(RayTraceResult result : rtResults) {
+                Zombies.info("Result " + ++i + ": "+result.toString() + " Entity UUID: " + result.getHitEntity().getUniqueId());
+            }
+        }
     }
 
     /*
