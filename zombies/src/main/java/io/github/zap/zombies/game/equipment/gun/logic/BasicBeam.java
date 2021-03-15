@@ -10,6 +10,7 @@ import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -22,7 +23,6 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * Represents a beam used by guns
@@ -160,8 +160,8 @@ public class BasicBeam {
      * Performs a hitscan calculations on the entities to target
      */
     protected void hitScan() {
-        for (RayTraceResult rayTraceResult : rayTrace()) {
-            damageEntity(rayTraceResult);
+        for (Pair<RayTraceResult, Double> rayTraceResult : rayTrace()) {
+            damageEntity(rayTraceResult.getLeft());
         }
     }
 
@@ -169,37 +169,28 @@ public class BasicBeam {
      * Gets all the ray trace results hit by the bullet's ray trace
      * @return The ray traces of the entities that should be hit by the bullet
      */
-    private List<RayTraceResult> rayTrace() {
+    private List<Pair<RayTraceResult, Double>> rayTrace() {
         if (maxPierceableEntities == 0) {
             return Collections.emptyList();
         } else {
-            List<Entity> entities = new ArrayList<>(getNearbyEntities());
+            Collection<Entity> entities = getNearbyEntities();
 
-            Map<Entity, Double> distances = new HashMap<>();
-            Function<Entity, Double> distanceComp
-                    = entity -> this.root.distanceSquared(entity.getLocation().toVector());
-            entities.sort((o1, o2) -> {
-                double d1 = distances.computeIfAbsent(o1, distanceComp);
-                double d2 = distances.computeIfAbsent(o2, distanceComp);
-
-                return Double.compare(d1, d2);
-            });
-
-            List<RayTraceResult> rayTraceResults = new ArrayList<>(maxPierceableEntities);
-
+            List<Pair<RayTraceResult, Double>> rayTraceResults = new ArrayList<>(entities.size());
             for (Entity entity : entities) {
                 BoundingBox entityBoundingBox = entity.getBoundingBox();
                 RayTraceResult hitResult = entityBoundingBox.rayTrace(root, directionVector, distance);
 
                 if (hitResult != null) {
-                    rayTraceResults.add(
-                            new RayTraceResult(hitResult.getHitPosition(), entity, hitResult.getHitBlockFace())
-                    );
-                }
-                if (rayTraceResults.size() == maxPierceableEntities) {
-                    break;
+                    Vector hitPosition = hitResult.getHitPosition();
+                    rayTraceResults.add(Pair.of(
+                            new RayTraceResult(hitPosition, entity, hitResult.getHitBlockFace()),
+                            root.distanceSquared(hitPosition)
+                    ));
                 }
             }
+
+            rayTraceResults.sort(Comparator.comparingDouble(Pair::getRight));
+            rayTraceResults.subList(0, Math.min(rayTraceResults.size(), maxPierceableEntities));
 
             return rayTraceResults;
         }

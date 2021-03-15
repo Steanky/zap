@@ -9,15 +9,18 @@ import io.github.zap.arenaapi.event.ProxyEvent;
 import lombok.Getter;
 import lombok.Value;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -98,11 +101,11 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 S managedPlayer = playerMap.get(event.getPlayer().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, Lists.newArrayList(managedPlayer),
+                    return Pair.of(true, new ProxyArgs<>(event, Lists.newArrayList(managedPlayer),
                             new ArrayList<>()));
                 }
 
-                return ImmutablePair.of(false, null);
+                return Pair.of(false, null);
             });
         }
     }
@@ -126,10 +129,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 }
 
                 if(managedViewers.size() > 0) {
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, managedViewers, new ArrayList<>()));
+                    return Pair.of(true, new ProxyArgs<>(event, managedViewers, new ArrayList<>()));
                 }
 
-                return ImmutablePair.of(false, null); //no ingame managed players are involved
+                return Pair.of(false, null); //no ingame managed players are involved
             });
         }
     }
@@ -140,17 +143,17 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 UUID entityUUID = event.getEntity().getUniqueId();
 
                 if(entitySet.contains(entityUUID)) { //only managed entities trigger event
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, new ArrayList<>(), Lists.newArrayList(entityUUID)));
+                    return Pair.of(true, new ProxyArgs<>(event, new ArrayList<>(), Lists.newArrayList(entityUUID)));
                 }
                 else if(playerMap.containsKey(entityUUID)) {
                     S player = playerMap.get(entityUUID);
 
                     if(player != null) {
-                        return ImmutablePair.of(true, new ProxyArgs<>(event, Lists.newArrayList(player), new ArrayList<>()));
+                        return Pair.of(true, new ProxyArgs<>(event, Lists.newArrayList(player), new ArrayList<>()));
                     }
                 }
 
-                return ImmutablePair.of(false, null);
+                return Pair.of(false, null);
             });
         }
     }
@@ -161,10 +164,10 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 S managedPlayer = playerMap.get(event.getEntity().getUniqueId());
 
                 if(managedPlayer != null && managedPlayer.isInGame()) {
-                    return ImmutablePair.of(true, new ProxyArgs<>(event, Lists.newArrayList(managedPlayer), new ArrayList<>()));
+                    return Pair.of(true, new ProxyArgs<>(event, Lists.newArrayList(managedPlayer), new ArrayList<>()));
                 }
 
-                return ImmutablePair.of(false, null);
+                return Pair.of(false, null);
             });
         }
     }

@@ -34,7 +34,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
 
     @Override
     public ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, int deviation, Predicate<ZombiesPlayer> filter) {
-        Pair<Float, ZombiesPlayer> bestCandidate = ImmutablePair.of(Float.MAX_VALUE, null);
+        Pair<Float, ZombiesPlayer> bestCandidate = Pair.of(Float.MAX_VALUE, null);
 
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             if(filter.test(player)) {
@@ -45,7 +45,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
                     PathPoint finalPoint = path.getFinalPoint();
                     if(finalPoint != null) {
                         if(finalPoint.e < bestCandidate.getLeft()) {
-                            bestCandidate = ImmutablePair.of(finalPoint.e, player);
+                            bestCandidate = Pair.of(finalPoint.e, player);
                         }
                     }
                 }

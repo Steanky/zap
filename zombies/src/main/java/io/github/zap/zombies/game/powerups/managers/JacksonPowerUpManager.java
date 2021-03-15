@@ -142,7 +142,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     public void registerPowerUp(String name, BiFunction<PowerUpData,ZombiesArena, PowerUp> powerUpsInitializer, Class<? extends PowerUpData> dataClass) {
         ensureLoad();
         Validate.isTrue(!typeMap.containsKey(name), name + " is already exist!");
-        typeMap.put(name, ImmutablePair.of(powerUpsInitializer, dataClass));
+        typeMap.put(name, Pair.of(powerUpsInitializer, dataClass));
     }
 
     @Override
@@ -209,7 +209,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     public void registerSpawnRule(String name, SpawnRuleCtor<?, ?> initializer, Class<? extends SpawnRuleData> dataClass) {
         ensureLoad();
         Validate.isTrue(!spawnRuleTypeMap.containsKey(name), name + " is already exist!");
-        spawnRuleTypeMap.put(name, ImmutablePair.of(initializer, dataClass));
+        spawnRuleTypeMap.put(name, Pair.of(initializer, dataClass));
     }
 
     @Override

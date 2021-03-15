@@ -26,7 +26,7 @@ public class QuitGameForm extends CommandForm<Pair<Player, Arena<?>>> {
         while(arenaIterator.hasNext()) {
             Arena<?> next = arenaIterator.next();
             if(next.hasPlayer(player.getUniqueId())) {
-                return ValidationResult.of(true, null, ImmutablePair.of(player, next));
+                return ValidationResult.of(true, null, Pair.of(player, next));
             }
         }
 
