@@ -240,6 +240,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setArrowsInBody(0);
         player.setLevel(0);
         player.setExp(0F);
+        player.setFireTicks(0);
         for(PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
