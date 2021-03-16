@@ -254,7 +254,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private void playerTeleportEvent(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
         Arena<?> arena = arenaIn(player);
-        if(arena != null) {
+        if(arena != null && !event.getTo().getWorld().equals(arena.getWorld())) {
             arena.handleLeave(Lists.newArrayList(player));
         }
     }
