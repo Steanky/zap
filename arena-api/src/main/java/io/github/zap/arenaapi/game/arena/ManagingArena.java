@@ -469,7 +469,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
         stopTimeout();
 
-        for(S player : playerMap.values()) { //dispose players
+        for(S player : new ArrayList<>(playerMap.values())) { //dispose players
             player.dispose();
         }
 
