@@ -27,6 +27,9 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
 
     private PathEntity currentPath;
 
+    private double distanceToTargetSquared;
+    private boolean hasSight;
+
     public OptimizedBowAttack(T self, double speed, int attackInterval, float shootDistance, int targetDeviation) {
         this.self = self;
         this.speed = speed;
@@ -68,9 +71,8 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
         EntityLiving target = this.self.getGoalTarget();
         if (target != null) {
             this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
-
             if (this.navigationCounter <= 0) {
-                this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
+                this.navigationCounter = 4 + this.self.getRandom().nextInt(7);
                 currentPath = proxy.getPathTo(self, target, targetDeviation);
 
                 if(currentPath != null) {
@@ -80,11 +82,10 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
                     }
                 }
 
-                this.self.getNavigation().a(target, this.speed);
+                distanceToTargetSquared = this.self.h(target.locX(), target.locY(), target.locZ());
+                hasSight = this.self.getEntitySenses().a(target);
             }
 
-            double distanceToTargetSquared = this.self.h(target.locX(), target.locY(), target.locZ());
-            boolean hasSight = this.self.getEntitySenses().a(target);
             boolean bowPartiallyDrawn = this.drawTimer > 0;
             if (hasSight != bowPartiallyDrawn) {
                 this.drawTimer = 0;
@@ -142,6 +143,8 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
             } else if (--this.attackTimer <= 0 && this.drawTimer >= -60 && distanceToTargetSquared < shootDistanceSquared) {
                 this.self.c(ProjectileHelper.a(this.self, Items.BOW));
             }
+
+            proxy.navigateAlongPath(self, currentPath, this.speed);
         }
     }
 }
