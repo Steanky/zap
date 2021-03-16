@@ -470,9 +470,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         mythicMobDeathEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(), MythicMobDeathEvent.class),
                 event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
+        mythicMobDeathEvent.registerHandler(this::onMythicMobDeath);
 
         mythicMobDespawnEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(),
                 MythicMobDespawnEvent.class), event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
+        mythicMobDespawnEvent.registerHandler(this::onMythicMobDespawn);
 
         registerArenaEvents();
         registerDisposables();
@@ -494,7 +496,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
 
-        getProxyFor(EntityDeathEvent.class).registerHandler(this::onMobDeath);
         getProxyFor(PlayerDropItemEvent.class).registerHandler(this::onPlayerDropItem);
         getProxyFor(PlayerMoveEvent.class).registerHandler(this::onPlayerMove);
         getProxyFor(PlayerSwapHandItemsEvent.class).registerHandler(this::onPlayerSwapHandItems);
@@ -593,9 +594,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onMobDeath(ProxyArgs<EntityDeathEvent> args) {
+    private void onMythicMobDespawn(MythicMobDespawnEvent event) {
         if(state == ZombiesArenaState.STARTED) {
-            if(getEntitySet().remove(args.getManagedEntity())) {
+            if(getEntitySet().remove(event.getEntity().getUniqueId())) {
+                zombiesLeft--;
+            }
+
+            checkNextRound();
+        }
+    }
+
+    private void onMythicMobDeath(MythicMobDeathEvent event) {
+        if(state == ZombiesArenaState.STARTED) {
+            if(getEntitySet().remove(event.getEntity().getUniqueId())) {
                 zombiesLeft--;
             }
 
