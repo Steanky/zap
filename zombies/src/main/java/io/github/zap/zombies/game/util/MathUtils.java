@@ -248,29 +248,35 @@ public class MathUtils {
         }
     }
 
-    private static  List<RayTraceResult> rayTraceInternalIterative(List<Entity> sampleEntities, Predicate<Entity> filter,
+    private static  List<ResultEntry> rayTraceInternalIterative(List<Entity> sampleEntities, Predicate<Entity> filter,
                                                            Vector origin, Vector direction, Vector endpoint, int entityCap) {
-        Queue<ResultEntry> queue = new PriorityQueue<>();
-        for(int i = sampleEntities.size() - 1; i > -1; i--) {
-            Entity sampleEntity = sampleEntities.get(i);
+        List<ResultEntry> results = new ArrayList<>();
+        PriorityQueue<ResultEntry> chain = new PriorityQueue<>();
 
-            if(filter.test(sampleEntity)) {
-                ResultEntry entry = fastRayTrace(sampleEntity, origin, direction, endpoint);
+        while(sampleEntities.size() > 0) {
+            for(int i = sampleEntities.size() - 1; i > -1; i--) {
+                Entity candidate = sampleEntities.get(i);
 
-                if(entry != null) {
-                    for(int j = sampleEntities.size(); j > -1; j--) {
+                if(filter.test(candidate)) { //search for hit
+                    ResultEntry hit = fastRayTrace(candidate, origin, direction, endpoint);
+
+                    if(hit != null) {
+                        for(int j = sampleEntities.size() - 1; j > -1; j--) { //search backwards for closer entities
+                            if(j != i) { //don't test current candidate
+
+                            }
+                        }
+                    }
+                    else if() {
 
                     }
                 }
-                else if(BoundingBox.of(origin, endpoint).contains(sampleEntity.getBoundingBox())) {
+                else {
                     sampleEntities.remove(i);
                 }
             }
-            else {
-                sampleEntities.remove(i);
-            }
         }
 
-        return new ArrayList<>();
+        return results;
     }
 }
