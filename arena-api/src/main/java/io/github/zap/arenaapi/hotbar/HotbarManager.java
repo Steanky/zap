@@ -170,7 +170,7 @@ public class HotbarManager {
      * @return The hotbar object group
      */
     public HotbarObjectGroup getHotbarObjectGroup(HotbarProfile hotbarProfile, String name) {
-        return current.getHotbarObjectGroup(name);
+        return hotbarProfile.getHotbarObjectGroup(name);
     }
 
     /**
