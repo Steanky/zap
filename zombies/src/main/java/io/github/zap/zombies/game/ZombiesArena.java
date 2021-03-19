@@ -945,12 +945,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         List<RoundData> rounds = map.getRounds();
         if(currentRoundIndex < rounds.size()) {
             RoundData currentRound = rounds.get(currentRoundIndex);
-            zombiesLeft = rounds.get(currentRoundIndex).getWaves().stream()
-                    .flatMap(x -> x.getSpawnEntries().stream())
-                    .map(SpawnEntryData::getMobCount)
-                    .reduce(0, Integer::sum);
 
             long cumulativeDelay = 0;
+            zombiesLeft = 0;
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
 
@@ -962,7 +959,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
                     }
+
+                    runTaskLater(6000, () -> {
+                        for(ActiveMob mob : spawnedMobs) {
+                            mob.setDespawned();
+                        }
+                    });
                 });
+
+                for(SpawnEntryData spawnEntryData : wave.getSpawnEntries()) {
+                    zombiesLeft += spawnEntryData.getMobCount();
+                }
             }
 
             currentRoundProperty.setValue(this, currentRoundIndex + 1);
