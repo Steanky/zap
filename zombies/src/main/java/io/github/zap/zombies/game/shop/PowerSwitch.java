@@ -38,45 +38,50 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
 
-            if (isPowered()) {
-                player.sendMessage(ChatColor.RED + "You have already turned on the power!");
-            } else {
-                int cost = getShopData().getCost();
+            if (zombiesPlayer != null) {
+                Player player = zombiesPlayer.getPlayer();
 
-                if (zombiesPlayer.getCoins() < cost) {
-                    player.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                } else {
-                    zombiesPlayer.subtractCoins(cost);
+                if (player != null) {
+                    if (isPowered()) {
+                        player.sendMessage(ChatColor.RED + "You have already turned on the power!");
+                    } else {
+                        int cost = getShopData().getCost();
 
-                    for (Player playerInWorld : getZombiesArena().getWorld().getPlayers()) {
-                        playerInWorld.sendTitle(
-                                ChatColor.YELLOW + player.getName() + " turned on the power!",
-                                ChatColor.GOLD + "Shops which require machines are now activated",
-                                20, 60, 20
-                        );
-                        playerInWorld.playSound(Sound.sound(
-                                Key.key("minecraft:entity.blaze.death"),
-                                Sound.Source.MASTER,
-                                1.0F,
-                                2.0F
-                        ));
+                        if (zombiesPlayer.getCoins() < cost) {
+                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                        } else {
+                            zombiesPlayer.subtractCoins(cost);
+
+                            for (Player playerInWorld : getZombiesArena().getWorld().getPlayers()) {
+                                playerInWorld.sendTitle(
+                                        ChatColor.YELLOW + player.getName() + " turned on the power!",
+                                        ChatColor.GOLD + "Shops which require power are now activated",
+                                        20, 60, 20
+                                );
+                                playerInWorld.playSound(Sound.sound(
+                                        Key.key("minecraft:entity.blaze.death"),
+                                        Sound.Source.MASTER,
+                                        1.0F,
+                                        2.0F
+                                ));
+                            }
+
+                            onPurchaseSuccess(zombiesPlayer);
+                            return true;
+                        }
                     }
 
-                    onPurchaseSuccess(zombiesPlayer);
+                    player.playSound(Sound.sound(
+                            Key.key("minecraft:entity.enderman.teleport"),
+                            Sound.Source.MASTER,
+                            1.0F,
+                            0.5F
+                    ));
+
                     return true;
                 }
             }
-
-            player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.enderman.teleport"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    0.5F
-            ));
-
-            return true;
         }
 
         return false;

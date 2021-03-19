@@ -25,6 +25,7 @@ import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
 import io.github.zap.zombies.game.mob.mechanic.*;
 import io.github.zap.zombies.game.util.MathUtils;
+import io.github.zap.zombies.game.npc.ZombiesNPC;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -61,10 +62,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -110,6 +108,8 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private CommandManager commandManager;
 
+    private final List<ZombiesNPC> zombiesNPCS = new ArrayList<>();
+
     public static final String DEFAULT_LOCALE = "en_US";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
@@ -139,6 +139,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             initLocalization();
             initWorldLoader();
             initArenaManagers();
+            initNPCs();
             initCommands();
         }
         catch(LoadFailureException exception)
@@ -184,6 +185,10 @@ public final class Zombies extends JavaPlugin implements Listener {
                 }
             }
         }
+
+        for (ZombiesNPC zombiesNPC : zombiesNPCS) {
+            zombiesNPC.destroy();
+        }
     }
 
     private void initConfig() {
@@ -197,6 +202,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
         config.addDefault(ConfigNames.LOBBY_WORLD, nmsProxy.getDefaultWorldName());
+        config.addDefault(ConfigNames.NPC_LOCATIONS, Collections.emptyList());
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -378,6 +384,27 @@ public final class Zombies extends JavaPlugin implements Listener {
         @Override
         public VectorProvider vectorProvider() {
             return boundsToRender == null ? null : new RectangularPrism(boundsToRender, 4);
+        }
+    }
+
+    // TODO: skin signatures, allowing NPCs outside lobby world
+    private void initNPCs() {
+        FileConfiguration config = getConfig();
+
+        //noinspection unchecked
+        List<Vector> npcLocations = (List<Vector>) config.getList(ConfigNames.NPC_LOCATIONS);
+
+        if (npcLocations != null) {
+            String lobbyWorldName = config.getString(ConfigNames.LOBBY_WORLD);
+            if (lobbyWorldName != null) {
+                World world = Bukkit.getWorld(lobbyWorldName);
+
+                if (world != null) {
+                    for (Vector vector : npcLocations) {
+                        zombiesNPCS.add(new ZombiesNPC(vector.toLocation(world)));
+                    }
+                }
+            }
         }
     }
 
