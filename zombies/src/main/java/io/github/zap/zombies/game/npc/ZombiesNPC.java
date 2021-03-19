@@ -13,9 +13,13 @@ import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.map.MapData;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,6 +31,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -76,8 +82,13 @@ public class ZombiesNPC implements Listener {
 
     private final PacketContainer playerMetadataPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
 
-    public ZombiesNPC(Location location, WrappedSignedProperty texture) {
-        this.location = location;
+    private final PacketContainer playerHeadRotationPacket
+            = new PacketContainer(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
+
+    private final PacketContainer playerLookPacket = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
+
+    public ZombiesNPC(World world, ZombiesNPCData data) {
+        this.location = data.location.toLocation(world);
         this.id = Zombies.getInstance().getNmsProxy().nextEntityId();
 
         // potentially init packet listener
@@ -90,6 +101,7 @@ public class ZombiesNPC implements Listener {
         // init player info data
         UUID uniqueId = UUID.randomUUID();
         WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, NAME);
+        WrappedSignedProperty texture = data.texture;
         if (texture != null) {
             wrappedGameProfile.getProperties().put("textures", texture);
         }
@@ -103,7 +115,7 @@ public class ZombiesNPC implements Listener {
         List<PlayerInfoData> playerInfoDataList = Collections.singletonList(playerInfoData);
 
 
-        // init player info packet
+        // init player add packet
         playerAddPacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
         playerAddPacket.getPlayerInfoDataLists().write(0, playerInfoDataList);
 
@@ -111,6 +123,15 @@ public class ZombiesNPC implements Listener {
         // init player remove packet
         playerRemovePacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
         playerRemovePacket.getPlayerInfoDataLists().write(0, playerInfoDataList);
+
+
+        // init spawn player packet
+        spawnPlayerPacket.getIntegers().write(0, id);
+        spawnPlayerPacket.getUUIDs().write(0, uniqueId);
+        spawnPlayerPacket.getDoubles()
+                .write(0, location.getX())
+                .write(1, location.getY())
+                .write(2, location.getZ());
 
 
         // init player metadata packet
@@ -123,17 +144,24 @@ public class ZombiesNPC implements Listener {
 
         wrappedDataWatcher.setObject(overlay, (byte) 0x7F);
 
-        playerMetadataPacket.getWatchableCollectionModifier().write(0, wrappedDataWatcher.getWatchableObjects());
+        playerMetadataPacket.getWatchableCollectionModifier()
+                .write(0, wrappedDataWatcher.getWatchableObjects());
 
 
-        // init spawn player packet
-        spawnPlayerPacket.getIntegers().write(0, id);
-        spawnPlayerPacket.getUUIDs().write(0, uniqueId);
-        spawnPlayerPacket.getDoubles()
-                .write(0, location.getX())
-                .write(1, location.getY())
-                .write(2, location.getZ());
+        // init player head rotation packet
+        playerHeadRotationPacket.getIntegers().write(0, id);
+        playerHeadRotationPacket.getBytes()
+                .write(0, (byte) (data.direction * 256.0F / 360.0F));
 
+
+        // init player head look packet
+        playerLookPacket.getIntegers().write(0, id);
+        playerLookPacket.getBytes()
+                .write(0, (byte) (data.direction * 256.0F / 360.0F))
+                .write(1, (byte) 0F);
+        playerLookPacket.getBooleans().write(0, true);
+
+        
         // init GUI inventory
         List<MapData> mapDataList = Zombies.getInstance().getArenaManager().getMaps();
         int num = mapDataList.size();
@@ -187,10 +215,6 @@ public class ZombiesNPC implements Listener {
         Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
     }
 
-    public ZombiesNPC(Location location) {
-        this(location, null);
-    }
-
     /**
      * Displays the NPC to a player
      * @param player Thep layer to display the NPC to
@@ -201,6 +225,8 @@ public class ZombiesNPC implements Listener {
         arenaApi.sendPacketToPlayer(zombies, player, playerAddPacket);
         arenaApi.sendPacketToPlayer(zombies, player, spawnPlayerPacket);
         arenaApi.sendPacketToPlayer(zombies, player, playerMetadataPacket);
+        arenaApi.sendPacketToPlayer(zombies, player, playerHeadRotationPacket);
+        arenaApi.sendPacketToPlayer(zombies, player, playerLookPacket);
         arenaApi.sendPacketToPlayer(zombies, player, playerRemovePacket);
     }
 
@@ -278,6 +304,50 @@ public class ZombiesNPC implements Listener {
 
 
         HandlerList.unregisterAll(this);
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    public static class ZombiesNPCData implements ConfigurationSerializable {
+
+        private final Vector location;
+
+        private final float direction;
+
+        private final WrappedSignedProperty texture;
+
+        @Override
+        public @NotNull Map<String, Object> serialize() {
+            Map<String, Object> serialized = new HashMap<>();
+            serialized.put("location", location);
+            serialized.put("direction", direction);
+
+            if (texture != null) {
+                serialized.put("textureValue", texture.getValue());
+                serialized.put("signature", texture.getSignature());
+            }
+
+            return serialized;
+        }
+
+        @SuppressWarnings("unused")
+        public static ZombiesNPCData deserialize(Map<String, Object> data) {
+            Vector location = (Vector) data.get("location");
+            float direction = (float) (double) data.get("direction");
+
+            String textureValue = (String) data.get("textureValue");
+            String signature = (String) data.get("signature");
+
+            WrappedSignedProperty texture;
+            if (textureValue != null && signature != null) {
+                texture = WrappedSignedProperty.fromValues("textures", textureValue, signature);
+            } else {
+                texture = null;
+            }
+
+            return new ZombiesNPCData(location, direction, texture);
+        }
+
     }
 
 }
