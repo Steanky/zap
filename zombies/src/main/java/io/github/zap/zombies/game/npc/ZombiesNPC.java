@@ -161,7 +161,7 @@ public class ZombiesNPC implements Listener {
                 .write(1, (byte) 0F);
         playerLookPacket.getBooleans().write(0, true);
 
-        
+
         // init GUI inventory
         List<MapData> mapDataList = Zombies.getInstance().getArenaManager().getMaps();
         int num = mapDataList.size();
@@ -227,7 +227,10 @@ public class ZombiesNPC implements Listener {
         arenaApi.sendPacketToPlayer(zombies, player, playerMetadataPacket);
         arenaApi.sendPacketToPlayer(zombies, player, playerHeadRotationPacket);
         arenaApi.sendPacketToPlayer(zombies, player, playerLookPacket);
-        arenaApi.sendPacketToPlayer(zombies, player, playerRemovePacket);
+
+        Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> {
+            arenaApi.sendPacketToPlayer(zombies, player, playerRemovePacket);
+        }, 40L);
     }
 
     @EventHandler
