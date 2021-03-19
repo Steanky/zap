@@ -45,6 +45,7 @@ import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -192,6 +193,8 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initConfig() {
+        ConfigurationSerialization.registerClass(ZombiesNPC.ZombiesNPCData.class);
+
         FileConfiguration config = getConfig();
 
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
@@ -202,7 +205,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
         config.addDefault(ConfigNames.LOBBY_WORLD, nmsProxy.getDefaultWorldName());
-        config.addDefault(ConfigNames.NPC_LOCATIONS, Collections.emptyList());
+        config.addDefault(ConfigNames.NPC_LIST, Collections.emptyList());
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -372,16 +375,17 @@ public final class Zombies extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
 
         //noinspection unchecked
-        List<Vector> npcLocations = (List<Vector>) config.getList(ConfigNames.NPC_LOCATIONS);
+        List<ZombiesNPC.ZombiesNPCData> zombiesNPCDataList
+                = (List<ZombiesNPC.ZombiesNPCData>) config.getList(ConfigNames.NPC_LIST);
 
-        if (npcLocations != null) {
+        if (zombiesNPCDataList != null) {
             String lobbyWorldName = config.getString(ConfigNames.LOBBY_WORLD);
             if (lobbyWorldName != null) {
                 World world = Bukkit.getWorld(lobbyWorldName);
 
                 if (world != null) {
-                    for (Vector vector : npcLocations) {
-                        zombiesNPCS.add(new ZombiesNPC(vector.toLocation(world)));
+                    for (ZombiesNPC.ZombiesNPCData zombiesNPCData : zombiesNPCDataList) {
+                        zombiesNPCS.add(new ZombiesNPC(world, zombiesNPCData));
                     }
                 }
             }
