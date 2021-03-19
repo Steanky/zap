@@ -232,6 +232,8 @@ public class ZombiesNPC implements Listener {
             String mapData = mapNameMap.get(event.getSlot());
 
             if (mapData != null) {
+                player.closeInventory();
+
                 ArenaApi arenaApi = Zombies.getInstance().getArenaApi();
                 Joinable joinable = new SimpleJoinable(Collections.singletonList(player));
 
