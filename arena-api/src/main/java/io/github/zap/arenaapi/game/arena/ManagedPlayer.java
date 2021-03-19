@@ -75,7 +75,6 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
             Player player = getPlayer();
             if(player != null) {
                 player.getInventory().clear();
-                player.setExp(0);
                 player.updateInventory();
                 ArenaApi.getInstance().applyDefaultCondition(player);
                 ArenaApi.getInstance().evacuatePlayer(getArena(), player);

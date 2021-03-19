@@ -41,6 +41,21 @@ public class MapData {
     String worldName;
 
     /**
+     * The material used in the item stack representation of the map
+     */
+    Material itemStackMaterial;
+
+    /**
+     * The display name of the item stack representation of the map
+     */
+    String itemStackDisplayName;
+
+    /**
+     * The lore associated with the item stack representation of the map
+     */
+    List<String> itemStackLore;
+
+    /**
      * The time the world should be set at.
      */
     long worldTime;

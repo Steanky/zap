@@ -29,6 +29,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -228,15 +229,18 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setSaturation(20);
         player.setHealth(20);
         player.setInvulnerable(true);
-        player.setWalkSpeed(0.2f);
+        player.setWalkSpeed(0.2F);
         player.setInvisible(false);
         player.setFallDistance(0);
         player.setAllowFlight(false);
         player.setCollidable(true);
         player.setFallDistance(0);
-        player.setFlySpeed(0.1f);
+        player.setFlySpeed(0.1F);
         player.setGameMode(GameMode.ADVENTURE);
         player.setArrowsInBody(0);
+        player.setLevel(0);
+        player.setExp(0F);
+        player.setFireTicks(0);
         for(PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
@@ -245,6 +249,15 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @EventHandler
     private void playerJoinEvent(PlayerJoinEvent event) {
         applyDefaultCondition(event.getPlayer());
+    }
+
+    @EventHandler
+    private void playerTeleportEvent(PlayerTeleportEvent event) {
+        Player player = event.getPlayer();
+        Arena<?> arena = arenaIn(player);
+        if(arena != null && !event.getTo().getWorld().equals(arena.getWorld())) {
+            arena.handleLeave(Lists.newArrayList(player));
+        }
     }
 
     /**
