@@ -325,8 +325,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             corpse = new Corpse(this);
 
-            getPerks().disableAll();
-
             disableRepair();
             disableRevive();
 
@@ -340,6 +338,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     public void kill() {
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
+
+            perks.disableAll();
+
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
 
             Location corpseLocation = corpse.getLocation();
