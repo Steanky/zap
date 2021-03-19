@@ -161,6 +161,7 @@ public class ZombiesNPC implements Listener {
                 .write(1, (byte) 0F);
         playerLookPacket.getBooleans().write(0, true);
 
+        
         // init GUI inventory
         List<MapData> mapDataList = Zombies.getInstance().getArenaManager().getMaps();
         int num = mapDataList.size();
