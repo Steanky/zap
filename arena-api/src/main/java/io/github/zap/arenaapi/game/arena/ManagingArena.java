@@ -16,6 +16,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryEvent;
@@ -172,6 +174,20 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         }
     }
 
+    private class AdaptedBlockEvent<U extends BlockEvent> extends MappingEvent<U, ProxyArgs<U>> {
+        public AdaptedBlockEvent(Class<U> eventClass) {
+            super(new ProxyEvent<>(plugin, eventClass, EventPriority.NORMAL, false), event -> {
+                World world = event.getBlock().getWorld();
+
+                if(world.equals(ManagingArena.this.world)) {
+                    return Pair.of(true, new ProxyArgs<>(event, new ArrayList<>(), new ArrayList<>()));
+                }
+
+                return Pair.of(false, null);
+            });
+        }
+    }
+
     private final Plugin plugin;
     private final ManagedPlayerBuilder<S, T> wrapper; //constructs instances of managed players
     private final long timeoutTicks;
@@ -262,6 +278,9 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
             }
             else if(EntityEvent.class.isAssignableFrom(bukkitClass)) {
                 event = new AdaptedEntityEvent(bukkitClass);
+            }
+            else if(BlockEvent.class.isAssignableFrom(bukkitClass)) {
+                event = new AdaptedBlockEvent(bukkitClass);
             }
             else {
                 throw new IllegalArgumentException("proxy events of type " + bukkitClass.getName() + " are not supported!");

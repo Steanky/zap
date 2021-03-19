@@ -7,8 +7,6 @@ import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
-import io.github.zap.arenaapi.event.FilteredEvent;
-import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
@@ -37,8 +35,6 @@ import io.github.zap.zombies.game.shop.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDespawnEvent;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
@@ -58,6 +54,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
@@ -218,6 +216,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                     if(startAmt == amt) { //make sure we managed to spawn at least one mob
                         Zombies.warning("Unable to find a valid spawnpoint for SpawnEntryData.");
+
+                        if(!updateCount) { //reduce zombie count if none spawned due to no windows being in range
+                            zombiesLeft -= amt;
+                        }
                         break;
                     }
                 }
@@ -414,12 +416,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final GameScoreboard gameScoreboard;
 
-    //@Getter
-    //private final Event<MythicMobDeathEvent> mythicMobDeathEvent;
-
-    //@Getter
-    //private final Event<MythicMobDespawnEvent> mythicMobDespawnEvent;
-
     /**
      * Indicate when the game start using System.currentTimeMillis()
      * return -1 if the game hasn't start
@@ -470,15 +466,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
-        /*
-        mythicMobDeathEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(), MythicMobDeathEvent.class),
-                event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
-        mythicMobDeathEvent.registerHandler(this::onMythicMobDeath);
-
-        mythicMobDespawnEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(),
-                MythicMobDespawnEvent.class), event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
-        mythicMobDespawnEvent.registerHandler(this::onMythicMobDespawn);*/
-
         registerArenaEvents();
         registerDisposables();
 
@@ -508,6 +495,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getProxyFor(EntityRemoveFromWorldEvent.class).registerHandler(this::onEntityRemoveFromWorldEvent);
         getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
         getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
+        getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
+        getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
         getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
         getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
         getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
@@ -852,6 +841,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         if(managedPlayer != null) {
             managedPlayer.getHotbarManager().setSelectedSlot(event.getNewSlot());
         }
+    }
+
+    private void onPlaceBlock(ProxyArgs<BlockPlaceEvent> args) {
+        args.getEvent().setCancelled(true);
+    }
+
+    private void onBlockBreak(ProxyArgs<BlockBreakEvent> args) {
+        args.getEvent().setCancelled(true);
     }
 
     private void onPlayerItemConsume(ProxyArgs<PlayerItemConsumeEvent> args) {
