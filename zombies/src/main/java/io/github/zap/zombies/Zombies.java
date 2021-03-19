@@ -381,51 +381,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         }
     }
 
-    //TEST CODE FOR RAYTRACING, remove eventually
-    @EventHandler
-    private void onPlayerInteract(PlayerInteractEvent event) {
-        if(event.getAction() == Action.RIGHT_CLICK_AIR && event.getHand() == EquipmentSlot.HAND) {
-            Location playerLoc = event.getPlayer().getEyeLocation();
-
-            Queue<MathUtils.RaycastResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 10,
-                    entity -> !(entity instanceof Player));
-
-            int j = 0;
-            while(results.size() > 0) {
-                MathUtils.RaycastResult result = results.poll();
-                Zombies.info((++j) + ": " + result.toString());
-                result.getHitEntity().teleport(result.getHitEntity().getLocation().add(new Vector(0, 1, 0)));
-            }
-
-            int amt = 10000;
-            long[] timesSteank = new long[amt];
-            long[] timesBukkit = new long[amt];
-
-            for(int i = 0; i < amt; i++) {
-                long start = System.currentTimeMillis();
-                MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 2,
-                        entity -> !(entity instanceof Player));
-                timesSteank[i] = System.currentTimeMillis() - start;
-            }
-
-            for(int i = 0; i < amt; i++) {
-                long start = System.currentTimeMillis();
-                playerLoc.getWorld().rayTraceEntities(playerLoc, playerLoc.getDirection(), 100,
-                        entity -> !(entity instanceof Player));
-                timesBukkit[i] = System.currentTimeMillis() - start;
-            }
-
-            long sumBukkit = 0;
-            long sumSteank = 0;
-            for(int i = 0; i < amt; i++) {
-                sumBukkit += timesBukkit[i];
-                sumSteank += timesSteank[i];
-            }
-
-            Zombies.info("Bukkit average time: " + ((double)sumBukkit / (double)amt) + ". Steank average time: " + ((double)sumSteank / (double)amt));
-        }
-    }
-
     /*
     Public static utility functions below
      */
