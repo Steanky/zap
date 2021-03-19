@@ -64,6 +64,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -386,27 +387,17 @@ public final class Zombies extends JavaPlugin implements Listener {
         if(event.getAction() == Action.RIGHT_CLICK_AIR && event.getHand() == EquipmentSlot.HAND) {
             Location playerLoc = event.getPlayer().getEyeLocation();
 
-            /*
-            this comparison is inherently unfair, but it gives a good comparison. bukkit, without sorting entities by
-            distance or compiling them in a list, is about 8x faster on average
-
-            for context it takes my algorithm a little over a tenth of a millisecond to make 1000 raycasts, each one
-            returning a list of about 50 data points. bukkit's algorithm does it in about 0.02 ms
-
-            with some optimizations, i think this can be made very comparable even considering how unfair this is
-            (bukkit doesn't even have to sort the entities, while mine does so inherently)
-             */
-
-            List<RayTraceResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 2,
+            Queue<MathUtils.RaycastResult> results = MathUtils.sortedRayTraceEntities(playerLoc, playerLoc.getDirection(), 100, 10,
                     entity -> !(entity instanceof Player));
 
             int j = 0;
-            for(RayTraceResult result :results) {
+            while(results.size() > 0) {
+                MathUtils.RaycastResult result = results.poll();
                 Zombies.info((++j) + ": " + result.toString());
                 result.getHitEntity().teleport(result.getHitEntity().getLocation().add(new Vector(0, 1, 0)));
             }
 
-            int amt = 1000;
+            int amt = 10000;
             long[] timesSteank = new long[amt];
             long[] timesBukkit = new long[amt];
 

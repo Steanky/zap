@@ -1,20 +1,30 @@
 package io.github.zap.zombies.game.util;
 
 import lombok.Value;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
 
 public class MathUtils {
+    @Value
+    public static class RaycastResult implements Comparable<RaycastResult> {
+        Entity hitEntity;
+        Vector hitPosition;
+        BlockFace hitBlockFace;
+        double distanceSquared;
+
+        @Override
+        public int compareTo(@NotNull MathUtils.RaycastResult o) {
+            return Double.compare(o.distanceSquared, distanceSquared);
+        }
+    }
+
     public static double clamp(double val, double min, double max) {
         return Math.max(min, Math.min(max, val));
     }
@@ -31,23 +41,17 @@ public class MathUtils {
         }
     }
 
-    public static List<RayTraceResult> sortedRayTraceEntities(Location origin, Vector direction, double maxDistance,
+    public static Queue<RaycastResult> sortedRayTraceEntities(Location origin, Vector direction, double maxDistance,
                                                               int entityCap, Predicate<Entity> filter) {
-        List<RayTraceResult> results = new ArrayList<>();
         Vector originVector = origin.toVector();
 
-        if(exclusionHash.size() > 0) {
-            exclusionHash.clear();
-        }
-
-        rayTraceInternal(exclusionHash, -1, results, (List<Entity>)origin.getWorld()
+        return rayCastInternalSimple((List<Entity>)origin.getWorld()
                 .getNearbyEntities(BoundingBox.of(originVector, originVector).expandDirectional(direction.clone()
-                        .multiply(maxDistance)), filter), filter, originVector, direction, maxDistance,
-                entityCap);
-
-        return results;
+                        .multiply(maxDistance)), filter), filter, originVector, direction,
+                maxDistance * maxDistance, entityCap);
     }
 
+    /*
     private static final HashSet<UUID> exclusionHash = new HashSet<>();
     private static Pair<Boolean, Integer> rayTraceInternal(Set<UUID> blacklist, int lastIndex, List<RayTraceResult> results,
                                                            List<Entity> sampleEntities, Predicate<Entity> filter,
@@ -102,10 +106,6 @@ public class MathUtils {
                     }
                 }
                 else if(BoundingBox.of(origin, endpoint).contains(entityBounds)) {
-                    /*
-                    we can remove the entity if it is fully inside the current bounds and yet still did not pass the
-                    raytrace; it is guaranteed to never be needed again
-                     */
                     sampleEntities.remove(i);
 
                     if(i < lastIndex) {
@@ -125,158 +125,138 @@ public class MathUtils {
 
         return Pair.of(false, removedBeforeLast);
     }
+    */
 
-    private static ResultEntry fastRayTrace(Entity entity, Vector start, Vector direction, Vector hitPosition) {
-        if(start.equals(hitPosition)) {
-            return null;
+    private static RaycastResult fastRaycast(@NotNull Entity entity, @NotNull Vector start, @NotNull Vector direction,
+                                             double lengthSquared) {
+        BoundingBox self = entity.getBoundingBox();
+
+        double startX = start.getX();
+        double startY = start.getY();
+        double startZ = start.getZ();
+        double dirX = direction.getX();
+        double dirY = direction.getY();
+        double dirZ = direction.getZ();
+        double divX = 1.0D / dirX;
+        double divY = 1.0D / dirY;
+        double divZ = 1.0D / dirZ;
+        double tMin;
+        double tMax;
+        BlockFace hitBlockFaceMin;
+        BlockFace hitBlockFaceMax;
+        if (dirX >= 0.0D) {
+            tMin = (self.getMinX() - startX) * divX;
+            tMax = (self.getMaxX() - startX) * divX;
+            hitBlockFaceMin = BlockFace.WEST;
+            hitBlockFaceMax = BlockFace.EAST;
+        } else {
+            tMin = (self.getMaxX() - startX) * divX;
+            tMax = (self.getMinX() - startX) * divX;
+            hitBlockFaceMin = BlockFace.EAST;
+            hitBlockFaceMax = BlockFace.WEST;
         }
-        else {
-            BoundingBox test = entity.getBoundingBox();
-            double startX = start.getX();
-            double startY = start.getY();
-            double startZ = start.getZ();
-            double dirX = direction.getX();
-            double dirY = direction.getY();
-            double dirZ = direction.getZ();
-            double divX = 1.0D / dirX;
-            double divY = 1.0D / dirY;
-            double divZ = 1.0D / dirZ;
-            double tMin;
-            double tMax;
-            BlockFace hitBlockFaceMin;
-            BlockFace hitBlockFaceMax;
-            if (dirX >= 0.0D) {
-                tMin = (test.getMinX() - startX) * divX;
-                tMax = (test.getMaxX() - startX) * divX;
-                hitBlockFaceMin = BlockFace.WEST;
-                hitBlockFaceMax = BlockFace.EAST;
-            } else {
-                tMin = (test.getMaxX() - startX) * divX;
-                tMax = (test.getMinX() - startX) * divX;
-                hitBlockFaceMin = BlockFace.EAST;
-                hitBlockFaceMax = BlockFace.WEST;
+
+        double tyMin;
+        double tyMax;
+        BlockFace hitBlockFaceYMin;
+        BlockFace hitBlockFaceYMax;
+        if (dirY >= 0.0D) {
+            tyMin = (self.getMinY() - startY) * divY;
+            tyMax = (self.getMaxY() - startY) * divY;
+            hitBlockFaceYMin = BlockFace.DOWN;
+            hitBlockFaceYMax = BlockFace.UP;
+        } else {
+            tyMin = (self.getMaxY() - startY) * divY;
+            tyMax = (self.getMinY() - startY) * divY;
+            hitBlockFaceYMin = BlockFace.UP;
+            hitBlockFaceYMax = BlockFace.DOWN;
+        }
+
+        if (!(tMin > tyMax) && !(tMax < tyMin)) {
+            if (tyMin > tMin) {
+                tMin = tyMin;
+                hitBlockFaceMin = hitBlockFaceYMin;
             }
 
-            double tyMin;
-            double tyMax;
-            BlockFace hitBlockFaceYMin;
-            BlockFace hitBlockFaceYMax;
-            if (dirY >= 0.0D) {
-                tyMin = (test.getMinY() - startY) * divY;
-                tyMax = (test.getMaxY() - startY) * divY;
-                hitBlockFaceYMin = BlockFace.DOWN;
-                hitBlockFaceYMax = BlockFace.UP;
-            } else {
-                tyMin = (test.getMaxY() - startY) * divY;
-                tyMax = (test.getMinY() - startY) * divY;
-                hitBlockFaceYMin = BlockFace.UP;
-                hitBlockFaceYMax = BlockFace.DOWN;
+            if (tyMax < tMax) {
+                tMax = tyMax;
+                hitBlockFaceMax = hitBlockFaceYMax;
             }
 
-            if (!(tMin > tyMax) && !(tMax < tyMin)) {
-                if (tyMin > tMin) {
-                    tMin = tyMin;
-                    hitBlockFaceMin = hitBlockFaceYMin;
+            double tzMin;
+            double tzMax;
+            BlockFace hitBlockFaceZMin;
+            BlockFace hitBlockFaceZMax;
+            if (dirZ >= 0.0D) {
+                tzMin = (self.getMinZ() - startZ) * divZ;
+                tzMax = (self.getMaxZ() - startZ) * divZ;
+                hitBlockFaceZMin = BlockFace.NORTH;
+                hitBlockFaceZMax = BlockFace.SOUTH;
+            } else {
+                tzMin = (self.getMaxZ() - startZ) * divZ;
+                tzMax = (self.getMinZ() - startZ) * divZ;
+                hitBlockFaceZMin = BlockFace.SOUTH;
+                hitBlockFaceZMax = BlockFace.NORTH;
+            }
+
+            if (!(tMin > tzMax) && !(tMax < tzMin)) {
+                if (tzMin > tMin) {
+                    tMin = tzMin;
+                    hitBlockFaceMin = hitBlockFaceZMin;
                 }
 
-                if (tyMax < tMax) {
-                    tMax = tyMax;
-                    hitBlockFaceMax = hitBlockFaceYMax;
+                if (tzMax < tMax) {
+                    tMax = tzMax;
+                    hitBlockFaceMax = hitBlockFaceZMax;
                 }
 
-                double tzMin;
-                double tzMax;
-                BlockFace hitBlockFaceZMin;
-                BlockFace hitBlockFaceZMax;
-                if (dirZ >= 0.0D) {
-                    tzMin = (test.getMinZ() - startZ) * divZ;
-                    tzMax = (test.getMaxZ() - startZ) * divZ;
-                    hitBlockFaceZMin = BlockFace.NORTH;
-                    hitBlockFaceZMax = BlockFace.SOUTH;
-                } else {
-                    tzMin = (test.getMaxZ() - startZ) * divZ;
-                    tzMax = (test.getMinZ() - startZ) * divZ;
-                    hitBlockFaceZMin = BlockFace.SOUTH;
-                    hitBlockFaceZMax = BlockFace.NORTH;
-                }
-
-                if (!(tMin > tzMax) && !(tMax < tzMin)) {
-                    if (tzMin > tMin) {
-                        tMin = tzMin;
-                        hitBlockFaceMin = hitBlockFaceZMin;
-                    }
-
-                    if (tzMax < tMax) {
-                        tMax = tzMax;
-                        hitBlockFaceMax = hitBlockFaceZMax;
-                    }
-
-                    if (tMax < 0.0D) {
-                        return null;
-                    }
-
-                    double dSq = start.distanceSquared(hitPosition);
-                    if (tMin * tMin > dSq) {
-                        return null;
-                    } else {
-                        BlockFace hitBlockFace;
-                        if (tMin < 0.0D) {
-                            hitBlockFace = hitBlockFaceMax;
-                        } else {
-                            hitBlockFace = hitBlockFaceMin;
-                        }
-
-                        return new ResultEntry(new RayTraceResult(hitPosition, entity, hitBlockFace), dSq);
-                    }
-                } else {
+                if (tMax < 0.0D) {
                     return null;
+                }
+
+                if (tMin * tMin > lengthSquared) {
+                    return null;
+                } else {
+                    double t;
+                    BlockFace hitBlockFace;
+                    if (tMin < 0.0D) {
+                        t = tMax;
+                        hitBlockFace = hitBlockFaceMax;
+                    } else {
+                        t = tMin;
+                        hitBlockFace = hitBlockFaceMin;
+                    }
+
+                    Vector hitPoint = direction.clone().multiply(t).add(start);
+                    return new RaycastResult(entity, hitPoint, hitBlockFace, start.distanceSquared(hitPoint));
                 }
             } else {
                 return null;
             }
+        } else {
+            return null;
         }
     }
 
-    @Value
-    private static class ResultEntry implements Comparable<ResultEntry> {
-        RayTraceResult result;
-        double distance;
+    private static Queue<RaycastResult> rayCastInternalSimple(List<Entity> sampleEntities, Predicate<Entity> filter,
+                                                              Vector origin, Vector direction, double lengthSquared,
+                                                              int entityCap) {
+        Queue<RaycastResult> chain = new PriorityQueue<>();
 
-        @Override
-        public int compareTo(@NotNull MathUtils.ResultEntry o) {
-            return Double.compare(distance, o.distance);
-        }
-    }
+        for(Entity entity : sampleEntities) {
+            if(filter.test(entity)) { //search for hit
+                RaycastResult hit = fastRaycast(entity, origin, direction, lengthSquared);
 
-    private static  List<ResultEntry> rayTraceInternalIterative(List<Entity> sampleEntities, Predicate<Entity> filter,
-                                                           Vector origin, Vector direction, Vector endpoint, int entityCap) {
-        List<ResultEntry> results = new ArrayList<>();
-        PriorityQueue<ResultEntry> chain = new PriorityQueue<>();
+                if(hit != null) {
+                    chain.add(hit);
 
-        while(sampleEntities.size() > 0) {
-            for(int i = sampleEntities.size() - 1; i > -1; i--) {
-                Entity candidate = sampleEntities.get(i);
-
-                if(filter.test(candidate)) { //search for hit
-                    ResultEntry hit = fastRayTrace(candidate, origin, direction, endpoint);
-
-                    if(hit != null) {
-                        for(int j = sampleEntities.size() - 1; j > -1; j--) { //search backwards for closer entities
-                            if(j != i) { //don't test current candidate
-
-                            }
-                        }
+                    if(chain.size() > entityCap) {
+                        chain.remove();
                     }
-                    else if() {
-
-                    }
-                }
-                else {
-                    sampleEntities.remove(i);
                 }
             }
         }
 
-        return results;
+        return chain;
     }
 }
