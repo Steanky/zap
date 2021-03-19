@@ -359,26 +359,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         commandManager.registerCommand(new MapeditorCommand());
 
         contextManager = new ContextManager();
-
-        renderer = new SimpleRenderer(Bukkit.getWorld("world"), 0, 5);
-        renderer.add(new SinglePrism());
-        renderer.start();
-    }
-
-
-    public static Renderer renderer;
-    public static BoundingBox boundsToRender;
-
-    public static final class SinglePrism extends ShadedRenderable {
-        @Override
-        public Shader getShader() {
-            return new SolidShader(Particle.FLAME, 1, null);
-        }
-
-        @Override
-        public VectorProvider vectorProvider() {
-            return boundsToRender == null ? null : new RectangularPrism(boundsToRender, 4);
-        }
     }
 
     /*
