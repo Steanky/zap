@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
-import io.lumine.xikage.mythicmobs.skills.mechanics.MountTargetMechanic;
 import net.minecraft.server.v1_16_R3.*;
 
 import java.util.EnumSet;
@@ -67,36 +66,42 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
     public void e() {
         EntityLiving target = this.self.getGoalTarget();
-        this.self.getControllerLook().a(target, 30.0F, 30.0F);
-        this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
-        if (this.navigationCounter <= 0) {
-            //randomly offset the delay
-            this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
+        if(target != null) {
+            this.self.getControllerLook().a(target, 30.0F, 30.0F);
+            this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
 
-            //calculate the path
-            currentPath = proxy.getPathTo(self, target, targetDeviation);
+            if (this.navigationCounter <= 0) {
+                //randomly offset the delay
+                this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
-            if(currentPath != null) {
-                /*
-                optimization: for very long/complex paths, wait longer to recalculate
-                a path with 300 nodes will result in 300 / 5 = 60 ticks (3 seconds) before next recalculation
-                we don't need really responsive behavior when entities are this far away (they're probably not even
-                visible to the player!)
+                //calculate the path
+                currentPath = proxy.calculatePathTo(self, target, targetDeviation);
 
-                if we're less than 100 nodes (arbitrary), we assume that the zombie is probably visible to the player
-                and we should not delay its path recalculation at all
-                 */
-                int nodes = currentPath.getPoints().size();
-                if(nodes >= 100) {
-                    navigationCounter += currentPath.getPoints().size() / 5;
+                if(currentPath != null) {
+                    /*
+                    optimization: for very long/complex paths, wait longer to recalculate
+                    a path with 300 nodes will result in 300 / 5 = 60 ticks (3 seconds) before next recalculation
+                    we don't need really responsive behavior when entities are this far away (they're probably not even
+                    visible to the player!)
+
+                    if we're less than 100 nodes (arbitrary), we assume that the zombie is probably visible to the player
+                    and we should not delay its path recalculation at all
+                    */
+                    int nodes = currentPath.getPoints().size();
+                    if(nodes >= 100) {
+                        navigationCounter += nodes / 5;
+                    }
+                }
+                else {
+                    navigationCounter += 20;
                 }
             }
-        }
 
-        if(currentPath != null) {
-            proxy.navigateAlongPath(self, currentPath, speed);
-            this.attackTimer = Math.max(this.attackTimer - 1, 0);
-            this.tryAttack(target);
+            if(currentPath != null) {
+                proxy.moveAlongPath(self, currentPath, speed);
+                this.attackTimer = Math.max(this.attackTimer - 1, 0);
+                this.tryAttack(target);
+            }
         }
     }
 

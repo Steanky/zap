@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Value;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.lang.reflect.Field;
@@ -34,7 +35,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     @Getter
     private ZombiesPlayer target;
 
-    private int locateInitial = 19;
+    private int locateInitial;
     private int counter;
 
     public WrappedZombiesPathfinder(AbstractEntity entity, PathfinderGoal wrappedGoal, int retargetInterval,
@@ -42,7 +43,8 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         super(entity, Zombies.ARENA_METADATA_NAME);
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
-        getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, Float.MAX_VALUE);
+        this.locateInitial = getHandle().getRandom().nextInt(20);
+        getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, 512F);
 
         EntityInsentient entityInsentient = getHandle();
         entityInsentient.getNavigation().a(Float.MAX_VALUE);
@@ -86,8 +88,13 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
                 target = getProxy().findClosest(getHandle(), arena, 0, ZombiesPlayer::isAlive);
 
                 if(target != null) {
-                    getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(),
-                            EntityTargetEvent.TargetReason.CUSTOM, true);
+                    Player player = target.getPlayer();
+
+                    if(player != null) {
+                        getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(),
+                                EntityTargetEvent.TargetReason.CUSTOM, true);
+                    }
+
                     return wrappedGoal.a();
                 }
             }
@@ -113,7 +120,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, true);
         getHandle().getNavigation().stopPathfinding(); //necessary for some aigoals to work right
         target = null;
-        locateInitial = 19;
+        locateInitial = getHandle().getRandom().nextInt(20);
         wrappedGoal.d();
     }
 
@@ -126,7 +133,11 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
             target = getProxy().findClosest(getHandle(), arena, 0, ZombiesPlayer::isAlive);
 
             if(target != null) {
-                getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle());
+                Player player = target.getPlayer();
+
+                if(player != null) {
+                    getHandle().setGoalTarget(((CraftPlayer)player).getHandle());
+                }
             }
 
             counter = 0;
@@ -137,7 +148,11 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         target. This generally should not happen, but poorly behaved pathfinders may exist.
         */
         if(target != null && getHandle().getGoalTarget() == null) {
-            getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
+            Player player = target.getPlayer();
+
+            if(player != null) {
+                getHandle().setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);
+            }
         }
 
         wrappedGoal.e();

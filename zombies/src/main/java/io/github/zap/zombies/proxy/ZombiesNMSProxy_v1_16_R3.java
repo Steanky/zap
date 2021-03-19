@@ -8,7 +8,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
@@ -39,7 +38,7 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             if(filter.test(player)) {
                 Player bukkitPlayer = player.getPlayer();
-                PathEntity path = getPathTo(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
+                PathEntity path = calculatePathTo(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
 
                 if(path != null) {
                     PathPoint finalPoint = path.getFinalPoint();
@@ -114,17 +113,17 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public PathEntity getPathTo(EntityInsentient entity, double x, double y, double z, int deviation) {
+    public PathEntity calculatePathTo(EntityInsentient entity, double x, double y, double z, int deviation) {
         return entity.getNavigation().a(x, y, z, deviation);
     }
 
     @Override
-    public PathEntity getPathTo(EntityInsentient entity, Entity target, int deviation) {
+    public PathEntity calculatePathTo(EntityInsentient entity, Entity target, int deviation) {
         return entity.getNavigation().calculateDestination(target);
     }
 
     @Override
-    public boolean navigateAlongPath(EntityInsentient entity, PathEntity path, double speed) {
+    public boolean moveAlongPath(EntityInsentient entity, PathEntity path, double speed) {
         return entity.getNavigation().a(path, speed);
     }
 

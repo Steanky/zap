@@ -39,6 +39,7 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
         proxy = Zombies.getInstance().getNmsProxy();
+        navigationCounter = self.getRandom().nextInt(5);
     }
 
     public boolean a() {
@@ -72,19 +73,24 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
         if (target != null) {
             this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
             if (this.navigationCounter <= 0) {
-                this.navigationCounter = 4 + this.self.getRandom().nextInt(7);
-                currentPath = proxy.getPathTo(self, target, targetDeviation);
+                this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
+                currentPath = proxy.calculatePathTo(self, target, targetDeviation);
 
                 if(currentPath != null) {
                     int nodes = currentPath.getPoints().size();
                     if(nodes >= 100) {
-                        navigationCounter += currentPath.getPoints().size() / 5;
+                        navigationCounter += nodes / 5;
                     }
+                }
+                else {
+                    navigationCounter += 20;
                 }
 
                 distanceToTargetSquared = this.self.h(target.locX(), target.locY(), target.locZ());
                 hasSight = this.self.getEntitySenses().a(target);
             }
+
+            proxy.moveAlongPath(self, currentPath, this.speed);
 
             boolean bowPartiallyDrawn = this.drawTimer > 0;
             if (hasSight != bowPartiallyDrawn) {
@@ -98,7 +104,6 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
             }
 
             if (!(distanceToTargetSquared > (double)this.shootDistanceSquared) && this.drawTimer >= 20) {
-                this.self.getNavigation().o();
                 ++this.strafeTimer;
             } else {
                 this.strafeTimer = -1;
@@ -143,8 +148,6 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
             } else if (--this.attackTimer <= 0 && this.drawTimer >= -60 && distanceToTargetSquared < shootDistanceSquared) {
                 this.self.c(ProjectileHelper.a(this.self, Items.BOW));
             }
-
-            proxy.navigateAlongPath(self, currentPath, this.speed);
         }
     }
 }
