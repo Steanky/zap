@@ -877,7 +877,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerInventoryClick(ProxyArgs<InventoryClickEvent> args) {
         InventoryClickEvent event = args.getEvent();
-        ZombiesPlayer managedPlayer = getPlayerMap().get(event.getWhoClicked().getUniqueId());
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+
         if (managedPlayer != null) {
             Player player = managedPlayer.getPlayer();
 
