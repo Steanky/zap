@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
@@ -191,6 +192,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                             ActiveMob mob = spawnMob(spawnEntryData.getMobName(), context.spawnpoint.getSpawn());
 
                             if(mob != null) {
+                                spawnedEntities.add(mob);
                                 MetadataHelper.setMetadataFor(mob.getEntity().getBukkitEntity(),
                                         Zombies.WINDOW_METADATA_NAME, Zombies.getInstance(), context.window);
 
@@ -412,11 +414,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final GameScoreboard gameScoreboard;
 
-    @Getter
-    private final Event<MythicMobDeathEvent> mythicMobDeathEvent;
+    //@Getter
+    //private final Event<MythicMobDeathEvent> mythicMobDeathEvent;
 
-    @Getter
-    private final Event<MythicMobDespawnEvent> mythicMobDespawnEvent;
+    //@Getter
+    //private final Event<MythicMobDespawnEvent> mythicMobDespawnEvent;
 
     /**
      * Indicate when the game start using System.currentTimeMillis()
@@ -468,13 +470,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
 
+        /*
         mythicMobDeathEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(), MythicMobDeathEvent.class),
                 event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
         mythicMobDeathEvent.registerHandler(this::onMythicMobDeath);
 
         mythicMobDespawnEvent = new FilteredEvent<>(new ProxyEvent<>(Zombies.getInstance(),
                 MythicMobDespawnEvent.class), event -> event.getEntity() != null && hasEntity(event.getEntity().getUniqueId()));
-        mythicMobDespawnEvent.registerHandler(this::onMythicMobDespawn);
+        mythicMobDespawnEvent.registerHandler(this::onMythicMobDespawn);*/
 
         registerArenaEvents();
         registerDisposables();
@@ -502,6 +505,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getProxyFor(EntityDamageEvent.class).registerHandler(this::onEntityDamaged);
         getProxyFor(EntityDamageByEntityEvent.class).registerHandler(this::onEntityDamageByEntity);
         getProxyFor(PlayerDeathEvent.class).registerHandler(this::onPlayerDeath);
+        getProxyFor(EntityRemoveFromWorldEvent.class).registerHandler(this::onEntityRemoveFromWorldEvent);
         getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
         getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
         getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
@@ -594,29 +598,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private void onMythicMobDespawn(MythicMobDespawnEvent event) {
-        if(state == ZombiesArenaState.STARTED) {
-            if(getEntitySet().remove(event.getEntity().getUniqueId())) {
-                zombiesLeft--;
-            }
-
-            checkNextRound();
-        }
-    }
-
-    private void onMythicMobDeath(MythicMobDeathEvent event) {
-        if(state == ZombiesArenaState.STARTED) {
-            if(getEntitySet().remove(event.getEntity().getUniqueId())) {
-                zombiesLeft--;
-            }
-
-            checkNextRound();
-        }
-    }
-
     private void checkNextRound() {
         if(zombiesLeft == 0 && state == ZombiesArenaState.STARTED){
             doRound();
+        }
+    }
+
+    private void onEntityRemoveFromWorldEvent(ProxyArgs<EntityRemoveFromWorldEvent> event) {
+        if(state == ZombiesArenaState.STARTED) {
+            if(getEntitySet().remove(event.getEvent().getEntity().getUniqueId())) {
+                zombiesLeft--;
+                checkNextRound();
+            }
         }
     }
 
@@ -642,8 +635,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     }
                 }
             }
-            else if(state == ZombiesPlayerState.DEAD) {
+            else if(state != ZombiesPlayerState.ALIVE) {
                 event.setCancelled(true);
+            }
+        }
+        else if(event.getCause() == EntityDamageEvent.DamageCause.VOID) {
+            Entity entity = args.getEvent().getEntity();
+            if(getEntitySet().contains(entity.getUniqueId())) {
+                entity.remove();
             }
         }
     }
@@ -962,7 +961,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                     runTaskLater(6000, () -> {
                         for(ActiveMob mob : spawnedMobs) {
-                            mob.setDespawned();
+                            mob.getEntity().getBukkitEntity().remove();
                         }
                     });
                 });

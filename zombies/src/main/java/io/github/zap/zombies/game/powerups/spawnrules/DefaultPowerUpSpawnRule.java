@@ -1,6 +1,8 @@
 package io.github.zap.zombies.game.powerups.spawnrules;
 
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -8,7 +10,6 @@ import io.github.zap.zombies.game.data.map.SpawnEntryData;
 import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpawnRuleData> implements Disposable {
     public DefaultPowerUpSpawnRule(String spawnTargetName, DefaultPowerUpSpawnRuleData data, ZombiesArena arena) {
         super(spawnTargetName, data, arena);
-        getArena().getMythicMobDeathEvent().registerHandler(this::onMobDeath);
+        getArena().getProxyFor(EntityRemoveFromWorldEvent.class).registerHandler(this::onMobDeath);
 
         // Avoid spawning stuff inside windows
         windows = getArena().getMap().getRooms().stream().flatMap(x -> x.getWindows().stream()).collect(Collectors.toList());
@@ -42,7 +43,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
     private boolean disposed = false;
 
-    private void onMobDeath(MythicMobDeathEvent e) {
+    private void onMobDeath(ZombiesArena.ProxyArgs<EntityRemoveFromWorldEvent> e) {
         var patterns = getData().getPattern();
         var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena());
         if(patterns.contains(currentRound)) {
@@ -56,11 +57,11 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
         if(isRound) {
             //using new MetadataHelper util class; the old code would have failed if another plugin happened to register metadata to that entity
-            WaveData waveData = MetadataHelper.getMetadataFor(e.getEntity(), Zombies.getInstance(), Zombies.SPAWNINFO_WAVE_METADATA_NAME);
+            WaveData waveData = MetadataHelper.getMetadataFor(e.getEvent().getEntity(), Zombies.getInstance(), Zombies.SPAWNINFO_WAVE_METADATA_NAME);
 
             if(waveData == chosenWave) {
                 if(deathCountUntilDrops == roundDeathCount && !isDisabledRound()) {
-                    spawn(getSuitableLocation(e.getMob().getEntity().getBukkitEntity()));
+                    spawn(getSuitableLocation(e.getEvent().getEntity()));
                 }
 
                 roundDeathCount++;
@@ -98,7 +99,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
             return;
         }
 
-        getArena().getMythicMobDeathEvent().removeHandler(this::onMobDeath);
+        getArena().getProxyFor(EntityRemoveFromWorldEvent.class).removeHandler(this::onMobDeath);
         disposed = true;
     }
 }
