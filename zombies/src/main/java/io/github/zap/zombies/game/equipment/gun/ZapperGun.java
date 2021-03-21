@@ -17,16 +17,16 @@ public class ZapperGun extends Gun<ZapperGunData, ZapperGunLevel> {
 
     @Override
     public void shoot() {
-        ZapperGunData linearGunData = getEquipmentData();
-        ZapperGunLevel currentLevel = linearGunData.getLevels().get(getLevel());
+        ZapperGunData zapperGunData = getEquipmentData();
+        ZapperGunLevel currentLevel = zapperGunData.getLevels().get(getLevel());
 
         new ZapperBeam(
                 getZombiesArena().getMap(),
                 getZombiesPlayer(),
                 getPlayer().getEyeLocation(),
                 currentLevel,
-                linearGunData.getParticle(),
-                linearGunData.getParticleDataWrapper()
+                zapperGunData.getParticle(),
+                zapperGunData.getParticleDataWrapper()
         ).send();
     }
 
