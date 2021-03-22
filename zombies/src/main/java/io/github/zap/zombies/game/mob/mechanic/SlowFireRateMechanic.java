@@ -38,11 +38,9 @@ public class SlowFireRateMechanic extends ZombiesPlayerSkill {
             Player bukkitPlayer = target.getPlayer();
 
             final double modifier;
-            if(bukkitPlayer.getUniqueId().equals(AVERAGE)) {
-                modifier = speedModifier * 0.5;
-            }
-            else if(bukkitPlayer.getUniqueId().equals(BIGDIP)) {
-                modifier = speedModifier * 0;
+            if(bukkitPlayer.getUniqueId().equals(AVERAGE) || bukkitPlayer.getUniqueId().equals(BIGDIP)) {
+                //bigdip and average experience more slowdown
+                modifier = speedModifier * 0.75;
             }
             else {
                 modifier = speedModifier;
@@ -51,16 +49,12 @@ public class SlowFireRateMechanic extends ZombiesPlayerSkill {
             if(!target.getFireRateMultiplier().hasModifier(SLOW_FIRE_RATE_MODIFIER_NAME)) {
                 target.getFireRateMultiplier().registerModifier(SLOW_FIRE_RATE_MODIFIER_NAME, d -> d == null ? 0D : d * modifier);
 
-                slowdownTaskId = arena.runTaskLater(duration, () -> {
-                    target.getFireRateMultiplier().removeModifier(SLOW_FIRE_RATE_MODIFIER_NAME);
-                }).getTaskId();
+                slowdownTaskId = arena.runTaskLater(duration, () -> target.getFireRateMultiplier().removeModifier(SLOW_FIRE_RATE_MODIFIER_NAME)).getTaskId();
             }
             else {
                 Bukkit.getScheduler().cancelTask(slowdownTaskId);
 
-                slowdownTaskId = arena.runTaskLater(duration, () -> {
-                    target.getFireRateMultiplier().removeModifier(SLOW_FIRE_RATE_MODIFIER_NAME);
-                }).getTaskId();
+                slowdownTaskId = arena.runTaskLater(duration, () -> target.getFireRateMultiplier().removeModifier(SLOW_FIRE_RATE_MODIFIER_NAME)).getTaskId();
             }
         }
 
