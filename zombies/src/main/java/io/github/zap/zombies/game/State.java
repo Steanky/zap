@@ -64,6 +64,14 @@ public class State<T> {
     }
 
     /**
+     * Returns true if this State has a modifier with the given name. Returns false otherwise.
+     */
+    public boolean hasModifier(@NotNull String name) {
+        Objects.requireNonNull(name, "name cannot be null");
+        return  modifierMap.containsKey(name);
+    }
+
+    /**
      * Gets the value after applying any present modifiers to it. This may be the same object initially assigned to
      * baseValue; if it is mutable, modifying it is possible but not recommended and may result in undefined
      * behavior.
