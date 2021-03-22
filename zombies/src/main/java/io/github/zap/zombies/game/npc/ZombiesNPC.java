@@ -216,7 +216,15 @@ public class ZombiesNPC implements Listener {
             inventory = Bukkit.createInventory(null, 9, Component.text("Play Zombies"));
         }
 
+
+        // Register listener events
         Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
+
+
+        // Display to players that are already online
+        for (Player player : world.getPlayers()) {
+            displayToPlayer(player);
+        }
     }
 
     /**
