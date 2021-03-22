@@ -93,14 +93,14 @@ public class BasicBeam {
         this.goldPerShot = level.getGoldPerShot();
         this.goldPerHeadshot = level.getGoldPerHeadshot();
 
-        this.distance = getDistance();
+        this.distance = calculateDistance();
     }
 
     /**
-     * Gets the distance to the shot's target block
+     * Calculates the distance to the shot's target block
      * @return The distance to the shot's target block
      */
-    private double getDistance() {
+    private double calculateDistance() {
         Block targetBlock = getTargetBlock();
         BoundingBox boundingBox;
 

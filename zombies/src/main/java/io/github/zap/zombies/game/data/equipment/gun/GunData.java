@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
+import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.game.data.equipment.UltimateableData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import lombok.Getter;
@@ -70,23 +71,29 @@ public class GunData<L extends GunLevel> extends UltimateableData<L> {
                 statsLore.add(String.format(changedFormat, "Clip Ammo", previous.getClipAmmo(), current.getClipAmmo()));
             }
             if (previous.getFireRate() == current.getFireRate()) {
-                statsLore.add(String.format(unchangedFormat, "Fire Rate", current.getFireRate() + "s"));
+                statsLore.add(String.format(unchangedFormat, "Fire Rate",
+                        TimeUtil.convertTicksToSeconds(current.getFireRate()) + "s"));
             } else {
-                statsLore.add(String.format(changedFormat, "Fire Rate", previous.getFireRate() + "s",
-                        current.getFireRate() + "s"));
+                statsLore.add(String.format(changedFormat, "Fire Rate",
+                        TimeUtil.convertTicksToSeconds(previous.getFireRate()) + "s",
+                        TimeUtil.convertTicksToSeconds(current.getFireRate()) + "s"));
             }
             if (previous.getReloadRate() == current.getReloadRate()) {
-                statsLore.add(String.format(unchangedFormat, "Reload Rate", current.getReloadRate() + "s"));
+                statsLore.add(String.format(unchangedFormat, "Reload Rate",
+                        TimeUtil.convertTicksToSeconds(current.getReloadRate()) + "s"));
             } else {
-                statsLore.add(String.format(changedFormat, "Reload Rate", previous.getReloadRate() + "s",
-                        current.getReloadRate() + "s"));
+                statsLore.add(String.format(changedFormat, "Reload Rate",
+                        TimeUtil.convertTicksToSeconds(previous.getReloadRate()) + "s",
+                        TimeUtil.convertTicksToSeconds(current.getReloadRate()) + "s"));
             }
         } else {
             statsLore.add(String.format(unchangedFormat, "Damage", current.getDamage() + " HP"));
             statsLore.add(String.format(unchangedFormat, "Ammo", current.getAmmo()));
             statsLore.add(String.format(unchangedFormat, "Clip Ammo", current.getClipAmmo()));
-            statsLore.add(String.format(unchangedFormat, "Fire Rate", current.getFireRate() + "s"));
-            statsLore.add(String.format(unchangedFormat, "Reload Rate", current.getReloadRate() + "s"));
+            statsLore.add(String.format(unchangedFormat, "Fire Rate",
+                    TimeUtil.convertTicksToSeconds(current.getFireRate()) + "s"));
+            statsLore.add(String.format(unchangedFormat, "Reload Rate",
+                    TimeUtil.convertTicksToSeconds(current.getReloadRate()) + "s"));
         }
 
         return statsLore;

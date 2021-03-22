@@ -18,7 +18,7 @@ public class LinearGun extends Gun<LinearGunData, LinearGunLevel> {
     @Override
     public void shoot() {
         LinearGunData linearGunData = getEquipmentData();
-        LinearGunLevel currentLevel = linearGunData.getLevels().get(getLevel());
+        LinearGunLevel currentLevel = getCurrentLevel();
 
         new LinearBeam(
                 getZombiesArena().getMap(),

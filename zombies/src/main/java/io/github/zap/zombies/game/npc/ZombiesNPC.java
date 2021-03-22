@@ -13,6 +13,7 @@ import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -89,7 +90,9 @@ public class ZombiesNPC implements Listener {
 
     public ZombiesNPC(World world, ZombiesNPCData data) {
         this.location = data.location.toLocation(world);
-        this.id = Zombies.getInstance().getNmsProxy().nextEntityId();
+
+        ZombiesNMSProxy zombiesNMSProxy = Zombies.getInstance().getNmsProxy();
+        this.id = zombiesNMSProxy.nextEntityId();
 
         // potentially init packet listener
         NPC_MAP.put(id, this);
@@ -99,7 +102,7 @@ public class ZombiesNPC implements Listener {
         }
 
         // init player info data
-        UUID uniqueId = UUID.randomUUID();
+        UUID uniqueId = zombiesNMSProxy.randomUUID();
         WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, NAME);
         WrappedSignedProperty texture = data.texture;
         if (texture != null) {
@@ -138,6 +141,7 @@ public class ZombiesNPC implements Listener {
         playerMetadataPacket.getIntegers().write(0, id);
 
         WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
+
         WrappedDataWatcher.Serializer overlaySerializer = WrappedDataWatcher.Registry.get(Byte.class);
         WrappedDataWatcher.WrappedDataWatcherObject overlay
                 = new WrappedDataWatcher.WrappedDataWatcherObject(16, overlaySerializer);
@@ -212,7 +216,15 @@ public class ZombiesNPC implements Listener {
             inventory = Bukkit.createInventory(null, 9, Component.text("Play Zombies"));
         }
 
+
+        // Register listener events
         Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
+
+
+        // Display to players that are already online
+        for (Player player : world.getPlayers()) {
+            displayToPlayer(player);
+        }
     }
 
     /**
