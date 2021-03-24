@@ -58,6 +58,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private final ItemStack[] equipment;
 
     @Getter
+    @Setter
+    private String deathRoomName;
+
+    @Getter
     private Corpse corpse;
 
     @Getter

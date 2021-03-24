@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game;
 
-import com.destroystokyo.paper.block.TargetBlockInfo;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
@@ -33,8 +32,6 @@ import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitParticle;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitPlayer;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -607,6 +604,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(player != null && state == ZombiesPlayerState.ALIVE) {
                 if(player.getHealth() <= event.getFinalDamage()) {
                     Location location = player.getLocation().toBlockLocation();
+                    String roomName = map.roomAt(location.toVector()).getRoomDisplayName();
+                    managedPlayer.setDeathRoomName((roomName == null) ? "an unknown room" : roomName);
 
                     for (double y = location.getY(); y >= 0D; y--){
                         location.setY(y);
@@ -681,8 +680,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         Player bukkitPlayer = player.getPlayer();
 
                         if (player.isInGame() && player.isAlive() && bukkitPlayer != null) {
-                            RoomData knockedRoom = map.roomAt(bukkitPlayer.getLocation().toVector());
-                            String message = knockedRoom == null ? "an unknown room" : knockedRoom.getRoomDisplayName();
+                            String message = knocked.getDeathRoomName();
 
                             //display death message only if necessary
                             for (ZombiesPlayer otherPlayer : getPlayerMap().values()) {
