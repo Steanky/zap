@@ -494,7 +494,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
         getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
         getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
-        getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
         getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
         getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
         getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
@@ -729,8 +728,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerInteract(ProxyArgs<PlayerInteractEvent> args) {
         PlayerInteractEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
+        Action action = args.getEvent().getAction();
 
-        if(player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+        if(player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive() && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
             boolean noPurchases = true;
             for (Shop<?> shop : shops) {
                 if (shop.purchase(args)) {
@@ -789,6 +789,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             event.getItemDrop().remove();
             stack.setAmount(stack.getAmount() + 1);
             event.getPlayer().updateInventory();
+
+            ZombiesPlayer player = args.getManagedPlayer();
+
+            if(player != null) {
+                player.getHotbarManager().click(Action.LEFT_CLICK_AIR);
+            }
         }
     }
 
@@ -800,16 +806,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(!args.getEvent().getFrom().toVector().equals(args.getEvent().getTo().toVector())) {
                 args.getEvent().setCancelled(true);
             }
-        }
-    }
-
-    private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
-
-        PlayerAnimationEvent event = args.getEvent();
-        ZombiesPlayer player = args.getManagedPlayer();
-
-        if (player != null && event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
-            args.getEvent().setCancelled(true);
         }
     }
 
