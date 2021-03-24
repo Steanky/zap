@@ -191,9 +191,7 @@ public class BasicBeam {
             }
 
             rayTraceResults.sort(Comparator.comparingDouble(Pair::getRight));
-            rayTraceResults.subList(0, Math.min(rayTraceResults.size(), maxPierceableEntities));
-
-            return rayTraceResults;
+            return rayTraceResults.subList(0, Math.min(rayTraceResults.size(), maxPierceableEntities));
         }
     }
 
