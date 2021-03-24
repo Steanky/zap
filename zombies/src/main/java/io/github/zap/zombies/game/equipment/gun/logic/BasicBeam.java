@@ -102,22 +102,10 @@ public class BasicBeam {
      */
     private double calculateDistance() {
         Block targetBlock = getTargetBlock();
-        BoundingBox boundingBox;
-
-        if (targetBlock.getType().isAir()) {
-            Location location = targetBlock.getLocation();
-            boundingBox = new BoundingBox(location.getX(), location.getY(), location.getZ(),
-                    location.getX() + 1, location.getY() + 1, location.getZ() + 1);
-        } else {
-            boundingBox = targetBlock.getBoundingBox();
-        }
+        BoundingBox boundingBox = targetBlock.getBoundingBox();
 
         RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,range + 1.74);
-        if (rayTraceResult != null) {
-            return rayTraceResult.getHitPosition().distance(root);
-        } else {
-            return range;
-        }
+        return (rayTraceResult == null) ? range : rayTraceResult.getHitPosition().distance(root);
     }
 
     /**
@@ -132,7 +120,7 @@ public class BasicBeam {
         while (iterator.hasNext()) {
             targetBlock = iterator.next();
 
-            if (!targetBlock.getType().isAir() && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
+            if (!targetBlock.isPassable() && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
                 BoundingBox boundingBox = targetBlock.getBoundingBox();
                 if (boundingBox.getWidthX() != 1.0D
                         || boundingBox.getHeight() != 1.0D || boundingBox.getWidthZ() != 1.0D) {
