@@ -1,7 +1,11 @@
 package io.github.zap.zombies.game;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
@@ -56,7 +60,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
@@ -392,6 +399,25 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final long emptyTimeout;
 
+    // Replacement for Paper being slow at PRs
+    private final PacketAdapter armSwingListener = new PacketAdapter(Zombies.getInstance(),
+            PacketType.Play.Client.ARM_ANIMATION) {
+        @Override
+        public void onPacketReceiving(PacketEvent event) {
+            if (event.getPacketType() == PacketType.Play.Client.ARM_ANIMATION) {
+                Player player = event.getPlayer();
+                ZombiesPlayer zombiesPlayer = getPlayerMap().get(player.getUniqueId());
+                if (zombiesPlayer != null) {
+                    EnumWrappers.Hand hand = event.getPacket().getHands().read(0);
+                    Action action
+                            = (hand == EnumWrappers.Hand.MAIN_HAND) ? Action.LEFT_CLICK_AIR : Action.RIGHT_CLICK_AIR;
+
+                    zombiesPlayer.getHotbarManager().click(action);
+                }
+            }
+        }
+    };
+
     @Getter
     private final List<Shop<?>> shops = new ArrayList<>();
 
@@ -469,12 +495,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         registerArenaEvents();
         registerDisposables();
 
-        PacketContainer createTeamPacketContainer = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
-        createTeamPacketContainer.getStrings().write(0, UUID.randomUUID().toString().substring(0, 16));
-        createTeamPacketContainer.getIntegers().write(0, 0);
-        createTeamPacketContainer.getStrings()
-                .write(1, "never")
-                .write(2, "never");
+        ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager.addPacketListener(armSwingListener);
 
         getMap().getPowerUpSpawnRules()
                 .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
@@ -523,6 +545,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
+
+        ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager.removePacketListener(armSwingListener);
 
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
@@ -807,6 +832,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
+        /*
         PlayerAnimationEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
 
@@ -814,6 +840,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         if (player != null && event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
             player.getHotbarManager().click(Action.LEFT_CLICK_BLOCK);
         }
+        */
     }
 
     private void onPlayerToggleSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
