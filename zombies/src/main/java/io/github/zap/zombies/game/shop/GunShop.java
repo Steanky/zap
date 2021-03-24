@@ -55,7 +55,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
             ItemStack itemStack = new ItemStack(equipmentData.getMaterial());
             item = world.dropItem(
-                    getShopData().getRootLocation().add(new Vector(0.5D, 0, 0.5D)).toLocation(world),
+                    getShopData().getRootLocation().toLocation(world).add(new Vector(0.5D, 0, 0.5D)),
                     itemStack
             );
             item.setGravity(false);

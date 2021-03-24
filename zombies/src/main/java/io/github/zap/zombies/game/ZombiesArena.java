@@ -1,11 +1,6 @@
 package io.github.zap.zombies.game;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.destroystokyo.paper.block.TargetBlockInfo;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
@@ -38,6 +33,8 @@ import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
+import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitParticle;
+import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitPlayer;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import io.lumine.xikage.mythicmobs.mobs.MythicMob;
@@ -399,25 +396,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final long emptyTimeout;
 
-    // Replacement for Paper being slow at PRs
-    private final PacketAdapter armSwingListener = new PacketAdapter(Zombies.getInstance(),
-            PacketType.Play.Client.ARM_ANIMATION) {
-        @Override
-        public void onPacketReceiving(PacketEvent event) {
-            if (event.getPacketType() == PacketType.Play.Client.ARM_ANIMATION) {
-                Player player = event.getPlayer();
-                ZombiesPlayer zombiesPlayer = getPlayerMap().get(player.getUniqueId());
-                if (zombiesPlayer != null) {
-                    EnumWrappers.Hand hand = event.getPacket().getHands().read(0);
-                    Action action
-                            = (hand == EnumWrappers.Hand.MAIN_HAND) ? Action.LEFT_CLICK_AIR : Action.RIGHT_CLICK_AIR;
-
-                    zombiesPlayer.getHotbarManager().click(action);
-                }
-            }
-        }
-    };
-
     @Getter
     private final List<Shop<?>> shops = new ArrayList<>();
 
@@ -495,9 +473,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         registerArenaEvents();
         registerDisposables();
 
-        ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-        protocolManager.addPacketListener(armSwingListener);
-
         getMap().getPowerUpSpawnRules()
                 .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
 
@@ -545,9 +520,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Override
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
-
-        ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-        protocolManager.removePacketListener(armSwingListener);
 
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
@@ -832,15 +804,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
-        /*
+
         PlayerAnimationEvent event = args.getEvent();
         ZombiesPlayer player = args.getManagedPlayer();
 
-        // why does Bukkit only have one animation type?
         if (player != null && event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
-            player.getHotbarManager().click(Action.LEFT_CLICK_BLOCK);
+            args.getEvent().setCancelled(true);
         }
-        */
     }
 
     private void onPlayerToggleSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
