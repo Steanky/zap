@@ -151,7 +151,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     );
                 } else if (!active) {
                     String notActive = "This Lucky Chest is not active right now!";
-                    String luckyChestRoom = getZombiesArena().getLuckyChestRoom();
+                    String luckyChestRoom = getZombiesArena().getMap().getNamedRoom(getZombiesArena().getLuckyChestRoom()).getRoomDisplayName();
                     if (luckyChestRoom != null) {
                         notActive += " Find the Lucky Chest in " + luckyChestRoom + "!";
                     }

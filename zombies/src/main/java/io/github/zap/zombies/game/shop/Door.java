@@ -74,10 +74,10 @@ public class Door extends Shop<DoorData> {
                 List<String> opensTo = entry.getKey().getOpensTo();
                 MapData map = getZombiesArena().getMap();
                 if (opensTo.size() > 0) {
-                    stringBuilder.append(map.getNamedRoom(opensTo.get(0)));
+                    stringBuilder.append(map.getNamedRoom(opensTo.get(0)).getRoomDisplayName());
                     for (int i = 1; i < opensTo.size(); i++) {
                         stringBuilder.append(" & ");
-                        stringBuilder.append(map.getNamedRoom(opensTo.get(i)));
+                        stringBuilder.append(map.getNamedRoom(opensTo.get(i)).getRoomDisplayName());
                     }
                 }
 
