@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -258,7 +259,7 @@ public class MapData {
      * Left String are SpawnRule data
      * Right String are PowerUp names
      */
-    Set<ImmutablePair<String, String>> powerUpSpawnRules = new HashSet<>();
+    Set<Pair<String, String>> powerUpSpawnRules = new HashSet<>();
 
     /**
      * Rounds that cannot spawn powerups.

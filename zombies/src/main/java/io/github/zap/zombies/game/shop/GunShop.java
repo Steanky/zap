@@ -3,8 +3,10 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.map.shop.GunShopData;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
@@ -45,11 +47,13 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         if (item == null) {
             World world = getZombiesArena().getWorld();
 
-            ItemStack itemStack = new ItemStack(
-                    getZombiesArena().getEquipmentManager().getEquipmentData(
-                            getZombiesArena().getMap().getName(), getShopData().getGunName()
-                    ).getMaterial()
-            );
+            EquipmentData<?> equipmentData = getZombiesArena().getEquipmentManager().getEquipmentData(getZombiesArena().getMap().getName(), getShopData().getGunName());
+            if(equipmentData == null) {
+                Zombies.warning("Unable to find equipment data for weapon " + getShopData().getGunName() + "!");
+                return;
+            }
+
+            ItemStack itemStack = new ItemStack(equipmentData.getMaterial());
             item = world.dropItem(
                     getShopData().getRootLocation().toLocation(world),
                     itemStack

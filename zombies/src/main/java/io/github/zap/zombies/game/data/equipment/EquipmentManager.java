@@ -5,6 +5,7 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -23,7 +24,6 @@ public interface EquipmentManager {
      */
     <D extends EquipmentData<L>, L> void addEquipmentType(String equipmentType, Class<D> dataClass,
                                                           EquipmentCreator.EquipmentMapping<D, L> equipmentMapping);
-
     /**
      * Gets a piece of equipment data
      * @param mapName The name of the map the equipment will be used in

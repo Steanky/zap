@@ -32,7 +32,7 @@ public class JacksonDataLoader implements DataLoader {
         try {
             writer.writeValue(new File(rootDirectory,filename + EXTENSION), data);
         } catch (IOException e) {
-            ArenaApi.warning(String.format("IOException when writing data to file: %s.", e.getMessage()));
+            ArenaApi.warning(String.format("IOException when writing data to file '%s': %s.", filename, e.getMessage()));
         }
     }
 
@@ -41,7 +41,7 @@ public class JacksonDataLoader implements DataLoader {
         try {
             return reader.readValue(new File(rootDirectory,filename + EXTENSION), objectClass);
         } catch (IOException e) {
-            ArenaApi.warning(String.format("IOException when reading data from file: %s.", e.getMessage()));
+            ArenaApi.warning(String.format("IOException when reading data from file '%s': %s.", filename, e.getMessage()));
         }
 
         return null;

@@ -255,7 +255,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private void playerTeleportEvent(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
         Arena<?> arena = arenaIn(player);
-        if(arena != null && !event.getTo().getWorld().equals(arena.getWorld())) {
+
+        if(arena != null && !event.getTo().getWorld().equals(arena.getWorld()) && event.getCause() == PlayerTeleportEvent.TeleportCause.COMMAND) {
             arena.handleLeave(Lists.newArrayList(player));
         }
     }
@@ -270,7 +271,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     }
 
     public void evacuatePlayer(@NotNull Arena<?> from, @NotNull Player player) {
-        player.teleport(from.getManager().getHubLocation());
+        player.teleport(from.getManager().getHubLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
     }
 
     public @Nullable Arena<?> arenaIn(@NotNull Player player) {

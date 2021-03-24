@@ -88,7 +88,9 @@ public class State<T> {
             }
 
             cache = result;
-            return result;
+            cacheValid = true;
         }
+
+        return cache;
     }
 }
