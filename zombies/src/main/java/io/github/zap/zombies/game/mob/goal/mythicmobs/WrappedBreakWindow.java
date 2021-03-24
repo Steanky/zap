@@ -20,7 +20,7 @@ public class WrappedBreakWindow extends WrappedPathfindingGoal implements Pathfi
         super(entity, line, mlc);
         breakTicks = mlc.getInteger("breakTicks", 20);
         breakCount = mlc.getInteger("breakCount", 1);
-        breakReachSquared = mlc.getDouble("breakReachSquared", 6D);
+        breakReachSquared = mlc.getDouble("breakReachSquared", 9D);
     }
 
     @Override

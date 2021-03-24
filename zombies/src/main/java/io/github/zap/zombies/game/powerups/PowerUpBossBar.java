@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
+import io.github.zap.zombies.game.util.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
@@ -69,7 +70,7 @@ public class PowerUpBossBar implements Disposable, Runnable {
         if(!bukkitBossBar.isVisible()) bukkitBossBar.setVisible(true);
         bukkitBossBar.setTitle(sb.toString());
         bukkitBossBar.setColor(((DurationPowerUpData)longest.getData()).getBossBarColor());
-        bukkitBossBar.setProgress(millis / 50f / (float)((DurationPowerUpData)longest.getData()).getDuration());
+        bukkitBossBar.setProgress(MathUtils.clamp(millis / 50f / (float)((DurationPowerUpData)longest.getData()).getDuration(), 0, 1));
     }
 
     private DurationPowerUp findLongest() {
