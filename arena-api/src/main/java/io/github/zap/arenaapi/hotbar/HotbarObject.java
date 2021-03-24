@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.hotbar;
 
 import lombok.Getter;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -69,15 +70,17 @@ public class HotbarObject {
 
     /**
      * Method to call when the slot is left clicked in the hotbar
+     * @param action
      */
-    public void onLeftClick() {
+    public void onLeftClick(Action action) {
 
     }
 
     /**
      * Method to call when the slot is right clicked in the hotbar
+     * @param action
      */
-    public void onRightClick() {
+    public void onRightClick(Action action) {
 
     }
 

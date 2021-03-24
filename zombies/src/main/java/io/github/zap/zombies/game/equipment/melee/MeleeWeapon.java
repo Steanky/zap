@@ -12,6 +12,7 @@ import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -93,11 +94,13 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
     }
 
     @Override
-    public void onLeftClick() {
-        super.onLeftClick();
+    public void onLeftClick(Action action) {
+        if(action == Action.LEFT_CLICK_AIR) {
+            super.onLeftClick(action);
 
-        usable = false;
-        getZombiesArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
+            usable = false;
+            getZombiesArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
+        }
     }
 
     @Override

@@ -8,6 +8,7 @@ import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -23,8 +24,8 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
     }
 
     @Override
-    public void onRightClick() {
-        super.onRightClick();
+    public void onRightClick(Action action) {
+        super.onRightClick(action);
         if (usable) {
             usable = false;
 

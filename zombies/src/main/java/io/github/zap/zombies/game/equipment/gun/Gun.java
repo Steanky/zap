@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -273,15 +274,17 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     }
 
     @Override
-    public void onLeftClick() {
-        super.onLeftClick();
-
-        reload();
+    public void onLeftClick(Action action) {
+        //TODO: remove after paper fixes their broken API
+        if(action == null) {
+            super.onLeftClick(action);
+            reload();
+        }
     }
 
     @Override
-    public void onRightClick() {
-        super.onRightClick();
+    public void onRightClick(Action action) {
+        super.onRightClick(action);
 
         if (canShoot) {
             shoot();

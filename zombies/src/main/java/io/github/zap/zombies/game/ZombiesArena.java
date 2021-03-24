@@ -48,10 +48,7 @@ import net.kyori.adventure.title.Title;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -317,7 +314,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public class BasicDamageHandler implements DamageHandler {
         @Override
         public void damageEntity(@NotNull Damager damager, @NotNull DamageAttempt with, @NotNull Mob target) {
-            if (hasEntity(target.getUniqueId())) {
+            if (hasEntity(target.getUniqueId()) && !target.isDead()) {
                 target.playEffect(EntityEffect.HURT);
 
                 double deltaHealth = inflictDamage(target, with.damageAmount(damager, target), with.ignoresArmor(damager, target));
@@ -494,6 +491,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
         getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
         getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
+        getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
         getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
         getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
         getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
@@ -730,7 +728,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         ZombiesPlayer player = args.getManagedPlayer();
         Action action = args.getEvent().getAction();
 
-        if(player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive() && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
+        if(player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive() &&
+                (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
             boolean noPurchases = true;
             for (Shop<?> shop : shops) {
                 if (shop.purchase(args)) {
@@ -745,6 +744,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
 
         event.setCancelled(true);
+    }
+
+    private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
+        ZombiesPlayer managedPlayer = args.getManagedPlayer();
+
+        if(managedPlayer != null) {
+            managedPlayer.getHotbarManager().click(Action.LEFT_CLICK_AIR);
+        }
     }
 
     @org.bukkit.event.EventHandler
@@ -780,20 +787,32 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void onPlayerDropItem(ProxyArgs<PlayerDropItemEvent> args) {
         PlayerDropItemEvent event = args.getEvent();
-        ItemStack stack = event.getPlayer().getInventory().getItem(EquipmentSlot.HAND);
+        ItemStack playerStack = event.getPlayer().getInventory().getItem(EquipmentSlot.HAND);
 
-        if(stack == null || stack.getType() == Material.AIR) {
+        if(playerStack == null) {
             event.setCancelled(true);
         }
         else {
-            event.getItemDrop().remove();
-            stack.setAmount(stack.getAmount() + 1);
+            Item dropped = event.getItemDrop();
+            dropped.remove();
+
+            if(playerStack.getType() != Material.AIR) {
+                playerStack.setAmount(playerStack.getAmount() + 1);
+            }
+            else {
+                playerStack.setType(dropped.getItemStack().getType());
+                event.setCancelled(true);
+            }
+
             event.getPlayer().updateInventory();
 
             ZombiesPlayer player = args.getManagedPlayer();
 
             if(player != null) {
-                player.getHotbarManager().click(Action.LEFT_CLICK_AIR);
+                //TODO: remove this once paper stops being dumb
+
+                //null means reload
+                player.getHotbarManager().click(null);
             }
         }
     }
