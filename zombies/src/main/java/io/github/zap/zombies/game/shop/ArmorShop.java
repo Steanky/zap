@@ -133,8 +133,6 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                                         } else {
                                             current[i] = new ItemStack(material);
                                         }
-
-                                        Zombies.info("Set slot " + i + " to material " + material.toString());
                                     }
 
                                 }
@@ -151,7 +149,6 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
                                 displayTo(bukkitPlayer);
                                 onPurchaseSuccess(zombiesPlayer);
-                                Zombies.info("Bought armor.");
                                 return true;
                             }
                         }
