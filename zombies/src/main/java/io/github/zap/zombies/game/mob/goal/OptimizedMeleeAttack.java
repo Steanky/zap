@@ -70,26 +70,19 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 //randomly offset the delay
                 this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
-                //calculate the path
-                currentPath = proxy.calculatePathTo(self, target, targetDeviation);
+                PathEntity path = proxy.calculatePathTo(self, target, targetDeviation);
+                if(path != null) {
+                    currentPath = path;
+                }
+                else {
+                    navigationCounter += 25;
+                }
 
                 if(currentPath != null) {
-                    /*
-                    optimization: for very long/complex paths, wait longer to recalculate
-                    a path with 300 nodes will result in 300 / 5 = 60 ticks (3 seconds) before next recalculation
-                    we don't need really responsive behavior when entities are this far away (they're probably not even
-                    visible to the player!)
-
-                    if we're less than 100 nodes (arbitrary), we assume that the zombie is probably visible to the player
-                    and we should not delay its path recalculation at all
-                    */
                     int nodes = currentPath.getPoints().size();
                     if(nodes >= 100) {
                         navigationCounter += nodes / 5;
                     }
-                }
-                else {
-                    navigationCounter += 20;
                 }
             }
 

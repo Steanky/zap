@@ -449,22 +449,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private int zombiesLeft;
 
-    private final PacketAdapter armSwingListener = new PacketAdapter(Zombies.getInstance(),
-            PacketType.Play.Client.ARM_ANIMATION) {
-        @Override
-        public void onPacketReceiving(PacketEvent event) {
-            if(event.getPacketType() == PacketType.Play.Client.ARM_ANIMATION) {
-                Player player = event.getPlayer();
-                ZombiesPlayer zombiesPlayer = getPlayerMap().get(player.getUniqueId());
-                if(zombiesPlayer != null) {
-                    EnumWrappers.Hand hand = event.getPacket().getHands().read(0);
-
-                    Zombies.info("Hand received: " + hand.toString());
-                }
-            }
-        }
-    };
-
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      *
@@ -492,8 +476,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
 
         Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
-
-        ProtocolLibrary.getProtocolManager().addPacketListener(armSwingListener);
     }
 
     private void registerArenaEvents() {
@@ -543,9 +525,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         manager.unloadArena(getArena());
 
         HandlerList.unregisterAll(this);
-
-
-        ProtocolLibrary.getProtocolManager().removePacketListener(armSwingListener);
     }
 
     @Override
