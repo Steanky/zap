@@ -32,7 +32,7 @@ import java.util.function.Predicate;
 public class BasicBeam {
 
     @RequiredArgsConstructor
-    private class BeamDamageAttempt implements DamageAttempt {
+    protected class BeamDamageAttempt implements DamageAttempt {
         private final boolean isHeadshot;
 
         @Override
