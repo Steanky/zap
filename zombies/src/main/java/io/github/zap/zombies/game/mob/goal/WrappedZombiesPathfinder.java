@@ -47,7 +47,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, 512F);
 
         EntityInsentient entityInsentient = getHandle();
-        entityInsentient.getNavigation().a(512F);
+        entityInsentient.getNavigation().a(2F);
 
         counter = retargetInterval > 0 ? entityInsentient.getRandom().nextInt(retargetInterval) : -1;
 

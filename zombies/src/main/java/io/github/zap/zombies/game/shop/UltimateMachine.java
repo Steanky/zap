@@ -64,7 +64,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                         HotbarObject hotbarObject = hotbarManager.getSelectedObject();
                         if (hotbarObject instanceof Ultimateable && hotbarObject instanceof UpgradeableEquipment<?, ?>) {
                             UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
-                            if (upgradeableEquipment.getLevel()
+                            if (upgradeableEquipment.getLevel() + 1
                                     < upgradeableEquipment.getEquipmentData().getLevels().size()) {
                                 upgradeableEquipment.upgrade();
 
