@@ -163,10 +163,10 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                             1.0F,
                             0.5F
                     ));
-
-                    return true;
                 }
             }
+
+            return true;
         }
         return false;
     }

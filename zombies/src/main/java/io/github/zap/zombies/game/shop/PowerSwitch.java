@@ -78,10 +78,10 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
                             1.0F,
                             0.5F
                     ));
-
-                    return true;
                 }
             }
+
+            return true;
         }
 
         return false;

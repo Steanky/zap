@@ -58,38 +58,42 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                         .get(humanEntity.getUniqueId());
 
                 if (zombiesPlayer != null) {
-                    inventoryClickEvent.setCancelled(true);
-                    TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
+                    Player bukkitPlayer = zombiesPlayer.getPlayer();
 
-                    if (teamMachineTask != null
-                            && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
+                    if (bukkitPlayer != null) {
+                        inventoryClickEvent.setCancelled(true);
+                        TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
 
-                        for (Player player : zombiesArena.getWorld().getPlayers()) {
-                            player.sendMessage(
-                                    String.format(
-                                            "%sPlayer %s purchased %s from the Team Machine!",
-                                            ChatColor.YELLOW,
-                                            zombiesPlayer.getPlayer().getName(),
-                                            teamMachineTask.getDisplayName()
-                                    )
-                            );
-                        }
-                        humanEntity.closeInventory();
+                        if (teamMachineTask != null
+                                && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
 
-                        Sound sound = Sound.sound(
-                                Key.key("minecraft:entity.player.levelup"),
-                                Sound.Source.MASTER,
-                                1.0F,
-                                1.5F
+                            for (Player player : zombiesArena.getWorld().getPlayers()) {
+                                player.sendMessage(
+                                        String.format(
+                                                "%sPlayer %s purchased %s from the Team Machine!",
+                                                ChatColor.YELLOW,
+                                                zombiesPlayer.getPlayer().getName(),
+                                                teamMachineTask.getDisplayName()
+                                        )
                                 );
-                        humanEntity.playSound(sound);
+                            }
+                            humanEntity.closeInventory();
 
-                        inventory.setItem(
-                                inventoryClickEvent.getSlot(),
-                                teamMachineTask.getItemStackRepresentationForTeamMachine(this)
-                        );
+                            Sound sound = Sound.sound(
+                                    Key.key("minecraft:entity.player.levelup"),
+                                    Sound.Source.MASTER,
+                                    1.0F,
+                                    1.5F
+                            );
+                            humanEntity.playSound(sound);
 
-                        onPurchaseSuccess(zombiesPlayer);
+                            inventory.setItem(
+                                    inventoryClickEvent.getSlot(),
+                                    teamMachineTask.getItemStackRepresentationForTeamMachine(this)
+                            );
+
+                            onPurchaseSuccess(zombiesPlayer);
+                        }
                     }
                 }
             }
@@ -115,13 +119,19 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            Player player = args.getManagedPlayer().getPlayer();
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
 
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                player.openInventory(inventory);
-                return true;
-            } else {
-                player.sendMessage("The power is not active yet!");
+            if (zombiesPlayer != null) {
+                Player bukkitPlayer = zombiesPlayer.getPlayer();
+
+                if (bukkitPlayer != null) {
+                    if (!getShopData().isRequiresPower() || isPowered()) {
+                        bukkitPlayer.openInventory(inventory);
+                        return true;
+                    } else {
+                        bukkitPlayer.sendMessage("The power is not active yet!");
+                    }
+                }
             }
         }
 
