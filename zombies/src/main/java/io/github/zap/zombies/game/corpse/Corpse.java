@@ -70,7 +70,8 @@ public class Corpse {
             hologram.addLine(ChatColor.YELLOW + "----------------------------------");
             hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
 
-            hologram.addLine(String.format("%s%fs", ChatColor.RED, TimeUtil.convertTicksToSeconds(defaultDeathTime)));
+            hologram.addLine(String.format("%s%s", ChatColor.RED,
+                    TimeUtil.convertTicksToSecondsString(defaultDeathTime)));
             hologram.addLine(ChatColor.YELLOW + "----------------------------------");
 
             ZombiesArena zombiesArena = zombiesPlayer.getArena();
@@ -143,8 +144,8 @@ public class Corpse {
 
             destroy();
         } else {
-            double timeRemaining = TimeUtil.convertTicksToSeconds(reviveTime);
-            String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
+            String timeRemaining = TimeUtil.convertTicksToSecondsString(reviveTime);
+            String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
             hologram.updateLine(2, secondsRemainingString);
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();
@@ -208,8 +209,8 @@ public class Corpse {
                 bukkitPlayer.sendActionBar(Component.text());
             }
         } else {
-            double timeRemaining = TimeUtil.convertTicksToSeconds(deathTime);
-            String secondsRemainingString = String.format("%s%.1fs", ChatColor.RED, timeRemaining);
+            String timeRemaining = TimeUtil.convertTicksToSecondsString(deathTime);
+            String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
             hologram.updateLine(2, secondsRemainingString);
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();

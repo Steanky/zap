@@ -72,28 +72,28 @@ public class GunData<L extends GunLevel> extends UltimateableData<L> {
             }
             if (previous.getFireRate() == current.getFireRate()) {
                 statsLore.add(String.format(unchangedFormat, "Fire Rate",
-                        TimeUtil.convertTicksToSeconds(current.getFireRate()) + "s"));
+                        TimeUtil.convertTicksToSecondsString(current.getFireRate())));
             } else {
                 statsLore.add(String.format(changedFormat, "Fire Rate",
-                        TimeUtil.convertTicksToSeconds(previous.getFireRate()) + "s",
-                        TimeUtil.convertTicksToSeconds(current.getFireRate()) + "s"));
+                        TimeUtil.convertTicksToSecondsString(previous.getFireRate()),
+                        TimeUtil.convertTicksToSecondsString(current.getFireRate())));
             }
             if (previous.getReloadRate() == current.getReloadRate()) {
                 statsLore.add(String.format(unchangedFormat, "Reload Rate",
-                        TimeUtil.convertTicksToSeconds(current.getReloadRate()) + "s"));
+                        TimeUtil.convertTicksToSecondsString(current.getReloadRate())));
             } else {
                 statsLore.add(String.format(changedFormat, "Reload Rate",
-                        TimeUtil.convertTicksToSeconds(previous.getReloadRate()) + "s",
-                        TimeUtil.convertTicksToSeconds(current.getReloadRate()) + "s"));
+                        TimeUtil.convertTicksToSecondsString(previous.getReloadRate()),
+                        TimeUtil.convertTicksToSecondsString(current.getReloadRate())));
             }
         } else {
             statsLore.add(String.format(unchangedFormat, "Damage", current.getDamage() + " HP"));
             statsLore.add(String.format(unchangedFormat, "Ammo", current.getAmmo()));
             statsLore.add(String.format(unchangedFormat, "Clip Ammo", current.getClipAmmo()));
             statsLore.add(String.format(unchangedFormat, "Fire Rate",
-                    TimeUtil.convertTicksToSeconds(current.getFireRate()) + "s"));
+                    TimeUtil.convertTicksToSecondsString(current.getFireRate())));
             statsLore.add(String.format(unchangedFormat, "Reload Rate",
-                    TimeUtil.convertTicksToSeconds(current.getReloadRate()) + "s"));
+                    TimeUtil.convertTicksToSecondsString(current.getReloadRate())));
         }
 
         return statsLore;
