@@ -1,11 +1,11 @@
 package io.github.zap.zombies.game.powerups;
 
-import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.data.powerups.ModifierMode;
 import io.github.zap.zombies.game.data.powerups.ModifierModeModificationPowerUpData;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.util.MathUtils;
 
@@ -28,13 +28,14 @@ public class AmmoModificationPowerUp extends PowerUp {
     public void activate() {
         var cData = (ModifierModeModificationPowerUpData) getData();
         getArena().getPlayerMap().forEach((l,r) -> {
-            var gunGroup = r.getHotbarManager().getHotbarObjectGroup(HotbarManager.DEFAULT_PROFILE_NAME);
+            var gunGroup = r.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
             gunGroup.getHotbarObjectMap().forEach((slot, eq) -> {
                 if(eq instanceof Gun) {
                     var gun = (Gun<? extends GunData<?>, ? extends GunLevel>)eq;
                     var reference = cData.getModifierMode() == ModifierMode.ABSOLUTE ? gun.getCurrentLevel().getAmmo() : gun.getCurrentAmmo();
                     gun.setAmmo((int) MathUtils.normalizeMultiplier(reference * cData.getMultiplier() + cData.getAmount(), reference));
                     gun.setClipAmmo(MathUtils.clamp(gun.getCurrentAmmo(), 0, gun.getCurrentLevel().getClipAmmo()));
+                    gun.cancelReloadShootingDelay();
                 }
             });
         });
