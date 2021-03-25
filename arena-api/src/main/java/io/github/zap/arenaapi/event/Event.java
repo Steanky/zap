@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.ObjectDisposedException;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftInventoryPlayer;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

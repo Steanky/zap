@@ -148,7 +148,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     @Override
     public void dispose() {
-        perks.dispose();
+        resourceManager.dispose();
         endTasks();
 
         if(corpse != null) {

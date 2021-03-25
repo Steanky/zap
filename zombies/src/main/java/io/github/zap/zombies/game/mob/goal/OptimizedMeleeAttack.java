@@ -46,12 +46,8 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     }
 
     public boolean b() {
-        EntityLiving target = this.self.getGoalTarget();
-        if (target == null) {
-            return false;
-        } else {
-            return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
-        }
+        Entity target = self.getGoalTarget();
+        return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
     }
 
     public void c() {
