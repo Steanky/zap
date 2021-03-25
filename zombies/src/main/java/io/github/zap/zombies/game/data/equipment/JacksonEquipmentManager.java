@@ -3,6 +3,7 @@ package io.github.zap.zombies.game.data.equipment;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GuardianGunData;
@@ -103,7 +104,14 @@ public class JacksonEquipmentManager implements EquipmentManager {
             load();
         }
 
-        return equipmentDataMap.get(mapName).get(name);
+        Map<String, EquipmentData<?>> dataForMap = equipmentDataMap.get(mapName);
+        if(dataForMap != null) {
+            return dataForMap.get(name);
+        }
+        else {
+            Zombies.warning("Unable to find equipment data for " + name + " in map " + mapName);
+            return null;
+        }
     }
 
     @Override

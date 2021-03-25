@@ -42,7 +42,7 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
     }
 
     /**
-     * Wraps Bukkit events. Contains
+     * Wraps Bukkit events.
      * @param <U>
      */
     public class ProxyArgs<U extends org.bukkit.event.Event> {
