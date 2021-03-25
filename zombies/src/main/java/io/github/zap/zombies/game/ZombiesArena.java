@@ -51,10 +51,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
@@ -482,6 +479,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         getProxyFor(PlayerSwapHandItemsEvent.class).registerHandler(this::onPlayerSwapHandItems);
         getProxyFor(EntityDamageEvent.class).registerHandler(this::onEntityDamaged);
         getProxyFor(EntityDamageByEntityEvent.class).registerHandler(this::onEntityDamageByEntity);
+        getProxyFor(EntityDeathEvent.class).registerHandler(this::onEntityDeath);
         getProxyFor(PlayerDeathEvent.class).registerHandler(this::onPlayerDeath);
         getProxyFor(EntityRemoveFromWorldEvent.class).registerHandler(this::onEntityRemoveFromWorldEvent);
         getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
@@ -585,11 +583,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void onEntityRemoveFromWorldEvent(ProxyArgs<EntityRemoveFromWorldEvent> event) {
-        if(state == ZombiesArenaState.STARTED) {
-            if(getEntitySet().remove(event.getEvent().getEntity().getUniqueId())) {
-                zombiesLeft--;
-                checkNextRound();
-            }
+        if (state == ZombiesArenaState.STARTED && getEntitySet().remove(event.getEvent().getEntity().getUniqueId())) {
+            zombiesLeft--;
+            checkNextRound();
         }
     }
 
@@ -661,6 +657,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     }
                 }
             }
+        }
+    }
+
+    private void onEntityDeath(ProxyArgs<EntityDeathEvent> args) {
+        if (state == ZombiesArenaState.STARTED && getEntitySet().remove(args.getEvent().getEntity().getUniqueId())) {
+            zombiesLeft--;
+            checkNextRound();
         }
     }
 
