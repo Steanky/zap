@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.powerups.spawnrules;
 
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Disposable;
-import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;

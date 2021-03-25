@@ -7,7 +7,7 @@ import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Random;
 
 @MythicMechanic(
         name = "stealCoins",

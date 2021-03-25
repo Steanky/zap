@@ -9,8 +9,6 @@ import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
 @MythicMechanic(
         name = "zombiesMount",
         description = "Summons and rides a mount, which is added to the current Zombies game."

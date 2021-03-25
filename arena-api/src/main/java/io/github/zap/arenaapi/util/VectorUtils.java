@@ -1,8 +1,6 @@
 package io.github.zap.arenaapi.util;
 
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 
 public final class VectorUtils {
     private static final Vector UNIT = new Vector(1, 1, 1);

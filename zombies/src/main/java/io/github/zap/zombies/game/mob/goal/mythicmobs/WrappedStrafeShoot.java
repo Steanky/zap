@@ -5,7 +5,8 @@ import io.github.zap.zombies.game.mob.goal.WrappedZombiesPathfinder;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.server.v1_16_R3.EntitySkeletonAbstract;
+import net.minecraft.server.v1_16_R3.PathfinderGoal;
 
 @MythicAIGoal(
         name = "unboundedArrowAttackWithStrafe"
