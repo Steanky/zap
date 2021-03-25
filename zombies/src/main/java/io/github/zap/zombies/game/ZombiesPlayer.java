@@ -142,7 +142,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         setDeadState();
 
         //noinspection ConstantConditions
-        getPlayer().getEquipment().setArmorContents(equipment);
+        getPlayer().getEquipment().setArmorContents(new ItemStack[4]);
         hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
     }
 
