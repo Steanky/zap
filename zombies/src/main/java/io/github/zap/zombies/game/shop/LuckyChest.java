@@ -199,12 +199,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                                         equipmentData
                                                 )
                                         );
+
+                                        gunSwapper.destroy();
+
                                         player.playSound(Sound.sound(
                                                 Key.key("minecraft:block.note_block.pling"),
                                                 Sound.Source.MASTER,
                                                 1.0F,
                                                 2.0F
                                         ));
+
                                         return true;
                                     } else {
                                         player.sendMessage(Component

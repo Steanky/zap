@@ -253,6 +253,12 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     }
 
     @Override
+    public void upgrade() {
+        super.upgrade();
+        refill();
+    }
+
+    @Override
     public void setVisible(boolean visible) {
         if (visible) {
             updateAmmo();
