@@ -7,6 +7,7 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.format.DateTimeFormatter;
@@ -81,7 +82,10 @@ public class GameScoreboard implements Disposable, Runnable {
             updateTask.cancel();
 
         for (ZombiesPlayer zombiesPlayer : zombiesArena.getPlayerMap().values()) {
-            zombiesPlayer.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            Player player = zombiesPlayer.getPlayer();
+            if (player != null) {
+                player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            }
         }
 
         if(currentState != null && currentState instanceof Disposable) {

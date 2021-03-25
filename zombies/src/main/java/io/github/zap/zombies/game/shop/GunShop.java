@@ -37,7 +37,10 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         super.registerArenaEvents();
         getZombiesArena().getShopEvent(getShopType()).registerHandler(args -> {
             if (args.getShop().equals(this)) {
-                displayTo(args.getZombiesPlayer().getPlayer());
+                Player player = args.getZombiesPlayer().getPlayer();
+                if (player != null) {
+                    displayTo(args.getZombiesPlayer().getPlayer());
+                }
             }
         });
     }
@@ -117,47 +120,51 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
+            if (zombiesPlayer != null) {
+                Player player = zombiesPlayer.getPlayer();
 
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                GunObjectGroup gunObjectGroup = (GunObjectGroup)
-                        hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
+                if (player != null) {
+                    if (!getShopData().isRequiresPower() || isPowered()) {
+                        HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                        GunObjectGroup gunObjectGroup = (GunObjectGroup)
+                                hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
 
-                Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
-                if (refillAttempt == null) {
-                    if (tryBuy(zombiesPlayer, gunObjectGroup)) {
-                        player.playSound(Sound.sound(
-                                Key.key("block.note_block.pling"),
-                                Sound.Source.MASTER,
-                                1.0F,
-                                2.0F
-                        ));
-                        onPurchaseSuccess(zombiesPlayer);
-                        return true;
+                        Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
+                        if (refillAttempt == null) {
+                            if (tryBuy(zombiesPlayer, gunObjectGroup)) {
+                                player.playSound(Sound.sound(
+                                        Key.key("block.note_block.pling"),
+                                        Sound.Source.MASTER,
+                                        1.0F,
+                                        2.0F
+                                ));
+                                onPurchaseSuccess(zombiesPlayer);
+                                return true;
+                            }
+                        } else if (refillAttempt) {
+                            player.playSound(Sound.sound(
+                                    Key.key("block.note_block.pling"),
+                                    Sound.Source.MASTER,
+                                    1.0F,
+                                    2.0F
+                            ));
+                            onPurchaseSuccess(zombiesPlayer);
+                            return true;
+                        }
+                    } else {
+                        player.sendMessage(ChatColor.RED + "The power is not active yet!");
                     }
-                } else if (refillAttempt) {
+
                     player.playSound(Sound.sound(
-                            Key.key("block.note_block.pling"),
+                            Key.key("minecraft:entity.enderman.teleport"),
                             Sound.Source.MASTER,
                             1.0F,
-                            2.0F
+                            0.5F
                     ));
-                    onPurchaseSuccess(zombiesPlayer);
+
                     return true;
                 }
-            } else {
-                player.sendMessage(ChatColor.RED + "The power is not active yet!");
             }
-
-            player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.enderman.teleport"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    0.5F
-            ));
-
-            return true;
         }
 
         return false;

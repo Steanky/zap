@@ -28,7 +28,7 @@ public class PlayerGoldModificationPowerUp extends PowerUp{
                 r.addCoins(coinDifference, getData().getDisplayName());
             } else {
                 // The clamp function prevent player to have negative coins
-                r.subtractCoins((int) MathUtils.clamp(-coinDifference, 0, r.getCoins()));
+                r.subtractCoins(MathUtils.clamp(-coinDifference, 0, r.getCoins()));
             }
         });
     }

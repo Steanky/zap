@@ -49,54 +49,57 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
 
-            if (player != null) {
-                UltimateMachineData shopData = getShopData();
-                if (!shopData.isRequiresPower() || isPowered()) {
-                    int cost = shopData.getCost();
+            if (zombiesPlayer != null) {
+                Player player = zombiesPlayer.getPlayer();
 
-                    if (zombiesPlayer.getCoins() < cost) {
-                        player.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                    } else {
-                        HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                if (player != null) {
+                    UltimateMachineData shopData = getShopData();
+                    if (!shopData.isRequiresPower() || isPowered()) {
+                        int cost = shopData.getCost();
 
-                        HotbarObject hotbarObject = hotbarManager.getSelectedObject();
-                        if (hotbarObject instanceof Ultimateable && hotbarObject instanceof UpgradeableEquipment<?, ?>) {
-                            UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
-                            if (upgradeableEquipment.getLevel() + 1
-                                    < upgradeableEquipment.getEquipmentData().getLevels().size()) {
-                                upgradeableEquipment.upgrade();
-
-
-                                player.playSound(Sound.sound(
-                                        Key.key("minecraft:entity.player.levelup"),
-                                        Sound.Source.MASTER,
-                                        1.0F,
-                                        1.0F
-                                ));
-
-                                zombiesPlayer.subtractCoins(cost);
-                                onPurchaseSuccess(zombiesPlayer);
-
-                                return true;
-                            } else {
-                                player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
-                            }
+                        if (zombiesPlayer.getCoins() < cost) {
+                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
-                            player.sendMessage(ChatColor.RED + "Choose a slot to receive the upgrade for!");
-                        }
-                    }
-                } else {
-                    player.sendMessage(ChatColor.RED + "The power is not active yet!");
-                }
+                            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
 
-                player.playSound(Sound.sound(
-                        Key.key("minecraft:entity.enderman.teleport"),
-                        Sound.Source.MASTER,
-                        1.0F,
-                        0.5F
-                ));
+                            HotbarObject hotbarObject = hotbarManager.getSelectedObject();
+                            if (hotbarObject instanceof Ultimateable && hotbarObject instanceof UpgradeableEquipment<?, ?>) {
+                                UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
+                                if (upgradeableEquipment.getLevel() + 1
+                                        < upgradeableEquipment.getEquipmentData().getLevels().size()) {
+                                    upgradeableEquipment.upgrade();
+
+
+                                    player.playSound(Sound.sound(
+                                            Key.key("minecraft:entity.player.levelup"),
+                                            Sound.Source.MASTER,
+                                            1.0F,
+                                            1.0F
+                                    ));
+
+                                    zombiesPlayer.subtractCoins(cost);
+                                    onPurchaseSuccess(zombiesPlayer);
+
+                                    return true;
+                                } else {
+                                    player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
+                                }
+                            } else {
+                                player.sendMessage(ChatColor.RED + "Choose a slot to receive the upgrade for!");
+                            }
+                        }
+                    } else {
+                        player.sendMessage(ChatColor.RED + "The power is not active yet!");
+                    }
+
+                    player.playSound(Sound.sound(
+                            Key.key("minecraft:entity.enderman.teleport"),
+                            Sound.Source.MASTER,
+                            1.0F,
+                            0.5F
+                    ));
+                }
             }
 
             return true;

@@ -69,104 +69,110 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
-            PerkMachineData perkMachineData = getShopData();
-            PerkEquipment perkEquipment = determinePerkEquipment(zombiesPlayer);
 
-            if (!perkMachineData.isRequiresPower() || isPowered()) {
-                int level;
-                List<Integer> costs = perkMachineData.getCosts();
+            if (zombiesPlayer != null) {
+                Player player = zombiesPlayer.getPlayer();
 
-                if (perkEquipment == null) {
-                    if (costs.size() != 0) {
-                        int cost = costs.get(0);
+                if (player != null) {
+                    PerkMachineData perkMachineData = getShopData();
+                    PerkEquipment perkEquipment = determinePerkEquipment(zombiesPlayer);
 
-                        if (zombiesPlayer.getCoins() < cost) {
-                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                        } else {
-                            HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                            PerkObjectGroup perkObjectGroup =
-                                    (PerkObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.PERK.name());
-                            if (perkObjectGroup != null) {
-                                ZombiesPerks zombiesPerks = zombiesPlayer.getPerks();
-                                Integer slot = perkObjectGroup.getNextEmptySlot();
-                                if (slot == null) {
-                                    int heldSlot = player.getInventory().getHeldItemSlot();
-                                    if (perkObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
-                                        HotbarObject perkObject = perkObjectGroup.getHotbarObject(slot = heldSlot);
-                                        if (perkObject instanceof PerkEquipment) {
-                                            Perk<?> perk = zombiesPerks.getPerk(
-                                                    (((PerkEquipment) perkObject).getEquipmentData().getPerkType())
-                                            );
-                                            while (perk.getCurrentLevel() > 0) {
-                                                perk.downgrade();
+                    if (!perkMachineData.isRequiresPower() || isPowered()) {
+                        int level;
+                        List<Integer> costs = perkMachineData.getCosts();
+
+                        if (perkEquipment == null) {
+                            if (costs.size() != 0) {
+                                int cost = costs.get(0);
+
+                                if (zombiesPlayer.getCoins() < cost) {
+                                    player.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                                } else {
+                                    HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                                    PerkObjectGroup perkObjectGroup =
+                                            (PerkObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.PERK.name());
+                                    if (perkObjectGroup != null) {
+                                        ZombiesPerks zombiesPerks = zombiesPlayer.getPerks();
+                                        Integer slot = perkObjectGroup.getNextEmptySlot();
+                                        if (slot == null) {
+                                            int heldSlot = player.getInventory().getHeldItemSlot();
+                                            if (perkObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
+                                                HotbarObject perkObject = perkObjectGroup.getHotbarObject(slot = heldSlot);
+                                                if (perkObject instanceof PerkEquipment) {
+                                                    Perk<?> perk = zombiesPerks.getPerk(
+                                                            (((PerkEquipment) perkObject).getEquipmentData().getPerkType())
+                                                    );
+                                                    while (perk.getCurrentLevel() > 0) {
+                                                        perk.downgrade();
+                                                    }
+                                                }
                                             }
                                         }
-                                    }
-                                }
-                                if (slot != null) {
-                                    zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
+                                        if (slot != null) {
+                                            zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
 
-                                    ZombiesArena zombiesArena = getZombiesArena();
-                                    hotbarManager.setHotbarObject(slot, zombiesArena.getEquipmentManager()
-                                            .createEquipment(
-                                                    zombiesArena,
-                                                    zombiesPlayer,
-                                                    slot,
-                                                    zombiesArena.getMap().getName(),
-                                                    perkMachineData.getPerkName()
+                                            ZombiesArena zombiesArena = getZombiesArena();
+                                            hotbarManager.setHotbarObject(slot, zombiesArena.getEquipmentManager()
+                                                    .createEquipment(
+                                                            zombiesArena,
+                                                            zombiesPlayer,
+                                                            slot,
+                                                            zombiesArena.getMap().getName(),
+                                                            perkMachineData.getPerkName()
+                                                    ));
+
+                                            player.playSound(Sound.sound(
+                                                    Key.key("minecraft:entity.firework_rocket.twinkle"),
+                                                    Sound.Source.MASTER,
+                                                    1.0F,
+                                                    1.0F
                                             ));
 
-                                    player.playSound(Sound.sound(
-                                            Key.key("minecraft:entity.firework_rocket.twinkle"),
-                                            Sound.Source.MASTER,
-                                            1.0F,
-                                            1.0F
-                                    ));
+                                            zombiesPlayer.subtractCoins(cost);
+                                            onPurchaseSuccess(zombiesPlayer);
 
+                                            return true;
+                                        } else {
+                                            player.sendMessage(ChatColor.RED + "Choose a slot to receive the perk in!");
+                                        }
+                                    } else {
+                                        player.sendMessage(ChatColor.RED + "You cannot receive this item!");
+                                    }
+                                }
+                            }
+                        } else {
+                            level = perkEquipment.getLevel() + 1;
+
+                            if (level < costs.size()) {
+                                int cost = costs.get(level);
+
+                                if (zombiesPlayer.getCoins() < cost) {
+                                    player.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                                } else {
                                     zombiesPlayer.subtractCoins(cost);
+                                    perkEquipment.upgrade();
+                                    zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
+
                                     onPurchaseSuccess(zombiesPlayer);
 
                                     return true;
-                                } else {
-                                    player.sendMessage(ChatColor.RED + "Choose a slot to receive the perk in!");
                                 }
                             } else {
-                                player.sendMessage(ChatColor.RED + "You cannot receive this item!");
+                                player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
                             }
                         }
-                    }
-                } else {
-                    level = perkEquipment.getLevel() + 1;
-
-                    if (level < costs.size()) {
-                        int cost = costs.get(level);
-
-                        if (zombiesPlayer.getCoins() < cost) {
-                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                        } else {
-                            zombiesPlayer.subtractCoins(cost);
-                            perkEquipment.upgrade();
-                            zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
-
-                            onPurchaseSuccess(zombiesPlayer);
-
-                            return true;
-                        }
                     } else {
-                        player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
+                        player.sendMessage(ChatColor.RED + "The power is not active yet!");
                     }
-                }
-            } else {
-                player.sendMessage(ChatColor.RED + "The power is not active yet!");
-            }
 
-            player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.enderman.teleport"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    0.5F
-            ));
+                    player.playSound(Sound.sound(
+                            Key.key("minecraft:entity.enderman.teleport"),
+                            Sound.Source.MASTER,
+                            1.0F,
+                            0.5F
+                    ));
+                }
+            }
 
             return true;
         }

@@ -58,9 +58,8 @@ public class ZombiesNPC implements Listener {
                 if (zombiesNPC != null) {
                     Player player = event.getPlayer();
 
-                    Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
-                        player.openInventory(zombiesNPC.inventory);
-                    });
+                    Bukkit.getScheduler().runTask(Zombies.getInstance(),
+                            () -> player.openInventory(zombiesNPC.inventory));
                 }
             }
         }
@@ -240,9 +239,8 @@ public class ZombiesNPC implements Listener {
         arenaApi.sendPacketToPlayer(zombies, player, playerHeadRotationPacket);
         arenaApi.sendPacketToPlayer(zombies, player, playerLookPacket);
 
-        Bukkit.getScheduler().runTaskLater(Zombies.getInstance(), () -> {
-            arenaApi.sendPacketToPlayer(zombies, player, playerRemovePacket);
-        }, 40L);
+        Bukkit.getScheduler().runTaskLater(Zombies.getInstance(),
+                () -> arenaApi.sendPacketToPlayer(zombies, player, playerRemovePacket), 40L);
     }
 
     @EventHandler

@@ -96,90 +96,96 @@ public class Door extends Shop<DoorData> {
         if (event instanceof PlayerInteractEvent) {
             DoorData doorData = getShopData();
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
 
-            PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
-            Block block = playerInteractEvent.getClickedBlock();
+            if (zombiesPlayer != null) {
+                Player player = zombiesPlayer.getPlayer();
 
-            if (player != null && block != null && !block.getType().isAir()
-                    && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
+                PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
+                Block block = playerInteractEvent.getClickedBlock();
 
-                boolean anySide = false;
-                for (DoorSide doorSide : doorData.getDoorSides()) {
-                    if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
-                        int cost = doorSide.getCost();
-                        if (zombiesPlayer.getCoins() < cost) {
-                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                        } else {
-                            ZombiesArena zombiesArena = getZombiesArena();
-                            WorldUtils.fillBounds(
-                                    zombiesArena.getWorld(),
-                                    doorData.getDoorBounds(),
-                                    zombiesArena.getMap().getDoorFillMaterial()
-                            );
-                            Location playerLoc = player.getLocation();
-                            zombiesArena.getWorld().playSound(doorData.getOpenSound(), playerLoc.getX(), playerLoc.getY(), playerLoc.getZ());
-                            zombiesPlayer.subtractCoins(cost);
+                if (player != null && block != null && !block.getType().isAir()
+                        && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
 
-                            List<String> newlyOpened = new ArrayList<>();
-                            for(String openedRoom : doorSide.getOpensTo()) {
-                                RoomData room = zombiesArena.getMap().getNamedRoom(openedRoom);
-                                Property<Boolean> openProperty = room.getOpenProperty();
-                                if(!openProperty.getValue(zombiesArena)) {
-                                    openProperty.setValue(zombiesArena, true);
-                                    newlyOpened.add(room.getRoomDisplayName());
-                                }
-                            }
+                    boolean anySide = false;
+                    for (DoorSide doorSide : doorData.getDoorSides()) {
+                        if (doorSide.getTriggerBounds().contains(player.getLocation().toVector())) {
+                            int cost = doorSide.getCost();
+                            if (zombiesPlayer.getCoins() < cost) {
+                                player.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                            } else {
+                                ZombiesArena zombiesArena = getZombiesArena();
+                                WorldUtils.fillBounds(
+                                        zombiesArena.getWorld(),
+                                        doorData.getDoorBounds(),
+                                        zombiesArena.getMap().getDoorFillMaterial()
+                                );
+                                Location playerLoc = player.getLocation();
+                                zombiesArena.getWorld().playSound(doorData.getOpenSound(), playerLoc.getX(), playerLoc.getY(), playerLoc.getZ());
+                                zombiesPlayer.subtractCoins(cost);
 
-                            if(newlyOpened.size() > 0) {
-                                StringBuilder msg = new StringBuilder("opened ");
-                                int i = 0;
-                                for(String opened : newlyOpened) {
-                                    msg.append(opened);
-
-                                    if(i < newlyOpened.size() - 1) {
-                                        msg.append(", ");
+                                List<String> newlyOpened = new ArrayList<>();
+                                for (String openedRoom : doorSide.getOpensTo()) {
+                                    RoomData room = zombiesArena.getMap().getNamedRoom(openedRoom);
+                                    Property<Boolean> openProperty = room.getOpenProperty();
+                                    if (!openProperty.getValue(zombiesArena)) {
+                                        openProperty.setValue(zombiesArena, true);
+                                        newlyOpened.add(room.getRoomDisplayName());
                                     }
                                 }
 
-                                for(ZombiesPlayer otherPlayer : zombiesArena.getPlayerMap().values()) {
-                                    otherPlayer.getPlayer().showTitle(Title.title(Component.text(player.getName())
-                                            .color(TextColor.color(255, 255, 0)), Component.text(msg.toString())
-                                            .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
-                                            Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                                if (newlyOpened.size() > 0) {
+                                    StringBuilder msg = new StringBuilder("opened ");
+                                    int i = 0;
+                                    for (String opened : newlyOpened) {
+                                        msg.append(opened);
+
+                                        if (i < newlyOpened.size() - 1) {
+                                            msg.append(", ");
+                                        }
+                                    }
+
+                                    for (ZombiesPlayer otherPlayer : zombiesArena.getPlayerMap().values()) {
+                                        Player otherBukkitPlayer = otherPlayer.getPlayer();
+                                        if (otherBukkitPlayer != null) {
+                                            otherBukkitPlayer.showTitle(Title.title(Component.text(player.getName())
+                                                    .color(TextColor.color(255, 255, 0)), Component.text(msg.toString())
+                                                    .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
+                                                    Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                                        }
+                                    }
                                 }
+
+                                for (Hologram hologram : doorSideHologramMap.values()) {
+                                    hologram.destroy();
+                                }
+
+                                opened = true;
+                                onPurchaseSuccess(zombiesPlayer);
+
+                                return true;
                             }
 
-                            for (Hologram hologram : doorSideHologramMap.values()) {
-                                hologram.destroy();
-                            }
-
-                            opened = true;
-                            onPurchaseSuccess(zombiesPlayer);
-
-                            return true;
+                            anySide = true;
+                            break;
                         }
-
-                        anySide = true;
-                        break;
                     }
+
+                    if (!anySide) {
+                        player.sendMessage(Component
+                                .text("You can't open the door from here!")
+                                .color(NamedTextColor.RED)
+                        );
+                    }
+
+                    player.playSound(Sound.sound(
+                            Key.key("minecraft:entity.enderman.teleport"),
+                            Sound.Source.MASTER,
+                            1.0F,
+                            0.5F
+                    ));
+
+                    return true;
                 }
-
-                if (!anySide) {
-                    player.sendMessage(Component
-                            .text("You can't open the door from here!")
-                            .color(NamedTextColor.RED)
-                    );
-                }
-
-                player.playSound(Sound.sound(
-                        Key.key("minecraft:entity.enderman.teleport"),
-                        Sound.Source.MASTER,
-                        1.0F,
-                        0.5F
-                ));
-
-                return true;
             }
         }
 

@@ -70,7 +70,7 @@ public class HotbarObject {
 
     /**
      * Method to call when the slot is left clicked in the hotbar
-     * @param action
+     * @param action The action that triggered the left click
      */
     public void onLeftClick(Action action) {
 
@@ -78,7 +78,7 @@ public class HotbarObject {
 
     /**
      * Method to call when the slot is right clicked in the hotbar
-     * @param action
+     * @param action The action that triggered the right click
      */
     public void onRightClick(Action action) {
 
