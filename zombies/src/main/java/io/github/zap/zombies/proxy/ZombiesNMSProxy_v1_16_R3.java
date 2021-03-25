@@ -9,6 +9,7 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -33,19 +34,18 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
 
     @Override
     public ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, int deviation, Predicate<ZombiesPlayer> filter) {
-        Pair<Float, ZombiesPlayer> bestCandidate = Pair.of(Float.MAX_VALUE, null);
+        Pair<Double, ZombiesPlayer> bestCandidate = Pair.of(Double.MAX_VALUE, null);
 
         for(ZombiesPlayer player : arena.getPlayerMap().values()) {
             if(filter.test(player)) {
                 Player bukkitPlayer = player.getPlayer();
-                PathEntity path = calculatePathTo(entity, ((CraftPlayer)bukkitPlayer).getHandle(), 0);
 
-                if(path != null) {
-                    PathPoint finalPoint = path.getFinalPoint();
-                    if(finalPoint != null) {
-                        if(finalPoint.e < bestCandidate.getLeft()) {
-                            bestCandidate = Pair.of(finalPoint.e, player);
-                        }
+                if(bukkitPlayer != null) {
+                    Location location = bukkitPlayer.getLocation();
+                    double dist = entity.h(location.getX(), location.getY(), location.getZ());
+
+                    if(dist < bestCandidate.getLeft()) {
+                        bestCandidate = Pair.of(dist, player);
                     }
                 }
             }
