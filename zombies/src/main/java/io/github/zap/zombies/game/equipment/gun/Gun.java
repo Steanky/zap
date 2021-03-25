@@ -288,11 +288,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     @Override
     public void onLeftClick(Action action) {
-        //TODO: remove after paper fixes their broken API
-        if(action == null) {
-            super.onLeftClick(action);
-            reload();
-        }
+        super.onLeftClick(action);
+        reload();
     }
 
     @Override

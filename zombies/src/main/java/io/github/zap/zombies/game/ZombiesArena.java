@@ -1,10 +1,5 @@
 package io.github.zap.zombies.game;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
@@ -752,7 +747,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
-        if(managedPlayer != null) {
+        if (managedPlayer != null) {
             managedPlayer.getHotbarManager().click(Action.LEFT_CLICK_AIR);
         }
     }
@@ -792,31 +787,20 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         PlayerDropItemEvent event = args.getEvent();
         ItemStack playerStack = event.getPlayer().getInventory().getItem(EquipmentSlot.HAND);
 
-        if(playerStack == null) {
+        if (playerStack == null) {
             event.setCancelled(true);
-        }
-        else {
+        } else {
             Item dropped = event.getItemDrop();
             dropped.remove();
 
-            if(playerStack.getType() != Material.AIR) {
+            if (playerStack.getType() != Material.AIR) {
                 playerStack.setAmount(playerStack.getAmount() + 1);
-            }
-            else {
+            } else {
                 playerStack.setType(dropped.getItemStack().getType());
                 event.setCancelled(true);
             }
 
             event.getPlayer().updateInventory();
-
-            ZombiesPlayer player = args.getManagedPlayer();
-
-            if(player != null) {
-                //TODO: remove this once paper stops being dumb
-
-                //null means reload
-                player.getHotbarManager().click(null);
-            }
         }
     }
 

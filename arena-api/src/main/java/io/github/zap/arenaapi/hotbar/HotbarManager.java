@@ -208,13 +208,8 @@ public class HotbarManager {
 
         if (action == Action.LEFT_CLICK_BLOCK || action == Action.LEFT_CLICK_AIR) {
             hotbarObject.onLeftClick(action);
-        }
-        else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+        } else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
             hotbarObject.onRightClick(action);
-        }
-        else {
-            //TODO: remove this after paper fixes their broken PlayerInteractEvent
-            hotbarObject.onLeftClick(null);
         }
     }
 
