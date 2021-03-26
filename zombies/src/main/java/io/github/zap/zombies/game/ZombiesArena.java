@@ -608,8 +608,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(player != null && state == ZombiesPlayerState.ALIVE) {
                 if(player.getHealth() <= event.getFinalDamage()) {
                     Location location = player.getLocation().toBlockLocation();
-                    String roomName = map.roomAt(location.toVector()).getRoomDisplayName();
-                    managedPlayer.setDeathRoomName((roomName == null) ? "an unknown room" : roomName);
+                    RoomData room = map.roomAt(location.toVector());;
+                    managedPlayer.setDeathRoomName((room == null) ? "an unknown room" : room.getRoomDisplayName());
 
                     for (double y = location.getY(); y >= 0D; y--){
                         location.setY(y);
