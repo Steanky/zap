@@ -1144,9 +1144,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         List<Shop<?>> chests = new ArrayList<>(shopMap.get(luckyChest.getShopType()));
                         chests.remove(luckyChest);
 
-                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).setActive(true);
-                        RoomData room = map.roomAt(luckyChest.getShopData().getChestLocation());
-                        luckyChestRoom = room != null ? room.getName() : null;
+                        LuckyChest nextLuckyChest = ((LuckyChest) chests.get(random.nextInt(chests.size())));
+                        nextLuckyChest.setActive(true);
+                        RoomData room = map.roomAt(nextLuckyChest.getShopData().getChestLocation());
+                        luckyChestRoom = room != null ? room.getRoomDisplayName() : null;
 
                         rolls = 0;
                     }
