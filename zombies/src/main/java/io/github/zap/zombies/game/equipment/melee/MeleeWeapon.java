@@ -32,7 +32,7 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
 
         private final Player player = getPlayer();
 
-        private final boolean isCritical = player.getVelocity().getY() < 0;
+        private final boolean isCritical = player.getFallDistance() > 0F;
 
         @Override
         public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
@@ -95,11 +95,13 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
 
     @Override
     public void onLeftClick(Action action) {
-        if(action == Action.LEFT_CLICK_AIR) {
+        if (action == Action.LEFT_CLICK_AIR) {
             super.onLeftClick(action);
 
-            usable = false;
-            getZombiesArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
+            if (usable) {
+                usable = false;
+                getZombiesArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
+            }
         }
     }
 
