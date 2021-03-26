@@ -10,6 +10,7 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.zombies.ChunkLoadHandler;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
@@ -409,6 +410,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final Set<Corpse> availableCorpses = new HashSet<>();
 
     @Getter
+    private final ChunkLoadHandler chunkLoadHandler = new ChunkLoadHandler();
+
+    @Getter
+    private final Set<Item> protectedItems = new HashSet<>();
+
+    @Getter
     private final GameScoreboard gameScoreboard;
 
     /**
@@ -502,6 +509,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
         resourceManager.addDisposable(gameScoreboard);
         resourceManager.addDisposable(powerUpBossBar);
+        resourceManager.addDisposable(chunkLoadHandler);
     }
 
     @Override
@@ -664,6 +672,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         if (state == ZombiesArenaState.STARTED && getEntitySet().remove(args.getEvent().getEntity().getUniqueId())) {
             zombiesLeft--;
             checkNextRound();
+        }
+    }
+
+    @org.bukkit.event.EventHandler
+    private void onItemDespawn(ItemDespawnEvent event) {
+        if (protectedItems.contains(event.getEntity())) {
+            event.setCancelled(true);
         }
     }
 

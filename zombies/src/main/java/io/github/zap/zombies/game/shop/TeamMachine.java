@@ -67,6 +67,13 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                         if (teamMachineTask != null
                                 && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
 
+
+                            Sound sound = Sound.sound(
+                                    Key.key("minecraft:entity.player.levelup"),
+                                    Sound.Source.MASTER,
+                                    1.0F,
+                                    1.5F
+                            );
                             for (Player player : zombiesArena.getWorld().getPlayers()) {
                                 player.sendMessage(
                                         String.format(
@@ -76,16 +83,9 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                                                 teamMachineTask.getDisplayName()
                                         )
                                 );
+                                player.playSound(sound);
                             }
                             humanEntity.closeInventory();
-
-                            Sound sound = Sound.sound(
-                                    Key.key("minecraft:entity.player.levelup"),
-                                    Sound.Source.MASTER,
-                                    1.0F,
-                                    1.5F
-                            );
-                            humanEntity.playSound(sound);
 
                             inventory.setItem(
                                     inventoryClickEvent.getSlot(),

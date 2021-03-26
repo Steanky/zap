@@ -21,6 +21,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -44,16 +45,22 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
     private final ProtocolManager protocolManager;
 
+    private static ArmorShopData modifyArmorStandLocation(ArmorShopData shopData) {
+        shopData.getRootLocation().add(new Vector(0, 1.5, 0));
+        return shopData;
+    }
+
     public ArmorShop(ZombiesArena zombiesArena, ArmorShopData shopData) {
-        super(zombiesArena, shopData);
+        super(zombiesArena, modifyArmorStandLocation(shopData));
         this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         ArmorStand armorStand = getArmorStand();
-        Location armorStandLocation = getArmorStand().getLocation().clone();
-        armorStandLocation.add(0, 1.5, 0);
+        Location armorStandLocation = getArmorStand().getLocation();
         armorStandLocation.setYaw(getShopData().getArmorStandDirection());
         armorStand.teleport(armorStandLocation);
         armorStand.setSmall(true);
+
+        getZombiesArena().getChunkLoadHandler().addConsumer(armorStandLocation, this::displayTo);
     }
 
     @Override

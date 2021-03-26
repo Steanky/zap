@@ -50,7 +50,12 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         if (item == null) {
             World world = getZombiesArena().getWorld();
 
-            EquipmentData<?> equipmentData = getZombiesArena().getEquipmentManager().getEquipmentData(getZombiesArena().getMap().getName(), getShopData().getGunName());
+            ZombiesArena zombiesArena = getZombiesArena();
+            EquipmentData<?> equipmentData = zombiesArena.getEquipmentManager().getEquipmentData(
+                    zombiesArena.getMap().getName(),
+                    getShopData().getGunName()
+            );
+
             if(equipmentData == null) {
                 Zombies.warning("Unable to find equipment data for weapon " + getShopData().getGunName() + "!");
                 return;
@@ -63,6 +68,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             );
             item.setGravity(false);
             item.setVelocity(new Vector(0, 0, 0));
+
+            zombiesArena.getProtectedItems().add(item);
         }
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
