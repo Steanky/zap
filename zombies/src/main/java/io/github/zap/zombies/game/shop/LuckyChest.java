@@ -12,7 +12,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
-import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.LuckyChestData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.gun.Gun;
@@ -227,8 +226,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                                 .text("You can't claim this weapon!")
                                                 .color(NamedTextColor.RED)
                                         );
+                                        gunSwapper.destroy();
                                     }
-                                    gunSwapper.destroy();
                                 } else {
                                     player.sendMessage(Component
                                             .text("The chest is not done rolling!")

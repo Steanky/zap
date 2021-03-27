@@ -21,7 +21,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -45,22 +44,31 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
     private final ProtocolManager protocolManager;
 
-    private static ArmorShopData modifyArmorStandLocation(ArmorShopData shopData) {
-        shopData.getRootLocation().add(new Vector(0, 1.5, 0));
-        return shopData;
-    }
+    private boolean active = false;
 
     public ArmorShop(ZombiesArena zombiesArena, ArmorShopData shopData) {
-        super(zombiesArena, modifyArmorStandLocation(shopData));
+        super(zombiesArena, shopData);
         this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         ArmorStand armorStand = getArmorStand();
-        Location armorStandLocation = getArmorStand().getLocation();
+        Location armorStandLocation = getArmorStand().getLocation().clone();
+        armorStandLocation.add(0, 1.5, 0);
         armorStandLocation.setYaw(getShopData().getArmorStandDirection());
         armorStand.teleport(armorStandLocation);
         armorStand.setSmall(true);
 
-        getZombiesArena().getChunkLoadHandler().addConsumer(armorStandLocation, this::displayTo);
+        getZombiesArena().getChunkLoadHandler().addConsumer(armorStandLocation, (Player player) -> {
+            if (active) {
+                Hologram hologram = getHologram();
+
+                List<HologramLine<?>> lines = hologram.getHologramLines();
+                while (lines.size() < 2) {
+                    hologram.addLine("");
+                }
+
+                displayTo(player);
+            }
+        });
     }
 
     @Override
@@ -77,6 +85,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         while (lines.size() < 2) {
             hologram.addLine("");
         }
+        active = true;
 
         super.display();
     }

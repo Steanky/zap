@@ -4,14 +4,17 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.event.EmptyEventArgs;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.perk.FastRevive;
 import io.github.zap.zombies.game.perk.PerkType;
+import io.github.zap.zombies.game.perk.SpeedPerk;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -19,6 +22,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -137,9 +142,26 @@ public class Corpse {
             Player thisPlayer = zombiesPlayer.getPlayer();
             Player reviverPlayer = reviver.getPlayer();
 
-            if(thisPlayer != null && reviverPlayer != null) {
+            if (thisPlayer != null && reviverPlayer != null) {
                 thisPlayer.sendActionBar(Component.empty());
                 reviverPlayer.sendActionBar(Component.empty());
+
+                ZombiesArena zombiesArena = reviver.getArena();
+                MapData map = zombiesArena.getMap();
+                PotionEffect speedEffect = new PotionEffect(
+                        PotionEffectType.SPEED,
+                        map.getDoorSpeedTicks(),
+                        map.getDoorSpeedLevel(),
+                        true,
+                        false,
+                        false
+                );
+                reviverPlayer.addPotionEffect(speedEffect);
+
+                SpeedPerk speedPerk = (SpeedPerk) reviver.getPerks().getPerk(PerkType.SPEED);
+                zombiesArena.runTaskLater(map.getDoorSpeedTicks(), () -> {
+                    speedPerk.execute(EmptyEventArgs.getInstance());
+                });
             }
 
             destroy();
@@ -205,7 +227,7 @@ public class Corpse {
             terminate();
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();
-            if(bukkitPlayer != null) {
+            if (bukkitPlayer != null) {
                 bukkitPlayer.sendActionBar(Component.text());
             }
         } else {
