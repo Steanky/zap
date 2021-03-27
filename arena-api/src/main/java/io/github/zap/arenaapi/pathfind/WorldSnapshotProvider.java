@@ -18,6 +18,11 @@ public class WorldSnapshotProvider implements SnapshotProvider {
     }
 
     @Override
+    public @NotNull World getWorld() {
+        return world;
+    }
+
+    @Override
     public synchronized @Nullable ChunkSnapshot chunkAt(int x, int z) {
         return chunkAt(Chunk.getChunkKey(x, z));
     }

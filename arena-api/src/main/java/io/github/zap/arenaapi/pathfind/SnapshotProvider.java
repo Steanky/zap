@@ -1,15 +1,17 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface SnapshotProvider {
-    @Nullable
-    ChunkSnapshot chunkAt(int x, int y);
+    @NotNull World getWorld();
 
-    @Nullable
-    ChunkSnapshot chunkAt(long key);
+    @Nullable ChunkSnapshot chunkAt(int x, int y);
+
+    @Nullable ChunkSnapshot chunkAt(long key);
 
     boolean hasChunkAt(int x, int y);
 

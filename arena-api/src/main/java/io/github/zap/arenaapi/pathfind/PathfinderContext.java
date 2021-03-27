@@ -1,9 +1,16 @@
 package io.github.zap.arenaapi.pathfind;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
+import java.util.Set;
 
 public interface PathfinderContext {
-    List<PathfinderEngine.Entry> ongoingOperations();
+    @NotNull List<PathfinderEngine.Entry> ongoingOperations();
 
-    SnapshotProvider snapshotProvider();
+    @NotNull Set<PathResult> successfulPaths();
+
+    @NotNull Set<PathResult> failedPaths();
+
+    @NotNull SnapshotProvider snapshotProvider();
 }

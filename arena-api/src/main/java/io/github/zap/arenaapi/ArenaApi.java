@@ -44,9 +44,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public final class ArenaApi extends JavaPlugin implements Listener {
-    public static final String LOBBY_CONTEXT = "lobby";
-    public static final String DEFAULT_STAGE = "stage";
-
     @Getter
     private static ArenaApi instance;
 
