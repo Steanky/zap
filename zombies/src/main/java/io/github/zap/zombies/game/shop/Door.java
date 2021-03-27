@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.event.EmptyEventArgs;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -10,6 +11,8 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
+import io.github.zap.zombies.game.perk.PerkType;
+import io.github.zap.zombies.game.perk.SpeedPerk;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -23,6 +26,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -158,6 +163,22 @@ public class Door extends Shop<DoorData> {
                                 for (Hologram hologram : doorSideHologramMap.values()) {
                                     hologram.destroy();
                                 }
+
+                                MapData map = zombiesArena.getMap();
+                                PotionEffect speedEffect = new PotionEffect(
+                                        PotionEffectType.SPEED,
+                                        map.getDoorSpeedTicks(),
+                                        map.getDoorSpeedLevel(),
+                                        true,
+                                        false,
+                                        false
+                                );
+                                player.addPotionEffect(speedEffect);
+
+                                SpeedPerk speedPerk = (SpeedPerk) zombiesPlayer.getPerks().getPerk(PerkType.SPEED);
+                                zombiesArena.runTaskLater(map.getDoorSpeedTicks(), () -> {
+                                    speedPerk.execute(EmptyEventArgs.getInstance());
+                                });
 
                                 opened = true;
                                 onPurchaseSuccess(zombiesPlayer);

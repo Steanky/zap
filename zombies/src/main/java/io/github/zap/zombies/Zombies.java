@@ -153,10 +153,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         if(arenaManager != null) {
             DataLoader loader = arenaManager.getMapLoader(); //save map data in case it was edited
-            for(MapData data : arenaManager.getMaps()) {
-                loader.save(data, data.getName());
-                Zombies.info(String.format("Saved MapData for '%s'", data.getName()));
-            }
 
             for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
                 String fileNameWithExtension = file.getName();

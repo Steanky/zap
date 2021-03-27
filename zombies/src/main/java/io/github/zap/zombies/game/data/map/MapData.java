@@ -239,6 +239,26 @@ public class MapData {
     int rollsPerChest = 5;
 
     /**
+     * The level of speed that you get when you open a door
+     */
+    int doorSpeedLevel = 1;
+
+    /**
+     * The number of ticks of speed you get when you open a door
+     */
+    int doorSpeedTicks = 100;
+
+    /**
+     * The level of speed that you get when you revive of player
+     */
+    int reviveSpeedLevel = 1;
+
+    /**
+     * The number of ticks of speed you get when you revive a player
+     */
+    int reviveSpeedTicks = 100;
+
+    /**
      * Equipments given at the start of the game by their name
      */
     List<String> defaultEquipments = new ArrayList<>();

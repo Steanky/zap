@@ -39,7 +39,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    protected void displayToPlayer(Player player) {
         ZombiesPlayer zombiesPlayer = getZombiesArena().getPlayerMap().get(player.getUniqueId());
         PerkMachineData perkMachineData = getShopData();
         PerkEquipment perkEquipment = determinePerkEquipment(zombiesPlayer);

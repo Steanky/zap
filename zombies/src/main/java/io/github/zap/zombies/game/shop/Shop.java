@@ -43,7 +43,7 @@ public abstract class Shop<D extends ShopData> {
      */
     protected void onPlayerJoin(ManagingArena.PlayerListArgs args) {
         for (Player player : args.getPlayers()) {
-            displayTo(player);
+            displayToPlayer(player);
         }
     }
 
@@ -60,7 +60,7 @@ public abstract class Shop<D extends ShopData> {
      */
     public void display() {
         for (Player player : zombiesArena.getWorld().getPlayers()) {
-            displayTo(player);
+            displayToPlayer(player);
         }
     }
 
@@ -68,7 +68,7 @@ public abstract class Shop<D extends ShopData> {
      * Displays the shop to a single player
      * @param player THe player to display the shop to
      */
-    protected void displayTo(Player player) {
+    protected void displayToPlayer(Player player) {
 
     }
 

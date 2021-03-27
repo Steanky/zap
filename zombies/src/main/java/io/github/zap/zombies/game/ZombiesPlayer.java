@@ -589,7 +589,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
                 selectNewCorpse();
             } else {
-                double distance = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
+                double distance
+                        = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
 
                 if (distance < maxDistance && reviveOn) {
                     targetCorpse.continueReviving();

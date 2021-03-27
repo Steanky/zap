@@ -196,8 +196,12 @@ public class HotbarManager {
      * @param slot The selected slot
      */
     public void setSelectedSlot(int slot) {
-        getSelectedObject().onSlotDeselected();
-        getHotbarObject(slot).onSlotSelected();
+        HotbarObject newHotbarObject = getHotbarObject(slot);
+
+        if (newHotbarObject != null) {
+            getSelectedObject().onSlotDeselected();
+            newHotbarObject.onSlotSelected();
+        }
     }
 
     /**
