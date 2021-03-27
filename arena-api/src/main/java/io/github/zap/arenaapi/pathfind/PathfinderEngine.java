@@ -25,7 +25,7 @@ public class PathfinderEngine implements Listener {
     }
 
     public static class EngineContext implements PathfinderContext {
-        private final Object waitHandle = new Object();
+        private final Semaphore contextSemaphore = new Semaphore(1);
 
         private final List<Entry> operations = new ArrayList<>();
         private final Set<PathResult> successfulPaths = new HashSet<>();
@@ -60,85 +60,92 @@ public class PathfinderEngine implements Listener {
     private final Thread pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
 
     private final List<EngineContext> contexts = new ArrayList<>();
+    private final Semaphore contextsSemaphore = new Semaphore(1);
 
     public PathfinderEngine() {
         pathfinderThread.start();
         Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
+    /**
+     * Method responsible for all the pathfinding, for each world. Eventually it may be necessary to split each world
+     * into a separate thread. For now, the overhead is probably not worth it (pathfinding isn't *that* slow or
+     * expensive).
+     */
     private void pathfind() {
         try {
             while(true) {
-                try {
-                    pathfinderThread.wait();
+                contextsSemaphore.acquireUninterruptibly();
 
-                    int contextStartingIndex;
-                    synchronized (contexts) {
-                        contextStartingIndex = contexts.size() - 1;
+                int contextStartingIndex;
+                synchronized (contexts) {
+                    contextStartingIndex = contexts.size() - 1;
+                }
+
+                for(int i = contextStartingIndex; i > -1; i--) { //each EngineContext object = different world
+                    EngineContext context = contexts.get(i);
+
+                    AtomicBoolean completed = new AtomicBoolean(false);
+
+                    Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
+                        context.provider.syncWithWorld();
+                        completed.set(true);
+                        context.contextSemaphore.release();
+                    });
+
+                    context.contextSemaphore.acquireUninterruptibly(); //wait for main thread to finish syncing
+                    context.contextSemaphore.release(); //reset the semaphore
+
+                    int operationStartingIndex;
+
+                    synchronized (context) {
+                        operationStartingIndex = context.operations.size() - 1;
                     }
 
-                    for(int i = contextStartingIndex; i > -1; i--) {
-                        EngineContext context = contexts.get(i);
+                    for(int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
+                        Entry entry = context.operations.get(j);
 
-                        AtomicBoolean completed = new AtomicBoolean(false);
+                        PathState entryState = entry.operation.getState();
+                        if(entryState == PathState.INCOMPLETE) {
+                            for(int k = 0; k < entry.operation.desiredIterations(); k++) {
+                                if(entry.operation.step(context)) {
+                                    PathResult result = entry.operation.getResult();
 
-                        Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                            context.provider.syncWithWorld();
-                            completed.set(true);
-                            context.waitHandle.notify();
-                        });
-
-                        while(!completed.get()) {
-                            try {
-                                context.waitHandle.wait();
-                            }
-                            catch (InterruptedException ignored) {}
-                        }
-
-                        int operationStartingIndex;
-
-                        synchronized (context) {
-                            operationStartingIndex = context.operations.size() - 1;
-                        }
-
-                        for(int j = operationStartingIndex; j > -1; j--) {
-                            Entry entry = context.operations.get(j);
-
-                            PathState entryState = entry.operation.getState();
-                            if(entryState == PathState.INCOMPLETE) {
-                                for(int k = 0; k < entry.operation.desiredIterations(); k++) {
-                                    if(entry.operation.step(context)) {
-                                        PathResult result = entry.operation.getResult();
-
-                                        if(entry.operation.getState() == PathState.SUCCEEDED) {
-                                            context.successfulPaths.add(result);
-                                        }
-                                        else if(entry.operation.getState() == PathState.FAILED) {
-                                            context.failedPaths.add(result);
-                                        }
-                                        else {
-                                            throw new IllegalStateException("Path said it completed, but state == INCOMPLETE!");
-                                        }
-
-                                        entry.future.complete(result);
+                                    if(entry.operation.getState() == PathState.SUCCEEDED) {
+                                        context.successfulPaths.add(result);
                                     }
+                                    else if(entry.operation.getState() == PathState.FAILED) {
+                                        context.failedPaths.add(result);
+                                    }
+                                    else {
+                                        throw new IllegalStateException("Path said it completed, but state == INCOMPLETE!");
+                                    }
+
+                                    entry.future.complete(result);
                                 }
                             }
-                            else if(entry.operation.incrementAge() == COMPLETED_PATH_MAX_AGE) {
-                                PathResult entryResult = entry.operation.getResult();
+                        }
+                        else if(entry.operation.incrementAge() == COMPLETED_PATH_MAX_AGE) {
+                            PathResult entryResult = entry.operation.getResult();
 
-                                if(entryState == PathState.SUCCEEDED) {
-                                    context.successfulPaths.remove(entryResult);
-                                }
-                                else if(entryState == PathState.FAILED) {
-                                    context.failedPaths.remove(entryResult);
-                                }
+                            if(entryState == PathState.SUCCEEDED) {
+                                context.successfulPaths.remove(entryResult);
+                            }
+                            else if(entryState == PathState.FAILED) {
+                                context.failedPaths.remove(entryResult);
                             }
                         }
                     }
                 }
-                catch (InterruptedException interruptedException) {
-                    ArenaApi.warning("Pathfinder thread was interrupted!");
+
+                synchronized (contexts) {
+                    if(contexts.size() > 0) { //if we have more to iterate, release semaphore
+                        contextsSemaphore.release();
+                    }
+                    else {
+                        //noinspection ResultOfMethodCallIgnored
+                        contextsSemaphore.tryAcquire(1); //if we don't, lock semaphore so we wait
+                    }
                 }
             }
         }
@@ -172,6 +179,7 @@ public class PathfinderEngine implements Listener {
 
             synchronized (contexts) {
                 contexts.add(targetContext);
+                contextsSemaphore.release();
             }
         }
         else {
@@ -181,7 +189,6 @@ public class PathfinderEngine implements Listener {
             }
         }
 
-        pathfinderThread.notify();
         return future;
     }
 

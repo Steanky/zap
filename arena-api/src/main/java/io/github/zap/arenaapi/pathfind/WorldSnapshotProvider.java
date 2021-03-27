@@ -23,39 +23,39 @@ public class WorldSnapshotProvider implements SnapshotProvider {
     }
 
     @Override
-    public synchronized @Nullable ChunkSnapshot chunkAt(int x, int z) {
+    public @Nullable ChunkSnapshot chunkAt(int x, int z) {
         return chunkAt(Chunk.getChunkKey(x, z));
     }
 
     @Override
-    public synchronized @Nullable ChunkSnapshot chunkAt(long key) {
+    public @Nullable ChunkSnapshot chunkAt(long key) {
         return chunks.get(key);
     }
 
     @Override
-    public synchronized boolean hasChunkAt(int x, int z) {
+    public boolean hasChunkAt(int x, int z) {
         return hasChunkAt(Chunk.getChunkKey(x, z));
     }
 
     @Override
-    public synchronized boolean hasChunkAt(long key) {
+    public boolean hasChunkAt(long key) {
         return chunks.get(key) != null;
     }
 
     @Override
-    public synchronized void updateChunk(int x, int z) {
+    public void updateChunk(int x, int z) {
         updateChunk(Chunk.getChunkKey(x, z));
     }
 
     @Override
-    public synchronized void updateChunk(long key) {
+    public void updateChunk(long key) {
         if(chunks.containsKey(key)) {
             chunks.put(key, world.getChunkAt(key).getChunkSnapshot());
         }
     }
 
     @Override
-    public synchronized void syncWithWorld() {
+    public void syncWithWorld() {
         chunks.clear();
 
         for(Chunk chunk : world.getLoadedChunks()) {
@@ -64,7 +64,7 @@ public class WorldSnapshotProvider implements SnapshotProvider {
     }
 
     @Override
-    public synchronized @Nullable BlockData getData(int worldX, int worldY, int worldZ) {
+    public @Nullable BlockData getData(int worldX, int worldY, int worldZ) {
         int chunkX = worldX / 16;
         int chunkZ = worldZ / 16;
 
