@@ -67,8 +67,7 @@ public class PathfinderEngine implements Listener {
 
     /**
      * Method responsible for all the pathfinding, for each world. Eventually it may be necessary to split each world
-     * into a separate thread. For now, the overhead is probably not worth it (pathfinding isn't *that* slow or
-     * expensive).
+     * into a separate thread or use an ExecutorService.
      */
     private void pathfind() {
         while(true) {

@@ -1,9 +1,9 @@
 package io.github.zap.arenaapi.pathfind;
 
-import net.kyori.adventure.sound.Sound;
 import org.bukkit.World;
-import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 public interface PathOperation {
     boolean step(@NotNull PathfinderContext context);
@@ -18,15 +18,19 @@ public interface PathOperation {
 
     @NotNull World getWorld();
 
-    @NotNull PathDestination getDestination();
+    @NotNull Set<PathDestination> getDestinations();
+
 
     /**
-     * Creates a new PathOperation object for the specified mob, leading to the specified destination.
-     * @param mob
-     * @param destination
-     * @return
+     * Creates a new PathOperation object for the specified mob, leading to the specified destination. PathOperation
+     * objects will not do anything themselves; rather, they are processed by PathfinderEngine.
+     * @param mob The mob that's trying to pathfind
+     * @param destination The destination to try and reach
+     * @return The PathOperation object, which can be passed to PathfinderEngine
      */
-    static @NotNull PathOperation forMob(@NotNull Mob mob, @NotNull PathDestination destination) {
-        return new PathOperationImpl(mob, destination);
-    }
+
+    /*
+    static @NotNull PathOperation forMob(@NotNull Mob mob, @NotNull PathDestination destination, int tolerance) {
+        return new PathOperationAdapted(mob, ImmutableList.of(destination), tolerance);
+    }*/
 }

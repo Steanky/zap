@@ -9,6 +9,10 @@ public class PathNode {
         handle = new PathPoint(x, y, z);
     }
 
+    public PathNode(PathPoint from) {
+        this.handle = from;
+    }
+
     public int getX() {
         return handle.a;
     }
@@ -19,5 +23,21 @@ public class PathNode {
 
     public int getZ() {
         return handle.c;
+    }
+
+    @Override
+    public int hashCode() {
+        return handle.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof PathNode)) {
+            return false;
+        }
+        else {
+            PathNode other = (PathNode) obj;
+            return getX() == other.getX() && getY() == other.getY() && getZ() == other.getZ();
+        }
     }
 }
