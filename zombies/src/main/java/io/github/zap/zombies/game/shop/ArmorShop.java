@@ -63,6 +63,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
         ArmorStand armorStand = getArmorStand();
         Location armorStandLocation = getArmorStand().getLocation().clone();
+        armorStandLocation.add(0, 1.5, 0);
         armorStandLocation.setYaw(getShopData().getArmorStandDirection());
         armorStand.teleport(armorStandLocation);
         armorStand.setSmall(true);
