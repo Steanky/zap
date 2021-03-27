@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
@@ -39,7 +40,7 @@ public class WorldSnapshotProvider implements SnapshotProvider {
 
     @Override
     public boolean hasChunkAt(long key) {
-        return chunks.get(key) != null;
+        return chunks.containsKey(key);
     }
 
     @Override

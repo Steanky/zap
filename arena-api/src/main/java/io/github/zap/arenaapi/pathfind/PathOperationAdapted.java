@@ -10,12 +10,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+/**
+ * Performs a PathOperation based on the mob's NMS pathfinder.
+ */
 class PathOperationAdapted implements PathOperation {
     private final Mob mob;
-    private final List<PathDestination> destinations;
+    private final Set<PathDestination> destinations;
     private PathState state;
     private PathEntity pathEntity;
-
 
     //NMS garbage below
     private final PathfinderAbstract c;
@@ -25,15 +27,24 @@ class PathOperationAdapted implements PathOperation {
     private final float f;
     private final Path path = new Path();
     private int j;
-    private int k;
+    private final int k;
     private List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> set2;
     private PathPoint pathpoint;
     private final List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> list = new ArrayList<>();
 
-    PathOperationAdapted(@NotNull Mob mob, @NotNull List<PathDestination> destinations, int giveUpFactor, int tolerance, float nodeDistance) {
+    PathOperationAdapted(@NotNull Mob mob, @NotNull Set<PathDestination> destinations, int giveUpFactor, int tolerance, float nodeDistance) {
         this.mob = mob;
         this.destinations = destinations;
         this.state = PathState.INCOMPLETE;
+
+        for(PathDestination destination : destinations) {
+            destination.targetNode();
+            PathNode node = destination.targetNode();
+            PathPoint point = new PathPoint(node.getX(), node.getY(), node.getZ());
+
+
+            list.add(Map.entry(new net.minecraft.server.v1_16_R3.PathDestination(point), new BlockPosition(node.getX(), node.getY(), node.getZ())));
+        }
 
         c = ((CraftMob)mob).getHandle().getNavigation().getPathfinder().getPathfinder();
         b = giveUpFactor;
@@ -75,11 +86,10 @@ class PathOperationAdapted implements PathOperation {
             }
 
             if (!set2.isEmpty()) {
-                //not sure what's going on here
+                //called when the mob is within range of its target
                 return false;
             }
-
-            if (pathpoint1.a(pathpoint) < f) {
+            else if (pathpoint1.a(pathpoint) < f) {
                 l = this.c.a(this.a, pathpoint1);
 
                 for(int i1 = 0; i1 < l; ++i1) {
@@ -130,6 +140,10 @@ class PathOperationAdapted implements PathOperation {
 
     @Override
     public @NotNull PathResult getResult() {
+        if(pathEntity == null) {
+            throw new IllegalStateException("operation not completed; cannot retrieve PathResult");
+        }
+
         return null;
     }
 
@@ -150,7 +164,7 @@ class PathOperationAdapted implements PathOperation {
 
     @Override
     public @NotNull Set<PathDestination> getDestinations() {
-        return new HashSet<>(destinations);
+        return destinations;
     }
 
     private float a(PathPoint pathpoint, List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> list) {

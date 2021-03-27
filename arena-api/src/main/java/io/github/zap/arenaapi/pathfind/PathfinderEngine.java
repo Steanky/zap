@@ -125,6 +125,8 @@ public class PathfinderEngine implements Listener {
                                         ArenaApi.severe("Failed to properly complete the future for PathResult " +
                                                 result.toString());
                                     }
+
+                                    break;
                                 }
                             }
                         }

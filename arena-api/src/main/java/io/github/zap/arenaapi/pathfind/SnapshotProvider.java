@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import net.minecraft.server.v1_16_R3.IChunkAccess;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
