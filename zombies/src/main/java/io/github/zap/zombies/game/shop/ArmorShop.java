@@ -56,7 +56,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         armorStand.teleport(armorStandLocation);
         armorStand.setSmall(true);
 
-        getZombiesArena().getChunkLoadHandler().addConsumer(armorStandLocation, (Player player) -> {
+        getZombiesArena().getChunkLoadHandler().addConsumer(armorStandLocation, (player) -> {
             if (active) {
                 Hologram hologram = getHologram();
 
@@ -162,8 +162,8 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                                 zombiesPlayer.updateEquipment(current);
                                 zombiesPlayer.subtractCoins(cost);
 
-                                displayTo(bukkitPlayer);
                                 onPurchaseSuccess(zombiesPlayer);
+
                                 return true;
                             }
                         }
