@@ -13,21 +13,8 @@ public class WorldSnapshotProvider implements SnapshotProvider {
     private final World world;
     private final Map<Long, ChunkSnapshot> chunks = new HashMap<>();
 
-    public WorldSnapshotProvider(@NotNull World world, @NotNull Chunk[] initial) {
-        this.world = Objects.requireNonNull(world, "world cannot be null!");
-        Objects.requireNonNull(initial, "initial cannot be null!");
-
-        for(Chunk chunk : initial) {
-            if(chunk.getWorld() != world) {
-                throw new IllegalArgumentException("Cannot manage chunks outside of world " + world.getName() + "!");
-            }
-
-            chunks.put(chunk.getChunkKey(), chunk.getChunkSnapshot());
-        }
-    }
-
     public WorldSnapshotProvider(@NotNull World world) {
-        this(world, world.getLoadedChunks());
+        this.world = Objects.requireNonNull(world, "world cannot be null!");
     }
 
     @Override
@@ -63,21 +50,12 @@ public class WorldSnapshotProvider implements SnapshotProvider {
     }
 
     @Override
-    public synchronized void updateAll() {
-        for(Map.Entry<Long, ChunkSnapshot> snapshotEntry : chunks.entrySet()) {
-            long key = snapshotEntry.getKey();
-            chunks.put(key, world.getChunkAt(key).getChunkSnapshot());
+    public synchronized void syncWithWorld() {
+        chunks.clear();
+
+        for(Chunk chunk : world.getLoadedChunks()) {
+            chunks.put(chunk.getChunkKey(), chunk.getChunkSnapshot());
         }
-    }
-
-    @Override
-    public void removeChunk(long key) {
-        chunks.remove(key);
-    }
-
-    @Override
-    public void addChunk(long key) {
-        chunks.putIfAbsent(key, world.getChunkAt(key).getChunkSnapshot());
     }
 
     @Override

@@ -19,11 +19,7 @@ public interface SnapshotProvider {
 
     void updateChunk(long key);
 
-    void updateAll();
-
-    void removeChunk(long key);
-
-    void addChunk(long key);
+    void syncWithWorld();
 
     @Nullable
     BlockData getData(int x, int y, int z);
