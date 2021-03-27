@@ -1133,7 +1133,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     luckyChest.setActive(true);
 
                     RoomData room = map.roomAt(luckyChest.getShopData().getChestLocation());
-                    luckyChestRoom = room != null ? room.getName() : null;
+                    luckyChestRoom = room != null ? room.getRoomDisplayName() : null;
                 }
 
                 @Override
