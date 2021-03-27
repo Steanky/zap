@@ -125,8 +125,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
-        super.displayTo(player);
+    protected void displayToPlayer(Player player) {
+        super.displayToPlayer(player);
         hologram.renderToPlayer(player);
         if (gunSwapper != null) {
             gunSwapper.renderToPlayer(player);

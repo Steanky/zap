@@ -33,7 +33,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    protected void displayToPlayer(Player player) {
         Hologram hologram = getHologram();
 
         hologram.updateLineForPlayer(player, 0, ChatColor.GOLD + "Ultimate Machine");

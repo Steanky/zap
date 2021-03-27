@@ -3,7 +3,9 @@ package io.github.zap.zombies.game.shop;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import io.github.zap.arenaapi.hologram.Hologram;
@@ -23,15 +25,14 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Shop for purchasing pieces of armor at a time
  */
 public class ArmorShop extends ArmorStandShop<ArmorShopData> {
+
+    private final static Set<Integer> ID_SET = new HashSet<>();
 
     private static final Map<Integer, EnumWrappers.ItemSlot> ITEM_SLOT_MAP = new HashMap<>() {
         {
@@ -44,11 +45,21 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
     private final ProtocolManager protocolManager;
 
-    private boolean active = false;
-
     public ArmorShop(ZombiesArena zombiesArena, ArmorShopData shopData) {
         super(zombiesArena, shopData);
         this.protocolManager = ProtocolLibrary.getProtocolManager();
+
+        protocolManager.addPacketListener(new PacketAdapter(Zombies.getInstance(), PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
+                    PacketContainer packetContainer = event.getPacket();
+                    if (ID_SET.contains(packetContainer.getIntegers().read(0))) {
+                        displayToPlayer(event.getPlayer());
+                    }
+                }
+            }
+        });
 
         ArmorStand armorStand = getArmorStand();
         Location armorStandLocation = getArmorStand().getLocation().clone();
@@ -56,18 +67,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         armorStand.teleport(armorStandLocation);
         armorStand.setSmall(true);
 
-        getZombiesArena().getChunkLoadHandler().addConsumer(armorStandLocation, (player) -> {
-            if (active) {
-                Hologram hologram = getHologram();
-
-                List<HologramLine<?>> lines = hologram.getHologramLines();
-                while (lines.size() < 2) {
-                    hologram.addLine("");
-                }
-
-                displayTo(player);
-            }
-        });
+        ID_SET.add(armorStand.getEntityId());
     }
 
     @Override
@@ -84,13 +84,12 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         while (lines.size() < 2) {
             hologram.addLine("");
         }
-        active = true;
 
         super.display();
     }
 
     @Override
-    protected void displayTo(Player player) {
+    protected void displayToPlayer(Player player) {
         Hologram hologram = getHologram();
         ArmorShopData armorShopData = getShopData();
 

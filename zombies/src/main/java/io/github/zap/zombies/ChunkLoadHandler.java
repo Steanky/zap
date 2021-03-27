@@ -2,7 +2,6 @@ package io.github.zap.zombies;
 
 import io.github.zap.arenaapi.Disposable;
 import io.papermc.paper.event.packet.PlayerChunkLoadEvent;
-import io.papermc.paper.event.packet.PlayerChunkUnloadEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -53,14 +52,6 @@ public class ChunkLoadHandler implements Disposable, Listener {
                     consumer.accept(event.getPlayer());
                 }
             }
-        }
-    }
-
-    @EventHandler
-    private void onPlayerChunkUnload(PlayerChunkUnloadEvent event) {
-        var e =consumerMap.get(event.getWorld());
-        if (e.get(event.getChunk().getChunkKey()) != null) {
-            System.out.println("unloaded req chunk");
         }
     }
 

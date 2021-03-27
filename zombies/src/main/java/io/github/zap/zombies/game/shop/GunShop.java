@@ -39,7 +39,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             if (args.getShop().equals(this)) {
                 Player player = args.getZombiesPlayer().getPlayer();
                 if (player != null) {
-                    displayTo(args.getZombiesPlayer().getPlayer());
+                    displayToPlayer(args.getZombiesPlayer().getPlayer());
                 }
             }
         });
@@ -80,7 +80,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    protected void displayToPlayer(Player player) {
         ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
