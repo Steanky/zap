@@ -44,10 +44,10 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
         this.locateInitial = getHandle().getRandom().nextInt(20);
-        getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, 512F);
+        getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, 1024F);
 
         EntityInsentient entityInsentient = getHandle();
-        entityInsentient.getNavigation().a(32F);
+        entityInsentient.getNavigation().a(128F);
 
         counter = retargetInterval > 0 ? entityInsentient.getRandom().nextInt(retargetInterval) : -1;
 
@@ -93,6 +93,9 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
                     if(player != null) {
                         getHandle().setGoalTarget(((CraftPlayer)target.getPlayer()).getHandle(),
                                 EntityTargetEvent.TargetReason.CUSTOM, true);
+                    }
+                    else { //target player is now out of game, do not start
+                        return false;
                     }
 
                     return wrappedGoal.a();

@@ -39,6 +39,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
         proxy = Zombies.getInstance().getNmsProxy();
+        navigationCounter = self.getRandom().nextInt(5);
     }
 
     public boolean a() {
@@ -47,7 +48,13 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
     public boolean b() {
         Entity target = self.getGoalTarget();
-        return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
+
+        if(target == null) {
+            return false;
+        }
+        else {
+            return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
+        }
     }
 
     public void c() {
@@ -75,7 +82,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                     currentPath = path;
                 }
                 else {
-                    navigationCounter += 25;
+                    navigationCounter += 100;
                 }
 
                 if(currentPath != null) {
@@ -87,9 +94,13 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             }
 
             if(currentPath != null) {
-                proxy.moveAlongPath(self, currentPath, speed);
-                this.attackTimer = Math.max(this.attackTimer - 1, 0);
-                this.tryAttack(target);
+                if(proxy.moveAlongPath(self, currentPath, speed)) {
+                    this.attackTimer = Math.max(this.attackTimer - 1, 0);
+                    this.tryAttack(target);
+                }
+                else { //time to calculate a new path
+                    navigationCounter = 0;
+                }
             }
         }
     }

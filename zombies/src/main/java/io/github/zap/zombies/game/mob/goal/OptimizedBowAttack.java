@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChunkSnapshot;
 
 import java.util.EnumSet;
 
@@ -40,6 +42,8 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
 
         proxy = Zombies.getInstance().getNmsProxy();
         navigationCounter = self.getRandom().nextInt(5);
+
+        Bukkit.getWorld("t").getLoadedChunks();
     }
 
     public boolean a() {
@@ -48,7 +52,13 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
 
     public boolean b() {
         Entity target = self.getGoalTarget();
-        return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
+
+        if(target == null) {
+            return false;
+        }
+        else {
+            return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
+        }
     }
 
     public void c() {

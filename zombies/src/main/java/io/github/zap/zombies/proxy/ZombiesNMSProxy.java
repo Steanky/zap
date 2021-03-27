@@ -24,16 +24,6 @@ public interface ZombiesNMSProxy extends NMSProxy {
      */
     WrappedSignedProperty getSkin(Player player);
 
-    /**
-     * Returns the nearest ZombiesPlayer in the given arena, using path length instead of vector distance for AI that
-     * should prioritize rationally. Uses a predicate — ZombiesPlayers who fail the predicate will not be considered.
-     * @param entity The entity to navigate for
-     * @param arena The arena to search in
-     * @param deviation The distance from the player to which the navigator will try to navigate
-     * @param filter The predicate to use
-     * @return The nearest ZombiesPlayer using path length, or null if none exist that are reachable and match the
-     * predicate
-     */
     ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, int deviation, Predicate<ZombiesPlayer> filter);
 
     void navigateToLocation(EntityInsentient entity, double x, double y, double z, double speed);

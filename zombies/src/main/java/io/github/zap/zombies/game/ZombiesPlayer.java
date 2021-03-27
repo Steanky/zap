@@ -190,7 +190,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                     count++;
                 }
 
-                var fullMsg = sb.append(ChatColor.RESET).append(ChatColor.GOLD).toString();
+                String fullMsg = sb.append(ChatColor.RESET).append(ChatColor.GOLD).toString();
                 amount *= multiplier;
                 if (ChatColor.stripColor(fullMsg).isEmpty())
                     getPlayer().sendMessage(String.format("%s+%d Gold!", ChatColor.GOLD, amount));
