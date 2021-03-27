@@ -48,7 +48,12 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
 
     public boolean b() {
         Entity target = self.getGoalTarget();
-        return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
+        if(target == null) {
+            return false;
+        }
+        else {
+            return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
+        }
     }
 
     public void c() {
