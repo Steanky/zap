@@ -12,8 +12,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PathfinderEngine implements Listener {
-    private static final int COMPLETED_PATH_MAX_AGE = 1000;
-
     public static class Entry {
         public final PathOperation operation;
         public final CompletableFuture<PathResult> future;
@@ -24,16 +22,16 @@ public class PathfinderEngine implements Listener {
         }
     }
 
-    public static class EngineContext implements PathfinderContext {
+    private static class EngineContext implements PathfinderContext {
         private final Semaphore contextSemaphore = new Semaphore(1);
 
         private final List<Entry> operations = new ArrayList<>();
-        private final Set<PathResult> successfulPaths = new HashSet<>();
-        private final Set<PathResult> failedPaths = new HashSet<>();
+        private final List<PathResult> successfulPaths = new ArrayList<>();
+        private final List<PathResult> failedPaths = new ArrayList<>();
         private final SnapshotProvider provider;
 
         public EngineContext(@NotNull SnapshotProvider provider) {
-            this.provider = provider;
+            this.provider = Objects.requireNonNull(provider, "provider cannot be null!");
         }
 
         @Override
@@ -42,12 +40,12 @@ public class PathfinderEngine implements Listener {
         }
 
         @Override
-        public @NotNull Set<PathResult> successfulPaths() {
+        public @NotNull List<PathResult> successfulPaths() {
             return successfulPaths;
         }
 
         @Override
-        public @NotNull Set<PathResult> failedPaths() {
+        public @NotNull List<PathResult> failedPaths() {
             return failedPaths;
         }
 
@@ -57,13 +55,13 @@ public class PathfinderEngine implements Listener {
         }
     }
 
-    private final Thread pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
-
     private final List<EngineContext> contexts = new ArrayList<>();
     private final Semaphore contextsSemaphore = new Semaphore(1);
 
     public PathfinderEngine() {
+        Thread pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
         pathfinderThread.start();
+
         Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
@@ -119,17 +117,19 @@ public class PathfinderEngine implements Listener {
                                     }
                                     else {
                                         ArenaApi.severe("PathResult " + result.toString() + " has an invalid state: " +
-                                                "should be either SUCCEEDED or FAILED, but was " + entry.operation.getState().toString());
+                                                "should be either SUCCEEDED or FAILED, but was " +
+                                                entry.operation.getState().toString());
                                         continue;
                                     }
 
                                     if(!entry.future.complete(result)) {
-                                        ArenaApi.severe("Failed to properly complete PathResult " + result.toString());
+                                        ArenaApi.severe("Failed to properly complete the future for PathResult " +
+                                                result.toString());
                                     }
                                 }
                             }
                         }
-                        else if(entry.operation.shouldRemove()) { //remove successful or failed paths if they should die
+                        else if(entry.operation.shouldRemove()) { //remove successful or failed paths if they ask
                             PathResult entryResult = entry.operation.getResult();
 
                             if(entryState == PathState.SUCCEEDED) {
@@ -158,7 +158,8 @@ public class PathfinderEngine implements Listener {
 
                 synchronized (contexts) {
                     contexts.clear();
-                    contextsSemaphore.release();
+                    //noinspection ResultOfMethodCallIgnored
+                    contextsSemaphore.tryAcquire(1);
                 }
             }
         }
