@@ -73,8 +73,8 @@ public class PathfinderEngine implements Listener {
      * expensive).
      */
     private void pathfind() {
-        try {
-            while(true) {
+        while(true) {
+            try {
                 contextsSemaphore.acquireUninterruptibly();
 
                 int contextStartingIndex;
@@ -118,14 +118,18 @@ public class PathfinderEngine implements Listener {
                                         context.failedPaths.add(result);
                                     }
                                     else {
-                                        throw new IllegalStateException("Path said it completed, but state == INCOMPLETE!");
+                                        ArenaApi.severe("PathResult " + result.toString() + " has an invalid state: " +
+                                                "should be either SUCCEEDED or FAILED, but was " + entry.operation.getState().toString());
+                                        continue;
                                     }
 
-                                    entry.future.complete(result);
+                                    if(!entry.future.complete(result)) {
+                                        ArenaApi.severe("Failed to properly complete PathResult " + result.toString());
+                                    }
                                 }
                             }
                         }
-                        else if(entry.operation.incrementAge() == COMPLETED_PATH_MAX_AGE) {
+                        else if(entry.operation.shouldRemove()) { //remove successful or failed paths if they should die
                             PathResult entryResult = entry.operation.getResult();
 
                             if(entryState == PathState.SUCCEEDED) {
@@ -139,23 +143,30 @@ public class PathfinderEngine implements Listener {
                 }
 
                 synchronized (contexts) {
-                    if(contexts.size() > 0) { //if we have more to iterate, release semaphore
+                    if(contexts.size() > 0) { //if we have more to iterate, release semaphore...
                         contextsSemaphore.release();
                     }
                     else {
                         //noinspection ResultOfMethodCallIgnored
-                        contextsSemaphore.tryAcquire(1); //if we don't, lock semaphore so we wait
+                        contextsSemaphore.tryAcquire(1); //...if we don't, lock semaphore so we wait
                     }
                 }
             }
-        }
-        catch (Exception exception) {
-            ArenaApi.severe("Fatal exception in pathfinding thread: " + exception.getMessage());
+            catch (Exception exception) {
+                ArenaApi.warning("Exception occurred in pathfinding thread: " + exception.getMessage());
+                ArenaApi.warning("Clearing state and continuing.");
+
+                synchronized (contexts) {
+                    contexts.clear();
+                    contextsSemaphore.release();
+                }
+            }
         }
     }
 
     /**
-     * Queues a pathfinding operation onto the pathfinding thread.
+     * Queues a pathfinding operation onto the pathfinding thread. This method is not thread-safe and should only be
+     * called on the main server thread.
      * @param operation The operation to enqueue
      */
     public Future<PathResult> queueOperation(@NotNull PathOperation operation) {
