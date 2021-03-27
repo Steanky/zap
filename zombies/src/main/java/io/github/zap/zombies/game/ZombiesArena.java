@@ -608,8 +608,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(player != null && state == ZombiesPlayerState.ALIVE) {
                 if(player.getHealth() <= event.getFinalDamage()) {
                     Location location = player.getLocation().toBlockLocation();
-                    String roomName = map.roomAt(location.toVector()).getRoomDisplayName();
-                    managedPlayer.setDeathRoomName((roomName == null) ? "an unknown room" : roomName);
+                    RoomData room = map.roomAt(location.toVector());;
+                    managedPlayer.setDeathRoomName((room == null) ? "an unknown room" : room.getRoomDisplayName());
 
                     for (double y = location.getY(); y >= 0D; y--){
                         location.setY(y);
@@ -1144,9 +1144,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         List<Shop<?>> chests = new ArrayList<>(shopMap.get(luckyChest.getShopType()));
                         chests.remove(luckyChest);
 
-                        ((LuckyChest) chests.get(random.nextInt(chests.size()))).setActive(true);
-                        RoomData room = map.roomAt(luckyChest.getShopData().getChestLocation());
-                        luckyChestRoom = room != null ? room.getName() : null;
+                        LuckyChest nextLuckyChest = ((LuckyChest) chests.get(random.nextInt(chests.size())));
+                        nextLuckyChest.setActive(true);
+                        RoomData room = map.roomAt(nextLuckyChest.getShopData().getChestLocation());
+                        luckyChestRoom = room != null ? room.getRoomDisplayName() : null;
 
                         rolls = 0;
                     }

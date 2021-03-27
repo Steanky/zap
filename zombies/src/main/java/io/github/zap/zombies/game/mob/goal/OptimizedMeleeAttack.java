@@ -82,7 +82,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                     currentPath = path;
                 }
                 else {
-                    navigationCounter += 100;
+                    navigationCounter += 50;
                 }
 
                 if(currentPath != null) {
@@ -94,13 +94,9 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             }
 
             if(currentPath != null) {
-                if(proxy.moveAlongPath(self, currentPath, speed)) {
-                    this.attackTimer = Math.max(this.attackTimer - 1, 0);
-                    this.tryAttack(target);
-                }
-                else { //time to calculate a new path
-                    navigationCounter = 0;
-                }
+                proxy.moveAlongPath(self, currentPath, speed);
+                this.attackTimer = Math.max(this.attackTimer - 1, 0);
+                this.tryAttack(target);
             }
         }
     }

@@ -42,8 +42,6 @@ public class OptimizedBowAttack<T extends EntityMonster & IRangedEntity> extends
 
         proxy = Zombies.getInstance().getNmsProxy();
         navigationCounter = self.getRandom().nextInt(5);
-
-        Bukkit.getWorld("t").getLoadedChunks();
     }
 
     public boolean a() {

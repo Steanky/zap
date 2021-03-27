@@ -12,7 +12,7 @@
 
     <properties>
         <aswm.version>2.5.4-SNAPSHOT</aswm.version>
-        <mythicmobs.version>4.11.0</mythicmobs.version>
+        <mythicmobs.version>4.11.1-SNAPSHOT</mythicmobs.version>
     </properties>
 
     <artifactId>zombies</artifactId>
@@ -195,6 +195,12 @@
             <id>rapture-snapshots</id>
             <url>https://repo.rapture.pw/repository/maven-snapshots/</url>
         </repository>
+
+        <repository>
+            <id>nexus</id>
+            <name>Lumine Releases</name>
+            <url>https://mvn.lumine.io/repository/maven-public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -228,7 +234,7 @@
 
         <dependency>
             <groupId>io.lumine.xikage</groupId>
-            <artifactId>mythicmobs</artifactId>
+            <artifactId>MythicMobs</artifactId>
             <version>${mythicmobs.version}</version>
             <scope>provided</scope>
         </dependency>
