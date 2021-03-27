@@ -115,85 +115,89 @@ public class Corpse {
      * @param reviver The reviver of the corpse
      */
     public void setReviver(ZombiesPlayer reviver) {
-        if (reviver == null) {
-            zombiesPlayer.getArena().getAvailableCorpses().add(this);
-            startDying();
-        } else {
-            if (deathTaskId != -1) {
-                Bukkit.getScheduler().cancelTask(deathTaskId);
+        if (active) {
+            if (reviver == null) {
+                zombiesPlayer.getArena().getAvailableCorpses().add(this);
+                startDying();
+            } else {
+                if (deathTaskId != -1) {
+                    Bukkit.getScheduler().cancelTask(deathTaskId);
+                }
+
+                reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
+                hologram.updateLine(1, ChatColor.RED + "Reviving...");
             }
 
-            reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
-            hologram.updateLine(1, ChatColor.RED + "Reviving...");
+            this.reviver = reviver;
         }
-
-        this.reviver = reviver;
     }
 
     /**
      * Removes 0.1s of revival time from the corpse
      */
     public void continueReviving() {
-        if (reviveTime <= 0) {
-            active = false;
+        if (active) {
+            if (reviveTime <= 0) {
+                active = false;
 
-            zombiesPlayer.revive();
+                zombiesPlayer.revive();
 
-            Player thisPlayer = zombiesPlayer.getPlayer();
-            Player reviverPlayer = reviver.getPlayer();
+                Player thisPlayer = zombiesPlayer.getPlayer();
+                Player reviverPlayer = reviver.getPlayer();
 
-            if (thisPlayer != null && reviverPlayer != null) {
-                thisPlayer.sendActionBar(Component.empty());
-                reviverPlayer.sendActionBar(Component.empty());
+                if (thisPlayer != null && reviverPlayer != null) {
+                    thisPlayer.sendActionBar(Component.empty());
+                    reviverPlayer.sendActionBar(Component.empty());
 
-                ZombiesArena zombiesArena = reviver.getArena();
-                MapData map = zombiesArena.getMap();
-                PotionEffect speedEffect = new PotionEffect(
-                        PotionEffectType.SPEED,
-                        map.getDoorSpeedTicks(),
-                        map.getDoorSpeedLevel(),
-                        true,
-                        false,
-                        false
-                );
-                reviverPlayer.addPotionEffect(speedEffect);
+                    ZombiesArena zombiesArena = reviver.getArena();
+                    MapData map = zombiesArena.getMap();
+                    PotionEffect speedEffect = new PotionEffect(
+                            PotionEffectType.SPEED,
+                            map.getDoorSpeedTicks(),
+                            map.getDoorSpeedLevel(),
+                            true,
+                            false,
+                            false
+                    );
+                    reviverPlayer.addPotionEffect(speedEffect);
 
-                SpeedPerk speedPerk = (SpeedPerk) reviver.getPerks().getPerk(PerkType.SPEED);
-                zombiesArena.runTaskLater(map.getDoorSpeedTicks(), () -> {
-                    speedPerk.execute(EmptyEventArgs.getInstance());
-                });
-            }
+                    SpeedPerk speedPerk = (SpeedPerk) reviver.getPerks().getPerk(PerkType.SPEED);
+                    zombiesArena.runTaskLater(map.getDoorSpeedTicks(), () -> {
+                        speedPerk.execute(EmptyEventArgs.getInstance());
+                    });
+                }
 
-            destroy();
-        } else {
-            String timeRemaining = TimeUtil.convertTicksToSecondsString(reviveTime);
-            String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
-            hologram.updateLine(2, secondsRemainingString);
+                destroy();
+            } else {
+                String timeRemaining = TimeUtil.convertTicksToSecondsString(reviveTime);
+                String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
+                hologram.updateLine(2, secondsRemainingString);
 
-            Player bukkitPlayer = zombiesPlayer.getPlayer();
-            Player reviverPlayer = reviver.getPlayer();
+                Player bukkitPlayer = zombiesPlayer.getPlayer();
+                Player reviverPlayer = reviver.getPlayer();
 
-            if(bukkitPlayer != null && reviverPlayer != null) {
-                bukkitPlayer.sendActionBar(Component.text(
-                        String.format(
-                                "%sYou are being revived by %s%s! %s- %s!",
-                                ChatColor.RED,
-                                ChatColor.YELLOW,
-                                reviverPlayer.getName(),
-                                ChatColor.WHITE,
-                                secondsRemainingString)
-                ));
-                reviverPlayer.sendActionBar(Component.text(
-                        String.format(
-                                "%sReviving %s%s... %s- %s!",
-                                ChatColor.RED,
-                                ChatColor.YELLOW,
-                                bukkitPlayer.getName(),
-                                ChatColor.WHITE,
-                                secondsRemainingString)
-                ));
+                if (bukkitPlayer != null && reviverPlayer != null) {
+                    bukkitPlayer.sendActionBar(Component.text(
+                            String.format(
+                                    "%sYou are being revived by %s%s! %s- %s!",
+                                    ChatColor.RED,
+                                    ChatColor.YELLOW,
+                                    reviverPlayer.getName(),
+                                    ChatColor.WHITE,
+                                    secondsRemainingString)
+                    ));
+                    reviverPlayer.sendActionBar(Component.text(
+                            String.format(
+                                    "%sReviving %s%s... %s- %s!",
+                                    ChatColor.RED,
+                                    ChatColor.YELLOW,
+                                    bukkitPlayer.getName(),
+                                    ChatColor.WHITE,
+                                    secondsRemainingString)
+                    ));
 
-                reviveTime -= 2;
+                    reviveTime -= 2;
+                }
             }
         }
     }
@@ -361,23 +365,25 @@ public class Corpse {
      * Destroys the corpse and removes its trace from the arena it is in
      */
     public void destroy() {
-        PacketContainer removeCorpseFromTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
-        removeCorpseFromTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
-        removeCorpseFromTeamPacket.getIntegers().write(0, 4);
-        removeCorpseFromTeamPacket.getSpecificModifier(Collection.class)
-                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
+        if (active) {
+            PacketContainer removeCorpseFromTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+            removeCorpseFromTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
+            removeCorpseFromTeamPacket.getIntegers().write(0, 4);
+            removeCorpseFromTeamPacket.getSpecificModifier(Collection.class)
+                    .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
 
-        sendPacket(removeCorpseFromTeamPacket);
+            sendPacket(removeCorpseFromTeamPacket);
 
-        PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        killPacketContainer.getIntegerArrays().write(0, new int[] { id });
+            PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
+            killPacketContainer.getIntegerArrays().write(0, new int[]{id});
 
-        sendPacket(killPacketContainer);
+            sendPacket(killPacketContainer);
 
-        ZombiesArena zombiesArena = getZombiesPlayer().getArena();
-        terminate();
-        zombiesArena.getCorpses().remove(this);
-        zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+            ZombiesArena zombiesArena = getZombiesPlayer().getArena();
+            terminate();
+            zombiesArena.getCorpses().remove(this);
+            zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        }
     }
 
     @Override
