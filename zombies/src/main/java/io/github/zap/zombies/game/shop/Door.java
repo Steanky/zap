@@ -7,7 +7,7 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.github.zap.zombies.game.data.map.map;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
@@ -77,7 +77,7 @@ public class Door extends Shop<DoorData> {
 
                 StringBuilder stringBuilder = new StringBuilder(ChatColor.GREEN.toString());
                 List<String> opensTo = entry.getKey().getOpensTo();
-                map map = getZombiesArena().getMap();
+                MapData map = getZombiesArena().getMap();
                 if (opensTo.size() > 0) {
                     stringBuilder.append(map.getNamedRoom(opensTo.get(0)).getRoomDisplayName());
                     for (int i = 1; i < opensTo.size(); i++) {
@@ -164,7 +164,7 @@ public class Door extends Shop<DoorData> {
                                     hologram.destroy();
                                 }
 
-                                map map = zombiesArena.getMap();
+                                MapData map = zombiesArena.getMap();
                                 PotionEffect speedEffect = new PotionEffect(
                                         PotionEffectType.SPEED,
                                         map.getDoorSpeedTicks(),
