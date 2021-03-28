@@ -25,4 +25,8 @@ public interface PathOperation {
     @NotNull World getWorld();
 
     @NotNull Set<PathDestination> getDestinations();
+
+    @NotNull Set<PathNode> visitedNodes();
+
+    @NotNull PathAgent getAgent();
 }

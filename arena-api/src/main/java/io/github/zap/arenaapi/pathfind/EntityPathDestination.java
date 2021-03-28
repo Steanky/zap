@@ -8,10 +8,10 @@ import org.jetbrains.annotations.NotNull;
 
 class EntityPathDestination extends PathDestinationAbstract {
     EntityPathDestination(@NotNull Entity target, boolean findBlock) {
-        super(findBlock ? nodeBeneath(target) : nodeAt(target));
+        super(findBlock ? nodeOnGround(target) : nodeAt(target));
     }
 
-    private static PathNode nodeBeneath(Entity entity) {
+    private static PathNode nodeOnGround(Entity entity) {
         Location targetLocation = entity.getLocation();
 
         int x = targetLocation.getBlockX();
@@ -25,7 +25,7 @@ class EntityPathDestination extends PathDestinationAbstract {
             block = world.getBlockAt(x, --y, z);
         }
 
-        return new PathNode(x, y, z);
+        return new PathNode(x, ++y, z);
     }
 
     private static PathNode nodeAt(Entity entity) {

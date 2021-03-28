@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.util.VectorUtils;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -22,6 +23,10 @@ class PathNode implements Comparable<PathNode> {
         hash = Objects.hash(x, y, z);
     }
 
+    public PathNode(@NotNull Vector from) {
+        this(from.getBlockX(), from.getBlockY(), from.getBlockZ());
+    }
+
     @Override
     public int hashCode() {
         return hash;
@@ -39,11 +44,20 @@ class PathNode implements Comparable<PathNode> {
     }
 
     @Override
-    public int compareTo(@NotNull PathNode o) {
-        return Float.compare(o.cost, cost);
+    public String toString() {
+        return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", hash=" + hash + ", cost=" + cost + "}";
     }
 
-    public int distanceTo(@NotNull PathNode other) {
+    @Override
+    public int compareTo(@NotNull PathNode other) {
+        return Float.compare(other.cost, cost);
+    }
+
+    public int distanceSquaredTo(@NotNull PathNode other) {
         return VectorUtils.distanceSquared(x, y, z, other.x, other.y, other.z);
+    }
+
+    public int distanceSquaredTo(int x, int y, int z) {
+        return VectorUtils.distanceSquared(this.x, this.y, this.z, x, y, z);
     }
 }

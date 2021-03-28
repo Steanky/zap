@@ -118,7 +118,7 @@ public class PathfinderEngine implements Listener {
                                         context.failedPaths.add(result);
                                     }
                                     else {
-                                        ArenaApi.severe("PathResult " + result.toString() + " has an invalid state: " +
+                                        ArenaApi.severe("PathOperation " + entry.operation + " has an invalid state: " +
                                                 "should be either SUCCEEDED or FAILED, but was " +
                                                 entry.operation.getState().toString());
                                         continue;

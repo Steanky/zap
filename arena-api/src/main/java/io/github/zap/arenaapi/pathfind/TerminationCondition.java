@@ -8,7 +8,7 @@ public interface TerminationCondition {
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
     static TerminationCondition whenWithin(int targetDistanceSquared) {
-        return (context, node, destination) -> node.distanceTo(destination.targetNode()) <= targetDistanceSquared;
+        return (context, node, destination) -> node.distanceSquaredTo(destination.targetNode()) <= targetDistanceSquared;
     }
 
     static TerminationCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {

@@ -1,36 +1,30 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
-    private static final int INITIAL_CAPACITY = 128;
-
-    private final Mob mob;
+    private final PathAgent agent;
     private final Set<PathDestination> destinations;
     private State state;
-    private final float targetDistance;
     private final CostCalculator calculator;
     private final TerminationCondition condition;
     private final NodeProvider provider;
 
-    private final PriorityQueue<PathNode> consideredNodes = new PriorityQueue<>(INITIAL_CAPACITY);
-    private final Set<PathNode> closedSet = new HashSet<>();
+    private final Queue<PathNode> sortedNodes = new PriorityQueue<>(64);
+    private final Set<PathNode> visited = new HashSet<>();
 
-    private boolean complete = false;
     private PathNode currentNode;
 
-    PathOperationImpl(@NotNull Mob mob, @NotNull Set<PathDestination> destinations, float targetDistance,
+    PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
                       @NotNull CostCalculator calculator, @NotNull TerminationCondition condition,
                       @NotNull NodeProvider provider) {
-        this.mob = mob;
+        this.agent = agent;
         this.destinations = destinations;
         this.state = State.INCOMPLETE;
-        this.targetDistance = targetDistance;
         this.calculator = calculator;
         this.condition = condition;
         this.provider = provider;
@@ -38,25 +32,49 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean step(@NotNull PathfinderContext context) {
-        if(!complete) {
+        if(state == State.INCOMPLETE) {
             if(currentNode != null) {
                 for(PathDestination destination : destinations) {
                     if(condition.hasCompleted(context, currentNode, destination)) {
-                        state = State.SUCCEEDED;
                         onSuccess();
-                        return false;
+                        return true;
                     }
+                }
+
+                if(!sortedNodes.isEmpty()) {
+                    currentNode = sortedNodes.remove();
+                }
+                else {
+                    onFailure();
+                    return true;
                 }
             }
             else {
-                Location location = mob.getLocation();
-                currentNode = new PathNode(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+                currentNode = agent.nodeAt();
             }
 
-            List<PathNode> possibilities = provider.nodesFrom(context, currentNode);
+            visited.add(currentNode);
+            PathNode[] validPossibilities = provider.generateNodes(context, this, currentNode);
+
+            for(PathNode node : validPossibilities) {
+                PathDestination closestDestination = closestDestinationFor(node);
+
+                if(closestDestination != null) {
+                    int cost = calculator.computeCost(context, currentNode, node, closestDestination);
+
+                    if(sortedNodes.contains(node)) {
+                        if(node.cost > cost) {
+                            node.cost = cost;
+                            continue;
+                        }
+                    }
+
+                    sortedNodes.add(node);
+                }
+            }
         }
 
-        return true;
+        return false;
     }
 
     @Override
@@ -81,7 +99,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public @NotNull World getWorld() {
-        return mob.getWorld();
+        return agent.getWorld();
     }
 
     @Override
@@ -89,7 +107,44 @@ class PathOperationImpl implements PathOperation {
         return destinations;
     }
 
-    private void onSuccess() {
+    @Override
+    public @NotNull Set<PathNode> visitedNodes() {
+        return visited;
+    }
 
+    @Override
+    public @NotNull PathAgent getAgent() {
+        return agent;
+    }
+
+    @Override
+    public String toString() {
+        return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
+    }
+
+    private void onSuccess() {
+        state = State.SUCCEEDED;
+
+        //do things (compile path, etc)
+    }
+
+    private void onFailure() {
+        state = State.FAILED;
+    }
+
+    private @Nullable PathDestination closestDestinationFor(@NotNull PathNode node) {
+        int bestDistance = Integer.MAX_VALUE;
+        PathDestination bestDestination = null;
+
+        for(PathDestination destination : destinations) {
+            int sample = node.distanceSquaredTo(destination.targetNode());
+
+            if(sample < bestDistance) {
+                bestDistance = sample;
+                bestDestination = destination;
+            }
+        }
+
+        return bestDestination;
     }
 }
