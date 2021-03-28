@@ -4,6 +4,9 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -11,6 +14,7 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
+import io.github.zap.zombies.game.equipment.EquipmentType;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.perk.FlamingBullets;
 import io.github.zap.zombies.game.perk.FrozenBullets;
@@ -344,6 +348,12 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             state = ZombiesPlayerState.DEAD;
 
             perks.disableAll();
+            HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+            HotbarObjectGroup hotbarObjectGroup =
+                    hotbarManager.getHotbarObjectGroup(defaultProfile, EquipmentType.PERK.name());
+            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                hotbarObjectGroup.remove(slot, true);
+            }
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
 
@@ -375,7 +385,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 corpse = null;
             }
 
-            getPerks().activateAll();
+            perks.activateAll();
             setAliveState();
 
             Player player = getPlayer();
@@ -666,7 +676,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             player.getEquipment().setArmorContents(equipment);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, Integer.MAX_VALUE, 2, false,
                     false, false));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 1, false, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, false, false, false));
             player.setInvulnerable(false);
             player.setGameMode(GameMode.ADVENTURE);
             startTasks();

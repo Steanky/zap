@@ -12,6 +12,7 @@ import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRu
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.entity.EntityDeathEvent;
 
 import java.util.List;
 import java.util.Random;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpawnRuleData> implements Disposable {
     public DefaultPowerUpSpawnRule(String spawnTargetName, DefaultPowerUpSpawnRuleData data, ZombiesArena arena) {
         super(spawnTargetName, data, arena);
-        getArena().getProxyFor(EntityRemoveFromWorldEvent.class).registerHandler(this::onMobDeath);
+        getArena().getProxyFor(EntityDeathEvent.class).registerHandler(this::onMobDeath);
 
         // Avoid spawning stuff inside windows
         windows = getArena().getMap().getRooms().stream().flatMap(x -> x.getWindows().stream()).collect(Collectors.toList());
@@ -42,7 +43,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
     private boolean disposed = false;
 
-    private void onMobDeath(ZombiesArena.ProxyArgs<EntityRemoveFromWorldEvent> e) {
+    private void onMobDeath(ZombiesArena.ProxyArgs<EntityDeathEvent> e) {
         var patterns = getData().getPattern();
         var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena());
         if(patterns.contains(currentRound)) {
@@ -66,7 +67,6 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
                 roundDeathCount++;
             }
         }
-
     }
 
     private void chooseLuckyZombie(int currentRound) {
@@ -98,7 +98,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
             return;
         }
 
-        getArena().getProxyFor(EntityRemoveFromWorldEvent.class).removeHandler(this::onMobDeath);
+        getArena().getProxyFor(EntityDeathEvent.class).removeHandler(this::onMobDeath);
         disposed = true;
     }
 }
