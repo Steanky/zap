@@ -44,7 +44,8 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
             }
         }
         else {
-            return Bukkit.getPlayer(playerUuid);
+            player = Bukkit.getPlayer(playerUuid);
+            return player;
         }
     }
 
