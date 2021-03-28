@@ -28,7 +28,8 @@ val classModifier: Configuration by configurations.creating {
 }
 configurations.compileOnly.get().extendsFrom(bukkitPlugin, classModifier)
 
-val outputDir = System.getProperty("outputDir") ?: "../run/server-1/plugins"
+val outputDir = System.getProperty("outputDir") ?: "../run/server-1"
+val pluginDir = "$outputDir/plugins"
 
 dependencies {
     implementation("com.github.Steanky:RegularCommands:master-SNAPSHOT")
@@ -45,14 +46,14 @@ dependencies {
 
 project.configurations.implementation.get().isCanBeResolved = true
 tasks.withType<Jar> {
-    destinationDirectory.set(File(outputDir))
+    destinationDirectory.set(File(pluginDir))
     from (configurations.implementation.get().map {
         if (it.isDirectory) it else zipTree(it)
     })
 }
 
 tasks.register<Copy>("copyPlugins") {
-    from(bukkitPlugin).into(outputDir)
+    from(bukkitPlugin).into(pluginDir)
     bukkitPlugin.allDependencies.forEach {
         rename("-${it.version}", "")
     }
