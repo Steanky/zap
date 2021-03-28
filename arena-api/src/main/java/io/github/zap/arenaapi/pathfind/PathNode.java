@@ -12,7 +12,7 @@ class PathNode implements Comparable<PathNode> {
     public final int z;
     public final int hash;
 
-    public int cost;
+    public Cost cost;
     public PathNode next;
 
     public PathNode(int x, int y, int z) {
@@ -50,7 +50,7 @@ class PathNode implements Comparable<PathNode> {
 
     @Override
     public int compareTo(@NotNull PathNode other) {
-        return Float.compare(other.cost, cost);
+        return cost.compareTo(other.cost);
     }
 
     public int distanceSquaredTo(@NotNull PathNode other) {

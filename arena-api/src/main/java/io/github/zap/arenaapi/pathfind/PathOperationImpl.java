@@ -14,7 +14,7 @@ class PathOperationImpl implements PathOperation {
     private final TerminationCondition condition;
     private final NodeProvider provider;
 
-    private final Queue<PathNode> sortedNodes = new PriorityQueue<>(64);
+    private final NavigableSet<PathNode> sortedNodes = new TreeSet<>();
     private final Set<PathNode> visited = new HashSet<>();
 
     private PathNode currentNode;
@@ -42,7 +42,7 @@ class PathOperationImpl implements PathOperation {
                 }
 
                 if(!sortedNodes.isEmpty()) {
-                    currentNode = sortedNodes.remove();
+                    currentNode = sortedNodes.pollFirst();
                 }
                 else {
                     onFailure();
@@ -54,23 +54,26 @@ class PathOperationImpl implements PathOperation {
             }
 
             visited.add(currentNode);
-            PathNode[] validPossibilities = provider.generateNodes(context, this, currentNode);
+            PathNode[] possibleNodes = provider.generateNodes(context, this, currentNode);
 
-            for(PathNode node : validPossibilities) {
+            for(PathNode node : possibleNodes) {
                 PathDestination closestDestination = closestDestinationFor(node);
 
                 if(closestDestination != null) {
-                    int cost = calculator.computeCost(context, currentNode, node, closestDestination);
+                    Cost possibleCost = calculator.computeCost(context, currentNode, node, closestDestination);
 
                     if(sortedNodes.contains(node)) {
-                        if(node.cost > cost) {
-                            node.cost = cost;
+                        if(possibleCost.nodeCost > currentNode.cost.nodeCost) {
                             continue;
                         }
                     }
 
                     sortedNodes.add(node);
                 }
+            }
+
+            if(!sortedNodes.isEmpty()) {
+                currentNode.next = sortedNodes.first();
             }
         }
 

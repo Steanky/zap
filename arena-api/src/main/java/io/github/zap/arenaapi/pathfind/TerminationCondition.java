@@ -5,6 +5,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Predicate;
 
 public interface TerminationCondition {
+    /**
+     * Simple termination condition: the path is complete when the agent reaches the node.
+     */
+    TerminationCondition SIMPLE = (context, node, destination) -> node.equals(destination.targetNode());
+
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
     static TerminationCondition whenWithin(int targetDistanceSquared) {
