@@ -18,6 +18,8 @@ val shade: Configuration by configurations.creating {
 }
 configurations.api.get().extendsFrom(bukkitPlugin, shade)
 
+val outputDir = System.getProperty("outputDir") ?: "../run/server-1/plugins"
+
 repositories {
     mavenCentral()
     mavenLocal()
@@ -43,14 +45,14 @@ dependencies {
 }
 
 tasks.withType<Jar> {
-    destinationDirectory.set(File(System.getProperty("outputDir") ?: "../run/server-1/plugins"))
+    destinationDirectory.set(File(outputDir))
     from (shade.map {
         if (it.isDirectory) it else zipTree(it)
     })
 }
 
 tasks.register<Copy>("copyPlugins") {
-    from(bukkitPlugin).into("../run/server-1/plugins")
+    from(bukkitPlugin).into(outputDir)
     bukkitPlugin.allDependencies.forEach {
         rename("-${it.version}", "")
     }
