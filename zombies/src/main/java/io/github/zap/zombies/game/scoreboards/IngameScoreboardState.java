@@ -10,6 +10,7 @@ import io.github.zap.zombies.game.corpse.Corpse;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Criterias;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Team;
@@ -46,6 +47,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
         var map = scoreboard.getZombiesArena().getMap().getName();
 
         for(var i : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
+            //getPlayer() will return null if they are not in-game!
             var tfName = new StringFragment(i.getValue().getPlayer().getName());
             var tfState = new StringFragment();
             playerStatues.put(i.getKey(), Pair.of(tfName, tfState));

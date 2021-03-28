@@ -103,26 +103,30 @@ class PathOperationAdapted implements PathOperation {
                 }
             }
         }
+        else {
+            PathEntity best = null;
+            boolean useSet1 = foundDestinations.isEmpty();
+            Comparator<PathEntity> comparator = useSet1 ? Comparator.comparingInt(PathEntity::e) :
+                    Comparator.comparingDouble(PathEntity::n).thenComparingInt(PathEntity::e);
+            Iterator resultIterator = ((List)(useSet1 ? list : foundDestinations)).iterator();
 
-        PathEntity best = null;
-        boolean useSet1 = foundDestinations.isEmpty();
-        Comparator<PathEntity> comparator = useSet1 ? Comparator.comparingInt(PathEntity::e) : Comparator.comparingDouble(PathEntity::n).thenComparingInt(PathEntity::e);
-        Iterator resultIterator = ((List)(useSet1 ? list : foundDestinations)).iterator();
+            while(true) {
+                PathEntity pathEntity;
+                do {
+                    if (!resultIterator.hasNext()) {
+                        pathEntity = best;
+                        return true;
+                    }
 
-        while(true) {
-            PathEntity pathEntity;
-            do {
-                if (!resultIterator.hasNext()) {
-                    pathEntity = best;
-                    return true;
-                }
+                    Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition> entry = (Map.Entry)resultIterator.next();
+                    pathEntity = this.buildPathEntity(entry.getKey().d(), entry.getValue(), !useSet1);
+                } while(best != null && comparator.compare(pathEntity, best) >= 0);
 
-                Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition> entry = (Map.Entry)resultIterator.next();
-                pathEntity = this.buildPathEntity(entry.getKey().d(), entry.getValue(), !useSet1);
-            } while(best != null && comparator.compare(pathEntity, best) >= 0);
-
-            best = pathEntity;
+                best = pathEntity;
+            }
         }
+
+        return false;
     }
 
     @Override
