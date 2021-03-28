@@ -17,7 +17,6 @@ import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedArrowShoot;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
@@ -113,7 +112,9 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        StopWatch timer = StopWatch.createStarted();
+        org.bukkit.craftbukkit.libs.org.apache.commons.lang3.time.StopWatch.createStarted();
+        StopWatch timer = new StopWatch();
+        timer.start();
         instance = this;
 
         try {
@@ -285,7 +286,8 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initWorldLoader() {
         info("Preloading worlds.");
 
-        StopWatch timer = StopWatch.createStarted();
+        StopWatch timer = new StopWatch();
+        timer.start();
         slimeWorldDirectory = new File("slime_worlds");
         slimeExtension = ".slime";
         slimeLoader = new FileLoader(slimeWorldDirectory);
