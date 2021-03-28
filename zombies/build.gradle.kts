@@ -43,6 +43,7 @@ dependencies {
 
 project.configurations.implementation.get().isCanBeResolved = true
 tasks.withType<Jar> {
+    destinationDirectory.set(File(System.getProperty("outputDir") ?: "../run/server-1/plugins"))
     from (configurations.implementation.get().map {
         if (it.isDirectory) it else zipTree(it)
     })
