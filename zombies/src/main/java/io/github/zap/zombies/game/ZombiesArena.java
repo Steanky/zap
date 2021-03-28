@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game;
 
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
@@ -235,6 +236,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     getEntitySet().add(activeMob.getUniqueId());
                     MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(), Zombies.ARENA_METADATA_NAME,
                             Zombies.getInstance(), ZombiesArena.this);
+
                     return activeMob;
                 }
                 else {
@@ -597,6 +599,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    @org.bukkit.event.EventHandler
+    private void onEntityAddToWorldEvent(EntityAddToWorldEvent event) {
+        //only necessary so long as MythicMobs refuses to work right
+        Entity entity = event.getEntity();
+        if(entity.getType() == EntityType.CHICKEN) {
+            if(!getEntitySet().contains(entity.getUniqueId())) {
+                for(Entity passenger : entity.getPassengers()) {
+                    entity.removePassenger(passenger);
+                }
+
+                entity.remove();
+            }
+        }
+    }
+
     private void onEntityDamaged(ProxyArgs<EntityDamageEvent> args) {
         EntityDamageEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
@@ -608,7 +625,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(player != null && state == ZombiesPlayerState.ALIVE) {
                 if(player.getHealth() <= event.getFinalDamage()) {
                     Location location = player.getLocation().toBlockLocation();
-                    RoomData room = map.roomAt(location.toVector());;
+                    RoomData room = map.roomAt(location.toVector());
                     managedPlayer.setDeathRoomName((room == null) ? "an unknown room" : room.getRoomDisplayName());
 
                     for (double y = location.getY(); y >= 0D; y--){
