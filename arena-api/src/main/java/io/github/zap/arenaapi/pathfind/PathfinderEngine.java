@@ -16,14 +16,14 @@ public class PathfinderEngine implements Listener {
         public final PathOperation operation;
         public final CompletableFuture<PathResult> future;
 
-        private Entry(PathOperation operation, CompletableFuture<PathResult> future) {
-            this.operation = operation;
-            this.future = future;
+        private Entry(@NotNull PathOperation operation, @NotNull CompletableFuture<PathResult> future) {
+            this.operation = Objects.requireNonNull(operation, "operation cannot be null!");
+            this.future = Objects.requireNonNull(future,"future cannot be null!");
         }
     }
 
     private static class EngineContext implements PathfinderContext {
-        private final Semaphore contextSemaphore = new Semaphore(1);
+        private final Semaphore contextSemaphore = new Semaphore(-1);
 
         private final List<Entry> operations = new ArrayList<>();
         private final List<PathResult> successfulPaths = new ArrayList<>();
@@ -56,7 +56,7 @@ public class PathfinderEngine implements Listener {
     }
 
     private final List<EngineContext> contexts = new ArrayList<>();
-    private final Semaphore contextsSemaphore = new Semaphore(1);
+    private final Semaphore contextsSemaphore = new Semaphore(-1);
 
     public PathfinderEngine() {
         Thread pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
@@ -83,6 +83,7 @@ public class PathfinderEngine implements Listener {
                     EngineContext context = contexts.get(i);
 
                     AtomicBoolean completed = new AtomicBoolean(false);
+                    context.contextSemaphore.tryAcquire(1);
 
                     Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
                         context.provider.syncWithWorld();

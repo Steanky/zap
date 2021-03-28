@@ -1,15 +1,16 @@
 package io.github.zap.arenaapi.pathfind;
 
 import net.minecraft.server.v1_16_R3.PathEntity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashSet;
 
 public interface PathResult {
-    PathNode source();
+    @NotNull PathNode source();
 
-    PathNode destination();
+    @NotNull PathNode destination();
 
-    LinkedHashSet<PathNode> nodes();
+    @NotNull LinkedHashSet<PathNode> nodes();
 
-    PathEntity toPathEntity();
+    @NotNull PathEntity toPathEntity();
 }

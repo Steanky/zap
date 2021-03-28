@@ -1,30 +1,29 @@
 package io.github.zap.arenaapi.pathfind;
 
+import net.minecraft.server.v1_16_R3.PathPoint;
+
+import java.util.Objects;
+
 public class PathNode {
-    private final int x;
-    private final int y;
-    private final int z;
+    public final int x;
+    public final int y;
+    public final int z;
 
     private final int hash;
+
+    public PathNode next;
+    public float distanceToNext;
 
     public PathNode(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
 
-        hash = hashNode(x, y, z);
+        hash = Objects.hash(x, y, z);
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getZ() {
-        return z;
+    public PathPoint toNms() {
+        return new PathPoint(x, y, z);
     }
 
     @Override
@@ -39,12 +38,7 @@ public class PathNode {
         }
         else {
             PathNode other = (PathNode) obj;
-            return hash == other.hash && x == other.x && y == other.y && z == other.z;
+            return x == other.x && y == other.y && z == other.z;
         }
-    }
-
-    //how NMS hashes pathnodes
-    public static int hashNode(int x, int y, int z) {
-        return y & 255 | (x & 32767) << 8 | (z & 32767) << 24 | (x < 0 ? -2147483648 : 0) | (z < 0 ? '耀' : 0);
     }
 }

@@ -21,18 +21,18 @@ class PathOperationAdapted implements PathOperation {
 
     //NMS garbage below
     private final PathfinderAbstract c;
-    private final PathPoint[] a = new PathPoint[32];
+    private final PathPoint[] possibleNodes = new PathPoint[32];
     private final int b;
     private final int i;
     private final float f;
     private final Path path = new Path();
     private int j;
     private final int k;
-    private List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> set2;
+    private final List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> foundDestinations;
     private PathPoint pathpoint;
     private final List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> list = new ArrayList<>();
 
-    PathOperationAdapted(@NotNull Mob mob, @NotNull Set<PathDestination> destinations, int giveUpFactor, int tolerance, float nodeDistance) {
+    PathOperationAdapted(@NotNull Mob mob, @NotNull Set<PathDestination> destinations, int giveUpFactor, int tolerance, float maxNodeDistance) {
         this.mob = mob;
         this.destinations = destinations;
         this.state = PathState.INCOMPLETE;
@@ -40,72 +40,64 @@ class PathOperationAdapted implements PathOperation {
         for(PathDestination destination : destinations) {
             destination.targetNode();
             PathNode node = destination.targetNode();
-            PathPoint point = new PathPoint(node.getX(), node.getY(), node.getZ());
-
-
-            list.add(Map.entry(new net.minecraft.server.v1_16_R3.PathDestination(point), new BlockPosition(node.getX(), node.getY(), node.getZ())));
+            list.add(Map.entry(new net.minecraft.server.v1_16_R3.PathDestination(node.toNms()), new BlockPosition(node.x, node.y, node.z)));
         }
 
         c = ((CraftMob)mob).getHandle().getNavigation().getPathfinder().getPathfinder();
         b = giveUpFactor;
         i = tolerance;
-        f = nodeDistance;
+        f = maxNodeDistance;
 
         pathpoint.e = 0.0F;
-        pathpoint.f = this.a(pathpoint, list);
+        pathpoint.f = this.closestDestination(pathpoint, list);
         pathpoint.g = pathpoint.f;
 
         this.path.a();
         this.path.a(pathpoint);
         Set<PathPoint> set1 = ImmutableSet.of();
         j = 0;
-        set2 = Lists.newArrayListWithExpectedSize(list.size());
-        k = (int)(this.b);
+        foundDestinations = Lists.newArrayListWithExpectedSize(list.size());
+        k = this.b;
     }
 
     @Override
     public boolean step(@NotNull PathfinderContext context) {
         if(this.path.e()) {
-            ++j;
-            if (j >= k) {
+            if (++j >= k) {
                 state = PathState.FAILED;
                 return false;
             }
 
-            PathPoint pathpoint1 = this.path.c();
-            pathpoint1.i = true;
+            PathPoint bestNode = this.path.c();
+            bestNode.i = true;
 
-            int l;
-            for(l = 0; l < list.size(); ++l) {
-                Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition> entry = list.get(l);
-                net.minecraft.server.v1_16_R3.PathDestination pathdestination = entry.getKey();
-                if (pathpoint1.c(pathdestination) <= (float)i) {
-                    pathdestination.e();
-                    set2.add(entry);
+            int nodeCount;
+            for(nodeCount = 0; nodeCount < list.size(); ++nodeCount) {
+                Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition> entry = list.get(nodeCount);
+                net.minecraft.server.v1_16_R3.PathDestination destination = entry.getKey();
+                if (bestNode.c(destination) <= (float)i) {
+                    destination.e();
+                    foundDestinations.add(entry);
                 }
             }
 
-            if (!set2.isEmpty()) {
-                //called when the mob is within range of its target
-                return false;
-            }
-            else if (pathpoint1.a(pathpoint) < f) {
-                l = this.c.a(this.a, pathpoint1);
+            if (foundDestinations.isEmpty()) {
+                nodeCount = this.c.a(this.possibleNodes, bestNode);
 
-                for(int i1 = 0; i1 < l; ++i1) {
-                    PathPoint pathpoint2 = this.a[i1];
-                    float f2 = pathpoint1.a(pathpoint2);
-                    pathpoint2.j = pathpoint1.j + f2;
-                    float f3 = pathpoint1.e + f2 + pathpoint2.k;
-                    if (pathpoint2.j < f && (!pathpoint2.c() || f3 < pathpoint2.e)) {
-                        pathpoint2.h = pathpoint1;
-                        pathpoint2.e = f3;
-                        pathpoint2.f = this.a(pathpoint2, list) * 1.5F;
-                        if (pathpoint2.c()) {
-                            this.path.a(pathpoint2, pathpoint2.e + pathpoint2.f);
+                for(int i1 = 0; i1 < nodeCount; ++i1) {
+                    PathPoint next = this.possibleNodes[i1];
+                    float distanceToNextSquared = bestNode.a(next);
+                    next.j = bestNode.j + distanceToNextSquared;
+                    float f3 = bestNode.e + distanceToNextSquared + next.k;
+                    if (next.j < f && (!next.c() || f3 < next.e)) {
+                        next.h = bestNode;
+                        next.e = f3;
+                        next.f = this.closestDestination(next, list) * 1.5F;
+                        if (next.c()) {
+                            this.path.a(next, next.e + next.f);
                         } else {
-                            pathpoint2.g = pathpoint2.e + pathpoint2.f;
-                            this.path.a(pathpoint2);
+                            next.g = next.e + next.f;
+                            this.path.a(next);
                         }
                     }
                 }
@@ -113,20 +105,20 @@ class PathOperationAdapted implements PathOperation {
         }
 
         PathEntity best = null;
-        boolean useSet1 = set2.isEmpty();
+        boolean useSet1 = foundDestinations.isEmpty();
         Comparator<PathEntity> comparator = useSet1 ? Comparator.comparingInt(PathEntity::e) : Comparator.comparingDouble(PathEntity::n).thenComparingInt(PathEntity::e);
-        Iterator var21 = ((List)(useSet1 ? list : set2)).iterator();
+        Iterator resultIterator = ((List)(useSet1 ? list : foundDestinations)).iterator();
 
         while(true) {
             PathEntity pathEntity;
             do {
-                if (!var21.hasNext()) {
+                if (!resultIterator.hasNext()) {
                     pathEntity = best;
                     return true;
                 }
 
-                Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition> entry = (Map.Entry)var21.next();
-                pathEntity = this.a(entry.getKey().d(), entry.getValue(), !useSet1);
+                Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition> entry = (Map.Entry)resultIterator.next();
+                pathEntity = this.buildPathEntity(entry.getKey().d(), entry.getValue(), !useSet1);
             } while(best != null && comparator.compare(pathEntity, best) >= 0);
 
             best = pathEntity;
@@ -167,12 +159,13 @@ class PathOperationAdapted implements PathOperation {
         return destinations;
     }
 
-    private float a(PathPoint pathpoint, List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> list) {
+    private float closestDestination(PathPoint pathpoint, List<Map.Entry<net.minecraft.server.v1_16_R3.PathDestination, BlockPosition>> list) {
         float f = 3.4028235E38F;
         int i = 0;
 
         for(int listSize = list.size(); i < listSize; ++i) {
-            net.minecraft.server.v1_16_R3.PathDestination pathdestination = (net.minecraft.server.v1_16_R3.PathDestination)((Map.Entry)list.get(i)).getKey();
+            net.minecraft.server.v1_16_R3.PathDestination pathdestination =
+                    (net.minecraft.server.v1_16_R3.PathDestination)((Map.Entry)list.get(i)).getKey();
             float f1 = pathpoint.a(pathdestination);
             pathdestination.a(f1, pathpoint);
             f = Math.min(f1, f);
@@ -181,7 +174,7 @@ class PathOperationAdapted implements PathOperation {
         return f;
     }
 
-    private PathEntity a(PathPoint pathpoint, BlockPosition blockposition, boolean flag) {
+    private PathEntity buildPathEntity(PathPoint pathpoint, BlockPosition blockposition, boolean flag) {
         List<PathPoint> list = Lists.newArrayList();
         PathPoint pathpoint1 = pathpoint;
         list.add(0, pathpoint);
