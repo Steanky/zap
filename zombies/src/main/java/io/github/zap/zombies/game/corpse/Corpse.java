@@ -151,8 +151,8 @@ public class Corpse {
                     MapData map = zombiesArena.getMap();
                     PotionEffect speedEffect = new PotionEffect(
                             PotionEffectType.SPEED,
-                            map.getDoorSpeedTicks(),
-                            map.getDoorSpeedLevel(),
+                            map.getReviveSpeedTicks(),
+                            map.getReviveSpeedLevel(),
                             true,
                             false,
                             false
@@ -160,7 +160,7 @@ public class Corpse {
                     reviverPlayer.addPotionEffect(speedEffect);
 
                     SpeedPerk speedPerk = (SpeedPerk) reviver.getPerks().getPerk(PerkType.SPEED);
-                    zombiesArena.runTaskLater(map.getDoorSpeedTicks(), () -> {
+                    zombiesArena.runTaskLater(map.getReviveSpeedTicks(), () -> {
                         speedPerk.execute(EmptyEventArgs.getInstance());
                     });
                 }

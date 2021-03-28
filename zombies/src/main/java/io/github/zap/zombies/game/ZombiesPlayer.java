@@ -347,12 +347,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            perks.disableAll();
-            HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
-            HotbarObjectGroup hotbarObjectGroup =
-                    hotbarManager.getHotbarObjectGroup(defaultProfile, EquipmentType.PERK.name());
-            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-                hotbarObjectGroup.remove(slot, true);
+            if (getArena().getMap().isPerksLostOnQuit()) {
+                perks.disableAll();
+                HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+                HotbarObjectGroup hotbarObjectGroup =
+                        hotbarManager.getHotbarObjectGroup(defaultProfile, EquipmentType.PERK.name());
+                for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                    hotbarObjectGroup.remove(slot, true);
+                }
             }
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);

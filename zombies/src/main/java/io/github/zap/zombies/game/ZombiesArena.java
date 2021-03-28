@@ -631,7 +631,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     for (double y = location.getY(); y >= 0D; y--){
                         location.setY(y);
                         Block block = player.getWorld().getBlockAt(location);
-                        if (!block.getType().isAir()) {
+                        if (!block.isPassable()) {
                             player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
                             break;
                         }
