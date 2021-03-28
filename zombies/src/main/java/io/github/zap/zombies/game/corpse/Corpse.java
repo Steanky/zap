@@ -96,8 +96,6 @@ public class Corpse {
      * Terminates the corpse's execution.
      */
     public void terminate() {
-        active = false;
-
         if (hologram.getHologramLines().size() > 0) {
             hologram.destroy();
         }
@@ -108,6 +106,8 @@ public class Corpse {
         if (deathTaskId != -1) {
             Bukkit.getScheduler().cancelTask(deathTaskId);
         }
+
+        active = false;
     }
 
     /**
@@ -138,8 +138,6 @@ public class Corpse {
     public void continueReviving() {
         if (active) {
             if (reviveTime <= 0) {
-                active = false;
-
                 zombiesPlayer.revive();
 
                 Player thisPlayer = zombiesPlayer.getPlayer();
@@ -225,8 +223,6 @@ public class Corpse {
 
     private void continueDying() {
         if (deathTime <= 0) {
-            active = false;
-
             zombiesPlayer.kill();
             terminate();
 
@@ -234,6 +230,8 @@ public class Corpse {
             if (bukkitPlayer != null) {
                 bukkitPlayer.sendActionBar(Component.text());
             }
+
+            active = false;
         } else {
             String timeRemaining = TimeUtil.convertTicksToSecondsString(deathTime);
             String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
@@ -365,25 +363,23 @@ public class Corpse {
      * Destroys the corpse and removes its trace from the arena it is in
      */
     public void destroy() {
-        if (active) {
-            PacketContainer removeCorpseFromTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
-            removeCorpseFromTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
-            removeCorpseFromTeamPacket.getIntegers().write(0, 4);
-            removeCorpseFromTeamPacket.getSpecificModifier(Collection.class)
-                    .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
+        PacketContainer removeCorpseFromTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+        removeCorpseFromTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
+        removeCorpseFromTeamPacket.getIntegers().write(0, 4);
+        removeCorpseFromTeamPacket.getSpecificModifier(Collection.class)
+                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
 
-            sendPacket(removeCorpseFromTeamPacket);
+        sendPacket(removeCorpseFromTeamPacket);
 
-            PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-            killPacketContainer.getIntegerArrays().write(0, new int[]{id});
+        PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
+        killPacketContainer.getIntegerArrays().write(0, new int[]{id});
 
-            sendPacket(killPacketContainer);
+        sendPacket(killPacketContainer);
 
-            ZombiesArena zombiesArena = getZombiesPlayer().getArena();
-            terminate();
-            zombiesArena.getCorpses().remove(this);
-            zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
-        }
+        ZombiesArena zombiesArena = getZombiesPlayer().getArena();
+        terminate();
+        zombiesArena.getCorpses().remove(this);
+        zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
     }
 
     @Override
