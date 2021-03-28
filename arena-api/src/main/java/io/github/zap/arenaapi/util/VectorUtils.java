@@ -16,4 +16,12 @@ public final class VectorUtils {
         return Math.abs(first.getX() - second.getX()) + Math.abs(first.getY() - second.getY()) +
                 Math.abs(first.getZ() - second.getZ());
     }
+
+    public static int distanceSquared(int x1, int y1, int z1, int x2, int y2, int z2) {
+        int xD = x1 - x2;
+        int yD = y1 - y2;
+        int zD = z1 - z2;
+
+        return  (xD * xD) + (yD * yD) + (zD * zD);
+    }
 }

@@ -6,11 +6,13 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-class EntityPathDestination implements PathDestination {
-    private final PathNode node;
+class EntityPathDestination extends PathDestinationAbstract {
+    EntityPathDestination(@NotNull Entity target, boolean findBlock) {
+        super(findBlock ? nodeBeneath(target) : nodeAt(target));
+    }
 
-    EntityPathDestination(@NotNull Entity target) {
-        Location targetLocation = target.getLocation();
+    private static PathNode nodeBeneath(Entity entity) {
+        Location targetLocation = entity.getLocation();
 
         int x = targetLocation.getBlockX();
         int y = targetLocation.getBlockY();
@@ -23,11 +25,11 @@ class EntityPathDestination implements PathDestination {
             block = world.getBlockAt(x, --y, z);
         }
 
-        node = new PathNode(x, y, z);
+        return new PathNode(x, y, z);
     }
 
-    @Override
-    public @NotNull PathNode targetNode() {
-        return node;
+    private static PathNode nodeAt(Entity entity) {
+        Location targetLocation = entity.getLocation();
+        return new PathNode(targetLocation.getBlockX(), targetLocation.getBlockY(), targetLocation.getBlockZ());
     }
 }

@@ -11,8 +11,8 @@ import java.util.Objects;
 public interface PathDestination {
     @NotNull PathNode targetNode();
 
-    static @NotNull PathDestination fromEntity(@NotNull Entity entity) {
-        return new EntityPathDestination(Objects.requireNonNull(entity, "entity cannot be null!"));
+    static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
+        return new EntityPathDestination(Objects.requireNonNull(entity, "entity cannot be null!"), findBlock);
     }
 
     static @NotNull PathDestination fromCoordinates(int x, int y, int z) {
@@ -24,11 +24,11 @@ public interface PathDestination {
         return new BlockPathDestination(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
-    static @NotNull List<PathDestination> fromEntities(Entity... entities) {
+    static @NotNull List<PathDestination> fromEntities(boolean findBlocks, Entity... entities) {
         List<PathDestination> destinations = new ArrayList<>();
 
         for(Entity entity : entities) {
-            destinations.add(new EntityPathDestination(entity));
+            destinations.add(new EntityPathDestination(entity, findBlocks));
         }
 
         return destinations;

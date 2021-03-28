@@ -57,6 +57,7 @@ public class PathfinderEngine implements Listener {
 
     private final List<EngineContext> contexts = new ArrayList<>();
     private final Semaphore contextsSemaphore = new Semaphore(-1);
+    private final Queue<EngineContext> removalQueue = new ArrayDeque<>();
 
     public PathfinderEngine() {
         Thread pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
@@ -83,6 +84,7 @@ public class PathfinderEngine implements Listener {
                     EngineContext context = contexts.get(i);
 
                     AtomicBoolean completed = new AtomicBoolean(false);
+                    //noinspection ResultOfMethodCallIgnored
                     context.contextSemaphore.tryAcquire(1);
 
                     Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
@@ -103,16 +105,16 @@ public class PathfinderEngine implements Listener {
                     for(int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
                         Entry entry = context.operations.get(j);
 
-                        PathState entryState = entry.operation.getState();
-                        if(entryState == PathState.INCOMPLETE) {
+                        PathOperation.State entryState = entry.operation.getState();
+                        if(entryState == PathOperation.State.INCOMPLETE) {
                             for(int k = 0; k < entry.operation.desiredIterations(); k++) {
                                 if(entry.operation.step(context)) {
                                     PathResult result = entry.operation.getResult();
 
-                                    if(entry.operation.getState() == PathState.SUCCEEDED) {
+                                    if(entry.operation.getState() == PathOperation.State.SUCCEEDED) {
                                         context.successfulPaths.add(result);
                                     }
-                                    else if(entry.operation.getState() == PathState.FAILED) {
+                                    else if(entry.operation.getState() == PathOperation.State.FAILED) {
                                         context.failedPaths.add(result);
                                     }
                                     else {
@@ -134,12 +136,18 @@ public class PathfinderEngine implements Listener {
                         else if(entry.operation.shouldRemove()) { //remove successful or failed paths if they ask
                             PathResult entryResult = entry.operation.getResult();
 
-                            if(entryState == PathState.SUCCEEDED) {
+                            if(entryState == PathOperation.State.SUCCEEDED) {
                                 context.successfulPaths.remove(entryResult);
                             }
-                            else if(entryState == PathState.FAILED) {
+                            else if(entryState == PathOperation.State.FAILED) {
                                 context.failedPaths.remove(entryResult);
                             }
+                        }
+                    }
+
+                    synchronized (removalQueue) {
+                        while(!removalQueue.isEmpty()) {
+                            contexts.remove(removalQueue.remove());
                         }
                     }
                 }
@@ -213,7 +221,9 @@ public class PathfinderEngine implements Listener {
                 EngineContext context = contexts.get(i);
 
                 if(context.provider.getWorld().equals(event.getWorld())) {
-                    contexts.remove(i);
+                    synchronized (removalQueue) {
+                        removalQueue.add(context);
+                    }
                 }
             }
         }

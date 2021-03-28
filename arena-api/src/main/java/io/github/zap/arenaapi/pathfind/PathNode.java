@@ -1,18 +1,18 @@
 package io.github.zap.arenaapi.pathfind;
 
-import net.minecraft.server.v1_16_R3.PathPoint;
+import io.github.zap.arenaapi.util.VectorUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class PathNode {
+class PathNode implements Comparable<PathNode> {
     public final int x;
     public final int y;
     public final int z;
+    public final int hash;
 
-    private final int hash;
-
+    public int cost;
     public PathNode next;
-    public float distanceToNext;
 
     public PathNode(int x, int y, int z) {
         this.x = x;
@@ -20,10 +20,6 @@ public class PathNode {
         this.z = z;
 
         hash = Objects.hash(x, y, z);
-    }
-
-    public PathPoint toNms() {
-        return new PathPoint(x, y, z);
     }
 
     @Override
@@ -40,5 +36,14 @@ public class PathNode {
             PathNode other = (PathNode) obj;
             return x == other.x && y == other.y && z == other.z;
         }
+    }
+
+    @Override
+    public int compareTo(@NotNull PathNode o) {
+        return Float.compare(o.cost, cost);
+    }
+
+    public int distanceTo(@NotNull PathNode other) {
+        return VectorUtils.distanceSquared(x, y, z, other.x, other.y, other.z);
     }
 }
