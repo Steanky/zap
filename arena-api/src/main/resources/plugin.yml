@@ -1,5 +1,5 @@
 name: ArenaApi
-version: 1.0
+version: ${version}
 main: io.github.zap.arenaapi.ArenaApi
 api-version: 1.16
 depend: [ ProtocolLib ]
