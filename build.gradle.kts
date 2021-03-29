@@ -14,7 +14,7 @@ subprojects {
 
 val outputDir = System.getProperty("outputDir") ?: "./run/server-1"
 
-tasks.getByName<Delete>("clean") {
+tasks.clean {
     delete(fileTree("${outputDir}/plugins").matching {
         include("**/*.jar")
     }, fileTree(outputDir).matching {
