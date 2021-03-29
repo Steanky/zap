@@ -3,9 +3,7 @@ package io.github.zap.zombies.game.shop;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.events.*;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import io.github.zap.arenaapi.hologram.Hologram;
@@ -25,14 +23,17 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Shop for purchasing pieces of armor at a time
  */
 public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
-    private final static Set<Integer> ID_SET = new HashSet<>();
+    private final static Map<Integer, ArmorShop> ARMOR_STAND_ID_ARMOR_SHOP_MAP = new HashMap<>();
 
     private static final Map<Integer, EnumWrappers.ItemSlot> ITEM_SLOT_MAP = new HashMap<>() {
         {
@@ -45,21 +46,33 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
     private final ProtocolManager protocolManager;
 
-    public ArmorShop(ZombiesArena zombiesArena, ArmorShopData shopData) {
-        super(zombiesArena, shopData);
-        this.protocolManager = ProtocolLibrary.getProtocolManager();
-
-        protocolManager.addPacketListener(new PacketAdapter(Zombies.getInstance(), PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
+    static {
+        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(Zombies.getInstance(),
+                PacketType.Play.Server.SPAWN_ENTITY_LIVING, PacketType.Play.Server.ENTITY_EQUIPMENT) {
             @Override
             public void onPacketSending(PacketEvent event) {
+                PacketContainer packetContainer = event.getPacket();
                 if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
-                    PacketContainer packetContainer = event.getPacket();
-                    if (ID_SET.contains(packetContainer.getIntegers().read(0))) {
-                        displayToPlayer(event.getPlayer());
+                    ArmorShop armorShop = ARMOR_STAND_ID_ARMOR_SHOP_MAP
+                            .get(packetContainer.getIntegers().read(0));
+
+                    if (armorShop != null) {
+                        NetworkMarker networkMarker = event.getNetworkMarker();
+                        networkMarker.addPostListener(new PacketPostAdapter(Zombies.getInstance()) {
+                            @Override
+                            public void onPostEvent(PacketEvent packetEvent) {
+                                armorShop.displayToPlayer(event.getPlayer());
+                            }
+                        });
                     }
                 }
             }
         });
+    }
+
+    public ArmorShop(ZombiesArena zombiesArena, ArmorShopData shopData) {
+        super(zombiesArena, shopData);
+        this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         ArmorStand armorStand = getArmorStand();
         Location armorStandLocation = getArmorStand().getLocation().clone();
@@ -68,7 +81,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         armorStand.teleport(armorStandLocation);
         armorStand.setSmall(true);
 
-        ID_SET.add(armorStand.getEntityId());
+        ARMOR_STAND_ID_ARMOR_SHOP_MAP.put(armorStand.getEntityId(), this);
     }
 
     @Override
