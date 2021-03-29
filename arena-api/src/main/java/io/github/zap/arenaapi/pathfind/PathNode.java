@@ -1,19 +1,18 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.util.VectorUtils;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-class PathNode implements Comparable<PathNode> {
+public class PathNode implements Comparable<PathNode> {
     public final int x;
     public final int y;
     public final int z;
     public final int hash;
 
-    public Cost cost;
+    public Cost cost = new Cost();
     public PathNode next;
 
     PathNode(int x, int y, int z) {
@@ -35,13 +34,12 @@ class PathNode implements Comparable<PathNode> {
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof PathNode)) {
-            return false;
-        }
-        else {
+        if(obj instanceof PathNode) {
             PathNode other = (PathNode) obj;
             return x == other.x && y == other.y && z == other.z;
         }
+
+        return false;
     }
 
     @Override
@@ -51,7 +49,22 @@ class PathNode implements Comparable<PathNode> {
 
     @Override
     public int compareTo(@NotNull PathNode other) {
-        return cost.compareTo(other.cost);
+        int costComparison = cost.compareTo(other.cost);
+        if(costComparison == 0) {
+            int xComparison = Integer.compare(x, other.x);
+            if(xComparison == 0) {
+                int yComparison = Integer.compare(x, other.x);
+                if(yComparison == 0) {
+                    return Integer.compare(x, other.x);
+                }
+
+                return yComparison;
+            }
+
+            return xComparison;
+        }
+
+        return costComparison;
     }
 
     public int distanceSquaredTo(@NotNull PathNode other) {

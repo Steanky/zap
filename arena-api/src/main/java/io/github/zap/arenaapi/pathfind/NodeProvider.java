@@ -32,5 +32,5 @@ public interface NodeProvider {
         return nextNodes;
     };
 
-    PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathOperation operation, @NotNull PathNode nodeAt);
+    @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathOperation operation, @NotNull PathNode nodeAt);
 }

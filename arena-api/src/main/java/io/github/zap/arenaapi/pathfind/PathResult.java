@@ -6,10 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashSet;
 import java.util.NavigableSet;
 
-public interface PathResult {
+public interface PathResult extends Iterable<PathNode> {
     @NotNull PathNode source();
 
     @NotNull PathDestination destination();
-
-    @NotNull PathEntity toPathEntity();
 }

@@ -13,6 +13,12 @@ class Cost implements Comparable<Cost> {
         this.costSum = nodeCost + costToGoal;
     }
 
+    Cost() {
+        this.nodeCost = 0;
+        this.costToGoal = 0;
+        this.costSum = 0;
+    }
+
     @Override
     public int compareTo(@NotNull Cost o) {
         return Integer.compare(o.costSum, costSum);

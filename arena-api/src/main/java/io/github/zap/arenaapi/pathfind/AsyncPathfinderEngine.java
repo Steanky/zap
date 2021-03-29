@@ -12,20 +12,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     public static class Entry {
         public final PathOperation operation;
-        public final CompletableFuture<PathResult> future;
+        public final Consumer<PathResult> future;
 
-        private Entry(@NotNull PathOperation operation, @NotNull CompletableFuture<PathResult> future) {
+        private Entry(@NotNull PathOperation operation, @NotNull Consumer<PathResult> future) {
             this.operation = Objects.requireNonNull(operation, "operation cannot be null!");
             this.future = Objects.requireNonNull(future,"future cannot be null!");
         }
     }
 
     private static class EngineContext implements PathfinderContext {
-        private final Semaphore contextSemaphore = new Semaphore(-1);
+        private final Semaphore contextSemaphore = new Semaphore(0);
 
         private final List<Entry> operations = new ArrayList<>();
         private final List<PathResult> successfulPaths = new ArrayList<>();
@@ -59,7 +60,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     private final Thread pathfinderThread;
     private final List<EngineContext> contexts = new ArrayList<>();
-    private final Semaphore contextsSemaphore = new Semaphore(-1);
+    private final Semaphore contextsSemaphore = new Semaphore(0);
     private final Queue<EngineContext> removalQueue = new ArrayDeque<>();
 
     private boolean disposed = false;
@@ -78,9 +79,10 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      */
     private void pathfind() {
         while(shouldRun) {
-            try {
+            //try {
                 try {
                     contextsSemaphore.acquire();
+                    ArenaApi.info("contextsSemaphore.acquire() returned");
 
                     int contextStartingIndex;
                     synchronized (contexts) {
@@ -128,11 +130,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                             continue;
                                         }
 
-                                        if(!entry.future.complete(result)) {
-                                            ArenaApi.severe("Failed to properly complete the future for PathResult " +
-                                                    result.toString());
-                                        }
-
+                                        Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> entry.future.accept(result));
+                                        ArenaApi.info("Completed task.");
                                         break;
                                     }
 
@@ -168,17 +167,17 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
                 }
                 catch(InterruptedException ignored) { }
-            }
-            catch (Exception exception) {
-                ArenaApi.warning("Exception occurred in pathfinding thread: " + exception.getMessage());
-                ArenaApi.warning("Clearing state and continuing.");
+            //}
+            //catch (Exception exception) {
+            //    ArenaApi.warning("Exception occurred in pathfinding thread: " + exception.toString());
+            //    ArenaApi.warning("Clearing state and continuing.");
 
-                synchronized (contexts) {
-                    contexts.clear();
-                    //noinspection ResultOfMethodCallIgnored
-                    contextsSemaphore.tryAcquire(1);
-                }
-            }
+            //    synchronized (contexts) {
+            //        contexts.clear();
+            //        //noinspection ResultOfMethodCallIgnored
+            //        contextsSemaphore.tryAcquire(1);
+            //    }
+            //}
         }
     }
 
@@ -188,15 +187,13 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      * @param operation The operation to enqueue
      */
     @Override
-    public @NotNull Future<PathResult> queueOperation(@NotNull PathOperation operation, @NotNull World world) {
+    public void queueOperation(@NotNull PathOperation operation, @NotNull World world, @NotNull Consumer<PathResult> resultConsumer) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
 
         Objects.requireNonNull(operation, "operation cannot be null!");
         Objects.requireNonNull(world, "world cannot be null!");
-
-        CompletableFuture<PathResult> future = new CompletableFuture<>();
 
         EngineContext targetContext = null;
         synchronized (contexts) {
@@ -210,7 +207,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
         if(targetContext == null) {
             targetContext = new EngineContext(new WorldSnapshotProvider(world));
-            targetContext.operations.add(new Entry(operation, future));
+            targetContext.operations.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {
                 contexts.add(targetContext);
@@ -220,11 +217,9 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         else {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (targetContext) {
-                targetContext.operations.add(new Entry(operation, future));
+                targetContext.operations.add(new Entry(operation, resultConsumer));
             }
         }
-
-        return future;
     }
 
     @Override

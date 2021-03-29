@@ -8,10 +8,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
@@ -20,19 +22,19 @@ import net.kyori.adventure.sound.Sound;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.GameMode;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -43,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -61,6 +65,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     @Getter
     private ObjectMapper mapper;
+
+    private PathfinderEngine engine;
 
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
@@ -85,6 +91,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
+
+        engine = PathfinderEngine.async();
     }
 
     @Override
@@ -265,6 +273,24 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         if(arena != null && !event.getTo().getWorld().equals(arena.getWorld()) && event.getCause() == PlayerTeleportEvent.TeleportCause.COMMAND) {
             arena.handleLeave(Lists.newArrayList(player));
+        }
+    }
+
+    @EventHandler
+    private void onPlayerRightClick(PlayerInteractEvent event) {
+        if(event.getClickedBlock() != null && event.getHand() == EquipmentSlot.HAND) {
+            Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 200D);
+            if(stands.size() > 0) {
+                PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(), 1.0D, 1.0D);
+                engine.queueOperation(PathOperation.forAgent(blockAgent,
+                        PathDestination.fromEntities(false, stands), CostCalculator.DISTANCE_ONLY,
+                        TerminationCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST),
+                        event.getPlayer().getWorld(), (pathResult) -> {
+                            for(PathNode node : pathResult) {
+                                event.getPlayer().getWorld().getBlockAt(node.x, node.y, node.z).setType(Material.DIAMOND_BLOCK);
+                            }
+                        });
+            }
         }
     }
 

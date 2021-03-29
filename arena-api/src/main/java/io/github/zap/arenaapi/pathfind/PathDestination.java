@@ -5,9 +5,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public interface PathDestination {
     @NotNull PathNode node();
@@ -25,11 +23,11 @@ public interface PathDestination {
         return new BlockPathDestination(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
-    static @NotNull List<PathDestination> fromEntities(boolean findBlocks, @NotNull Entity... entities) {
+    static @NotNull Set<PathDestination> fromEntities(boolean findBlocks, @NotNull Collection<? extends Entity> entities) {
         Objects.requireNonNull(entities, "entities cannot be null!");
-        Validate.isTrue(entities.length > 0, "entities array cannot be empty");
+        Validate.isTrue(entities.size() > 0, "entities collection cannot be empty");
 
-        List<PathDestination> destinations = new ArrayList<>();
+        Set<PathDestination> destinations = new HashSet<>();
 
         for(Entity entity : entities) {
             destinations.add(new EntityPathDestination(entity, findBlocks));

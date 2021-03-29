@@ -1,13 +1,12 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
     private final PathAgent agent;
-    private final Set<PathDestination> destinations;
+    private final Set<? extends PathDestination> destinations;
     private State state;
     private final CostCalculator calculator;
     private final TerminationCondition condition;
@@ -20,7 +19,7 @@ class PathOperationImpl implements PathOperation {
     private PathNode firstNode;
     private PathResult result;
 
-    PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
+    PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                       @NotNull CostCalculator calculator, @NotNull TerminationCondition condition,
                       @NotNull NodeProvider provider, @NotNull DestinationSelector selector) {
         this.agent = agent;
@@ -74,7 +73,7 @@ class PathOperationImpl implements PathOperation {
                     Cost sampleCost = calculator.computeCost(context, currentNode, sample, closestDestination);
 
                     if(openSet.contains(sample)) {
-                        if(sampleCost.nodeCost > sample.cost.nodeCost) {
+                        if(sample.cost.nodeCost > sampleCost.nodeCost) {
                             continue;
                         }
                     }
@@ -122,7 +121,7 @@ class PathOperationImpl implements PathOperation {
 
 
     @Override
-    public @NotNull Set<PathDestination> getDestinations() {
+    public @NotNull Set<? extends PathDestination> getDestinations() {
         return destinations;
     }
 

@@ -70,7 +70,10 @@ class WorldSnapshotProvider implements SnapshotProvider {
 
         ChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
         if(snapshot != null) {
-            return snapshot.getBlockData(worldX % 16, worldY, worldZ % 16);
+            int xM = worldX % 16;
+            int zM = worldZ % 16;
+
+            return snapshot.getBlockData(xM < 0 ? 16 + xM : xM, worldY, zM < 0 ? 16 + zM : zM);
         }
 
         return null;
