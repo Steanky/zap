@@ -239,6 +239,11 @@ public class MapData {
     int rollsPerChest = 5;
 
     /**
+     * Whether the lucky chest can have its initial location in the spawn room
+     */
+    boolean chestCanStartInSpawnRoom = false;
+
+    /**
      * The level of speed that you get when you open a door
      */
     int doorSpeedLevel = 1;

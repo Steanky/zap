@@ -20,6 +20,7 @@ public abstract class Perk<T> implements Disposable {
     @Getter
     private final int maxLevel;
 
+    @Getter
     private final boolean resetLevelOnDisable;
 
     @Getter

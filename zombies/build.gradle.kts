@@ -10,30 +10,38 @@ java {
 }
 
 repositories {
-    mavenCentral()
-    mavenLocal()
     maven {
         url = uri("https://jitpack.io")
     }
     maven {
-        url = uri("https://maven.springframework.org/release")
+        url = uri("https://repo.rapture.pw/repository/maven-snapshots")
+    }
+    maven {
+        url = uri("https://repo.glaremasters.me/repository/concuncan/")
+    }
+    maven {
+        url = uri("https://mvn.lumine.io/repository/maven-public/")
     }
 }
 
+val shade: Configuration by configurations.creating {
+    isTransitive = false
+}
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
 val classModifier: Configuration by configurations.creating {
     isTransitive = false
 }
-configurations.compileOnly.get().extendsFrom(bukkitPlugin, classModifier)
+configurations.implementation.get().extendsFrom(shade, bukkitPlugin, classModifier)
 
 val outputDir = System.getProperty("outputDir") ?: "../run/server-1"
 val pluginDir = "$outputDir/plugins"
 
 dependencies {
-    implementation("com.github.Steanky:RegularCommands:master-SNAPSHOT")
-    compileOnly(project(":arena-api"))
+    implementation(project(":arena-api"))
+
+    shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
     bukkitPlugin("io.lumine.xikage:MythicMobs:4.11.2")
     bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.5.4-SNAPSHOT")
@@ -44,30 +52,28 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.4")
 }
 
-project.configurations.implementation.get().isCanBeResolved = true
-tasks.withType<Jar> {
-    destinationDirectory.set(File(pluginDir))
-    from (configurations.implementation.get().map {
-        if (it.isDirectory) it else zipTree(it)
-    })
-}
-
 tasks.register<Copy>("copyPlugins") {
     from(bukkitPlugin).into(pluginDir)
-    bukkitPlugin.allDependencies.forEach {
-        rename("-${it.version}", "")
-    }
 }
 
 tasks.register<Copy>("copyClassModifier") {
     from(classModifier).into(outputDir)
-    classModifier.allDependencies.forEach {
-        rename("-${it.version}", "")
-    }
 }
 
 tasks.compileJava {
     dependsOn("copyPlugins", "copyClassModifier")
 }
 
+tasks.processResources {
+    expand("version" to version)
+}
+
+tasks.jar {
+    destinationDirectory.set(File(pluginDir))
+    from (shade.map {
+        if (it.isDirectory) it else zipTree(it)
+    })
+}
+
 description = "zombies"
+version = 1.0

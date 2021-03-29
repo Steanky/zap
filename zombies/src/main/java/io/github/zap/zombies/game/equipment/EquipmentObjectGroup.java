@@ -60,23 +60,6 @@ public abstract class EquipmentObjectGroup extends HotbarObjectGroup {
      */
     public abstract boolean isObjectRecommendedEquipment(HotbarObject hotbarObject);
 
-    @Override
-    public void setHotbarObject(int slot, HotbarObject hotbarObject) {
-        if (isObjectRecommendedEquipment(hotbarObject)) {
-            super.setHotbarObject(slot, hotbarObject);
-        } else {
-            throw new IllegalArgumentException(String.format("Attempted to place hotbar object in slot %d of wrong type!", slot));
-        }
-    }
-
-    @Override
-    public void remove(int slot, boolean replace) {
-        super.remove(slot, replace);
-        if (replace) {
-            super.setHotbarObject(slot, createDefaultHotbarObject(getPlayer(), slot));
-        }
-    }
-
     /**
      * Gets the string representation of the type of the equipment object group
      * @return The type of the equipment

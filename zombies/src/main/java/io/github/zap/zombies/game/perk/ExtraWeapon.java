@@ -52,8 +52,7 @@ public class ExtraWeapon extends MarkerPerk {
         }
 
         while (ewSlots.size() > level) {
-            HotbarObjectGroup gunGroup = defaultProfile.getHotbarObjectGroup(EquipmentType.GUN.name());
-            gunGroup.remove(ewSlots.pop(), false);
+            defaultProfile.removeHotbarObject(ewSlots.pop(), false);
         }
     }
 
@@ -63,6 +62,8 @@ public class ExtraWeapon extends MarkerPerk {
             throw new ObjectDisposedException();
         }
 
-        setEffect(0);
+        if (isResetLevelOnDisable()) {
+            setEffect(0);
+        }
     }
 }

@@ -1,5 +1,5 @@
 name: Zombies
-version: ${project.version}
+version: ${version}
 main: io.github.zap.zombies.Zombies
 api-version: 1.16
 depend: [ ArenaApi, SlimeWorldManager ]

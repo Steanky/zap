@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -120,7 +121,8 @@ public class BasicBeam {
         while (iterator.hasNext()) {
             targetBlock = iterator.next();
 
-            if (!targetBlock.isPassable() && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
+            if (!targetBlock.isPassable() && targetBlock.getType() != Material.BARRIER
+                    && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
                 BoundingBox boundingBox = targetBlock.getBoundingBox();
                 if (boundingBox.getWidthX() != 1.0D
                         || boundingBox.getHeight() != 1.0D || boundingBox.getWidthZ() != 1.0D) {

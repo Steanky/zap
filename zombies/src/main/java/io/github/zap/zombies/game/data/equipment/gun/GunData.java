@@ -17,16 +17,17 @@ import java.util.List;
  * Data for a gun
  * @param <L> The gun level type
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 public class GunData<L extends GunLevel> extends UltimateableData<L> {
 
-    private Sound sound;
+    private Sound sound = null;
 
-    private final transient String unchangedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
+    private final transient String unchangedFormat = ChatColor.DARK_GRAY + " \u25fc " + ChatColor.GRAY + "%s: "
             + ChatColor.GREEN + "%s";
 
-    private final transient String changedFormat = ChatColor.DARK_GRAY + " ◼ " + ChatColor.GRAY + "%s: "
-            + ChatColor.DARK_GRAY + "%s ➔ " + ChatColor.GREEN + "%s";
+    private final transient String changedFormat = ChatColor.DARK_GRAY + " \u25fc " + ChatColor.GRAY + "%s: "
+            + ChatColor.DARK_GRAY + "%s \u2794 " + ChatColor.GREEN + "%s";
 
     @Override
     public List<String> getLore(Player player, int level) {

@@ -28,6 +28,8 @@ public class MeleeLevel {
 
     private boolean usesShields = true;
 
+    private boolean shouldSweep = false;
+
     private int goldPerHit = 10;
 
     private int goldPerCritical = 15;

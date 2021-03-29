@@ -347,12 +347,14 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            perks.disableAll();
-            HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
-            HotbarObjectGroup hotbarObjectGroup =
-                    hotbarManager.getHotbarObjectGroup(defaultProfile, EquipmentType.PERK.name());
-            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-                hotbarObjectGroup.remove(slot, true);
+            if (getArena().getMap().isPerksLostOnQuit()) {
+                perks.disableAll();
+                HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+                HotbarObjectGroup hotbarObjectGroup =
+                        hotbarManager.getHotbarObjectGroup(defaultProfile, EquipmentType.PERK.name());
+                for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                    hotbarObjectGroup.remove(slot, true);
+                }
             }
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
@@ -661,8 +663,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128, false,
                     false, false));
             player.setInvulnerable(true);
-            player.setInvisible(true);
             player.setGameMode(GameMode.ADVENTURE);
+            getArena().getHiddenPlayers().add(player);
             endTasks();
         }
     }
@@ -680,6 +682,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             player.setInvulnerable(false);
             player.setGameMode(GameMode.ADVENTURE);
             startTasks();
+            getArena().getHiddenPlayers().remove(player);
         }
     }
 
@@ -689,9 +692,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(player != null) {
             ArenaApi.getInstance().applyDefaultCondition(player);
             player.setAllowFlight(true);
-            player.setInvisible(true);
             player.setCollidable(false);
             player.setGameMode(GameMode.ADVENTURE);
+            getArena().getHiddenPlayers().add(player);
         }
     }
 }

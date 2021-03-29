@@ -420,6 +420,41 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final GameScoreboard gameScoreboard;
 
+    @Getter
+    private final Set<Player> hiddenPlayers = new HashSet<>() {
+
+        @Override
+        public boolean add(Player player) {
+            if (super.add(player)) {
+                for (Player otherPlayer : world.getPlayers()) {
+                    otherPlayer.hidePlayer(Zombies.getInstance(), player);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (o instanceof Player) {
+                Player player = (Player) o;
+
+                if (super.remove(o)) {
+                    for (Player otherPlayer : world.getPlayers()) {
+                        otherPlayer.showPlayer(Zombies.getInstance(), player);
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+    };
+
     /**
      * Indicate when the game start using System.currentTimeMillis()
      * return -1 if the game hasn't start
@@ -557,6 +592,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
             }
         }
+
+        if (state == ZombiesArenaState.STARTED || state == ZombiesArenaState.ENDED) {
+            for (Player player : args.getPlayers()) {
+                for (Player hiddenPlayer : hiddenPlayers) {
+                    player.hidePlayer(Zombies.getInstance(), hiddenPlayer);
+                }
+            }
+        }
     }
 
     private void onPlayerLeave(ManagedPlayerListArgs args) {
@@ -631,7 +674,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     for (double y = location.getY(); y >= 0D; y--){
                         location.setY(y);
                         Block block = player.getWorld().getBlockAt(location);
-                        if (!block.getType().isAir()) {
+                        if (!block.isPassable()) {
                             player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
                             break;
                         }
@@ -675,10 +718,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                 if (hotbarObject instanceof MeleeWeapon) {
                     MeleeWeapon<?, ?> meleeWeapon = (MeleeWeapon<?, ?>) hotbarObject;
-                    event.setCancelled(true);
 
-                    if (meleeWeapon.isUsable()) {
+                    if (meleeWeapon.isUsable() &&
+                            (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK
+                                    || meleeWeapon.getCurrentLevel().isShouldSweep())) {
+                        event.setDamage(0D);
                         meleeWeapon.attack(mob);
+                    } else {
+                        event.setCancelled(true);
                     }
                 }
             }
@@ -1145,6 +1192,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                 {
                     List<Shop<?>> chests = new ArrayList<>(shopMap.get(ShopType.LUCKY_CHEST));
+
+                    if (map.isChestCanStartInSpawnRoom()) {
+                        RoomData spawnRoom = map.roomAt(map.getSpawn());
+                        chests.removeIf(chest -> {
+                            LuckyChest luckyChest = (LuckyChest) chest;
+                            return spawnRoom.getBounds().contains(luckyChest.getShopData().getChestLocation());
+                        });
+                    }
+
                     LuckyChest luckyChest
                             = (LuckyChest) chests.get(random.nextInt(chests.size()));
                     luckyChest.setActive(true);
