@@ -17,4 +17,9 @@ class Cost implements Comparable<Cost> {
     public int compareTo(@NotNull Cost o) {
         return Integer.compare(o.costSum, costSum);
     }
+
+    @Override
+    public String toString() {
+        return "Cost{nodeCost=" + nodeCost + ", costToGoal=" + costToGoal + ", costSum=" + costSum + "}";
+    }
 }

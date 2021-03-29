@@ -14,7 +14,7 @@ class PathOperationImpl implements PathOperation {
     private final TerminationCondition condition;
     private final NodeProvider provider;
 
-    private final NavigableSet<PathNode> sortedNodes = new TreeSet<>();
+    private final NavigableSet<PathNode> openSet = new TreeSet<>();
     private final Set<PathNode> visited = new HashSet<>();
 
     private PathNode currentNode;
@@ -36,16 +36,16 @@ class PathOperationImpl implements PathOperation {
             if(currentNode != null) {
                 for(PathDestination destination : destinations) {
                     if(condition.hasCompleted(context, currentNode, destination)) {
-                        onSuccess();
+                        success();
                         return true;
                     }
                 }
 
-                if(!sortedNodes.isEmpty()) {
-                    currentNode = sortedNodes.pollFirst();
+                if(!openSet.isEmpty()) {
+                    currentNode = openSet.pollFirst();
                 }
                 else {
-                    onFailure();
+                    failure();
                     return true;
                 }
             }
@@ -56,24 +56,29 @@ class PathOperationImpl implements PathOperation {
             visited.add(currentNode);
             PathNode[] possibleNodes = provider.generateNodes(context, this, currentNode);
 
-            for(PathNode node : possibleNodes) {
-                PathDestination closestDestination = closestDestinationFor(node);
+            for(PathNode sample : possibleNodes) {
+                if(visited.contains(sample)) {
+                    continue;
+                }
+
+                PathDestination closestDestination = closestDestinationFor(sample);
 
                 if(closestDestination != null) {
-                    Cost possibleCost = calculator.computeCost(context, currentNode, node, closestDestination);
+                    Cost sampleCost = calculator.computeCost(context, currentNode, sample, closestDestination);
 
-                    if(sortedNodes.contains(node)) {
-                        if(possibleCost.nodeCost > currentNode.cost.nodeCost) {
+                    if(openSet.contains(sample)) {
+                        if(sampleCost.nodeCost > sample.cost.nodeCost) {
                             continue;
                         }
                     }
 
-                    sortedNodes.add(node);
+                    sample.cost = sampleCost;
+                    openSet.add(sample);
                 }
             }
 
-            if(!sortedNodes.isEmpty()) {
-                currentNode.next = sortedNodes.first();
+            if(!openSet.isEmpty()) {
+                currentNode.next = openSet.first();
             }
         }
 
@@ -125,13 +130,13 @@ class PathOperationImpl implements PathOperation {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
 
-    private void onSuccess() {
+    private void success() {
         state = State.SUCCEEDED;
 
         //do things (compile path, etc)
     }
 
-    private void onFailure() {
+    private void failure() {
         state = State.FAILED;
     }
 
