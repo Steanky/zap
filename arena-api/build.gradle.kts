@@ -63,3 +63,4 @@ tasks.compileJava {
 }
 
 description = "arena-api"
+version = 1.0

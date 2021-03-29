@@ -357,7 +357,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         contextManager = new ContextManager();
     }
 
-    // TODO: skin signatures, allowing NPCs outside lobby world
     private void initNPCs() {
         FileConfiguration config = getConfig();
 

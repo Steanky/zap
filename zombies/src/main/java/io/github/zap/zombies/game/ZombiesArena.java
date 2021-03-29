@@ -675,10 +675,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                 if (hotbarObject instanceof MeleeWeapon) {
                     MeleeWeapon<?, ?> meleeWeapon = (MeleeWeapon<?, ?>) hotbarObject;
-                    event.setCancelled(true);
 
-                    if (meleeWeapon.isUsable()) {
+                    if (meleeWeapon.isUsable() &&
+                            (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK
+                                    || meleeWeapon.getCurrentLevel().isShouldSweep())) {
+                        event.setDamage(0D);
                         meleeWeapon.attack(mob);
+                    } else {
+                        event.setCancelled(true);
                     }
                 }
             }
