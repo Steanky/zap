@@ -1,26 +1,53 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
+import lombok.SneakyThrows;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
+    private static class NodeComparator implements Comparator<PathNode> {
+        @Override
+        public int compare(PathNode first, PathNode second) {
+            int costComparison = second.score.compareTo(first.score);
+            if(costComparison == 0) {
+                int xComparison = Integer.compare(second.x, first.x);
+                if(xComparison == 0) {
+                    int yComparison = Integer.compare(second.y, first.y);
+                    if(yComparison == 0) {
+                        return Integer.compare(second.z, first.z);
+                    }
+
+                    return yComparison;
+                }
+
+                return xComparison;
+            }
+
+            return costComparison;
+        }
+    }
+
     private final PathAgent agent;
     private final Set<? extends PathDestination> destinations;
     private State state;
-    private final CostCalculator calculator;
+    private final ScoreCalculator calculator;
     private final TerminationCondition condition;
     private final NodeProvider provider;
     private final DestinationSelector selector;
 
-    private final NavigableSet<PathNode> openSet = new TreeSet<>();
+    private final Queue<PathNode> openQueue = new PriorityQueue<>(new NodeComparator());
     private final Set<PathNode> visited = new HashSet<>();
-    private PathDestination lastDestination;
+    private PathDestination destination;
     private PathNode currentNode;
     private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
-                      @NotNull CostCalculator calculator, @NotNull TerminationCondition condition,
+                      @NotNull ScoreCalculator calculator, @NotNull TerminationCondition condition,
                       @NotNull NodeProvider provider, @NotNull DestinationSelector selector) {
         this.agent = agent;
         this.destinations = destinations;
@@ -31,6 +58,7 @@ class PathOperationImpl implements PathOperation {
         this.selector = selector;
     }
 
+    @SneakyThrows
     @Override
     public boolean step(@NotNull PathfinderContext context) {
         if(state == State.INCOMPLETE) {
@@ -42,20 +70,29 @@ class PathOperationImpl implements PathOperation {
                     }
                 }
 
-                if(!openSet.isEmpty()) {
-                    currentNode = openSet.pollFirst();
+                if(!openQueue.isEmpty()) {
+                    currentNode = openQueue.remove();
                 }
                 else {
-                    complete(false, lastDestination);
+                    complete(false, destination);
                     return true;
                 }
             }
             else {
                 currentNode = agent.nodeAt();
+                currentNode.score = new Score(0, calculator.computeH(context, currentNode, selector.selectDestinationFor(this, currentNode)));
             }
 
             visited.add(currentNode);
-            PathNode[] possibleNodes = provider.generateNodes(context, this, currentNode);
+
+            Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
+                Block block = context.snapshotProvider().getWorld().getBlockAt(currentNode.x, currentNode.y - 1, currentNode.z);
+                block.setType(Material.GREEN_WOOL);
+            });
+
+            Thread.sleep(50);
+
+            List<PathNode> possibleNodes = provider.generateNodes(context, this, currentNode);
 
             for(PathNode sample : possibleNodes) {
                 if(sample == null) {
@@ -66,20 +103,23 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
-                sample.parent = currentNode;
-                lastDestination = selector.selectDestinationFor(this, sample);
-                if(lastDestination != null) {
-                    Cost sampleCost = calculator.computeCost(context, currentNode, sample, lastDestination);
+                destination = selector.selectDestinationFor(this, sample);
+                double g = calculator.computeG(context, currentNode, sample, destination);
 
-                    if(openSet.contains(sample)) {
-                        if(sample.cost.nodeCost > sampleCost.nodeCost) {
-                            continue;
-                        }
-                    }
+                if(g < sample.score.g) {
+                    sample.parent = currentNode;
 
-                    sample.cost = sampleCost;
-                    openSet.add(sample);
+                    openQueue.remove(sample);
+                    sample.score = new Score(g, calculator.computeH(context, sample, destination));
+                    openQueue.add(sample);
                 }
+
+                Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
+                    Block block = context.snapshotProvider().getWorld().getBlockAt(sample.x, sample.y - 1, sample.z);
+                    block.setType(Material.RED_WOOL);
+                });
+
+                Thread.sleep(50);
             }
         }
 
@@ -106,7 +146,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public int desiredIterations() {
-        return 100;
+        return 200;
     }
 
     @Override

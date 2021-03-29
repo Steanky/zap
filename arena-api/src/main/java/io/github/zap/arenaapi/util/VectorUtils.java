@@ -24,4 +24,12 @@ public final class VectorUtils {
 
         return  (xD * xD) + (yD * yD) + (zD * zD);
     }
+
+    public static double distance(int x1, int y1, int z1, int x2, int y2, int z2) {
+        return Math.sqrt(distanceSquared(x1, y1, z1, x2, y2, z2));
+    }
+
+    public static int manhattan(int x1, int y1, int z1, int x2, int y2, int z2) {
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2) + Math.abs(z1 - z2);
+    }
 }

@@ -30,7 +30,7 @@ public interface PathOperation {
     @NotNull PathAgent getAgent();
 
     static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
-                                  @NotNull CostCalculator calculator, @NotNull TerminationCondition terminationCondition,
+                                  @NotNull ScoreCalculator calculator, @NotNull TerminationCondition terminationCondition,
                                   @NotNull NodeProvider provider, @NotNull DestinationSelector destinationSelector) {
         Objects.requireNonNull(agent, "agent cannot be null!");
         Objects.requireNonNull(destinations, "destinations cannot be null!");

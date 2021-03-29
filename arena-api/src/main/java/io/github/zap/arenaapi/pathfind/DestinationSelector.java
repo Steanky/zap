@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface DestinationSelector {
     DestinationSelector CLOSEST = (operation, node) -> {
@@ -17,8 +16,12 @@ public interface DestinationSelector {
             }
         }
 
+        if(bestDestination == null) {
+            throw new IllegalStateException("Unable to find a destination!");
+        }
+
         return bestDestination;
     };
 
-    @Nullable PathDestination selectDestinationFor(@NotNull PathOperation operation, @NotNull PathNode node);
+    @NotNull PathDestination selectDestinationFor(@NotNull PathOperation operation, @NotNull PathNode node);
 }

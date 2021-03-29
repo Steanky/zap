@@ -82,7 +82,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             //try {
                 try {
                     contextsSemaphore.acquire();
-                    ArenaApi.info("contextsSemaphore.acquire() returned");
+                    ArenaApi.info("contextsSemaphore.acquire() returned.");
 
                     int contextStartingIndex;
                     synchronized (contexts) {
@@ -154,6 +154,12 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                                 synchronized (context) {
                                     context.operations.remove(j);
+                                }
+                            }
+
+                            synchronized (contexts) {
+                                if(contexts.size() > 0) {
+                                    contextsSemaphore.release();
                                 }
                             }
                         }

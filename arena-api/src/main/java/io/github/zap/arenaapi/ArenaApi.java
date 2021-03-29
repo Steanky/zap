@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
@@ -19,6 +18,7 @@ import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
@@ -45,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -279,17 +277,22 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @EventHandler
     private void onPlayerRightClick(PlayerInteractEvent event) {
         if(event.getClickedBlock() != null && event.getHand() == EquipmentSlot.HAND) {
-            Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 20D);
-            if(stands.size() > 0) {
-                PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(), 1.0D, 1.0D);
-                engine.queueOperation(PathOperation.forAgent(blockAgent,
-                        PathDestination.fromEntities(false, stands), CostCalculator.DISTANCE_ONLY,
-                        TerminationCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST),
-                        event.getPlayer().getWorld(), (pathResult) -> {
-                            for(PathNode node : pathResult) {
-                                event.getPlayer().getWorld().getBlockAt(node.x, node.y, node.z).setType(Material.DIAMOND_BLOCK);
-                            }
-                        });
+            if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
+                Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 20D);
+                if(stands.size() > 0) {
+                    PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(), 1.0D, 1.0D);
+                    engine.queueOperation(PathOperation.forAgent(blockAgent,
+                            PathDestination.fromEntities(false, stands), ScoreCalculator.DISTANCE,
+                            TerminationCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST),
+                            event.getPlayer().getWorld(), (pathResult) -> {
+                                for(PathNode node : pathResult) {
+                                    event.getPlayer().getWorld().getBlockAt(node.x, node.y, node.z).setType(Material.DIAMOND_BLOCK);
+                                }
+                            });
+                }
+            }
+            else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE) {
+                event.getPlayer().sendMessage(Component.text(event.getClickedBlock().toString()));
             }
         }
     }
