@@ -101,7 +101,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         });
 
                         context.contextSemaphore.acquire(); //wait for main thread to finish syncing
-                        context.contextSemaphore.release(); //reset the semaphore
+                        //noinspection ResultOfMethodCallIgnored
+                        context.contextSemaphore.tryAcquire(1); //reset the semaphore
 
                         int operationStartingIndex;
                         synchronized (context) {
@@ -140,7 +141,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     }
                                 }
                             }
-                            else if(entry.operation.shouldRemove()) { //remove successful or failed paths if they ask
+
+                            if(entryState != PathOperation.State.INCOMPLETE && entry.operation.shouldRemove()) { //remove successful or failed paths if they ask
                                 PathResult entryResult = entry.operation.getResult();
 
                                 if(entryState == PathOperation.State.SUCCEEDED) {
@@ -149,6 +151,10 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 else if(entryState == PathOperation.State.FAILED) {
                                     context.failedPaths.remove(entryResult);
                                 }
+
+                                synchronized (context) {
+                                    context.operations.remove(j);
+                                }
                             }
                         }
 
@@ -156,13 +162,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                             while(!removalQueue.isEmpty()) {
                                 contexts.remove(removalQueue.remove());
                             }
-                        }
-                    }
-
-                    synchronized (contexts) {
-                        if(contexts.size() == 0) {
-                            //noinspection ResultOfMethodCallIgnored
-                            contextsSemaphore.tryAcquire(1); //lock semaphore so we wait
                         }
                     }
                 }
@@ -218,6 +217,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (targetContext) {
                 targetContext.operations.add(new Entry(operation, resultConsumer));
+                contextsSemaphore.release();
             }
         }
     }

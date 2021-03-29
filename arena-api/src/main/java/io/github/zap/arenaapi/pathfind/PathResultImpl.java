@@ -20,7 +20,7 @@ class PathResultImpl implements PathResult {
         @Override
         public PathNode next() {
             PathNode save = current;
-            current = current.next;
+            current = current.parent;
             return save;
         }
     }

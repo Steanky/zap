@@ -15,8 +15,8 @@ class PathOperationImpl implements PathOperation {
 
     private final NavigableSet<PathNode> openSet = new TreeSet<>();
     private final Set<PathNode> visited = new HashSet<>();
+    private PathDestination lastDestination;
     private PathNode currentNode;
-    private PathNode firstNode;
     private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
@@ -37,7 +37,7 @@ class PathOperationImpl implements PathOperation {
             if(currentNode != null) {
                 for(PathDestination destination : destinations) {
                     if(condition.hasCompleted(context, currentNode, destination)) {
-                        success(destination);
+                        complete(true, destination);
                         return true;
                     }
                 }
@@ -46,13 +46,12 @@ class PathOperationImpl implements PathOperation {
                     currentNode = openSet.pollFirst();
                 }
                 else {
-                    failure();
+                    complete(false, lastDestination);
                     return true;
                 }
             }
             else {
                 currentNode = agent.nodeAt();
-                firstNode = currentNode;
             }
 
             visited.add(currentNode);
@@ -67,10 +66,10 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
-                PathDestination closestDestination = selector.selectDestinationFor(this, sample);
-
-                if(closestDestination != null) {
-                    Cost sampleCost = calculator.computeCost(context, currentNode, sample, closestDestination);
+                sample.parent = currentNode;
+                lastDestination = selector.selectDestinationFor(this, sample);
+                if(lastDestination != null) {
+                    Cost sampleCost = calculator.computeCost(context, currentNode, sample, lastDestination);
 
                     if(openSet.contains(sample)) {
                         if(sample.cost.nodeCost > sampleCost.nodeCost) {
@@ -81,10 +80,6 @@ class PathOperationImpl implements PathOperation {
                     sample.cost = sampleCost;
                     openSet.add(sample);
                 }
-            }
-
-            if(!openSet.isEmpty()) {
-                currentNode.next = openSet.first();
             }
         }
 
@@ -116,7 +111,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean shouldRemove() {
-        return false;
+        return true;
     }
 
 
@@ -140,12 +135,8 @@ class PathOperationImpl implements PathOperation {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
 
-    private void success(PathDestination destination) {
-        state = State.SUCCEEDED;
-        result = new PathResultImpl(firstNode, destination);
-    }
-
-    private void failure() {
-        state = State.FAILED;
+    private void complete(boolean success, PathDestination destination) {
+        this.state = success ? State.SUCCEEDED : State.FAILED;
+        result = new PathResultImpl(currentNode, destination);
     }
 }

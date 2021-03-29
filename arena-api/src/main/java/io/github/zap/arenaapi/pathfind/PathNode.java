@@ -13,7 +13,7 @@ public class PathNode implements Comparable<PathNode> {
     public final int hash;
 
     public Cost cost = new Cost();
-    public PathNode next;
+    public PathNode parent;
 
     PathNode(int x, int y, int z) {
         this.x = x;
@@ -49,13 +49,13 @@ public class PathNode implements Comparable<PathNode> {
 
     @Override
     public int compareTo(@NotNull PathNode other) {
-        int costComparison = cost.compareTo(other.cost);
+        int costComparison = other.cost.compareTo(cost);
         if(costComparison == 0) {
-            int xComparison = Integer.compare(x, other.x);
+            int xComparison = Integer.compare(other.x, x);
             if(xComparison == 0) {
-                int yComparison = Integer.compare(x, other.x);
+                int yComparison = Integer.compare(other.y, y);
                 if(yComparison == 0) {
-                    return Integer.compare(x, other.x);
+                    return Integer.compare(other.z, z);
                 }
 
                 return yComparison;

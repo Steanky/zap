@@ -279,7 +279,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @EventHandler
     private void onPlayerRightClick(PlayerInteractEvent event) {
         if(event.getClickedBlock() != null && event.getHand() == EquipmentSlot.HAND) {
-            Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 200D);
+            Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 20D);
             if(stands.size() > 0) {
                 PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(), 1.0D, 1.0D);
                 engine.queueOperation(PathOperation.forAgent(blockAgent,
