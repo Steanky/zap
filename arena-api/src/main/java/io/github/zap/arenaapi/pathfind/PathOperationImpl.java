@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,21 +12,24 @@ class PathOperationImpl implements PathOperation {
     private final CostCalculator calculator;
     private final TerminationCondition condition;
     private final NodeProvider provider;
+    private final DestinationSelector selector;
 
     private final NavigableSet<PathNode> openSet = new TreeSet<>();
     private final Set<PathNode> visited = new HashSet<>();
-
     private PathNode currentNode;
+    private PathNode firstNode;
+    private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
                       @NotNull CostCalculator calculator, @NotNull TerminationCondition condition,
-                      @NotNull NodeProvider provider) {
+                      @NotNull NodeProvider provider, @NotNull DestinationSelector selector) {
         this.agent = agent;
         this.destinations = destinations;
         this.state = State.INCOMPLETE;
         this.calculator = calculator;
         this.condition = condition;
         this.provider = provider;
+        this.selector = selector;
     }
 
     @Override
@@ -36,7 +38,7 @@ class PathOperationImpl implements PathOperation {
             if(currentNode != null) {
                 for(PathDestination destination : destinations) {
                     if(condition.hasCompleted(context, currentNode, destination)) {
-                        success();
+                        success(destination);
                         return true;
                     }
                 }
@@ -51,17 +53,22 @@ class PathOperationImpl implements PathOperation {
             }
             else {
                 currentNode = agent.nodeAt();
+                firstNode = currentNode;
             }
 
             visited.add(currentNode);
             PathNode[] possibleNodes = provider.generateNodes(context, this, currentNode);
 
             for(PathNode sample : possibleNodes) {
+                if(sample == null) {
+                    break;
+                }
+
                 if(visited.contains(sample)) {
                     continue;
                 }
 
-                PathDestination closestDestination = closestDestinationFor(sample);
+                PathDestination closestDestination = selector.selectDestinationFor(this, sample);
 
                 if(closestDestination != null) {
                     Cost sampleCost = calculator.computeCost(context, currentNode, sample, closestDestination);
@@ -96,12 +103,16 @@ class PathOperationImpl implements PathOperation {
             throw new IllegalStateException("Cannot get PathResult for a PathOperation that has not completed!");
         }
 
-        return null;
+        if(result == null) {
+            throw new IllegalStateException("Result has not been compiled for " + this);
+        }
+
+        return result;
     }
 
     @Override
     public int desiredIterations() {
-        return 0;
+        return 100;
     }
 
     @Override
@@ -130,29 +141,12 @@ class PathOperationImpl implements PathOperation {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
 
-    private void success() {
+    private void success(PathDestination destination) {
         state = State.SUCCEEDED;
-
-        //do things (compile path, etc)
+        result = new PathResultImpl(firstNode, destination);
     }
 
     private void failure() {
         state = State.FAILED;
-    }
-
-    private @Nullable PathDestination closestDestinationFor(@NotNull PathNode node) {
-        int bestDistance = Integer.MAX_VALUE;
-        PathDestination bestDestination = null;
-
-        for(PathDestination destination : destinations) {
-            int sample = node.distanceSquaredTo(destination.node());
-
-            if(sample < bestDistance) {
-                bestDistance = sample;
-                bestDestination = destination;
-            }
-        }
-
-        return bestDestination;
     }
 }

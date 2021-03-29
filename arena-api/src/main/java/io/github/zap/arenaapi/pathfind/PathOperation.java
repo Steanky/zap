@@ -1,7 +1,10 @@
 package io.github.zap.arenaapi.pathfind;
 
+import com.google.common.collect.ImmutableSet;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.Set;
 
 public interface PathOperation {
@@ -26,4 +29,11 @@ public interface PathOperation {
     @NotNull Set<PathNode> visitedNodes();
 
     @NotNull PathAgent getAgent();
+
+    static PathOperation forAgent(@NotNull PathAgent agent, @NotNull PathDestination destination) {
+        Objects.requireNonNull(agent, "agent cannot be null!");
+        Objects.requireNonNull(destination, "destination cannot be null!");
+
+        return new PathOperationImpl(agent, ImmutableSet.of(destination), CostCalculator.SIMPLE, TerminationCondition.SIMPLE, NodeProvider.SIMPLE);
+    }
 }
