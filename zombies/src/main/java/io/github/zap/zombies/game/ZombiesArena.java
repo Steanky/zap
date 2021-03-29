@@ -420,6 +420,41 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     @Getter
     private final GameScoreboard gameScoreboard;
 
+    @Getter
+    private final Set<Player> hiddenPlayers = new HashSet<>() {
+
+        @Override
+        public boolean add(Player player) {
+            if (super.add(player)) {
+                for (Player otherPlayer : world.getPlayers()) {
+                    otherPlayer.hidePlayer(Zombies.getInstance(), player);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (o instanceof Player) {
+                Player player = (Player) o;
+
+                if (super.remove(o)) {
+                    for (Player otherPlayer : world.getPlayers()) {
+                        otherPlayer.showPlayer(Zombies.getInstance(), player);
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+    };
+
     /**
      * Indicate when the game start using System.currentTimeMillis()
      * return -1 if the game hasn't start
@@ -555,6 +590,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
             if(state == ZombiesArenaState.PREGAME) {
                 player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
+            }
+        }
+
+        if (state == ZombiesArenaState.STARTED || state == ZombiesArenaState.ENDED) {
+            for (Player player : args.getPlayers()) {
+                for (Player hiddenPlayer : hiddenPlayers) {
+                    player.hidePlayer(Zombies.getInstance(), hiddenPlayer);
+                }
             }
         }
     }
