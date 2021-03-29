@@ -10,7 +10,7 @@ class PathDestinationAbstract implements PathDestination {
     }
 
     @Override
-    public @NotNull PathNode targetNode() {
+    public @NotNull PathNode node() {
         return node;
     }
 
@@ -20,10 +20,9 @@ class PathDestinationAbstract implements PathDestination {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof PathDestinationAbstract) {
-            PathDestinationAbstract other = (PathDestinationAbstract) obj;
-            return other.node.equals(node);
+    public boolean equals(Object object) {
+        if(object instanceof PathDestinationAbstract) {
+            return ((PathDestinationAbstract) object).node.equals(node);
         }
 
         return false;

@@ -15,7 +15,7 @@ class PathNode implements Comparable<PathNode> {
     public Cost cost;
     public PathNode next;
 
-    public PathNode(int x, int y, int z) {
+    PathNode(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -23,7 +23,7 @@ class PathNode implements Comparable<PathNode> {
         hash = Objects.hash(x, y, z);
     }
 
-    public PathNode(@NotNull Vector from) {
+    PathNode(@NotNull Vector from) {
         this(from.getBlockX(), from.getBlockY(), from.getBlockZ());
     }
 

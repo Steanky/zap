@@ -92,6 +92,10 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public @NotNull PathResult getResult() {
+        if(state == State.INCOMPLETE) {
+            throw new IllegalStateException("Cannot get PathResult for a PathOperation that has not completed!");
+        }
+
         return null;
     }
 
@@ -105,10 +109,6 @@ class PathOperationImpl implements PathOperation {
         return false;
     }
 
-    @Override
-    public @NotNull World getWorld() {
-        return agent.getWorld();
-    }
 
     @Override
     public @NotNull Set<PathDestination> getDestinations() {
@@ -145,7 +145,7 @@ class PathOperationImpl implements PathOperation {
         PathDestination bestDestination = null;
 
         for(PathDestination destination : destinations) {
-            int sample = node.distanceSquaredTo(destination.targetNode());
+            int sample = node.distanceSquaredTo(destination.node());
 
             if(sample < bestDistance) {
                 bestDistance = sample;

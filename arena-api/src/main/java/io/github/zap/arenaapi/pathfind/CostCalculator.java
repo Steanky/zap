@@ -9,11 +9,11 @@ public interface CostCalculator {
      * else.
      */
     CostCalculator SIMPLE = (context, from, to, destination) -> {
-        PathNode target = destination.targetNode();
+        PathNode target = destination.node();
 
         return new Cost(from.cost.nodeCost + VectorUtils.distanceSquared(from.x, from.y, from.z, to.x, to.y, to.z),
                 VectorUtils.distanceSquared(to.x, to.y, to.z, target.x, target.y, target.z));
     };
 
-    Cost computeCost(@NotNull PathfinderContext context, @NotNull PathNode from, @NotNull PathNode to, @NotNull PathDestination destination);
+    @NotNull Cost computeCost(@NotNull PathfinderContext context, @NotNull PathNode from, @NotNull PathNode to, @NotNull PathDestination destination);
 }

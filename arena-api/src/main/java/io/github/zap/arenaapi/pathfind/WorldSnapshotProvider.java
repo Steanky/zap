@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
@@ -10,12 +9,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class WorldSnapshotProvider implements SnapshotProvider {
+class WorldSnapshotProvider implements SnapshotProvider {
     private final World world;
     private final Map<Long, ChunkSnapshot> chunks = new HashMap<>();
 
-    public WorldSnapshotProvider(@NotNull World world) {
-        this.world = Objects.requireNonNull(world, "world cannot be null!");
+    WorldSnapshotProvider(@NotNull World world) {
+        this.world = world;
     }
 
     @Override

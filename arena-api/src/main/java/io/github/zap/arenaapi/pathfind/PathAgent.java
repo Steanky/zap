@@ -1,9 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -12,8 +11,6 @@ public interface PathAgent {
     double getWidth();
 
     double getHeight();
-
-    World getWorld();
 
     PathNode nodeAt();
 
@@ -31,24 +28,20 @@ public interface PathAgent {
             }
 
             @Override
-            public World getWorld() {
-                return entity.getWorld();
-            }
-
-            @Override
             public PathNode nodeAt() {
                 return new PathNode(entity.getLocation().toVector());
             }
 
             @Override
             public String toString() {
-                return entity.toString();
+                return "PathAgent{width=" + entity.getWidth() + ", height=" + entity.getHeight() + ", vector=" +
+                        entity.getLocation().toVector().toString() + "}";
             }
         };
     }
 
-    static PathAgent fromLocation(@NotNull Location location, double width, double height) {
-        Objects.requireNonNull(location, "location cannot be null!");
+    static PathAgent fromVector(@NotNull Vector vector, double width, double height) {
+        Objects.requireNonNull(vector, "vector cannot be null!");
         Validate.isTrue(width >= 0, "width cannot be less than 0");
         Validate.isTrue(height >= 0, "height cannot be less than 0");
         Validate.isTrue(Double.isFinite(width), "width must be finite");
@@ -66,18 +59,13 @@ public interface PathAgent {
             }
 
             @Override
-            public World getWorld() {
-                return location.getWorld();
-            }
-
-            @Override
             public PathNode nodeAt() {
-                return new PathNode(location.toVector());
+                return new PathNode(vector);
             }
 
             @Override
             public String toString() {
-                return "PathAgent{width=" + width + ", height=" + height + ", location=" + location.toString() + "}";
+                return "PathAgent{width=" + width + ", height=" + height + ", vector=" + vector.toString() + "}";
             }
         };
     }

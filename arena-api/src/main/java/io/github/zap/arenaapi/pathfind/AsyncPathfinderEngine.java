@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.ObjectDisposedException;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
@@ -187,19 +188,20 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      * @param operation The operation to enqueue
      */
     @Override
-    public @NotNull Future<PathResult> queueOperation(@NotNull PathOperation operation) {
+    public @NotNull Future<PathResult> queueOperation(@NotNull PathOperation operation, @NotNull World world) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
 
         Objects.requireNonNull(operation, "operation cannot be null!");
+        Objects.requireNonNull(world, "world cannot be null!");
 
         CompletableFuture<PathResult> future = new CompletableFuture<>();
 
         EngineContext targetContext = null;
         synchronized (contexts) {
             for(EngineContext context : contexts) {
-                if(context.snapshotProvider().getWorld().equals(operation.getWorld())) {
+                if(context.snapshotProvider().getWorld().getUID().equals(world.getUID())) {
                     targetContext = context;
                     break;
                 }
@@ -207,7 +209,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new EngineContext(new WorldSnapshotProvider(operation.getWorld()));
+            targetContext = new EngineContext(new WorldSnapshotProvider(world));
             targetContext.operations.add(new Entry(operation, future));
 
             synchronized (contexts) {

@@ -8,12 +8,12 @@ public interface TerminationCondition {
     /**
      * Simple termination condition: the path is complete when the agent reaches the node.
      */
-    TerminationCondition SIMPLE = (context, node, destination) -> node.equals(destination.targetNode());
+    TerminationCondition SIMPLE = (context, node, destination) -> node.equals(destination.node());
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
     static TerminationCondition whenWithin(int targetDistanceSquared) {
-        return (context, node, destination) -> node.distanceSquaredTo(destination.targetNode()) <= targetDistanceSquared;
+        return (context, node, destination) -> node.distanceSquaredTo(destination.node()) <= targetDistanceSquared;
     }
 
     static TerminationCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {

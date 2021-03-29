@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import org.apache.commons.lang3.Validate;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 public interface PathDestination {
-    @NotNull PathNode targetNode();
+    @NotNull PathNode node();
 
     static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
         return new EntityPathDestination(Objects.requireNonNull(entity, "entity cannot be null!"), findBlock);
@@ -24,7 +25,10 @@ public interface PathDestination {
         return new BlockPathDestination(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
-    static @NotNull List<PathDestination> fromEntities(boolean findBlocks, Entity... entities) {
+    static @NotNull List<PathDestination> fromEntities(boolean findBlocks, @NotNull Entity... entities) {
+        Objects.requireNonNull(entities, "entities cannot be null!");
+        Validate.isTrue(entities.length > 0, "entities array cannot be empty");
+
         List<PathDestination> destinations = new ArrayList<>();
 
         for(Entity entity : entities) {
