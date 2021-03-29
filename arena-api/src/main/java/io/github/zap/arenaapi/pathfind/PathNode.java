@@ -61,4 +61,8 @@ class PathNode implements Comparable<PathNode> {
     public int distanceSquaredTo(int x, int y, int z) {
         return VectorUtils.distanceSquared(this.x, this.y, this.z, x, y, z);
     }
+
+    public PathNode add(int x, int y, int z) {
+        return new PathNode(this.x + x, this.y + y, this.z + z);
+    }
 }

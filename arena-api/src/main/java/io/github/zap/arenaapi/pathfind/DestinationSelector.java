@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface DestinationSelector {
-    DestinationSelector SIMPLE = (operation, node) -> {
+    DestinationSelector CLOSEST = (operation, node) -> {
         int bestDistance = Integer.MAX_VALUE;
         PathDestination bestDestination = null;
 

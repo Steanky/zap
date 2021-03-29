@@ -8,7 +8,7 @@ public interface TerminationCondition {
     /**
      * Simple termination condition: the path is complete when the agent reaches the node.
      */
-    TerminationCondition SIMPLE = (context, node, destination) -> node.equals(destination.node());
+    TerminationCondition REACHED_DESTINATION = (context, node, destination) -> node.equals(destination.node());
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 

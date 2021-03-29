@@ -8,7 +8,7 @@ public interface CostCalculator {
      * Basic A* node cost calculator implementation: only takes into account the distance between nodes and nothing
      * else.
      */
-    CostCalculator SIMPLE = (context, from, to, destination) -> {
+    CostCalculator DISTANCE_ONLY = (context, from, to, destination) -> {
         PathNode target = destination.node();
 
         return new Cost(from.cost.nodeCost + VectorUtils.distanceSquared(from.x, from.y, from.z, to.x, to.y, to.z),
