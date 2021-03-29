@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface PathfinderContext {
-    @NotNull List<AsyncPathfinderEngine.Entry> ongoingOperations();
+    @NotNull List<AsyncPathfinderEngine.Entry> operations();
 
     @NotNull List<PathResult> successfulPaths();
 

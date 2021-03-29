@@ -17,16 +17,16 @@ import java.util.function.Consumer;
 public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     public static class Entry {
         public final PathOperation operation;
-        public final Consumer<PathResult> future;
+        public final Consumer<PathResult> consumer;
 
-        private Entry(@NotNull PathOperation operation, @NotNull Consumer<PathResult> future) {
+        private Entry(@NotNull PathOperation operation, @NotNull Consumer<PathResult> consumer) {
             this.operation = Objects.requireNonNull(operation, "operation cannot be null!");
-            this.future = Objects.requireNonNull(future,"future cannot be null!");
+            this.consumer = Objects.requireNonNull(consumer,"future cannot be null!");
         }
     }
 
     private static class EngineContext implements PathfinderContext {
-        private final Semaphore contextSemaphore = new Semaphore(0);
+        private final Semaphore semaphore = new Semaphore(0);
 
         private final List<Entry> operations = new ArrayList<>();
         private final List<PathResult> successfulPaths = new ArrayList<>();
@@ -38,7 +38,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         @Override
-        public @NotNull List<Entry> ongoingOperations() {
+        public @NotNull List<Entry> operations() {
             return operations;
         }
 
@@ -82,7 +82,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             //try {
                 try {
                     contextsSemaphore.acquire();
-                    ArenaApi.info("contextsSemaphore.acquire() returned.");
 
                     int contextStartingIndex;
                     synchronized (contexts) {
@@ -92,17 +91,14 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     for(int i = contextStartingIndex; i > -1; i--) { //each EngineContext object = different world
                         EngineContext context = contexts.get(i);
 
-                        AtomicBoolean completed = new AtomicBoolean(false);
-
                         Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
                             context.snapshot.syncWithWorld();
-                            completed.set(true);
-                            context.contextSemaphore.release();
+                            context.semaphore.release();
                         });
 
-                        context.contextSemaphore.acquire(); //wait for main thread to finish syncing
+                        context.semaphore.acquire(); //wait for main thread to finish syncing
                         //noinspection ResultOfMethodCallIgnored
-                        context.contextSemaphore.tryAcquire(1); //reset the semaphore
+                        context.semaphore.tryAcquire(1); //reset the semaphore
 
                         int operationStartingIndex;
                         synchronized (context) {
@@ -131,7 +127,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                             continue;
                                         }
 
-                                        Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> entry.future.accept(result));
+                                        Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> entry.consumer.accept(result));
                                         ArenaApi.info("Completed task.");
                                         break;
                                     }
@@ -156,17 +152,22 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     context.operations.remove(j);
                                 }
                             }
+                        }
 
-                            synchronized (contexts) {
-                                if(contexts.size() > 0) {
-                                    contextsSemaphore.release();
-                                }
+                        synchronized (context) {
+                            if(context.operations.size() > 0) {
+                                contextsSemaphore.release();
                             }
                         }
 
                         synchronized (removalQueue) {
                             while(!removalQueue.isEmpty()) {
                                 contexts.remove(removalQueue.remove());
+                            }
+
+                            if(contexts.size() == 0) {
+                                //noinspection ResultOfMethodCallIgnored
+                                contextsSemaphore.tryAcquire(1);
                             }
                         }
                     }

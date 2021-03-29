@@ -10,28 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
-    private static class NodeComparator implements Comparator<PathNode> {
-        @Override
-        public int compare(PathNode first, PathNode second) {
-            int costComparison = second.score.compareTo(first.score);
-            if(costComparison == 0) {
-                int xComparison = Integer.compare(second.x, first.x);
-                if(xComparison == 0) {
-                    int yComparison = Integer.compare(second.y, first.y);
-                    if(yComparison == 0) {
-                        return Integer.compare(second.z, first.z);
-                    }
-
-                    return yComparison;
-                }
-
-                return xComparison;
-            }
-
-            return costComparison;
-        }
-    }
-
     private final PathAgent agent;
     private final Set<? extends PathDestination> destinations;
     private State state;
@@ -40,7 +18,7 @@ class PathOperationImpl implements PathOperation {
     private final NodeProvider provider;
     private final DestinationSelector selector;
 
-    private final Queue<PathNode> openQueue = new PriorityQueue<>(new NodeComparator());
+    private final NavigableSet<PathNode> openSet = new TreeSet<>(NodeComparator.instance());
     private final Set<PathNode> visited = new HashSet<>();
     private PathDestination destination;
     private PathNode currentNode;
@@ -70,8 +48,8 @@ class PathOperationImpl implements PathOperation {
                     }
                 }
 
-                if(!openQueue.isEmpty()) {
-                    currentNode = openQueue.remove();
+                if(!openSet.isEmpty()) {
+                    currentNode = openSet.pollFirst();
                 }
                 else {
                     complete(false, destination);
@@ -109,9 +87,9 @@ class PathOperationImpl implements PathOperation {
                 if(g < sample.score.g) {
                     sample.parent = currentNode;
 
-                    openQueue.remove(sample);
+                    openSet.remove(sample);
                     sample.score = new Score(g, calculator.computeH(context, sample, destination));
-                    openQueue.add(sample);
+                    openSet.add(sample);
                 }
 
                 Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {

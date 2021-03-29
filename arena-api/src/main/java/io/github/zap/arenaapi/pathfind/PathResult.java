@@ -10,4 +10,6 @@ public interface PathResult extends Iterable<PathNode> {
     @NotNull PathNode source();
 
     @NotNull PathDestination destination();
+
+    @NotNull NavigableSet<PathNode> nodes();
 }

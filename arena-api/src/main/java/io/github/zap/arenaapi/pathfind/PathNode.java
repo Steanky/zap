@@ -33,10 +33,10 @@ public class PathNode {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof PathNode) {
-            PathNode other = (PathNode) obj;
-            return x == other.x && y == other.y && z == other.z;
+    public boolean equals(Object other) {
+        if(other instanceof PathNode) {
+            PathNode node = (PathNode) other;
+            return x == node.x && y == node.y && z == node.z;
         }
 
         return false;

@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-class Score implements Comparable<Score> {
+class Score {
     public final double g;
     public final double h;
     public final double f;
@@ -25,13 +25,8 @@ class Score implements Comparable<Score> {
     }
 
     @Override
-    public int compareTo(@NotNull Score o) {
-        return Double.compare(o.f, f);
-    }
-
-    @Override
     public String toString() {
-        return "Cost{nodeCost=" + g + ", costToGoal=" + h + ", costSum=" + f + "}";
+        return "Cost{g=" + g + ", h=" + h + ", f=" + f + "}";
     }
 
     @Override
