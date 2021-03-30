@@ -70,8 +70,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        StopWatch timer = StopWatch.createStarted();
         instance = this;
+        StopWatch timer = StopWatch.createStarted();
 
         try {
             initProxy();
@@ -90,6 +90,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
 
+        Test.test();
         engine = PathfinderEngine.async();
     }
 
