@@ -669,14 +669,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 if (state == ZombiesPlayerState.ALIVE) {
                     if (player.getHealth() <= event.getFinalDamage()) {
                         Location location = player.getLocation();
+                        location.setY(Math.floor(location.getY()));
 
                         RoomData room = map.roomAt(location.toVector());
                         managedPlayer.setDeathRoomName((room == null) ? "an unknown room" : room.getRoomDisplayName());
 
-                        for (double y = location.getY(); y >= 0D; y--) {
+                        for (double y = location.getY() - 1.0D; y >= 0D; y--) {
                             location.setY(y);
                             Block block = player.getWorld().getBlockAt(location);
-                            
+
                             if (!block.isPassable()) {
                                 player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
                                 break;
