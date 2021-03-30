@@ -2,9 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
-import java.util.NavigableSet;
-import java.util.TreeSet;
+import java.util.*;
 
 class PathResultImpl implements PathResult {
     private static class ResultIterator implements Iterator<PathNode> {
@@ -29,12 +27,12 @@ class PathResultImpl implements PathResult {
 
     private final PathNode source;
     private final PathDestination destination;
-    private final NavigableSet<PathNode> nodes;
+    private final Set<PathNode> nodes;
 
     PathResultImpl(@NotNull PathNode source, @NotNull PathDestination destination) {
         this.source = source;
         this.destination = destination;
-        nodes = new TreeSet<>(NodeComparator.instance());
+        nodes = new LinkedHashSet<>();
     }
 
     @Override
@@ -48,7 +46,7 @@ class PathResultImpl implements PathResult {
     }
 
     @Override
-    public @NotNull NavigableSet<PathNode> nodes() {
+    public @NotNull Set<PathNode> nodes() {
         return nodes;
     }
 
