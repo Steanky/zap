@@ -665,29 +665,32 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Player player = managedPlayer.getPlayer();
             ZombiesPlayerState state = managedPlayer.getState();
 
-            if(player != null && state == ZombiesPlayerState.ALIVE) {
-                if(player.getHealth() <= event.getFinalDamage()) {
-                    Location location = player.getLocation().toBlockLocation();
-                    RoomData room = map.roomAt(location.toVector());
-                    managedPlayer.setDeathRoomName((room == null) ? "an unknown room" : room.getRoomDisplayName());
+            if (player != null) {
+                if (state == ZombiesPlayerState.ALIVE) {
+                    if (player.getHealth() <= event.getFinalDamage()) {
+                        Location location = player.getLocation();
 
-                    for (double y = location.getY(); y >= 0D; y--){
-                        location.setY(y);
-                        Block block = player.getWorld().getBlockAt(location);
-                        if (!block.isPassable()) {
-                            player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
-                            break;
+                        RoomData room = map.roomAt(location.toVector());
+                        managedPlayer.setDeathRoomName((room == null) ? "an unknown room" : room.getRoomDisplayName());
+
+                        for (double y = location.getY(); y >= 0D; y--) {
+                            location.setY(y);
+                            Block block = player.getWorld().getBlockAt(location);
+                            
+                            if (!block.isPassable()) {
+                                player.teleport(location.add(0, block.getBoundingBox().getHeight(), 0));
+                                break;
+                            }
                         }
                     }
+                } else {
+                    event.setCancelled(true);
                 }
             }
-            else if(state != ZombiesPlayerState.ALIVE) {
-                event.setCancelled(true);
-            }
         }
-        else if(event.getCause() == EntityDamageEvent.DamageCause.VOID) {
+        else if (event.getCause() == EntityDamageEvent.DamageCause.VOID) {
             Entity entity = args.getEvent().getEntity();
-            if(getEntitySet().contains(entity.getUniqueId())) {
+            if (getEntitySet().contains(entity.getUniqueId())) {
                 entity.remove();
             }
         }
@@ -981,12 +984,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     zombiesPlayer.setAliveState();
 
                     Vector spawn = map.getSpawn();
-                    zombiesPlayer.getPlayer().teleport(
-                            new Location(world, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5)
-                    );
+                    zombiesPlayer.getPlayer().teleport(new Location(world, spawn.getX() + 0.5, spawn.getY(),
+                            spawn.getZ() + 0.5));
 
                     ZombiesHotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                    for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : map.getHotbarObjectGroupSlots().entrySet()) {
+                    for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : map
+                            .getHotbarObjectGroupSlots().entrySet()) {
                         hotbarManager.addEquipmentObjectGroup(equipmentManager
                                 .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), zombiesPlayer.getPlayer(),
                                         hotbarObjectGroupSlot.getValue()));
@@ -996,14 +999,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(map.getName(), equipment);
 
                         if(equipmentData != null) {
-                            Integer slot
-                                    = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType()).getNextEmptySlot();
+                            Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType())
+                                    .getNextEmptySlot();
 
                             if (slot != null) {
-                                hotbarManager.setHotbarObject(
-                                        slot,
-                                        equipmentManager.createEquipment(this, zombiesPlayer, slot, equipmentData)
-                                );
+                                hotbarManager.setHotbarObject(slot, equipmentManager
+                                        .createEquipment(this, zombiesPlayer, slot, equipmentData));
                             }
                         }
                         else {
