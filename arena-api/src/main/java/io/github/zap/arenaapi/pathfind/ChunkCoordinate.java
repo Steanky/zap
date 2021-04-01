@@ -1,9 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.bukkit.Chunk;
-import org.bukkit.World;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 
 public class ChunkCoordinate {
@@ -26,11 +22,6 @@ public class ChunkCoordinate {
 
     public ChunkCoordinate(int x, int z) {
         this(x, z, false);
-    }
-
-    public @NotNull Chunk loadedChunkAt(@NotNull World world) {
-        Objects.requireNonNull(world, "world cannot be null!");
-        return world.getChunkAt(x, z);
     }
 
     @Override

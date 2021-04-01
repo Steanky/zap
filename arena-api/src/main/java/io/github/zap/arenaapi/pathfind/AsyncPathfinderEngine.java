@@ -63,7 +63,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final List<Context> contexts = new ArrayList<>();
     private final Semaphore contextsSemaphore = new Semaphore(0);
     private final Queue<Context> removalQueue = new ArrayDeque<>();
-    private final Object syncLock = new Object();
 
     private boolean disposed = false;
     private boolean shouldRun = true;
@@ -97,12 +96,9 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         AtomicBoolean syncRun = new AtomicBoolean(false);
                         BukkitTask syncTask = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
-                            synchronized (syncLock) {
-                                if(!syncRun.get()) {
-                                    context.snapshot.updateAll();
-                                    context.semaphore.release();
-                                    syncRun.set(true);
-                                }
+                            if(!syncRun.getAndSet(true)) {
+                                context.snapshot.updateAll();
+                                context.semaphore.release();
                             }
                         });
 
@@ -168,19 +164,16 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 synchronized (context) {
                                     if (context.operations.size() == 0) {
                                         //noinspection ResultOfMethodCallIgnored
-                                        contextsSemaphore.tryAcquire(1);
+                                        contextsSemaphore.tryAcquire(1); //lock + break if we iterated all operations
                                         break;
                                     }
                                 }
                             }
                         }
                         else {
-                            synchronized (syncLock) {
-                                if(!syncRun.get()) {
-                                    ArenaApi.warning("Timed out while waiting on main thread.");
-                                    Bukkit.getScheduler().cancelTask(syncTask.getTaskId());
-                                    syncRun.set(true);
-                                }
+                            if(!syncRun.getAndSet(true)) {
+                                ArenaApi.warning("Timed out while waiting on main thread.");
+                                Bukkit.getScheduler().cancelTask(syncTask.getTaskId());
                             }
                         }
                     }
@@ -210,7 +203,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 synchronized (contexts) {
                     contexts.clear();
                     //noinspection ResultOfMethodCallIgnored
-                    contextsSemaphore.tryAcquire(1);
+                    contextsSemaphore.tryAcquire(1); //lock since we know we're empty
                 }
             }
         }
@@ -248,7 +241,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new Context(new WorldSnapshotProvider(world, operation.searchArea()));
+            targetContext = new Context(new SnapshotProviderImpl(world, operation.searchArea()));
             targetContext.operations.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {
@@ -273,9 +266,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     @EventHandler
     private void onWorldUnload(WorldUnloadEvent event) {
         synchronized (contexts) {
-            for(int i = contexts.size() - 1; i > -1; i--) {
-                Context context = contexts.get(i);
-
+            for(Context context : contexts) {
                 if(context.snapshot.getWorld().equals(event.getWorld())) {
                     removalQueue.add(context);
                 }
@@ -299,7 +290,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         catch (InterruptedException ignored) {
             ArenaApi.warning("Interrupted while waiting for pathfinder thread to shut down!");
             ArenaApi.warning("Thread state: " + pathfinderThread.getState());
-            ArenaApi.warning("The thread may never terminate.");
+            ArenaApi.warning("The thread may never terminate and could throw exceptions.");
         }
         finally {
             disposed = true;

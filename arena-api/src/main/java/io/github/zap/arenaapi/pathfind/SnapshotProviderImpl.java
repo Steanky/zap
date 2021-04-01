@@ -9,13 +9,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-class WorldSnapshotProvider implements SnapshotProvider {
+class SnapshotProviderImpl implements SnapshotProvider {
     private static final Map<ChunkIdentifier, ChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
 
     private final World world;
     private final ChunkRange range;
 
-    WorldSnapshotProvider(@NotNull World world, @NotNull ChunkRange range) {
+    SnapshotProviderImpl(@NotNull World world, @NotNull ChunkRange range) {
         this.world = world;
         this.range = range;
     }

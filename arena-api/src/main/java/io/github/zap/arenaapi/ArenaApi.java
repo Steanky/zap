@@ -282,7 +282,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                     PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(), 1.0D, 1.0D);
                     engine.giveOperation(PathOperation.forAgent(blockAgent,
                             PathDestination.fromEntities(false, stands), ScoreCalculator.DISTANCE,
-                            TerminationCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST, 5),
+                            SuccessCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST, 5),
                             event.getPlayer().getWorld(), (pathResult) -> Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                                 for(PathNode node : pathResult) {
                                     event.getPlayer().getWorld().getBlockAt(node.x, node.y, node.z).setType(Material.DIAMOND_BLOCK);

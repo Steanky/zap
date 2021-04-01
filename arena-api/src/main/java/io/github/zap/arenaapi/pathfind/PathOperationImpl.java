@@ -9,7 +9,7 @@ class PathOperationImpl implements PathOperation {
     private final Set<? extends PathDestination> destinations;
     private State state;
     private final ScoreCalculator calculator;
-    private final TerminationCondition condition;
+    private final SuccessCondition condition;
     private final NodeProvider provider;
     private final DestinationSelector selector;
     private final ChunkRange range;
@@ -21,7 +21,7 @@ class PathOperationImpl implements PathOperation {
     private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
-                      @NotNull ScoreCalculator calculator, @NotNull TerminationCondition condition,
+                      @NotNull ScoreCalculator calculator, @NotNull SuccessCondition condition,
                       @NotNull NodeProvider provider, @NotNull DestinationSelector selector, @NotNull ChunkRange range) {
         this.agent = agent;
         this.destinations = destinations;
