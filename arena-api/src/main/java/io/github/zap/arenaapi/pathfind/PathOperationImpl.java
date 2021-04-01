@@ -18,7 +18,7 @@ class PathOperationImpl implements PathOperation {
     private final NodeProvider provider;
     private final DestinationSelector selector;
 
-    private final NavigableSet<PathNode> openSet = new TreeSet<>(NodeComparator.instance());
+    private final NodeQueue openSet = new NodeQueue();
     private final Set<PathNode> visited = new HashSet<>();
     private PathDestination destination;
     private PathNode currentNode;
@@ -48,8 +48,8 @@ class PathOperationImpl implements PathOperation {
                     }
                 }
 
-                if(!openSet.isEmpty()) {
-                    currentNode = openSet.pollFirst();
+                if(openSet.size() != 0) {
+                    currentNode = openSet.poll();
                 }
                 else {
                     complete(false, destination);
@@ -87,9 +87,9 @@ class PathOperationImpl implements PathOperation {
                 if(g < sample.score.g) {
                     sample.parent = currentNode;
 
-                    openSet.remove(sample);
-                    sample.score = new Score(g, calculator.computeH(context, sample, destination));
-                    openSet.add(sample);
+                    openSet.update(sample, node -> {
+                        node.score = new Score(g, calculator.computeH(context, sample, destination));
+                    });
                 }
 
                 Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {

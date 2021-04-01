@@ -89,8 +89,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-
-        Test.test();
+        
         engine = PathfinderEngine.async();
     }
 

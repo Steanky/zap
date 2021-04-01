@@ -1,7 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 
 class Score {
@@ -42,5 +40,9 @@ class Score {
         }
 
         return false;
+    }
+
+    public Score copy() {
+        return new Score(g, h);
     }
 }

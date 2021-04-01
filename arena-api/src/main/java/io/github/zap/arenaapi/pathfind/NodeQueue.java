@@ -5,7 +5,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 class NodeQueue {
-    private static final Comparator<PathNode> COMPARATOR = NodeComparator.instance();
+    private static final Comparator<PathNode> NODE_COMPARATOR = NodeComparator.instance();
+    private static final Comparator<Score> SCORE_COMPARATOR = ScoreComparator.instance();
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     private PathNode[] queue;
@@ -42,8 +43,6 @@ class NodeQueue {
     }
 
     public boolean offer(PathNode e) {
-        if (e == null)
-            throw new NullPointerException();
         int i = size;
         if (i >= queue.length)
             grow(i + 1);
@@ -52,14 +51,25 @@ class NodeQueue {
         return true;
     }
 
-    public void update(PathNode original, PathNode newValue) {
-        int comparisonResult = COMPARATOR.compare(original, newValue);
+    public void update(PathNode original, Consumer<PathNode> updateFunction) {
+        PathNode oldNode = original.copy();
+        updateFunction.accept(original);
+        int comparisonResult = NODE_COMPARATOR.compare(oldNode, original);
 
-        if(comparisonResult < 0) {
-            siftUp(indexOf(original), newValue);
-        }
-        else if(comparisonResult > 0) {
-            siftDown(indexOf(original), newValue);
+        if(comparisonResult != 0) {
+            int index = indexOf(original);
+
+            if(index != -1) {
+                if(comparisonResult > 0) {
+                    siftUp(index, original);
+                }
+                else {
+                    siftDown(index, original);
+                }
+            }
+            else {
+                offer(original);
+            }
         }
     }
 
@@ -73,6 +83,7 @@ class NodeQueue {
                 if (o.equals(queue[i]))
                     return i;
         }
+
         return -1;
     }
 
@@ -192,7 +203,7 @@ class NodeQueue {
         while (k > 0) {
             int parent = (k - 1) >>> 1;
             PathNode e = queue[parent];
-            if (COMPARATOR.compare(x, e) >= 0)
+            if (NODE_COMPARATOR.compare(x, e) >= 0)
                 break;
             queue[k] = e;
             k = parent;
@@ -206,9 +217,9 @@ class NodeQueue {
             int child = (k << 1) + 1;
             PathNode c = queue[child];
             int right = child + 1;
-            if (right < size && COMPARATOR.compare(c, queue[right]) > 0)
+            if (right < size && NODE_COMPARATOR.compare(c, queue[right]) > 0)
                 c = queue[child = right];
-            if (COMPARATOR.compare(x, c) <= 0)
+            if (NODE_COMPARATOR.compare(x, c) <= 0)
                 break;
             queue[k] = c;
             k = child;
@@ -223,7 +234,7 @@ class NodeQueue {
     }
 
     public Comparator<PathNode> comparator() {
-        return COMPARATOR;
+        return NODE_COMPARATOR;
     }
 
     public final Spliterator<PathNode> spliterator() {

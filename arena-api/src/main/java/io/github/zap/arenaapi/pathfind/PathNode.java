@@ -16,15 +16,18 @@ public class PathNode {
     public PathNode parent;
 
     PathNode(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-
-        hash = Objects.hash(x, y, z);
+        this(x, y, z, Objects.hash(x, y, z));
     }
 
     PathNode(@NotNull Vector from) {
         this(from.getBlockX(), from.getBlockY(), from.getBlockZ());
+    }
+
+    private PathNode(int x, int y, int z, int hash) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.hash = hash;
     }
 
     @Override
@@ -57,5 +60,11 @@ public class PathNode {
 
     public PathNode add(int x, int y, int z) {
         return new PathNode(this.x + x, this.y + y, this.z + z);
+    }
+
+    public PathNode copy() {
+        PathNode node = new PathNode(x, y, z, hash);
+        node.score = score.copy();
+        return node;
     }
 }
