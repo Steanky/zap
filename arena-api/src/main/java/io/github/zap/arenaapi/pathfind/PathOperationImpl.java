@@ -79,6 +79,9 @@ class PathOperationImpl implements PathOperation {
                 }
             }
         }
+        else {
+            throw new IllegalStateException("Cannot call step() for PathOperation with state " + state);
+        }
 
         return false;
     }

@@ -277,17 +277,17 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private void onPlayerRightClick(PlayerInteractEvent event) {
         if(event.getClickedBlock() != null && event.getHand() == EquipmentSlot.HAND) {
             if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
-                Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 20D);
+                Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 40D);
                 if(stands.size() > 0) {
                     PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(), 1.0D, 1.0D);
                     engine.giveOperation(PathOperation.forAgent(blockAgent,
                             PathDestination.fromEntities(false, stands), ScoreCalculator.DISTANCE,
                             TerminationCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST),
-                            event.getPlayer().getWorld(), (pathResult) -> {
+                            event.getPlayer().getWorld(), (pathResult) -> Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                                 for(PathNode node : pathResult) {
                                     event.getPlayer().getWorld().getBlockAt(node.x, node.y, node.z).setType(Material.DIAMOND_BLOCK);
                                 }
-                            });
+                            }));
                 }
             }
             else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE) {
