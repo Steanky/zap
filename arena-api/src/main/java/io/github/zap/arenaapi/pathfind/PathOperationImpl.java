@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
+    private static final Comparator<PathNode> NODE_COMPARATOR = NodeComparator.instance();
+
     private final PathAgent agent;
     private final Set<? extends PathDestination> destinations;
     private State state;
@@ -18,6 +20,7 @@ class PathOperationImpl implements PathOperation {
     private final Set<PathNode> visited = new HashSet<>();
     private PathDestination destination;
     private PathNode currentNode;
+    private PathNode bestFound;
     private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
@@ -55,6 +58,7 @@ class PathOperationImpl implements PathOperation {
             else {
                 currentNode = agent.nodeAt();
                 currentNode.score = new Score(0, calculator.computeH(context, currentNode, selector.selectDestinationFor(this, currentNode)));
+                bestFound = new PathNode(currentNode.x, currentNode.y, currentNode.z);
             }
 
             visited.add(currentNode);
@@ -72,6 +76,10 @@ class PathOperationImpl implements PathOperation {
                 if(g < sample.score.g) {
                     sample.parent = currentNode;
                     openSet.update(sample, node -> node.score = new Score(g, calculator.computeH(context, sample, destination)));
+                }
+
+                if(sample.score.h < bestFound.score.h) { //heuristic-only comparison for 'best path' in case of inaccessible target
+                    bestFound = sample;
                 }
             }
         }
@@ -137,6 +145,6 @@ class PathOperationImpl implements PathOperation {
 
     private void complete(boolean success, PathDestination destination) {
         state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(currentNode, destination, state);
+        result = new PathResultImpl(success ? currentNode : bestFound, destination, state);
     }
 }
