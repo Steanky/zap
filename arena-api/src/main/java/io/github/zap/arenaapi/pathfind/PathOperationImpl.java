@@ -1,10 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
-import lombok.SneakyThrows;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -36,7 +31,6 @@ class PathOperationImpl implements PathOperation {
         this.selector = selector;
     }
 
-    @SneakyThrows
     @Override
     public boolean step(@NotNull PathfinderContext context) {
         if(state == State.INCOMPLETE) {
@@ -136,7 +130,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     private void complete(boolean success, PathDestination destination) {
-        this.state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(currentNode, destination, this.state);
+        state = success ? State.SUCCEEDED : State.FAILED;
+        result = new PathResultImpl(currentNode, destination, state);
     }
 }

@@ -12,10 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
-    public static class Entry {
+    private static class Entry {
         public final PathOperation operation;
         public final Consumer<PathResult> consumer;
 
@@ -62,6 +63,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final List<Context> contexts = new ArrayList<>();
     private final Semaphore contextsSemaphore = new Semaphore(0);
     private final Queue<Context> removalQueue = new ArrayDeque<>();
+    private final Object syncLock = new Object();
 
     private boolean disposed = false;
     private boolean shouldRun = true;
@@ -81,7 +83,9 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         while(shouldRun) {
             try {
                 try {
+                    ArenaApi.info("Acquiring contextsSemaphore...");
                     contextsSemaphore.acquire();
+                    ArenaApi.info("contextsSemaphore acquired.");
 
                     int contextStartingIndex;
                     synchronized (contexts) {
@@ -91,39 +95,42 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     for(int i = contextStartingIndex; i > -1; i--) { //each EngineContext object = different world
                         Context context = contexts.get(i);
 
+                        AtomicBoolean syncRun = new AtomicBoolean(false);
                         BukkitTask syncTask = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
-                            context.snapshot.syncWithWorld();
-                            context.semaphore.release();
+                            synchronized (syncLock) {
+                                if(!syncRun.get()) {
+                                    context.snapshot.syncWithWorld();
+                                    context.semaphore.release();
+                                    syncRun.set(true);
+                                }
+                            }
                         });
 
                         if(context.semaphore.tryAcquire(5L, TimeUnit.SECONDS)) {
                             //noinspection ResultOfMethodCallIgnored
                             context.semaphore.tryAcquire(1); //reset the semaphore
 
-                            contextLoop:
-                            while(true) {
+                            while (true) {
                                 int operationStartingIndex;
                                 synchronized (context) {
                                     operationStartingIndex = context.operations.size() - 1;
                                 }
 
                                 operationLoop:
-                                for(int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
+                                for (int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
                                     Entry entry = context.operations.get(j);
 
                                     PathOperation.State entryState = entry.operation.getState();
-                                    if(entryState == PathOperation.State.INCOMPLETE) {
-                                        for(int k = 0; k < entry.operation.desiredIterations(); k++) {
-                                            if(entry.operation.step(context)) {
+                                    if (entryState == PathOperation.State.INCOMPLETE) {
+                                        for (int k = 0; k < entry.operation.desiredIterations(); k++) {
+                                            if (entry.operation.step(context)) {
                                                 PathResult result = entry.operation.getResult();
 
-                                                if(entry.operation.getState() == PathOperation.State.SUCCEEDED) {
+                                                if (entry.operation.getState() == PathOperation.State.SUCCEEDED) {
                                                     context.successfulPaths.add(result);
-                                                }
-                                                else if(entry.operation.getState() == PathOperation.State.FAILED) {
+                                                } else if (entry.operation.getState() == PathOperation.State.FAILED) {
                                                     context.failedPaths.add(result);
-                                                }
-                                                else {
+                                                } else {
                                                     ArenaApi.warning("PathOperation " + entry.operation + " has an invalid" +
                                                             " state: should be either SUCCEEDED or FAILED, but was " +
                                                             entry.operation.getState().toString());
@@ -134,44 +141,50 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                                 }
 
                                                 entry.consumer.accept(result);
+                                                ArenaApi.info("Called consumer.");
                                                 break;
                                             }
 
-                                            if(Thread.interrupted()) {
+                                            if (Thread.interrupted()) {
                                                 throw new InterruptedException();
                                             }
                                         }
                                     }
 
-                                    if(entryState != PathOperation.State.INCOMPLETE && entry.operation.shouldRemove()) { //remove successful or failed paths if they ask
+                                    //remove successful or failed paths if they ask
+                                    if (entryState != PathOperation.State.INCOMPLETE && entry.operation.shouldRemove()) {
                                         PathResult entryResult = entry.operation.getResult();
 
-                                        if(entryState == PathOperation.State.SUCCEEDED) {
+                                        if (entryState == PathOperation.State.SUCCEEDED) {
                                             context.successfulPaths.remove(entryResult);
-                                        }
-                                        else if(entryState == PathOperation.State.FAILED) {
+                                        } else if (entryState == PathOperation.State.FAILED) {
                                             context.failedPaths.remove(entryResult);
                                         }
 
-                                        if(removeOperation(context, j)) {
-                                            break contextLoop;
-                                        }
+                                        removeOperation(context, j);
+                                    }
+                                }
+
+                                synchronized (context) {
+                                    if (context.operations.size() == 0) {
+                                        //noinspection ResultOfMethodCallIgnored
+                                        contextsSemaphore.tryAcquire(1);
+                                        break;
                                     }
                                 }
                             }
                         }
                         else {
-                            ArenaApi.warning("Timed out while waiting on main thread.");
-                            Bukkit.getScheduler().cancelTask(syncTask.getTaskId());
+                            synchronized (syncLock) {
+                                if(!syncRun.get()) {
+                                    ArenaApi.warning("Timed out while waiting on main thread.");
+                                    Bukkit.getScheduler().cancelTask(syncTask.getTaskId());
+                                    syncRun.set(true);
+                                }
+                            }
                         }
                     }
-                }
-                catch(InterruptedException ignored) {
-                    if(shouldRun) {
-                        ArenaApi.warning("Pathfinder thread was interrupted, but not asked to shut down.");
-                    }
-                }
-                finally {
+
                     synchronized (contexts) {
                         while(!removalQueue.isEmpty()) {
                             contexts.remove(removalQueue.remove());
@@ -181,6 +194,11 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                             //noinspection ResultOfMethodCallIgnored
                             contextsSemaphore.tryAcquire(1);
                         }
+                    }
+                }
+                catch(InterruptedException ignored) {
+                    if(shouldRun) {
+                        ArenaApi.warning("Pathfinder thread was interrupted, but not asked to shut down.");
                     }
                 }
             }
@@ -198,11 +216,10 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
     }
 
-    private boolean removeOperation(Context context, int index) {
+    private void removeOperation(Context context, int index) {
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (context) {
             context.operations.remove(index);
-            return context.operations.size() == 0;
         }
     }
 
