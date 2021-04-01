@@ -28,10 +28,12 @@ class PathResultImpl implements PathResult {
     private final PathNode source;
     private final PathDestination destination;
     private final Set<PathNode> nodes;
+    private final PathOperation.State state;
 
-    PathResultImpl(@NotNull PathNode source, @NotNull PathDestination destination) {
+    PathResultImpl(@NotNull PathNode source, @NotNull PathDestination destination, @NotNull PathOperation.State state) {
         this.source = source;
         this.destination = destination;
+        this.state = state;
         nodes = new LinkedHashSet<>();
     }
 
@@ -48,6 +50,11 @@ class PathResultImpl implements PathResult {
     @Override
     public @NotNull Set<PathNode> nodes() {
         return nodes;
+    }
+
+    @Override
+    public @NotNull PathOperation.State state() {
+        return state;
     }
 
     @NotNull

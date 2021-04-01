@@ -79,7 +79,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      */
     private void pathfind() {
         while(shouldRun) {
-            //try {
+            try {
                 try {
                     contextsSemaphore.acquire();
 
@@ -105,67 +105,69 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                             operationStartingIndex = context.operations.size() - 1;
                         }
 
-                        for(int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
-                            Entry entry = context.operations.get(j);
+                        contextLoop:
+                        while(true) {
+                            for(int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
+                                Entry entry = context.operations.get(j);
 
-                            PathOperation.State entryState = entry.operation.getState();
-                            if(entryState == PathOperation.State.INCOMPLETE) {
-                                for(int k = 0; k < entry.operation.desiredIterations(); k++) {
-                                    if(entry.operation.step(context)) {
-                                        PathResult result = entry.operation.getResult();
+                                PathOperation.State entryState = entry.operation.getState();
+                                if(entryState == PathOperation.State.INCOMPLETE) {
+                                    for(int k = 0; k < entry.operation.desiredIterations(); k++) {
+                                        if(entry.operation.step(context)) {
+                                            PathResult result = entry.operation.getResult();
 
-                                        if(entry.operation.getState() == PathOperation.State.SUCCEEDED) {
-                                            context.successfulPaths.add(result);
-                                        }
-                                        else if(entry.operation.getState() == PathOperation.State.FAILED) {
-                                            context.failedPaths.add(result);
-                                        }
-                                        else {
-                                            ArenaApi.severe("PathOperation " + entry.operation + " has an invalid state: " +
-                                                    "should be either SUCCEEDED or FAILED, but was " +
-                                                    entry.operation.getState().toString());
-                                            continue;
+                                            if(entry.operation.getState() == PathOperation.State.SUCCEEDED) {
+                                                context.successfulPaths.add(result);
+                                            }
+                                            else if(entry.operation.getState() == PathOperation.State.FAILED) {
+                                                context.failedPaths.add(result);
+                                            }
+                                            else {
+                                                ArenaApi.severe("PathOperation " + entry.operation + " has an invalid state: " +
+                                                        "should be either SUCCEEDED or FAILED, but was " +
+                                                        entry.operation.getState().toString());
+                                                continue;
+                                            }
+
+                                            entry.consumer.accept(result);
+                                            break;
                                         }
 
-                                        Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> entry.consumer.accept(result));
-                                        ArenaApi.info("Completed task.");
-                                        break;
+                                        if(Thread.interrupted()) {
+                                            throw new InterruptedException();
+                                        }
+                                    }
+                                }
+
+                                if(entryState != PathOperation.State.INCOMPLETE && entry.operation.shouldRemove()) { //remove successful or failed paths if they ask
+                                    PathResult entryResult = entry.operation.getResult();
+
+                                    if(entryState == PathOperation.State.SUCCEEDED) {
+                                        context.successfulPaths.remove(entryResult);
+                                    }
+                                    else if(entryState == PathOperation.State.FAILED) {
+                                        context.failedPaths.remove(entryResult);
                                     }
 
-                                    if(Thread.interrupted()) {
-                                        throw new InterruptedException();
+                                    synchronized (context) {
+                                        context.operations.remove(j);
+
+                                        if(context.operations.size() == 0) {
+                                            break contextLoop;
+                                        }
                                     }
-                                }
-                            }
-
-                            if(entryState != PathOperation.State.INCOMPLETE && entry.operation.shouldRemove()) { //remove successful or failed paths if they ask
-                                PathResult entryResult = entry.operation.getResult();
-
-                                if(entryState == PathOperation.State.SUCCEEDED) {
-                                    context.successfulPaths.remove(entryResult);
-                                }
-                                else if(entryState == PathOperation.State.FAILED) {
-                                    context.failedPaths.remove(entryResult);
-                                }
-
-                                synchronized (context) {
-                                    context.operations.remove(j);
                                 }
                             }
                         }
 
-                        synchronized (context) {
-                            if(context.operations.size() > 0) {
-                                contextsSemaphore.release();
-                            }
-                        }
+                        contextsSemaphore.release();
 
-                        synchronized (removalQueue) {
+                        synchronized (contexts) {
                             while(!removalQueue.isEmpty()) {
                                 contexts.remove(removalQueue.remove());
                             }
 
-                            if(contexts.size() == 0) {
+                            if(contexts.size() == 0) { //lock semaphore, we have no tasks
                                 //noinspection ResultOfMethodCallIgnored
                                 contextsSemaphore.tryAcquire(1);
                             }
@@ -173,27 +175,26 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
                 }
                 catch(InterruptedException ignored) { }
-            //}
-            //catch (Exception exception) {
-            //    ArenaApi.warning("Exception occurred in pathfinding thread: " + exception.toString());
-            //    ArenaApi.warning("Clearing state and continuing.");
+            }
+            catch (Exception exception) {
+                ArenaApi.warning("Exception occurred in pathfinding thread: " + exception.toString());
+                ArenaApi.warning("Clearing state and continuing.");
 
-            //    synchronized (contexts) {
-            //        contexts.clear();
-            //        //noinspection ResultOfMethodCallIgnored
-            //        contextsSemaphore.tryAcquire(1);
-            //    }
-            //}
+                synchronized (contexts) {
+                    contexts.clear();
+                    //noinspection ResultOfMethodCallIgnored
+                    contextsSemaphore.tryAcquire(1);
+                }
+            }
         }
     }
 
     /**
-     * Queues a pathfinding operation onto the pathfinding thread. This method is not thread-safe and should only be
-     * called on the main server thread.
+     * Queues a pathfinding operation onto the pathfinding thread. This method is thread-safe.
      * @param operation The operation to enqueue
      */
     @Override
-    public void queueOperation(@NotNull PathOperation operation, @NotNull World world, @NotNull Consumer<PathResult> resultConsumer) {
+    public synchronized void giveOperation(@NotNull PathOperation operation, @NotNull World world, @NotNull Consumer<PathResult> resultConsumer) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
@@ -241,16 +242,14 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 EngineContext context = contexts.get(i);
 
                 if(context.snapshot.getWorld().equals(event.getWorld())) {
-                    synchronized (removalQueue) {
-                        removalQueue.add(context);
-                    }
+                    removalQueue.add(context);
                 }
             }
         }
     }
 
     @Override
-    public void dispose() {
+    public synchronized void dispose() {
         if(disposed) {
             return;
         }
@@ -264,8 +263,11 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
         catch (InterruptedException ignored) {
             ArenaApi.warning("Interrupted while waiting for pathfinder thread to shut down!");
+            ArenaApi.warning("Thread state: " + pathfinderThread.getState());
+            ArenaApi.warning("The thread may never terminate.");
         }
-
-        disposed = true;
+        finally {
+            disposed = true;
+        }
     }
 }

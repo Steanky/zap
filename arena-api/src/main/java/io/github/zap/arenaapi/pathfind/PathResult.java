@@ -10,4 +10,6 @@ public interface PathResult extends Iterable<PathNode> {
     @NotNull PathDestination destination();
 
     @NotNull Set<PathNode> nodes();
+
+    @NotNull PathOperation.State state();
 }

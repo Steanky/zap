@@ -63,21 +63,10 @@ class PathOperationImpl implements PathOperation {
 
             visited.add(currentNode);
 
-            Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                Block block = context.snapshotProvider().getWorld().getBlockAt(currentNode.x, currentNode.y - 1, currentNode.z);
-                block.setType(Material.GREEN_WOOL);
-            });
-
-            Thread.sleep(50);
-
             List<PathNode> possibleNodes = provider.generateNodes(context, this, currentNode);
 
             for(PathNode sample : possibleNodes) {
-                if(sample == null) {
-                    break;
-                }
-
-                if(visited.contains(sample)) {
+                if(sample == null || visited.contains(sample)) {
                     continue;
                 }
 
@@ -86,18 +75,8 @@ class PathOperationImpl implements PathOperation {
 
                 if(g < sample.score.g) {
                     sample.parent = currentNode;
-
-                    openSet.update(sample, node -> {
-                        node.score = new Score(g, calculator.computeH(context, sample, destination));
-                    });
+                    openSet.update(sample, node -> node.score = new Score(g, calculator.computeH(context, sample, destination)));
                 }
-
-                Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                    Block block = context.snapshotProvider().getWorld().getBlockAt(sample.x, sample.y - 1, sample.z);
-                    block.setType(Material.RED_WOOL);
-                });
-
-                Thread.sleep(50);
             }
         }
 
@@ -124,7 +103,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public int desiredIterations() {
-        return 200;
+        return 1;
     }
 
     @Override
@@ -155,6 +134,6 @@ class PathOperationImpl implements PathOperation {
 
     private void complete(boolean success, PathDestination destination) {
         this.state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(currentNode, destination);
+        result = new PathResultImpl(currentNode, destination, this.state);
     }
 }

@@ -89,7 +89,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-        
+
         engine = PathfinderEngine.async();
     }
 
@@ -280,7 +280,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                 Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 20D);
                 if(stands.size() > 0) {
                     PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(), 1.0D, 1.0D);
-                    engine.queueOperation(PathOperation.forAgent(blockAgent,
+                    engine.giveOperation(PathOperation.forAgent(blockAgent,
                             PathDestination.fromEntities(false, stands), ScoreCalculator.DISTANCE,
                             TerminationCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST),
                             event.getPlayer().getWorld(), (pathResult) -> {
