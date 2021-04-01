@@ -110,7 +110,6 @@ class PathOperationImpl implements PathOperation {
         return true;
     }
 
-
     @Override
     public @NotNull Set<? extends PathDestination> getDestinations() {
         return destinations;

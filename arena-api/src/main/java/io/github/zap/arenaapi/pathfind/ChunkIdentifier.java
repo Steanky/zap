@@ -30,4 +30,9 @@ public class ChunkIdentifier {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "ChunkIdentifier{worldID=" + worldID + ", coordinate=" + coordinate + "}";
+    }
 }

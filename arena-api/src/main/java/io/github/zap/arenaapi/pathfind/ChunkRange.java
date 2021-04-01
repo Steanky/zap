@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -19,7 +18,8 @@ public class ChunkRange implements Iterable<ChunkCoordinate> {
 
         @Override
         public ChunkCoordinate next() {
-            if(++x >= maxX) {
+            if(++x == maxX) {
+                x = minX;
                 z++;
             }
             return new ChunkCoordinate(x, z);

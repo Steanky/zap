@@ -38,4 +38,9 @@ public class ChunkCoordinate {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "ChunkCoordinate{x=" + x + ", z=" + z + "}";
+    }
 }
