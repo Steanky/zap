@@ -111,15 +111,15 @@ class NodeQueue {
     }
 
     public Iterator<PathNode> iterator() {
-        return new NodeQueue.Itr();
+        return new PathNodeIterator();
     }
 
-    private final class Itr implements Iterator<PathNode> {
+    private final class PathNodeIterator implements Iterator<PathNode> {
         private int cursor;
         private int lastRet = -1;
         private ArrayDeque<PathNode> forgetMeNot;
         private PathNode lastRetElt;
-        Itr() {}
+        PathNodeIterator() {}
 
         public boolean hasNext() {
             return cursor < size ||

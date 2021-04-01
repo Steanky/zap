@@ -66,7 +66,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private boolean disposed = false;
     private boolean shouldRun = true;
 
-    public AsyncPathfinderEngine() {
+    AsyncPathfinderEngine() {
         pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
         pathfinderThread.start();
 
@@ -201,6 +201,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
         Objects.requireNonNull(operation, "operation cannot be null!");
         Objects.requireNonNull(world, "world cannot be null!");
+        Objects.requireNonNull(resultConsumer, "resultConsumer cannot be null!");
 
         EngineContext targetContext = null;
         synchronized (contexts) {
