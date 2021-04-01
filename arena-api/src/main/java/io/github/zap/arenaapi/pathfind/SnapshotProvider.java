@@ -11,17 +11,13 @@ public interface SnapshotProvider {
 
     @Nullable ChunkSnapshot chunkAt(int x, int y);
 
-    @Nullable ChunkSnapshot chunkAt(long key);
-
     boolean hasChunkAt(int x, int y);
-
-    boolean hasChunkAt(long key);
 
     void updateChunk(int x, int y);
 
-    void updateChunk(long key);
+    void updateAll();
 
-    void syncWithWorld();
+    @NotNull ChunkRange range();
 
     @Nullable BlockData getData(int x, int y, int z);
 }

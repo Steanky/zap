@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.apache.commons.lang3.Validate;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -29,9 +30,12 @@ public interface PathOperation {
 
     @NotNull PathAgent getAgent();
 
+    @NotNull ChunkRange searchArea();
+
     static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                                   @NotNull ScoreCalculator calculator, @NotNull TerminationCondition terminationCondition,
-                                  @NotNull NodeProvider provider, @NotNull DestinationSelector destinationSelector) {
+                                  @NotNull NodeProvider provider, @NotNull DestinationSelector destinationSelector,
+                                  int chunkRadius) {
         Objects.requireNonNull(agent, "agent cannot be null!");
         Objects.requireNonNull(destinations, "destinations cannot be null!");
         Validate.isTrue(!destinations.isEmpty(), "destinations cannot be empty!");
@@ -39,7 +43,10 @@ public interface PathOperation {
         Objects.requireNonNull(terminationCondition,"terminationCondition cannot be null!");
         Objects.requireNonNull(provider, "provider cannot be null!");
         Objects.requireNonNull(destinationSelector, "destinationSelector cannot be null!");
+        Validate.isTrue(chunkRadius >= 0, "chunkRadius cannot be negative!");
 
-        return new PathOperationImpl(agent, destinations, calculator, terminationCondition, provider, destinationSelector);
+        Vector agentPos = agent.position();
+        return new PathOperationImpl(agent, destinations, calculator, terminationCondition, provider,
+                destinationSelector, new ChunkRange(agentPos.getBlockX(), agentPos.getBlockZ(), chunkRadius));
     }
 }

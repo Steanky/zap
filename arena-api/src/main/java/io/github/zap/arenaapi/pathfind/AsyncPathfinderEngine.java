@@ -99,7 +99,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         BukkitTask syncTask = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
                             synchronized (syncLock) {
                                 if(!syncRun.get()) {
-                                    context.snapshot.syncWithWorld();
+                                    context.snapshot.updateAll();
                                     context.semaphore.release();
                                     syncRun.set(true);
                                 }
@@ -248,7 +248,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new Context(new WorldSnapshotProvider(world));
+            targetContext = new Context(new WorldSnapshotProvider(world, operation.searchArea()));
             targetContext.operations.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {

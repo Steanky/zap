@@ -10,11 +10,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 class WorldSnapshotProvider implements SnapshotProvider {
-    private final World world;
-    private final Map<Long, ChunkSnapshot> chunks = new HashMap<>();
+    private static final Map<ChunkIdentifier, ChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
 
-    WorldSnapshotProvider(@NotNull World world) {
+    private final World world;
+    private final ChunkRange range;
+
+    WorldSnapshotProvider(@NotNull World world, @NotNull ChunkRange range) {
         this.world = world;
+        this.range = range;
     }
 
     @Override
@@ -24,43 +27,41 @@ class WorldSnapshotProvider implements SnapshotProvider {
 
     @Override
     public @Nullable ChunkSnapshot chunkAt(int x, int z) {
-        return chunkAt(Chunk.getChunkKey(x, z));
-    }
-
-    @Override
-    public @Nullable ChunkSnapshot chunkAt(long key) {
-        return chunks.get(key);
+        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)));
     }
 
     @Override
     public boolean hasChunkAt(int x, int z) {
-        return hasChunkAt(Chunk.getChunkKey(x, z));
+        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z))) != null;
     }
 
-    @Override
-    public boolean hasChunkAt(long key) {
-        return chunks.containsKey(key);
+    private void updateChunkInternal(int x, int z) {
+        Chunk chunk = world.getChunkAt(x, z);
+        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)), chunk.getChunkSnapshot());
     }
 
     @Override
     public void updateChunk(int x, int z) {
-        updateChunk(Chunk.getChunkKey(x, z));
-    }
-
-    @Override
-    public void updateChunk(long key) {
-        if(chunks.containsKey(key)) {
-            chunks.put(key, world.getChunkAt(key).getChunkSnapshot());
+        if(range.inRange(x, z) && world.isChunkLoaded(x, z)) {
+            updateChunkInternal(x, z);
         }
     }
 
     @Override
-    public void syncWithWorld() {
-        chunks.clear();
-
-        for(Chunk chunk : world.getLoadedChunks()) {
-            chunks.put(chunk.getChunkKey(), chunk.getChunkSnapshot());
+    public void updateAll() {
+        for(ChunkCoordinate coordinate : range) {
+            if(world.isChunkLoaded(coordinate.x, coordinate.z)) {
+                updateChunkInternal(coordinate.x, coordinate.z);
+            }
+            else {
+                GLOBAL_CHUNKS.remove(new ChunkIdentifier(world.getUID(), coordinate));
+            }
         }
+    }
+
+    @Override
+    public @NotNull ChunkRange range() {
+        return range;
     }
 
     @Override

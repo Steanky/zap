@@ -12,6 +12,7 @@ class PathOperationImpl implements PathOperation {
     private final TerminationCondition condition;
     private final NodeProvider provider;
     private final DestinationSelector selector;
+    private final ChunkRange range;
 
     private final NodeQueue openSet = new NodeQueue();
     private final Set<PathNode> visited = new HashSet<>();
@@ -21,7 +22,7 @@ class PathOperationImpl implements PathOperation {
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                       @NotNull ScoreCalculator calculator, @NotNull TerminationCondition condition,
-                      @NotNull NodeProvider provider, @NotNull DestinationSelector selector) {
+                      @NotNull NodeProvider provider, @NotNull DestinationSelector selector, @NotNull ChunkRange range) {
         this.agent = agent;
         this.destinations = destinations;
         this.state = State.INCOMPLETE;
@@ -29,6 +30,7 @@ class PathOperationImpl implements PathOperation {
         this.condition = condition;
         this.provider = provider;
         this.selector = selector;
+        this.range = range;
     }
 
     @Override
@@ -122,6 +124,11 @@ class PathOperationImpl implements PathOperation {
     @Override
     public @NotNull PathAgent getAgent() {
         return agent;
+    }
+
+    @Override
+    public @NotNull ChunkRange searchArea() {
+        return range;
     }
 
     @Override
