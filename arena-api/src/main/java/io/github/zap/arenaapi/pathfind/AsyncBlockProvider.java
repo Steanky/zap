@@ -25,11 +25,6 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     @Override
-    public @Nullable ChunkSnapshot chunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)));
-    }
-
-    @Override
     public boolean hasChunkAt(int x, int z) {
         return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z))) != null;
     }
@@ -62,17 +57,21 @@ class AsyncBlockProvider implements BlockProvider {
         return range;
     }
 
+    private ChunkSnapshot chunkAt(int x, int z) {
+        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)));
+    }
+
     @Override
     public @Nullable BlockData getData(int worldX, int worldY, int worldZ) {
-        int chunkX = worldX / 16;
-        int chunkZ = worldZ / 16;
+        int chunkX = worldX >> 4; //convert world coords to chunk coords
+        int chunkZ = worldZ >> 4;
 
-        ChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
+        ChunkSnapshot snapshot = chunkAt(chunkX, chunkZ); //get the chunk we need
         if(snapshot != null) {
-            int xM = worldX % 16;
-            int zM = worldZ % 16;
+            int remX = worldX % 16;
+            int remZ = worldZ % 16;
 
-            return snapshot.getBlockData(xM < 0 ? 16 + xM : xM, worldY, zM < 0 ? 16 + zM : zM);
+            return snapshot.getBlockData(remX < 0 ? 16 + remX : remX, worldY, remZ < 0 ? 16 + remZ : remZ);
         }
 
         return null;

@@ -20,7 +20,7 @@ class PathResultImpl implements PathResult {
         @Override
         public PathNode next() {
             PathNode save = current;
-            current = current.child;
+            current = current.parent;
             return save;
         }
     }
@@ -76,6 +76,6 @@ class PathResultImpl implements PathResult {
     @NotNull
     @Override
     public Iterator<PathNode> iterator() {
-        return new ResultIterator(start);
+        return new ResultIterator(end);
     }
 }

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -39,18 +40,32 @@ class PathOperationImpl implements PathOperation {
     public boolean step(@NotNull PathfinderContext context) {
         if(state == State.INCOMPLETE) {
             if(currentNode != null) {
+                PathDestination best = null;
+                double bestScore = Double.POSITIVE_INFINITY;
                 for(PathDestination destination : destinations) {
                     if(condition.hasCompleted(context, currentNode, destination)) {
+                        ArenaApi.info("Terminating successfully.");
                         complete(true, destination);
                         return true;
                     }
+
+                    double thisScore = destination.destinationScore(currentNode);
+                    if(best == null || thisScore < bestScore) {
+                        best = destination;
+                        bestScore = thisScore;
+                    }
+                }
+
+                if(best == null) {
+                    throw new IllegalStateException("Unable to find a valid destination!");
                 }
 
                 if(openSet.size() != 0) {
                     currentNode = openSet.poll();
                 }
                 else {
-                    complete(false, destination);
+                    ArenaApi.info("Terminating with fail state.");
+                    complete(false, destination == null ? best : destination);
                     return true;
                 }
             }
@@ -89,28 +104,22 @@ class PathOperationImpl implements PathOperation {
                             failed.operation().agent().characteristics().equals(agent.characteristics()) &&
                             failed.visitedNodes().contains(sample) &&
                             failed.operation().nodeProvider().isValid(context, agent, sample, currentNode)) {
+                        ArenaApi.info("Found an old failed path.");
                         destinations.remove(destination);
+                        PathNode destNode = destination.node();
                         destination = new PathDestinationAbstract(failed.end()) {
                             @Override
                             public double destinationScore(@NotNull PathNode node) {
-                                return destination.destinationScore(node);
+                                return destNode.distanceSquaredTo(node);
                             }
                         };
                         destinations.add(destination);
-                        return true;
-                    }
-                }
-
-                for(PathResult succeeded : context.successfulPaths()) {
-                    if(succeeded.destination().equals(destination) && succeeded.visitedNodes().contains(sample)) {
-
                     }
                 }
 
                 double g = calculator.computeG(context, currentNode, sample, destination);
                 if(g < sample.score.g) {
                     sample.parent = currentNode;
-                    currentNode.child = sample;
                     openSet.update(sample, node -> node.score = new Score(g, calculator.computeH(context, sample, destination)));
                 }
 

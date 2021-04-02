@@ -65,8 +65,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     }
 
     private final Thread pathfinderThread;
-    private final ExecutorService worker = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    private final ExecutorCompletionService<Context> completionService = new ExecutorCompletionService<>(worker);
+    private final ExecutorService pathWorker = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ExecutorCompletionService<Context> completionService = new ExecutorCompletionService<>(pathWorker);
     private final List<Context> contexts = new ArrayList<>();
     private final Semaphore contextsSemaphore = new Semaphore(0);
     private final Queue<Context> removalQueue = new ArrayDeque<>();
@@ -87,9 +87,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         while(shouldRun) {
             try {
                 try {
-                    ArenaApi.info("Acquiring contextsSemaphore...");
                     contextsSemaphore.acquire();
-                    ArenaApi.info("contextsSemaphore acquired.");
 
                     int contextStartingIndex;
                     synchronized (contexts) {
@@ -109,6 +107,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         });
 
                         if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
+                            ArenaApi.info("World synchronization semaphore acquired.");
                             //noinspection ResultOfMethodCallIgnored
                             context.semaphore.tryAcquire(1); //reset the semaphore
 
@@ -131,7 +130,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     //wait for all of the operations we just queued
                     List<Context> completedContexts = new ArrayList<>();
                     for(int i = 0; i < ops; i++) {
-                        Future<Context> contextFuture = completionService.poll();
+                        Future<Context> contextFuture = completionService.take();
                         completedContexts.add(contextFuture.get());
                     }
 
@@ -166,7 +165,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             }
             catch (Exception exception) {
                 ArenaApi.warning("Unhandled exception occurred in pathfinding thread: ");
-                ArenaApi.warning(exception.toString());
+                exception.printStackTrace();
                 ArenaApi.warning("Clearing state and continuing.");
 
                 synchronized (contexts) {
@@ -178,60 +177,60 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
     }
 
-    private Context calculatePathsFor(Context context) {
-        outer:
-        while (true) { //iterate all processes until they are complete
+    private Context calculatePathsFor(Context context) throws InterruptedException {
+        while (true) { //iterate all context operations until they are complete
             int operationStartingIndex;
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (context) {
                 operationStartingIndex = context.operations.size() - 1;
             }
 
-            for (int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
-                Entry entry = context.operations.get(j);
+            synchronized (context.operations) {
+                for (int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
+                    Entry entry = context.operations.get(j);
 
-                PathOperation.State entryState = entry.operation.getState();
-                if (entryState == PathOperation.State.INCOMPLETE) {
-                    for (int k = 0; k < Math.min(entry.operation.desiredIterations(), MAX_ITERATIONS); k++) {
-                        if (entry.operation.step(context)) {
-                            PathResult result = entry.operation.getResult();
+                    PathOperation.State entryState = entry.operation.getState();
+                    if (entryState == PathOperation.State.INCOMPLETE) {
+                        for (int k = 0; k < Math.min(entry.operation.desiredIterations(), MAX_ITERATIONS); k++) {
+                            if (entry.operation.step(context)) {
+                                PathResult result = entry.operation.getResult();
 
-                            if (entry.operation.getState() == PathOperation.State.SUCCEEDED) {
-                                context.successfulPaths.add(result);
-                            } else if (entry.operation.getState() == PathOperation.State.FAILED) {
-                                context.failedPaths.add(result);
-                            } else {
-                                ArenaApi.warning("PathOperation " + entry.operation + " has an invalid" +
-                                        " state: should be either SUCCEEDED or FAILED, but was " +
-                                        entry.operation.getState().toString());
-                                ArenaApi.warning("Removing invalid PathOperation without calling consumer.");
+                                if (entry.operation.getState() == PathOperation.State.SUCCEEDED) {
+                                    context.successfulPaths.add(result);
+                                } else if (entry.operation.getState() == PathOperation.State.FAILED) {
+                                    context.failedPaths.add(result);
+                                } else {
+                                    ArenaApi.warning("PathOperation " + entry.operation + " has an invalid" +
+                                            " state: should be either SUCCEEDED or FAILED, but was " +
+                                            entry.operation.getState().toString());
+                                    ArenaApi.warning("Removing invalid PathOperation without calling consumer.");
 
-                                removeOperation(context, j);
+                                    removeOperation(context, j);
+                                    break;
+                                }
+
+                                entry.consumer.accept(result);
                                 break;
                             }
 
-                            entry.consumer.accept(result);
-                            ArenaApi.info("Called consumer.");
-                            break;
-                        }
-
-                        if (Thread.interrupted()) {
-                            break outer;
+                            if (Thread.interrupted()) {
+                                throw new InterruptedException();
+                            }
                         }
                     }
-                }
 
-                //remove successful or failed paths if they ask
-                if (entryState != PathOperation.State.INCOMPLETE && entry.operation.shouldRemove()) {
-                    PathResult entryResult = entry.operation.getResult();
+                    //remove successful or failed paths if they ask
+                    if (entryState != PathOperation.State.INCOMPLETE && entry.operation.shouldRemove()) {
+                        PathResult entryResult = entry.operation.getResult();
 
-                    if (entryState == PathOperation.State.SUCCEEDED) {
-                        context.successfulPaths.remove(entryResult);
-                    } else if (entryState == PathOperation.State.FAILED) {
-                        context.failedPaths.remove(entryResult);
+                        if (entryState == PathOperation.State.SUCCEEDED) {
+                            context.successfulPaths.remove(entryResult);
+                        } else if (entryState == PathOperation.State.FAILED) {
+                            context.failedPaths.remove(entryResult);
+                        }
+
+                        removeOperation(context, j);
                     }
-
-                    removeOperation(context, j);
                 }
             }
 
@@ -325,6 +324,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         try{
             pathfinderThread.interrupt();
             pathfinderThread.join();
+            pathWorker.shutdown();
+            if(!pathWorker.awaitTermination(20L, TimeUnit.SECONDS)) {
+                ArenaApi.warning("Pathfinder thread successfully shut down, but the worker service did not terminate after 20s.");
+                ArenaApi.warning("Pathfinding tasks may be completed after this object has been disposed.");
+            }
         }
         catch (InterruptedException ignored) {
             ArenaApi.warning("Interrupted while waiting for pathfinder thread to shut down!");
