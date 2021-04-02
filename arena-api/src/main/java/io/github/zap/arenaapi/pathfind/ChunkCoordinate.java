@@ -9,8 +9,8 @@ public class ChunkCoordinate {
 
     public ChunkCoordinate(int x, int z, boolean isWorldCoordinate) {
         if(isWorldCoordinate) {
-            this.x = x / 16;
-            this.z = z / 16;
+            this.x = x >> 4;
+            this.z = z >> 4;
         }
         else {
             this.x = x;

@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -44,7 +43,6 @@ class PathOperationImpl implements PathOperation {
                 double bestScore = Double.POSITIVE_INFINITY;
                 for(PathDestination destination : destinations) {
                     if(condition.hasCompleted(context, currentNode, destination)) {
-                        ArenaApi.info("Terminating successfully.");
                         complete(true, destination);
                         return true;
                     }
@@ -80,7 +78,7 @@ class PathOperationImpl implements PathOperation {
 
             visited.add(currentNode);
 
-            List<PathNode> possibleNodes = nodeProvider.generateValidNodes(context, agent, currentNode);
+            List<PathNode> possibleNodes = nodeProvider.generateNodes(context, agent, currentNode);
 
             for(PathNode sample : possibleNodes) {
                 if(sample == null || visited.contains(sample)) {
@@ -102,14 +100,12 @@ class PathOperationImpl implements PathOperation {
                     if(failedDestination.equals(destination) &&
                             failed.operation().agent().characteristics().equals(agent.characteristics()) &&
                             failed.visitedNodes().contains(sample) &&
-                            failed.operation().nodeProvider().isValid(context, agent, sample, currentNode)) {
-                        ArenaApi.info("Found an old failed path.");
+                            failed.operation().nodeProvider().mayTraverse(context, agent, sample, currentNode)) {
                         destinations.remove(destination);
-                        PathNode destNode = destination.node();
                         destination = new PathDestinationAbstract(failed.end()) {
                             @Override
                             public double destinationScore(@NotNull PathNode node) {
-                                return destNode.distanceSquaredTo(node);
+                                return destination.destinationScore(node);
                             }
                         };
                         destinations.add(destination);
@@ -155,7 +151,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public int desiredIterations() {
-        return 1;
+        return 100;
     }
 
     @Override

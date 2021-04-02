@@ -12,14 +12,20 @@ import java.util.Objects;
  */
 public interface PathAgent {
     class Characteristics {
-        private final double width;
-        private final double height;
+        public final double width;
+        public final double height;
+        public final double jumpHeight;
         private final int hash;
 
-        public Characteristics(double width, double height) {
+        public Characteristics(double width, double height, double jumpHeight) {
             this.width = width;
             this.height = height;
-            this.hash = Objects.hash(width, height);
+            this.jumpHeight = jumpHeight;
+            this.hash = Objects.hash(width, height, jumpHeight);
+        }
+
+        public Characteristics(double width, double height) {
+            this(width, height, 1);
         }
 
         public Characteristics() {

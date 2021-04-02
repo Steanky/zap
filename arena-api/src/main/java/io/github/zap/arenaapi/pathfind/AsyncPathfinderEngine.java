@@ -93,7 +93,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         contextStartingIndex = contexts.size() - 1;
                     }
 
-                    int ops = 0;
+                    int operations = 0;
                     for(int i = contextStartingIndex; i > -1; i--) { //each EngineContext object = different world
                         Context context = contexts.get(i);
 
@@ -111,7 +111,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                             try {
                                 completionService.submit(() -> calculatePathsFor(context));
-                                ops++;
+                                operations++;
                             }
                             catch (RejectedExecutionException exception) {
                                 ArenaApi.warning("Unable to queue pathfinding operation(s) for world " + context.provider.getWorld());
@@ -127,9 +127,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                     //wait for all of the operations we just queued
                     List<Context> completedContexts = new ArrayList<>();
-                    for(int i = 0; i < ops; i++) {
-                        Future<Context> contextFuture = completionService.take();
-                        completedContexts.add(contextFuture.get());
+                    for(int i = 0; i < operations; i++) {
+                        completedContexts.add(completionService.take().get());
                     }
 
                     //check the operations on each context, if none have pending operations, ignore
@@ -320,8 +319,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             pathfinderThread.interrupt();
             pathfinderThread.join();
             pathWorker.shutdown();
-            if(!pathWorker.awaitTermination(20L, TimeUnit.SECONDS)) {
-                ArenaApi.warning("Pathfinder thread successfully shut down, but the worker service did not terminate after 20s.");
+            if(!pathWorker.awaitTermination(5L, TimeUnit.SECONDS)) {
+                ArenaApi.warning("Pathfinder thread successfully shut down, but the worker service did not terminate after 5s.");
                 ArenaApi.warning("Pathfinding tasks may be completed after this object has been disposed.");
             }
         }
