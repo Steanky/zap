@@ -72,7 +72,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final Queue<Context> removalQueue = new ArrayDeque<>();
 
     private boolean disposed = false;
-    private boolean shouldRun = true;
 
     private final Object completedWaitLock = new Object();
 
@@ -84,7 +83,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     }
 
     private void pathfind() {
-        while(shouldRun) {
+        while(true) {
             try {
                 try {
                     contextsSemaphore.acquire();
@@ -107,7 +106,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         });
 
                         if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
-                            ArenaApi.info("World synchronization semaphore acquired.");
                             //noinspection ResultOfMethodCallIgnored
                             context.semaphore.tryAcquire(1); //reset the semaphore
 
@@ -158,9 +156,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
                 }
                 catch(InterruptedException ignored) {
-                    if(shouldRun) {
-                        ArenaApi.warning("Pathfinder thread was interrupted, but not asked to shut down.");
-                    }
+                    break;
                 }
             }
             catch (Exception exception) {
@@ -319,7 +315,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         WorldUnloadEvent.getHandlerList().unregister(this);
-        shouldRun = false;
 
         try{
             pathfinderThread.interrupt();

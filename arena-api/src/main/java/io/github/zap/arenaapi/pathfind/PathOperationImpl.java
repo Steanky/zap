@@ -64,7 +64,6 @@ class PathOperationImpl implements PathOperation {
                     currentNode = openSet.poll();
                 }
                 else {
-                    ArenaApi.info("Terminating with fail state.");
                     complete(false, destination == null ? best : destination);
                     return true;
                 }
