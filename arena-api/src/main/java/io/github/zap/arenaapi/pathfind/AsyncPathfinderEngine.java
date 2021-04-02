@@ -32,10 +32,10 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         private final List<Entry> operations = new ArrayList<>();
         private final List<PathResult> successfulPaths = new ArrayList<>();
         private final List<PathResult> failedPaths = new ArrayList<>();
-        private final SnapshotProvider snapshot;
+        private final BlockProvider provider;
 
-        private Context(@NotNull SnapshotProvider snapshot) {
-            this.snapshot = snapshot;
+        private Context(@NotNull BlockProvider provider) {
+            this.provider = provider;
         }
 
         @Override
@@ -54,8 +54,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         @Override
-        public @NotNull SnapshotProvider snapshotProvider() {
-            return snapshot;
+        public @NotNull BlockProvider blockProvider() {
+            return provider;
         }
     }
 
@@ -97,7 +97,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         AtomicBoolean syncRun = new AtomicBoolean(false);
                         BukkitTask syncTask = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
                             if(!syncRun.getAndSet(true)) {
-                                context.snapshot.updateAll();
+                                context.provider.updateAll();
                                 context.semaphore.release();
                             }
                         });
@@ -112,7 +112,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     operationStartingIndex = context.operations.size() - 1;
                                 }
 
-                                operationLoop:
                                 for (int j = operationStartingIndex; j > -1; j--) { //iterate all pathfinding operations for this world
                                     Entry entry = context.operations.get(j);
 
@@ -133,7 +132,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                                     ArenaApi.warning("Removing invalid PathOperation.");
 
                                                     removeOperation(context, j);
-                                                    break operationLoop;
+                                                    break;
                                                 }
 
                                                 entry.consumer.accept(result);
@@ -233,7 +232,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         Context targetContext = null;
         synchronized (contexts) {
             for(Context context : contexts) {
-                if(context.snapshotProvider().getWorld().getUID().equals(world.getUID())) {
+                if(context.blockProvider().getWorld().getUID().equals(world.getUID())) {
                     targetContext = context;
                     break;
                 }
@@ -241,7 +240,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new Context(new SnapshotProviderImpl(world, operation.searchArea()));
+            targetContext = new Context(new AsyncBlockProvider(world, operation.searchArea()));
             targetContext.operations.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {
@@ -267,7 +266,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private void onWorldUnload(WorldUnloadEvent event) {
         synchronized (contexts) {
             for(Context context : contexts) {
-                if(context.snapshot.getWorld().equals(event.getWorld())) {
+                if(context.provider.getWorld().equals(event.getWorld())) {
                     removalQueue.add(context);
                 }
             }

@@ -5,23 +5,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class VectorAgent implements PathAgent {
     private final Vector vector;
-    private final double width;
-    private final double height;
+    private final Characteristics characteristics;
 
-    VectorAgent(@NotNull Vector vector, double width, double height) {
+    VectorAgent(@NotNull Vector vector, @NotNull Characteristics characteristics) {
         this.vector = vector.clone();
-        this.width = width;
-        this.height = height;
+        this.characteristics = characteristics;
     }
 
     @Override
-    public double getWidth() {
-        return width;
-    }
-
-    @Override
-    public double getHeight() {
-        return height;
+    public Characteristics characteristics() {
+        return characteristics;
     }
 
     @Override

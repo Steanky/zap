@@ -6,25 +6,18 @@ import org.jetbrains.annotations.NotNull;
 
 public class EntityAgent<T extends Entity> implements PathAgent {
     private final T entity;
-    private final double width;
-    private final double height;
+    private final Characteristics characteristics;
     private final Vector vector;
 
     EntityAgent(@NotNull T entity) {
         this.entity = entity;
-        this.width = entity.getWidth();
-        this.height = entity.getHeight();
+        characteristics = new Characteristics(entity.getWidth(), entity.getHeight());
         this.vector = entity.getLocation().toVector();
     }
 
     @Override
-    public double getWidth() {
-        return width;
-    }
-
-    @Override
-    public double getHeight() {
-        return height;
+    public Characteristics characteristics() {
+        return characteristics;
     }
 
     @Override
@@ -43,6 +36,6 @@ public class EntityAgent<T extends Entity> implements PathAgent {
 
     @Override
     public String toString() {
-        return "EntityAgent{width=" + width + ", height=" + height + ", vector=" + vector + "}";
+        return "EntityAgent{characteristics=" + characteristics + ", vector=" + vector + "}";
     }
 }

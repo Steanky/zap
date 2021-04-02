@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -8,21 +7,52 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 /**
- * Represents an navigation-capable object. Commonly used to wrap basic Bukkit objects such as Entity. Provides
- * information which may be critical to determine the 'navigability' of a node, such as agent width and height.
+ * Represents an navigation-capable object. Commonly used to wrap Bukkit objects such as Entity. Provides information
+ * which may be critical to determine the 'navigability' of a node using a Characteristics object.
  */
 public interface PathAgent {
-    /**
-     * Get the width of this Agent, which will be > 0 and finite.
-     * @return The positive, finite width of this Agent
-     */
-    double getWidth();
+    class Characteristics {
+        private final double width;
+        private final double height;
+        private final int hash;
+
+        public Characteristics(double width, double height) {
+            this.width = width;
+            this.height = height;
+            this.hash = Objects.hash(width, height);
+        }
+
+        public Characteristics() {
+            this(0, 0);
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof Characteristics) {
+                Characteristics other = (Characteristics) obj;
+                return width == other.width && height == other.height;
+            }
+
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "PathAgent.Characteristics{width=" + width + ", height=" + height + "}";
+        }
+    }
 
     /**
-     * Get the height of this Agent, which will be > 0 and finite.
-     * @return The positive, finite height of this Agent
+     * Returns an object representing the characteristics of this PathAgent that may be used to alter which nodes it
+     * it is able to traverse.
+     * @return A PathAgent.Characteristics object containing PathAgent data used to determine node navigability
      */
-    double getHeight();
+    Characteristics characteristics();
 
     /**
      * Constructs a new PathNode at the current block location of this agent.
@@ -47,17 +77,14 @@ public interface PathAgent {
         return new EntityAgent<>(entity);
     }
 
-    static PathAgent fromVector(@NotNull Vector vector, double width, double height) {
+    static PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
         Objects.requireNonNull(vector, "vector cannot be null!");
-        Validate.isTrue(width >= 0, "width cannot be less than 0");
-        Validate.isTrue(height >= 0, "height cannot be less than 0");
-        Validate.isTrue(Double.isFinite(width), "width must be finite");
-        Validate.isTrue(Double.isFinite(height), "height must be finite");
+        Objects.requireNonNull(characteristics, "characteristics cannot be null!");
 
-        return new VectorAgent(vector, width, height);
+        return new VectorAgent(vector, characteristics);
     }
 
     static PathAgent fromVector(@NotNull Vector vector) {
-        return fromVector(vector, 0, 0);
+        return fromVector(vector, new Characteristics());
     }
 }

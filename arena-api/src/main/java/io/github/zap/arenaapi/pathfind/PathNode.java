@@ -10,9 +10,10 @@ public class PathNode {
     public final int x;
     public final int y;
     public final int z;
-    public final int hash;
+    private final int hash;
 
     public Score score = new Score();
+    public PathNode child;
     public PathNode parent;
 
     PathNode(int x, int y, int z) {
@@ -65,6 +66,8 @@ public class PathNode {
     public PathNode copy() {
         PathNode node = new PathNode(x, y, z, hash);
         node.score = score.copy();
+        node.parent = parent;
+        node.child = child;
         return node;
     }
 }

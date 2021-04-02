@@ -10,6 +10,8 @@ import java.util.*;
 public interface PathDestination {
     @NotNull PathNode node();
 
+    double destinationScore(@NotNull PathNode from);
+
     static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
         return new EntityPathDestination(Objects.requireNonNull(entity, "entity cannot be null!"), findBlock);
     }

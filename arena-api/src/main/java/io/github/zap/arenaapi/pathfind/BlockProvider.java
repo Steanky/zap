@@ -6,7 +6,7 @@ import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface SnapshotProvider {
+public interface BlockProvider {
     @NotNull World getWorld();
 
     @Nullable ChunkSnapshot chunkAt(int x, int y);

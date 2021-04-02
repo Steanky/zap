@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,33 +7,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface NodeProvider {
-    NodeProvider DEBUG = (context, operation, nodeAt) -> {
-        SnapshotProvider snapshotProvider = context.snapshotProvider();
-        List<PathNode> nextNodes = new ArrayList<>();
+    NodeProvider DEBUG = new NodeProvider() {
+        @Override
+        public @NotNull List<PathNode> generateValidNodes(@NotNull PathfinderContext context,
+                                                          @NotNull PathAgent agent, @NotNull PathNode nodeAt) {
+            List<PathNode> nextNodes = new ArrayList<>();
 
-        BlockData blockNorth = snapshotProvider.getData(nodeAt.x + 1, nodeAt.y, nodeAt.z);
-        BlockData blockEast = snapshotProvider.getData(nodeAt.x, nodeAt.y, nodeAt.z + 1);
-        BlockData blockSouth = snapshotProvider.getData(nodeAt.x - 1, nodeAt.y, nodeAt.z);
-        BlockData blockWest = snapshotProvider.getData(nodeAt.x, nodeAt.y, nodeAt.z - 1);
+            PathNode up = nodeAt.add(1, 0, 0);
+            PathNode right = nodeAt.add(0, 0, 1);
+            PathNode down = nodeAt.add(-1, 0, 0);
+            PathNode left = nodeAt.add(0, 0, -1);
 
-        if(blockNorth != null && blockNorth.getMaterial().isAir()) {
-            nextNodes.add(nodeAt.add(1, 0, 0));
+            if(isValid(context, agent, nodeAt, up)) {
+                nextNodes.add(up);
+            }
+
+            if(isValid(context, agent, nodeAt, right)) {
+                nextNodes.add(right);
+            }
+
+            if(isValid(context, agent, nodeAt, down)) {
+                nextNodes.add(down);
+            }
+
+            if(isValid(context, agent, nodeAt, left)) {
+                nextNodes.add(left);
+            }
+
+            return nextNodes;
         }
 
-        if(blockEast != null && blockEast.getMaterial().isAir()) {
-            nextNodes.add(nodeAt.add(0, 0, 1));
+        @Override
+        public boolean isValid(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode start, @NotNull PathNode next) {
+            BlockData blockData = context.blockProvider().getData(next.x, next.y, next.z);
+            return blockData != null && blockData.getMaterial().isAir();
         }
-
-        if(blockSouth != null && blockSouth.getMaterial().isAir()) {
-            nextNodes.add(nodeAt.add(-1, 0, 0));
-        }
-
-        if(blockWest != null && blockWest.getMaterial().isAir()) {
-            nextNodes.add(nodeAt.add(0, 0, -1));
-        }
-
-        return nextNodes;
     };
 
-    @NotNull List<PathNode> generateNodes(@NotNull PathfinderContext context, @NotNull PathOperation operation, @NotNull PathNode nodeAt);
+    @NotNull List<PathNode> generateValidNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode nodeAt);
+
+    boolean isValid(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode start, @NotNull PathNode next);
 }

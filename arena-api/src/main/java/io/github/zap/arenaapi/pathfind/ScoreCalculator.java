@@ -12,8 +12,7 @@ public interface ScoreCalculator {
 
         @Override
         public double computeH(@NotNull PathfinderContext context, @NotNull PathNode current, @NotNull PathDestination destination) {
-            PathNode node = destination.node();
-            return VectorUtils.distance(current.x, current.y, current.z, node.x, node.y, node.z);
+            return destination.destinationScore(current);
         }
     };
 

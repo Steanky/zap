@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
@@ -9,13 +8,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-class SnapshotProviderImpl implements SnapshotProvider {
+class AsyncBlockProvider implements BlockProvider {
     private static final Map<ChunkIdentifier, ChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
 
     private final World world;
     private final ChunkRange range;
 
-    SnapshotProviderImpl(@NotNull World world, @NotNull ChunkRange range) {
+    AsyncBlockProvider(@NotNull World world, @NotNull ChunkRange range) {
         this.world = world;
         this.range = range;
     }
@@ -36,8 +35,7 @@ class SnapshotProviderImpl implements SnapshotProvider {
     }
 
     private void updateChunkInternal(int x, int z) {
-        Chunk chunk = world.getChunkAt(x, z);
-        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)), chunk.getChunkSnapshot());
+        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)), world.getChunkAt(x, z).getChunkSnapshot());
     }
 
     @Override

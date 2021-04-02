@@ -28,11 +28,13 @@ public interface PathOperation {
 
     @NotNull Set<PathNode> visitedNodes();
 
-    @NotNull PathAgent getAgent();
+    @NotNull PathAgent agent();
 
     @NotNull ChunkRange searchArea();
 
-    static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
+    @NotNull NodeProvider nodeProvider();
+
+    static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
                                   @NotNull ScoreCalculator calculator, @NotNull SuccessCondition successCondition,
                                   @NotNull NodeProvider provider, @NotNull DestinationSelector destinationSelector,
                                   int chunkRadius) {

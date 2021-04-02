@@ -20,26 +20,42 @@ class PathResultImpl implements PathResult {
         @Override
         public PathNode next() {
             PathNode save = current;
-            current = current.parent;
+            current = current.child;
             return save;
         }
     }
 
-    private final PathNode source;
+    private final PathNode start;
+    private final PathNode end;
+    private final PathOperation operation;
     private final PathDestination destination;
-    private final Set<PathNode> nodes;
+    private final Set<PathNode> visitedNodes;
     private final PathOperation.State state;
 
-    PathResultImpl(@NotNull PathNode source, @NotNull PathDestination destination, @NotNull PathOperation.State state) {
-        this.source = source;
+    PathResultImpl(@NotNull PathNode start, @NotNull PathNode end, @NotNull PathOperation operation,
+                   @NotNull Set<PathNode> visitedNodes, @NotNull PathDestination destination,
+                   @NotNull PathOperation.State state) {
+        this.start = start;
+        this.end = end;
+        this.operation = operation;
+        this.visitedNodes = visitedNodes;
         this.destination = destination;
         this.state = state;
-        nodes = new LinkedHashSet<>();
     }
 
     @Override
-    public @NotNull PathNode source() {
-        return source;
+    public @NotNull PathNode start() {
+        return start;
+    }
+
+    @Override
+    public @NotNull PathNode end() {
+        return end;
+    }
+
+    @Override
+    public @NotNull PathOperation operation() {
+        return operation;
     }
 
     @Override
@@ -48,8 +64,8 @@ class PathResultImpl implements PathResult {
     }
 
     @Override
-    public @NotNull Set<PathNode> nodes() {
-        return nodes;
+    public @NotNull Set<PathNode> visitedNodes() {
+        return visitedNodes;
     }
 
     @Override
@@ -60,6 +76,6 @@ class PathResultImpl implements PathResult {
     @NotNull
     @Override
     public Iterator<PathNode> iterator() {
-        return new ResultIterator(source);
+        return new ResultIterator(start);
     }
 }

@@ -2,13 +2,12 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
 
-class PathDestinationAbstract implements PathDestination {
+abstract class PathDestinationAbstract implements PathDestination {
     private final PathNode node;
 
     PathDestinationAbstract(@NotNull PathNode node) {
         this.node = node;
     }
-
     @Override
     public @NotNull PathNode node() {
         return node;
@@ -16,7 +15,7 @@ class PathDestinationAbstract implements PathDestination {
 
     @Override
     public int hashCode() {
-        return node.hash;
+        return node.hashCode();
     }
 
     @Override
@@ -26,5 +25,10 @@ class PathDestinationAbstract implements PathDestination {
         }
 
         return false;
+    }
+
+    @Override
+    public double destinationScore(@NotNull PathNode node) {
+        return this.node.distanceSquaredTo(node);
     }
 }

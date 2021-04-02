@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 
 class NodeQueue {
     private static final Comparator<PathNode> NODE_COMPARATOR = NodeComparator.instance();
-    private static final Comparator<Score> SCORE_COMPARATOR = ScoreComparator.instance();
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     private PathNode[] queue;
