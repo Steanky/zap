@@ -76,10 +76,12 @@ class PathOperationImpl implements PathOperation {
                 destination = selector.selectDestinationFor(this, sample);
 
                 /*
-                optimization: iterate failed paths. if the failed path has the same agent characteristics and its
-                nodes are capable of reaching ours, we know that this operation will not be capable of reaching its
-                destination, so we can remove it entirely. it is replaced by the destination that is known to be
-                accessible — the endpoint of the failed node, which will be the node with the smallest h value.
+                optimization: iterate failed paths. if the failed path has the same agent characteristics and the same
+                destination, and its nodes are capable of reaching ours, we know that this operation will not be capable
+                of reaching its destination, so we can remove it entirely. it is replaced by a destination that is known
+                to be accessible — the endpoint of the failed node, which will be the node with the smallest h value. in
+                order to make sure heuristic calculations are consistent, this special destination will report a score
+                equal to the distance between the original destination (that is unreachable) and the node being sampled
                  */
                 for(PathResult failed : context.failedPaths()) {
                     PathDestination failedDestination = failed.destination();
@@ -87,9 +89,8 @@ class PathOperationImpl implements PathOperation {
                             failed.operation().agent().characteristics().equals(agent.characteristics()) &&
                             failed.visitedNodes().contains(sample) &&
                             failed.operation().nodeProvider().isValid(context, agent, sample, currentNode)) {
-                        PathNode best = failed.end();
                         destinations.remove(destination);
-                        destination = new PathDestinationAbstract(best) {
+                        destination = new PathDestinationAbstract(failed.end()) {
                             @Override
                             public double destinationScore(@NotNull PathNode node) {
                                 return destination.destinationScore(node);

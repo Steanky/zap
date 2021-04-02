@@ -41,11 +41,10 @@ public interface PathfinderEngine extends Disposable {
     boolean isAsync();
 
     /**
-     * Creates and returns a default asynchronous implementation of PathfinderEngine. This value is not cached;
-     * multiple calls will create different instances.
-     * @return A new PathfinderEngine instance, which will be an asynchronous implementation
+     * Returns the default asynchronous implementation of PathfinderEngine.
+     * @return The PathfinderEngine instance, which will be an asynchronous implementation
      */
     static PathfinderEngine async() {
-        return new AsyncPathfinderEngine();
+        return AsyncPathfinderEngine.instance();
     }
 }

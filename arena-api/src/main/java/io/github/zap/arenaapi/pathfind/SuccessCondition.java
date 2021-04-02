@@ -14,10 +14,10 @@ public interface SuccessCondition {
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
-    static SuccessCondition whenWithin(double targetDistanceSquared) {
-        Validate.isTrue(targetDistanceSquared > 0, "targetDistanceSquared must be greater than 0!");
-        Validate.isTrue(Double.isFinite(targetDistanceSquared), "targetDistanceSquared must be finite!");
-        return (context, node, destination) -> node.distanceSquaredTo(destination.node()) <= targetDistanceSquared;
+    static SuccessCondition whenWithin(double destinationScore) {
+        Validate.isTrue(destinationScore > 0, "destinationScore must be greater than 0!");
+        Validate.isTrue(Double.isFinite(destinationScore), "destinationScore must be finite!");
+        return (context, node, destination) -> destination.destinationScore(node) <= destinationScore;
     }
 
     static SuccessCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {
