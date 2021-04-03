@@ -132,7 +132,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(super.isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            perks.disableAll();
+            if (arena.getMap().isPerksLostOnQuit()) {
+                removePerks();
+            }
+
             endTasks();
         }
     }
@@ -347,14 +350,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            if (getArena().getMap().isPerksLostOnQuit()) {
-                perks.disableAll();
-                HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
-                HotbarObjectGroup hotbarObjectGroup =
-                        hotbarManager.getHotbarObjectGroup(defaultProfile, EquipmentType.PERK.name());
-                for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-                    hotbarObjectGroup.remove(slot, true);
-                }
+            if (arena.getMap().isPerksLostOnDeath()) {
+                removePerks();
             }
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
@@ -480,6 +477,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         }
     }
 
+    private void removePerks() {
+        perks.disableAll();
+
+        HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+        HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(defaultProfile,
+                EquipmentType.PERK.name());
+        for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+            hotbarObjectGroup.remove(slot, true);
+        }
+    }
+
     /**
      * Tries to find and repair a window.
      */
@@ -499,9 +507,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         tryRepairWindow(targetWindow); //directly repair window; no need to perform checks
                         player.sendActionBar(Component.text());
                     } else {
-                        player.sendActionBar(
-                                Component.text("Hold SHIFT to repair!").color(NamedTextColor.YELLOW)
-                        );
+                        player.sendActionBar(Component.text("Hold SHIFT to repair!")
+                                .color(NamedTextColor.YELLOW));
                     }
                 } else {
                     player.sendActionBar(Component.text());

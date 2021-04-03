@@ -58,6 +58,12 @@ tasks.register<Copy>("copyPlugins") {
 
 tasks.register<Copy>("copyClassModifier") {
     from(classModifier).into(outputDir)
+
+    System.getProperty("useClassModifierVersion")?.let {
+        classModifier.allDependencies.forEach {
+            rename("-${it.version}", "")
+        }
+    }
 }
 
 tasks.compileJava {

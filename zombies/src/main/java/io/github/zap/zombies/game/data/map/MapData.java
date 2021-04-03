@@ -149,9 +149,14 @@ public class MapData {
     //perk stuff below
 
     /**
+     * Whether or not perks should be lost when a player dies.
+     */
+    boolean perksLostOnDeath = true;
+
+    /**
      * Whether or not perks should be lost when a player quits the game.
      */
-    boolean perksLostOnQuit = false;
+    boolean perksLostOnQuit = true;
 
     /**
      * The maximum level of the speed perk (how many times it can be bought)
