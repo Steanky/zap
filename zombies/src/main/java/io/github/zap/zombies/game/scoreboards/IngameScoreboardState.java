@@ -10,6 +10,7 @@ import io.github.zap.zombies.game.corpse.Corpse;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Criterias;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Team;
