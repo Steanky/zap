@@ -37,10 +37,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         private final List<Entry> operations = new ArrayList<>();
         private final List<PathResult> successfulPaths = new ArrayList<>();
         private final List<PathResult> failedPaths = new ArrayList<>();
-        private final BlockProvider provider;
+        private final BlockProvider blockProvider;
 
-        private Context(@NotNull BlockProvider provider) {
-            this.provider = provider;
+        private Context(@NotNull BlockProvider blockProvider) {
+            this.blockProvider = blockProvider;
         }
 
         @Override
@@ -60,7 +60,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
         @Override
         public @NotNull BlockProvider blockProvider() {
-            return provider;
+            return blockProvider;
         }
     }
 
@@ -100,7 +100,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         AtomicBoolean syncRun = new AtomicBoolean(false);
                         BukkitTask syncTask = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> { //syncing must be run on main thread
                             if(!syncRun.getAndSet(true)) {
-                                context.provider.updateAll();
+                                context.blockProvider.updateAll();
                                 context.semaphore.release();
                             }
                         });
@@ -114,7 +114,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 operations++;
                             }
                             catch (RejectedExecutionException exception) {
-                                ArenaApi.warning("Unable to queue pathfinding operation(s) for world " + context.provider.getWorld());
+                                ArenaApi.warning("Unable to queue pathfinding operation(s) for world " + context.blockProvider.getWorld());
                             }
                         }
                         else {
@@ -300,7 +300,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private void onWorldUnload(WorldUnloadEvent event) {
         synchronized (contexts) {
             for(Context context : contexts) {
-                if(context.provider.getWorld().equals(event.getWorld())) {
+                if(context.blockProvider.getWorld().equals(event.getWorld())) {
                     removalQueue.add(context);
                 }
             }
