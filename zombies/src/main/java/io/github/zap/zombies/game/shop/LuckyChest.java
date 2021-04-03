@@ -304,7 +304,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
         public GunSwapper(ZombiesPlayer zombiesPlayer) {
             this.zombiesPlayer = zombiesPlayer;
 
-            World world = zombiesPlayer.getPlayer().getWorld();
+            World world = getZombiesArena().getWorld();
             openChestContainer.getBlockPositionModifier().write(
                     0,
                     new BlockPosition(chestLocation.toVector())

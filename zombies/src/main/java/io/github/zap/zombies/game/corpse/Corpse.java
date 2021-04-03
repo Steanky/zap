@@ -160,9 +160,8 @@ public class Corpse {
                     reviverPlayer.addPotionEffect(speedEffect);
 
                     SpeedPerk speedPerk = (SpeedPerk) reviver.getPerks().getPerk(PerkType.SPEED);
-                    zombiesArena.runTaskLater(map.getReviveSpeedTicks(), () -> {
-                        speedPerk.execute(EmptyEventArgs.getInstance());
-                    });
+                    zombiesArena.runTaskLater(map.getReviveSpeedTicks(),
+                            () -> speedPerk.execute(EmptyEventArgs.getInstance()));
                 }
 
                 destroy();

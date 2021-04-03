@@ -176,9 +176,8 @@ public class Door extends Shop<DoorData> {
                                 player.addPotionEffect(speedEffect);
 
                                 SpeedPerk speedPerk = (SpeedPerk) zombiesPlayer.getPerks().getPerk(PerkType.SPEED);
-                                zombiesArena.runTaskLater(map.getDoorSpeedTicks(), () -> {
-                                    speedPerk.execute(EmptyEventArgs.getInstance());
-                                });
+                                zombiesArena.runTaskLater(map.getDoorSpeedTicks(),
+                                        () ->  speedPerk.execute(EmptyEventArgs.getInstance()));
 
                                 opened = true;
                                 onPurchaseSuccess(zombiesPlayer);

@@ -37,7 +37,11 @@ public class PowerUpBossBar implements Disposable, Runnable {
     }
 
     private void onPlayerLeave(ManagingArena<ZombiesArena, ZombiesPlayer>.ManagedPlayerListArgs managedPlayerListArgs) {
-        managedPlayerListArgs.getPlayers().forEach(x -> bukkitBossBar.removePlayer(x.getPlayer()));
+        managedPlayerListArgs.getPlayers().forEach(x -> {
+            if (x.getPlayer() != null) {
+                bukkitBossBar.removePlayer(x.getPlayer());
+            }
+        });
     }
 
     private void onPlayerJoin(ManagingArena.PlayerListArgs playerListArgs) {
