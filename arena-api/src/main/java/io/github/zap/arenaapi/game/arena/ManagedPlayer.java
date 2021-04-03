@@ -5,7 +5,9 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -48,6 +50,11 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
             return player;
         }
     }
+
+    public @NotNull OfflinePlayer getOfflinePlayer() {
+        return Bukkit.getOfflinePlayer(playerUuid);
+    }
+
 
     @Override
     public int hashCode() {
