@@ -68,18 +68,8 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public void lookAtEntity(ControllerLook look, Entity target, float f1, float f2) {
-        look.a(target, f1, f2);
-    }
-
-    @Override
     public void lookAtPosition(ControllerLook look, double x, double y, double z, float f1, float f2) {
         look.a(x, y, z, f1, f2);
-    }
-
-    @Override
-    public void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent) {
-        entity.setGoalTarget(target, reason, fireEvent);
     }
 
     @Override
@@ -113,11 +103,6 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     }
 
     @Override
-    public PathEntity calculatePathTo(EntityInsentient entity, double x, double y, double z, int deviation) {
-        return entity.getNavigation().a(x, y, z, deviation);
-    }
-
-    @Override
     public PathEntity calculatePathTo(EntityInsentient entity, Entity target, int deviation) {
         return entity.getNavigation().calculateDestination(target);
     }
@@ -125,11 +110,6 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
     @Override
     public boolean moveAlongPath(EntityInsentient entity, PathEntity path, double speed) {
         return entity.getNavigation().a(path, speed);
-    }
-
-    @Override
-    public boolean navigateToEntity(EntityInsentient entity, Entity target, double speed) {
-        return entity.getNavigation().a(target, speed);
     }
 
     @Override

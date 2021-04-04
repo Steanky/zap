@@ -30,23 +30,15 @@ public interface ZombiesNMSProxy extends NMSProxy {
 
     double getDistanceToSquared(Entity entity, double x, double y, double z);
 
-    void lookAtEntity(ControllerLook look, Entity target, float f1, float f2);
-
     void lookAtPosition(ControllerLook look, double x, double y, double z, float f1, float f2);
-
-    void setTarget(EntityInsentient entity, EntityLiving target, EntityTargetEvent.TargetReason reason, boolean fireEvent);
 
     void setDoubleFor(EntityLiving entity, AttributeBase attribute, double value);
 
     ItemStack getItemStackFromDescription(ItemStackDescription info) throws CommandSyntaxException;
 
-    PathEntity calculatePathTo(EntityInsentient entity, double x, double y, double z, int deviation);
-
     PathEntity calculatePathTo(EntityInsentient entity, Entity target, int deviation);
 
     boolean moveAlongPath(EntityInsentient entity, PathEntity path, double speed);
-
-    boolean navigateToEntity(EntityInsentient entity, Entity target, double speed);
 
     boolean hasAttribute(EntityInsentient entity, AttributeBase attribute);
 }

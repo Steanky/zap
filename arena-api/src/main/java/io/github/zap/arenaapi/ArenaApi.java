@@ -16,6 +16,7 @@ import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
+import io.github.zap.nms.NMSBridge;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -53,7 +54,10 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private static ArenaApi instance;
 
     @Getter
-    private NMSProxy nmsProxy;
+    private NMSProxy nmsProxy; //TODO: remove and fully replace with NMSBridge since it has actual version compat
+
+    @Getter
+    private NMSBridge nmsBridge;
 
     @Getter
     private ProtocolLib protocolLib;
