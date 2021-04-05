@@ -13,16 +13,18 @@ java {
 val shade: Configuration by configurations.creating {
     isTransitive = false
 }
+
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
+
 configurations.api.get().extendsFrom(shade, bukkitPlugin)
 
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
 dependencies {
-    implementation(project(":nms-common"))
     api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
+    shade(project(":nms-common"))
     shade("com.fasterxml.jackson.core:jackson-core:2.12.2")
     shade("com.fasterxml.jackson.core:jackson-databind:2.12.2")
     shade("com.fasterxml.jackson.core:jackson-annotations:2.12.2")
@@ -47,6 +49,8 @@ tasks.processResources {
 }
 
 tasks.jar {
+    dependsOn(shade)
+
     destinationDirectory.set(File(pluginDir))
     from (shade.map {
         if (it.isDirectory) it else zipTree(it)

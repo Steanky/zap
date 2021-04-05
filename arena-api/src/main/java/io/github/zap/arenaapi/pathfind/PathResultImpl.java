@@ -8,7 +8,7 @@ class PathResultImpl implements PathResult {
     private static class ResultIterator implements Iterator<PathNode> {
         private PathNode current;
 
-        public ResultIterator(PathNode current) {
+        private ResultIterator(PathNode current) {
             this.current = current;
         }
 

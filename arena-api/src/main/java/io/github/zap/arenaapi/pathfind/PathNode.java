@@ -1,8 +1,11 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.util.VectorUtils;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -12,8 +15,15 @@ public class PathNode {
     public final int z;
     private final int hash;
 
-    public Score score = new Score();
-    public PathNode parent;
+    Score score = new Score();
+    PathNode parent;
+
+    private PathNode(int x, int y, int z, int hash) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.hash = hash;
+    }
 
     PathNode(int x, int y, int z) {
         this(x, y, z, Objects.hash(x, y, z));
@@ -23,11 +33,8 @@ public class PathNode {
         this(from.getBlockX(), from.getBlockY(), from.getBlockZ());
     }
 
-    private PathNode(int x, int y, int z, int hash) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.hash = hash;
+    PathNode(@NotNull Entity from) {
+        this(from.getLocation().toVector());
     }
 
     @Override
@@ -47,7 +54,7 @@ public class PathNode {
 
     @Override
     public String toString() {
-        return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", hash=" + hash + ", cost=" + score + "}";
+        return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", score=" + score + "}";
     }
 
     public int distanceSquaredTo(@NotNull PathNode other) {
@@ -65,7 +72,6 @@ public class PathNode {
     public PathNode copy() {
         PathNode node = new PathNode(x, y, z, hash);
         node.score = score.copy();
-        node.parent = parent;
         return node;
     }
 }

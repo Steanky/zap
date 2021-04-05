@@ -8,10 +8,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-class WrappedVoxelShape_v1_16_R3 implements WrappedVoxelShape {
+class WrappedVoxelShape_v1_16_R3 extends Wrapper<VoxelShape> implements WrappedVoxelShape {
     private final List<AxisAlignedBB> boundingBoxes;
 
     WrappedVoxelShape_v1_16_R3(@NotNull VoxelShape handle) {
+        super(handle);
         boundingBoxes = handle.d();
     }
 

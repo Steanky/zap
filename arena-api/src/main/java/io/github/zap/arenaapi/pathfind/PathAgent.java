@@ -29,7 +29,7 @@ public interface PathAgent {
         }
 
         public Characteristics() {
-            this(0, 0);
+            this(0, 0, 1);
         }
 
         @Override
@@ -49,7 +49,7 @@ public interface PathAgent {
 
         @Override
         public String toString() {
-            return "PathAgent.Characteristics{width=" + width + ", height=" + height + "}";
+            return "PathAgent.Characteristics{width=" + width + ", height=" + height + "jumpHeight=" + jumpHeight + "}";
         }
     }
 
@@ -58,19 +58,19 @@ public interface PathAgent {
      * it is able to traverse.
      * @return A PathAgent.Characteristics object containing PathAgent data used to determine node navigability
      */
-    Characteristics characteristics();
+    @NotNull Characteristics characteristics();
 
     /**
      * Constructs a new PathNode at the current block location of this agent.
      * @return A newly-constructed PathNode object located at the agent's current position
      */
-    PathNode nodeAt();
+    @NotNull PathNode nodeAt();
 
     /**
      * Gets the position of this PathAgent.
      * @return The position of this PathAgent
      */
-    Vector position();
+    @NotNull Vector position();
 
     /**
      * Creates a new PathAgent from the given Entity. The resulting PathAgent will have the same width, height, and
@@ -78,19 +78,19 @@ public interface PathAgent {
      * @param entity The entity from which to create a PathAgent
      * @return A PathAgent object corresponding to the given Entity
      */
-    static PathAgent fromEntity(@NotNull Entity entity) {
+    static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "entity cannot be null!");
         return new EntityAgent<>(entity);
     }
 
-    static PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
+    static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
         Objects.requireNonNull(vector, "vector cannot be null!");
         Objects.requireNonNull(characteristics, "characteristics cannot be null!");
 
         return new VectorAgent(vector, characteristics);
     }
 
-    static PathAgent fromVector(@NotNull Vector vector) {
+    static @NotNull PathAgent fromVector(@NotNull Vector vector) {
         return fromVector(vector, new Characteristics());
     }
 }

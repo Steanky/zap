@@ -1,7 +1,8 @@
 package io.github.zap.nms.world;
 
-import org.bukkit.block.Block;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.Chunk;
+import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,5 +15,7 @@ public interface WorldBridge {
      */
     @NotNull String getDefaultWorldName();
 
-    WrappedVoxelShape collisionShape(@NotNull Block block);
+    @NotNull WrappedVoxelShape collisionShape(@NotNull World world, @NotNull BlockData data, int x, int y, int z);
+
+    @NotNull WrappedChunkSnapshot takeSnapshot(@NotNull Chunk chunk);
 }

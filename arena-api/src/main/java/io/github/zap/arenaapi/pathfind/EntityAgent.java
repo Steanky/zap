@@ -16,17 +16,17 @@ public class EntityAgent<T extends Entity> implements PathAgent {
     }
 
     @Override
-    public Characteristics characteristics() {
+    public @NotNull Characteristics characteristics() {
         return characteristics;
     }
 
     @Override
-    public PathNode nodeAt() {
+    public @NotNull PathNode nodeAt() {
         return new PathNode(vector);
     }
 
     @Override
-    public Vector position() {
+    public @NotNull Vector position() {
         return vector.clone();
     }
 

@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.UUID;
 
-class EntityBridge_v_1_16_R3 implements EntityBridge {
+class EntityBridge_v1_16_R3 implements EntityBridge {
     @Override
     public int nextEntityID() {
         return Entity.nextEntityId();
@@ -21,7 +21,7 @@ class EntityBridge_v_1_16_R3 implements EntityBridge {
 
     @Override
     public int getEntityTypeID(@NotNull EntityType type) {
-        Optional<EntityTypes<?>> opt = EntityTypes.getByName(type.getKey().getKey());
-        return opt.map(IRegistry.ENTITY_TYPE::a).orElse(-1);
+        Optional<EntityTypes<?>> optional = EntityTypes.getByName(type.getKey().getKey());
+        return optional.map(IRegistry.ENTITY_TYPE::a).orElse(-1);
     }
 }

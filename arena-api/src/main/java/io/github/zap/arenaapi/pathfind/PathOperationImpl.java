@@ -68,7 +68,8 @@ class PathOperationImpl implements PathOperation {
             }
             else if(firstNode == null) {
                 currentNode = agent.nodeAt();
-                currentNode.score = new Score(0, calculator.computeH(context, currentNode, selector.selectDestinationFor(this, currentNode)));
+                currentNode.score = new Score(0, calculator.computeH(context, currentNode,
+                        selector.selectDestinationFor(this, currentNode)));
                 bestFound = new PathNode(currentNode.x, currentNode.y, currentNode.z);
                 firstNode = currentNode;
             }
@@ -102,7 +103,7 @@ class PathOperationImpl implements PathOperation {
                             failed.visitedNodes().contains(sample) &&
                             failed.operation().nodeProvider().mayTraverse(context, agent, sample, currentNode)) {
                         destinations.remove(destination);
-                        destination = new PathDestinationAbstract(failed.end()) {
+                        destination = new PathDestinationImpl(failed.end()) {
                             @Override
                             public double destinationScore(@NotNull PathNode node) {
                                 return destination.destinationScore(node);
