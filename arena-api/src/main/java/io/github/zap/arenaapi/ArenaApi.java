@@ -17,6 +17,7 @@ import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
 import io.github.zap.nms.NMSBridge;
+import io.github.zap.nms.NMSBridge_v1_16_R3;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -78,7 +79,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         StopWatch timer = StopWatch.createStarted();
 
         try {
-            initProxy();
+            initBridge();
             initDependencies();
             initMapper();
             Bukkit.getPluginManager().registerEvents(this, this);
@@ -104,7 +105,14 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         }
     }
 
-    private void initProxy() throws LoadFailureException {
+    private void initBridge() throws LoadFailureException {
+        nmsBridge = NMSBridge.selectBridge(NMSBridge_v1_16_R3.INSTANCE);
+
+        if(nmsBridge == null) {
+            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", NMSBridge.NMS_VERSION));
+        }
+
+        //TODO: remove this and replace with NMSBridge
         switch (Bukkit.getBukkitVersion()) {
             case "1.16.4-R0.1-SNAPSHOT":
             case "1.16.5-R0.1-SNAPSHOT":
