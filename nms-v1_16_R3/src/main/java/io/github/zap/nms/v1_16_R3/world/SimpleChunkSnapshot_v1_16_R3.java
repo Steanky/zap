@@ -61,11 +61,12 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
             return !isUnit(bounds.get(0));
         }
 
-        else return size > 0;
+        return size > 0;
     }
 
     private DataPaletteBlock<IBlockData>[] loadFromChunk(net.minecraft.server.v1_16_R3.Chunk chunk) {
         ChunkSection[] sections = chunk.getSections();
+        //noinspection unchecked
         DataPaletteBlock<IBlockData>[] sectionBlockIDs = new DataPaletteBlock[sections.length];
 
         for(int i = 0; i < sections.length; ++i) {
