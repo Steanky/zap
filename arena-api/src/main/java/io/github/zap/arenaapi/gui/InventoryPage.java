@@ -28,8 +28,10 @@ public class InventoryPage implements Unique {
 
     private final Map<Integer, ItemStack> unArrangedSlotMap = new HashMap<>();
 
-    @Getter(value = AccessLevel.PACKAGE)
+    @Getter(value = AccessLevel.PACKAGE) // TODO: this needs to support localization eventually
     private final ItemStack leftArrow = new ItemStack(Material.ARROW), rightArrow = new ItemStack(Material.ARROW);
+
+    private boolean leftArrowEnabled = false, rightArrowEnabled = false;
 
     @Getter
     private Arrangement arrangement;
@@ -53,8 +55,6 @@ public class InventoryPage implements Unique {
 
         inventory = Bukkit.createInventory(null, 54);
 
-        unArrangedSlotMap.put(45, leftArrow);
-        unArrangedSlotMap.put(53, rightArrow);
         arrangeSlotMap(itemStacks, arrangement);
     }
 
@@ -72,6 +72,13 @@ public class InventoryPage implements Unique {
 
         for (Map.Entry<Integer, ItemStack> unarrangedSlotEntry : unArrangedSlotMap.entrySet()) {
             inventory.setItem(unarrangedSlotEntry.getKey(), unarrangedSlotEntry.getValue());
+        }
+
+        if (leftArrowEnabled) {
+            inventory.setItem(45, leftArrow);
+        }
+        if (rightArrowEnabled) {
+            inventory.setItem(53, rightArrow);
         }
     }
 
@@ -133,6 +140,26 @@ public class InventoryPage implements Unique {
      */
     public void addItemStacks(@NotNull ItemStack... itemStacks) {
         setArrangement(arrangement, itemStacks);
+    }
+
+    /**
+     * Turns the left page switch arrow on or off
+     * @param toggled Whether or not the arrow should be turned on
+     */
+    public void toggleLeftArrow(boolean toggled) {
+        if (leftArrowEnabled != toggled && (leftArrowEnabled = toggled)) {
+            inventory.setItem(45, leftArrow);
+        }
+    }
+
+    /**
+     * Turns the right page switch arrow on or off
+     * @param toggled Whether or not the arrow should be turned on
+     */
+    public void toggleRightArrow(boolean toggled) {
+        if (rightArrowEnabled != toggled && (rightArrowEnabled = toggled)) {
+            inventory.setItem(53, rightArrow);
+        }
     }
 
     @Override

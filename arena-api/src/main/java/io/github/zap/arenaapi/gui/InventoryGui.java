@@ -123,6 +123,11 @@ public class InventoryGui implements Listener {
                 ? new InventoryPage(itemStacks, arrangement)
                 : new InventoryPage(name, itemStacks, arrangement);
 
+        if (pageList.size() > 0) {
+            pageList.get(pageList.size() - 1).toggleRightArrow(true);
+            page.toggleLeftArrow(true);
+        }
+
         inventoryPageMap.put(page.getInventory(), page);
         pageList.add(page);
 
