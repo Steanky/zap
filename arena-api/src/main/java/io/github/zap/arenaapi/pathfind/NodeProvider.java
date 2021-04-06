@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.nms.common.world.WrappedVoxelShape;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -54,13 +56,19 @@ public interface NodeProvider {
         @Override
         public boolean mayTraverse(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode start, @NotNull PathNode next) {
             BlockData blockData = context.blockProvider().getData(next.x, next.y, next.z);
+            WrappedVoxelShape shape = context.blockProvider().getCollision(next.x, next.y, next.z);
+
+            if(shape != null) {
+                ArenaApi.info("Found partial block at " + next);
+            }
+
             return blockData != null && blockData.getMaterial().isAir();
         }
     };
 
     /**
-     * NodeProvider that mimics vanilla pathfinding to an extent, with some notable improvements. PathAgent jump height
-     * is taken into account and entities should not get stuck.
+     * NodeProvider that mimics vanilla pathfinding to an extent, with some improvements (precise collision shape is
+     * taken into account)
      */
     NodeProvider SIMPLE_GROUND = new NodeProvider() {
         @Override

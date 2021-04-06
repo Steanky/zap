@@ -73,7 +73,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     private boolean disposed = false;
 
-    private final Object completedWaitLock = new Object();
+    private final Object completedWaitSyncRoot = new Object();
 
     private AsyncPathfinderEngine() { //singleton: bad idea to create more than once instance
         pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
@@ -106,6 +106,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         });
 
                         if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
+                            ArenaApi.info("Acquired context semaphore.");
                             //noinspection ResultOfMethodCallIgnored
                             context.semaphore.tryAcquire(1); //reset the semaphore
 
@@ -119,7 +120,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         }
                         else {
                             if(!syncRun.getAndSet(true)) {
-                                ArenaApi.warning("Timed out while waiting on main thread.");
+                                ArenaApi.warning("Timed out while waiting on main thread to sync chunks.");
                                 Bukkit.getScheduler().cancelTask(syncTask.getTaskId());
                             }
                         }
@@ -128,11 +129,16 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     //wait for all of the operations we just queued
                     List<Context> completedContexts = new ArrayList<>();
                     for(int i = 0; i < operations; i++) {
-                        completedContexts.add(completionService.take().get());
+                        try {
+                            completedContexts.add(completionService.take().get());
+                        }
+                        catch (InterruptedException exception) {
+                            ArenaApi.warning("Worker task was interrupted: " + exception.getMessage());
+                        }
                     }
 
-                    //check the operations on each context, if none have pending operations, ignore
-                    synchronized (completedWaitLock) {
+                    //check the operations on each context, if none have pending operations, lock again
+                    synchronized (completedWaitSyncRoot) {
                         for(Context completed : completedContexts) {
                             if(completed.operations.size() > 0) {
                                 break;
@@ -283,7 +289,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         else {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (targetContext) {
-                synchronized (completedWaitLock) {
+                synchronized (completedWaitSyncRoot) {
                     targetContext.operations.add(new Entry(operation, resultConsumer));
                     contextsSemaphore.release();
                 }
@@ -321,12 +327,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             pathWorker.shutdown();
             if(!pathWorker.awaitTermination(5L, TimeUnit.SECONDS)) {
                 ArenaApi.warning("Pathfinder thread successfully shut down, but the worker service did not terminate after 5s.");
-                ArenaApi.warning("Pathfinding tasks may be completed after this object has been disposed.");
+                ArenaApi.warning("Pathfinding tasks may complete after this object has been disposed.");
             }
         }
         catch (InterruptedException ignored) {
             ArenaApi.warning("Interrupted while waiting for pathfinder thread to shut down!");
-            ArenaApi.warning("Thread state: " + pathfinderThread.getState());
+            ArenaApi.warning("Pathfinder thread state: " + pathfinderThread.getState());
             ArenaApi.warning("The thread may never terminate and could throw exceptions.");
         }
         finally {

@@ -5,7 +5,6 @@ import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public class EntityBridge_v1_16_R3 implements EntityBridge {
@@ -25,7 +24,6 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
 
     @Override
     public int getEntityTypeID(@NotNull EntityType type) {
-        Optional<EntityTypes<?>> optional = EntityTypes.getByName(type.getKey().getKey());
-        return optional.map(IRegistry.ENTITY_TYPE::a).orElse(-1);
+        return (EntityTypes.getByName(type.getKey().getKey())).map(IRegistry.ENTITY_TYPE::a).orElse(-1);
     }
 }

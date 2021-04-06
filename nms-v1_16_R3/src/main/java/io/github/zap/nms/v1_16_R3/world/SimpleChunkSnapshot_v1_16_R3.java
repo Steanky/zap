@@ -3,6 +3,7 @@ package io.github.zap.nms.v1_16_R3.world;
 import io.github.zap.nms.common.world.SimpleChunkSnapshot;
 import io.github.zap.nms.common.world.WrappedVoxelShape;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.block.Biome;
@@ -23,7 +24,8 @@ import java.util.function.Predicate;
 class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot {
     private static final DataPaletteBlock<IBlockData> emptyBlockIDs = (new ChunkSection(0, null, null, true)).getBlocks();
     private static final Predicate<IBlockData> partialBlock = blockData ->
-            isPartialBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO));
+            isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO));
+    private static final int sectionSize = 4096;
 
     private final String worldName;
     private final int chunkX;
@@ -53,18 +55,18 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
         return x == 1 && y == 1 && z == 1;
     }
 
-    private static boolean isPartialBlock(VoxelShape shape) {
-        List<AxisAlignedBB> bounds = shape.d();
+    private static boolean isPartialSolidBlock(VoxelShape shape) {
+        if(!shape.isEmpty()) {
+            List<AxisAlignedBB> bounds = shape.d();
 
-        if(bounds.size() == 1) {
-            return isUnit(bounds.get(0));
+            if(bounds.size() == 1) {
+                return !isUnit(bounds.get(0));
+            }
+
+            return true;
         }
 
         return false;
-    }
-
-    private static int blockKey(int x, int y, int z) {
-        return x << 8 | y << 4 | z;
     }
 
     private DataPaletteBlock<IBlockData>[] loadFromChunk(net.minecraft.server.v1_16_R3.Chunk chunk) {
@@ -72,23 +74,54 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
         DataPaletteBlock<IBlockData>[] sectionBlockIDs = new DataPaletteBlock[sections.length];
 
         for(int i = 0; i < sections.length; ++i) {
-            if (sections[i] == null) {
+            ChunkSection section = sections[i];
+            if (section == null) {
                 sectionBlockIDs[i] = emptyBlockIDs;
             } else {
                 NBTTagCompound data = new NBTTagCompound();
-                sections[i].getBlocks().a(data, "Palette", "BlockStates");
+                section.getBlocks().a(data, "Palette", "BlockStates");
                 DataPaletteBlock<IBlockData> blockids = new DataPaletteBlock<>(ChunkSection.GLOBAL_PALETTE,
                         Block.REGISTRY_ID, GameProfileSerializer::c, GameProfileSerializer::a,
                         Blocks.AIR.getBlockData(), null, false);
                 blockids.a(data.getList("Palette", 10), data.getLongArray("BlockStates"));
                 sectionBlockIDs[i] = blockids;
 
+                int yOffset = section.getYPosition();
                 if(blockids.contains(partialBlock)) {
-                    blockids.forEachLocation((blockData, key) -> {
-                        VoxelShape shape = blockData.getCollisionShape(chunk, BlockPosition.fromLong(key));
+                    blockids.forEachLocation((blockData, position) -> {
+                        int x;
+                        int y;
+                        int z;
 
-                        if(isPartialBlock(shape)) {
-                            collisionMap.put((long)key, new WrappedVoxelShape_v1_16_R3(shape));
+                        // (2^n) & (2^n - 1) == x % (2^n) for all positive integer values of n
+                        // x >> n == x / 2^n for all positive integer n
+                        if(position > 255) {
+                            x = position & 15;
+                            z = (position & 255) >> 4;
+                            y = position >> 8;
+                        }
+                        else if(position > 15) {
+                            x = position & 15;
+                            z = position >> 4;
+                            y = 0;
+                        }
+                        else {
+                            x = position;
+                            z = 0;
+                            y = 0;
+                        }
+
+                        y += yOffset;
+
+                        BlockPosition pos = new BlockPosition(x, y, z);
+                        VoxelShape shape = blockData.getCollisionShape(chunk, pos);
+
+                        if(isPartialSolidBlock(shape)) {
+                            collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), new WrappedVoxelShape_v1_16_R3(shape));
+                            Bukkit.getServer().getLogger().info("Partial solid found at chunk-relative " +
+                                    pos.toString() + ", chunk coordinates x=" + chunkX + ", z=" + chunkZ);
+                            Bukkit.getServer().getLogger().info("y-offset: " + yOffset);
+                            Bukkit.getServer().getLogger().info(blockData.toString());
                         }
                     });
                 }
