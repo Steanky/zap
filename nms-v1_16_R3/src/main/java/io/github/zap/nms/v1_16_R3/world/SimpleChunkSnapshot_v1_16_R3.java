@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot {
     private static final DataPaletteBlock<IBlockData> emptyBlockIDs = (new ChunkSection(0, null, null, true)).getBlocks();
     private static final Predicate<IBlockData> partialBlock = blockData ->
-            isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO));
+            isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO).d());
 
     private final String worldName;
     private final int chunkX;
@@ -54,8 +54,7 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
         return x == 1 && y == 1 && z == 1;
     }
 
-    private static boolean isPartialSolidBlock(VoxelShape shape) {
-        List<AxisAlignedBB> bounds = shape.d();
+    private static boolean isPartialSolidBlock(List<AxisAlignedBB> bounds) {
         int size = bounds.size();
 
         if(size == 1) {
@@ -100,7 +99,7 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
                         int z = (position & 255) >> 4;
 
                         BlockPosition pos = new BlockPosition(x, y, z);
-                        VoxelShape shape = blockData.getCollisionShape(chunk, pos, VoxelShapeCollision.a());
+                        List<AxisAlignedBB> shape = blockData.getCollisionShape(chunk, pos).d();
 
                         if(isPartialSolidBlock(shape)) {
                             collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), new WrappedVoxelShape_v1_16_R3(shape));

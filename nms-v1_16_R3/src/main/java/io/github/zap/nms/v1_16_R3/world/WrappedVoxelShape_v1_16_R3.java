@@ -1,6 +1,5 @@
 package io.github.zap.nms.v1_16_R3.world;
 
-import io.github.zap.nms.common.Wrapper;
 import io.github.zap.nms.common.world.WrappedVoxelShape;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.VoxelShape;
@@ -9,12 +8,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-class WrappedVoxelShape_v1_16_R3 extends Wrapper<VoxelShape> implements WrappedVoxelShape {
+class WrappedVoxelShape_v1_16_R3 implements WrappedVoxelShape {
     private final List<AxisAlignedBB> boundingBoxes;
 
     WrappedVoxelShape_v1_16_R3(@NotNull VoxelShape handle) {
-        super(handle);
         boundingBoxes = handle.d();
+    }
+
+    WrappedVoxelShape_v1_16_R3(@NotNull List<AxisAlignedBB> boundingBoxes) {
+        this.boundingBoxes = boundingBoxes;
     }
 
     @Override
