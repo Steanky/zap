@@ -25,7 +25,6 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
     private static final DataPaletteBlock<IBlockData> emptyBlockIDs = (new ChunkSection(0, null, null, true)).getBlocks();
     private static final Predicate<IBlockData> partialBlock = blockData ->
             isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO));
-    private static final int sectionSize = 4096;
 
     private final String worldName;
     private final int chunkX;
@@ -56,17 +55,14 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
     }
 
     private static boolean isPartialSolidBlock(VoxelShape shape) {
-        if(!shape.isEmpty()) {
-            List<AxisAlignedBB> bounds = shape.d();
+        List<AxisAlignedBB> bounds = shape.d();
+        int size = bounds.size();
 
-            if(bounds.size() == 1) {
-                return !isUnit(bounds.get(0));
-            }
-
-            return true;
+        if(size == 1) {
+            return !isUnit(bounds.get(0));
         }
 
-        return false;
+        else return size > 0;
     }
 
     private DataPaletteBlock<IBlockData>[] loadFromChunk(net.minecraft.server.v1_16_R3.Chunk chunk) {
@@ -89,39 +85,25 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
                 int yOffset = section.getYPosition();
                 if(blockids.contains(partialBlock)) {
                     blockids.forEachLocation((blockData, position) -> {
-                        int x;
-                        int y;
-                        int z;
+                        /*
+                        bit operator magic:
+                        (2^n) & (2^n - 1) == x % (2^n) for all positive integer values of n
+                        x >> n == x / 2^n for all positive integer n
 
-                        // (2^n) & (2^n - 1) == x % (2^n) for all positive integer values of n
-                        // x >> n == x / 2^n for all positive integer n
-                        if(position > 255) {
-                            x = position & 15;
-                            z = (position & 255) >> 4;
-                            y = position >> 8;
-                        }
-                        else if(position > 15) {
-                            x = position & 15;
-                            z = position >> 4;
-                            y = 0;
-                        }
-                        else {
-                            x = position;
-                            z = 0;
-                            y = 0;
-                        }
-
-                        y += yOffset;
+                        translation:
+                        int x = position % 16;
+                        int y = (position / 256) + yOffset;
+                        int z = (position % 256) / 16;
+                         */
+                        int x = position & 15;
+                        int y = (position >> 8) + yOffset;
+                        int z = (position & 255) >> 4;
 
                         BlockPosition pos = new BlockPosition(x, y, z);
-                        VoxelShape shape = blockData.getCollisionShape(chunk, pos);
+                        VoxelShape shape = blockData.getCollisionShape(chunk, pos, VoxelShapeCollision.a());
 
                         if(isPartialSolidBlock(shape)) {
                             collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), new WrappedVoxelShape_v1_16_R3(shape));
-                            Bukkit.getServer().getLogger().info("Partial solid found at chunk-relative " +
-                                    pos.toString() + ", chunk coordinates x=" + chunkX + ", z=" + chunkZ);
-                            Bukkit.getServer().getLogger().info("y-offset: " + yOffset);
-                            Bukkit.getServer().getLogger().info(blockData.toString());
                         }
                     });
                 }
