@@ -1,6 +1,7 @@
-package io.github.zap.nms;
+package io.github.zap.nms.v1_16_R3.world;
 
-import io.github.zap.nms.world.WrappedChunkSnapshot;
+import io.github.zap.nms.common.Wrapper;
+import io.github.zap.nms.common.world.WrappedChunkSnapshot;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.craftbukkit.v1_16_R3.CraftChunkSnapshot;

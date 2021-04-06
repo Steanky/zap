@@ -1,4 +1,4 @@
-package io.github.zap.nms.entity;
+package io.github.zap.nms.common.entity;
 
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;

@@ -1,4 +1,4 @@
-package io.github.zap.nms.world;
+package io.github.zap.nms.common.world;
 
 import org.bukkit.Chunk;
 import org.bukkit.World;

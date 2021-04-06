@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.nms.world.WrappedVoxelShape;
+import io.github.zap.nms.common.world.WrappedVoxelShape;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;

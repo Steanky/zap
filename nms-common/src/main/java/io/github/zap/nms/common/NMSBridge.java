@@ -1,9 +1,8 @@
-package io.github.zap.nms;
+package io.github.zap.nms.common;
 
-import io.github.zap.nms.entity.EntityBridge;
-import io.github.zap.nms.world.WorldBridge;
+import io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.nms.common.world.WorldBridge;
 import org.bukkit.Bukkit;
-import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

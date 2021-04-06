@@ -1,6 +1,6 @@
-package io.github.zap.nms;
+package io.github.zap.nms.v1_16_R3.entity;
 
-import io.github.zap.nms.entity.EntityBridge;
+import io.github.zap.nms.common.entity.EntityBridge;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
@@ -8,7 +8,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.UUID;
 
-class EntityBridge_v1_16_R3 implements EntityBridge {
+public class EntityBridge_v1_16_R3 implements EntityBridge {
+    public static final EntityBridge_v1_16_R3 INSTANCE = new EntityBridge_v1_16_R3();
+
+    private EntityBridge_v1_16_R3() {}
+
     @Override
     public int nextEntityID() {
         return Entity.nextEntityId();

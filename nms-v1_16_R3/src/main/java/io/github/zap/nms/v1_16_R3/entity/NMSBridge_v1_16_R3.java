@@ -1,16 +1,14 @@
-package io.github.zap.nms;
+package io.github.zap.nms.v1_16_R3.entity;
 
-import io.github.zap.nms.entity.EntityBridge;
-import io.github.zap.nms.world.WorldBridge;
-import org.intellij.lang.annotations.Pattern;
+import io.github.zap.nms.common.NMSBridge;
+import io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.nms.common.world.WorldBridge;
+import io.github.zap.nms.v1_16_R3.world.WorldBridge_v1_16_R3;
 import org.jetbrains.annotations.NotNull;
 
 public class NMSBridge_v1_16_R3 implements NMSBridge {
     public static final NMSBridge_v1_16_R3 INSTANCE = new NMSBridge_v1_16_R3();
-
     private static final String VERSION = "v1_16_R3";
-    private static final EntityBridge ENTITY_BRIDGE = new EntityBridge_v1_16_R3();
-    private static final WorldBridge WORLD_BRIDGE = new WorldBridge_v1_16_R3();
 
     private NMSBridge_v1_16_R3() {}
 
@@ -21,11 +19,11 @@ public class NMSBridge_v1_16_R3 implements NMSBridge {
 
     @Override
     public @NotNull EntityBridge entityBridge() {
-        return ENTITY_BRIDGE;
+        return EntityBridge_v1_16_R3.INSTANCE;
     }
 
     @Override
     public @NotNull WorldBridge worldBridge() {
-        return WORLD_BRIDGE;
+        return WorldBridge_v1_16_R3.INSTANCE;
     }
 }

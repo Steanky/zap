@@ -1,4 +1,4 @@
-package io.github.zap.nms;
+package io.github.zap.nms.common;
 
 import org.jetbrains.annotations.NotNull;
 

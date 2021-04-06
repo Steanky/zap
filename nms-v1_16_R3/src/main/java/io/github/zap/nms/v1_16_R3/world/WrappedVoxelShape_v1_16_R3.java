@@ -1,6 +1,7 @@
-package io.github.zap.nms;
+package io.github.zap.nms.v1_16_R3.world;
 
-import io.github.zap.nms.world.WrappedVoxelShape;
+import io.github.zap.nms.common.Wrapper;
+import io.github.zap.nms.common.world.WrappedVoxelShape;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.VoxelShape;
 import org.bukkit.util.BoundingBox;
