@@ -1,15 +1,20 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.nms.common.world.SimpleChunkSnapshot;
+import io.github.zap.nms.common.world.WrappedVoxelShape;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.util.BlockVector;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 class AsyncBlockProvider implements BlockProvider {
-    private static final Map<ChunkIdentifier, ChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
+    private static final Map<ChunkIdentifier, SimpleChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
 
     private final World world;
     private final ChunkRange range;
@@ -30,7 +35,8 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     private void updateChunkInternal(int x, int z) {
-        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)), world.getChunkAt(x, z).getChunkSnapshot());
+        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)),
+                ArenaApi.getInstance().getNmsBridge().worldBridge().takeSnapshot(world.getChunkAt(x, z)));
     }
 
     @Override
@@ -57,7 +63,7 @@ class AsyncBlockProvider implements BlockProvider {
         return range;
     }
 
-    private ChunkSnapshot chunkAt(int x, int z) {
+    private SimpleChunkSnapshot chunkAt(int x, int z) {
         return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)));
     }
 
@@ -66,12 +72,28 @@ class AsyncBlockProvider implements BlockProvider {
         int chunkX = worldX >> 4; //convert world coords to chunk coords
         int chunkZ = worldZ >> 4;
 
-        ChunkSnapshot snapshot = chunkAt(chunkX, chunkZ); //get the chunk we need
+        SimpleChunkSnapshot snapshot = chunkAt(chunkX, chunkZ); //get the chunk we need
         if(snapshot != null) {
             int remX = worldX % 16;
             int remZ = worldZ % 16;
 
             return snapshot.getBlockData(remX < 0 ? 16 + remX : remX, worldY, remZ < 0 ? 16 + remZ : remZ);
+        }
+
+        return null;
+    }
+
+    @Override
+    public @Nullable WrappedVoxelShape getCollision(int worldX, int worldY, int worldZ) {
+        int chunkX = worldX >> 4;
+        int chunkZ = worldZ >> 4;
+
+        SimpleChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
+        if(snapshot != null) {
+            int remX = worldX % 16;
+            int remZ = worldZ % 16;
+
+            return snapshot.collisionFor(remX < 0 ? 16 + remX : remX, worldY, remZ < 0 ? 16 + remZ : remZ);
         }
 
         return null;

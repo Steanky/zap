@@ -17,7 +17,7 @@ import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
 import io.github.zap.nms.common.NMSBridge;
-import io.github.zap.nms.v1_16_R3.entity.NMSBridge_v1_16_R3;
+import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;

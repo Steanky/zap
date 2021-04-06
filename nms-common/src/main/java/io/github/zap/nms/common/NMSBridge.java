@@ -20,7 +20,7 @@ public interface NMSBridge {
     }
 
     /**
-     * Returns the current NMS version as a string. This should be in the format
+     * Returns this bridge's NMS version as a string. This should be in the format
      * v[major_version]_[minor_version]_R[package_version]; for example, v1_16_R3 for Minecraft 1.16.5 (which uses the
      * third released NMS package.
      * @return The NMS version this NMSBridge handles

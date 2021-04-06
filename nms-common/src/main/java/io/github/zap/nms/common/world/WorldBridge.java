@@ -15,7 +15,11 @@ public interface WorldBridge {
      */
     @NotNull String getDefaultWorldName();
 
-    @NotNull WrappedVoxelShape collisionShape(@NotNull World world, @NotNull BlockData data, int x, int y, int z);
+    @NotNull WrappedVoxelShape collisionShapeAt(@NotNull World world, @NotNull BlockData data, int x, int y, int z);
 
-    @NotNull WrappedChunkSnapshot takeSnapshot(@NotNull Chunk chunk);
+    @NotNull WrappedVoxelShape collisionShape(@NotNull World world, @NotNull BlockData data);
+
+    @NotNull SimpleChunkSnapshot takeSnapshot(@NotNull Chunk chunk);
+
+    boolean isValidChunkCoordinate(int x, int y, int z);
 }

@@ -1,8 +1,9 @@
-package io.github.zap.nms.v1_16_R3.entity;
+package io.github.zap.nms.v1_16_R3;
 
 import io.github.zap.nms.common.NMSBridge;
 import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.nms.common.world.WorldBridge;
+import io.github.zap.nms.v1_16_R3.entity.EntityBridge_v1_16_R3;
 import io.github.zap.nms.v1_16_R3.world.WorldBridge_v1_16_R3;
 import org.jetbrains.annotations.NotNull;
 
