@@ -1,117 +1,80 @@
 package io.github.zap.zombies.stats;
 
-import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.stats.game.ZombiesPlayerStats;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-/**
- * Stats manager for Zombies
- */
 public abstract class StatsManager {
 
-    private final Queue<UUID> playerQueue = new ConcurrentLinkedQueue<>();
+    private final static int MAXIMUM_CACHE_SIZE = 50;
 
-    private final Map<UUID, List<Consumer<ZombiesPlayerStats>>> playerTaskListMap = new ConcurrentHashMap<>();
+    private final Map<UUID, PlayerGeneralStats> playerCache = new HashMap<>();
 
-    private final Thread taskThread = new Thread() {
+    private final Map<UUID, Integer> playerTaskCountMap = new ConcurrentHashMap<>();
 
-        public void run() {
-            //noinspection InfiniteLoopStatement
-            while (true) {
-                synchronized (this) {
-                    waitIfNothingEnqueued();
-                    processNextPlayer();
-                }
-            }
-        }
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        private void waitIfNothingEnqueued() {
-            if (playerQueue.isEmpty()) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    Zombies.warning("StatsManager thread interrupted while waiting!");
-                }
-            }
-        }
+    /**
+     * Enqueues a task to modify player stats
+     * @param targetPlayer The player whose stats should be modified
+     * @param task The task to modify the player stats
+     */
+    public void enqueuePlayerStatModification(@NotNull Player targetPlayer,
+                                              @NotNull Consumer<PlayerGeneralStats> task) {
+        synchronized (this) {
+            UUID uuid = targetPlayer.getUniqueId();
+            playerTaskCountMap.merge(uuid, 1, Integer::sum);
 
-        private void processNextPlayer() {
-            UUID next = playerQueue.poll();
-
-            if (next != null) {
-                List<Consumer<ZombiesPlayerStats>> tasks = playerTaskListMap.remove(next);
-
-                if (tasks != null) {
-                    processPlayer(tasks, next);
-                }
-            }
-        }
-
-        private void processPlayer(@NotNull List<Consumer<ZombiesPlayerStats>> tasks, @NotNull UUID uuid) {
-            ZombiesPlayerStats stats = getStatsFor(uuid);
-
-            if (stats == null) {
-                stats = new ZombiesPlayerStats(uuid);
-            }
-
-            for (Consumer<ZombiesPlayerStats> task : tasks) {
+            executorService.submit(() -> {
+                PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, unused -> loadPlayerStatsFor(uuid));
                 task.accept(stats);
-            }
-
-            writeStats(stats);
-        }
-
-    };
-
-    public StatsManager() {
-        taskThread.start();
-    }
-
-    /**
-     * Enqueues a task to modify stats
-     * @param targetPlayer The player to modify stats for
-     * @param task The task to execute to modify the player stats
-     */
-    public void enqueueTask(@NotNull Player targetPlayer, @NotNull Consumer<ZombiesPlayerStats> task) {
-        boolean initiallyEmpty = playerQueue.isEmpty();
-
-        UUID uuid = targetPlayer.getUniqueId();
-
-        if (!playerTaskListMap.containsKey(uuid)) {
-            playerQueue.add(uuid);
-
-            playerTaskListMap.put(uuid, new ArrayList<>() {
-                {
-                    add(task);
-                }
+                playerTaskCountMap.put(uuid, playerTaskCountMap.get(uuid) - 1);
             });
-        } else {
-            playerTaskListMap.get(uuid).add(task);
-        }
 
-        if (initiallyEmpty) {
-            taskThread.notifyAll();
+            // This cache size check does not need to be threadsafe since it is only approximate
+            if (playerCache.size() > MAXIMUM_CACHE_SIZE) {
+                flushCache();
+            }
         }
     }
 
     /**
-     * Gets the stats for a player UUID
-     * @param uuid The uuid of the player to get stats for
-     * @return The stats of the player
+     * Flushes the cache of player stats and writes them to their storage location
      */
-    protected abstract @Nullable ZombiesPlayerStats getStatsFor(@NotNull UUID uuid);
+    public void flushCache() {
+        executorService.submit(() -> {
+            Iterator<Map.Entry<UUID, PlayerGeneralStats>> iterator = playerCache.entrySet().iterator();
+
+            while (iterator.hasNext()) {
+                Map.Entry<UUID, PlayerGeneralStats> next = iterator.next();
+                writePlayerStats(next.getValue());
+
+                // Remove item from the cache if there are tasks that want to modify the player stats
+                if (!playerTaskCountMap.containsKey(next.getKey())) {
+                    iterator.remove();
+                }
+            }
+        });
+    }
 
     /**
-     * Writes player stats
-     * @param stats The stats of the player
+     * Loads a player's stats
+     * @param uuid The uuid of the player whose stats should be loaded
+     * @return The player's stats
      */
-    protected abstract void writeStats(@NotNull ZombiesPlayerStats stats);
+    protected abstract @Nullable PlayerGeneralStats loadPlayerStatsFor(@NotNull UUID uuid);
+
+    /**
+     * Writes a player's stats to storage
+     * @param stats The stats to write
+     */
+    protected abstract void writePlayerStats(@NotNull PlayerGeneralStats stats);
 
 }

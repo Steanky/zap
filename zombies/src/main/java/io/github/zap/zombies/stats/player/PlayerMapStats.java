@@ -1,4 +1,4 @@
-package io.github.zap.zombies.stats.game;
+package io.github.zap.zombies.stats.player;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class MapStats {
+public class PlayerMapStats {
 
     int wins;
 

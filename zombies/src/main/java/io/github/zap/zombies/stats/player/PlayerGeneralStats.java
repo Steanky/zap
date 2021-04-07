@@ -1,4 +1,4 @@
-package io.github.zap.zombies.stats.game;
+package io.github.zap.zombies.stats.player;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -11,19 +11,19 @@ import java.util.UUID;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ZombiesPlayerStats {
+public class PlayerGeneralStats {
 
-    public ZombiesPlayerStats(@NotNull UUID uuid) {
+    public PlayerGeneralStats(@NotNull UUID uuid) {
         this.uuid = uuid;
     }
 
     @SuppressWarnings("unused")
-    private ZombiesPlayerStats() {
+    private PlayerGeneralStats() {
 
     }
 
     UUID uuid;
 
-    Map<String, MapStats> mapStatsMap = new HashMap<>();
+    Map<String, PlayerMapStats> mapStatsMap = new HashMap<>();
 
 }
