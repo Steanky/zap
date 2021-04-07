@@ -2,43 +2,56 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
  * Implementation of NodeQueue based on a binary min-heap
  */
-class BinaryHeapNodeQueue implements NodeQueue {
+public class BinaryHeapNodeQueue implements NodeQueue {
     private PathNode[] nodes;
     private int size = 0;
 
-    BinaryHeapNodeQueue(int capacity) {
+    public BinaryHeapNodeQueue(int capacity) {
         nodes = new PathNode[capacity];
     }
 
     @Override
     public @NotNull PathNode peekBest() {
+        if(size == 0) {
+            throw new IndexOutOfBoundsException();
+        }
+
         return nodes[0];
     }
 
     @Override
     public @NotNull PathNode takeBest() {
+        if(size == 0) {
+            throw new IndexOutOfBoundsException();
+        }
+
         PathNode best = nodes[0];
         PathNode last = nodes[--size];
+
         nodes[0] = last;
-        nodes[size + 1] = null;
+        nodes[size] = null;
         siftDown(0);
         return best;
     }
 
     @Override
-    public void addNode(PathNode node) {
-        size++;
-        ensureCapacity();
+    public void addNode(@NotNull PathNode node) {
+        Objects.requireNonNull(node, "node cannot be null!");
 
+        ensureCapacity(size + 1);
         nodes[size] = node;
-        siftUp(size);
+        siftUp(size++);
     }
 
     @Override
     public void updateNode(PathNode node) {
+        Objects.requireNonNull(node, "node cannot be null!");
+
         int index = indexOf(node);
 
         if(index != -1) {
@@ -59,10 +72,15 @@ class BinaryHeapNodeQueue implements NodeQueue {
                 }
             }
         }
+        else {
+            addNode(node);
+        }
     }
 
     @Override
     public boolean contains(PathNode node) {
+        Objects.requireNonNull(node, "node cannot be null!");
+
         return indexOf(node) != -1;
     }
 
@@ -92,7 +110,7 @@ class BinaryHeapNodeQueue implements NodeQueue {
             /*
              * optimization: if all the nodes we found on this level are larger, it's only going to get bigger and thus
              * we can stop searching
-             *
+             *0
              * (index & -index) == index is bit magic: it evaluates whether or not index is a power of 2, and thus the
              * last element in a given 'row' of the tree, for which all additional elements are guaranteed to be larger
              * than the smallest value in this row
@@ -128,7 +146,7 @@ class BinaryHeapNodeQueue implements NodeQueue {
     }
 
     private void siftDown(int index) {
-        int half = index >> 1;
+        int half = size >> 1;
         while (index < half) {
             int firstIndex = (index << 1) + 1;
             int secondIndex = (index + 1) << 1;
@@ -167,7 +185,7 @@ class BinaryHeapNodeQueue implements NodeQueue {
         }
     }
 
-    private void ensureCapacity() {
+    private void ensureCapacity(int size) {
         if(size > nodes.length) {
             int newSize = nodes.length << 1;
 

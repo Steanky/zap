@@ -78,6 +78,19 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         instance = this;
         StopWatch timer = StopWatch.createStarted();
 
+        BinaryHeapNodeQueue queue = new BinaryHeapNodeQueue(128);
+
+        Random rng = new Random();
+        for(int i = 0; i < 1000; i++) {
+            PathNode node = new PathNode(rng.nextInt(100), rng.nextInt(100), rng.nextInt(100));
+            node.score = new Score(rng.nextInt(100), rng.nextInt(100));
+            queue.addNode(node);
+        }
+
+        while(queue.size() > 0) {
+            ArenaApi.info(queue.takeBest().toString());
+        }
+
         try {
             initBridge();
             initDependencies();

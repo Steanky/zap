@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
+
 import java.util.Comparator;
 
 class NodeComparator implements Comparator<PathNode> {

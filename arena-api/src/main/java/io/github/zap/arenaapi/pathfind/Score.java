@@ -2,20 +2,20 @@ package io.github.zap.arenaapi.pathfind;
 
 import java.util.Objects;
 
-class Score {
+public class Score {
     public final double g;
     public final double h;
     public final double f;
     private final int hash;
 
-    Score(double g, double h) {
+    public Score(double g, double h) {
         this.g = g;
         this.h = h;
         this.f = g + h;
         hash = Objects.hash(g, h, f);
     }
 
-    Score() {
+    public Score() {
         g = Double.POSITIVE_INFINITY;
         h = Double.POSITIVE_INFINITY;
         f = Double.POSITIVE_INFINITY;

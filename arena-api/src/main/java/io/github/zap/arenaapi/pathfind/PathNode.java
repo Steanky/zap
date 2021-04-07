@@ -15,7 +15,7 @@ public class PathNode {
     public final int z;
     private final int hash;
 
-    Score score = new Score();
+    public Score score = new Score();
     PathNode parent;
 
     private PathNode(int x, int y, int z, int hash) {
@@ -25,7 +25,7 @@ public class PathNode {
         this.hash = hash;
     }
 
-    PathNode(int x, int y, int z) {
+    public PathNode(int x, int y, int z) {
         this(x, y, z, Objects.hash(x, y, z));
     }
 
