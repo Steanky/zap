@@ -341,7 +341,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             disableRevive();
 
             getArena().getStatsManager().modifyStatsForPlayer(getOfflinePlayer(), (stats) -> {
-                PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setKnockDowns(mapStats.getKnockDowns() + 1);
             });
 
@@ -373,7 +373,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             }
 
             getArena().getStatsManager().modifyStatsForPlayer(getOfflinePlayer(), (stats) -> {
-                PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setDeaths(mapStats.getDeaths() + 1);
             });
 
@@ -446,7 +446,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             if (damaged.getHealth() <= 0) {
                 getArena().getStatsManager().modifyStatsForPlayer(player, (stats) -> {
-                    PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                    PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                     mapStats.setKills(mapStats.getKills() + 1);
                 });
 
@@ -596,7 +596,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                             arena.getWorld().playSound(targetWindow.getBlockRepairSound(), center.getX(), center.getY(), center.getZ());
                         } else {
                             arena.getStatsManager().modifyStatsForPlayer(player, (stats) -> {
-                                PlayerMapStats mapStats = stats.getMapStatsMap().get(arena.getMap().getName());
+                                PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
                                 mapStats.setWindowsRepaired(mapStats.getWindowsRepaired() + 1);
                             });
                             arena.getWorld().playSound(targetWindow.getWindowRepairSound(), center.getX(), center.getY(), center.getZ());

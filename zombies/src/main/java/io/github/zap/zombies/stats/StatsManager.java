@@ -5,7 +5,6 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,7 +24,7 @@ public abstract class StatsManager implements Disposable {
 
     private final Map<UUID, Integer> playerTaskCountMap = new ConcurrentHashMap<>();
 
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final ExecutorService playerExecutorService = Executors.newSingleThreadExecutor();
 
     /**
      * Enqueues a task to modify player stats
@@ -36,8 +35,8 @@ public abstract class StatsManager implements Disposable {
         UUID uuid = targetPlayer.getUniqueId();
         playerTaskCountMap.merge(uuid, 1, Integer::sum);
 
-        executorService.submit(() -> {
-            PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, unused -> loadPlayerStatsFor(uuid));
+        playerExecutorService.submit(() -> {
+            PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, this::loadPlayerStatsFor);
             task.accept(stats);
 
             int currentTaskCount = playerTaskCountMap.get(uuid);
@@ -58,7 +57,7 @@ public abstract class StatsManager implements Disposable {
      * Flushes the cache of player stats and writes them to their storage location
      */
     public void flushCache() {
-        executorService.submit(() -> {
+        playerExecutorService.submit(() -> {
             Iterator<Map.Entry<UUID, PlayerGeneralStats>> iterator = playerCache.entrySet().iterator();
 
             while (iterator.hasNext()) {
@@ -76,9 +75,10 @@ public abstract class StatsManager implements Disposable {
     @Override
     public void dispose() {
         flushCache();
+        playerExecutorService.shutdown();
         try {
             //noinspection ResultOfMethodCallIgnored
-            executorService.awaitTermination(69L, TimeUnit.SECONDS);
+            playerExecutorService.awaitTermination(69L, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Zombies.warning("ExecutorService interrupted while flushing StatsManager cache!");
         }
@@ -89,7 +89,7 @@ public abstract class StatsManager implements Disposable {
      * @param uuid The uuid of the player whose stats should be loaded
      * @return The player's stats
      */
-    protected abstract @Nullable PlayerGeneralStats loadPlayerStatsFor(@NotNull UUID uuid);
+    protected abstract @NotNull PlayerGeneralStats loadPlayerStatsFor(@NotNull UUID uuid);
 
     /**
      * Writes a player's stats to storage

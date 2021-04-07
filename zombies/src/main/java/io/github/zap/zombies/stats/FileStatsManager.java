@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -14,9 +13,12 @@ public class FileStatsManager extends StatsManager {
     private final DataLoader dataLoader;
 
     @Override
-    protected @Nullable
-    PlayerGeneralStats loadPlayerStatsFor(@NotNull UUID uuid) {
-        return dataLoader.load(uuid.toString(), PlayerGeneralStats.class);
+    protected @NotNull PlayerGeneralStats loadPlayerStatsFor(@NotNull UUID uuid) {
+        String uuidString = uuid.toString();
+
+        return (dataLoader.getFile(uuidString).exists())
+                ? dataLoader.load(uuid.toString(), PlayerGeneralStats.class)
+                : new PlayerGeneralStats(uuid);
     }
 
     @Override

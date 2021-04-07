@@ -1022,7 +1022,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     }
 
                     statsManager.modifyStatsForPlayer(bukkitPlayer, (stats) -> {
-                        PlayerMapStats mapStats = stats.getMapStatsMap().get(map.getName());
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(map);
                         mapStats.setTimesPlayed(mapStats.getTimesPlayed() + 1);
                     });
 
@@ -1048,7 +1048,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if (player != null) {
                 if (map.getRoundTimesShouldSave().contains(lastRoundIndex)) {
                     statsManager.modifyStatsForPlayer(player, (stats) -> {
-                        PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
                         if (mapStats.getBestRound() < lastRoundIndex) {
@@ -1063,7 +1063,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     });
                 } else {
                     statsManager.modifyStatsForPlayer(player, (stats) -> {
-                        PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
                         if (mapStats.getBestRound() < lastRoundIndex) {
@@ -1152,7 +1152,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
                 r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
                 statsManager.modifyStatsForPlayer(bukkitPlayer, (stats) -> {
-                    PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                    PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                     mapStats.setWins(mapStats.getWins() + 1);
 
                     if (mapStats.getBestTime() == null || duration < mapStats.getBestTime()) {

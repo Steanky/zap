@@ -316,7 +316,7 @@ public final class Zombies extends JavaPlugin implements Listener {
 
                 DataLoader mapLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), MAP_FOLDER_NAME));
 
-                DataLoader statsLoader = new JacksonDataLoader(new File(getDataFolder().getName(), STATS_FOLDER_NAME));
+                DataLoader statsLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), STATS_FOLDER_NAME));
 
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn), mapLoader,
                         equipmentLoader, powerupLoader, statsLoader, config.getInt(ConfigNames.MAX_WORLDS),

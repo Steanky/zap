@@ -11,6 +11,16 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PlayerMapStats {
 
+    public PlayerMapStats(String mapName) {
+        this.mapName = mapName;
+    }
+
+    private PlayerMapStats() {
+
+    }
+
+    String mapName;
+
     int wins = 0;
 
     int knockDowns = 0;

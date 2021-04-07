@@ -181,8 +181,7 @@ public class Door extends Shop<DoorData> {
                                         () ->  speedPerk.execute(EmptyEventArgs.getInstance()));
 
                                 zombiesArena.getStatsManager().modifyStatsForPlayer(player, (stats) -> {
-                                    PlayerMapStats mapStats = stats.getMapStatsMap()
-                                            .get(zombiesArena.getMap().getName());
+                                    PlayerMapStats mapStats = stats.getMapStatsForMap(zombiesArena.getMap());
                                     mapStats.setDoorsOpened(mapStats.getDoorsOpened() + 1);
                                 });
 

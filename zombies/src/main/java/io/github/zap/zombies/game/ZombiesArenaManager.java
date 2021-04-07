@@ -189,6 +189,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         }
 
         statsManager.dispose();
+        System.out.println();
     }
 
     public MapData getMap(String name) {

@@ -161,7 +161,7 @@ public class Corpse {
                     reviverPlayer.addPotionEffect(speedEffect);
 
                     zombiesArena.getStatsManager().modifyStatsForPlayer(reviverPlayer, (stats) -> {
-                        PlayerMapStats mapStats = stats.getMapStatsMap().get(zombiesArena.getMap().getName());
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(zombiesArena.getMap());
                         mapStats.setPlayersRevived(mapStats.getPlayersRevived() + 1);
                     });
 
