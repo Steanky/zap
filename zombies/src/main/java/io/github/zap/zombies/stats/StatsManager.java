@@ -56,7 +56,7 @@ public abstract class StatsManager {
                 Map.Entry<UUID, PlayerGeneralStats> next = iterator.next();
                 writePlayerStats(next.getValue());
 
-                // Remove item from the cache if there are tasks that want to modify the player stats
+                // Remove item from the cache if there aren't any enqueued tasks that want to modify the player stats
                 if (!playerTaskCountMap.containsKey(next.getKey())) {
                     iterator.remove();
                 }
