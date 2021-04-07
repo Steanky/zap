@@ -23,9 +23,9 @@ import java.util.function.Consumer;
  */
 public abstract class StatsManager implements Disposable {
 
-    private final static int MAXIMUM_FREE_PLAYER_CACHE_SIZE = 50;
+    private final static int MAXIMUM_FREE_PLAYER_CACHE_SIZE = 10;
 
-    private final static int MAXIMUM_FREE_MAP_CACHE_SIZE = 10;
+    private final static int MAXIMUM_FREE_MAP_CACHE_SIZE = 3;
 
     private final Map<UUID, PlayerGeneralStats> playerCache = new HashMap<>();
 
