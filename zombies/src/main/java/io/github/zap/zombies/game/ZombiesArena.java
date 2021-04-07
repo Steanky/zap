@@ -33,6 +33,7 @@ import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
 import io.github.zap.zombies.stats.StatsManager;
+import io.github.zap.zombies.stats.player.PlayerMapStats;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -563,6 +564,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
 
+        statsManager.flushCache(); // flush after arena termination to minimize player data loss
+
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
@@ -1018,6 +1021,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         }
                     }
 
+                    statsManager.modifyStatsForPlayer(bukkitPlayer, (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsMap().get(map.getName());
+                        mapStats.setTimesPlayed(mapStats.getTimesPlayed() + 1);
+                    });
+
                     zombiesPlayer.startTasks();
                 }
             }
@@ -1027,11 +1035,46 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void doRound() {
-        //respawn players
-        getPlayerMap().values().stream().filter(player -> !player.isAlive()).forEach(ZombiesPlayer::respawn);
-
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
-        int currentRoundIndex = currentRoundProperty.getValue(this);
+        int currentRoundIndex = currentRoundProperty.getValue(this), lastRoundIndex = currentRoundIndex - 1;
+        int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
+
+        for (ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
+            if (!zombiesPlayer.isAlive()) {
+                zombiesPlayer.respawn();
+            }
+
+            Player player = zombiesPlayer.getPlayer();
+            if (player != null) {
+                if (map.getRoundTimesShouldSave().contains(lastRoundIndex)) {
+                    statsManager.modifyStatsForPlayer(player, (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                        mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
+
+                        if (mapStats.getBestRound() < lastRoundIndex) {
+                            mapStats.setBestRound(lastRoundIndex);
+                        }
+
+                        Map<Integer, Integer> bestTimes = mapStats.getBestTimes();
+                        Integer bestTime = bestTimes.get(lastRoundIndex);
+                        if (bestTime == null || bestTime < secondsElapsed) {
+                            bestTimes.put(lastRoundIndex, secondsElapsed);
+                        }
+                    });
+                } else {
+                    statsManager.modifyStatsForPlayer(player, (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                        mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
+
+                        if (mapStats.getBestRound() < lastRoundIndex) {
+                            mapStats.setBestRound(lastRoundIndex);
+                        }
+                    });
+                }
+            }
+        }
+
+
 
         List<RoundData> rounds = map.getRounds();
         if(currentRoundIndex < rounds.size()) {
@@ -1099,6 +1142,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void doVictory() {
         state = ZombiesArenaState.ENDED;
         endTimeStamp = System.currentTimeMillis();
+        int duration = (int) ((endTimeStamp - startTimeStamp) / 1000);
+
         var round = map.getCurrentRoundProperty().getValue(this);
         getPlayerMap().forEach((l,r) -> {
             Player bukkitPlayer = r.getPlayer();
@@ -1106,6 +1151,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(bukkitPlayer != null) {
                 r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
                 r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+                statsManager.modifyStatsForPlayer(bukkitPlayer, (stats) -> {
+                    PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                    mapStats.setWins(mapStats.getWins() + 1);
+
+                    if (mapStats.getBestTime() == null || duration < mapStats.getBestTime()) {
+                        mapStats.setBestTime(duration);
+                    }
+                });
             }
         });
         runTaskLater(200L, this::dispose);

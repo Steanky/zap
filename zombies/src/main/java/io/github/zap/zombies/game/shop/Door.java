@@ -13,6 +13,7 @@ import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.SpeedPerk;
+import io.github.zap.zombies.stats.player.PlayerMapStats;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -178,6 +179,12 @@ public class Door extends Shop<DoorData> {
                                 SpeedPerk speedPerk = (SpeedPerk) zombiesPlayer.getPerks().getPerk(PerkType.SPEED);
                                 zombiesArena.runTaskLater(map.getDoorSpeedTicks(),
                                         () ->  speedPerk.execute(EmptyEventArgs.getInstance()));
+
+                                zombiesArena.getStatsManager().modifyStatsForPlayer(player, (stats) -> {
+                                    PlayerMapStats mapStats = stats.getMapStatsMap()
+                                            .get(zombiesArena.getMap().getName());
+                                    mapStats.setDoorsOpened(mapStats.getDoorsOpened() + 1);
+                                });
 
                                 opened = true;
                                 onPurchaseSuccess(zombiesPlayer);

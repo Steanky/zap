@@ -151,8 +151,15 @@ public class BasicBeam {
      * Performs a hitscan calculations on the entities to target
      */
     protected void hitScan() {
-        for (Pair<RayTraceResult, Double> rayTraceResult : rayTrace()) {
-            damageEntity(rayTraceResult.getLeft());
+        List<Pair<RayTraceResult, Double>> hits = rayTrace();
+
+        if (hits.size() > 0) {
+            getZombiesPlayer().getArena().getStatsManager().modifyStatsForPlayer(zombiesPlayer.getOfflinePlayer(),
+                    (stats) -> stats.setBulletsHit(stats.getBulletsHit() + 1));
+
+            for (Pair<RayTraceResult, Double> rayTraceResult : rayTrace()) {
+                damageEntity(rayTraceResult.getLeft());
+            }
         }
     }
 
@@ -208,8 +215,17 @@ public class BasicBeam {
 
         if (mob != null) {
             ZombiesArena arena = getZombiesPlayer().getArena();
+
+            boolean isHeadshot = determineIfHeadshot(rayTraceResult, mob);
+
+            if (isHeadshot) {
+                arena.getStatsManager().modifyStatsForPlayer(getZombiesPlayer().getOfflinePlayer(),
+                        (stats) -> stats.setHeadShots(stats.getHeadShots() + 1));
+            }
+
             arena.getDamageHandler().damageEntity(getZombiesPlayer(),
-                    new BeamDamageAttempt(determineIfHeadshot(rayTraceResult, mob)), mob);
+                    new BeamDamageAttempt(isHeadshot), mob);
+
         }
     }
 

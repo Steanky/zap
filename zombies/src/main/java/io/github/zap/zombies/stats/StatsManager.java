@@ -1,8 +1,9 @@
 package io.github.zap.zombies.stats;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public abstract class StatsManager implements Disposable {
@@ -30,7 +32,7 @@ public abstract class StatsManager implements Disposable {
      * @param targetPlayer The player whose stats should be modified
      * @param task The task to modify the player stats
      */
-    public void modifyStatsForPlayer(@NotNull Player targetPlayer, @NotNull Consumer<PlayerGeneralStats> task) {
+    public void modifyStatsForPlayer(@NotNull OfflinePlayer targetPlayer, @NotNull Consumer<PlayerGeneralStats> task) {
         UUID uuid = targetPlayer.getUniqueId();
         playerTaskCountMap.merge(uuid, 1, Integer::sum);
 
@@ -68,6 +70,12 @@ public abstract class StatsManager implements Disposable {
     @Override
     public void dispose() {
         flushCache();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            executorService.awaitTermination(69L, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Zombies.warning("ExecutorService interrupted while flushing StatsManager cache!");
+        }
     }
 
     /**

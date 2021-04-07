@@ -11,25 +11,27 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PlayerMapStats {
 
-    int wins;
+    int wins = 0;
 
-    int knockDowns;
+    int knockDowns = 0;
 
-    int deaths;
+    int deaths = 0;
 
-    int kills;
+    int kills = 0;
 
-    int roundsSurvived;
+    int roundsSurvived = 0;
 
-    int bestRound;
+    int bestRound = 0;
 
-    int doorsOpened;
+    int doorsOpened = 0;
 
-    int windowsRepaired;
+    int windowsRepaired = 0;
 
-    int playersRevived;
+    int playersRevived = 0;
 
-    int timesPlayed;
+    int timesPlayed = 0;
+
+    Integer bestTime = null;
 
     Map<Integer, Integer> bestTimes = new HashMap<>();
 

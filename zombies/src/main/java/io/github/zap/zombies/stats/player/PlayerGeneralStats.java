@@ -24,11 +24,11 @@ public class PlayerGeneralStats {
 
     UUID uuid;
 
-    int bulletsShot;
+    int bulletsShot = 0;
 
-    int bulletsHit;
+    int bulletsHit = 0;
 
-    int headShots;
+    int headShots = 0;
 
     Map<String, PlayerMapStats> mapStatsMap = new HashMap<>();
 

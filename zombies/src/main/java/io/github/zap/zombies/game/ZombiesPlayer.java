@@ -22,6 +22,7 @@ import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
+import io.github.zap.zombies.stats.player.PlayerMapStats;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -339,6 +340,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             disableRepair();
             disableRevive();
 
+            getArena().getStatsManager().modifyStatsForPlayer(getOfflinePlayer(), (stats) -> {
+                PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                mapStats.setKnockDowns(mapStats.getKnockDowns() + 1);
+            });
+
             setKnockedState();
         }
     }
@@ -365,6 +371,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         1.0F
                 ), corpseLocation.getX(), corpseLocation.getY(), corpseLocation.getZ());
             }
+
+            getArena().getStatsManager().modifyStatsForPlayer(getOfflinePlayer(), (stats) -> {
+                PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                mapStats.setDeaths(mapStats.getDeaths() + 1);
+            });
 
             setDeadState();
         }
@@ -434,6 +445,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             ));
 
             if (damaged.getHealth() <= 0) {
+                getArena().getStatsManager().modifyStatsForPlayer(player, (stats) -> {
+                    PlayerMapStats mapStats = stats.getMapStatsMap().get(getArena().getMap().getName());
+                    mapStats.setKills(mapStats.getKills() + 1);
+                });
+
                 addKills(1);
             } else {
                 FrozenBullets frozenBullets = (FrozenBullets) getPerks().getPerk(PerkType.FROZEN_BULLETS);
@@ -579,6 +595,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         if (i < targetWindow.getVolume() - 2) {
                             arena.getWorld().playSound(targetWindow.getBlockRepairSound(), center.getX(), center.getY(), center.getZ());
                         } else {
+                            arena.getStatsManager().modifyStatsForPlayer(player, (stats) -> {
+                                PlayerMapStats mapStats = stats.getMapStatsMap().get(arena.getMap().getName());
+                                mapStats.setWindowsRepaired(mapStats.getWindowsRepaired() + 1);
+                            });
                             arena.getWorld().playSound(targetWindow.getWindowRepairSound(), center.getX(), center.getY(), center.getZ());
                         }
                     }

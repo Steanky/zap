@@ -297,6 +297,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         super.onRightClick(action);
 
         if (canShoot) {
+            getZombiesArena().getStatsManager().modifyStatsForPlayer(getPlayer(),
+                    (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1));
+
             shoot();
             updateAfterShooting();
         }
