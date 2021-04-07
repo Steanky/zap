@@ -38,7 +38,6 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 /**
  * Chest used to randomly generate a weapon from a predefined set of weapons to present to the player
@@ -59,7 +58,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
     private boolean doneRolling = false;
 
-    private UUID roller;
+    private Player roller;
 
     public LuckyChest(ZombiesArena zombiesArena, LuckyChestData shopData) {
         super(zombiesArena, shopData);
@@ -164,7 +163,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                     .text(notActive)
                                     .color(NamedTextColor.RED));
                         } else if (roller != null) {
-                            if (player.getUniqueId().equals(roller)) {
+                            if (player.equals(roller)) {
                                 if (doneRolling) {
                                     EquipmentData<?> equipmentData = gunSwapper.currentEquipment;
                                     EquipmentObjectGroup equipmentObjectGroup
@@ -248,7 +247,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                             } else {
                                 zombiesPlayer.subtractCoins(cost);
                                 hologram.destroy();
-                                roller = player.getUniqueId();
+                                roller = player;
                                 doneRolling = false;
 
                                 Jingle.play(
@@ -352,6 +351,12 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
             endHologram.addLine(ChatColor.RED + "Right Click to Claim!");
             endHologram.addLine("");
+
+            Component message = Component
+                    .text("You found ", NamedTextColor.RED)
+                    .append(Component.text(currentEquipment.getDisplayName(), NamedTextColor.YELLOW))
+                    .append(Component.text(" in the Lucky Chest!", NamedTextColor.RED));
+            roller.sendMessage(message);
 
             sittingTaskId = getZombiesArena().runTaskTimer(0L, 2L, new Runnable() {
 
