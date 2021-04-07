@@ -39,7 +39,13 @@ public abstract class StatsManager implements Disposable {
         executorService.submit(() -> {
             PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, unused -> loadPlayerStatsFor(uuid));
             task.accept(stats);
-            playerTaskCountMap.put(uuid, playerTaskCountMap.get(uuid) - 1);
+
+            int currentTaskCount = playerTaskCountMap.get(uuid);
+            if (currentTaskCount == 1) {
+                playerTaskCountMap.remove(uuid);
+            } else {
+                playerTaskCountMap.put(uuid, currentTaskCount - 1);
+            }
         });
 
         // This cache size check does not need to be threadsafe since it is only approximate
