@@ -24,6 +24,12 @@ public class PlayerGeneralStats {
 
     UUID uuid;
 
+    int bulletsShot;
+
+    int bulletsHit;
+
+    int headShots;
+
     Map<String, PlayerMapStats> mapStatsMap = new HashMap<>();
 
 }

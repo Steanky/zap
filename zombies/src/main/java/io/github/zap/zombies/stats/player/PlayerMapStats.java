@@ -29,6 +29,8 @@ public class PlayerMapStats {
 
     int playersRevived;
 
+    int timesPlayed;
+
     Map<Integer, Integer> bestTimes = new HashMap<>();
 
 }

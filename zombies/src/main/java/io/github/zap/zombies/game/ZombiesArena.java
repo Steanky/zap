@@ -32,6 +32,7 @@ import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
+import io.github.zap.zombies.stats.StatsManager;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -379,6 +380,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final ShopManager shopManager;
 
     @Getter
+    private final StatsManager statsManager;
+
+    @Getter
     private final DamageHandler damageHandler;
 
     @Getter
@@ -499,6 +503,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.equipmentManager = manager.getEquipmentManager();
         this.powerUpManager = manager.getPowerUpManager();
         this.shopManager = manager.getShopManager();
+        this.statsManager = manager.getStatsManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
         this.damageHandler = new BasicDamageHandler();
