@@ -271,7 +271,7 @@ public class MapData {
     /**
      * The rounds that should have times saved for players
      */
-    Set<Integer> roundTimesShouldSave = new ArrayList<>();
+    Set<Integer> roundTimesShouldSave = new HashSet<>();
 
     /**
      * Equipments given at the start of the game by their name
