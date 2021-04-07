@@ -48,8 +48,7 @@ public abstract class StatsManager implements Disposable {
         UUID uuid = targetPlayer.getUniqueId();
         playerTaskCountMap.merge(uuid, 1, Integer::sum);
 
-        playerExecutorService.submit(() -> {
-            PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, this::loadPlayerStatsForPlayer);
+        getStatsForPlayer(uuid, (stats) -> {
             task.accept(stats);
 
             int currentTaskCount = playerTaskCountMap.get(uuid);
@@ -58,7 +57,7 @@ public abstract class StatsManager implements Disposable {
             } else {
                 playerTaskCountMap.put(uuid, currentTaskCount - 1);
             }
-        });
+        }, false);
 
         // This cache size check does not need to be threadsafe since it is only approximate
         if (playerCache.size() - playerTaskCountMap.size() > MAXIMUM_FREE_PLAYER_CACHE_SIZE) {
@@ -75,8 +74,7 @@ public abstract class StatsManager implements Disposable {
         String name = map.getName();
         mapTaskCountMap.merge(name, 1, Integer::sum);
 
-        mapExecutorService.submit(() -> {
-            MapStats stats = mapCache.computeIfAbsent(name, this::loadMapStatsForMap);
+        getStatsForMap(name, (stats) -> {
             task.accept(stats);
 
             int currentTaskCount = mapTaskCountMap.get(name);
@@ -85,7 +83,7 @@ public abstract class StatsManager implements Disposable {
             } else {
                 mapTaskCountMap.put(name, currentTaskCount - 1);
             }
-        });
+        }, false);
 
         // This cache size check does not need to be threadsafe since it is only approximate
         if (mapCache.size() - mapTaskCountMap.size() > MAXIMUM_FREE_MAP_CACHE_SIZE) {
@@ -93,6 +91,50 @@ public abstract class StatsManager implements Disposable {
         }
     }
 
+    /**
+     * Requests statistics for a player
+     * @param uuid The uuid of the player to request statistics for
+     * @param callback The callback for when statistics are retrieved
+     * @param urgent Whether the request is urgent and can accept outdated data
+     */
+    public void getStatsForPlayer(@NotNull UUID uuid, @NotNull Consumer<PlayerGeneralStats> callback,
+                                  boolean urgent) {
+        if (urgent) {
+            PlayerGeneralStats stats = playerCache.get(uuid);
+
+            if (stats != null) {
+                callback.accept(stats);
+                return;
+            }
+        }
+
+        playerExecutorService.submit(() -> {
+           PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, this::loadPlayerStatsForPlayer);
+           callback.accept(stats);
+        });
+    }
+
+    /**
+     * Requests statistics for a map
+     * @param mapName The name of the map to request statistics for
+     * @param callback The callback for when statistics are retrieved
+     * @param urgent Whether the request is urgent and can accept outdated data
+     */
+    public void getStatsForMap(@NotNull String mapName, @NotNull Consumer<MapStats> callback, boolean urgent) {
+        if (urgent) {
+            MapStats stats = mapCache.get(mapName);
+
+            if (stats != null) {
+                callback.accept(stats);
+                return;
+            }
+        }
+
+        mapExecutorService.submit(() -> {
+            MapStats stats = mapCache.computeIfAbsent(mapName, this::loadMapStatsForMap);
+            callback.accept(stats);
+        });
+    }
 
     /**
      * Flushes the cache of player stats and writes them to storage
