@@ -103,6 +103,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
+    public static final String STATS_FOLDER_NAME = "stats";
     public static final String POWERUPS_FOLDER_NAME = "powerups";
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
@@ -315,8 +316,11 @@ public final class Zombies extends JavaPlugin implements Listener {
 
                 DataLoader mapLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), MAP_FOLDER_NAME));
 
+                DataLoader statsLoader = new JacksonDataLoader(new File(getDataFolder().getName(), STATS_FOLDER_NAME));
+
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn), mapLoader,
-                        equipmentLoader, powerupLoader, config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+                        equipmentLoader, powerupLoader, statsLoader, config.getInt(ConfigNames.MAX_WORLDS),
+                        config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaManager.loadMaps();
                 arenaApi.registerArenaManager(arenaManager);
             }

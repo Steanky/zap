@@ -1,17 +1,21 @@
 package io.github.zap.zombies.stats;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-public abstract class StatsManager {
+public abstract class StatsManager implements Disposable {
 
     private final static int MAXIMUM_CACHE_SIZE = 50;
 
@@ -26,22 +30,19 @@ public abstract class StatsManager {
      * @param targetPlayer The player whose stats should be modified
      * @param task The task to modify the player stats
      */
-    public void enqueuePlayerStatModification(@NotNull Player targetPlayer,
-                                              @NotNull Consumer<PlayerGeneralStats> task) {
-        synchronized (this) {
-            UUID uuid = targetPlayer.getUniqueId();
-            playerTaskCountMap.merge(uuid, 1, Integer::sum);
+    public void modifyStatsForPlayer(@NotNull Player targetPlayer, @NotNull Consumer<PlayerGeneralStats> task) {
+        UUID uuid = targetPlayer.getUniqueId();
+        playerTaskCountMap.merge(uuid, 1, Integer::sum);
 
-            executorService.submit(() -> {
-                PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, unused -> loadPlayerStatsFor(uuid));
-                task.accept(stats);
-                playerTaskCountMap.put(uuid, playerTaskCountMap.get(uuid) - 1);
-            });
+        executorService.submit(() -> {
+            PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, unused -> loadPlayerStatsFor(uuid));
+            task.accept(stats);
+            playerTaskCountMap.put(uuid, playerTaskCountMap.get(uuid) - 1);
+        });
 
-            // This cache size check does not need to be threadsafe since it is only approximate
-            if (playerCache.size() > MAXIMUM_CACHE_SIZE) {
-                flushCache();
-            }
+        // This cache size check does not need to be threadsafe since it is only approximate
+        if (playerCache.size() > MAXIMUM_CACHE_SIZE) {
+            flushCache();
         }
     }
 
@@ -62,6 +63,11 @@ public abstract class StatsManager {
                 }
             }
         });
+    }
+
+    @Override
+    public void dispose() {
+        flushCache();
     }
 
     /**

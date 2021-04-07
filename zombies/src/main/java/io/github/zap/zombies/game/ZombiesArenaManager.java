@@ -13,6 +13,8 @@ import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
+import io.github.zap.zombies.stats.FileStatsManager;
+import io.github.zap.zombies.stats.StatsManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.GameRule;
@@ -41,6 +43,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final ShopManager shopManager;
 
     @Getter
+    private final StatsManager statsManager;
+
+    @Getter
     private final int arenaCapacity;
 
     @Getter
@@ -53,13 +58,14 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Set<String> markedForDeletion = new HashSet<>();
 
-    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, DataLoader powerUpLoader, int arenaCapacity,
-                               int arenaTimeout) {
+    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader,
+                               DataLoader powerUpLoader, DataLoader statsLoader, int arenaCapacity, int arenaTimeout) {
         super(NAME, hubLocation);
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
         this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpManagerOptions());
         ((JacksonPowerUpManager) this.powerUpManager).load();
         this.shopManager = new JacksonShopManager();
+        this.statsManager = new FileStatsManager(statsLoader);
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
         this.mapLoader = mapLoader;
@@ -181,6 +187,8 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         for(ZombiesArena arena : managedArenas.values()) {
             arena.dispose();
         }
+
+        statsManager.dispose();
     }
 
     public MapData getMap(String name) {
