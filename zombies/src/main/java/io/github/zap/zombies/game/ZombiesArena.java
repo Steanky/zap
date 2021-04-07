@@ -1159,7 +1159,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         playerMapStats.setBestTime(duration);
                         statsManager.modifyStatsForMap(map, (mapStats) -> {
                             List<Pair<UUID, Integer>> bestTimes = mapStats.getBestTimes();
-                            bestTimes.remove(bukkitPlayer.getUniqueId());
+                            bestTimes.removeIf((pair) -> pair.getLeft().equals(bukkitPlayer.getUniqueId()));
                             bestTimes.add(Pair.of(bukkitPlayer.getUniqueId(), duration));
                             Collections.sort(bestTimes);
                         });

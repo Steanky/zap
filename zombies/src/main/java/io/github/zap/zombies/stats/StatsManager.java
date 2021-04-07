@@ -23,9 +23,9 @@ import java.util.function.Consumer;
  */
 public abstract class StatsManager implements Disposable {
 
-    private final static int MAXIMUM_PLAYER_CACHE_SIZE = 50;
+    private final static int MAXIMUM_FREE_PLAYER_CACHE_SIZE = 50;
 
-    private final static int MAXIMUM_MAP_CACHE_SIZE = 10;
+    private final static int MAXIMUM_FREE_MAP_CACHE_SIZE = 10;
 
     private final Map<UUID, PlayerGeneralStats> playerCache = new HashMap<>();
 
@@ -61,7 +61,7 @@ public abstract class StatsManager implements Disposable {
         });
 
         // This cache size check does not need to be threadsafe since it is only approximate
-        if (playerCache.size() > MAXIMUM_PLAYER_CACHE_SIZE) {
+        if (playerCache.size() - playerTaskCountMap.size() > MAXIMUM_FREE_PLAYER_CACHE_SIZE) {
             flushPlayerCache();
         }
     }
@@ -88,7 +88,7 @@ public abstract class StatsManager implements Disposable {
         });
 
         // This cache size check does not need to be threadsafe since it is only approximate
-        if (mapCache.size() > MAXIMUM_MAP_CACHE_SIZE) {
+        if (mapCache.size() - mapTaskCountMap.size() > MAXIMUM_FREE_MAP_CACHE_SIZE) {
             flushMapCache();
         }
     }
