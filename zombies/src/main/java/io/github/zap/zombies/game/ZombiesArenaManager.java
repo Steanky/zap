@@ -59,13 +59,14 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final Set<String> markedForDeletion = new HashSet<>();
 
     public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader,
-                               DataLoader powerUpLoader, DataLoader statsLoader, int arenaCapacity, int arenaTimeout) {
+                               DataLoader powerUpLoader, DataLoader playerStatsLoader, DataLoader mapStatsLoader,
+                               int arenaCapacity, int arenaTimeout) {
         super(NAME, hubLocation);
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
         this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpManagerOptions());
         ((JacksonPowerUpManager) this.powerUpManager).load();
         this.shopManager = new JacksonShopManager();
-        this.statsManager = new FileStatsManager(statsLoader);
+        this.statsManager = new FileStatsManager(playerStatsLoader, mapStatsLoader);
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
         this.mapLoader = mapLoader;

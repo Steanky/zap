@@ -564,7 +564,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
 
-        statsManager.flushCache(); // flush after arena termination to minimize player data loss
+        statsManager.flushPlayerCache(); // flush after arena termination to minimize player data loss
 
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
@@ -1151,12 +1151,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(bukkitPlayer != null) {
                 r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
                 r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
-                statsManager.modifyStatsForPlayer(bukkitPlayer, (stats) -> {
-                    PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
-                    mapStats.setWins(mapStats.getWins() + 1);
+                statsManager.modifyStatsForPlayer(bukkitPlayer, (playerStats) -> {
+                    PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
+                    playerMapStats.setWins(playerMapStats.getWins() + 1);
 
-                    if (mapStats.getBestTime() == null || duration < mapStats.getBestTime()) {
-                        mapStats.setBestTime(duration);
+                    if (playerMapStats.getBestTime() == null || duration < playerMapStats.getBestTime()) {
+                        playerMapStats.setBestTime(duration);
+                        statsManager.modifyStatsForMap(map, (mapStats) -> {
+                            List<Pair<UUID, Integer>> bestTimes = mapStats.getBestTimes();
+                            bestTimes.remove(bukkitPlayer.getUniqueId());
+                            bestTimes.add(Pair.of(bukkitPlayer.getUniqueId(), duration));
+                            Collections.sort(bestTimes);
+                        });
                     }
                 });
             }

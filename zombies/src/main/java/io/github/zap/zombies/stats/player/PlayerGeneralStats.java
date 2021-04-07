@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * A player's overall Zombies stats
+ */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PlayerGeneralStats {

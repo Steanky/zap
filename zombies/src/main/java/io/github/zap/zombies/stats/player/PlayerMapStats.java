@@ -7,6 +7,9 @@ import lombok.experimental.FieldDefaults;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A player's stats pertinent to a specific Zombies map
+ */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PlayerMapStats {
