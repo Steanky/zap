@@ -3,7 +3,6 @@ package io.github.zap.nms.v1_16_R3.world;
 import io.github.zap.nms.common.world.SimpleChunkSnapshot;
 import io.github.zap.nms.common.world.WrappedVoxelShape;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.block.Biome;

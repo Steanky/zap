@@ -106,6 +106,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         });
 
                         if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
+                            Bukkit.getServer().getScheduler().getMainThreadExecutor(ArenaApi.getInstance());
                             ArenaApi.info("Acquired context semaphore.");
                             //noinspection ResultOfMethodCallIgnored
                             context.semaphore.tryAcquire(1); //reset the semaphore

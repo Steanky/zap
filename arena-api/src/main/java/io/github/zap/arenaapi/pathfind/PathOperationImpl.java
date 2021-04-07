@@ -14,7 +14,7 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector selector;
     private final ChunkRange range;
 
-    private final NodeQueue openSet = new NodeQueue();
+    private final NodeQueue openSet = new BinaryHeapNodeQueue(128);
     private final Set<PathNode> visited = new HashSet<>();
     private PathDestination destination;
     private PathNode firstNode;
@@ -59,7 +59,7 @@ class PathOperationImpl implements PathOperation {
                 }
 
                 if(openSet.size() != 0) {
-                    currentNode = openSet.poll();
+                    currentNode = openSet.takeBest();
                 }
                 else {
                     complete(false, destination == null ? best : destination);
@@ -116,7 +116,8 @@ class PathOperationImpl implements PathOperation {
                 double g = calculator.computeG(context, currentNode, sample, destination);
                 if(g < sample.score.g) {
                     sample.parent = currentNode;
-                    openSet.update(sample, node -> node.score = new Score(g, calculator.computeH(context, sample, destination)));
+                    sample.score = new Score(g, calculator.computeH(context, sample, destination));
+                    openSet.updateNode(sample);
                 }
 
                 //heuristic-only comparison for 'best path' in case of inaccessible target
