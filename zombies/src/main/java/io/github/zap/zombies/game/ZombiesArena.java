@@ -564,7 +564,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
 
-        statsManager.flushPlayerCache(); // flush after arena termination to minimize player data loss
+        // flush stats manager after arena termination to minimize player data loss
+        statsManager.flushCaches();
 
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);

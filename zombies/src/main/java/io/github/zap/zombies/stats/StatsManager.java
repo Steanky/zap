@@ -132,11 +132,19 @@ public abstract class StatsManager implements Disposable {
         });
     }
 
+    /**
+     * Flushes all caches and writes them to storage
+     */
+    public void flushCaches() {
+        flushPlayerCache();
+        flushMapCache();
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void dispose() {
-        flushPlayerCache();
-        flushMapCache();
+        flushCaches();
+
         playerExecutorService.shutdown();
         mapExecutorService.shutdown();
         try {
