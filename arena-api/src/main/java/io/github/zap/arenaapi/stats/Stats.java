@@ -14,6 +14,7 @@ public class Stats<I> {
 
     private @NotNull I identifier;
 
+    @SuppressWarnings("unused")
     protected Stats() {
 
     }

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.stats;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,13 +16,20 @@ import java.util.function.Supplier;
 /**
  * Represents a cache of stats
  * @param <I> The identifier of the stats
+ * @param <S> The type of the stats
  */
 @RequiredArgsConstructor
-public class StatsCache<I> {
+public class StatsCache<I, S extends Stats<I>> {
+
+    @Getter
+    private final String name;
+
+    @Getter
+    private final Class<S> statsClass;
 
     private final int maximumFreeCacheSize;
 
-    private final Map<I, Stats<I>> cache = new HashMap<>();
+    private final Map<I, S> cache = new HashMap<>();
 
     private final Map<I, Integer> cacheTaskCount = new ConcurrentHashMap<>();
 
@@ -35,7 +43,7 @@ public class StatsCache<I> {
      * @param absenceMapping The mapping to determine the value if it is not present in the cache
      * @return The stats associated with the identifier
      */
-    public @NotNull Stats<I> getValueFor(@NotNull I identifier, @NotNull Function<I, Stats<I>> absenceMapping) {
+    public @NotNull S getValueFor(@NotNull I identifier, @NotNull Function<I, S> absenceMapping) {
         return accessCacheMember(identifier, () -> {
             Integer taskCount = cacheTaskCount.get(identifier);
 
@@ -134,9 +142,9 @@ public class StatsCache<I> {
         pendingRequestPhaser.register(); // register to the pending requests
         pendingRequestPhaser.arriveAndAwaitAdvance(); // await until all pending requests have completed
 
-        Iterator<Map.Entry<I, Stats<I>>> iterator = cache.entrySet().iterator();
+        Iterator<Map.Entry<I, S>> iterator = cache.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<I, Stats<I>> next = iterator.next();
+            Map.Entry<I, S> next = iterator.next();
             callback.accept(next.getValue());
 
             // Remove item from the cache if there aren't any enqueued tasks that want to modify the stats
