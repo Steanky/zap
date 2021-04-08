@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -16,6 +17,8 @@ import java.util.function.Function;
 public abstract class StatsManager {
 
     private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(10);
+
+    private final static long EXPERIMENTALLY_DETERMINED_BEST_EXECUTOR_SERVICE_SHUTDOWN_TIME = 69L;
 
     private final Map<String, StatsCache<?, ?>> caches = new HashMap<>();
 
@@ -28,9 +31,9 @@ public abstract class StatsManager {
      * @param <I> The type of the identifier for the stats
      * @param <S> The type of the stats
      */
-    public <I, S extends Stats<I>> void enqueueCacheModification(@NotNull String cacheName, @NotNull I identifier,
-                                                                 @NotNull Consumer<S> callback,
-                                                                 @NotNull Function<I, S> defaultMapping) {
+    public <I, S extends Stats<I>> void queueCacheModification(@NotNull String cacheName, @NotNull I identifier,
+                                                               @NotNull Consumer<S> callback,
+                                                               @NotNull Function<I, S> defaultMapping) {
         try {
             @SuppressWarnings("unchecked") StatsCache<I, S> cache = (StatsCache<I, S>) caches.get(cacheName);
 
@@ -76,6 +79,24 @@ public abstract class StatsManager {
      */
     public void registerCache(@NotNull StatsCache<?, ?> cache) {
         caches.put(cache.getName(), cache);
+    }
+
+    /**
+     * Destroys the stats manager and writes all caches to storage
+     */
+    public void destroy() {
+        for (StatsCache<?, ?> cache : caches.values()) {
+            cache.flush((flushedStats) -> writeStats(cache.getName(), flushedStats));
+        }
+
+        EXECUTOR_SERVICE.shutdown();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            EXECUTOR_SERVICE.awaitTermination(EXPERIMENTALLY_DETERMINED_BEST_EXECUTOR_SERVICE_SHUTDOWN_TIME,
+                    TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

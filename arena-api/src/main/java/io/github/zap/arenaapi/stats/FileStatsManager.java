@@ -18,10 +18,11 @@ public class FileStatsManager extends StatsManager {
 
     @Override
     protected <I, S extends Stats<I>> @NotNull S loadStats(@NotNull String cacheName, @NotNull I identifier,
-                                                           @NotNull Class<S> clazz, @NotNull Function<I, S> callback) {
+                                                           @NotNull Class<S> statsClass,
+                                                           @NotNull Function<I, S> callback) {
         DataLoader dataLoader = dataLoaderMap.get(cacheName);
         if (dataLoader != null) {
-            S stats = dataLoader.load(identifier.toString(), clazz);
+            S stats = dataLoader.load(identifier.toString(), statsClass);
             if (stats != null) {
                 return stats;
             }

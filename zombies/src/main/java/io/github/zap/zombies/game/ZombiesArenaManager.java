@@ -4,6 +4,9 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
+import io.github.zap.arenaapi.stats.FileStatsManager;
+import io.github.zap.arenaapi.stats.StatsCache;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
@@ -13,8 +16,9 @@ import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
-import io.github.zap.zombies.stats.FileStatsManager;
-import io.github.zap.zombies.stats.StatsManager;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.map.MapStats;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.GameRule;
@@ -43,9 +47,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final ShopManager shopManager;
 
     @Getter
-    private final StatsManager statsManager;
-
-    @Getter
     private final int arenaCapacity;
 
     @Getter
@@ -61,16 +62,26 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader,
                                DataLoader powerUpLoader, DataLoader playerStatsLoader, DataLoader mapStatsLoader,
                                int arenaCapacity, int arenaTimeout) {
-        super(NAME, hubLocation);
+        super(NAME, hubLocation, createStatsManager(playerStatsLoader, mapStatsLoader));
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
         this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpManagerOptions());
         ((JacksonPowerUpManager) this.powerUpManager).load();
         this.shopManager = new JacksonShopManager();
-        this.statsManager = new FileStatsManager(playerStatsLoader, mapStatsLoader);
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;
         this.mapLoader = mapLoader;
 
+    }
+
+    private static StatsManager createStatsManager(DataLoader playerStatsLoader, DataLoader mapStatsLoader) {
+        StatsManager statsManager = new FileStatsManager(Map.of(CacheInformation.PLAYER,
+                playerStatsLoader, CacheInformation.MAP, mapStatsLoader));
+        statsManager.registerCache(new StatsCache<>(CacheInformation.PLAYER, PlayerGeneralStats.class,
+                CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
+        statsManager.registerCache(new StatsCache<>(CacheInformation.MAP, MapStats.class,
+                CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
+
+        return statsManager;
     }
 
     @Override
@@ -189,7 +200,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             arena.dispose();
         }
 
-        statsManager.dispose();
         System.out.println();
     }
 

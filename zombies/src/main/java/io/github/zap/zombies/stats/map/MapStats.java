@@ -1,7 +1,9 @@
 package io.github.zap.zombies.stats.map;
 
+import io.github.zap.arenaapi.stats.Stats;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -12,19 +14,18 @@ import java.util.UUID;
 /**
  * Stats for a Zombies map
  */
-@Data
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class MapStats {
+public class MapStats extends Stats<String> {
 
     public MapStats(String mapName) {
-        this.mapName = mapName;
+        super(mapName);
     }
 
     private MapStats() {
 
     }
-
-    String mapName;
 
     List<Pair<UUID, Integer>> bestTimes = new ArrayList<>(); // TODO: better collection?
 

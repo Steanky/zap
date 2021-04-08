@@ -22,6 +22,8 @@ import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
 import lombok.Getter;
 import lombok.Setter;
@@ -340,10 +342,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             disableRepair();
             disableRevive();
 
-            getArena().getStatsManager().modifyStatsForPlayer(getOfflinePlayer(), (stats) -> {
+            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                    getOfflinePlayer().getUniqueId(), (stats) -> {
                 PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setKnockDowns(mapStats.getKnockDowns() + 1);
-            });
+            }, PlayerGeneralStats::new);
 
             setKnockedState();
         }
@@ -372,10 +375,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 ), corpseLocation.getX(), corpseLocation.getY(), corpseLocation.getZ());
             }
 
-            getArena().getStatsManager().modifyStatsForPlayer(getOfflinePlayer(), (stats) -> {
+            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                    getOfflinePlayer().getUniqueId(), (stats) -> {
                 PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setDeaths(mapStats.getDeaths() + 1);
-            });
+            }, PlayerGeneralStats::new);
 
             setDeadState();
         }
@@ -445,10 +449,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             ));
 
             if (damaged.getHealth() <= 0) {
-                getArena().getStatsManager().modifyStatsForPlayer(player, (stats) -> {
+                getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(),
+                        (stats) -> {
                     PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                     mapStats.setKills(mapStats.getKills() + 1);
-                });
+                    }, PlayerGeneralStats::new);
 
                 addKills(1);
             } else {
@@ -595,10 +600,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         if (i < targetWindow.getVolume() - 2) {
                             arena.getWorld().playSound(targetWindow.getBlockRepairSound(), center.getX(), center.getY(), center.getZ());
                         } else {
-                            arena.getStatsManager().modifyStatsForPlayer(player, (stats) -> {
+                            arena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                                    player.getUniqueId(), (stats) -> {
                                 PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
                                 mapStats.setWindowsRepaired(mapStats.getWindowsRepaired() + 1);
-                            });
+                            }, PlayerGeneralStats::new);
                             arena.getWorld().playSound(targetWindow.getWindowRepairSound(), center.getX(), center.getY(), center.getZ());
                         }
                     }

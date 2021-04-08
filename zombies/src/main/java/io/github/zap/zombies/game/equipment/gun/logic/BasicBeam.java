@@ -6,6 +6,8 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
@@ -154,8 +156,9 @@ public class BasicBeam {
         List<Pair<RayTraceResult, Double>> hits = rayTrace();
 
         if (hits.size() > 0) {
-            getZombiesPlayer().getArena().getStatsManager().modifyStatsForPlayer(zombiesPlayer.getOfflinePlayer(),
-                    (stats) -> stats.setBulletsHit(stats.getBulletsHit() + 1));
+            getZombiesPlayer().getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                    zombiesPlayer.getOfflinePlayer().getUniqueId(),
+                    (stats) -> stats.setBulletsHit(stats.getBulletsHit() + 1), PlayerGeneralStats::new);
 
             for (Pair<RayTraceResult, Double> rayTraceResult : rayTrace()) {
                 damageEntity(rayTraceResult.getLeft());
@@ -219,8 +222,9 @@ public class BasicBeam {
             boolean isHeadshot = determineIfHeadshot(rayTraceResult, mob);
 
             if (isHeadshot) {
-                arena.getStatsManager().modifyStatsForPlayer(getZombiesPlayer().getOfflinePlayer(),
-                        (stats) -> stats.setHeadShots(stats.getHeadShots() + 1));
+                arena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                        getZombiesPlayer().getOfflinePlayer().getUniqueId(),
+                        (stats) -> stats.setHeadShots(stats.getHeadShots() + 1), PlayerGeneralStats::new);
             }
 
             arena.getDamageHandler().damageEntity(getZombiesPlayer(),

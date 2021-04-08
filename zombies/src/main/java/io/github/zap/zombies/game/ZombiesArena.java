@@ -9,6 +9,7 @@ import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.ChunkLoadHandler;
@@ -32,7 +33,9 @@ import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
-import io.github.zap.zombies.stats.StatsManager;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.map.MapStats;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
@@ -564,9 +567,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     public void dispose() {
         super.dispose(); //dispose of superclass-specific resources
 
-        // flush stats manager after arena termination to minimize player data loss
-        statsManager.flushCaches();
-
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
@@ -1022,10 +1022,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         }
                     }
 
-                    statsManager.modifyStatsForPlayer(bukkitPlayer, (stats) -> {
+                    statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
+                            (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(map);
                         mapStats.setTimesPlayed(mapStats.getTimesPlayed() + 1);
-                    });
+                        }, PlayerGeneralStats::new);
 
                     zombiesPlayer.startTasks();
                 }
@@ -1048,7 +1049,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             Player player = zombiesPlayer.getPlayer();
             if (player != null) {
                 if (map.getRoundTimesShouldSave().contains(lastRoundIndex)) {
-                    statsManager.modifyStatsForPlayer(player, (stats) -> {
+                    statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
@@ -1061,16 +1062,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         if (bestTime == null || bestTime < secondsElapsed) {
                             bestTimes.put(lastRoundIndex, secondsElapsed);
                         }
-                    });
+                    }, PlayerGeneralStats::new);
                 } else {
-                    statsManager.modifyStatsForPlayer(player, (stats) -> {
+                    statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
                         if (mapStats.getBestRound() < lastRoundIndex) {
                             mapStats.setBestRound(lastRoundIndex);
                         }
-                    });
+                    }, PlayerGeneralStats::new);
                 }
             }
         }
@@ -1152,20 +1153,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(bukkitPlayer != null) {
                 r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
                 r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
-                statsManager.modifyStatsForPlayer(bukkitPlayer, (playerStats) -> {
+                statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
+                        (playerStats) -> {
                     PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
                     playerMapStats.setWins(playerMapStats.getWins() + 1);
 
                     if (playerMapStats.getBestTime() == null || duration < playerMapStats.getBestTime()) {
                         playerMapStats.setBestTime(duration);
-                        statsManager.modifyStatsForMap(map, (mapStats) -> {
+                        statsManager.queueCacheModification(CacheInformation.MAP, map.getName(), (mapStats) -> {
                             List<Pair<UUID, Integer>> bestTimes = mapStats.getBestTimes();
                             bestTimes.removeIf((pair) -> pair.getLeft().equals(bukkitPlayer.getUniqueId()));
                             bestTimes.add(Pair.of(bukkitPlayer.getUniqueId(), duration));
                             Collections.sort(bestTimes);
-                        });
+                        }, MapStats::new);
                     }
-                });
+                }, PlayerGeneralStats::new);
             }
         });
         runTaskLater(200L, this::dispose);

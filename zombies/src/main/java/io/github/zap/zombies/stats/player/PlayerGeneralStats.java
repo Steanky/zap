@@ -1,8 +1,10 @@
 package io.github.zap.zombies.stats.player;
 
+import io.github.zap.arenaapi.stats.Stats;
 import io.github.zap.zombies.game.data.map.MapData;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,20 +15,19 @@ import java.util.UUID;
 /**
  * A player's overall Zombies stats
  */
-@Data
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PlayerGeneralStats {
+public class PlayerGeneralStats extends Stats<UUID> {
 
     public PlayerGeneralStats(@NotNull UUID uuid) {
-        this.uuid = uuid;
+        super(uuid);
     }
 
     @SuppressWarnings("unused")
     private PlayerGeneralStats() {
 
     }
-
-    UUID uuid;
 
     int bulletsShot = 0;
 

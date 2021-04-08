@@ -7,6 +7,8 @@ import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -297,8 +299,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         super.onRightClick(action);
 
         if (canShoot) {
-            getZombiesArena().getStatsManager().modifyStatsForPlayer(getPlayer(),
-                    (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1));
+            getZombiesArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                    getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1),
+                    PlayerGeneralStats::new);
 
             shoot();
             updateAfterShooting();
