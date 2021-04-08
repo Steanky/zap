@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents a cache of stats
@@ -35,15 +36,7 @@ public class StatsCache<I> {
      * @return The stats associated with the identifier
      */
     public @NotNull Stats<I> getValueFor(@NotNull I identifier, @NotNull Function<I, Stats<I>> absenceMapping) {
-        pendingRequestPhaser.register();
-        if (pendingFlushPhaser.getRegisteredParties() > 0) {
-            pendingFlushPhaser.register();
-            pendingRequestPhaser.arriveAndDeregister();
-            pendingFlushPhaser.arriveAndAwaitAdvance();
-            pendingRequestPhaser.register();
-        }
-
-        synchronized (getLockFor(identifier)) {
+        return accessCacheMember(identifier, () -> {
             Integer taskCount = cacheTaskCount.get(identifier);
 
             if (taskCount != null) {
@@ -54,9 +47,8 @@ public class StatsCache<I> {
                 }
             }
 
-            pendingRequestPhaser.arriveAndDeregister();
             return cache.computeIfAbsent(identifier, absenceMapping);
-        }
+        });
     }
 
     /**
@@ -64,9 +56,63 @@ public class StatsCache<I> {
      * @param identifier The identifier for the stats
      */
     public void notifyTaskFor(@NotNull I identifier) {
+        cacheTaskCount.merge(identifier, 1, Integer::sum);
+    }
+
+    /**
+     * Accesses part of the cache while waiting for any pending flushes to complete
+     * @param identifier The identifier for the member of the cache
+     * @param callback The callback for when cache access is ready
+     * @return The value returned by the callback
+     */
+    private <R> R accessCacheMember(@NotNull I identifier, @NotNull Supplier<R> callback) {
+        pendingRequestPhaser.register(); // register the request
+        waitIfOngoingFlush();
+
+        R value;
         synchronized (getLockFor(identifier)) {
-            cacheTaskCount.merge(identifier, 1, Integer::sum);
+            value = callback.get();
+            pendingRequestPhaser.arriveAndDeregister();
         }
+        return value;
+    }
+
+    /**
+     * Accesses part of the cache while waiting for any pending flushes to complete
+     * @param identifier The identifier for the member of the cache
+     * @param callback The callback for when cache access is ready
+     */
+    private void accessCacheMember(@NotNull I identifier, @NotNull Runnable callback) {
+        pendingRequestPhaser.register(); // register the request
+        waitIfOngoingFlush();
+
+        synchronized (getLockFor(identifier)) {
+            callback.run();
+            pendingRequestPhaser.arriveAndDeregister();
+        }
+    }
+
+    /**
+     * Waits for a flush to complete if it is ongoing
+     * Must be called after registering to pendingRequestPhaser
+     */
+    private void waitIfOngoingFlush() {
+        // check for ongoing flush
+        if (pendingFlushPhaser.getRegisteredParties() > 0) {
+            pendingFlushPhaser.register(); // add request to the parties waiting for the flush
+            pendingRequestPhaser.arriveAndDeregister(); // unregister from requests due to needing to wait
+            pendingFlushPhaser.arriveAndAwaitAdvance(); // await flush completion
+            pendingRequestPhaser.register(); // reregister the request
+        }
+    }
+
+    /**
+     * Get an object lock for an identifier to synchronize on
+     * @param identifier The identifier of the lock
+     * @return The object lock
+     */
+    private @NotNull Object getLockFor(@NotNull I identifier) {
+        return locks.computeIfAbsent(identifier, (unused) -> new Object());
     }
 
     /**
@@ -79,34 +125,28 @@ public class StatsCache<I> {
                 && pendingFlushPhaser.getRegisteredParties() <= 0;
     }
 
-    private @NotNull Object getLockFor(@NotNull I identifier) {
-        return locks.computeIfAbsent(identifier, (unused) -> new Object());
-    }
-
     /**
      * Flushes the cache of any unnecessary values
      * @param callback A callback for each set of flushed stats
      */
-    public void flush(@NotNull Consumer<Stats<I>> callback) {
-        synchronized (this) {
-            pendingFlushPhaser.register();
-            pendingRequestPhaser.register();
-            pendingRequestPhaser.arriveAndAwaitAdvance();
+    public synchronized void flush(@NotNull Consumer<Stats<I>> callback) {
+        pendingFlushPhaser.register(); // register a flush to notify requests to wait
+        pendingRequestPhaser.register(); // register to the pending requests
+        pendingRequestPhaser.arriveAndAwaitAdvance(); // await until all pending requests have completed
 
-            Iterator<Map.Entry<I, Stats<I>>> iterator = cache.entrySet().iterator();
+        Iterator<Map.Entry<I, Stats<I>>> iterator = cache.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<I, Stats<I>> next = iterator.next();
+            callback.accept(next.getValue());
 
-            while (iterator.hasNext()) {
-                Map.Entry<I, Stats<I>> next = iterator.next();
-                callback.accept(next.getValue());
-
-                // Remove item from the cache if there aren't any enqueued tasks that want to modify the stats
-                if (!cacheTaskCount.containsKey(next.getKey())) {
-                    iterator.remove();
-                }
+            // Remove item from the cache if there aren't any enqueued tasks that want to modify the stats
+            if (!cacheTaskCount.containsKey(next.getKey())) {
+                locks.remove(next.getKey());
+                iterator.remove();
             }
-
-            pendingFlushPhaser.arriveAndDeregister();
         }
+
+        pendingFlushPhaser.arriveAndDeregister(); // complete flush and restart waiting requests
     }
 
 }
