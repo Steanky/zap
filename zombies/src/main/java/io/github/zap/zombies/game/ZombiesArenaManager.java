@@ -194,15 +194,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         return maps.containsKey(mapName);
     }
 
-    @Override
-    public void dispose() {
-        for(ZombiesArena arena : managedArenas.values()) {
-            arena.dispose();
-        }
-
-        System.out.println();
-    }
-
     public MapData getMap(String name) {
         return maps.get(name);
     }

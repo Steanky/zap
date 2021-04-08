@@ -76,6 +76,9 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
     @Override
     public void dispose() {
         statsManager.destroy();
+        for (T arena : managedArenas.values()) {
+            arena.dispose();
+        }
     }
 
 }

@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -22,9 +23,12 @@ public class FileStatsManager extends StatsManager {
                                                            @NotNull Function<I, S> callback) {
         DataLoader dataLoader = dataLoaderMap.get(cacheName);
         if (dataLoader != null) {
-            S stats = dataLoader.load(identifier.toString(), statsClass);
-            if (stats != null) {
-                return stats;
+            File file = dataLoader.getFile(identifier.toString());
+            if (file != null && file.exists()) {
+                S stats = dataLoader.load(identifier.toString(), statsClass);
+                if (stats != null) {
+                    return stats;
+                }
             }
         }
 
