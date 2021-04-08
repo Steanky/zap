@@ -27,17 +27,17 @@ public abstract class StatsManager implements Disposable {
 
     private final static int MAXIMUM_FREE_MAP_CACHE_SIZE = 3;
 
+    private static final ExecutorService PLAYER_EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
+
     private final Map<UUID, PlayerGeneralStats> playerCache = new HashMap<>();
 
     private final Map<UUID, Integer> playerTaskCountMap = new ConcurrentHashMap<>();
-
-    private final ExecutorService playerExecutorService = Executors.newSingleThreadExecutor();
 
     private final Map<String, MapStats> mapCache = new HashMap<>();
 
     private final Map<String, Integer> mapTaskCountMap = new ConcurrentHashMap<>();
 
-    private final ExecutorService mapExecutorService = Executors.newSingleThreadExecutor();
+    private static final ExecutorService mapExecutorService = Executors.newSingleThreadExecutor();
 
     /**
      * Enqueues a task to modify player stats
@@ -108,7 +108,7 @@ public abstract class StatsManager implements Disposable {
             }
         }
 
-        playerExecutorService.submit(() -> {
+        PLAYER_EXECUTOR_SERVICE.submit(() -> {
            PlayerGeneralStats stats = playerCache.computeIfAbsent(uuid, this::loadPlayerStatsForPlayer);
            callback.accept(stats);
         });
@@ -140,7 +140,7 @@ public abstract class StatsManager implements Disposable {
      * Flushes the cache of player stats and writes them to storage
      */
     public void flushPlayerCache() {
-        playerExecutorService.submit(() -> {
+        PLAYER_EXECUTOR_SERVICE.submit(() -> {
             Iterator<Map.Entry<UUID, PlayerGeneralStats>> iterator = playerCache.entrySet().iterator();
 
             while (iterator.hasNext()) {
@@ -187,11 +187,11 @@ public abstract class StatsManager implements Disposable {
     public void dispose() {
         flushCaches();
 
-        playerExecutorService.shutdown();
+        PLAYER_EXECUTOR_SERVICE.shutdown();
         mapExecutorService.shutdown();
         try {
             // not quite magic numbers
-            playerExecutorService.awaitTermination(69L, TimeUnit.SECONDS);
+            PLAYER_EXECUTOR_SERVICE.awaitTermination(69L, TimeUnit.SECONDS);
             mapExecutorService.awaitTermination(420L, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Zombies.warning("ExecutorService interrupted while flushing StatsManager cache!");
