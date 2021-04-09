@@ -13,6 +13,9 @@ import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.SpeedPerk;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
+import io.github.zap.zombies.stats.player.PlayerMapStats;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -176,9 +179,14 @@ public class Door extends Shop<DoorData> {
                                 player.addPotionEffect(speedEffect);
 
                                 SpeedPerk speedPerk = (SpeedPerk) zombiesPlayer.getPerks().getPerk(PerkType.SPEED);
-                                zombiesArena.runTaskLater(map.getDoorSpeedTicks(), () -> {
-                                    speedPerk.execute(EmptyEventArgs.getInstance());
-                                });
+                                zombiesArena.runTaskLater(map.getDoorSpeedTicks(),
+                                        () ->  speedPerk.execute(EmptyEventArgs.getInstance()));
+
+                                zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                                        player.getUniqueId(), (stats) -> {
+                                    PlayerMapStats mapStats = stats.getMapStatsForMap(zombiesArena.getMap());
+                                    mapStats.setDoorsOpened(mapStats.getDoorsOpened() + 1);
+                                }, PlayerGeneralStats::new);
 
                                 opened = true;
                                 onPurchaseSuccess(zombiesPlayer);

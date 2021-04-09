@@ -3,6 +3,7 @@ package io.github.zap.zombies.game.powerups;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayerState;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
@@ -106,34 +107,38 @@ public abstract class PowerUp {
             }
 
             getArena().getPlayerMap().forEach((l,r) -> {
-                var itemBox = new BoundingBox(
-                        powerUpItemLocation.getX(),
-                        powerUpItemLocation.getY(),
-                        powerUpItemLocation.getZ(),
-                        powerUpItemLocation.getX(),
-                        powerUpItemLocation.getY(),
-                        powerUpItemLocation.getZ()).expand(getData().getPickupRange());
+                if (r.getPlayer() != null && r.getState() == ZombiesPlayerState.ALIVE) {
+                    var itemBox = new BoundingBox(
+                            powerUpItemLocation.getX(),
+                            powerUpItemLocation.getY(),
+                            powerUpItemLocation.getZ(),
+                            powerUpItemLocation.getX(),
+                            powerUpItemLocation.getY(),
+                            powerUpItemLocation.getZ()).expand(getData().getPickupRange());
 
-                var collide = r.getPlayer().getBoundingBox().overlaps(itemBox);
-                itemEntity.setCustomName(getData().getDisplayName());
-                var pickupDist = getData().getPickupRange();
-                if(collide && !(boolean)isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
-                    if(!checkForDistTask.isCancelled()) checkForDistTask.cancel();
-                    var sameType = getSamePowerUp();
-                    if(sameType != null) sameType.deactivate();
-                    isPickedUp.setValue(true);
-                    removePowerUpItem();
-                    var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ACTIVATED, Collections.singleton(getCurrent()));
-                    getArena().getPowerUpChangedEvent().callEvent(eventArgs);
-                    getArena().getPlayerMap().forEach((id,player) -> {
-                        player.getPlayer().sendTitle(getData().getDisplayName(), "");
-                        player.getPlayer().sendMessage(ChatColor.YELLOW +  r.getPlayer().getName() + " activated " + getData().getDisplayName());
-                        player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
-                    });
+                    var collide = r.getPlayer().getBoundingBox().overlaps(itemBox);
+                    itemEntity.setCustomName(getData().getDisplayName());
+                    var pickupDist = getData().getPickupRange();
+                    if (collide && !(boolean) isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
+                        if (!checkForDistTask.isCancelled()) checkForDistTask.cancel();
+                        var sameType = getSamePowerUp();
+                        if (sameType != null) sameType.deactivate();
+                        isPickedUp.setValue(true);
+                        removePowerUpItem();
+                        var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ACTIVATED, Collections.singleton(getCurrent()));
+                        getArena().getPowerUpChangedEvent().callEvent(eventArgs);
+                        getArena().getPlayerMap().forEach((id, player) -> {
+                            if (player != null) {
+                                player.getPlayer().sendTitle(getData().getDisplayName(), "");
+                                player.getPlayer().sendMessage(ChatColor.YELLOW + r.getPlayer().getName() + " activated " + getData().getDisplayName());
+                                player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
+                            }
+                        });
 
-                    state = PowerUpState.ACTIVATED;
-                    activatedTimeStamp = System.currentTimeMillis();
-                    activate();
+                        state = PowerUpState.ACTIVATED;
+                        activatedTimeStamp = System.currentTimeMillis();
+                        activate();
+                    }
                 }
             });
         });

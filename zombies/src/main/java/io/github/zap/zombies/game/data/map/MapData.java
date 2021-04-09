@@ -269,6 +269,11 @@ public class MapData {
     int reviveSpeedTicks = 100;
 
     /**
+     * The rounds that should have times saved for players
+     */
+    Set<Integer> roundTimesShouldSave = new HashSet<>();
+
+    /**
      * Equipments given at the start of the game by their name
      */
     List<String> defaultEquipments = new ArrayList<>();

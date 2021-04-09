@@ -47,8 +47,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
         var map = scoreboard.getZombiesArena().getMap().getName();
 
         for(var i : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
-            //getPlayer() will return null if they are not in-game!
-            var tfName = new StringFragment(i.getValue().getPlayer().getName());
+            var tfName = new StringFragment(i.getValue().getOfflinePlayer().getName());
             var tfState = new StringFragment();
             playerStatues.put(i.getKey(), Pair.of(tfName, tfState));
         }
@@ -88,8 +87,10 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
             corpseTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
 
             // Add their in game scoreboard for every player still in the game
-            if(player.getValue().isInGame())
-                player.getValue().getPlayer().setScoreboard(bukkitScoreboard);
+            Player bukkitPlayer = player.getValue().getPlayer();
+            if (bukkitPlayer != null) {
+                bukkitPlayer.setScoreboard(bukkitScoreboard);
+            }
 
             for (Corpse corpse : gameScoreboard.getZombiesArena().getCorpses()) {
                 corpse.addCorpseToScoreboardTeamForPlayer(player.getValue().getPlayer());
@@ -104,7 +105,12 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
 
     private void handleLeave(ManagingArena<ZombiesArena, ZombiesPlayer>.ManagedPlayerListArgs managedPlayerListArgs) {
-        managedPlayerListArgs.getPlayers().forEach(x -> x.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard()));
+        managedPlayerListArgs.getPlayers().forEach(x -> {
+            Player player = x.getPlayer();
+            if (player != null) {
+                x.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            }
+        });
     }
 
     private void handleRejoin(ManagingArena.PlayerListArgs playerListArgs) {
@@ -166,7 +172,12 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                 playerSb.getValue().getZombieKills().setValue("" + player.getKills());
                 playerSb.getValue().getSidebarWriter().update();
                 gameScoreboard.getZombiesArena().getPlayerMap()
-                        .forEach((l,r) -> playerSb.getValue().getZombiesKillObjective().getScore(r.getPlayer().getName()).setScore(r.getKills()));
+                        .forEach((l,r) -> {
+                            Player otherPlayer = r.getPlayer();
+                            if (otherPlayer != null) {
+                                playerSb.getValue().getZombiesKillObjective().getScore(otherPlayer.getName()).setScore(r.getKills());
+                            }
+                        });
             } else {
                 Zombies.getInstance().getLogger().log(Level.SEVERE, "Could not find player with UUID: " + playerSb.getKey().toString());
             }
