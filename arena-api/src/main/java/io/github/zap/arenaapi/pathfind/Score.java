@@ -3,10 +3,10 @@ package io.github.zap.arenaapi.pathfind;
 import java.util.Objects;
 
 public class Score {
-    public final double g;
-    public final double h;
-    public final double f;
-    private final int hash;
+    private double g;
+    private double h;
+    private double f;
+    private int hash;
 
     public Score(double g, double h) {
         this.g = g;
@@ -42,7 +42,22 @@ public class Score {
         return false;
     }
 
-    public Score copy() {
-        return new Score(g, h);
+    public double getG() {
+        return g;
+    }
+
+    public double getH() {
+        return h;
+    }
+
+    public double getF() {
+        return f;
+    }
+
+    public void set(double g, double h) {
+        this.g = g;
+        this.h = h;
+        this.f = g + h;
+        hash = Objects.hash(g, h, f);
     }
 }

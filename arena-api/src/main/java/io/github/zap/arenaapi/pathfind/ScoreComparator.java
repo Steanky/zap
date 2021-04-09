@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Comparator;
 
 class ScoreComparator implements Comparator<Score> {
@@ -12,7 +14,7 @@ class ScoreComparator implements Comparator<Score> {
     }
 
     @Override
-    public int compare(Score first, Score second) {
-        return Double.compare(first.f, second.f);
+    public int compare(@NotNull Score first, @NotNull Score second) {
+        return Double.compare(first.getF(), second.getF());
     }
 }

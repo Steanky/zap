@@ -21,11 +21,6 @@ public class EntityAgent<T extends Entity> implements PathAgent {
     }
 
     @Override
-    public @NotNull PathNode nodeAt() {
-        return new PathNode(vector);
-    }
-
-    @Override
     public @NotNull Vector position() {
         return vector.clone();
     }

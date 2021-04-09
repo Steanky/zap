@@ -21,8 +21,9 @@ import java.util.function.Consumer;
 public interface PathfinderEngine extends Disposable {
     /**
      * Offers a PathOperation to this PathfinderEngine. Upon completion, the provided consumer will be called. The
-     * thread it is called on depends upon the implementation — asynchronous PathfinderEngines may call off of the
-     * server thread. Synchronous PathfinderEngines are guaranteed to always call their consumer on the server thread.
+     * thread it is called on depends upon the implementation — asynchronous PathfinderEngines may call the consumer on
+     * any thread. Synchronous PathfinderEngines are guaranteed to always call their consumer on the thread that
+     * invoked giveOperation (which must typically be the main server thread).
      *
      * This method offers no guarantee as to whether or not the operation will actually be completed (that is, it will
      * call its consumer with a PathResult). For asynchronous operations particularly, pending routines may be
@@ -42,7 +43,7 @@ public interface PathfinderEngine extends Disposable {
 
     /**
      * Returns the default asynchronous implementation of PathfinderEngine.
-     * @return The PathfinderEngine instance, which will be an asynchronous implementation
+     * @return An asynchronous PathfinderEngine implementation
      */
     static PathfinderEngine async() {
         return AsyncPathfinderEngine.instance();

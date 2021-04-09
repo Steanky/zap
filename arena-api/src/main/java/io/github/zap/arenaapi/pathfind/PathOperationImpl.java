@@ -14,7 +14,7 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector selector;
     private final ChunkRange range;
 
-    private final NodeQueue openSet = new BinaryHeapNodeQueue(128);
+    private final NodeQueue openSet = new PriorityNodeQueue(128);
     private final Set<PathNode> visited = new HashSet<>();
     private PathDestination destination;
     private PathNode firstNode;
@@ -66,15 +66,12 @@ class PathOperationImpl implements PathOperation {
                     return true;
                 }
             }
-            else if(firstNode == null) {
-                currentNode = agent.nodeAt();
-                currentNode.score = new Score(0, calculator.computeH(context, currentNode,
-                        selector.selectDestinationFor(this, currentNode)));
-                bestFound = new PathNode(currentNode.x, currentNode.y, currentNode.z);
-                firstNode = currentNode;
-            }
             else {
-                throw new IllegalStateException("currentNode is null, but firstNode has already been set!");
+                currentNode = new PathNode(null, agent);
+                currentNode.score.set(0, calculator.computeH(context, currentNode,
+                        selector.selectDestinationFor(this, currentNode)));
+                bestFound = currentNode.copy();
+                firstNode = currentNode;
             }
 
             visited.add(currentNode);
@@ -114,15 +111,16 @@ class PathOperationImpl implements PathOperation {
                 }
 
                 double g = calculator.computeG(context, currentNode, sample, destination);
-                if(g < sample.score.g) {
-                    sample.parent = currentNode;
-                    sample.score = new Score(g, calculator.computeH(context, sample, destination));
-                    openSet.updateNode(sample);
+                if(g < sample.score.getG()) {
+                    PathNode newSample = sample.copy();
+                    newSample.score.set(g, calculator.computeH(context, sample, destination));
+                    openSet.replaceNode(sample, newSample);
+                    sample = newSample;
                 }
 
-                //heuristic-only comparison for 'best path' in case of inaccessible target
-                if(sample.score.h < bestFound.score.h) {
-                    bestFound = sample;
+                //comparison for 'best path' in case of inaccessible target
+                if(sample.score.getF() < bestFound.score.getF()) {
+                    bestFound = sample.copy();
                 }
             }
         }

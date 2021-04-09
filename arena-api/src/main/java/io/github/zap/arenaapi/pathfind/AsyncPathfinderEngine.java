@@ -65,7 +65,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     }
 
     private final Thread pathfinderThread;
-    private final ExecutorService pathWorker = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ExecutorService pathWorker = Executors.newCachedThreadPool();
     private final ExecutorCompletionService<Context> completionService = new ExecutorCompletionService<>(pathWorker);
     private final List<Context> contexts = new ArrayList<>();
     private final Semaphore contextsSemaphore = new Semaphore(0);
@@ -76,7 +76,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final Object completedWaitSyncRoot = new Object();
 
     private AsyncPathfinderEngine() { //singleton: bad idea to create more than once instance
-        pathfinderThread = new Thread(null, this::pathfind, "Pathfinder");
+        pathfinderThread = new Thread(this::pathfind, "Pathfinder");
         pathfinderThread.start();
 
         Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
@@ -106,7 +106,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         });
 
                         if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
-                            Bukkit.getServer().getScheduler().getMainThreadExecutor(ArenaApi.getInstance());
                             ArenaApi.info("Acquired context semaphore.");
                             //noinspection ResultOfMethodCallIgnored
                             context.semaphore.tryAcquire(1); //reset the semaphore
@@ -123,6 +122,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                             if(!syncRun.getAndSet(true)) {
                                 ArenaApi.warning("Timed out while waiting on main thread to sync chunks.");
                                 Bukkit.getScheduler().cancelTask(syncTask.getTaskId());
+                                context.semaphore.release();
                             }
                         }
                     }

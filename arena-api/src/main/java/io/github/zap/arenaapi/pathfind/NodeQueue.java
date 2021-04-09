@@ -10,11 +10,11 @@ public interface NodeQueue {
 
     @NotNull PathNode takeBest();
 
-    void addNode(PathNode node);
+    void addNode(@NotNull PathNode node);
 
-    void updateNode(PathNode node);
+    void replaceNode(@NotNull PathNode currentNode, @NotNull PathNode newNode);
 
-    boolean contains(PathNode node);
+    boolean contains(@NotNull PathNode node);
 
     int size();
 }

@@ -4,11 +4,11 @@ import org.jetbrains.annotations.NotNull;
 
 public interface DestinationSelector {
     DestinationSelector CLOSEST = (operation, node) -> {
-        int bestDistance = Integer.MAX_VALUE;
+        double bestDistance = Double.MAX_VALUE;
         PathDestination bestDestination = null;
 
         for(PathDestination destination : operation.getDestinations()) {
-            int sample = node.distanceSquaredTo(destination.node());
+            double sample = node.distanceSquaredTo(destination.node());
 
             if(sample < bestDistance) {
                 bestDistance = sample;

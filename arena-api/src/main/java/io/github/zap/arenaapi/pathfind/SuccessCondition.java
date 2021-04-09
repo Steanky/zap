@@ -10,7 +10,7 @@ public interface SuccessCondition {
     /**
      * Simple termination condition: the path is complete when the agent reaches the node.
      */
-    SuccessCondition REACHED_DESTINATION = (context, node, destination) -> node.equals(destination.node());
+    SuccessCondition WITHIN_BLOCK = whenWithin(1);
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 

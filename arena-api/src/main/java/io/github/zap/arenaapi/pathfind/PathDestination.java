@@ -17,16 +17,16 @@ public interface PathDestination {
 
     static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathDestinationImpl(findBlock ? nodeOnGround(entity) : new PathNode(entity));
+        return new PathDestinationImpl(findBlock ? nodeOnGround(entity) : new PathNode(null, entity.getLocation().toVector()));
     }
 
     static @NotNull PathDestination fromCoordinates(int x, int y, int z) {
-        return new PathDestinationImpl(new PathNode(x, y, z));
+        return new PathDestinationImpl(new PathNode(new Score(), null, x, y, z));
     }
 
     static @NotNull PathDestination fromVector(@NotNull Vector vector) {
         Objects.requireNonNull(vector, "vector cannot be null!");
-        return new PathDestinationImpl(new PathNode(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ()));
+        return new PathDestinationImpl(new PathNode(null, vector.getBlockX(), vector.getBlockY(), vector.getBlockZ()));
     }
 
     static @NotNull Set<PathDestination> fromEntities(@NotNull Collection<? extends Entity> entities, boolean findBlocks) {
@@ -36,7 +36,7 @@ public interface PathDestination {
         Set<PathDestination> destinations = new HashSet<>();
 
         for(Entity entity : entities) {
-            destinations.add(new PathDestinationImpl(findBlocks ? nodeOnGround(entity) : new PathNode(entity)));
+            destinations.add(new PathDestinationImpl(findBlocks ? nodeOnGround(entity) : new PathNode(null, entity.getLocation().toVector())));
         }
 
         return destinations;
@@ -57,6 +57,6 @@ public interface PathDestination {
         }
         while(block.getType().isAir() && --y > -1);
 
-        return new PathNode(x, ++y, z);
+        return new PathNode(null, x, ++y, z);
     }
 }

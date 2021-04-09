@@ -61,12 +61,6 @@ public interface PathAgent {
     @NotNull Characteristics characteristics();
 
     /**
-     * Constructs a new PathNode at the current block location of this agent.
-     * @return A newly-constructed PathNode object located at the agent's current position
-     */
-    @NotNull PathNode nodeAt();
-
-    /**
      * Gets the position of this PathAgent.
      * @return The position of this PathAgent
      */

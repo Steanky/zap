@@ -78,19 +78,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         instance = this;
         StopWatch timer = StopWatch.createStarted();
 
-        BinaryHeapNodeQueue queue = new BinaryHeapNodeQueue(128);
-
-        Random rng = new Random();
-        for(int i = 0; i < 1000; i++) {
-            PathNode node = new PathNode(rng.nextInt(100), rng.nextInt(100), rng.nextInt(100));
-            node.score = new Score(rng.nextInt(100), rng.nextInt(100));
-            queue.addNode(node);
-        }
-
-        while(queue.size() > 0) {
-            ArenaApi.info(queue.takeBest().toString());
-        }
-
         try {
             initBridge();
             initDependencies();
@@ -109,6 +96,15 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
 
         engine = PathfinderEngine.async();
+    }
+
+    private long average(long[] longs) {
+        long sum = 0;
+        for(long val : longs) {
+            sum += val;
+        }
+
+        return sum / longs.length;
     }
 
     @Override
@@ -307,10 +303,10 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                     PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector());
                     engine.giveOperation(PathOperation.forAgent(blockAgent,
                             PathDestination.fromEntities(stands, false), ScoreCalculator.DISTANCE,
-                            SuccessCondition.REACHED_DESTINATION, NodeProvider.DEBUG, DestinationSelector.CLOSEST, 5),
+                            SuccessCondition.WITHIN_BLOCK, NodeProvider.DEBUG, DestinationSelector.CLOSEST, 5),
                             event.getPlayer().getWorld(), (pathResult) -> Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                                 for(PathNode node : pathResult) {
-                                    event.getPlayer().getWorld().getBlockAt(node.x, node.y, node.z).setType(Material.DIAMOND_BLOCK);
+                                    event.getPlayer().getWorld().getBlockAt((int)node.x, (int)node.y, (int)node.z).setType(Material.DIAMOND_BLOCK);
                                 }
                             }));
                 }

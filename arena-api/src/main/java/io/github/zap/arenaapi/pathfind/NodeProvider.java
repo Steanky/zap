@@ -1,9 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.nms.common.world.WrappedVoxelShape;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,13 +12,16 @@ import java.util.List;
  * used by A* to determine the best path.
  *
  * In general, returning fewer nodes is better for memory usage and performance but may result in other problems such
- * as "coarse" paths that appear suboptimal to the user, even though A* is still finding the most optimal path given
- * its location. Returning more nodes may improve path appearance at the cost of performance.
+ * as "coarse" paths that appear suboptimal to the user, even though A* is still finding the most optimal path for the
+ * information it is given. Returning more nodes may improve path appearance at the cost of performance.
+ *
+ * NodeProvider implementations should in general follow a singleton pattern, since reference comparison may be used on
+ * NodeProviders.
  */
 public interface NodeProvider {
     /**
-     * NodeProvider that can be used to debug pathfinding — does not return nodes that change the Y-elevation or nodes
-     * that enter a non-air block.
+     * NodeProvider that can be used to debug pathfinding implementations. It does not return nodes that change the
+     * Y-elevation or nodes that enter a non-air block.
      */
     NodeProvider DEBUG = new NodeProvider() {
         @Override
@@ -55,13 +55,7 @@ public interface NodeProvider {
 
         @Override
         public boolean mayTraverse(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode start, @NotNull PathNode next) {
-            BlockData blockData = context.blockProvider().getData(next.x, next.y, next.z);
-            WrappedVoxelShape shape = context.blockProvider().getCollision(next.x, next.y, next.z);
-
-            if(shape != null) {
-                ArenaApi.info("Found partial block at " + next);
-            }
-
+            BlockData blockData = context.blockProvider().getData((int)next.x, (int)next.y, (int)next.z);
             return blockData != null && blockData.getMaterial().isAir();
         }
     };
