@@ -4,6 +4,9 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
+import io.github.zap.arenaapi.stats.FileStatsManager;
+import io.github.zap.arenaapi.stats.StatsCache;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
@@ -13,6 +16,9 @@ import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.map.MapStats;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.GameRule;
@@ -53,9 +59,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Set<String> markedForDeletion = new HashSet<>();
 
-    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, DataLoader powerUpLoader, int arenaCapacity,
-                               int arenaTimeout) {
-        super(NAME, hubLocation);
+    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader,
+                               DataLoader powerUpLoader, DataLoader playerStatsLoader, DataLoader mapStatsLoader,
+                               int arenaCapacity, int arenaTimeout) {
+        super(NAME, hubLocation, createStatsManager(playerStatsLoader, mapStatsLoader));
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
         this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpManagerOptions());
         ((JacksonPowerUpManager) this.powerUpManager).load();
@@ -64,6 +71,17 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
         this.arenaTimeout = arenaTimeout;
         this.mapLoader = mapLoader;
 
+    }
+
+    private static StatsManager createStatsManager(DataLoader playerStatsLoader, DataLoader mapStatsLoader) {
+        StatsManager statsManager = new FileStatsManager(Map.of(CacheInformation.PLAYER,
+                playerStatsLoader, CacheInformation.MAP, mapStatsLoader));
+        statsManager.registerCache(new StatsCache<>(CacheInformation.PLAYER, PlayerGeneralStats.class,
+                CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
+        statsManager.registerCache(new StatsCache<>(CacheInformation.MAP, MapStats.class,
+                CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
+
+        return statsManager;
     }
 
     @Override
@@ -174,13 +192,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     @Override
     public boolean hasMap(String mapName) {
         return maps.containsKey(mapName);
-    }
-
-    @Override
-    public void dispose() {
-        for(ZombiesArena arena : managedArenas.values()) {
-            arena.dispose();
-        }
     }
 
     public MapData getMap(String name) {

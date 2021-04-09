@@ -9,6 +9,7 @@ import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.ChunkLoadHandler;
@@ -32,6 +33,10 @@ import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.map.MapStats;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
+import io.github.zap.zombies.stats.player.PlayerMapStats;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
@@ -379,6 +384,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private final ShopManager shopManager;
 
     @Getter
+    private final StatsManager statsManager;
+
+    @Getter
     private final DamageHandler damageHandler;
 
     @Getter
@@ -499,6 +507,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         this.equipmentManager = manager.getEquipmentManager();
         this.powerUpManager = manager.getPowerUpManager();
         this.shopManager = manager.getShopManager();
+        this.statsManager = manager.getStatsManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
         this.damageHandler = new BasicDamageHandler();
@@ -1013,6 +1022,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         }
                     }
 
+                    statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
+                            (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(map);
+                        mapStats.setTimesPlayed(mapStats.getTimesPlayed() + 1);
+                        }, PlayerGeneralStats::new);
+
                     zombiesPlayer.startTasks();
                 }
             }
@@ -1022,11 +1037,46 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     }
 
     private void doRound() {
-        //respawn players
-        getPlayerMap().values().stream().filter(player -> !player.isAlive()).forEach(ZombiesPlayer::respawn);
-
         Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
-        int currentRoundIndex = currentRoundProperty.getValue(this);
+        int currentRoundIndex = currentRoundProperty.getValue(this), lastRoundIndex = currentRoundIndex - 1;
+        int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
+
+        for (ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
+            if (!zombiesPlayer.isAlive()) {
+                zombiesPlayer.respawn();
+            }
+
+            Player player = zombiesPlayer.getPlayer();
+            if (player != null) {
+                if (map.getRoundTimesShouldSave().contains(lastRoundIndex)) {
+                    statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
+                        mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
+
+                        if (mapStats.getBestRound() < lastRoundIndex) {
+                            mapStats.setBestRound(lastRoundIndex);
+                        }
+
+                        Map<Integer, Integer> bestTimes = mapStats.getBestTimes();
+                        Integer bestTime = bestTimes.get(lastRoundIndex);
+                        if (bestTime == null || bestTime < secondsElapsed) {
+                            bestTimes.put(lastRoundIndex, secondsElapsed);
+                        }
+                    }, PlayerGeneralStats::new);
+                } else {
+                    statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
+                        mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
+
+                        if (mapStats.getBestRound() < lastRoundIndex) {
+                            mapStats.setBestRound(lastRoundIndex);
+                        }
+                    }, PlayerGeneralStats::new);
+                }
+            }
+        }
+
+
 
         List<RoundData> rounds = map.getRounds();
         if(currentRoundIndex < rounds.size()) {
@@ -1094,6 +1144,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
     private void doVictory() {
         state = ZombiesArenaState.ENDED;
         endTimeStamp = System.currentTimeMillis();
+        int duration = (int) ((endTimeStamp - startTimeStamp) / 1000);
+
         var round = map.getCurrentRoundProperty().getValue(this);
         getPlayerMap().forEach((l,r) -> {
             Player bukkitPlayer = r.getPlayer();
@@ -1101,6 +1153,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             if(bukkitPlayer != null) {
                 r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
                 r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
+                statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
+                        (playerStats) -> {
+                    PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
+                    playerMapStats.setWins(playerMapStats.getWins() + 1);
+
+                    if (playerMapStats.getBestTime() == null || duration < playerMapStats.getBestTime()) {
+                        playerMapStats.setBestTime(duration);
+                        statsManager.queueCacheModification(CacheInformation.MAP, map.getName(), (mapStats) -> {
+                            List<Pair<UUID, Integer>> bestTimes = mapStats.getBestTimes();
+                            bestTimes.removeIf((pair) -> pair.getLeft().equals(bukkitPlayer.getUniqueId()));
+                            bestTimes.add(Pair.of(bukkitPlayer.getUniqueId(), duration));
+                            Collections.sort(bestTimes);
+                        }, MapStats::new);
+                    }
+                }, PlayerGeneralStats::new);
             }
         });
         runTaskLater(200L, this::dispose);

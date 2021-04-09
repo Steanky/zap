@@ -16,6 +16,9 @@ import io.github.zap.zombies.game.perk.FastRevive;
 import io.github.zap.zombies.game.perk.PerkType;
 import io.github.zap.zombies.game.perk.SpeedPerk;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
+import io.github.zap.zombies.stats.player.PlayerMapStats;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -158,6 +161,12 @@ public class Corpse {
                             false
                     );
                     reviverPlayer.addPotionEffect(speedEffect);
+
+                    zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                            reviverPlayer.getUniqueId(), (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(zombiesArena.getMap());
+                        mapStats.setPlayersRevived(mapStats.getPlayersRevived() + 1);
+                    }, PlayerGeneralStats::new);
 
                     SpeedPerk speedPerk = (SpeedPerk) reviver.getPerks().getPerk(PerkType.SPEED);
                     zombiesArena.runTaskLater(map.getReviveSpeedTicks(),

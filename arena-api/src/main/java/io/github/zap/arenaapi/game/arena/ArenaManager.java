@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.game.arena;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.event.Event;
+import io.github.zap.arenaapi.stats.StatsManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -24,6 +25,9 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
 
     @Getter
     private final Location hubLocation;
+
+    @Getter
+    protected final StatsManager statsManager;
 
     protected Map<UUID, T> managedArenas = new HashMap<>();
 
@@ -68,4 +72,13 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
     public Map<UUID, Arena<T>> getArenas() {
         return Collections.unmodifiableMap(managedArenas);
     }
+
+    @Override
+    public void dispose() {
+        statsManager.destroy();
+        for (T arena : managedArenas.values()) {
+            arena.dispose();
+        }
+    }
+
 }
