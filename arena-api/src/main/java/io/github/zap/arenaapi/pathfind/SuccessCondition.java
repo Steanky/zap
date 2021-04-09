@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 
 public interface SuccessCondition {
     /**
-     * Simple termination condition: the path is complete when the agent reaches the node.
+     * Simple termination condition: the path is complete when the agent occupies the same block as the destination.
      */
     SuccessCondition WITHIN_BLOCK = whenWithin(1);
 

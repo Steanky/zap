@@ -2,12 +2,9 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.SimpleChunkSnapshot;
-import io.github.zap.nms.common.world.WrappedVoxelShape;
-import org.bukkit.ChunkSnapshot;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.util.BlockVector;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +81,7 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     @Override
-    public @Nullable WrappedVoxelShape getCollision(int worldX, int worldY, int worldZ) {
+    public @Nullable VoxelShapeWrapper getCollision(int worldX, int worldY, int worldZ) {
         int chunkX = worldX >> 4;
         int chunkZ = worldZ >> 4;
 

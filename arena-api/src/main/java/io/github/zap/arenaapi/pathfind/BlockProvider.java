@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.nms.common.world.WrappedVoxelShape;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
@@ -19,5 +19,5 @@ public interface BlockProvider {
 
     @Nullable BlockData getData(int x, int y, int z);
 
-    @Nullable WrappedVoxelShape getCollision(int x, int y, int z);
+    @Nullable VoxelShapeWrapper getCollision(int x, int y, int z);
 }

@@ -1,7 +1,7 @@
 package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.SimpleChunkSnapshot;
-import io.github.zap.nms.common.world.WrappedVoxelShape;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -30,7 +30,7 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] blockids;
-    private final Map<Long, WrappedVoxelShape> collisionMap = new HashMap<>();
+    private final Map<Long, VoxelShapeWrapper> collisionMap = new HashMap<>();
 
     SimpleChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
         worldName = chunk.getWorld().getName();
@@ -41,7 +41,7 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
     }
 
     @Override
-    public @Nullable WrappedVoxelShape collisionFor(int chunkX, int chunkY, int chunkZ) {
+    public @Nullable VoxelShapeWrapper collisionFor(int chunkX, int chunkY, int chunkZ) {
         return collisionMap.get(org.bukkit.block.Block.getBlockKey(chunkX, chunkY, chunkZ));
     }
 
@@ -102,7 +102,7 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
                         List<AxisAlignedBB> shape = blockData.getCollisionShape(chunk, pos).d();
 
                         if(isPartialSolidBlock(shape)) {
-                            collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), new WrappedVoxelShape_v1_16_R3(shape));
+                            collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), new VoxelShape_Wrapper_v1_16_R3(shape));
                         }
                     });
                 }

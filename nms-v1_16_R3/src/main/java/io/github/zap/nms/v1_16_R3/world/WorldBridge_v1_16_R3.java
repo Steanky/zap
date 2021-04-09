@@ -2,7 +2,7 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.WorldBridge;
 import io.github.zap.nms.common.world.SimpleChunkSnapshot;
-import io.github.zap.nms.common.world.WrappedVoxelShape;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.BlockAccessAir;
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import org.bukkit.Bukkit;
@@ -25,14 +25,14 @@ public class WorldBridge_v1_16_R3 implements WorldBridge {
     }
 
     @Override
-    public @NotNull WrappedVoxelShape collisionShapeAt(@NotNull World world, @NotNull BlockData data, int x, int y, int z) {
-        return new WrappedVoxelShape_v1_16_R3(((CraftBlockData)data).getState()
+    public @NotNull VoxelShapeWrapper collisionShapeAt(@NotNull World world, @NotNull BlockData data, int x, int y, int z) {
+        return new VoxelShape_Wrapper_v1_16_R3(((CraftBlockData)data).getState()
                 .getCollisionShape(((CraftWorld)world).getHandle(), new BlockPosition(x, y, z)));
     }
 
     @Override
-    public @NotNull WrappedVoxelShape collisionShape(@NotNull World world, @NotNull BlockData data) {
-        return new WrappedVoxelShape_v1_16_R3(((CraftBlockData)data).getState()
+    public @NotNull VoxelShapeWrapper collisionShape(@NotNull World world, @NotNull BlockData data) {
+        return new VoxelShape_Wrapper_v1_16_R3(((CraftBlockData)data).getState()
                 .getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO));
     }
 

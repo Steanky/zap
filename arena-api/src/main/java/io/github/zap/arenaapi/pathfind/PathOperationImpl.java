@@ -76,10 +76,14 @@ class PathOperationImpl implements PathOperation {
 
             visited.add(currentNode);
 
-            List<PathNode> possibleNodes = nodeProvider.generateNodes(context, agent, currentNode);
+            PathNode[] possibleNodes = nodeProvider.generateNodes(context, agent, currentNode);
 
             for(PathNode sample : possibleNodes) {
-                if(sample == null || visited.contains(sample)) {
+                if(sample == null) {
+                    break;
+                }
+
+                if(visited.contains(sample)) {
                     continue;
                 }
 

@@ -12,5 +12,5 @@ public interface SimpleChunkSnapshot extends ChunkSnapshot {
      * @param chunkZ The chunk-relative z value
      * @return A WrappedVoxelShape object, or null if the block is not partial
      */
-    @Nullable WrappedVoxelShape collisionFor(int chunkX, int chunkY, int chunkZ);
+    @Nullable VoxelShapeWrapper collisionFor(int chunkX, int chunkY, int chunkZ);
 }

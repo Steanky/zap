@@ -3,9 +3,6 @@ package io.github.zap.arenaapi.pathfind;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Implementations of this interface provide PathNode objects. They are used by PathOperations to find out which nodes
  * may be traversed for a given agent, starting at the current node, in the current context. These nodes are directly
@@ -25,29 +22,30 @@ public interface NodeProvider {
      */
     NodeProvider DEBUG = new NodeProvider() {
         @Override
-        public @NotNull List<PathNode> generateNodes(@NotNull PathfinderContext context,
+        public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context,
                                                      @NotNull PathAgent agent, @NotNull PathNode from) {
-            List<PathNode> nextNodes = new ArrayList<>();
+            PathNode[] nextNodes = new PathNode[4];
 
             PathNode up = from.add(1, 0, 0);
             PathNode right = from.add(0, 0, 1);
             PathNode down = from.add(-1, 0, 0);
             PathNode left = from.add(0, 0, -1);
 
+            int i = 0;
             if(mayTraverse(context, agent, from, up)) {
-                nextNodes.add(up);
+                nextNodes[i++] = up;
             }
 
             if(mayTraverse(context, agent, from, right)) {
-                nextNodes.add(right);
+                nextNodes[i++] = right;
             }
 
             if(mayTraverse(context, agent, from, down)) {
-                nextNodes.add(down);
+                nextNodes[i++] = down;
             }
 
             if(mayTraverse(context, agent, from, left)) {
-                nextNodes.add(left);
+                nextNodes[i] = left;
             }
 
             return nextNodes;
@@ -66,7 +64,7 @@ public interface NodeProvider {
      */
     NodeProvider SIMPLE_GROUND = new NodeProvider() {
         @Override
-        public @NotNull List<PathNode> generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode nodeAt) {
+        public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode nodeAt) {
             PathAgent.Characteristics characteristics = agent.characteristics();
             return null;
         }
@@ -77,7 +75,31 @@ public interface NodeProvider {
         }
     };
 
-    @NotNull List<PathNode> generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode nodeAt);
+    /**
+     * Generates an array of PathNode objects representing the points that the given PathAgent may be able to traverse
+     * from a given 'origin' node. PathNode instances may be constructed from the origin by using the origin's
+     * add() or link() methods. Generated nodes will have their parent node set to the origin node.
+     *
+     * The returned array must contain valid, traversable nodes. Null elements will cause the pathfinder to stop
+     * iterating the array. NodeProviders may return empty arrays, or arrays containing only null elements. Non-null
+     * elements appearing after the first null element will not be explored.
+     *
+     * In general, all non-null PathNode objects 'Y' produced by this function from PathfinderContext 'C', PathAgent 'A'
+     * and origin node 'X' must satisfy mayTraverse(C, A, X, Y).
+     * @param context The current PathfinderContext
+     * @param agent The PathAgent we're pathfinding for
+     * @param nodeAt The PathNode we're pathfinding from
+     * @return A null-terminated array of PathNode objects, which may be empty or contain null elements
+     */
+    @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode nodeAt);
 
+    /**
+     *
+     * @param context
+     * @param agent
+     * @param start
+     * @param next
+     * @return
+     */
     boolean mayTraverse(@NotNull PathfinderContext context, @NotNull PathAgent agent, @NotNull PathNode start, @NotNull PathNode next);
 }

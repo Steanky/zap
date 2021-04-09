@@ -7,13 +7,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * Represents a single node in the graph, which may be linked to another node. Its coordinates generally represent
+ * block coordinates, but may point to a location within any particular block (ex. [0.5, 0.5, 0.5] referring to the
+ * exact center of the block at [0, 0, 0]).
+ *
+ * Since NMS PathPoint objects require integers, when converting PathNode objects will cast their double fields to
+ * int.
+ */
 public class PathNode {
     public final double x;
     public final double y;
     public final double z;
     private final int hash;
 
-    public final Score score;
+    final Score score;
     PathNode parent;
 
     private PathNode(Score score, PathNode parent, double x, double y, double z, int hash) {
@@ -25,7 +33,7 @@ public class PathNode {
         this.hash = hash;
     }
 
-    PathNode(Score score, PathNode parent, double x, double y, double z) {
+    PathNode(@NotNull Score score, @Nullable PathNode parent, double x, double y, double z) {
         this(score, parent, x, y, z, Objects.hash(x, y, z));
     }
 
@@ -67,6 +75,10 @@ public class PathNode {
 
     public PathNode add(double x, double y, double z) {
         return new PathNode(new Score(), this, this.x + x, this.y + y, this.z + z);
+    }
+
+    public PathNode link(double x, double y, double z) {
+        return new PathNode(new Score(), this, x, y, z);
     }
 
     public PathNode copy() {
