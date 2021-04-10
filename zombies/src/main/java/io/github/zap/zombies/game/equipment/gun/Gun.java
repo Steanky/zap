@@ -161,6 +161,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         // Animate xp bar
         fireDelayTask = getZombiesArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
+            @SuppressWarnings("ConstantConditions")
             private final int goal =
                     (int) Math.round(getCurrentLevel().getFireRate()
                             * getZombiesPlayer().getFireRateMultiplier().getValue());

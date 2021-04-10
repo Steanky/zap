@@ -12,16 +12,13 @@ import io.github.zap.zombies.game.data.equipment.gun.SprayGunData;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunData;
 import io.github.zap.zombies.game.data.equipment.melee.AOEMeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.BasicMeleeData;
-import io.github.zap.zombies.game.data.equipment.perk.PerkData;
-import io.github.zap.zombies.game.data.equipment.skill.SkillData;
+import io.github.zap.zombies.game.data.equipment.perk.*;
 import io.github.zap.zombies.game.equipment.*;
 import io.github.zap.zombies.game.equipment.gun.*;
 import io.github.zap.zombies.game.equipment.melee.AOEMeleeWeapon;
 import io.github.zap.zombies.game.equipment.melee.BasicMeleeWeapon;
 import io.github.zap.zombies.game.equipment.melee.MeleeObjectGroup;
-import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
-import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
-import io.github.zap.zombies.game.equipment.skill.SkillEquipment;
+import io.github.zap.zombies.game.equipment.perk.*;
 import io.github.zap.zombies.game.equipment.skill.SkillObjectGroup;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.RequiredArgsConstructor;
@@ -66,14 +63,24 @@ public class JacksonEquipmentManager implements EquipmentManager {
     private boolean loaded = false;
 
     {
+        // melee weapons
         addEquipmentType(EquipmentType.BASIC_MELEE.name(), BasicMeleeData.class, BasicMeleeWeapon::new);
         addEquipmentType(EquipmentType.AOE_MELEE.name(), AOEMeleeData.class, AOEMeleeWeapon::new);
-        addEquipmentType(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new); // TODO: create skill impl
-        addEquipmentType(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new); // TODO: create perk impl
+
+        // guns
         addEquipmentType(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
         addEquipmentType(EquipmentType.SPRAY_GUN.name(), SprayGunData.class, SprayGun::new);
         addEquipmentType(EquipmentType.ZAPPER.name(), ZapperGunData.class, ZapperGun::new);
         addEquipmentType(EquipmentType.GUARDIAN.name(), GuardianGunData.class, GuardianGun::new);
+
+        // perks
+        addEquipmentType(EquipmentType.EXTRA_HEALTH.name(), ExtraHealthData.class, ExtraHealth::new);
+        addEquipmentType(EquipmentType.EXTRA_WEAPON.name(), ExtraWeaponData.class, ExtraWeapon::new);
+        addEquipmentType(EquipmentType.FAST_REVIVE.name(), FastReviveData.class, FastRevive::new);
+        addEquipmentType(EquipmentType.FLAMING_BULLETS.name(), FlamingBulletsData.class, FlamingBullets::new);
+        addEquipmentType(EquipmentType.FROZEN_BULLETS.name(), FrozenBulletsData.class, FrozenBullets::new);
+        addEquipmentType(EquipmentType.QUICK_FIRE.name(), QuickFireData.class, QuickFire::new);
+        addEquipmentType(EquipmentType.SPEED.name(), SpeedPerkData.class, Speed::new);
 
         addEquipmentObjectGroupType(EquipmentObjectGroupType.MELEE.name(), MeleeObjectGroup::new);
         addEquipmentObjectGroupType(EquipmentObjectGroupType.GUN.name(), GunObjectGroup::new);

@@ -4,7 +4,9 @@ package io.github.zap.zombies.game.data.equipment.perk;
  * A level of a perk
  */
 public class PerkLevel {
-    private PerkLevel() {
+
+    protected PerkLevel() {
 
     }
+
 }

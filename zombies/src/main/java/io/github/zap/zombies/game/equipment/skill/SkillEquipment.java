@@ -15,13 +15,15 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a skill
+ * @param <D> The skill data type
+ * @param <L> The skill level type
  */
-public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> {
+public abstract class SkillEquipment<D extends SkillData<L>, L extends SkillLevel> extends UpgradeableEquipment<D, L> {
 
     boolean usable = true;
 
-    public SkillEquipment(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, SkillData equipmentData) {
-        super(zombiesArena, zombiesPlayer, slot, equipmentData);
+    public SkillEquipment(ZombiesArena arena, ZombiesPlayer player, int slot, D skillData) {
+        super(arena, player, slot, skillData);
     }
 
     @Override
@@ -41,6 +43,8 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
             itemStack.setAmount(timeRemaining[0]);
             setRepresentingItemStack(itemStack);
 
+            execute();
+
             getZombiesArena().runTaskTimer(20L, 20L, () -> {
                 if (--timeRemaining[0] == 0) {
                     setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), getLevel()));
@@ -51,4 +55,10 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
             });
         }
     }
+
+    /**
+     * Executes the skill
+     */
+    protected abstract void execute();
+
 }

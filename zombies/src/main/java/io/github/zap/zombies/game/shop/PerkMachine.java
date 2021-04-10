@@ -100,9 +100,9 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                             if (perkObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
                                                 HotbarObject perkObject = perkObjectGroup.getHotbarObject(slot = heldSlot);
                                                 if (perkObject instanceof PerkEquipment) {
-                                                    Perk<?> perk = zombiesPerks.getPerk(
-                                                            (((PerkEquipment) perkObject).getEquipmentData().getPerkType())
-                                                    );
+                                                    Perk<?> perk = zombiesPerks
+                                                            .getPerk((((PerkEquipment<?, ?, ?, ?>) perkObject)
+                                                                    .getEquipmentData().getPerkType()));
                                                     while (perk.getCurrentLevel() > 0) {
                                                         perk.downgrade();
                                                     }
@@ -186,14 +186,14 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
      * @param zombiesPlayer The player to search for the equipment in
      * @return The perk equipment, or null if it doesn't exist
      */
-    private PerkEquipment determinePerkEquipment(ZombiesPlayer zombiesPlayer) {
+    private PerkEquipment<?, ?, ?, ?> determinePerkEquipment(ZombiesPlayer zombiesPlayer) {
         if (zombiesPlayer != null) {
             EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
                     zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
             if (equipmentObjectGroup != null) {
                 for (HotbarObject hotbarObject : equipmentObjectGroup.getHotbarObjectMap().values()) {
                     if (hotbarObject instanceof PerkEquipment) {
-                        PerkEquipment perkEquipment = (PerkEquipment) hotbarObject;
+                        PerkEquipment<?, ?, ?, ?> perkEquipment = (PerkEquipment<?, ?, ?, ?>) hotbarObject;
 
                         if (perkEquipment.getEquipmentData().getPerkType().equals(getShopData().getPerkType())) {
                             return perkEquipment;

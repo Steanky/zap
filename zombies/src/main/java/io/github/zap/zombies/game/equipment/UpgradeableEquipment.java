@@ -14,22 +14,38 @@ import org.jetbrains.annotations.NotNull;
 public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipment<D, L> {
 
     @Getter
+    private final int maxLevel;
+
+    @Getter
     private int level = 0;
 
-    public UpgradeableEquipment(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
-        super(zombiesArena, zombiesPlayer, slot, equipmentData);
+    public UpgradeableEquipment(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
+                                @NotNull D equipmentData) {
+        super(arena, player, slot, equipmentData);
+
+        this.maxLevel = equipmentData.getLevels().size() - 1;
     }
 
     /**
      * Upgrades the equipment
      */
     public void upgrade() {
-        setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), ++level));
+        if (level < maxLevel) {
+            setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), ++level));
+        }
     }
 
-    @NotNull
+    /**
+     * Downgrades the equipment
+     */
+    public void downgrade() {
+        if (level > 0) {
+            setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), --level));
+        }
+    }
+
     @Override
-    public L getCurrentLevel() {
+    public @NotNull L getCurrentLevel() {
         return getEquipmentData().getLevels().get(level);
     }
 }

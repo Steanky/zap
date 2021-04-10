@@ -5,14 +5,23 @@ package io.github.zap.zombies.game.equipment;
  */
 public enum EquipmentType {
 
-    SKILL,
-    PERK,
-
-    BASIC_MELEE,
+    // Melee equipments
     AOE_MELEE,
+    BASIC_MELEE,
 
+    // Gun equipments
     LINEAR_GUN,
     SPRAY_GUN,
+    GUARDIAN,
     ZAPPER,
-    GUARDIAN
+
+    // Perk equipments
+    EXTRA_HEALTH,
+    EXTRA_WEAPON,
+    FAST_REVIVE,
+    FLAMING_BULLETS,
+    FROZEN_BULLETS,
+    QUICK_FIRE,
+    SPEED
+
 }
