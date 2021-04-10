@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
 
-    private int currentLevel = -1; // local variable since we cannot reliably get the current level
+    private int previousLevel = -1; // local variable since we cannot reliably get the previous level
 
     public ExtraWeapon(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
                        @NotNull ExtraWeaponData perkData) {
@@ -28,8 +28,8 @@ public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
         HotbarManager hotbarManager = getZombiesPlayer().getHotbarManager();
         HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
 
-        while (currentLevel < level) {
-            Map<String, Set<Integer>> removeSlots = getEquipmentData().getLevels().get(currentLevel++).getNewSlots();
+        while (previousLevel < level) {
+            Map<String, Set<Integer>> removeSlots = getEquipmentData().getLevels().get(++previousLevel).getNewSlots();
 
             for (Map.Entry<String, Set<Integer>> slotGroupPair : removeSlots.entrySet()) {
                 HotbarObjectGroup group = hotbarManager.getHotbarObjectGroup(slotGroupPair.getKey());
@@ -42,8 +42,8 @@ public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
             }
         }
 
-        while (currentLevel > level) {
-            for (Set<Integer> slots : getEquipmentData().getLevels().get(currentLevel--).getNewSlots().values()) {
+        while (previousLevel > level) {
+            for (Set<Integer> slots : getEquipmentData().getLevels().get(previousLevel--).getNewSlots().values()) {
                 for (Integer slot : slots) {
                     defaultProfile.removeHotbarObject(slot, false);
                 }

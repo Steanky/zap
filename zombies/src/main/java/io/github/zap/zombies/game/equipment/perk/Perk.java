@@ -34,6 +34,7 @@ public abstract class Perk<D extends PerkData<L>, L extends PerkLevel, E extends
         if (actionTriggerEvent != null) {
             actionTriggerEvent.registerHandler(this::execute);
         }
+
         activate();
     }
 

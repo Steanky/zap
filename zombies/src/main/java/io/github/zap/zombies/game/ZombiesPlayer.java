@@ -109,14 +109,16 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player) {
+    public ZombiesPlayer(@NotNull ZombiesArena arena, @NotNull Player player) {
         super(arena, player);
 
         this.arena = arena;
+        player.getInventory().clear();
         //noinspection ConstantConditions
         this.equipment = player.getEquipment().getArmorContents();
         this.coins = arena.getMap().getStartingCoins();
 
+        //noinspection ConstantConditions
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
 
         setAliveState();

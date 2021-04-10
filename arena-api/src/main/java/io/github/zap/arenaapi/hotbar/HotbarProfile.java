@@ -84,9 +84,8 @@ public class HotbarProfile {
             }
         }
 
-        throw new IllegalArgumentException(
-                String.format("The HotbarProfile does not manage slot %d, so we can't swap its ownership!", slot)
-        );
+        throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't swap" +
+                " its ownership!", slot));
     }
 
     /**
