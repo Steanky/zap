@@ -8,6 +8,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +30,15 @@ public abstract class GunData<L extends GunLevel> extends UltimateableData<L> {
 
     private static final transient String CHANGED_FORMAT = ChatColor.DARK_GRAY + " \u25fc " + ChatColor.GRAY + "%s: "
             + ChatColor.DARK_GRAY + "%s \u2794 " + ChatColor.GREEN + "%s";
+
+    public GunData(@NotNull String type, @NotNull String name, @NotNull String displayName, @NotNull Material material,
+                   @NotNull List<String> lore, @NotNull List<L> levels) {
+        super(type, name, displayName, material, lore, levels);
+    }
+
+    protected GunData() {
+
+    }
 
     @Override
     public @NotNull List<String> getLore(@NotNull Player player, int level) {

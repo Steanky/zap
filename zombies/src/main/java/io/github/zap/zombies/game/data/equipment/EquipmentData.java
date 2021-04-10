@@ -23,6 +23,8 @@ import java.util.List;
 @Getter
 public abstract class EquipmentData<L> {
 
+    private String type;
+
     private String name;
 
     private String displayName;
@@ -92,13 +94,6 @@ public abstract class EquipmentData<L> {
      * @return The default chat color of the equipment
      */
     public abstract @NotNull TextColor getDefaultChatColor();
-
-    /**
-     * Gets the type of the equipment as a string
-     * @return The type of the equipment
-     */
-    public abstract @NotNull String getEquipmentType();
-
     /**
      * Gets the equipment object group type of the equipment as a string
      * @return The equipment object group type of the equipment

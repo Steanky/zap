@@ -133,17 +133,21 @@ public class Corpse {
                 HotbarManager hotbarManager = reviver.getHotbarManager();
                 HotbarObjectGroup hotbarObjectGroup = hotbarManager
                         .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
-                for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof FastRevive) {
-                        FastRevive fastRevive = (FastRevive) hotbarObject;
-                        reviveTime = reviver.getArena().getMap()
-                                .getDefaultReviveTime() - fastRevive.getReducedReviveTime();
 
-                        anyFastRevive = true;
+                if (hotbarObjectGroup != null) {
+                    for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                        if (hotbarObject instanceof FastRevive) {
+                            FastRevive fastRevive = (FastRevive) hotbarObject;
+                            reviveTime = Math.max(reviver.getArena().getMap()
+                                    .getDefaultReviveTime() - fastRevive.getReducedReviveTime(), 0);
 
-                        break;
+                            anyFastRevive = true;
+
+                            break;
+                        }
                     }
                 }
+
                 if (!anyFastRevive) {
                     reviveTime = reviver.getArena().getMap().getDefaultReviveTime();
                 }
@@ -172,14 +176,8 @@ public class Corpse {
 
                     ZombiesArena zombiesArena = reviver.getArena();
                     MapData map = zombiesArena.getMap();
-                    PotionEffect speedEffect = new PotionEffect(
-                            PotionEffectType.SPEED,
-                            map.getReviveSpeedTicks(),
-                            map.getReviveSpeedLevel(),
-                            true,
-                            false,
-                            false
-                    );
+                    PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED, map.getReviveSpeedTicks(),
+                            map.getReviveSpeedLevel(), true, false, false);
                     reviverPlayer.addPotionEffect(speedEffect);
 
                     zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
@@ -191,10 +189,15 @@ public class Corpse {
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                     HotbarObjectGroup hotbarObjectGroup = hotbarManager
                             .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
-                    for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                        if (hotbarObject instanceof Speed) {
-                            Speed speed = (Speed) hotbarObject;
-                            speed.activate();
+
+                    if (hotbarObjectGroup != null) {
+                        for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                            if (hotbarObject instanceof Speed) {
+                                Speed speed = (Speed) hotbarObject;
+                                speed.activate();
+
+                                break;
+                            }
                         }
                     }
                 }

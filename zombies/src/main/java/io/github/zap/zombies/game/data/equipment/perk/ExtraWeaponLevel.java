@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Level of the extra weapon perk
@@ -13,8 +14,8 @@ import java.util.Map;
 public class ExtraWeaponLevel extends PerkLevel {
 
     /**
-     * Maps new slots to equipment object group types
+     * Maps equipment object group types to new slots
      */
-    private Map<Integer, String> newSlots = new HashMap<>();
+    private Map<String, Set<Integer>> newSlots = new HashMap<>();
 
 }

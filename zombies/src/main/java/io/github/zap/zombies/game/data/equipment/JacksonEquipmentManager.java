@@ -136,7 +136,7 @@ public class JacksonEquipmentManager implements EquipmentManager {
                                                                                     int slot,
                                                                                     @NotNull D equipmentData) {
         EquipmentCreator.EquipmentMapping<D, L> equipmentMapping = (EquipmentCreator.EquipmentMapping<D, L>)
-                equipmentCreator.getEquipmentMappings().get(equipmentData.getEquipmentType());
+                equipmentCreator.getEquipmentMappings().get(equipmentData.getType());
 
         return equipmentMapping.createEquipment(arena, player, slot, equipmentData);
     }
@@ -162,16 +162,18 @@ public class JacksonEquipmentManager implements EquipmentManager {
 
             if (files != null) {
                 for (File file : files) {
-                    EquipmentDataMap newEquipmentDataMapping =
-                            dataLoader.load(FilenameUtils.getBaseName(file.getName()), EquipmentDataMap.class);
+                    EquipmentDataMap newEquipmentDataMapping = dataLoader.load(FilenameUtils
+                            .getBaseName(file.getName()), EquipmentDataMap.class);
 
                     if (newEquipmentDataMapping != null) {
                         for (Map.Entry<String, EquipmentData<?>> mapping :
                                 newEquipmentDataMapping.getMap().entrySet()) {
                             EquipmentData<?> equipmentData = mapping.getValue();
-                            equipmentDataMap.computeIfAbsent(
-                                    mapping.getKey(),(String unused) -> new HashMap<>()
-                            ).put(equipmentData.getName(), equipmentData);
+
+                            if (equipmentData != null) {
+                                equipmentDataMap.computeIfAbsent(mapping.getKey(), (String unused) -> new HashMap<>())
+                                        .put(equipmentData.getName(), equipmentData);
+                            }
                         }
                     }
                 }

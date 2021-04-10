@@ -19,9 +19,9 @@ public abstract class SkillData<L extends SkillLevel> extends EquipmentData<L> {
     @Getter
     private int delay;
 
-    public SkillData(@NotNull String name, @NotNull String displayName, @NotNull Material material,
-                     @NotNull List<String> lore, @NotNull List<L> levels, int delay) {
-        super(name, displayName, material, lore, levels);
+    public SkillData(@NotNull String type, @NotNull String name, @NotNull String displayName,
+                     @NotNull Material material, @NotNull List<String> lore, @NotNull List<L> levels, int delay) {
+        super(type, name, displayName, material, lore, levels);
 
         this.delay = delay;
     }

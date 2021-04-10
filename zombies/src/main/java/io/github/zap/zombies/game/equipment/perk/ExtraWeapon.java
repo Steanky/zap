@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
 
-    private int currentLevel = 0; // local variable since we cannot reliably get the current level
+    private int currentLevel = -1; // local variable since we cannot reliably get the current level
 
     public ExtraWeapon(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
                        @NotNull ExtraWeaponData perkData) {
@@ -29,22 +29,24 @@ public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
         HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
 
         while (currentLevel < level) {
-            Map<Integer, String> removeSlots = getEquipmentData().getLevels().get(currentLevel++).getNewSlots();
+            Map<String, Set<Integer>> removeSlots = getEquipmentData().getLevels().get(currentLevel++).getNewSlots();
 
-            for (Map.Entry<Integer, String> slotGroupPair : removeSlots.entrySet()) {
-                HotbarObjectGroup group = hotbarManager.getHotbarObjectGroup(slotGroupPair.getValue());
+            for (Map.Entry<String, Set<Integer>> slotGroupPair : removeSlots.entrySet()) {
+                HotbarObjectGroup group = hotbarManager.getHotbarObjectGroup(slotGroupPair.getKey());
 
                 if (group != null) {
-                    defaultProfile.swapSlotOwnership(slotGroupPair.getKey(), group);
+                    for (Integer slot : slotGroupPair.getValue()) {
+                        defaultProfile.swapSlotOwnership(slot, group);
+                    }
                 }
             }
         }
 
         while (currentLevel > level) {
-            Set<Integer> removeSlots = getEquipmentData().getLevels().get(currentLevel--).getNewSlots().keySet();
-
-            for (Integer slot : removeSlots) {
-                defaultProfile.removeHotbarObject(slot, false);
+            for (Set<Integer> slots : getEquipmentData().getLevels().get(currentLevel--).getNewSlots().values()) {
+                for (Integer slot : slots) {
+                    defaultProfile.removeHotbarObject(slot, false);
+                }
             }
         }
     }
@@ -56,7 +58,7 @@ public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
 
     @Override
     public void deactivate() {
-        setLevel(0);
+        setLevel(-1);
     }
 
 }
