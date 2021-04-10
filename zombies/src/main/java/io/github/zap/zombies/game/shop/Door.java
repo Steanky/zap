@@ -1,9 +1,11 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.event.EmptyEventArgs;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -11,8 +13,8 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.DoorSide;
-import io.github.zap.zombies.game.perk.PerkType;
-import io.github.zap.zombies.game.perk.SpeedPerk;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
+import io.github.zap.zombies.game.equipment.perk.Speed;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
@@ -156,9 +158,11 @@ public class Door extends Shop<DoorData> {
                                         Player otherBukkitPlayer = otherPlayer.getPlayer();
                                         if (otherBukkitPlayer != null) {
                                             otherBukkitPlayer.showTitle(Title.title(Component.text(player.getName())
-                                                    .color(TextColor.color(255, 255, 0)), Component.text(msg.toString())
-                                                    .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
-                                                    Duration.ofSeconds(3), Duration.ofSeconds(1))));
+                                                    .color(TextColor.color(255, 255, 0)),
+                                                    Component.text(msg.toString())
+                                                            .color(TextColor.color(61, 61, 61)),
+                                                    Title.Times.of(Duration.ofSeconds(1), Duration.ofSeconds(3),
+                                                            Duration.ofSeconds(1))));
                                         }
                                     }
                                 }
@@ -168,19 +172,22 @@ public class Door extends Shop<DoorData> {
                                 }
 
                                 MapData map = zombiesArena.getMap();
-                                PotionEffect speedEffect = new PotionEffect(
-                                        PotionEffectType.SPEED,
-                                        map.getDoorSpeedTicks(),
-                                        map.getDoorSpeedLevel(),
-                                        true,
-                                        false,
-                                        false
-                                );
+                                PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED,
+                                        map.getDoorSpeedTicks(), map.getDoorSpeedLevel(), true, false,
+                                        false);
                                 player.addPotionEffect(speedEffect);
 
-                                SpeedPerk speedPerk = (SpeedPerk) zombiesPlayer.getPerks().getPerk(PerkType.SPEED);
-                                zombiesArena.runTaskLater(map.getDoorSpeedTicks(),
-                                        () ->  speedPerk.execute(EmptyEventArgs.getInstance()));
+                                HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                                HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                                        .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+                                for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                                    if (hotbarObject instanceof Speed) {
+                                        Speed speed = (Speed) hotbarObject;
+                                        speed.activate();
+
+                                        break;
+                                    }
+                                }
 
                                 zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
                                         player.getUniqueId(), (stats) -> {

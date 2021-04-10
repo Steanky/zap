@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Makes guns shoot faster
  */
-public class QuickFire extends MarkerPerkEquipment<QuickFireData, QuickFireLevel> {
+public class QuickFire extends MarkerPerk<QuickFireData, QuickFireLevel> {
 
     private static final String MODIFIER_NAME = "quick_fire";
 

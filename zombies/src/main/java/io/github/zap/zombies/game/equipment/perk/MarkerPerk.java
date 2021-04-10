@@ -12,11 +12,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a perk hotbar equipment that does not involve a recurring event.
  */
-public abstract class MarkerPerkEquipment<D extends PerkData<L>, L extends PerkLevel>
-        extends PerkEquipment<D, L, Event<EmptyEventArgs>, EmptyEventArgs>  {
+public abstract class MarkerPerk<D extends PerkData<L>, L extends PerkLevel>
+        extends Perk<D, L, Event<EmptyEventArgs>, EmptyEventArgs> {
 
-    public MarkerPerkEquipment(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                               @NotNull D perkData) {
+    public MarkerPerk(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
+                      @NotNull D perkData) {
         super(arena, player, slot, perkData, null);
     }
 

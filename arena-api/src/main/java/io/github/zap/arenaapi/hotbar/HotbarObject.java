@@ -33,7 +33,7 @@ public class HotbarObject {
      * @param slot The slot of the hotbar object
      * @param representingItemStack The item stack to display
      */
-    public HotbarObject(@NotNull Player player, int slot, @NotNull ItemStack representingItemStack) {
+    public HotbarObject(@NotNull Player player, int slot, @Nullable ItemStack representingItemStack) {
         this(player, slot);
         this.representingItemStack = representingItemStack;
     }

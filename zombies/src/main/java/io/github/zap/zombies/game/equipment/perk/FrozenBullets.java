@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Reduces the speed of zombies
  */
-public class FrozenBullets extends MarkerPerkEquipment<FrozenBulletsData, FrozenBulletsLevel> {
+public class FrozenBullets extends MarkerPerk<FrozenBulletsData, FrozenBulletsLevel> {
 
     @Getter
     private double reducedSpeed;

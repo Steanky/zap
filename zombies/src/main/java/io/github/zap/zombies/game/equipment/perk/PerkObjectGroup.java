@@ -2,7 +2,7 @@ package io.github.zap.zombies.game.equipment.perk;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
+import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -10,19 +10,21 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
 /**
  * Object group of perks
  */
-public class PerkObjectGroup extends EquipmentObjectGroup {
-    public PerkObjectGroup(Player player, Set<Integer> slots) {
-        super(player, slots);
+public class PerkObjectGroup extends UpgradeableEquipmentObjectGroup {
+
+    public PerkObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots) {
+        super(player, slots, false, false);
     }
 
     @Override
-    public ItemStack createPlaceholderItemStack(int placeholderNumber) {
+    public @NotNull ItemStack createPlaceholderItemStack(int placeholderNumber) {
         ItemStack itemStack = new ItemStack(Material.GRAY_DYE);
         TextComponent name = Component.text(String.format("Perk #%d", placeholderNumber)).color(NamedTextColor.BLUE);
 
@@ -35,12 +37,12 @@ public class PerkObjectGroup extends EquipmentObjectGroup {
     }
 
     @Override
-    public boolean isObjectRecommendedEquipment(HotbarObject hotbarObject) {
-        return hotbarObject instanceof PerkEquipment;
+    public boolean isObjectRecommendedEquipment(@NotNull HotbarObject hotbarObject) {
+        return hotbarObject instanceof Perk;
     }
 
     @Override
-    public String getEquipmentType() {
+    public @NotNull String getEquipmentType() {
         return EquipmentObjectGroupType.PERK.name();
     }
 }

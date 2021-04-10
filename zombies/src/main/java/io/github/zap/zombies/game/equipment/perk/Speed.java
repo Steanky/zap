@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Lets players run faster
  */
-public class Speed extends RepeatingEventPerkEquipment<SpeedPerkData, SpeedPerkLevel> {
+public class Speed extends RepeatingEventPerk<SpeedPerkData, SpeedPerkLevel> {
 
     public Speed(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
                  @NotNull SpeedPerkData perkData) {

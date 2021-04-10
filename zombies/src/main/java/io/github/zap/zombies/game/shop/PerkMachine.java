@@ -3,15 +3,13 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PerkMachineData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
-import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
-import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
-import io.github.zap.zombies.game.perk.Perk;
-import io.github.zap.zombies.game.perk.ZombiesPerks;
+import io.github.zap.zombies.game.equipment.perk.Perk;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
@@ -42,12 +40,12 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     protected void displayToPlayer(Player player) {
         ZombiesPlayer zombiesPlayer = getZombiesArena().getPlayerMap().get(player.getUniqueId());
         PerkMachineData perkMachineData = getShopData();
-        PerkEquipment perkEquipment = determinePerkEquipment(zombiesPlayer);
+        Perk<?, ?, ?, ?> perk = determinePerk(zombiesPlayer);
 
-        int level = (perkEquipment == null) ? 0 : perkEquipment.getLevel() + 1;
+        int level = (perk == null) ? 0 : perk.getLevel() + 1;
 
         String secondHologramLine;
-        if (perkEquipment == null || level < perkEquipment.getEquipmentData().getLevels().size()) {
+        if (perk == null || level < perk.getEquipmentData().getLevels().size()) {
             secondHologramLine = perkMachineData.isRequiresPower() && !isPowered()
                     ? ChatColor.GRAY + "Requires Power!"
                     : String.format("%s%d Gold", ChatColor.GOLD, perkMachineData.getCosts().get(level));
@@ -75,13 +73,13 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
                 if (player != null) {
                     PerkMachineData perkMachineData = getShopData();
-                    PerkEquipment perkEquipment = determinePerkEquipment(zombiesPlayer);
+                    Perk<?, ?, ?, ?> perk = determinePerk(zombiesPlayer);
 
                     if (!perkMachineData.isRequiresPower() || isPowered()) {
                         int level;
                         List<Integer> costs = perkMachineData.getCosts();
 
-                        if (perkEquipment == null) {
+                        if (perk == null) {
                             if (costs.size() != 0) {
                                 int cost = costs.get(0);
 
@@ -89,45 +87,27 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                     player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                                 } else {
                                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
-                                    PerkObjectGroup perkObjectGroup =
-                                            (PerkObjectGroup) hotbarManager
-                                                    .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
-                                    if (perkObjectGroup != null) {
-                                        ZombiesPerks zombiesPerks = zombiesPlayer.getPerks();
-                                        Integer slot = perkObjectGroup.getNextEmptySlot();
+                                    HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                                            .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+                                    if (hotbarObjectGroup != null) {
+                                        Integer slot = hotbarObjectGroup.getNextEmptySlot();
                                         if (slot == null) {
                                             int heldSlot = player.getInventory().getHeldItemSlot();
-                                            if (perkObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
-                                                HotbarObject perkObject = perkObjectGroup.getHotbarObject(slot = heldSlot);
-                                                if (perkObject instanceof PerkEquipment) {
-                                                    Perk<?> perk = zombiesPerks
-                                                            .getPerk((((PerkEquipment<?, ?, ?, ?>) perkObject)
-                                                                    .getEquipmentData().getPerkType()));
-                                                    while (perk.getCurrentLevel() > 0) {
-                                                        perk.downgrade();
-                                                    }
-                                                }
+                                            if (hotbarObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
+                                                slot = heldSlot;
                                             }
                                         }
-                                        if (slot != null) {
-                                            zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
 
+                                        if (slot != null) {
                                             ZombiesArena zombiesArena = getZombiesArena();
                                             hotbarManager.setHotbarObject(slot, zombiesArena.getEquipmentManager()
-                                                    .createEquipment(
-                                                            zombiesArena,
-                                                            zombiesPlayer,
-                                                            slot,
+                                                    .createEquipment(zombiesArena, zombiesPlayer, slot,
                                                             zombiesArena.getMap().getName(),
-                                                            perkMachineData.getPerkName()
-                                                    ));
+                                                            perkMachineData.getPerkName()));
 
                                             player.playSound(Sound.sound(
                                                     Key.key("minecraft:entity.firework_rocket.twinkle"),
-                                                    Sound.Source.MASTER,
-                                                    1.0F,
-                                                    1.0F
-                                            ));
+                                                    Sound.Source.MASTER, 1.0F, 1.0F));
 
                                             zombiesPlayer.subtractCoins(cost);
                                             onPurchaseSuccess(zombiesPlayer);
@@ -142,7 +122,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                 }
                             }
                         } else {
-                            level = perkEquipment.getLevel() + 1;
+                            level = perk.getLevel() + 1;
 
                             if (level < costs.size()) {
                                 int cost = costs.get(level);
@@ -151,8 +131,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                     player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                                 } else {
                                     zombiesPlayer.subtractCoins(cost);
-                                    perkEquipment.upgrade();
-                                    zombiesPlayer.getPerks().getPerk(perkMachineData.getPerkType()).upgrade();
+                                    perk.upgrade();
 
                                     onPurchaseSuccess(zombiesPlayer);
 
@@ -186,17 +165,17 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
      * @param zombiesPlayer The player to search for the equipment in
      * @return The perk equipment, or null if it doesn't exist
      */
-    private PerkEquipment<?, ?, ?, ?> determinePerkEquipment(ZombiesPlayer zombiesPlayer) {
+    private Perk<?, ?, ?, ?> determinePerk(ZombiesPlayer zombiesPlayer) {
         if (zombiesPlayer != null) {
             EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
                     zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
             if (equipmentObjectGroup != null) {
                 for (HotbarObject hotbarObject : equipmentObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof PerkEquipment) {
-                        PerkEquipment<?, ?, ?, ?> perkEquipment = (PerkEquipment<?, ?, ?, ?>) hotbarObject;
+                    if (hotbarObject instanceof Perk) {
+                        Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
 
-                        if (perkEquipment.getEquipmentData().getPerkType().equals(getShopData().getPerkType())) {
-                            return perkEquipment;
+                        if (perk.getEquipmentData().getPerkType().equals(getShopData().getPerkType())) {
+                            return perk;
                         }
                     }
                 }

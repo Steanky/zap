@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -18,12 +19,12 @@ import java.util.Set;
  */
 public class GunObjectGroup extends UpgradeableEquipmentObjectGroup {
 
-    public GunObjectGroup(Player player, Set<Integer> slots) {
-        super(player, slots);
+    public GunObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots) {
+        super(player, slots, true, true);
     }
 
     @Override
-    public ItemStack createPlaceholderItemStack(int placeholderNumber) {
+    public @NotNull ItemStack createPlaceholderItemStack(int placeholderNumber) {
         ItemStack itemStack = new ItemStack(Material.LIGHT_GRAY_DYE);
         TextComponent name = Component.text(String.format("Gun #%d", placeholderNumber)).color(NamedTextColor.GOLD);
 
@@ -36,13 +37,18 @@ public class GunObjectGroup extends UpgradeableEquipmentObjectGroup {
     }
 
     @Override
-    public boolean isObjectRecommendedEquipment(HotbarObject hotbarObject) {
+    public boolean isObjectRecommendedEquipment(@NotNull HotbarObject hotbarObject) {
         return hotbarObject instanceof Gun<?, ?>;
     }
 
     @Override
-    public String getEquipmentType() {
+    public @NotNull String getEquipmentType() {
         return EquipmentObjectGroupType.GUN.name();
+    }
+
+    @Override
+    public boolean isUltimateable() {
+        return true;
     }
 
 }

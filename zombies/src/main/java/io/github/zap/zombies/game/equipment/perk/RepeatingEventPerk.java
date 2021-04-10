@@ -11,11 +11,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a perk hotbar equipment that involves a repeating event
  */
-public abstract class RepeatingEventPerkEquipment<D extends PerkData<L>, L extends PerkLevel>
-        extends PerkEquipment<D, L, RepeatingEvent, EmptyEventArgs> {
+public abstract class RepeatingEventPerk<D extends PerkData<L>, L extends PerkLevel>
+        extends Perk<D, L, RepeatingEvent, EmptyEventArgs> {
 
-    public RepeatingEventPerkEquipment(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                                       @NotNull D perkData, @NotNull RepeatingEvent actionTriggerEvent) {
+    public RepeatingEventPerk(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
+                              @NotNull D perkData, @NotNull RepeatingEvent actionTriggerEvent) {
         super(arena, player, slot, perkData, actionTriggerEvent);
     }
 

@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -17,12 +18,13 @@ import java.util.Set;
  * Object group of skills
  */
 public class SkillObjectGroup extends EquipmentObjectGroup {
-    public SkillObjectGroup(Player player, Set<Integer> slots) {
+
+    public SkillObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots) {
         super(player, slots);
     }
 
     @Override
-    public ItemStack createPlaceholderItemStack(int placeholderNumber) {
+    public @NotNull ItemStack createPlaceholderItemStack(int placeholderNumber) {
         ItemStack itemStack = new ItemStack(Material.GRAY_DYE);
         TextComponent name = Component.text(String.format("Skill #%d", placeholderNumber)).color(NamedTextColor.AQUA);
 
@@ -35,12 +37,12 @@ public class SkillObjectGroup extends EquipmentObjectGroup {
     }
 
     @Override
-    public boolean isObjectRecommendedEquipment(HotbarObject hotbarObject) {
+    public boolean isObjectRecommendedEquipment(@NotNull HotbarObject hotbarObject) {
         return hotbarObject instanceof SkillEquipment;
     }
 
     @Override
-    public String getEquipmentType() {
+    public @NotNull String getEquipmentType() {
         return EquipmentObjectGroupType.SKILL.name();
     }
 }

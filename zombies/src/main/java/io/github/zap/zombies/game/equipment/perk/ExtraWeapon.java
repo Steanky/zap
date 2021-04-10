@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Allows players to have extra weapon slots
  */
-public class ExtraWeapon extends MarkerPerkEquipment<ExtraWeaponData, ExtraWeaponLevel> {
+public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
 
     private int currentLevel = 0; // local variable since we cannot reliably get the current level
 

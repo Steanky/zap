@@ -19,14 +19,14 @@ import org.jetbrains.annotations.Nullable;
  * @param <E> The perk executor type
  * @param <T> The type of arguments the event passes to the perk executor
  */
-public abstract class PerkEquipment<D extends PerkData<L>, L extends PerkLevel, E extends Event<T>, T>
+public abstract class Perk<D extends PerkData<L>, L extends PerkLevel, E extends Event<T>, T>
         extends UpgradeableEquipment<D, L> {
 
     @Getter
     private final E actionTriggerEvent;
 
-    public PerkEquipment(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                         @NotNull D perkData, @Nullable E actionTriggerEvent) {
+    public Perk(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
+                @NotNull D perkData, @Nullable E actionTriggerEvent) {
         super(arena, player, slot, perkData);
 
         this.actionTriggerEvent = actionTriggerEvent;
@@ -58,6 +58,8 @@ public abstract class PerkEquipment<D extends PerkData<L>, L extends PerkLevel, 
         if (actionTriggerEvent != null) {
             actionTriggerEvent.removeHandler(this::execute);
         }
+
+        deactivate();
     }
 
     /**

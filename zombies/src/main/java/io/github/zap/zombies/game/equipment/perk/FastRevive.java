@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Revives player at a faster speed
  */
-public class FastRevive extends MarkerPerkEquipment<FastReviveData, FastReviveLevel> {
+public class FastRevive extends MarkerPerk<FastReviveData, FastReviveLevel> {
 
     @Getter
     private int reducedReviveTime;

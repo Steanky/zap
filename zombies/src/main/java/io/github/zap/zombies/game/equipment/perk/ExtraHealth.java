@@ -11,7 +11,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class ExtraHealth extends MarkerPerkEquipment<ExtraHealthData, ExtraHealthLevel> {
+public class ExtraHealth extends MarkerPerk<ExtraHealthData, ExtraHealthLevel> {
 
     private AttributeModifier currentMod;
 

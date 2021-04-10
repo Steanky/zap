@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Sets zombies on fire
  */
-public class FlamingBullets extends MarkerPerkEquipment<FlamingBulletsData, FlamingBulletsLevel> {
+public class FlamingBullets extends MarkerPerk<FlamingBulletsData, FlamingBulletsLevel> {
 
     @Getter
     private int duration;
