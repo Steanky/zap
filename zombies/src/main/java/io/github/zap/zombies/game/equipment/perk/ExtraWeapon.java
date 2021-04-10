@@ -22,6 +22,7 @@ public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
     public ExtraWeapon(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
                        @NotNull ExtraWeaponData perkData) {
         super(arena, player, slot, perkData);
+        activate(); // activate again because previousLevel was set to 0 before initialization
     }
 
     private void setLevel(int level) {
