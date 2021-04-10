@@ -14,10 +14,7 @@ import io.github.zap.zombies.game.data.equipment.melee.AOEMeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.BasicMeleeData;
 import io.github.zap.zombies.game.data.equipment.perk.PerkData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
-import io.github.zap.zombies.game.equipment.Equipment;
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroupCreator;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.*;
 import io.github.zap.zombies.game.equipment.gun.*;
 import io.github.zap.zombies.game.equipment.melee.AOEMeleeWeapon;
 import io.github.zap.zombies.game.equipment.melee.BasicMeleeWeapon;
@@ -30,6 +27,8 @@ import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.HashMap;
@@ -46,7 +45,15 @@ public class JacksonEquipmentManager implements EquipmentManager {
             = new FieldTypeDeserializer<>("type");
 
     private final FieldTypeDeserializer<ParticleDataWrapper<?>> particleDataWrapperDeserializer
-            = new FieldTypeDeserializer<>("type");
+            = new FieldTypeDeserializer<>("type") {
+        {
+            Map<String, Class<? extends ParticleDataWrapper<?>>> mappings = getMappings();
+            mappings.put(ParticleDataWrapper.DUST_DATA_NAME, ParticleDataWrapper.DustParticleDataWrapper.class);
+            mappings.put(ParticleDataWrapper.BLOCK_DATA_NAME, ParticleDataWrapper.BlockParticleDataWrapper.class);
+            mappings.put(ParticleDataWrapper.ITEM_STACK_DATA_NAME,
+                    ParticleDataWrapper.ItemStackParticleDataWrapper.class);
+        }
+    };
 
     private final EquipmentCreator equipmentCreator = new EquipmentCreator();
 
@@ -61,45 +68,36 @@ public class JacksonEquipmentManager implements EquipmentManager {
     {
         addEquipmentType(EquipmentType.BASIC_MELEE.name(), BasicMeleeData.class, BasicMeleeWeapon::new);
         addEquipmentType(EquipmentType.AOE_MELEE.name(), AOEMeleeData.class, AOEMeleeWeapon::new);
-        addEquipmentType(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new);
-        addEquipmentType(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new);
+        addEquipmentType(EquipmentType.SKILL.name(), SkillData.class, SkillEquipment::new); // TODO: create skill impl
+        addEquipmentType(EquipmentType.PERK.name(), PerkData.class, PerkEquipment::new); // TODO: create perk impl
         addEquipmentType(EquipmentType.LINEAR_GUN.name(), LinearGunData.class, LinearGun::new);
         addEquipmentType(EquipmentType.SPRAY_GUN.name(), SprayGunData.class, SprayGun::new);
         addEquipmentType(EquipmentType.ZAPPER.name(), ZapperGunData.class, ZapperGun::new);
         addEquipmentType(EquipmentType.GUARDIAN.name(), GuardianGunData.class, GuardianGun::new);
 
-        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
-                .put(EquipmentType.MELEE.name(), MeleeObjectGroup::new);
-        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
-                .put(EquipmentType.GUN.name(), GunObjectGroup::new);
-        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
-                .put(EquipmentType.SKILL.name(), SkillObjectGroup::new);
-        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings()
-                .put(EquipmentType.PERK.name(), PerkObjectGroup::new);
-
-
-        particleDataWrapperDeserializer.getMappings().put(
-                ParticleDataWrapper.DUST_DATA_NAME,
-                ParticleDataWrapper.DustParticleDataWrapper.class
-        );
-        particleDataWrapperDeserializer.getMappings().put(
-                ParticleDataWrapper.BLOCK_DATA_NAME,
-                ParticleDataWrapper.BlockParticleDataWrapper.class
-        );
-        particleDataWrapperDeserializer.getMappings().put(
-                ParticleDataWrapper.ITEM_STACK_DATA_NAME,
-                ParticleDataWrapper.ItemStackParticleDataWrapper.class
-        );
+        addEquipmentObjectGroupType(EquipmentObjectGroupType.MELEE.name(), MeleeObjectGroup::new);
+        addEquipmentObjectGroupType(EquipmentObjectGroupType.GUN.name(), GunObjectGroup::new);
+        addEquipmentObjectGroupType(EquipmentObjectGroupType.SKILL.name(), SkillObjectGroup::new);
+        addEquipmentObjectGroupType(EquipmentObjectGroupType.PERK.name(), PerkObjectGroup::new);
     }
 
-    public <D extends EquipmentData<L>, L> void  addEquipmentType(String equipmentType, Class<D> dataClass,
-                     EquipmentCreator.EquipmentMapping<D, L> equipmentMapping) {
+    public <D extends EquipmentData<L>, L> void addEquipmentType(@NotNull String equipmentType,
+                                                                 @NotNull Class<D> dataClass,
+                                                                 @NotNull EquipmentCreator
+                                                                         .EquipmentMapping<D, L> equipmentMapping) {
         equipmentDataDeserializer.getMappings().put(equipmentType, dataClass);
         equipmentCreator.getEquipmentMappings().put(equipmentType, equipmentMapping);
     }
 
+    public void addEquipmentObjectGroupType(@NotNull String equipmentObjectGroupType,
+                                            @NotNull EquipmentObjectGroupCreator
+                                                    .EquipmentObjectGroupMapping equipmentObjectGroupMapping) {
+        equipmentObjectGroupCreator.getEquipmentObjectGroupMappings().put(equipmentObjectGroupType,
+                equipmentObjectGroupMapping);
+    }
+
     @Override
-    public EquipmentData<?> getEquipmentData(String mapName, String name) {
+    public @Nullable EquipmentData<?> getEquipmentData(@NotNull String mapName, @NotNull String name) {
         if (!loaded) {
             load();
         }
@@ -115,27 +113,32 @@ public class JacksonEquipmentManager implements EquipmentManager {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena,
-                                                                           ZombiesPlayer zombiesPlayer, int slot,
-                                                                           String mapName, String name) {
-        return createEquipment(zombiesArena, zombiesPlayer, slot, (D) getEquipmentData(mapName, name));
+    @SuppressWarnings({"ConstantConditions", "unchecked"})
+    public @NotNull <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(@NotNull ZombiesArena arena,
+                                                                                    @NotNull ZombiesPlayer player,
+                                                                                    int slot,
+                                                                                    @NotNull String mapName,
+                                                                                    @NotNull String equipmentName) {
+        return createEquipment(arena, player, slot, (D) getEquipmentData(mapName, equipmentName));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena,
-                                                                           ZombiesPlayer zombiesPlayer, int slot,
-                                                                           D equipmentData) {
+    public @NotNull <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(@NotNull ZombiesArena arena,
+                                                                                    @NotNull ZombiesPlayer player,
+                                                                                    int slot,
+                                                                                    @NotNull D equipmentData) {
         EquipmentCreator.EquipmentMapping<D, L> equipmentMapping = (EquipmentCreator.EquipmentMapping<D, L>)
-                equipmentCreator.getEquipmentMappings().get(equipmentData.getType());
+                equipmentCreator.getEquipmentMappings().get(equipmentData.getEquipmentType());
 
-        return equipmentMapping.createEquipment(zombiesArena, zombiesPlayer, slot, equipmentData);
+        return equipmentMapping.createEquipment(arena, player, slot, equipmentData);
     }
 
     @Override
-    public EquipmentObjectGroup createEquipmentObjectGroup(String equipmentType, Player player, Set<Integer> slots) {
-        return equipmentObjectGroupCreator.getEquipmentObjectGroupMappings().get(equipmentType)
+    public @NotNull EquipmentObjectGroup createEquipmentObjectGroup(@NotNull String equipmentObjectGroupType,
+                                                                    @NotNull Player player,
+                                                                    @NotNull Set<Integer> slots) {
+        return equipmentObjectGroupCreator.getEquipmentObjectGroupMappings().get(equipmentObjectGroupType)
                 .createEquipmentObjectGroup(player, slots);
     }
 

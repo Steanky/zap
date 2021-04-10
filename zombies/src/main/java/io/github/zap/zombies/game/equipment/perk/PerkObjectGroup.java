@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.equipment.perk;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
-import io.github.zap.zombies.game.equipment.EquipmentType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -41,6 +41,6 @@ public class PerkObjectGroup extends EquipmentObjectGroup {
 
     @Override
     public String getEquipmentType() {
-        return EquipmentType.PERK.name();
+        return EquipmentObjectGroupType.PERK.name();
     }
 }

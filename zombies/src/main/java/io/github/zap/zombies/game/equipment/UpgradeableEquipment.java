@@ -4,6 +4,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A piece of equipment that can be upgraded
@@ -26,6 +27,7 @@ public class UpgradeableEquipment<D extends EquipmentData<L>, L> extends Equipme
         setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), ++level));
     }
 
+    @NotNull
     @Override
     public L getCurrentLevel() {
         return getEquipmentData().getLevels().get(level);

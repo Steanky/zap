@@ -5,8 +5,6 @@ package io.github.zap.zombies.game.equipment;
  */
 public enum EquipmentType {
 
-    MELEE,
-    GUN,
     SKILL,
     PERK,
 

@@ -1,11 +1,13 @@
 package io.github.zap.zombies.game.data.equipment.skill;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.EquipmentType;
 import lombok.Getter;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -19,7 +21,7 @@ public class SkillData extends EquipmentData<SkillLevel> {
 
     public SkillData(String name, String displayName, Material material, List<String> lore, List<SkillLevel> levels,
                      int delay) {
-        super(EquipmentType.SKILL.name(), name, displayName, lore, levels, material);
+        super(name, displayName, material, lore, levels);
 
         this.delay = delay;
     }
@@ -29,13 +31,18 @@ public class SkillData extends EquipmentData<SkillLevel> {
     }
 
     @Override
-    public TextColor getDefaultChatColor() {
+    public @NotNull TextColor getDefaultChatColor() {
         return NamedTextColor.AQUA;
     }
 
     @Override
-    public String getEquipmentType() {
+    public @NotNull String getEquipmentType() {
         return EquipmentType.SKILL.name();
+    }
+
+    @Override
+    public @NotNull String getEquipmentObjectGroupType() {
+        return EquipmentObjectGroupType.SKILL.name();
     }
 
 }

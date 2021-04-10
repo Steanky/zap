@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.equipment.melee;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -42,6 +42,6 @@ public class MeleeObjectGroup extends UpgradeableEquipmentObjectGroup {
 
     @Override
     public String getEquipmentType() {
-        return EquipmentType.MELEE.name();
+        return EquipmentObjectGroupType.MELEE.name();
     }
 }

@@ -5,7 +5,7 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +38,7 @@ public class ExtraWeapon extends MarkerPerk {
 
         while(ewSlots.size() < level) {
             // Get the next empty slot for additional gun slot
-            HotbarObjectGroup gunGroup = hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
+            HotbarObjectGroup gunGroup = hotbarManager.getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
             HotbarObjectGroup defaultGroup
                     = hotbarManager.getHotbarObjectGroup(HotbarProfile.DEFAULT_HOTBAR_OBJECT_GROUP_KEY);
 

@@ -7,7 +7,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PerkMachineData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.perk.PerkEquipment;
 import io.github.zap.zombies.game.equipment.perk.PerkObjectGroup;
 import io.github.zap.zombies.game.perk.Perk;
@@ -90,7 +90,8 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                 } else {
                                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                                     PerkObjectGroup perkObjectGroup =
-                                            (PerkObjectGroup) hotbarManager.getHotbarObjectGroup(EquipmentType.PERK.name());
+                                            (PerkObjectGroup) hotbarManager
+                                                    .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
                                     if (perkObjectGroup != null) {
                                         ZombiesPerks zombiesPerks = zombiesPlayer.getPerks();
                                         Integer slot = perkObjectGroup.getNextEmptySlot();
@@ -188,7 +189,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     private PerkEquipment determinePerkEquipment(ZombiesPlayer zombiesPlayer) {
         if (zombiesPlayer != null) {
             EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
-                    zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.PERK.name());
+                    zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
             if (equipmentObjectGroup != null) {
                 for (HotbarObject hotbarObject : equipmentObjectGroup.getHotbarObjectMap().values()) {
                     if (hotbarObject instanceof PerkEquipment) {

@@ -1009,7 +1009,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(map.getName(), equipment);
 
                         if(equipmentData != null) {
-                            Integer slot = hotbarManager.getHotbarObjectGroup(equipmentData.getEquipmentType())
+                            Integer slot = hotbarManager
+                                    .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType())
                                     .getNextEmptySlot();
 
                             if (slot != null) {

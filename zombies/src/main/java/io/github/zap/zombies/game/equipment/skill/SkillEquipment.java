@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a skill
@@ -24,7 +25,7 @@ public class SkillEquipment extends UpgradeableEquipment<SkillData, SkillLevel> 
     }
 
     @Override
-    public void onRightClick(Action action) {
+    public void onRightClick(@NotNull Action action) {
         super.onRightClick(action);
         if (usable) {
             usable = false;

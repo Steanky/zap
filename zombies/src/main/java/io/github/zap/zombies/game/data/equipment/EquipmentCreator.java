@@ -9,7 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class that stores a map of string names and an equipment mapping in order to create equipments from an equipment data
+ * Class that stores a map of equipment names and an equipment mapping in order to create equipments
+ * from an equipment's data
  */
 public class EquipmentCreator {
 

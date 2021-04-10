@@ -168,7 +168,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                     EquipmentData<?> equipmentData = gunSwapper.currentEquipment;
                                     EquipmentObjectGroup equipmentObjectGroup
                                             = (EquipmentObjectGroup) zombiesPlayer.getHotbarManager()
-                                            .getHotbarObjectGroup(equipmentData.getEquipmentType());
+                                            .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType());
 
                                     if (equipmentObjectGroup != null) {
                                         boolean anyGuns = false;

@@ -6,6 +6,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Data for a piece of equipment which can be ultimated using the ultimate machine
@@ -13,8 +14,9 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public abstract class UltimateableData<L> extends EquipmentData<L> {
 
+    @NotNull
     @Override
-    public ItemStack createItemStack(Player player, int level) {
+    public ItemStack createItemStack(@NotNull Player player, int level) {
         ItemStack itemStack = super.createItemStack(player, level);
         ItemMeta itemMeta = itemStack.getItemMeta();
 
@@ -26,8 +28,9 @@ public abstract class UltimateableData<L> extends EquipmentData<L> {
         return itemStack;
     }
 
+    @NotNull
     @Override
-    public String getFormattedDisplayName(Player player, int level) {
+    public String getFormattedDisplayName(@NotNull Player player, int level) {
         String formattedDisplayName = getDisplayName();
         if (level > 0) {
             formattedDisplayName = ChatColor.BOLD.toString() + formattedDisplayName;

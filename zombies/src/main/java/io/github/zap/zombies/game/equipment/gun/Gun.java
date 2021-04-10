@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a basic gun
@@ -289,13 +290,13 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     }
 
     @Override
-    public void onLeftClick(Action action) {
+    public void onLeftClick(@NotNull Action action) {
         super.onLeftClick(action);
         reload();
     }
 
     @Override
-    public void onRightClick(Action action) {
+    public void onRightClick(@NotNull Action action) {
         super.onRightClick(action);
 
         if (canShoot) {

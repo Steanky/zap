@@ -9,7 +9,7 @@ import org.bukkit.Particle;
  * @param <L> The gun level type
  */
 @Getter
-public class ParticleGunData<L extends ParticleGunLevel> extends GunData<L> {
+public abstract class ParticleGunData<L extends ParticleGunLevel> extends GunData<L> {
 
     private Particle particle;
 
