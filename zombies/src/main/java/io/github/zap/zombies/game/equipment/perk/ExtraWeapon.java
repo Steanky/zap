@@ -7,9 +7,9 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraWeaponData;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraWeaponLevel;
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -19,7 +19,6 @@ public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
 
     private int currentLevel = 0; // local variable since we cannot reliably get the current level
 
-    // TODO: allow for extra weapons to grant whatever slot type
     public ExtraWeapon(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
                        @NotNull ExtraWeaponData perkData) {
         super(arena, player, slot, perkData);
@@ -30,17 +29,20 @@ public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
         HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
 
         while (currentLevel < level) {
-            Set<Integer> removeSlots = getEquipmentData().getLevels().get(currentLevel++).getNewSlots();
+            Map<Integer, String> removeSlots = getEquipmentData().getLevels().get(currentLevel++).getNewSlots();
 
-            HotbarObjectGroup gunGroup = hotbarManager.getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
+            for (Map.Entry<Integer, String> slotGroupPair : removeSlots.entrySet()) {
+                HotbarObjectGroup group = hotbarManager.getHotbarObjectGroup(slotGroupPair.getValue());
 
-            for (Integer slot : removeSlots) {
-                defaultProfile.swapSlotOwnership(slot, gunGroup);
+                if (group != null) {
+                    defaultProfile.swapSlotOwnership(slotGroupPair.getKey(), group);
+                }
             }
         }
 
         while (currentLevel > level) {
-            Set<Integer> removeSlots = getEquipmentData().getLevels().get(currentLevel--).getNewSlots();
+            Set<Integer> removeSlots = getEquipmentData().getLevels().get(currentLevel--).getNewSlots().keySet();
+
             for (Integer slot : removeSlots) {
                 defaultProfile.removeHotbarObject(slot, false);
             }

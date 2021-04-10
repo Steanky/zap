@@ -147,10 +147,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
                     player.playSound(Sound.sound(
                             Key.key("minecraft:entity.enderman.teleport"),
-                            Sound.Source.MASTER,
-                            1.0F,
-                            0.5F
-                    ));
+                            Sound.Source.MASTER, 1.0F, 0.5F));
                 }
             }
 
@@ -169,12 +166,13 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
         if (zombiesPlayer != null) {
             EquipmentObjectGroup equipmentObjectGroup = (EquipmentObjectGroup)
                     zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+
             if (equipmentObjectGroup != null) {
                 for (HotbarObject hotbarObject : equipmentObjectGroup.getHotbarObjectMap().values()) {
                     if (hotbarObject instanceof Perk) {
                         Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
 
-                        if (perk.getEquipmentData().getPerkType().equals(getShopData().getPerkType())) {
+                        if (perk.getEquipmentData().getName().equals(getShopData().getPerkName())) {
                             return perk;
                         }
                     }

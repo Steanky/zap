@@ -2,8 +2,8 @@ package io.github.zap.zombies.game.data.equipment.perk;
 
 import lombok.Getter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Level of the extra weapon perk
@@ -12,6 +12,9 @@ import java.util.Set;
 @Getter
 public class ExtraWeaponLevel extends PerkLevel {
 
-    private Set<Integer> newSlots = new HashSet<>();
+    /**
+     * Maps new slots to equipment object group types
+     */
+    private Map<Integer, String> newSlots = new HashMap<>();
 
 }
