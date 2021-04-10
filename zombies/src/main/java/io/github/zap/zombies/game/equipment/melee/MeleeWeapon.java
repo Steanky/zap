@@ -94,7 +94,7 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
     }
 
     @Override
-    public void onLeftClick(Action action) {
+    public void onLeftClick(@NotNull Action action) {
         if (action == Action.LEFT_CLICK_AIR) {
             super.onLeftClick(action);
 

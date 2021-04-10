@@ -8,7 +8,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.map.shop.GunShopData;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import net.kyori.adventure.key.Key;
@@ -94,7 +94,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         } else {
             if (zombiesPlayer != null) {
                 GunObjectGroup gunObjectGroup
-                        = (GunObjectGroup) zombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+                        = (GunObjectGroup) zombiesPlayer.getHotbarManager()
+                        .getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
                 if (gunObjectGroup != null) {
                     for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
                         if (hotbarObject instanceof Gun<?, ?>) {
@@ -134,7 +135,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                     if (!getShopData().isRequiresPower() || isPowered()) {
                         HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                         GunObjectGroup gunObjectGroup = (GunObjectGroup)
-                                hotbarManager.getHotbarObjectGroup(EquipmentType.GUN.name());
+                                hotbarManager.getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
 
                         Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
                         if (refillAttempt == null) {

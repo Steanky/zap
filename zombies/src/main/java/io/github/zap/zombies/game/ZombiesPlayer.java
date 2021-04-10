@@ -3,8 +3,10 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
+import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.arenaapi.util.AttributeHelper;
@@ -14,12 +16,11 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
+import io.github.zap.zombies.game.equipment.perk.FlamingBullets;
+import io.github.zap.zombies.game.equipment.perk.FrozenBullets;
+import io.github.zap.zombies.game.equipment.perk.Perk;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
-import io.github.zap.zombies.game.perk.FlamingBullets;
-import io.github.zap.zombies.game.perk.FrozenBullets;
-import io.github.zap.zombies.game.perk.PerkType;
-import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.stats.CacheInformation;
@@ -90,9 +91,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Getter
     private final State<Double> fireRateMultiplier = new State<>(1D);
 
-    @Getter
-    private final ZombiesPerks perks;
-
     private int frozenBulletsTaskId = -1;
 
     private WindowData targetWindow;
@@ -111,22 +109,21 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player) {
+    public ZombiesPlayer(@NotNull ZombiesArena arena, @NotNull Player player) {
         super(arena, player);
 
         this.arena = arena;
+        player.getInventory().clear();
         //noinspection ConstantConditions
         this.equipment = player.getEquipment().getArmorContents();
         this.coins = arena.getMap().getStartingCoins();
 
+        //noinspection ConstantConditions
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
-
-        this.perks = new ZombiesPerks(this);
 
         setAliveState();
 
         resourceManager = new ResourceManager(arena.getPlugin());
-        resourceManager.addDisposable(perks);
     }
 
     public void quit() {
@@ -135,9 +132,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(super.isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            if (arena.getMap().isPerksLostOnQuit()) {
-                removePerks();
-            }
+            disablePerks(arena.getMap().isPerksLostOnQuit());
 
             endTasks();
         }
@@ -148,7 +143,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         super.rejoin();
 
         state = ZombiesPlayerState.DEAD;
-        perks.activateAll();
         setDeadState();
 
         //noinspection ConstantConditions
@@ -161,12 +155,24 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         resourceManager.dispose();
         endTasks();
 
-        if(corpse != null) {
+        if (corpse != null) {
             corpse.destroy();
             corpse = null;
         }
 
-        if(isInGame()) {
+        HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+        for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+            if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
+                Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+
+                Event<?> event = perk.getActionTriggerEvent();
+                if (event != null) {
+                    event.dispose();
+                }
+            }
+        }
+
+        if (isInGame()) {
             super.quit();
         }
     }
@@ -359,9 +365,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            if (arena.getMap().isPerksLostOnDeath()) {
-                removePerks();
-            }
+            disablePerks(arena.getMap().isPerksLostOnDeath());
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
 
@@ -399,7 +403,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 corpse = null;
             }
 
-            perks.activateAll();
+            enablePerks();
             setAliveState();
 
             Player player = getPlayer();
@@ -457,55 +461,80 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
                 addKills(1);
             } else {
-                FrozenBullets frozenBullets = (FrozenBullets) getPerks().getPerk(PerkType.FROZEN_BULLETS);
-                FlamingBullets flamingBullets = (FlamingBullets) getPerks().getPerk(PerkType.FLAME_BULLETS);
+                HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                        .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+                for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                    if (hotbarObject instanceof FrozenBullets) {
+                        FrozenBullets frozenBullets = (FrozenBullets) hotbarObject;
 
-                if (frozenBullets.getCurrentLevel() > 0) {
-                    AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                        AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
 
-                    if (speed != null) {
-                        Optional<AttributeModifier> optionalAttributeModifier
-                                = AttributeHelper.getModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME);
+                        if (speed != null) {
+                            Optional<AttributeModifier> optionalAttributeModifier
+                                    = AttributeHelper.getModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME);
 
-                        if (optionalAttributeModifier.isPresent()) {
-                            Bukkit.getScheduler().cancelTask(frozenBulletsTaskId);
+                            if (optionalAttributeModifier.isPresent()) {
+                                Bukkit.getScheduler().cancelTask(frozenBulletsTaskId);
 
-                            frozenBulletsTaskId = arena.runTaskLater(
-                                    frozenBullets.getDuration(),
-                                    () -> speed.removeModifier(optionalAttributeModifier.get())
-                            ).getTaskId();
-                        } else {
-                            AttributeModifier modifier = new AttributeModifier(
-                                    FROZEN_BULLETS_ATTRIBUTE_NAME,
-                                    -1D / ((double) frozenBullets.getCurrentLevel() + 1D),
-                                    AttributeModifier.Operation.ADD_SCALAR
-                            );
+                                frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
+                                        () -> speed.removeModifier(optionalAttributeModifier.get())).getTaskId();
+                            } else {
+                                AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
+                                        -frozenBullets.getReducedSpeed(), AttributeModifier.Operation.ADD_SCALAR);
 
-                            speed.addModifier(modifier);
+                                speed.addModifier(modifier);
 
-                            frozenBulletsTaskId = arena.runTaskLater(
-                                    frozenBullets.getDuration(),
-                                    () -> speed.removeModifier(modifier)
-                            ).getTaskId();
+                                frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
+                                        () -> speed.removeModifier(modifier)).getTaskId();
+                            }
                         }
+                    } else if (hotbarObject instanceof FlamingBullets) {
+                        FlamingBullets flamingBullets = (FlamingBullets) hotbarObject;
+                        damaged.setFireTicks(flamingBullets.getDuration());
                     }
-                }
-
-                if (flamingBullets.getCurrentLevel() > 0) {
-                    damaged.setFireTicks(flamingBullets.getDuration());
                 }
             }
         }
     }
 
-    private void removePerks() {
-        perks.disableAll();
-
+    /**
+     * Enables all the player's perks
+     */
+    public void enablePerks() {
         HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
         HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(defaultProfile,
-                EquipmentType.PERK.name());
+                EquipmentObjectGroupType.PERK.name());
+
         for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-            hotbarObjectGroup.remove(slot, true);
+            HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+            if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
+                Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+                perk.activate();
+            }
+        }
+    }
+
+    /**
+     * Disables all the player's perks
+     * @param remove Whether the perks should be reset
+     */
+    public void disablePerks(boolean remove) {
+        HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+        HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(defaultProfile,
+                EquipmentObjectGroupType.PERK.name());
+
+        if (remove) {
+            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                hotbarObjectGroup.remove(slot, true);
+            }
+        } else {
+            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+                if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
+                    Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+                    perk.deactivate();;
+                }
+            }
         }
     }
 

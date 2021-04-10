@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.data.equipment.melee;
 
-import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.data.equipment.UltimateableData;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import lombok.Getter;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -17,11 +18,11 @@ import java.util.List;
  * @param <L> The level type of the melee weapon
  */
 @Getter
-public class MeleeData<L extends MeleeLevel> extends EquipmentData<L> {
+public abstract class MeleeData<L extends MeleeLevel> extends UltimateableData<L> {
 
-    public MeleeData(String type, String name, String displayName, Material material, List<String> lore,
-                     List<L> levels) {
-        super(type, name, displayName, lore, levels, material);
+    public MeleeData(@NotNull String type, @NotNull String name, @NotNull String displayName, @NotNull Material material,
+                   @NotNull List<String> lore, @NotNull List<L> levels) {
+        super(type, name, displayName, material, lore, levels);
     }
 
     protected MeleeData() {
@@ -29,7 +30,7 @@ public class MeleeData<L extends MeleeLevel> extends EquipmentData<L> {
     }
 
     @Override
-    public ItemStack createItemStack(Player player, int level) {
+    public @NotNull ItemStack createItemStack(@NotNull Player player, int level) {
         ItemStack itemStack = super.createItemStack(player, level);
 
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -46,12 +47,13 @@ public class MeleeData<L extends MeleeLevel> extends EquipmentData<L> {
     }
 
     @Override
-    public TextColor getDefaultChatColor() {
+    public @NotNull TextColor getDefaultChatColor() {
         return NamedTextColor.GREEN;
     }
 
     @Override
-    public String getEquipmentType() {
-        return EquipmentType.MELEE.name();
+    public @NotNull String getEquipmentObjectGroupType() {
+        return EquipmentObjectGroupType.MELEE.name();
     }
+
 }

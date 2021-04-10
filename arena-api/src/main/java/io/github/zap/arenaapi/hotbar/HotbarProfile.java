@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.hotbar;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,7 +66,7 @@ public class HotbarProfile {
      * @param slot The slot to add the item to
      * @param itemStack The item stack to add
      */
-    public void addItem(int slot, ItemStack itemStack) {
+    public void addItem(int slot, @Nullable ItemStack itemStack) {
         addHotbarObject(slot, new HotbarObject(player, slot, itemStack));
     }
 
@@ -83,9 +84,8 @@ public class HotbarProfile {
             }
         }
 
-        throw new IllegalArgumentException(
-                String.format("The HotbarProfile does not manage slot %d, so we can't swap its ownership!", slot)
-        );
+        throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't swap" +
+                " its ownership!", slot));
     }
 
     /**

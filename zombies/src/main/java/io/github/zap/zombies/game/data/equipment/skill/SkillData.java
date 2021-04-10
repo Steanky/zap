@@ -1,41 +1,43 @@
 package io.github.zap.zombies.game.data.equipment.skill;
 
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import lombok.Getter;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
  * Data for a skill
+ * @param <L> The level type of the skill
  */
-public class SkillData extends EquipmentData<SkillLevel> {
+public abstract class SkillData<L extends SkillLevel> extends EquipmentData<L> {
 
     @Getter
     private int delay;
 
-    public SkillData(String name, String displayName, Material material, List<String> lore, List<SkillLevel> levels,
-                     int delay) {
-        super(EquipmentType.SKILL.name(), name, displayName, lore, levels, material);
+    public SkillData(@NotNull String type, @NotNull String name, @NotNull String displayName,
+                     @NotNull Material material, @NotNull List<String> lore, @NotNull List<L> levels, int delay) {
+        super(type, name, displayName, material, lore, levels);
 
         this.delay = delay;
     }
 
-    private SkillData() {
+    protected SkillData() {
 
     }
 
     @Override
-    public TextColor getDefaultChatColor() {
+    public @NotNull TextColor getDefaultChatColor() {
         return NamedTextColor.AQUA;
     }
 
     @Override
-    public String getEquipmentType() {
-        return EquipmentType.SKILL.name();
+    public @NotNull String getEquipmentObjectGroupType() {
+        return EquipmentObjectGroupType.SKILL.name();
     }
 
 }

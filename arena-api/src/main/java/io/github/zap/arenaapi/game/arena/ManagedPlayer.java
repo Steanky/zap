@@ -26,7 +26,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     @Getter
     private boolean inGame = true;
 
-    public ManagedPlayer(V arena, Player player) {
+    public ManagedPlayer(@NotNull V arena, @NotNull Player player) {
         this.arena = arena;
         this.player = player;
         this.playerUuid = player.getUniqueId();
