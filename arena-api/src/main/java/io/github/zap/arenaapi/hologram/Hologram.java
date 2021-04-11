@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public class Hologram {
 
-    private static final double DEFAULT_LINE_SPACE = 0.25;
+    public static final double DEFAULT_LINE_SPACE = 0.25;
 
     private static final Set<Integer> TEXT_LINE_SET = new HashSet<>();
 

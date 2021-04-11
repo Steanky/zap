@@ -71,6 +71,16 @@ public class MapData {
     Vector spawn = new Vector();
 
     /**
+     * The vector to the bottom of where records should be displayed
+     */
+    Vector bestTimesLocation = new Vector();
+
+    /**
+     * The number of best times to display in the pregame
+     */
+    int bestTimesCount = 12;
+
+    /**
      * The minimum required number of players that this map can start with
      */
     int minimumCapacity = 4;

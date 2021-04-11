@@ -100,6 +100,8 @@ public class HotbarObject {
             if (player.getInventory().getHeldItemSlot() == slot) {
                 onSlotSelected();
             }
+        } else {
+            onSlotDeselected();
         }
     }
 

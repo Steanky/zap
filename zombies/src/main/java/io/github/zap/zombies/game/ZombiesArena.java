@@ -2,15 +2,19 @@ package io.github.zap.zombies.game;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.arenaapi.util.MetadataHelper;
+import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.ChunkLoadHandler;
 import io.github.zap.zombies.Zombies;
@@ -49,6 +53,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -66,8 +71,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -371,8 +381,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
+    private final static ExecutorService HOLOGRAM_MODIFICATION_EXECUTOR = Executors.newSingleThreadExecutor();
+
     @Getter
     private final MapData map;
+
+    private final Hologram bestTimesHologram;
+
+    private boolean hologramCanBeModified;
 
     @Getter
     private final EquipmentManager equipmentManager;
@@ -517,6 +533,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         registerArenaEvents();
         registerDisposables();
 
+        bestTimesHologram = setupTimeLeaderboard();
+
         getMap().getPowerUpSpawnRules()
                 .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
 
@@ -556,6 +574,55 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         resourceManager.addDisposable(gameScoreboard);
         resourceManager.addDisposable(powerUpBossBar);
         resourceManager.addDisposable(chunkLoadHandler);
+    }
+
+    private Hologram setupTimeLeaderboard() {
+        Vector hologramLocation = map.getBestTimesLocation().clone()
+                .add(new Vector(0, Hologram.DEFAULT_LINE_SPACE * map.getBestTimesCount(), 0));
+        Hologram hologram = new Hologram(hologramLocation.toLocation(getWorld()));
+
+        statsManager.queueCacheModification(CacheInformation.MAP, map.getName(), (stats) -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            List<Pair<UUID, Integer>> bestTimes = stats.getBestTimes();
+            int bound = Math.min(map.getBestTimesCount(), bestTimes.size());
+
+            for (int i = 0; i < bound; i++) {
+                Map.Entry<UUID, Integer> time = bestTimes.get(i);
+                int finalI = i;
+
+                HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
+                    if (hologramCanBeModified) {
+                        hologram.addLine(String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW, finalI,
+                                ChatColor.GRAY, ChatColor.DARK_GRAY, "Loading...", ChatColor.GRAY, ChatColor.YELLOW,
+                                TimeUtil.convertTicksToSecondsString(time.getValue())));
+                    }
+                });
+            }
+            for (int i = 0; i < bound; i++) {
+                Map.Entry<UUID, Integer> time = bestTimes.get(i);
+                int finalI = i;
+
+                try {
+                    String message =
+                            IOUtils.toString(new URL("https://sessionserver.mojang.com/session/minecraft/profile/"
+                            + time.getKey().toString()), Charset.defaultCharset());
+
+                    String name = objectMapper.readTree(message).get("name").textValue();
+                    HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
+                        if (hologramCanBeModified) {
+                            hologram.addLine(String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW, finalI,
+                                    ChatColor.GRAY, ChatColor.DARK_GRAY, name, ChatColor.GRAY, ChatColor.YELLOW,
+                                    TimeUtil.convertTicksToSecondsString(time.getValue())));
+                        }
+                    });
+                } catch (IOException e) {
+                    Zombies.warning("Failed to get name of player with UUID " + time.getKey().toString());
+                }
+            }
+        }, MapStats::new);
+
+        return hologram;
     }
 
     @Override
@@ -986,6 +1053,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.STARTED;
             startTimeStamp = System.currentTimeMillis();
 
+            HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
+                hologramCanBeModified = false;
+                bestTimesHologram.destroy();
+            });
+
             for(ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
                 Player bukkitPlayer = zombiesPlayer.getPlayer();
 
@@ -1009,13 +1081,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                         EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(map.getName(), equipment);
 
                         if(equipmentData != null) {
-                            Integer slot = hotbarManager
-                                    .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType())
-                                    .getNextEmptySlot();
+                            HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                                    .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType());
 
-                            if (slot != null) {
-                                hotbarManager.setHotbarObject(slot, equipmentManager
-                                        .createEquipment(this, zombiesPlayer, slot, equipmentData));
+                            if (hotbarObjectGroup != null) {
+                                Integer slot = hotbarObjectGroup.getNextEmptySlot();
+
+                                if (slot != null) {
+                                    hotbarManager.setHotbarObject(slot, equipmentManager
+                                            .createEquipment(this, zombiesPlayer, slot, equipmentData));
+                                }
                             }
                         }
                         else {

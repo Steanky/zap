@@ -445,12 +445,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 addCoins(coins);
             }
 
-            player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.arrow.hit_player"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    attempt.ignoresArmor(this, damaged) ? 1.5F : 2F
-            ));
+            player.playSound(Sound.sound(Key.key("minecraft:entity.arrow.hit_player"), Sound.Source.MASTER, 1.0F,
+                    attempt.ignoresArmor(this, damaged) ? 1.5F : 2F));
 
             if (damaged.getHealth() <= 0) {
                 getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(),
@@ -463,34 +459,37 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             } else {
                 HotbarObjectGroup hotbarObjectGroup = hotbarManager
                         .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
-                for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof FrozenBullets) {
-                        FrozenBullets frozenBullets = (FrozenBullets) hotbarObject;
 
-                        AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                if (hotbarObjectGroup != null) {
+                    for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                        if (hotbarObject instanceof FrozenBullets) {
+                            FrozenBullets frozenBullets = (FrozenBullets) hotbarObject;
 
-                        if (speed != null) {
-                            Optional<AttributeModifier> optionalAttributeModifier
-                                    = AttributeHelper.getModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME);
+                            AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
 
-                            if (optionalAttributeModifier.isPresent()) {
-                                Bukkit.getScheduler().cancelTask(frozenBulletsTaskId);
+                            if (speed != null) {
+                                Optional<AttributeModifier> optionalAttributeModifier
+                                        = AttributeHelper.getModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME);
 
-                                frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
-                                        () -> speed.removeModifier(optionalAttributeModifier.get())).getTaskId();
-                            } else {
-                                AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
-                                        -frozenBullets.getReducedSpeed(), AttributeModifier.Operation.ADD_SCALAR);
+                                if (optionalAttributeModifier.isPresent()) {
+                                    Bukkit.getScheduler().cancelTask(frozenBulletsTaskId);
 
-                                speed.addModifier(modifier);
+                                    frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
+                                            () -> speed.removeModifier(optionalAttributeModifier.get())).getTaskId();
+                                } else {
+                                    AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
+                                            -frozenBullets.getReducedSpeed(), AttributeModifier.Operation.ADD_SCALAR);
 
-                                frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
-                                        () -> speed.removeModifier(modifier)).getTaskId();
+                                    speed.addModifier(modifier);
+
+                                    frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
+                                            () -> speed.removeModifier(modifier)).getTaskId();
+                                }
                             }
+                        } else if (hotbarObject instanceof FlamingBullets) {
+                            FlamingBullets flamingBullets = (FlamingBullets) hotbarObject;
+                            damaged.setFireTicks(flamingBullets.getDuration());
                         }
-                    } else if (hotbarObject instanceof FlamingBullets) {
-                        FlamingBullets flamingBullets = (FlamingBullets) hotbarObject;
-                        damaged.setFireTicks(flamingBullets.getDuration());
                     }
                 }
             }
