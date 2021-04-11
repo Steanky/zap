@@ -148,10 +148,8 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
                     if (player != null) {
                         if (luckyChestData.isRequiresPower() && !isPowered()) {
-                            player.sendMessage(Component
-                                    .text("The power is not turned on!")
-                                    .color(NamedTextColor.RED)
-                            );
+                            player.sendMessage(Component.text("The power is not turned on!")
+                                    .color(NamedTextColor.RED));
                         } else if (!active) {
                             String notActive = "This Lucky Chest is not active right now!";
                             String luckyChestRoom = getZombiesArena().getLuckyChestRoom();
@@ -159,90 +157,76 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                 notActive += " Find the Lucky Chest in " + luckyChestRoom + "!";
                             }
 
-                            player.sendMessage(Component
-                                    .text(notActive)
-                                    .color(NamedTextColor.RED));
+                            player.sendMessage(Component.text(notActive).color(NamedTextColor.RED));
                         } else if (roller != null) {
                             if (player.equals(roller)) {
                                 if (doneRolling) {
                                     EquipmentData<?> equipmentData = gunSwapper.currentEquipment;
-                                    EquipmentObjectGroup equipmentObjectGroup
-                                            = (EquipmentObjectGroup) zombiesPlayer.getHotbarManager()
+                                    EquipmentObjectGroup equipmentObjectGroup =
+                                            (EquipmentObjectGroup) zombiesPlayer.getHotbarManager()
                                             .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType());
 
                                     if (equipmentObjectGroup != null) {
-                                        boolean anyGuns = false;
                                         for (HotbarObject hotbarObject : equipmentObjectGroup.getHotbarObjectMap().values()) {
                                             if (hotbarObject instanceof Gun<?, ?>) {
                                                 Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
                                                 if (gun.getEquipmentData().getName().equals(equipmentData.getName())) {
                                                     ((Gun<?, ?>) hotbarObject).refill();
-                                                    anyGuns = true;
-                                                    break;
+
+                                                    gunSwapper.destroy();
+
+                                                    player.playSound(Sound.sound(
+                                                            Key.key("minecraft:block.note_block.pling"),
+                                                            Sound.Source.MASTER, 1.0F, 2.0F));
+
+                                                    return true;
                                                 }
                                             }
                                         }
 
-                                        if (!anyGuns) {
-                                            Integer nextSlot = equipmentObjectGroup.getNextEmptySlot();
-                                            if (nextSlot == null) {
-                                                int heldSlot = player.getInventory().getHeldItemSlot();
-                                                if (equipmentObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
-                                                    nextSlot = heldSlot;
-                                                }
+                                        Integer nextSlot = equipmentObjectGroup.getNextEmptySlot();
+                                        if (nextSlot == null) {
+                                            int heldSlot = player.getInventory().getHeldItemSlot();
+                                            if (equipmentObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
+                                                nextSlot = heldSlot;
                                             }
-                                            if (nextSlot != null) {
-                                                ZombiesArena zombiesArena = getZombiesArena();
-                                                equipmentObjectGroup.setHotbarObject(
-                                                        nextSlot,
-                                                        zombiesArena.getEquipmentManager().createEquipment(
-                                                                zombiesArena,
-                                                                zombiesPlayer,
-                                                                nextSlot,
-                                                                equipmentData
-                                                        )
-                                                );
+                                        }
+                                        if (nextSlot != null) {
+                                            ZombiesArena zombiesArena = getZombiesArena();
+                                            equipmentObjectGroup.setHotbarObject(nextSlot,
+                                                    zombiesArena.getEquipmentManager().createEquipment(zombiesArena,
+                                                            zombiesPlayer, nextSlot, equipmentData));
 
-                                                gunSwapper.destroy();
+                                            gunSwapper.destroy();
 
-                                                player.playSound(Sound.sound(
-                                                        Key.key("minecraft:block.note_block.pling"),
-                                                        Sound.Source.MASTER,
-                                                        1.0F,
-                                                        2.0F
-                                                ));
+                                            player.playSound(Sound.sound(
+                                                    Key.key("minecraft:block.note_block.pling"),
+                                                    Sound.Source.MASTER, 1.0F, 2.0F));
 
-                                                return true;
-                                            } else {
-                                                player.sendMessage(Component
-                                                        .text("Choose a slot to receive the item in!")
-                                                        .color(NamedTextColor.RED)
-                                                );
-                                            }
+                                            return true;
+                                        } else {
+                                            player.sendMessage(Component
+                                                    .text("Choose a slot to receive the item in!")
+                                                    .color(NamedTextColor.RED));
                                         }
                                     } else {
-                                        player.sendMessage(Component
-                                                .text("You can't claim this weapon!")
-                                                .color(NamedTextColor.RED)
-                                        );
+                                        player.sendMessage(Component.text("You can't claim this weapon!")
+                                                .color(NamedTextColor.RED));
                                         gunSwapper.destroy();
                                     }
                                 } else {
-                                    player.sendMessage(Component
-                                            .text("The chest is not done rolling!")
+                                    player.sendMessage(Component.text("The chest is not done rolling!")
                                             .color(NamedTextColor.RED));
 
                                 }
                             } else {
-                                player.sendMessage(Component
-                                        .text("Someone else is rolling!")
+                                player.sendMessage(Component.text("Someone else is rolling!")
                                         .color(NamedTextColor.RED));
                             }
                         } else {
                             int cost = getShopData().getCost();
                             if (args.getManagedPlayer().getCoins() < cost) {
-                                player.sendMessage(Component
-                                        .text("You don't have enough coins to do that!")
+                                player.sendMessage(Component.text("You don't have enough coins to do that!")
                                         .color(NamedTextColor.RED));
                             } else {
                                 zombiesPlayer.subtractCoins(cost);
@@ -250,22 +234,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
                                 roller = player;
                                 doneRolling = false;
 
-                                Jingle.play(
-                                        getZombiesArena(),
-                                        getShopData().getJingle(),
+                                Jingle.play(getZombiesArena(), getShopData().getJingle(),
                                         gunSwapper = new GunSwapper(zombiesPlayer),
-                                        chestLocation.clone().add(0, 1, 0)
-                                );
+                                        chestLocation.clone().add(0, 1, 0));
                                 return true;
                             }
                         }
 
                         player.playSound(Sound.sound(
                                 Key.key("minecraft:entity.enderman.teleport"),
-                                Sound.Source.MASTER,
-                                1.0F,
-                                0.5F
-                        ));
+                                Sound.Source.MASTER, 1.0F, 0.5F));
                     }
                 }
 
