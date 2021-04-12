@@ -11,10 +11,10 @@ class PathOperationImpl implements PathOperation {
     private final ScoreCalculator calculator;
     private final SuccessCondition condition;
     private final NodeProvider nodeProvider;
-    private final DestinationSelector selector;
-    private final ChunkRange range;
+    private final DestinationSelector destinationSelector;
+    private final ChunkCoordinateProvider searchArea;
 
-    private final NodeQueue openSet = new PriorityNodeQueue(128);
+    private final NodeQueue openSet = new BinaryHeapNodeQueue(128);
     private final Set<PathNode> visited = new HashSet<>();
     private PathDestination destination;
     private PathNode firstNode;
@@ -24,20 +24,36 @@ class PathOperationImpl implements PathOperation {
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
                       @NotNull ScoreCalculator calculator, @NotNull SuccessCondition condition,
-                      @NotNull NodeProvider nodeProvider, @NotNull DestinationSelector selector, @NotNull ChunkRange range) {
+                      @NotNull NodeProvider nodeProvider, @NotNull DestinationSelector destinationSelector,
+                      @NotNull ChunkCoordinateProvider searchArea) {
         this.agent = agent;
         this.destinations = destinations;
-        this.state = State.INCOMPLETE;
+        this.state = State.NOT_STARTED;
         this.calculator = calculator;
         this.condition = condition;
         this.nodeProvider = nodeProvider;
-        this.selector = selector;
-        this.range = range;
+        this.destinationSelector = destinationSelector;
+        this.searchArea = searchArea;
+    }
+
+    @Override
+    public void init() {
+        if(state == State.NOT_STARTED) {
+            state = State.STARTED;
+        }
+        else {
+            throw new IllegalStateException("Cannot initialize a PathOperation with state " + state);
+        }
+    }
+
+    @Override
+    public boolean allowMerge(@NotNull PathOperation other) {
+        return nodeProvider.equals(other.nodeProvider()) && agent.equals(other.agent());
     }
 
     @Override
     public boolean step(@NotNull PathfinderContext context) {
-        if(state == State.INCOMPLETE) {
+        if(state == State.STARTED) {
             if(currentNode != null) {
                 PathDestination best = null;
                 double bestScore = Double.POSITIVE_INFINITY;
@@ -47,15 +63,16 @@ class PathOperationImpl implements PathOperation {
                         return true;
                     }
 
-                    double thisScore = destination.destinationScore(currentNode);
-                    if(best == null || thisScore < bestScore) {
+                    double score = destination.destinationScore(currentNode);
+                    if(best == null || score < bestScore) {
                         best = destination;
-                        bestScore = thisScore;
+                        bestScore = score;
                     }
                 }
 
                 if(best == null) {
-                    throw new IllegalStateException("Unable to find a valid destination!");
+                    complete(false, new PathDestinationImpl(currentNode));
+                    return true;
                 }
 
                 if(openSet.size() != 0) {
@@ -68,16 +85,15 @@ class PathOperationImpl implements PathOperation {
             }
             else {
                 currentNode = new PathNode(null, agent);
-                currentNode.score.set(0, calculator.computeH(context, currentNode,
-                        selector.selectDestinationFor(this, currentNode)));
+                destination = destinationSelector.selectDestinationFor(this, currentNode);
+                currentNode.score.set(0, calculator.computeH(context, currentNode, destination));
                 bestFound = currentNode.copy();
                 firstNode = currentNode;
             }
 
             visited.add(currentNode);
 
-            PathNode[] possibleNodes = nodeProvider.generateNodes(context, agent, currentNode);
-
+            PathNode[] possibleNodes = nodeProvider.generateNodes(context, currentNode);
             for(PathNode sample : possibleNodes) {
                 if(sample == null) {
                     break;
@@ -87,44 +103,34 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
-                destination = selector.selectDestinationFor(this, sample);
+                if(nodeProvider.mayTraverse(context, agent, currentNode, sample)) {
+                    destination = destinationSelector.selectDestinationFor(this, sample);
 
-                /*
-                optimization: iterate failed paths. if the failed path has the same agent characteristics and the same
-                destination, and its nodes are capable of reaching ours, we know that this operation will not be capable
-                of reaching its destination, so we can remove it entirely. it is replaced by a destination that is known
-                to be accessible — the endpoint of the failed node, which will be the node with the smallest h value. in
-                order to make sure heuristic calculations are consistent, this special destination will report a score
-                equal to the distance between the original destination (that is unreachable) and the node being sampled
-                 */
-                for(PathResult failed : context.failedPaths()) {
-                    PathDestination failedDestination = failed.destination();
-                    if(failedDestination.equals(destination) &&
-                            failed.operation().agent().characteristics().equals(agent.characteristics()) &&
-                            failed.visitedNodes().contains(sample) &&
-                            failed.operation().nodeProvider().mayTraverse(context, agent, sample, currentNode)) {
-                        destinations.remove(destination);
-                        destination = new PathDestinationImpl(failed.end()) {
-                            @Override
-                            public double destinationScore(@NotNull PathNode node) {
-                                return destination.destinationScore(node);
-                            }
-                        };
-                        destinations.add(destination);
+                    for(PathResult failed : context.failedPaths()) {
+                        if(destinationComparable(context, failed.destination(), failed.operation().result(), sample)) {
+                            destinations.remove(destination);
+                            destination = new PathDestinationImpl(failed.end()) {
+                                @Override
+                                public double destinationScore(@NotNull PathNode node) {
+                                    return destination.destinationScore(node);
+                                }
+                            };
+                            destinations.add(destination);
+                        }
                     }
-                }
 
-                double g = calculator.computeG(context, currentNode, sample, destination);
-                if(g < sample.score.getG()) {
-                    PathNode newSample = sample.copy();
-                    newSample.score.set(g, calculator.computeH(context, sample, destination));
-                    openSet.replaceNode(sample, newSample);
-                    sample = newSample;
-                }
+                    double g = calculator.computeG(context, currentNode, sample, destination);
+                    if(g < sample.score.getG()) {
+                        PathNode newSample = sample.copy();
+                        newSample.score.set(g, calculator.computeH(context, sample, destination));
+                        openSet.replaceNode(sample, newSample);
+                        sample = newSample;
+                    }
 
-                //comparison for 'best path' in case of inaccessible target
-                if(sample.score.getF() < bestFound.score.getF()) {
-                    bestFound = sample.copy();
+                    //comparison for 'best path' in case of inaccessible target
+                    if(sample.score.getF() < bestFound.score.getF()) {
+                        bestFound = sample.copy();
+                    }
                 }
             }
         }
@@ -136,13 +142,13 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull PathOperation.State getState() {
+    public @NotNull PathOperation.State state() {
         return state;
     }
 
     @Override
-    public @NotNull PathResult getResult() {
-        if(state == State.INCOMPLETE) {
+    public @NotNull PathResult result() {
+        if(state == State.STARTED) {
             throw new IllegalStateException("Cannot get PathResult for a PathOperation that has not completed!");
         }
 
@@ -154,7 +160,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public int desiredIterations() {
+    public int iterations() {
         return 100;
     }
 
@@ -164,7 +170,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull Set<? extends PathDestination> getDestinations() {
+    public @NotNull Set<PathDestination> getDestinations() {
         return destinations;
     }
 
@@ -179,8 +185,8 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull ChunkRange searchArea() {
-        return range;
+    public @NotNull ChunkCoordinateProvider searchArea() {
+        return searchArea;
     }
 
     @Override
@@ -191,6 +197,15 @@ class PathOperationImpl implements PathOperation {
     @Override
     public String toString() {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
+    }
+
+    private boolean destinationComparable(PathfinderContext context, PathDestination failedDestination,
+                                          PathResult failedResult, PathNode walkTo) {
+        return failedDestination.equals(destination) &&
+                failedResult.operation().nodeProvider().equals(nodeProvider) &&
+                failedResult.operation().agent().characteristics().equals(agent.characteristics()) &&
+                failedResult.visitedNodes().contains(walkTo) &&
+                failedResult.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode);
     }
 
     private void complete(boolean success, PathDestination destination) {

@@ -19,6 +19,9 @@ public class PathNode {
     public final double x;
     public final double y;
     public final double z;
+    public final int blockX;
+    public final int blockY;
+    public final int blockZ;
     private final int hash;
 
     final Score score;
@@ -30,6 +33,9 @@ public class PathNode {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.blockX = (int)x;
+        this.blockY = (int)y;
+        this.blockZ = (int)z;
         this.hash = hash;
     }
 

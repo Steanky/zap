@@ -8,14 +8,14 @@ public class Score {
     private double f;
     private int hash;
 
-    public Score(double g, double h) {
+    Score(double g, double h) {
         this.g = g;
         this.h = h;
         this.f = g + h;
         hash = Objects.hash(g, h, f);
     }
 
-    public Score() {
+    Score() {
         g = Double.POSITIVE_INFINITY;
         h = Double.POSITIVE_INFINITY;
         f = Double.POSITIVE_INFINITY;
@@ -54,7 +54,7 @@ public class Score {
         return f;
     }
 
-    public void set(double g, double h) {
+    void set(double g, double h) {
         this.g = g;
         this.h = h;
         this.f = g + h;

@@ -25,18 +25,6 @@ public class WorldBridge_v1_16_R3 implements WorldBridge {
     }
 
     @Override
-    public @NotNull VoxelShapeWrapper collisionShapeAt(@NotNull World world, @NotNull BlockData data, int x, int y, int z) {
-        return new VoxelShape_Wrapper_v1_16_R3(((CraftBlockData)data).getState()
-                .getCollisionShape(((CraftWorld)world).getHandle(), new BlockPosition(x, y, z)));
-    }
-
-    @Override
-    public @NotNull VoxelShapeWrapper collisionShape(@NotNull World world, @NotNull BlockData data) {
-        return new VoxelShape_Wrapper_v1_16_R3(((CraftBlockData)data).getState()
-                .getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO));
-    }
-
-    @Override
     public @NotNull SimpleChunkSnapshot takeSnapshot(@NotNull Chunk chunk) {
         return new SimpleChunkSnapshot_v1_16_R3(chunk);
     }

@@ -14,11 +14,11 @@ class AsyncBlockProvider implements BlockProvider {
     private static final Map<ChunkIdentifier, SimpleChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
 
     private final World world;
-    private final ChunkRange range;
+    private final ChunkCoordinateProvider coordinateProvider;
 
-    AsyncBlockProvider(@NotNull World world, @NotNull ChunkRange range) {
+    AsyncBlockProvider(@NotNull World world, @NotNull ChunkCoordinateProvider coordinateProvider) {
         this.world = world;
-        this.range = range;
+        this.coordinateProvider = coordinateProvider;
     }
 
     @Override
@@ -38,14 +38,14 @@ class AsyncBlockProvider implements BlockProvider {
 
     @Override
     public void updateChunk(int x, int z) {
-        if(range.inRange(x, z) && world.isChunkLoaded(x, z)) {
+        if(coordinateProvider.hasChunk(x, z) && world.isChunkLoaded(x, z)) {
             updateChunkInternal(x, z);
         }
     }
 
     @Override
     public void updateAll() {
-        for(ChunkCoordinate coordinate : range) {
+        for(ChunkCoordinate coordinate : coordinateProvider) {
             if(world.isChunkLoaded(coordinate.x, coordinate.z)) {
                 updateChunkInternal(coordinate.x, coordinate.z);
             }
@@ -56,8 +56,8 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     @Override
-    public @NotNull ChunkRange range() {
-        return range;
+    public @NotNull ChunkCoordinateProvider coordinateProvider() {
+        return coordinateProvider;
     }
 
     private SimpleChunkSnapshot chunkAt(int x, int z) {

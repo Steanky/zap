@@ -15,7 +15,7 @@ public interface BlockProvider {
 
     void updateAll();
 
-    @NotNull ChunkRange range();
+    @NotNull ChunkCoordinateProvider coordinateProvider();
 
     @Nullable BlockData getData(int x, int y, int z);
 

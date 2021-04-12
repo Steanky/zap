@@ -9,28 +9,41 @@ import java.util.Set;
 
 public interface PathOperation {
     enum State {
-        INCOMPLETE,
+        NOT_STARTED,
+        STARTED,
         SUCCEEDED,
-        FAILED
+        FAILED;
+
+        public boolean hasEnded() {
+            return this == SUCCEEDED || this == FAILED;
+        }
+
+        public boolean hasStarted() {
+            return this == STARTED;
+        }
     }
+
+    void init();
+
+    boolean allowMerge(@NotNull PathOperation other);
 
     boolean step(@NotNull PathfinderContext context);
 
-    @NotNull PathOperation.State getState();
+    @NotNull PathOperation.State state();
 
-    @NotNull PathResult getResult();
+    @NotNull PathResult result();
 
-    int desiredIterations();
+    int iterations();
 
     boolean shouldRemove();
 
-    @NotNull Set<? extends PathDestination> getDestinations();
+    @NotNull Set<PathDestination> getDestinations();
 
     @NotNull Set<PathNode> visitedNodes();
 
     @NotNull PathAgent agent();
 
-    @NotNull ChunkRange searchArea();
+    @NotNull ChunkCoordinateProvider searchArea();
 
     @NotNull NodeProvider nodeProvider();
 

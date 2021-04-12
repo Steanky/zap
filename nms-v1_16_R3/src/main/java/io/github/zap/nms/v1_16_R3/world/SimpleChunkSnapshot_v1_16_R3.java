@@ -21,9 +21,10 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot {
-    private static final DataPaletteBlock<IBlockData> emptyBlockIDs = (new ChunkSection(0, null, null, true)).getBlocks();
-    private static final Predicate<IBlockData> partialBlock = blockData ->
+    private static final DataPaletteBlock<IBlockData> EMPTY_BLOCK_IDS = (new ChunkSection(0, null, null, true)).getBlocks();
+    private static final Predicate<IBlockData> IS_PARTIAL_BLOCK = blockData ->
             isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO).d());
+    private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
 
     private final String worldName;
     private final int chunkX;
@@ -71,19 +72,20 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
         for(int i = 0; i < sections.length; ++i) {
             ChunkSection section = sections[i];
             if (section == null) {
-                sectionBlockIDs[i] = emptyBlockIDs;
+                sectionBlockIDs[i] = EMPTY_BLOCK_IDS;
             } else {
                 NBTTagCompound data = new NBTTagCompound();
                 section.getBlocks().a(data, "Palette", "BlockStates");
-                DataPaletteBlock<IBlockData> blockids = new DataPaletteBlock<>(ChunkSection.GLOBAL_PALETTE,
+                DataPaletteBlock<IBlockData> blocks = new DataPaletteBlock<>(ChunkSection.GLOBAL_PALETTE,
                         Block.REGISTRY_ID, GameProfileSerializer::c, GameProfileSerializer::a,
-                        Blocks.AIR.getBlockData(), null, false);
-                blockids.a(data.getList("Palette", 10), data.getLongArray("BlockStates"));
-                sectionBlockIDs[i] = blockids;
+                        AIR_BLOCK_DATA, null, false);
+                blocks.a(data.getList("Palette", 10), data.getLongArray("BlockStates"));
+                sectionBlockIDs[i] = blocks;
 
                 int yOffset = section.getYPosition();
-                if(blockids.contains(partialBlock)) {
-                    blockids.forEachLocation((blockData, position) -> {
+                BlockPosition examine = new BlockPosition(0, 0, 0);
+                if(blocks.contains(IS_PARTIAL_BLOCK)) {
+                    blocks.forEachLocation((blockData, position) -> {
                         /*
                         bit operator magic:
                         (2^n) & (2^n - 1) == x % (2^n) for all positive integer values of n
@@ -98,9 +100,11 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
                         int y = (position >> 8) + yOffset;
                         int z = (position & 255) >> 4;
 
-                        BlockPosition pos = new BlockPosition(x, y, z);
-                        List<AxisAlignedBB> shape = blockData.getCollisionShape(chunk, pos).d();
+                        examine.o(x);
+                        examine.p(y);
+                        examine.q(z);
 
+                        List<AxisAlignedBB> shape = blockData.getCollisionShape(chunk, examine).d();
                         if(isPartialSolidBlock(shape)) {
                             collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), new VoxelShape_Wrapper_v1_16_R3(shape));
                         }
