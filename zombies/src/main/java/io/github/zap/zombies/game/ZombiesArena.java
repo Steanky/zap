@@ -381,14 +381,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         }
     }
 
-    private final static ExecutorService HOLOGRAM_MODIFICATION_EXECUTOR = Executors.newSingleThreadExecutor();
-
     @Getter
     private final MapData map;
 
     private final Hologram bestTimesHologram;
-
-    private boolean hologramCanBeModified = true;
 
     @Getter
     private final EquipmentManager equipmentManager;
@@ -592,8 +588,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 Map.Entry<UUID, Integer> time = bestTimes.get(i);
                 int finalI = i;
 
-                HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
-                    if (hologramCanBeModified) {
+                Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
+                    if (startTimeStamp != -1) {
                         hologram.addLine(String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW, finalI,
                                 ChatColor.WHITE, ChatColor.GRAY, "Loading...", ChatColor.WHITE, ChatColor.YELLOW,
                                 TimeUtil.convertTicksToSecondsString(time.getValue())));
@@ -610,8 +606,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                             + time.getKey().toString()), Charset.defaultCharset());
 
                     String name = objectMapper.readTree(message).get("name").textValue();
-                    HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
-                        if (hologramCanBeModified) {
+                    Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
+                        if (startTimeStamp != -1) {
                             hologram.updateLine(finalI, String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW,
                                     finalI, ChatColor.WHITE, ChatColor.GRAY, name, ChatColor.WHITE, ChatColor.YELLOW,
                                     TimeUtil.convertTicksToSecondsString(time.getValue())));
@@ -668,8 +664,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
                 player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
             }
-            HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
-                if (hologramCanBeModified) {
+            Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
+                if (startTimeStamp != -1) {
                     for (Player player : args.getPlayers()) {
                         bestTimesHologram.renderToPlayer(player);
                     }
@@ -1062,8 +1058,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.STARTED;
             startTimeStamp = System.currentTimeMillis();
 
-            HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
-                hologramCanBeModified = false;
+            Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                 bestTimesHologram.destroy();
             });
 
