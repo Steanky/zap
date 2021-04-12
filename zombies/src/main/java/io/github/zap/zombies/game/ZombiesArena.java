@@ -76,8 +76,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -1058,9 +1056,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.STARTED;
             startTimeStamp = System.currentTimeMillis();
 
-            Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
-                bestTimesHologram.destroy();
-            });
+            Bukkit.getScheduler().runTask(Zombies.getInstance(), bestTimesHologram::destroy);
 
             for(ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
                 Player bukkitPlayer = zombiesPlayer.getPlayer();
