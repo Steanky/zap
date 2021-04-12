@@ -37,7 +37,6 @@ import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -135,10 +134,6 @@ public final class Zombies extends JavaPlugin implements Listener {
             initArenaManagers();
             initNPCs();
             initCommands();
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString("dcf39476-c70e-446a-b80b-d4a0d9e157ec"));
-            System.out.println(offlinePlayer.getName());
-            OfflinePlayer offlinePlayer2 = Bukkit.getOfflinePlayer(UUID.fromString("dcf39476c70e446ab80bd4a0d9e157ec"));
-            System.out.println(offlinePlayer2.getName());
         }
         catch(LoadFailureException exception)
         {

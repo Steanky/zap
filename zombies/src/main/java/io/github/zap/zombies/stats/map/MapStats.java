@@ -5,10 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -27,6 +26,6 @@ public class MapStats extends Stats<String> {
 
     }
 
-    List<Pair<UUID, Integer>> bestTimes = new ArrayList<>(); // TODO: better collection?
+    Map<UUID, Integer> bestTimes = new HashMap<>();
 
 }

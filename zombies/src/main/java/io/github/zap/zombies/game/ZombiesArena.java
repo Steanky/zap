@@ -388,7 +388,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private final Hologram bestTimesHologram;
 
-    private boolean hologramCanBeModified;
+    private boolean hologramCanBeModified = true;
 
     @Getter
     private final EquipmentManager equipmentManager;
@@ -576,7 +576,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         resourceManager.addDisposable(chunkLoadHandler);
     }
 
-    private Hologram setupTimeLeaderboard() {
+    private @NotNull Hologram setupTimeLeaderboard() {
         Vector hologramLocation = map.getBestTimesLocation().clone()
                 .add(new Vector(0, Hologram.DEFAULT_LINE_SPACE * map.getBestTimesCount(), 0));
         Hologram hologram = new Hologram(hologramLocation.toLocation(getWorld()));
@@ -584,9 +584,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         statsManager.queueCacheModification(CacheInformation.MAP, map.getName(), (stats) -> {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            List<Pair<UUID, Integer>> bestTimes = stats.getBestTimes();
-            int bound = Math.min(map.getBestTimesCount(), bestTimes.size());
+            List<Map.Entry<UUID, Integer>> bestTimes = new ArrayList<>(stats.getBestTimes().entrySet());
+            bestTimes.sort((a, b) -> b.getValue().compareTo(a.getValue()));
 
+            int bound = Math.min(map.getBestTimesCount(), bestTimes.size());
             for (int i = 0; i < bound; i++) {
                 Map.Entry<UUID, Integer> time = bestTimes.get(i);
                 int finalI = i;
@@ -594,7 +595,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                 HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
                     if (hologramCanBeModified) {
                         hologram.addLine(String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW, finalI,
-                                ChatColor.GRAY, ChatColor.DARK_GRAY, "Loading...", ChatColor.GRAY, ChatColor.YELLOW,
+                                ChatColor.WHITE, ChatColor.GRAY, "Loading...", ChatColor.WHITE, ChatColor.YELLOW,
                                 TimeUtil.convertTicksToSecondsString(time.getValue())));
                     }
                 });
@@ -611,8 +612,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     String name = objectMapper.readTree(message).get("name").textValue();
                     HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
                         if (hologramCanBeModified) {
-                            hologram.addLine(String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW, finalI,
-                                    ChatColor.GRAY, ChatColor.DARK_GRAY, name, ChatColor.GRAY, ChatColor.YELLOW,
+                            hologram.updateLine(finalI, String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW,
+                                    finalI, ChatColor.WHITE, ChatColor.GRAY, name, ChatColor.WHITE, ChatColor.YELLOW,
                                     TimeUtil.convertTicksToSecondsString(time.getValue())));
                         }
                     });
@@ -661,13 +662,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             state = ZombiesArenaState.COUNTDOWN;
         }
 
-        for(Player player : args.getPlayers()) {
-            player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
+        if (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) {
+            for (Player player : args.getPlayers()) {
+                player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
 
-            if(state == ZombiesArenaState.PREGAME) {
                 player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
             }
+            HOLOGRAM_MODIFICATION_EXECUTOR.submit(() -> {
+                if (hologramCanBeModified) {
+                    for (Player player : args.getPlayers()) {
+                        bestTimesHologram.renderToPlayer(player);
+                    }
+                }
+            });
         }
+
 
         if (state == ZombiesArenaState.STARTED || state == ZombiesArenaState.ENDED) {
             for (Player player : args.getPlayers()) {
@@ -1237,10 +1246,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
                     if (playerMapStats.getBestTime() == null || duration < playerMapStats.getBestTime()) {
                         playerMapStats.setBestTime(duration);
                         statsManager.queueCacheModification(CacheInformation.MAP, map.getName(), (mapStats) -> {
-                            List<Pair<UUID, Integer>> bestTimes = mapStats.getBestTimes();
-                            bestTimes.removeIf((pair) -> pair.getLeft().equals(bukkitPlayer.getUniqueId()));
-                            bestTimes.add(Pair.of(bukkitPlayer.getUniqueId(), duration));
-                            Collections.sort(bestTimes);
+                            Map<UUID, Integer> bestTimes = mapStats.getBestTimes();
+                            bestTimes.put(bukkitPlayer.getUniqueId(), duration);
                         }, MapStats::new);
                     }
                 }, PlayerGeneralStats::new);

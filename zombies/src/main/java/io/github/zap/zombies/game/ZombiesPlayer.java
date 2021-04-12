@@ -49,6 +49,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -160,14 +163,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             corpse = null;
         }
 
-        HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
-        for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-            if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
-                Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+        for (HotbarProfile hotbarProfile : hotbarManager.getProfiles().values()) {
+            HotbarObjectGroup hotbarObjectGroup = hotbarManager.
+                    getHotbarObjectGroup(hotbarProfile, EquipmentObjectGroupType.PERK.name());
 
-                Event<?> event = perk.getActionTriggerEvent();
-                if (event != null) {
-                    event.dispose();
+            if (hotbarObjectGroup != null) {
+                for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                    if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
+                        Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+
+                        Event<?> event = perk.getActionTriggerEvent();
+                        if (event != null) {
+                            event.dispose();
+                        }
+                    }
                 }
             }
         }
@@ -504,11 +513,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(defaultProfile,
                 EquipmentObjectGroupType.PERK.name());
 
-        for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-            HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
-            if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
-                Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
-                perk.activate();
+        if (hotbarObjectGroup != null) {
+            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+                if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
+                    Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+                    perk.activate();
+                }
             }
         }
     }
@@ -522,16 +533,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(defaultProfile,
                 EquipmentObjectGroupType.PERK.name());
 
-        if (remove) {
-            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-                hotbarObjectGroup.remove(slot, true);
-            }
-        } else {
-            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-                HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
-                if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
-                    Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
-                    perk.deactivate();;
+        if (hotbarObjectGroup != null) {
+            if (remove) {
+                List<Integer> slotsToRemove = new ArrayList<>();
+                for (Integer slot : new HashSet<>(hotbarObjectGroup.getHotbarObjectMap().keySet())) {
+                    hotbarObjectGroup.remove(slot, true);
+                }
+            } else {
+                for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                    HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+                    if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
+                        Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+                        perk.deactivate();
+                        ;
+                    }
                 }
             }
         }

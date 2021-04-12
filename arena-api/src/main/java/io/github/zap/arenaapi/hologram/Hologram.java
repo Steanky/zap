@@ -1,20 +1,13 @@
 package io.github.zap.arenaapi.hologram;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.ArenaApi;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,42 +30,6 @@ public class Hologram {
     private final double lineSpace;
 
     private final Location rootLocation;
-
-    static {
-        ArenaApi arenaApi = ArenaApi.getInstance();
-        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-        manager.addPacketListener(new PacketAdapter(arenaApi, ListenerPriority.NORMAL, PacketType.Play.Client
-                .USE_ENTITY) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                if (event.getPacketType() == PacketType.Play.Client.USE_ENTITY) {
-                    PacketContainer packetContainer = event.getPacket();
-
-                    if (packetContainer.getEntityUseActions().read(0) == EnumWrappers.EntityUseAction
-                            .INTERACT_AT) {
-                        int id = packetContainer.getIntegers().read(0);
-
-                        if (TEXT_LINE_SET.contains(id)) {
-                            event.setCancelled(true);
-
-                            PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client
-                                    .BLOCK_PLACE);
-                            fakePacketContainer.getHands().write(0, packetContainer.getHands()
-                                    .read(0));
-                            fakePacketContainer.getLongs().write(0, System.currentTimeMillis());
-
-                            try {
-                                manager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
-                            } catch (IllegalAccessException | InvocationTargetException e) {
-                                ArenaApi.warning(String.format("Error blocking player interact at entity with id %s:" +
-                                        " %s.", id, e.getMessage()));
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
 
     public Hologram(Location location, double lineSpace) {
         this.arenaApi = ArenaApi.getInstance();

@@ -10,6 +10,8 @@ import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
 
@@ -22,7 +24,7 @@ public interface ZombiesNMSProxy extends NMSProxy {
      * @param player The player to get the skin from
      * @return A wrapped sign property of the texture
      */
-    WrappedSignedProperty getSkin(Player player);
+    @Nullable WrappedSignedProperty getSkin(@NotNull Player player);
 
     /**
      * Returns the nearest ZombiesPlayer in the given arena, using path length instead of vector distance for AI that

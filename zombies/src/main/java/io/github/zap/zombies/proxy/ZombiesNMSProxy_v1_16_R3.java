@@ -1,6 +1,7 @@
 package io.github.zap.zombies.proxy;
 
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
+import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
@@ -15,21 +16,27 @@ import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.function.Predicate;
 
 public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements ZombiesNMSProxy {
-    @Override
-    public WrappedSignedProperty getSkin(Player player) {
-        CraftPlayer craftPlayer = (CraftPlayer) player;
-        Collection<Property> texture = craftPlayer.getProfile().getProperties().get("textures");
 
-        if (texture.size() > 0) {
-            return WrappedSignedProperty.fromHandle(texture.iterator().next());
-        } else {
-            return null;
+    @Override
+    public @Nullable WrappedSignedProperty getSkin(@NotNull Player player) {
+        CraftPlayer craftPlayer = (CraftPlayer) player;
+        GameProfile gameProfile = craftPlayer.getProfile();
+        if (gameProfile != null) {
+            Collection<Property> texture = gameProfile.getProperties().get("textures");
+
+            if (texture.size() > 0) {
+                return WrappedSignedProperty.fromHandle(texture.iterator().next());
+            }
         }
+
+        return null;
     }
 
     @Override

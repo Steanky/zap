@@ -335,9 +335,13 @@ public class Corpse {
         packetContainer.getPlayerInfoAction().write(0, playerInfoAction);
 
         WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, uniqueId.toString().substring(0, 16));
-        WrappedSignedProperty skin = nmsProxy.getSkin(zombiesPlayer.getPlayer());
-        if (skin != null) {
-            wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+
+        Player player = zombiesPlayer.getPlayer();
+        if (player != null) {
+            WrappedSignedProperty skin = nmsProxy.getSkin(zombiesPlayer.getPlayer());
+            if (skin != null) {
+                wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+            }
         }
 
         packetContainer.getPlayerInfoDataLists().write(0, Collections.singletonList(
