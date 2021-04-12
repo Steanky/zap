@@ -560,31 +560,35 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         Player player = getPlayer();
 
         if (player != null) {
-            if (targetWindow == null) { //our target window is null, so look for one to repair
-                WindowData window = map.windowMatching(windowData -> !windowData.isFullyRepaired(arena)
-                        && windowData.getRepairingPlayerProperty().getValue(arena) == null
-                        && windowData.inRange(getPlayer().getLocation().toVector(), arena.getMap().getWindowRepairRadiusSquared()));
+            if (isAlive()) {
+                if (targetWindow == null) { //our target window is null, so look for one to repair
+                    WindowData window = map.windowMatching(windowData -> !windowData.isFullyRepaired(arena)
+                            && windowData.getRepairingPlayerProperty().getValue(arena) == null
+                            && windowData.inRange(getPlayer().getLocation().toVector(), arena.getMap().getWindowRepairRadiusSquared()));
 
-                if (window != null) {
-                    if (repairOn) {
-                        targetWindow = window;
-                        tryRepairWindow(targetWindow); //directly repair window; no need to perform checks
-                        player.sendActionBar(Component.text());
+                    if (window != null) {
+                        if (repairOn) {
+                            targetWindow = window;
+                            tryRepairWindow(targetWindow); //directly repair window; no need to perform checks
+                            player.sendActionBar(Component.text());
+                        } else {
+                            player.sendActionBar(Component.text("Hold SHIFT to repair!")
+                                    .color(NamedTextColor.YELLOW));
+                        }
                     } else {
-                        player.sendActionBar(Component.text("Hold SHIFT to repair!")
-                                .color(NamedTextColor.YELLOW));
+                        player.sendActionBar(Component.text());
                     }
-                } else {
-                    player.sendActionBar(Component.text());
-                }
-            } else { //we already have a target window - make sure it's still in range
-                if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
-                        && repairOn && isAlive()) {
+
+                    return;
+                } else if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
+                        && repairOn && isAlive()) { //we already have a target window - make sure it's still in range
                     tryRepairWindow(targetWindow);
-                } else {
-                    targetWindow = null;
+
+                    return;
                 }
             }
+
+            targetWindow = null;
         }
     }
 

@@ -88,6 +88,7 @@ public class Corpse {
             zombiesArena.getCorpses().add(this);
             zombiesArena.getAvailableCorpses().add(this);
             zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+            zombiesArena.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
 
             spawnDeadBody();
             startDying();
@@ -291,6 +292,13 @@ public class Corpse {
         }
     }
 
+    private void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs playerListArgs) {
+        for (ZombiesPlayer player : playerListArgs.getPlayers()) {
+            spawnDeadBodyForPlayer(zombiesPlayer.getPlayer());
+            hologram.renderToPlayer(zombiesPlayer.getPlayer());
+        }
+    }
+
     private void sendPacketToPlayer(PacketContainer packetContainer, Player player) {
         ArenaApi.getInstance().sendPacketToPlayer(Zombies.getInstance(), player, packetContainer);
     }
@@ -321,13 +329,9 @@ public class Corpse {
         sendPacketToPlayer(createSleepingPacketContainer(), player);
         addCorpseToScoreboardTeamForPlayer(player);
 
-        zombiesPlayer.getArena().runTaskLater(
-                1L,
-                () -> sendPacketToPlayer(
-                        createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER),
-                        player
-                )
-        );
+        zombiesPlayer.getArena().runTaskLater(1L,
+                () -> sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER),
+                        player));
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
@@ -344,14 +348,10 @@ public class Corpse {
             }
         }
 
-        packetContainer.getPlayerInfoDataLists().write(0, Collections.singletonList(
-                new PlayerInfoData(
-                        wrappedGameProfile,
-                        0,
+        packetContainer.getPlayerInfoDataLists().write(0,
+                Collections.singletonList(new PlayerInfoData(wrappedGameProfile, 0,
                         EnumWrappers.NativeGameMode.NOT_SET,
-                        WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16))
-                ))
-        );
+                        WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16)))));
 
         return packetContainer;
     }
@@ -421,6 +421,7 @@ public class Corpse {
         terminate();
         zombiesArena.getCorpses().remove(this);
         zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        zombiesArena.getPlayerRejoinEvent().removeHandler(this::onPlayerRejoin);
     }
 
     @Override

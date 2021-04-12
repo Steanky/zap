@@ -99,7 +99,8 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
             playScoreboards.put(player.getKey(), new IngamePlayerScoreboardInformation(bukkitScoreboard, this, objHealth, objKills, writer, zombieKills));
         }
 
-        scoreboard.getZombiesArena().getPlayerJoinEvent().registerHandler(this::handleRejoin);
+        scoreboard.getZombiesArena().getPlayerJoinEvent().registerHandler(this::handleJoin);
+        scoreboard.getZombiesArena().getPlayerRejoinEvent().registerHandler(this::handleRejoin);
         scoreboard.getZombiesArena().getPlayerLeaveEvent().registerHandler(this::handleLeave);
     }
 
@@ -113,13 +114,29 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
         });
     }
 
-    private void handleRejoin(ManagingArena.PlayerListArgs playerListArgs) {
+    private void handleJoin(ManagingArena.PlayerListArgs playerListArgs) {
         for(var player : playerListArgs.getPlayers()) {
             if(playScoreboards.containsKey(player.getUniqueId())) {
                 player.setScoreboard(playScoreboards.get(player.getUniqueId()).getBukkitScoreboard());
             } else {
                 Zombies.getInstance().getLogger().log(Level.SEVERE, "Could not find scoreboard for player: " + player.getName() + " with UUID: " + player.getUniqueId());
                 player.sendMessage(ChatColor.RED + "Unable to load your scoreboard!");
+            }
+        }
+    }
+
+    private void handleRejoin(ZombiesArena.ManagedPlayerListArgs playerListArgs) {
+        for (ZombiesPlayer player : playerListArgs.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
+
+            if (bukkitPlayer != null) {
+                if (playScoreboards.containsKey(bukkitPlayer.getUniqueId())) {
+                    bukkitPlayer.setScoreboard(playScoreboards.get(bukkitPlayer.getUniqueId()).getBukkitScoreboard());
+                } else {
+                    Zombies.getInstance().getLogger().log(Level.SEVERE, "Could not find scoreboard for player: "
+                            + bukkitPlayer.getName() + " with UUID: " + bukkitPlayer.getUniqueId());
+                    bukkitPlayer.sendMessage(ChatColor.RED + "Unable to load your scoreboard!");
+                }
             }
         }
     }
@@ -144,7 +161,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
             if(playerMap.containsKey(playerStatus.getKey())) {
                 var player = playerMap.get(playerStatus.getKey());
-                if(!player.isInGame()) {
+                if(player == null || !player.isInGame()) {
                     tfStatus.setValue(ChatColor.RED + "QUIT");
                 } else {
                     switch (player.getState()) {
@@ -214,7 +231,8 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
 
     @Override
     public void dispose() {
-        gameScoreboard.getZombiesArena().getPlayerJoinEvent().removeHandler(this::handleRejoin);
+        gameScoreboard.getZombiesArena().getPlayerJoinEvent().removeHandler(this::handleJoin);
+        gameScoreboard.getZombiesArena().getPlayerRejoinEvent().removeHandler(this::handleRejoin);
         gameScoreboard.getZombiesArena().getPlayerLeaveEvent().removeHandler(this::handleLeave);
         playScoreboards.forEach((uuid, data) -> data.getSidebarWriter().dispose());
     }

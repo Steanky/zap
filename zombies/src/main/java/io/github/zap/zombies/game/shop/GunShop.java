@@ -35,7 +35,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        getZombiesArena().getShopEvent(getShopType()).registerHandler(args -> {
+        getArena().getShopEvent(getShopType()).registerHandler(args -> {
             if (args.getShop().equals(this)) {
                 Player player = args.getZombiesPlayer().getPlayer();
                 if (player != null) {
@@ -48,9 +48,9 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     public void display() {
         if (item == null) {
-            World world = getZombiesArena().getWorld();
+            World world = getArena().getWorld();
 
-            ZombiesArena zombiesArena = getZombiesArena();
+            ZombiesArena zombiesArena = getArena();
             EquipmentData<?> equipmentData = zombiesArena.getEquipmentManager().getEquipmentData(
                     zombiesArena.getMap().getName(),
                     getShopData().getGunName()
@@ -81,7 +81,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
     @Override
     protected void displayToPlayer(Player player) {
-        ZombiesPlayer zombiesPlayer =  getZombiesArena().getPlayerMap().get(player.getUniqueId());
+        ZombiesPlayer zombiesPlayer =  getArena().getPlayerMap().get(player.getUniqueId());
         GunShopData gunShopData = getShopData();
         String gunName = gunShopData.getGunName();
         String gunDisplayName = gunShopData.getGunDisplayName();
@@ -240,11 +240,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 return false;
             } else {
                 zombiesPlayer.subtractCoins(getShopData().getCost());
-                gunObjectGroup.setHotbarObject(slot, getZombiesArena().getEquipmentManager().createEquipment(
-                        getZombiesArena(),
+                gunObjectGroup.setHotbarObject(slot, getArena().getEquipmentManager().createEquipment(
+                        getArena(),
                         zombiesPlayer,
                         slot,
-                        getZombiesArena().getMap().getName(),
+                        getArena().getMap().getName(),
                         gunShopData.getGunName()));
 
                 return true;

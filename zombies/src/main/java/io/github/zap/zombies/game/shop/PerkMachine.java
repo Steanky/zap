@@ -38,7 +38,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
     @Override
     protected void displayToPlayer(Player player) {
-        ZombiesPlayer zombiesPlayer = getZombiesArena().getPlayerMap().get(player.getUniqueId());
+        ZombiesPlayer zombiesPlayer = getArena().getPlayerMap().get(player.getUniqueId());
         PerkMachineData perkMachineData = getShopData();
         Perk<?, ?, ?, ?> perk = determinePerk(zombiesPlayer);
 
@@ -99,7 +99,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                         }
 
                                         if (slot != null) {
-                                            ZombiesArena zombiesArena = getZombiesArena();
+                                            ZombiesArena zombiesArena = getArena();
                                             hotbarManager.setHotbarObject(slot, zombiesArena.getEquipmentManager()
                                                     .createEquipment(zombiesArena, zombiesPlayer, slot,
                                                             zombiesArena.getMap().getName(),

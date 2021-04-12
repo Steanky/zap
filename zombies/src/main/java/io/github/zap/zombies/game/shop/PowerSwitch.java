@@ -53,7 +53,7 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
                         } else {
                             zombiesPlayer.subtractCoins(cost);
 
-                            for (Player playerInWorld : getZombiesArena().getWorld().getPlayers()) {
+                            for (Player playerInWorld : getArena().getWorld().getPlayers()) {
                                 playerInWorld.sendTitle(
                                         ChatColor.YELLOW + player.getName() + " turned on the power!",
                                         ChatColor.GOLD + "Shops which require power are now activated",

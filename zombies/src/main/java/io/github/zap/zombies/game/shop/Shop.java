@@ -15,12 +15,12 @@ import org.bukkit.event.Event;
 @Getter
 public abstract class Shop<D extends ShopData> {
 
-    private final ZombiesArena zombiesArena;
+    private final ZombiesArena arena;
     private final D shopData;
     private boolean powered = false;
 
-    public Shop(ZombiesArena zombiesArena, D shopData) {
-        this.zombiesArena = zombiesArena;
+    public Shop(ZombiesArena arena, D shopData) {
+        this.arena = arena;
         this.shopData = shopData;
 
         registerArenaEvents();
@@ -30,15 +30,17 @@ public abstract class Shop<D extends ShopData> {
      * Registers all events from the zombie arena that will be monitored by the shop
      */
     protected void registerArenaEvents() {
-        zombiesArena.getShopEvent(ShopType.POWER_SWITCH).registerHandler(args -> {
+        arena.getShopEvent(ShopType.POWER_SWITCH).registerHandler(args -> {
             powered = true;
             display();
         });
-        zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+
+        arena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        arena.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
     }
 
     /**
-     * Called when a player joins the arena
+     * Called when players join the arena
      * @param args The list of players
      */
     protected void onPlayerJoin(ManagingArena.PlayerListArgs args) {
@@ -48,18 +50,32 @@ public abstract class Shop<D extends ShopData> {
     }
 
     /**
+     * Called when players rejoin the arena
+     * @param args The list of players
+     */
+    protected void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
+        for (ZombiesPlayer player : args.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
+
+            if (bukkitPlayer != null) {
+                displayToPlayer(bukkitPlayer);
+            }
+        }
+    }
+
+    /**
      * Method to call when a player purchases an item
      * @param zombiesPlayer The purchasing player
      */
     protected void onPurchaseSuccess(ZombiesPlayer zombiesPlayer) {
-        zombiesArena.getShopEvent(getShopType()).callEvent(new ShopEventArgs(this, zombiesPlayer));
+        arena.getShopEvent(getShopType()).callEvent(new ShopEventArgs(this, zombiesPlayer));
     }
 
     /**
      * Displays the shop to all players in its current state
      */
     public void display() {
-        for (Player player : zombiesArena.getWorld().getPlayers()) {
+        for (Player player : arena.getWorld().getPlayers()) {
             displayToPlayer(player);
         }
     }

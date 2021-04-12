@@ -48,7 +48,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
     protected void registerArenaEvents() {
         super.registerArenaEvents();
 
-        ZombiesArena zombiesArena = getZombiesArena();
+        ZombiesArena zombiesArena = getArena();
         zombiesArena.getProxyFor(InventoryClickEvent.class).registerHandler(args -> {
             InventoryClickEvent inventoryClickEvent = args.getEvent();
 

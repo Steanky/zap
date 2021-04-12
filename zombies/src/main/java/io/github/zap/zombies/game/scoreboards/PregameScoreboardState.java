@@ -49,11 +49,15 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
               .line()
               .text(ChatColor.YELLOW + "discord.gg/private-bro");
 
-        for (var player : gameScoreboard.getZombiesArena().getPlayerMap().values()){
-            player.getPlayer().setScoreboard(bukkitScoreboard);
+        for (var player : gameScoreboard.getZombiesArena().getPlayerMap().values()) {
+            Player bukkitPlayer = player.getPlayer();
+            if (bukkitPlayer != null) {
+                bukkitPlayer.setScoreboard(bukkitScoreboard);
+            }
         }
 
         gameScoreboard.getZombiesArena().getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        gameScoreboard.getZombiesArena().getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
         gameScoreboard.getZombiesArena().getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
     }
 
@@ -74,7 +78,15 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
         }
     }
 
+    private void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs playerListArgs) {
+        for (ZombiesPlayer player : playerListArgs.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
 
+            if (bukkitPlayer != null) {
+                bukkitPlayer.setScoreboard(bukkitScoreboard);
+            }
+        }
+    }
 
     @Override
     public void update() {
@@ -122,6 +134,8 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
     @Override
     public void dispose() {
         gameScoreboard.getZombiesArena().getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        gameScoreboard.getZombiesArena().getPlayerRejoinEvent().removeHandler(this::onPlayerRejoin);
+        gameScoreboard.getZombiesArena().getPlayerLeaveEvent().removeHandler(this::onPlayerLeave);
         writer.dispose();
     }
 }

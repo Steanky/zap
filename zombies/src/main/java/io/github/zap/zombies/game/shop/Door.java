@@ -75,6 +75,21 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
+    public void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
+        for (Hologram hologram : doorSideHologramMap.values()) {
+            for (ZombiesPlayer player : args.getPlayers()) {
+                Player bukkitPlayer = player.getPlayer();
+
+                if (bukkitPlayer != null) {
+                    hologram.renderToPlayer(bukkitPlayer);
+                }
+            }
+        }
+
+        super.onPlayerRejoin(args);
+    }
+
+    @Override
     public void display() {
         if (!opened) {
             for (Map.Entry<DoorSide, Hologram> entry : doorSideHologramMap.entrySet()) {
@@ -82,7 +97,7 @@ public class Door extends Shop<DoorData> {
 
                 StringBuilder stringBuilder = new StringBuilder(ChatColor.GREEN.toString());
                 List<String> opensTo = entry.getKey().getOpensTo();
-                MapData map = getZombiesArena().getMap();
+                MapData map = getArena().getMap();
                 if (opensTo.size() > 0) {
                     stringBuilder.append(map.getNamedRoom(opensTo.get(0)).getRoomDisplayName());
                     for (int i = 1; i < opensTo.size(); i++) {
@@ -123,7 +138,7 @@ public class Door extends Shop<DoorData> {
                             if (zombiesPlayer.getCoins() < cost) {
                                 player.sendMessage(ChatColor.RED + "You cannot afford this item!");
                             } else {
-                                ZombiesArena zombiesArena = getZombiesArena();
+                                ZombiesArena zombiesArena = getArena();
                                 WorldUtils.fillBounds(
                                         zombiesArena.getWorld(),
                                         doorData.getDoorBounds(),

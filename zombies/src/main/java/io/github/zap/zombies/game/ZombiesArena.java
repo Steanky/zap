@@ -537,6 +537,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
 
     private void registerArenaEvents() {
         getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
         getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
 
         getProxyFor(PlayerDropItemEvent.class).registerHandler(this::onPlayerDropItem);
@@ -676,6 +677,20 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
             for (Player player : args.getPlayers()) {
                 for (Player hiddenPlayer : hiddenPlayers) {
                     player.hidePlayer(Zombies.getInstance(), hiddenPlayer);
+                }
+            }
+        }
+    }
+
+    private void onPlayerRejoin(ManagedPlayerListArgs args) {
+        for (ZombiesPlayer player : args.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
+
+            if (bukkitPlayer != null) {
+                bukkitPlayer.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
+
+                for (Player hiddenPlayer : hiddenPlayers) {
+                    bukkitPlayer.hidePlayer(Zombies.getInstance(), hiddenPlayer);
                 }
             }
         }

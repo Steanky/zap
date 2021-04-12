@@ -87,7 +87,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        getZombiesArena().getShopEvent(getShopType()).registerHandler(args -> display());
+        getArena().getShopEvent(getShopType()).registerHandler(args -> display());
     }
 
     @Override

@@ -3,6 +3,7 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
 import lombok.Getter;
 import org.bukkit.World;
@@ -46,6 +47,21 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
         }
 
         super.onPlayerJoin(args);
+    }
+
+    @Override
+    public void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
+        Hologram hologram = getHologram();
+
+        for (ZombiesPlayer player : args.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
+
+            if (bukkitPlayer != null) {
+                hologram.renderToPlayer(bukkitPlayer);
+            }
+        }
+
+        super.onPlayerRejoin(args);
     }
 
     @Override
