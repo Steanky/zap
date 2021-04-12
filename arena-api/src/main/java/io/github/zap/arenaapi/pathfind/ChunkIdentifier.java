@@ -5,12 +5,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ChunkIdentifier implements ChunkVectorSource {
+class ChunkIdentifier implements ChunkVectorSource {
     public final UUID worldID;
-    public final ChunkCoordinate coordinate;
+    public final ChunkVectorSource coordinate;
     private final int hash;
 
-    public ChunkIdentifier(@NotNull UUID worldID, @NotNull ChunkCoordinate coordinate) {
+    ChunkIdentifier(@NotNull UUID worldID, @NotNull ChunkVectorSource coordinate) {
         this.worldID = worldID;
         this.coordinate = coordinate;
         hash = Objects.hash(worldID, coordinate);
@@ -38,11 +38,11 @@ public class ChunkIdentifier implements ChunkVectorSource {
 
     @Override
     public int chunkX() {
-        return coordinate.x;
+        return coordinate.chunkX();
     }
 
     @Override
     public int chunkZ() {
-        return coordinate.z;
+        return coordinate.chunkZ();
     }
 }

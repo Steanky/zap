@@ -7,7 +7,7 @@ import java.util.PriorityQueue;
 public class PriorityNodeQueue implements NodeQueue {
     private final PriorityQueue<PathNode> nodes;
 
-    public PriorityNodeQueue(int initialCapacity) {
+    PriorityNodeQueue(int initialCapacity) {
         nodes = new PriorityQueue<>(initialCapacity, NodeComparator.instance());
     }
 

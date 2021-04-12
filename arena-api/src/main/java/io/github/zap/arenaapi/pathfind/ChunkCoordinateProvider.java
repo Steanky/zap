@@ -1,21 +1,20 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.apache.commons.lang3.Validate;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public interface ChunkCoordinateProvider extends Iterable<ChunkCoordinate> {
+public interface ChunkCoordinateProvider extends Iterable<ChunkVectorSource> {
     boolean hasChunk(int x, int z);
 
-    static ChunkCoordinateProvider bounded(@NotNull ChunkCoordinate from, @NotNull ChunkCoordinate to) {
+    static ChunkCoordinateProvider bounded(@NotNull ChunkVectorSource from, @NotNull ChunkVectorSource to) {
         Objects.requireNonNull(from, "from cannot be null!");
         Objects.requireNonNull(to, "to cannot be null!");
         return new ChunkRange(from, to);
     }
 
-    static ChunkCoordinateProvider fromCenter(@NotNull ChunkCoordinate center, int radius) {
+    static ChunkCoordinateProvider fromCenter(@NotNull ChunkVectorSource center, int radius) {
         Objects.requireNonNull(center, "from cannot be null!");
         Validate.isTrue(radius > 0, "radius cannot be negative!");
         return new ChunkRange(center, radius);

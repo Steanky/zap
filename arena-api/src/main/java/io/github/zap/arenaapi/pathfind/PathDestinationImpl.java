@@ -3,33 +3,33 @@ package io.github.zap.arenaapi.pathfind;
 import org.jetbrains.annotations.NotNull;
 
 class PathDestinationImpl implements PathDestination {
-    private final PathNode node;
+    private final WorldVectorSource position;
 
-    PathDestinationImpl(@NotNull PathNode node) {
-        this.node = node;
-    }
-
-    @Override
-    public @NotNull PathNode node() {
-        return node.copy();
+    PathDestinationImpl(@NotNull WorldVectorSource position) {
+        this.position = position;
     }
 
     @Override
     public int hashCode() {
-        return node.hashCode();
+        return position.hashCode();
     }
 
     @Override
     public boolean equals(Object object) {
         if(object instanceof PathDestinationImpl) {
-            return ((PathDestinationImpl) object).node.equals(node);
+            return ((PathDestinationImpl) object).position.equals(position);
         }
 
         return false;
     }
 
     @Override
+    public @NotNull WorldVectorSource position() {
+        return position;
+    }
+
+    @Override
     public double destinationScore(@NotNull PathNode node) {
-        return this.node.distanceSquaredTo(node);
+        return this.position.distanceSquared(node);
     }
 }

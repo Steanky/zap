@@ -11,13 +11,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public interface PathDestination {
-    @NotNull PathNode node();
+    @NotNull WorldVectorSource position();
 
     double destinationScore(@NotNull PathNode from);
 
     static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathDestinationImpl(findBlock ? nodeOnGround(entity) : new PathNode(null, entity.getLocation().toVector()));
+        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) : new PathNode(null, entity.getLocation().toVector()));
     }
 
     static @NotNull PathDestination fromCoordinates(int x, int y, int z) {
@@ -36,13 +36,13 @@ public interface PathDestination {
         Set<PathDestination> destinations = new HashSet<>();
 
         for(Entity entity : entities) {
-            destinations.add(new PathDestinationImpl(findBlocks ? nodeOnGround(entity) : new PathNode(null, entity.getLocation().toVector())));
+            destinations.add(new PathDestinationImpl(findBlocks ? vectorOnGround(entity) : new PathNode(null, entity.getLocation().toVector())));
         }
 
         return destinations;
     }
 
-    private static PathNode nodeOnGround(Entity entity) {
+    private static WorldVectorSource vectorOnGround(Entity entity) {
         Location targetLocation = entity.getLocation();
 
         int x = targetLocation.getBlockX();
@@ -57,6 +57,6 @@ public interface PathDestination {
         }
         while(block.getType().isAir() && --y > -1);
 
-        return new PathNode(null, x, ++y, z);
+        return WorldVectorSource.fromWorldCoordinate(x, ++y, z);
     }
 }

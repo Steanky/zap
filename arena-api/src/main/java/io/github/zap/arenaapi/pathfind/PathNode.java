@@ -75,10 +75,6 @@ public class PathNode implements WorldVectorSource {
         return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", score=" + score + "}";
     }
 
-    public double distanceSquaredTo(@NotNull PathNode other) {
-        return VectorUtils.distanceSquared(x, y, z, other.x, other.y, other.z);
-    }
-
     public PathNode add(double x, double y, double z) {
         return new PathNode(new Score(), this, this.x + x, this.y + y, this.z + z);
     }

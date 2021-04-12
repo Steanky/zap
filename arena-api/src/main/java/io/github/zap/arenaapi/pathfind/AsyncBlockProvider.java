@@ -28,11 +28,11 @@ class AsyncBlockProvider implements BlockProvider {
 
     @Override
     public boolean hasChunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z))) != null;
+        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), ChunkVectorSource.fromChunkCoordinate(x, z))) != null;
     }
 
     private void updateChunkInternal(int x, int z) {
-        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)),
+        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), ChunkVectorSource.fromChunkCoordinate(x, z)),
                 ArenaApi.getInstance().getNmsBridge().worldBridge().takeSnapshot(world.getChunkAt(x, z)));
     }
 
@@ -45,9 +45,9 @@ class AsyncBlockProvider implements BlockProvider {
 
     @Override
     public void updateAll() {
-        for(ChunkCoordinate coordinate : coordinateProvider) {
-            if(world.isChunkLoaded(coordinate.x, coordinate.z)) {
-                updateChunkInternal(coordinate.x, coordinate.z);
+        for(ChunkVectorSource coordinate : coordinateProvider) {
+            if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
+                updateChunkInternal(coordinate.chunkX(), coordinate.chunkZ());
             }
             else {
                 GLOBAL_CHUNKS.remove(new ChunkIdentifier(world.getUID(), coordinate));
@@ -61,7 +61,7 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     private SimpleChunkSnapshot chunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkCoordinate(x, z)));
+        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), ChunkVectorSource.fromChunkCoordinate(x, z)));
     }
 
     @Override
