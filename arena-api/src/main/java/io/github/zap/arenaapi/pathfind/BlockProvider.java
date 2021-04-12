@@ -6,6 +6,8 @@ import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public interface BlockProvider {
     @NotNull World getWorld();
 
@@ -13,11 +15,23 @@ public interface BlockProvider {
 
     void updateChunk(int x, int y);
 
+    default void updateChunk(@NotNull ChunkVectorSource source) {
+        updateChunk(source.chunkX(), source.chunkZ());
+    }
+
     void updateAll();
 
     @NotNull ChunkCoordinateProvider coordinateProvider();
 
     @Nullable BlockData getData(int x, int y, int z);
 
+    default BlockData getData(@NotNull BlockVectorSource source) {
+        return getData(source.blockX(), source.blockY(), source.blockZ());
+    }
+
     @Nullable VoxelShapeWrapper getCollision(int x, int y, int z);
+
+    default VoxelShapeWrapper getCollision(@NotNull BlockVectorSource source) {
+        return getCollision(source.blockX(), source.blockY(), source.blockZ());
+    }
 }

@@ -28,6 +28,10 @@ public interface PathAgent {
             this(width, height, 1);
         }
 
+        public Characteristics(@NotNull Entity fromEntity) {
+            this(fromEntity.getWidth(), fromEntity.getHeight(), 1);
+        }
+
         public Characteristics() {
             this(0, 0, 1);
         }
@@ -64,7 +68,7 @@ public interface PathAgent {
      * Gets the position of this PathAgent.
      * @return The position of this PathAgent
      */
-    @NotNull Vector position();
+    @NotNull WorldVectorSource position();
 
     /**
      * Creates a new PathAgent from the given Entity. The resulting PathAgent will have the same width, height, and
@@ -74,14 +78,14 @@ public interface PathAgent {
      */
     static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new EntityAgent<>(entity);
+        return new PathAgentImpl(new Characteristics(entity), WorldVectorSource.fromWorldVector(entity.getLocation().toVector()));
     }
 
     static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
         Objects.requireNonNull(vector, "vector cannot be null!");
         Objects.requireNonNull(characteristics, "characteristics cannot be null!");
 
-        return new VectorAgent(vector, characteristics);
+        return new PathAgentImpl(characteristics, WorldVectorSource.fromWorldVector(vector));
     }
 
     static @NotNull PathAgent fromVector(@NotNull Vector vector) {

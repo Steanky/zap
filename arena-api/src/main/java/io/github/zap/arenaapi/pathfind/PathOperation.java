@@ -50,7 +50,7 @@ public interface PathOperation {
     static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
                                   @NotNull ScoreCalculator calculator, @NotNull SuccessCondition successCondition,
                                   @NotNull NodeProvider provider, @NotNull DestinationSelector destinationSelector,
-                                  int chunkRadius) {
+                                  @NotNull ChunkCoordinateProvider coordinateProvider) {
         Objects.requireNonNull(agent, "agent cannot be null!");
         Objects.requireNonNull(destinations, "destinations cannot be null!");
         Validate.isTrue(!destinations.isEmpty(), "destinations cannot be empty!");
@@ -58,10 +58,9 @@ public interface PathOperation {
         Objects.requireNonNull(successCondition,"terminationCondition cannot be null!");
         Objects.requireNonNull(provider, "provider cannot be null!");
         Objects.requireNonNull(destinationSelector, "destinationSelector cannot be null!");
-        Validate.isTrue(chunkRadius >= 0, "chunkRadius cannot be negative!");
+        Objects.requireNonNull(coordinateProvider, "coordinateProvider cannot be null!");
 
-        Vector agentPos = agent.position();
         return new PathOperationImpl(agent, destinations, calculator, successCondition, provider,
-                destinationSelector, new ChunkRange(agentPos.getBlockX(), agentPos.getBlockZ(), chunkRadius));
+                destinationSelector, coordinateProvider);
     }
 }

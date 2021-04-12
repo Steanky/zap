@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ChunkIdentifier {
+public class ChunkIdentifier implements ChunkVectorSource {
     public final UUID worldID;
     public final ChunkCoordinate coordinate;
     private final int hash;
@@ -34,5 +34,15 @@ public class ChunkIdentifier {
     @Override
     public String toString() {
         return "ChunkIdentifier{worldID=" + worldID + ", coordinate=" + coordinate + "}";
+    }
+
+    @Override
+    public int chunkX() {
+        return coordinate.x;
+    }
+
+    @Override
+    public int chunkZ() {
+        return coordinate.z;
     }
 }

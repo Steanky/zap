@@ -1,15 +1,14 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-public class VectorAgent implements PathAgent {
-    private final Vector vector;
+class PathAgentImpl implements PathAgent {
     private final Characteristics characteristics;
+    private final WorldVectorSource source;
 
-    VectorAgent(@NotNull Vector vector, @NotNull Characteristics characteristics) {
-        this.vector = vector.clone();
+    PathAgentImpl(@NotNull Characteristics characteristics, @NotNull WorldVectorSource source) {
         this.characteristics = characteristics;
+        this.source = source;
     }
 
     @Override
@@ -18,7 +17,7 @@ public class VectorAgent implements PathAgent {
     }
 
     @Override
-    public @NotNull Vector position() {
-        return vector.clone();
+    public @NotNull WorldVectorSource position() {
+        return source;
     }
 }

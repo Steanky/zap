@@ -15,7 +15,7 @@ import java.util.Objects;
  * Since NMS PathPoint objects require integers, when converting PathNode objects will cast their double fields to
  * int.
  */
-public class PathNode {
+public class PathNode implements WorldVectorSource {
     public final double x;
     public final double y;
     public final double z;
@@ -44,7 +44,7 @@ public class PathNode {
     }
 
     PathNode(@Nullable PathNode parent, @NotNull PathAgent agent) {
-        this(new Score(), parent, agent.position().getX(), agent.position().getY(), agent.position().getZ());
+        this(new Score(), parent, agent.position().worldX(), agent.position().worldY(), agent.position().worldZ());
     }
 
     PathNode(@Nullable PathNode parent, @NotNull Vector vector) {
@@ -89,5 +89,35 @@ public class PathNode {
 
     public PathNode copy() {
         return new PathNode(score, parent, x, y, z, hash);
+    }
+
+    @Override
+    public int blockX() {
+        return blockX;
+    }
+
+    @Override
+    public int blockY() {
+        return blockY;
+    }
+
+    @Override
+    public int blockZ() {
+        return blockZ;
+    }
+
+    @Override
+    public double worldX() {
+        return x;
+    }
+
+    @Override
+    public double worldY() {
+        return y;
+    }
+
+    @Override
+    public double worldZ() {
+        return z;
     }
 }

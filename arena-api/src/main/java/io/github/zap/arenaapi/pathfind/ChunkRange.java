@@ -40,16 +40,12 @@ class ChunkRange implements ChunkCoordinateProvider {
         hash = Objects.hash(minX, maxX, minZ, maxZ);
     }
 
-    ChunkRange(@NotNull ChunkCoordinate first, @NotNull ChunkCoordinate second) {
-        this(first.x, first.z, second.x, second.z);
+    ChunkRange(@NotNull ChunkVectorSource first, @NotNull ChunkVectorSource second) {
+        this(first.chunkX(), first.chunkZ(), second.chunkX(), second.chunkZ());
     }
 
-    ChunkRange(@NotNull ChunkCoordinate center, int radius) {
-        this(center.x - radius, center.z - radius, center.x + radius, center.z + radius);
-    }
-
-    ChunkRange(int worldX, int worldZ, int radius) {
-        this(new ChunkCoordinate(worldX, worldZ, true), radius);
+    ChunkRange(@NotNull ChunkVectorSource center, int radius) {
+        this(center.chunkX() - radius, center.chunkZ() - radius, center.chunkX() + radius, center.chunkZ() + radius);
     }
 
     public boolean hasChunk(int x, int z) {

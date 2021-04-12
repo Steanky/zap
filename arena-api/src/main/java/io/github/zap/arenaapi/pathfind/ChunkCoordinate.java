@@ -1,27 +1,22 @@
 package io.github.zap.arenaapi.pathfind;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
-public class ChunkCoordinate {
+public class ChunkCoordinate implements ChunkVectorSource {
     public final int x;
     public final int z;
     private final int hash;
 
-    public ChunkCoordinate(int x, int z, boolean isWorldCoordinate) {
-        if(isWorldCoordinate) {
-            this.x = x >> 4;
-            this.z = z >> 4;
-        }
-        else {
-            this.x = x;
-            this.z = z;
-        }
-
+    public ChunkCoordinate(int x, int z) {
+        this.x = x;
+        this.z = z;
         hash = Objects.hash(x, z);
     }
 
-    public ChunkCoordinate(int x, int z) {
-        this(x, z, false);
+    public ChunkCoordinate(@NotNull ChunkVectorSource chunkCoordinates) {
+        this(chunkCoordinates.chunkX(), chunkCoordinates.chunkZ());
     }
 
     @Override
@@ -42,5 +37,15 @@ public class ChunkCoordinate {
     @Override
     public String toString() {
         return "ChunkCoordinate{x=" + x + ", z=" + z + "}";
+    }
+
+    @Override
+    public int chunkX() {
+        return x;
+    }
+
+    @Override
+    public int chunkZ() {
+        return z;
     }
 }
