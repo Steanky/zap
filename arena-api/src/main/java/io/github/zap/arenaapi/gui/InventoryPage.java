@@ -109,7 +109,8 @@ public class InventoryPage implements Unique {
      * @param newItemStacks Any new item stacks that should be added on in the arrangement
      */
     public void setArrangement(@NotNull Arrangement arrangement, @NotNull ItemStack... newItemStacks) {
-        if (this.arrangement != arrangement || newItemStacks.length > 0) {
+        if (this.arrangement != arrangement || newItemStacks.length > 0
+                && arrangedSlotMap.size() + newItemStacks.length <= 52) {
             Collection<ItemStack> itemStackCollection = arrangedSlotMap.values();
             itemStackCollection.addAll(Arrays.asList(newItemStacks));
 
