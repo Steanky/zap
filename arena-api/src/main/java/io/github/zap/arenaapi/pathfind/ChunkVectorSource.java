@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,34 +21,11 @@ public interface ChunkVectorSource {
     int chunkZ();
 
     static @NotNull ChunkVectorSource fromChunkCoordinate(int x, int z) {
-        return new ChunkVectorSource() {
-            @Override
-            public int chunkX() {
-                return x;
-            }
-
-            @Override
-            public int chunkZ() {
-                return z;
-            }
-        };
+        return new ChunkVectorSourceImpl(x, z);
     }
 
     static @NotNull ChunkVectorSource fromWorldCoordinate(int x, int z) {
-        int chunkX = x >> 4;
-        int chunkZ = z >> 4;
-
-        return new ChunkVectorSource() {
-            @Override
-            public int chunkX() {
-                return chunkX;
-            }
-
-            @Override
-            public int chunkZ() {
-                return chunkZ;
-            }
-        };
+        return new ChunkVectorSourceImpl(x >> 4, z >> 4);
     }
 
     static @NotNull ChunkVectorSource fromWorldVector(@NotNull Vector vector) {

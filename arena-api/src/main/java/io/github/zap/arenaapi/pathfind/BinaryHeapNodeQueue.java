@@ -5,34 +5,26 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Implementation of NodeQueue based on a binary min-heap
  */
-public class BinaryHeapNodeQueue implements NodeQueue {
+class BinaryHeapNodeQueue implements NodeQueue {
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     private static final NodeComparator NODE_COMPARATOR = NodeComparator.instance();
 
     private PathNode[] nodes;
     private int size = 0;
 
-    public BinaryHeapNodeQueue(int capacity) {
-        nodes = new PathNode[capacity];
+    BinaryHeapNodeQueue(int initialCapacity) {
+        nodes = new PathNode[initialCapacity];
     }
 
     @Override
     public @NotNull PathNode peekBest() {
-        if(size == 0) {
-            throw new IndexOutOfBoundsException();
-        }
-
         return nodes[0];
     }
 
     @Override
     public @NotNull PathNode takeBest() {
-        if(size == 0) {
-            throw new IndexOutOfBoundsException();
-        }
-
         PathNode best = nodes[0];
-        PathNode last = nodes[(--size)];
+        PathNode last = nodes[--size];
         nodes[size] = null;
 
         if(size > 0) {

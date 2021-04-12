@@ -3,25 +3,25 @@ package io.github.zap.arenaapi.pathfind;
 import java.util.Objects;
 
 class ChunkVectorSourceImpl implements ChunkVectorSource {
-    private final int x;
-    private final int z;
+    private final int chunkX;
+    private final int chunkZ;
     private final int hash;
 
-    ChunkVectorSourceImpl(int x, int z) {
-        this.x = x;
-        this.z = z;
+    ChunkVectorSourceImpl(int chunkX, int chunkZ) {
+        this.chunkX = chunkX;
+        this.chunkZ = chunkZ;
 
-        hash = Objects.hash(x, z);
+        hash = Objects.hash(chunkX, chunkZ);
     }
 
     @Override
     public int chunkX() {
-        return x;
+        return chunkX;
     }
 
     @Override
     public int chunkZ() {
-        return z;
+        return chunkZ;
     }
 
     @Override
@@ -33,7 +33,7 @@ class ChunkVectorSourceImpl implements ChunkVectorSource {
     public boolean equals(Object obj) {
         if(obj instanceof ChunkVectorSourceImpl) {
             ChunkVectorSourceImpl other = (ChunkVectorSourceImpl) obj;
-            return x == other.x && z == other.z;
+            return chunkX == other.chunkX && chunkZ == other.chunkZ;
         }
 
         return false;

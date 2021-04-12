@@ -21,40 +21,10 @@ public interface BlockVectorSource extends ChunkVectorSource {
     }
 
     static BlockVectorSource fromBlockCoordinate(int x, int y, int z) {
-        return new BlockVectorSource() {
-            @Override
-            public int blockX() {
-                return x;
-            }
-
-            @Override
-            public int blockY() {
-                return y;
-            }
-
-            @Override
-            public int blockZ() {
-                return z;
-            }
-        };
+        return new BlockVectorSourceImpl(x, y, z);
     }
 
     static BlockVectorSource fromBlockVector(@NotNull Vector vector) {
-        return new BlockVectorSource() {
-            @Override
-            public int blockX() {
-                return vector.getBlockX();
-            }
-
-            @Override
-            public int blockY() {
-                return vector.getBlockY();
-            }
-
-            @Override
-            public int blockZ() {
-                return vector.getBlockZ();
-            }
-        };
+        return new BlockVectorSourceImpl(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 }
