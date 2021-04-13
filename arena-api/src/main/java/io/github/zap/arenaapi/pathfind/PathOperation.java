@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.apache.commons.lang3.Validate;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -18,8 +17,8 @@ public interface PathOperation {
             return this == SUCCEEDED || this == FAILED;
         }
 
-        public boolean hasStarted() {
-            return this == STARTED;
+        public boolean unstarted() {
+            return this != STARTED;
         }
     }
 

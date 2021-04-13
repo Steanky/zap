@@ -48,7 +48,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean allowMerge(@NotNull PathOperation other) {
-        return nodeProvider.equals(other.nodeProvider()) && agent.equals(other.agent());
+        return other != this && nodeProvider.equals(other.nodeProvider()) && agent.equals(other.agent());
     }
 
     @Override
