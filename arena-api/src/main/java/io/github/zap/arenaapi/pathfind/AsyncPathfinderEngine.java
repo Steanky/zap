@@ -205,6 +205,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         for(int j = operationStartingIndex; j > i; j--) {
                             Entry otherSample = context.entries.get(j);
 
+                            //let operations allow or deny merges if they want
                             if(otherSample.operation.state().unstarted() &&
                                     sample.operation.allowMerge(otherSample.operation)) {
                                 Set<PathDestination> sampleDestinations = sample.operation.getDestinations();
@@ -212,9 +213,14 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                                 for(PathDestination sampleDestination : sampleDestinations) {
                                     if(otherDestinations.remove(sampleDestination)) {
-                                        sample.consumers.computeIfAbsent(sampleDestination, (key) -> new ArrayList<>())
-                                                .addAll(otherSample.consumers.get(sampleDestination));
+                                        sample.consumers.get(sampleDestination).addAll(otherSample.consumers.get(sampleDestination));
                                         otherSample.consumers.remove(sampleDestination);
+
+                                        //we may be able to prune some entries entirely
+                                        if(otherSample.consumers.size() == 0) {
+                                            context.entries.remove(j);
+                                            operationStartingIndex--;
+                                        }
                                     }
                                 }
                             }
