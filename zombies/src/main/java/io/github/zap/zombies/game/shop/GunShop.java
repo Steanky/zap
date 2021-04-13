@@ -36,7 +36,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     @Override
     protected void registerArenaEvents() {
         super.registerArenaEvents();
-        
+
         getArena().getShopEvent(getShopType()).registerHandler(args -> {
             Player player = args.getZombiesPlayer().getPlayer();
             if (player != null) {

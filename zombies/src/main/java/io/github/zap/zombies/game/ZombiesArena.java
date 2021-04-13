@@ -58,8 +58,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -82,7 +80,7 @@ import java.util.stream.Collectors;
 /**
  * Encapsulates an active Zombies game and handles most related logic.
  */
-public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> implements Listener {
+public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     public interface Spawner {
         /**
          * Spawns the provided SpawnEntries in this arena.
@@ -530,9 +528,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         bestTimesHologram = setupTimeLeaderboard();
 
         getMap().getPowerUpSpawnRules()
-                .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
-
-        Bukkit.getServer().getPluginManager().registerEvents(this, Zombies.getInstance());
+                .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.getLeft(),
+                        x.getRight(), this), x.getRight())));
     }
 
     private void registerArenaEvents() {
@@ -634,7 +631,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> imp
         Property.removeMappingsFor(this);
         manager.unloadArena(getArena());
 
-        HandlerList.unregisterAll(this);
+        EntityAddToWorldEvent.getHandlerList().unregister(this);
+        EntityDamageEvent.getHandlerList().unregister(this);
+        ItemDespawnEvent.getHandlerList().unregister(this);
+        PlayerInteractEntityEvent.getHandlerList().unregister(this);
     }
 
     @Override

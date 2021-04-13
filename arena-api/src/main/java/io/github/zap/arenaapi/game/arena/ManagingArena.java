@@ -1,11 +1,13 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
 import lombok.Value;
 import org.apache.commons.lang3.tuple.Pair;
@@ -14,7 +16,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -30,7 +34,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @Getter
-public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T> {
+public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T>
+implements Listener {
     @Value
     public static class PlayerListArgs {
         List<Player> players;
@@ -218,6 +223,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
         startTimeout(timeoutTicks);
         getProxyFor(PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
+
+        Bukkit.getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
     /**
@@ -230,6 +237,19 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
         if(managedPlayer != null) {
             handleLeave(Lists.newArrayList(managedPlayer.getPlayer()));
+        }
+    }
+
+    /**
+     * Disables sending messages to other worlds other than the one this arena manages
+     * @param event The async chat even
+     */
+    @EventHandler
+    public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
+        if (world.equals(event.getPlayer().getWorld())) {
+            event.recipients().removeIf(player -> !world.equals(player.getWorld()));
+        } else {
+            event.recipients().removeIf(player -> world.equals(player.getWorld()));
         }
     }
 
@@ -497,6 +517,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 bukkitEntity.remove();
             }
         }
+
+        AsyncChatEvent.getHandlerList().unregister(this);
     }
 
     /**
