@@ -71,4 +71,9 @@ public class BlockVectorSource extends ChunkVectorSource {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "BlockVectorSource{x=" + x + ", y=" + y + ", z=" + z + "}";
+    }
 }

@@ -39,4 +39,9 @@ public class ChunkVectorSource {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "ChunkVectorSource{x=" + x + ", z=" + z + "}";
+    }
 }

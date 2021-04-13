@@ -62,4 +62,9 @@ public class WorldVectorSource extends BlockVectorSource {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "WorldVectorSource{x=" + x + ", y=" + y + ", z=" + z + "}";
+    }
 }
