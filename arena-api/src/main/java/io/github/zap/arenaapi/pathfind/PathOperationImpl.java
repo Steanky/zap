@@ -14,6 +14,7 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
+    //TODO: maintain separate NodeQueue for lower-priority nodes and only take from that queue when needed
     private final NodeQueue openSet = new BinaryHeapNodeQueue(128);
     private final Set<PathNode> visited = new HashSet<>();
     private PathDestination destination;
@@ -106,10 +107,21 @@ class PathOperationImpl implements PathOperation {
                 if(nodeProvider.mayTraverse(context, agent, currentNode, sample)) {
                     destination = destinationSelector.selectDestinationFor(this, sample);
 
+                    //remove the unreachable destination so we don't expand a ton of nodes
                     for(PathResult failed : context.failedPaths()) {
                         if(destinationComparable(context, failed.destination(), failed.operation().result(), sample)) {
                             destinations.remove(destination);
                             destinations.add(PathDestination.fromSource(failed.end().position()));
+                        }
+                    }
+
+                    //we can basically insta-complete this path, gg ez
+                    for(PathResult succeeded : context.successfulPaths()) {
+                        if(destinationComparable(context, succeeded.destination(), succeeded.operation().result(), sample)) {
+                            //TODO: find some way to retrieve the node in succeeded.vistedNodes()
+                            //it's in the set, but we need an actual reference to the object. equals/hashcode for
+                            //pathnode necessarily does not calculate the hash of the parent
+                            //will probably have to use hashmap for this functionality
                         }
                     }
 
@@ -193,13 +205,13 @@ class PathOperationImpl implements PathOperation {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
 
-    private boolean destinationComparable(PathfinderContext context, PathDestination failedDestination,
-                                          PathResult failedResult, PathNode walkTo) {
-        return failedDestination.equals(destination) &&
-                failedResult.operation().nodeProvider().equals(nodeProvider) &&
-                failedResult.operation().agent().characteristics().equals(agent.characteristics()) &&
-                failedResult.visitedNodes().contains(walkTo) &&
-                failedResult.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode);
+    private boolean destinationComparable(PathfinderContext context, PathDestination destination,
+                                          PathResult result, PathNode walkTo) {
+        return destination.equals(this.destination) &&
+                result.operation().nodeProvider().equals(nodeProvider) &&
+                result.operation().agent().characteristics().equals(agent.characteristics()) &&
+                result.visitedNodes().contains(walkTo) &&
+                result.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode);
     }
 
     private void complete(boolean success, PathDestination destination) {

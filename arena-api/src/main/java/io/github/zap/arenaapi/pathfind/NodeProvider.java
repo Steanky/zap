@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class NodeProvider {
     /**
      * NodeProvider that can be used to debug pathfinding implementations. It only allows movement along the same
-     * Y-axis.
+     * Y-axis, and will not consider nodes that move into non-air blocks.
      */
     public static final NodeProvider DEBUG = new NodeProvider() {
         @Override

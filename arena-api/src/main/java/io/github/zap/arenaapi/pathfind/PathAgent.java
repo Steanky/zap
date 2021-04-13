@@ -59,8 +59,8 @@ public interface PathAgent {
     }
 
     /**
-     * Returns an object representing the characteristics of this PathAgent that may be used to alter which nodes it
-     * it is able to traverse.
+     * Returns an object representing the characteristics of this PathAgent. It essentially defines what nodes the
+     * agent may be able to traverse.
      * @return A PathAgent.Characteristics object containing PathAgent data used to determine node navigability
      */
     @NotNull Characteristics characteristics();
