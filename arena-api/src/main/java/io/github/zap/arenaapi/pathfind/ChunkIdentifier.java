@@ -1,19 +1,20 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.vector.ChunkVectorSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
 
-class ChunkIdentifier implements ChunkVectorSource {
+class ChunkIdentifier {
     public final UUID worldID;
-    public final ChunkVectorSource coordinate;
+    public final ChunkVectorSource position;
     private final int hash;
 
-    ChunkIdentifier(@NotNull UUID worldID, @NotNull ChunkVectorSource coordinate) {
+    ChunkIdentifier(@NotNull UUID worldID, @NotNull ChunkVectorSource position) {
         this.worldID = worldID;
-        this.coordinate = coordinate;
-        hash = Objects.hash(worldID, coordinate);
+        this.position = position;
+        hash = Objects.hash(worldID, position);
     }
 
     @Override
@@ -25,7 +26,7 @@ class ChunkIdentifier implements ChunkVectorSource {
     public boolean equals(Object obj) {
         if(obj instanceof ChunkIdentifier) {
             ChunkIdentifier other = (ChunkIdentifier) obj;
-            return other.worldID.equals(worldID) && other.coordinate.equals(coordinate);
+            return other.worldID.equals(worldID) && other.position.equals(position);
         }
 
         return false;
@@ -33,16 +34,10 @@ class ChunkIdentifier implements ChunkVectorSource {
 
     @Override
     public String toString() {
-        return "ChunkIdentifier{worldID=" + worldID + ", coordinate=" + coordinate + "}";
+        return "ChunkIdentifier{worldID=" + worldID + ", position=" + position + "}";
     }
 
-    @Override
-    public int chunkX() {
-        return coordinate.chunkX();
-    }
-
-    @Override
-    public int chunkZ() {
-        return coordinate.chunkZ();
+    public ChunkVectorSource position() {
+        return position;
     }
 }

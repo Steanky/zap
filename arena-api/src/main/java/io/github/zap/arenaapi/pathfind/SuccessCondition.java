@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.vector.WorldVectorSource;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +21,7 @@ public interface SuccessCondition {
     static SuccessCondition whenWithin(double destinationScore) {
         Validate.isTrue(destinationScore > 0, "destinationScore must be greater than 0!");
         Validate.isTrue(Double.isFinite(destinationScore), "destinationScore must be finite!");
-        return (context, node, destination) -> destination.destinationScore(node) <= destinationScore;
+        return (context, node, destination) -> destination.position().distanceSquared(node.position()) <= destinationScore;
     }
 
     static SuccessCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {

@@ -8,7 +8,7 @@ public interface DestinationSelector {
         PathDestination bestDestination = null;
 
         for(PathDestination destination : operation.getDestinations()) {
-            double sample = node.distanceSquared(destination.position());
+            double sample = node.position().distanceSquared(destination.position());
 
             if(sample < bestDistance) {
                 bestDistance = sample;

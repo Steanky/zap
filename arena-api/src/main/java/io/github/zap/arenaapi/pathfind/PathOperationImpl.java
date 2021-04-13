@@ -63,7 +63,7 @@ class PathOperationImpl implements PathOperation {
                         return true;
                     }
 
-                    double score = destination.destinationScore(currentNode);
+                    double score = calculator.computeH(context, currentNode, destination);
                     if(best == null || score < bestScore) {
                         best = destination;
                         bestScore = score;
@@ -71,11 +71,11 @@ class PathOperationImpl implements PathOperation {
                 }
 
                 if(best == null) {
-                    complete(false, new PathDestinationImpl(currentNode));
+                    complete(false, PathDestination.fromSource(currentNode.position()));
                     return true;
                 }
 
-                if(openSet.size() != 0) {
+                if(openSet.size() > 0) {
                     currentNode = openSet.takeBest();
                 }
                 else {
@@ -109,13 +109,7 @@ class PathOperationImpl implements PathOperation {
                     for(PathResult failed : context.failedPaths()) {
                         if(destinationComparable(context, failed.destination(), failed.operation().result(), sample)) {
                             destinations.remove(destination);
-                            destination = new PathDestinationImpl(failed.end()) {
-                                @Override
-                                public double destinationScore(@NotNull PathNode node) {
-                                    return destination.destinationScore(node);
-                                }
-                            };
-                            destinations.add(destination);
+                            destinations.add(PathDestination.fromSource(failed.end().position()));
                         }
                     }
 
@@ -127,7 +121,7 @@ class PathOperationImpl implements PathOperation {
                         sample = newSample;
                     }
 
-                    //comparison for 'best path' in case of inaccessible target
+                    //comparison for best path in case of inaccessible target
                     if(sample.score.getF() < bestFound.score.getF()) {
                         bestFound = sample.copy();
                     }

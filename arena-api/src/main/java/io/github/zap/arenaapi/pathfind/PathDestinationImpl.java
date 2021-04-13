@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.vector.WorldVectorSource;
 import org.jetbrains.annotations.NotNull;
 
 class PathDestinationImpl implements PathDestination {
@@ -26,10 +27,5 @@ class PathDestinationImpl implements PathDestination {
     @Override
     public @NotNull WorldVectorSource position() {
         return position;
-    }
-
-    @Override
-    public double destinationScore(@NotNull PathNode node) {
-        return this.position.distanceSquared(node);
     }
 }

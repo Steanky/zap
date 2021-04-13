@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.util.VectorUtils;
+import io.github.zap.arenaapi.vector.WorldVectorSource;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,11 +11,8 @@ import java.util.Objects;
  * Represents a single node in the graph, which may be linked to another node. Its coordinates generally represent
  * block coordinates, but may point to a location within any particular block (ex. [0.5, 0.5, 0.5] referring to the
  * exact center of the block at [0, 0, 0]).
- *
- * Since NMS PathPoint objects require integers, when converting PathNode objects will cast their double fields to
- * int.
  */
-public class PathNode implements WorldVectorSource {
+public class PathNode {
     public final double x;
     public final double y;
     public final double z;
@@ -23,6 +20,7 @@ public class PathNode implements WorldVectorSource {
     public final int blockY;
     public final int blockZ;
     private final int hash;
+    private WorldVectorSource vectorSource = null;
 
     final Score score;
     PathNode parent;
@@ -75,45 +73,19 @@ public class PathNode implements WorldVectorSource {
         return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", score=" + score + "}";
     }
 
-    public PathNode add(double x, double y, double z) {
+    public @NotNull PathNode add(double x, double y, double z) {
         return new PathNode(new Score(), this, this.x + x, this.y + y, this.z + z);
     }
 
-    public PathNode link(double x, double y, double z) {
+    public @NotNull PathNode link(double x, double y, double z) {
         return new PathNode(new Score(), this, x, y, z);
     }
 
-    public PathNode copy() {
+    public @NotNull PathNode copy() {
         return new PathNode(score, parent, x, y, z, hash);
     }
 
-    @Override
-    public int blockX() {
-        return blockX;
-    }
-
-    @Override
-    public int blockY() {
-        return blockY;
-    }
-
-    @Override
-    public int blockZ() {
-        return blockZ;
-    }
-
-    @Override
-    public double worldX() {
-        return x;
-    }
-
-    @Override
-    public double worldY() {
-        return y;
-    }
-
-    @Override
-    public double worldZ() {
-        return z;
+    public @NotNull WorldVectorSource position() {
+        return vectorSource == null ? vectorSource = new WorldVectorSource(x, y, z) : vectorSource;
     }
 }

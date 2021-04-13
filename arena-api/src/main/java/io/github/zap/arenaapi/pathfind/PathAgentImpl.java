@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.vector.WorldVectorSource;
 import org.jetbrains.annotations.NotNull;
 
 class PathAgentImpl implements PathAgent {
