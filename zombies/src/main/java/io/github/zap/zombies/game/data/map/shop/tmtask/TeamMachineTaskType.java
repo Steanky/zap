@@ -7,6 +7,4 @@ public enum TeamMachineTaskType {
     AMMO_SUPPLY,
     FULL_REVIVE,
     DRAGON_WRATH,
-
-    FREE_GOLD_LOL
 }

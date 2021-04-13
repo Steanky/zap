@@ -1,8 +1,9 @@
 package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
 import io.github.zap.zombies.game.shop.Shop;
-import io.github.zap.zombies.game.shop.ShopType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Stores and manages information about shops
@@ -16,15 +17,23 @@ public interface ShopManager {
      * @param shopMapping A mapping class used to create the shop from the data instance
      * @param <D> The type of the shop's data
      */
-    <D extends ShopData> void addShop(ShopType shopType, Class<D> dataClass, ShopCreator.ShopMapping<D> shopMapping);
+    <D extends ShopData> void addShop(@NotNull String shopType, @NotNull Class<D> dataClass,
+                                      @NotNull ShopCreator.ShopMapping<D> shopMapping);
+
+    /**
+     * Adds a team machine task
+     * @param type The string representation of the team machine task type
+     * @param clazz The class of the data the team machine task uses for data and execution
+     */
+    void addTeamMachineTask(@NotNull String type, @NotNull Class<? extends TeamMachineTask> clazz);
 
     /**
      * Creates a shop from its data
-     * @param zombiesArena The arena to create the shop for
+     * @param arena The arena to create the shop for
      * @param shopData The shop's data
      * @param <D> The type of the shop's data
      * @return The new shop
      */
-    <D extends ShopData> Shop<D> createShop(ZombiesArena zombiesArena, D shopData);
+    @NotNull <D extends ShopData> Shop<D> createShop(@NotNull ZombiesArena arena, @NotNull D shopData);
 
 }

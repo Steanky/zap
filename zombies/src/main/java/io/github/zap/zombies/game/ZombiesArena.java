@@ -410,10 +410,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private final List<Shop<?>> shops = new ArrayList<>();
 
     @Getter
-    private final Map<ShopType, List<Shop<?>>> shopMap = new HashMap<>();
+    private final Map<String, List<Shop<?>>> shopMap = new HashMap<>();
 
     @Getter
-    private final Map<ShopType, Event<ShopEventArgs>> shopEvents = new HashMap<>();
+    private final Map<String, Event<ShopEventArgs>> shopEvents = new HashMap<>();
 
     @Getter
     private String luckyChestRoom;
@@ -1309,11 +1309,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
     /**
      * Gets the shop event for a shop type or creates a new one
-     * @param shopType The shop type
+     * @param shopType The shop type string representation
      * @return The shop type's event
      */
-    public Event<ShopEventArgs> getShopEvent(ShopType shopType) {
-        return shopEvents.computeIfAbsent(shopType, (ShopType type) -> new Event<>());
+    public Event<ShopEventArgs> getShopEvent(String shopType) {
+        return shopEvents.computeIfAbsent(shopType, (unused) -> new Event<>());
     }
 
     /**
@@ -1323,7 +1323,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         for (ShopData shopData : map.getShops()) {
             Shop<?> shop = shopManager.createShop(this, shopData);
             shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
+            shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
             getShopEvent(shop.getShopType());
             shop.display();
         }
@@ -1331,17 +1331,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         for(DoorData doorData : map.getDoors()) {
             Shop<DoorData> shop = shopManager.createShop(this, doorData);
             shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (ShopType type) -> new ArrayList<>()).add(shop);
+            shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
             shop.display();
         }
-        getShopEvent(ShopType.DOOR);
+        getShopEvent(ShopType.DOOR.name());
 
-        for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE)) {
+        for (Shop<?> shop : shopMap.get(ShopType.TEAM_MACHINE.name())) {
             TeamMachine teamMachine = (TeamMachine) shop;
             getResourceManager().addDisposable(teamMachine);
         }
 
-        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST);
+        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
         if (chestEvent != null) {
             chestEvent.registerHandler(new EventHandler<>() {
 
@@ -1349,7 +1349,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 int rolls = 0;
 
                 {
-                    List<Shop<?>> chests = new ArrayList<>(shopMap.get(ShopType.LUCKY_CHEST));
+                    List<Shop<?>> chests = new ArrayList<>(shopMap.get(ShopType.LUCKY_CHEST.name()));
 
                     if (map.isChestCanStartInSpawnRoom()) {
                         RoomData spawnRoom = map.roomAt(map.getSpawn());

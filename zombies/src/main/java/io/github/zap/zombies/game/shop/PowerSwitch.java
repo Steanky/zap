@@ -72,6 +72,11 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
         return false;
     }
 
+    @Override
+    public String getShopType() {
+        return ShopType.POWER_SWITCH.name();
+    }
+
     /**
      * Notifies all players in the world that the power is turned on
      * @param activator The player that turned on the power
@@ -83,10 +88,5 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
             playerInWorld.playSound(Sound.sound(Key.key("minecraft:entity.blaze.death"),
                     Sound.Source.MASTER, 1.0F, 2.0F));
         }
-    }
-
-    @Override
-    public ShopType getShopType() {
-        return ShopType.POWER_SWITCH;
     }
 }

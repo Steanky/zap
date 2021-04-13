@@ -128,6 +128,11 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
         return false;
     }
 
+    @Override
+    public String getShopType() {
+        return ShopType.PERK_MACHINE.name();
+    }
+
     /**
      * Finds the corresponding perk equipment within a player's hotbar
      * @param zombiesPlayer The player to search for the equipment in
@@ -200,8 +205,4 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
         return false;
     }
 
-    @Override
-    public ShopType getShopType() {
-        return ShopType.PERK_MACHINE;
-    }
 }

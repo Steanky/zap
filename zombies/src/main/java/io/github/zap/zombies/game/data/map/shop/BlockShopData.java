@@ -1,8 +1,9 @@
 package io.github.zap.zombies.game.data.map.shop;
 
-import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Data for a block shop
@@ -13,7 +14,8 @@ public abstract class BlockShopData extends ShopData {
 
     private final Vector hologramLocation;
 
-    public BlockShopData(ShopType type, boolean requiresPower, Vector blockLocation, Vector hologramLocation) {
+    public BlockShopData(@NotNull String type, boolean requiresPower, @Nullable Vector blockLocation,
+                         @Nullable Vector hologramLocation) {
         super(type, requiresPower);
         this.blockLocation = blockLocation;
         this.hologramLocation = hologramLocation;

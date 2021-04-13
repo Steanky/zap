@@ -205,6 +205,11 @@ public class LuckyChest extends Shop<LuckyChestData> {
         return false;
     }
 
+    @Override
+    public String getShopType() {
+        return ShopType.LUCKY_CHEST.name();
+    }
+
     /**
      * Attempts to claim the lucky chest weapon
      * @param player The claimant player
@@ -281,11 +286,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
         }
 
         return false;
-    }
-
-    @Override
-    public ShopType getShopType() {
-        return ShopType.LUCKY_CHEST;
     }
 
     private class GunSwapper implements Jingle.JingleListener {

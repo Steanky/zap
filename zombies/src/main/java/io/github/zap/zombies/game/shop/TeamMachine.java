@@ -93,6 +93,16 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
         return false;
     }
 
+    @Override
+    public String getShopType() {
+        return ShopType.TEAM_MACHINE.name();
+    }
+
+    @Override
+    public void dispose() {
+        Property.removeMappingsFor(this);
+    }
+
     /**
      * Handler for inventory clicks to handle team machine events
      * @param args The arguments passed to the handler
@@ -186,16 +196,6 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
         }
 
         return inventory;
-    }
-
-    @Override
-    public ShopType getShopType() {
-        return ShopType.TEAM_MACHINE;
-    }
-
-    @Override
-    public void dispose() {
-        Property.removeMappingsFor(this);
     }
 
 }

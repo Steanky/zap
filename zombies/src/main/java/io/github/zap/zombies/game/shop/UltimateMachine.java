@@ -88,6 +88,11 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
         return false;
     }
 
+    @Override
+    public String getShopType() {
+        return ShopType.ULTIMATE_MACHINE.name();
+    }
+
     private boolean attemptToUltimate(@NotNull UpgradeableEquipment<?, ?> equipment, @NotNull ZombiesPlayer player,
                                       int cost) {
         Player bukkitPlayer = player.getPlayer();
@@ -112,8 +117,4 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
         return false;
     }
 
-    @Override
-    public ShopType getShopType() {
-        return ShopType.ULTIMATE_MACHINE;
-    }
 }

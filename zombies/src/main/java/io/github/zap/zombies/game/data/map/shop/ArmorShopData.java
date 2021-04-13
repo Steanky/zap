@@ -20,11 +20,11 @@ public class ArmorShopData extends ArmorStandShopData {
     private List<ArmorLevel> armorLevels = new ArrayList<>();
 
     private ArmorShopData() {
-        super(ShopType.ARMOR_SHOP, false, null, null);
+        super(ShopType.ARMOR_SHOP.name(), false, null, null);
     }
 
     public ArmorShopData(Vector rootLocation, Vector hologramLocation) {
-        super(ShopType.ARMOR_SHOP, false, rootLocation, hologramLocation);
+        super(ShopType.ARMOR_SHOP.name(), false, rootLocation, hologramLocation);
     }
 
     /**
@@ -33,13 +33,17 @@ public class ArmorShopData extends ArmorStandShopData {
     @SuppressWarnings("FieldMayBeFinal")
     @Getter
     public static class ArmorLevel {
+
         private String name = "default";
 
         private int cost = 0;
 
         private Material[] materials = new Material[0];
 
-        private ArmorLevel() { }
+        private ArmorLevel() {
+
+        }
+
     }
 
 }

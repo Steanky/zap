@@ -30,7 +30,7 @@ public abstract class Shop<D extends ShopData> {
      * Registers all events from the zombie arena that will be monitored by the shop
      */
     protected void registerArenaEvents() {
-        arena.getShopEvent(ShopType.POWER_SWITCH).registerHandler(args -> {
+        arena.getShopEvent(ShopType.POWER_SWITCH.name()).registerHandler(args -> {
             powered = true;
             display();
         });
@@ -99,5 +99,5 @@ public abstract class Shop<D extends ShopData> {
      * Gets the type of the shop
      * @return A representation of the type of the shop
      */
-    public abstract ShopType getShopType();
+    public abstract String getShopType();
 }

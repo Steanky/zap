@@ -46,7 +46,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 displayToPlayer(player);
             }
         });
-        getArena().getShopEvent(ShopType.LUCKY_CHEST).registerHandler(args -> {
+        getArena().getShopEvent(ShopType.LUCKY_CHEST.name()).registerHandler(args -> {
             Player player = args.getZombiesPlayer().getPlayer();
             if (player != null) {
                 displayToPlayer(player);
@@ -179,8 +179,8 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public ShopType getShopType() {
-        return ShopType.GUN_SHOP;
+    public String getShopType() {
+        return ShopType.GUN_SHOP.name();
     }
 
     /**

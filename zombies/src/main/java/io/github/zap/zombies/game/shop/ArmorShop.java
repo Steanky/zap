@@ -180,6 +180,11 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         return false;
     }
 
+    @Override
+    public String getShopType() {
+        return ShopType.ARMOR_SHOP.name();
+    }
+
     /**
      * Applies an armor level to the zombies player (does not update other armor shops)
      * @param player The player to apply the armor to
@@ -278,11 +283,6 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
                     String.format("Error creating armor shop equipment packets for entity id %d", armorStandId)
             );
         }
-    }
-
-    @Override
-    public ShopType getShopType() {
-        return ShopType.ARMOR_SHOP;
     }
 
 }

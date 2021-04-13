@@ -148,6 +148,11 @@ public class Door extends Shop<DoorData> {
         return false;
     }
 
+    @Override
+    public String getShopType() {
+        return ShopType.DOOR.name();
+    }
+
     /**
      * Attempts to open the door
      * @param doorData The doordata of the door
@@ -287,11 +292,6 @@ public class Door extends Shop<DoorData> {
                     PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                     mapStats.setDoorsOpened(mapStats.getDoorsOpened() + 1);
                 }, PlayerGeneralStats::new);
-    }
-
-    @Override
-    public ShopType getShopType() {
-        return ShopType.DOOR;
     }
 
 }
