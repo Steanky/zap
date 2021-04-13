@@ -14,6 +14,8 @@ import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
@@ -21,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Shop used to purchase guns
@@ -139,22 +142,29 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                         GunObjectGroup gunObjectGroup = (GunObjectGroup)
                                 hotbarManager.getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
 
-                        Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
-                        if (refillAttempt == null) {
-                            if (tryBuy(zombiesPlayer, gunObjectGroup)) {
+                        if (gunObjectGroup != null) {
+                            Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
+                            if (refillAttempt == null) {
+                                if (tryBuy(zombiesPlayer, gunObjectGroup)) {
+                                    player.playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
+                                            1.0F, 2.0F));
+                                    onPurchaseSuccess(zombiesPlayer);
+
+                                    return true;
+                                }
+                            } else if (refillAttempt) {
                                 player.playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
                                         1.0F, 2.0F));
                                 onPurchaseSuccess(zombiesPlayer);
+
                                 return true;
                             }
-                        } else if (refillAttempt) {
-                            player.playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
-                                    1.0F, 2.0F));
-                            onPurchaseSuccess(zombiesPlayer);
-                            return true;
+                        } else {
+                            player.sendMessage(Component.text("You cannot purchase guns in this map",
+                                    NamedTextColor.RED));
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "The power is not active yet!");
+                        player.sendMessage(Component.text("The power is not active yet!", NamedTextColor.RED));
                     }
 
                     player.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"), Sound.Source.MASTER,
@@ -173,6 +183,12 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         return ShopType.GUN_SHOP;
     }
 
+    /**
+     * Attempts to refill a gun
+     * @param player The player attempting to refill the gun
+     * @param gunObjectGroup The gun object group in which the gun may reside
+     * @return Whether purchase was successful, or null if no interaction occurred
+     */
     private Boolean tryRefill(ZombiesPlayer player, GunObjectGroup gunObjectGroup) {
         GunShopData gunShopData = getShopData();
         Player bukkitPlayer = player.getPlayer();
@@ -207,7 +223,13 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         return null;
     }
 
-    private boolean tryBuy(ZombiesPlayer player, GunObjectGroup gunObjectGroup) {
+    /**
+     * Attempts to purchase a gun
+     * @param player The player receiving the gun
+     * @param gunObjectGroup The gun object group that receives the gun
+     * @return Whether purchase was successful
+     */
+    private boolean tryBuy(@NotNull ZombiesPlayer player, @NotNull GunObjectGroup gunObjectGroup) {
         Player bukkitPlayer = player.getPlayer();
         GunShopData gunShopData = getShopData();
 

@@ -9,6 +9,7 @@ import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Switch used to turn on the power in the arena permanently
@@ -37,47 +38,31 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (super.purchase(args)) {
-            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
+            ZombiesPlayer player = args.getManagedPlayer();
 
-            if (zombiesPlayer != null) {
-                Player player = zombiesPlayer.getPlayer();
+            if (player != null) {
+                Player bukkitPlayer = player.getPlayer();
 
-                if (player != null) {
+                if (bukkitPlayer != null) {
                     if (isPowered()) {
-                        player.sendMessage(ChatColor.RED + "You have already turned on the power!");
+                        bukkitPlayer.sendMessage(ChatColor.RED + "You have already turned on the power!");
                     } else {
                         int cost = getShopData().getCost();
 
-                        if (zombiesPlayer.getCoins() < cost) {
-                            player.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                        if (player.getCoins() < cost) {
+                            bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
-                            zombiesPlayer.subtractCoins(cost);
+                            notifyPowerTurnedOn(bukkitPlayer);
 
-                            for (Player playerInWorld : getArena().getWorld().getPlayers()) {
-                                playerInWorld.sendTitle(
-                                        ChatColor.YELLOW + player.getName() + " turned on the power!",
-                                        ChatColor.GOLD + "Shops which require power are now activated",
-                                        20, 60, 20
-                                );
-                                playerInWorld.playSound(Sound.sound(
-                                        Key.key("minecraft:entity.blaze.death"),
-                                        Sound.Source.MASTER,
-                                        1.0F,
-                                        2.0F
-                                ));
-                            }
+                            player.subtractCoins(cost);
+                            onPurchaseSuccess(player);
 
-                            onPurchaseSuccess(zombiesPlayer);
                             return true;
                         }
                     }
 
-                    player.playSound(Sound.sound(
-                            Key.key("minecraft:entity.enderman.teleport"),
-                            Sound.Source.MASTER,
-                            1.0F,
-                            0.5F
-                    ));
+                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"), Sound.Source.MASTER,
+                            1.0F, 0.5F));
                 }
             }
 
@@ -85,6 +70,19 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
         }
 
         return false;
+    }
+
+    /**
+     * Notifies all players in the world that the power is turned on
+     * @param activator The player that turned on the power
+     */
+    private void notifyPowerTurnedOn(@NotNull Player activator) {
+        for (Player playerInWorld : getArena().getWorld().getPlayers()) {
+            playerInWorld.sendTitle(ChatColor.YELLOW + activator.getName() + " turned on the power!",
+                    ChatColor.GOLD + "Shops which require power are now activated", 20, 60, 20);
+            playerInWorld.playSound(Sound.sound(Key.key("minecraft:entity.blaze.death"),
+                    Sound.Source.MASTER, 1.0F, 2.0F));
+        }
     }
 
     @Override
