@@ -298,7 +298,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private void onPlayerRightClick(PlayerInteractEvent event) {
         if(event.getClickedBlock() != null && event.getHand() == EquipmentSlot.HAND) {
             if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
-                Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class, event.getClickedBlock().getLocation(), 40D);
+                Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class,
+                        event.getClickedBlock().getLocation(), 40D);
                 if(stands.size() > 0) {
                     PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector());
                     engine.giveOperation(PathOperation.forAgent(blockAgent,
@@ -307,7 +308,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                             ChunkCoordinateProvider.fromAgent(blockAgent, 5)),
                             event.getPlayer().getWorld(), (pathResult) -> Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                                 for(PathNode node : pathResult) {
-                                    event.getPlayer().getWorld().getBlockAt((int)node.x, (int)node.y, (int)node.z).setType(Material.DIAMOND_BLOCK);
+                                    event.getPlayer().getWorld().getBlockAt(node.blockX, node.blockY - 1, node.blockZ).setType(Material.GREEN_WOOL);
                                 }
                             }));
                 }

@@ -264,10 +264,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                         "associated with it.");
                             }
 
-                            synchronized (context.lockHandle) {
-                                context.entries.remove(i);
-                            }
-
+                            removeOperation(context, i);
                             break;
                         }
 

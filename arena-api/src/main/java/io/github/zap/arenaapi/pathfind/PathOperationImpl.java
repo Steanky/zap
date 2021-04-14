@@ -112,8 +112,13 @@ class PathOperationImpl implements PathOperation {
                     for(PathResult failed : context.failedPaths()) {
                         if(!consideredResults.contains(failed)) {
                             if(destinationComparable(context, failed, sample, true)) {
-                                destinations.remove(destination);
-                                destinations.add(PathDestination.fromSource(failed.end().position()));
+                                PathNode connectionPoint = failed.visitedNodes().get(sample);
+                                PathNode start = currentNode.reverse();
+                                currentNode.parent = connectionPoint;
+
+                                state = State.SUCCEEDED;
+                                result = new PathResultImpl(start, this, visited, destination, state);
+                                return true;
                             }
 
                             consideredResults.add(failed);
