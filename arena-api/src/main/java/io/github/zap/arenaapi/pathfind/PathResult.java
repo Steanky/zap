@@ -2,6 +2,9 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
 
 public interface PathResult extends Iterable<PathNode> {
@@ -13,7 +16,9 @@ public interface PathResult extends Iterable<PathNode> {
 
     @NotNull PathDestination destination();
 
-    @NotNull Set<PathNode> visitedNodes();
+    @NotNull Map<PathNode, PathNode> visitedNodes();
+
+    @NotNull List<PathNode> pathNodes();
 
     @NotNull PathOperation.State state();
 }

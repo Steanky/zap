@@ -16,9 +16,11 @@ public class PathNode {
     public final double x;
     public final double y;
     public final double z;
+
     public final int blockX;
     public final int blockY;
     public final int blockZ;
+
     private final int hash;
     private WorldVectorSource vectorSource = null;
 

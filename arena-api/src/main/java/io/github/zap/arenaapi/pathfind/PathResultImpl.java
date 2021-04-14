@@ -25,22 +25,40 @@ class PathResultImpl implements PathResult {
         }
     }
 
-    private final PathNode start;
     private final PathNode end;
+    private final PathNode start;
     private final PathOperation operation;
     private final PathDestination destination;
-    private final Set<PathNode> visitedNodes;
+    private final Map<PathNode, PathNode> visitedNodes;
+    private final List<PathNode> pathNodes = new ArrayList<>();
     private final PathOperation.State state;
 
-    PathResultImpl(@NotNull PathNode start, @NotNull PathNode end, @NotNull PathOperation operation,
-                   @NotNull Set<PathNode> visitedNodes, @NotNull PathDestination destination,
+    PathResultImpl(@NotNull PathNode end, @NotNull PathOperation operation,
+                   @NotNull Map<PathNode, PathNode> visitedNodes, @NotNull PathDestination destination,
                    @NotNull PathOperation.State state) {
-        this.start = start;
         this.end = end;
         this.operation = operation;
         this.visitedNodes = visitedNodes;
         this.destination = destination;
         this.state = state;
+
+        PathNode previous = null;
+        PathNode next;
+        while(end != null) {
+            if (pathNodes.size() == 0) {
+                pathNodes.add(end);
+            } else {
+                pathNodes.set(0, end);
+            }
+
+            next = end.parent;
+            end.parent = previous;
+
+            previous = end;
+            end = next;
+        }
+
+        this.start = previous;
     }
 
     @Override
@@ -64,8 +82,13 @@ class PathResultImpl implements PathResult {
     }
 
     @Override
-    public @NotNull Set<PathNode> visitedNodes() {
+    public @NotNull Map<PathNode, PathNode> visitedNodes() {
         return visitedNodes;
+    }
+
+    @Override
+    public @NotNull List<PathNode> pathNodes() {
+        return pathNodes;
     }
 
     @Override

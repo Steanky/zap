@@ -2,10 +2,13 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+
 /**
  * Implementation of NodeQueue based on a binary min-heap
  */
 class BinaryHeapNodeQueue implements NodeQueue {
+    private static final int DEFAULT_CAPACITY = 16;
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     private static final NodeComparator NODE_COMPARATOR = NodeComparator.instance();
 
@@ -14,6 +17,10 @@ class BinaryHeapNodeQueue implements NodeQueue {
 
     BinaryHeapNodeQueue(int initialCapacity) {
         nodes = new PathNode[initialCapacity];
+    }
+
+    BinaryHeapNodeQueue() {
+        this(DEFAULT_CAPACITY);
     }
 
     @Override
@@ -121,16 +128,22 @@ class BinaryHeapNodeQueue implements NodeQueue {
     }
 
     private void ensureCapacity(int size) {
-        if(size > nodes.length) {
-            int newSize = nodes.length << 1;
+        int length = nodes.length;
+        if(size > length) {
+            int newCapacity = length + (length < 64 ? length + 2 : length >> 1);
 
-            if(newSize > MAX_ARRAY_SIZE) {
-                throw new OutOfMemoryError();
-            }
+            if (newCapacity - MAX_ARRAY_SIZE > 0)
+                newCapacity = hugeCapacity(size);
 
-            PathNode[] array = new PathNode[newSize];
-            System.arraycopy(nodes, 0, array, 0, this.size);
-            nodes = array;
+            nodes = Arrays.copyOf(nodes, newCapacity);
         }
+    }
+
+    private static int hugeCapacity(int minCapacity) {
+        if (minCapacity < 0) {
+            throw new OutOfMemoryError();
+        }
+
+        return minCapacity > MAX_ARRAY_SIZE ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
     }
 }

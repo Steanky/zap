@@ -16,9 +16,9 @@ class PathOperationImpl implements PathOperation {
 
     //TODO: maintain separate NodeQueue for lower-priority nodes and only take from that queue when needed
     private final NodeQueue openSet = new BinaryHeapNodeQueue(128);
-    private final Set<PathNode> visited = new HashSet<>();
+    private final Map<PathNode, PathNode> visited = new HashMap<>();
+    private final Set<PathResult> consideredResults = new HashSet<>();
     private PathDestination destination;
-    private PathNode firstNode;
     private PathNode currentNode;
     private PathNode bestFound;
     private PathResult result;
@@ -89,10 +89,9 @@ class PathOperationImpl implements PathOperation {
                 destination = destinationSelector.selectDestinationFor(this, currentNode);
                 currentNode.score.set(0, calculator.computeH(context, currentNode, destination));
                 bestFound = currentNode.copy();
-                firstNode = currentNode;
             }
 
-            visited.add(currentNode);
+            visited.put(currentNode, currentNode);
 
             PathNode[] possibleNodes = nodeProvider.generateNodes(context, currentNode);
             for(PathNode sample : possibleNodes) {
@@ -100,7 +99,7 @@ class PathOperationImpl implements PathOperation {
                     break;
                 }
 
-                if(visited.contains(sample)) {
+                if(visited.containsKey(sample)) {
                     continue;
                 }
 
@@ -109,19 +108,24 @@ class PathOperationImpl implements PathOperation {
 
                     //remove the unreachable destination so we don't expand a ton of nodes
                     for(PathResult failed : context.failedPaths()) {
-                        if(destinationComparable(context, failed.destination(), failed.operation().result(), sample)) {
-                            destinations.remove(destination);
-                            destinations.add(PathDestination.fromSource(failed.end().position()));
+                        if(!consideredResults.contains(failed)) {
+                            if(destinationComparable(context, failed.destination(), failed.operation().result(), sample)) {
+                                destinations.remove(destination);
+                                destinations.add(PathDestination.fromSource(failed.end().position()));
+                            }
+
+                            consideredResults.add(failed);
                         }
                     }
 
-                    //we can basically insta-complete this path, gg ez
                     for(PathResult succeeded : context.successfulPaths()) {
-                        if(destinationComparable(context, succeeded.destination(), succeeded.operation().result(), sample)) {
-                            //TODO: find some way to retrieve the node in succeeded.vistedNodes()
-                            //it's in the set, but we need an actual reference to the object. equals/hashcode for
-                            //pathnode necessarily does not calculate the hash of the parent
-                            //will probably have to use hashmap for this functionality
+                        if(!consideredResults.contains(succeeded)) {
+                            if(destinationComparable(context, succeeded.destination(), succeeded.operation().result(), sample)) {
+                                PathNode connectionPoint = succeeded.visitedNodes().get(sample);
+                            }
+                            else {
+                                consideredResults.add(succeeded);
+                            }
                         }
                     }
 
@@ -181,7 +185,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull Set<PathNode> visitedNodes() {
+    public @NotNull Map<PathNode, PathNode> visitedNodes() {
         return visited;
     }
 
@@ -210,12 +214,12 @@ class PathOperationImpl implements PathOperation {
         return destination.equals(this.destination) &&
                 result.operation().nodeProvider().equals(nodeProvider) &&
                 result.operation().agent().characteristics().equals(agent.characteristics()) &&
-                result.visitedNodes().contains(walkTo) &&
+                result.visitedNodes().containsKey(walkTo) &&
                 result.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode);
     }
 
     private void complete(boolean success, PathDestination destination) {
         state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(firstNode, success ? currentNode : bestFound, this, visited, destination, state);
+        result = new PathResultImpl(success ? currentNode : bestFound, this, visited, destination, state);
     }
 }

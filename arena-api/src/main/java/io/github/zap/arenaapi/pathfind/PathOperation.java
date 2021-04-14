@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -38,7 +39,7 @@ public interface PathOperation {
 
     @NotNull Set<PathDestination> getDestinations();
 
-    @NotNull Set<PathNode> visitedNodes();
+    @NotNull Map<PathNode, PathNode> visitedNodes();
 
     @NotNull PathAgent agent();
 
