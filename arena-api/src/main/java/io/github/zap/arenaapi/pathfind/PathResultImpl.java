@@ -90,6 +90,6 @@ class PathResultImpl implements PathResult {
     @NotNull
     @Override
     public Iterator<PathNode> iterator() {
-        return new ResultIterator(end);
+        return new ResultIterator(start);
     }
 }

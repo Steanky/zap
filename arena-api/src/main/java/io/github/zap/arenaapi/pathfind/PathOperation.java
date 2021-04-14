@@ -13,14 +13,6 @@ public interface PathOperation {
         STARTED,
         SUCCEEDED,
         FAILED;
-
-        public boolean hasEnded() {
-            return this == SUCCEEDED || this == FAILED;
-        }
-
-        public boolean unstarted() {
-            return this != STARTED;
-        }
     }
 
     void init();

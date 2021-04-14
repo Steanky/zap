@@ -201,26 +201,25 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 for(int i = operationStartingIndex; i > -1; i--) {
                     Entry sample = context.entries.get(i);
 
-                    if(sample.operation.state().unstarted()) {
-                        for(int j = operationStartingIndex; j > i; j--) {
-                            Entry otherSample = context.entries.get(j);
+                    for(int j = operationStartingIndex; j > i; j--) {
+                        Entry otherSample = context.entries.get(j);
 
-                            //let operations allow or deny merges if they want
-                            if(otherSample.operation.state().unstarted() &&
-                                    sample.operation.allowMerge(otherSample.operation)) {
-                                Set<PathDestination> sampleDestinations = sample.operation.getDestinations();
-                                Set<PathDestination> otherDestinations = otherSample.operation.getDestinations();
+                        //let operations allow or deny merges if they want
+                        if(otherSample.operation.state() == PathOperation.State.NOT_STARTED &&
+                                sample.operation.allowMerge(otherSample.operation)) {
+                            Set<PathDestination> sampleDestinations = sample.operation.getDestinations();
+                            Set<PathDestination> otherDestinations = otherSample.operation.getDestinations();
 
-                                for(PathDestination sampleDestination : sampleDestinations) {
-                                    if(otherDestinations.remove(sampleDestination)) {
-                                        sample.consumers.get(sampleDestination).addAll(otherSample.consumers.get(sampleDestination));
-                                        otherSample.consumers.remove(sampleDestination);
+                            for(PathDestination sampleDestination : sampleDestinations) {
+                                if(otherDestinations.remove(sampleDestination)) {
+                                    sample.consumers.get(sampleDestination).addAll(otherSample.consumers.get(sampleDestination));
+                                    otherSample.consumers.remove(sampleDestination);
 
-                                        //we may be able to prune some entries entirely
-                                        if(otherSample.consumers.size() == 0) {
-                                            context.entries.remove(j);
-                                            operationStartingIndex--;
-                                        }
+                                    //we may be able to prune some entries entirely
+                                    if(otherSample.consumers.size() == 0) {
+                                        context.entries.remove(j);
+                                        operationStartingIndex--;
+                                        break;
                                     }
                                 }
                             }
@@ -232,7 +231,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             for (int i = operationStartingIndex; i > -1; i--) { //iterate all pathfinding operations for this world
                 Entry entry = context.entries.get(i);
 
-                if(entry.operation.state().unstarted()) {
+                if(entry.operation.state() == PathOperation.State.NOT_STARTED) {
                     entry.operation.init();
                 }
 
@@ -264,6 +263,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 ArenaApi.warning("PathDestination " + result.destination() + " has no consumers " +
                                         "associated with it.");
                             }
+
+                            synchronized (context.lockHandle) {
+                                context.entries.remove(i);
+                            }
+
                             break;
                         }
 
@@ -272,23 +276,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         }
                     }
                 }
-
-                //remove successful or failed paths if they ask nicely
-                if (entryState != PathOperation.State.STARTED && entry.operation.shouldRemove()) {
-                    PathResult entryResult = entry.operation.result();
-
-                    if (entryState == PathOperation.State.SUCCEEDED) {
-                        context.successfulPaths.remove(entryResult);
-                    } else if (entryState == PathOperation.State.FAILED) {
-                        context.failedPaths.remove(entryResult);
-                    }
-
-                    removeOperation(context, i);
-                }
             }
 
             synchronized (context.lockHandle) {
                 if (context.entries.size() == 0) {
+                    context.failedPaths.clear();
+                    context.successfulPaths.clear();
                     break; //break if we did all the operations
                 }
             }
