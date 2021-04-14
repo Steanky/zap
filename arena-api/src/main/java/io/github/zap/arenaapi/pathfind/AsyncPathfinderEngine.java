@@ -212,8 +212,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                             for(PathDestination sampleDestination : sampleDestinations) {
                                 if(otherDestinations.remove(sampleDestination)) {
-                                    sample.consumers.get(sampleDestination).addAll(otherSample.consumers.get(sampleDestination));
-                                    otherSample.consumers.remove(sampleDestination);
+                                    List<Consumer<PathResult>> otherConsumers = otherSample.consumers.get(sampleDestination);
+                                    otherConsumers.clear();
+
+                                    sample.consumers.get(sampleDestination).addAll(otherConsumers);
 
                                     //we may be able to prune some entries entirely
                                     if(otherSample.consumers.size() == 0) {

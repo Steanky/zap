@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -82,7 +83,7 @@ class PathOperationImpl implements PathOperation {
                     currentNode = openSet.takeBest();
                 }
                 else {
-                    complete(false, destination == null ? best : destination);
+                    complete(false, PathDestination.fromSource(bestFound.position()));
                     return true;
                 }
             }
@@ -112,12 +113,13 @@ class PathOperationImpl implements PathOperation {
                     for(PathResult failed : context.failedPaths()) {
                         if(!consideredResults.contains(failed)) {
                             if(destinationComparable(context, failed, sample, true)) {
-                                PathNode connectionPoint = failed.visitedNodes().get(sample);
-                                PathNode start = currentNode.reverse();
-                                currentNode.parent = connectionPoint;
+                                PathNode connectionPoint = failed.visitedNodes().remove(sample);
+                                PathNode start = sample.reverse();
+                                sample.parent = connectionPoint;
 
-                                state = State.SUCCEEDED;
+                                state = State.FAILED;
                                 result = new PathResultImpl(start, this, visited, destination, state);
+                                ArenaApi.info("Failed by merge strategy");
                                 return true;
                             }
 
@@ -128,12 +130,13 @@ class PathOperationImpl implements PathOperation {
                     for(PathResult succeeded : context.successfulPaths()) {
                         if(!consideredResults.contains(succeeded)) {
                             if(destinationComparable(context, succeeded, sample, false)) {
-                                PathNode connectionPoint = succeeded.visitedNodes().get(sample);
-                                PathNode start = currentNode.reverse();
-                                currentNode.parent = connectionPoint;
+                                PathNode connectionPoint = succeeded.visitedNodes().remove(sample);
+                                PathNode start = sample.reverse();
+                                sample.parent = connectionPoint;
 
                                 state = State.SUCCEEDED;
                                 result = new PathResultImpl(start, this, visited, destination, state);
+                                ArenaApi.info("Succeeded by merge strategy");
                                 return true;
                             }
 
@@ -225,11 +228,11 @@ class PathOperationImpl implements PathOperation {
     }
 
     private boolean destinationComparable(PathfinderContext context, PathResult result, PathNode walkTo, boolean checkInverseWalkability) {
-        return !result.destination().equals(this.destination) ||
-                !result.operation().nodeProvider().equals(nodeProvider) ||
-                !result.operation().agent().characteristics().equals(agent.characteristics()) ||
-                !result.visitedNodes().containsKey(walkTo) ||
-                !checkInverseWalkability || result.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode);
+        return result.destination().equals(this.destination) &&
+                result.operation().nodeProvider().equals(nodeProvider) &&
+                result.operation().agent().characteristics().equals(agent.characteristics()) &&
+                result.visitedNodes().containsKey(walkTo) &&
+                (!checkInverseWalkability || result.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode));
     }
 
     private void complete(boolean success, PathDestination destination) {

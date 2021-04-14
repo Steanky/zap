@@ -63,8 +63,7 @@ public class PathNode {
     @Override
     public boolean equals(Object other) {
         if(other instanceof PathNode) {
-            PathNode node = (PathNode) other;
-            return x == node.x && y == node.y && z == node.z;
+            return position().equals(((PathNode) other).position());
         }
 
         return false;
