@@ -90,4 +90,18 @@ public class PathNode {
     public @NotNull WorldVectorSource position() {
         return vectorSource == null ? vectorSource = new WorldVectorSource(x, y, z) : vectorSource;
     }
+
+    @NotNull PathNode reverse() {
+        PathNode current = this;
+        PathNode previous = null;
+
+        while(current != null) {
+            PathNode next = current.parent;
+            current.parent = previous;
+            previous = current;
+            current = next;
+        }
+
+        return previous;
+    }
 }

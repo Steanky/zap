@@ -35,8 +35,6 @@ public interface PathOperation {
 
     int iterations();
 
-    boolean shouldRemove();
-
     @NotNull Set<PathDestination> getDestinations();
 
     @NotNull Map<PathNode, PathNode> visitedNodes();

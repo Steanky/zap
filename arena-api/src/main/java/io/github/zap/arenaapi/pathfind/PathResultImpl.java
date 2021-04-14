@@ -25,40 +25,31 @@ class PathResultImpl implements PathResult {
         }
     }
 
-    private final PathNode end;
     private final PathNode start;
+    private final PathNode end;
     private final PathOperation operation;
     private final PathDestination destination;
     private final Map<PathNode, PathNode> visitedNodes;
     private final List<PathNode> pathNodes = new ArrayList<>();
     private final PathOperation.State state;
 
-    PathResultImpl(@NotNull PathNode end, @NotNull PathOperation operation,
+    PathResultImpl(@NotNull PathNode start, @NotNull PathOperation operation,
                    @NotNull Map<PathNode, PathNode> visitedNodes, @NotNull PathDestination destination,
                    @NotNull PathOperation.State state) {
-        this.end = end;
+        this.start = start;
         this.operation = operation;
         this.visitedNodes = visitedNodes;
         this.destination = destination;
         this.state = state;
 
-        PathNode previous = null;
-        PathNode next;
-        while(end != null) {
-            if (pathNodes.size() == 0) {
-                pathNodes.add(end);
-            } else {
-                pathNodes.set(0, end);
-            }
-
-            next = end.parent;
-            end.parent = previous;
-
-            previous = end;
-            end = next;
+        PathNode end = null;
+        while(start != null) {
+            pathNodes.add(start);
+            end = start;
+            start = start.parent;
         }
 
-        this.start = previous;
+        this.end = end;
     }
 
     @Override

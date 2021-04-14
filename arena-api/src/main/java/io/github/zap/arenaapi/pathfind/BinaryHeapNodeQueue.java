@@ -139,7 +139,7 @@ class BinaryHeapNodeQueue implements NodeQueue {
         }
     }
 
-    private static int hugeCapacity(int minCapacity) {
+    private int hugeCapacity(int minCapacity) {
         if (minCapacity < 0) {
             throw new OutOfMemoryError();
         }

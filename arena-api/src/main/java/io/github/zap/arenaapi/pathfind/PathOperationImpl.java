@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
+    private static final double MAX_MERGE_ANGLE = Math.PI / 6D;
+
     private final PathAgent agent;
     private final Set<PathDestination> destinations;
     private State state;
@@ -109,7 +111,7 @@ class PathOperationImpl implements PathOperation {
                     //remove the unreachable destination so we don't expand a ton of nodes
                     for(PathResult failed : context.failedPaths()) {
                         if(!consideredResults.contains(failed)) {
-                            if(destinationComparable(context, failed.destination(), failed.operation().result(), sample)) {
+                            if(destinationComparable(context, failed, sample, true)) {
                                 destinations.remove(destination);
                                 destinations.add(PathDestination.fromSource(failed.end().position()));
                             }
@@ -120,12 +122,17 @@ class PathOperationImpl implements PathOperation {
 
                     for(PathResult succeeded : context.successfulPaths()) {
                         if(!consideredResults.contains(succeeded)) {
-                            if(destinationComparable(context, succeeded.destination(), succeeded.operation().result(), sample)) {
+                            if(destinationComparable(context, succeeded, sample, false)) {
                                 PathNode connectionPoint = succeeded.visitedNodes().get(sample);
+                                PathNode start = currentNode.reverse();
+                                currentNode.parent = connectionPoint;
+
+                                state = State.SUCCEEDED;
+                                result = new PathResultImpl(start, this, visited, destination, state);
+                                return true;
                             }
-                            else {
-                                consideredResults.add(succeeded);
-                            }
+
+                            consideredResults.add(succeeded);
                         }
                     }
 
@@ -175,11 +182,6 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public boolean shouldRemove() {
-        return true;
-    }
-
-    @Override
     public @NotNull Set<PathDestination> getDestinations() {
         return destinations;
     }
@@ -209,17 +211,24 @@ class PathOperationImpl implements PathOperation {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
 
-    private boolean destinationComparable(PathfinderContext context, PathDestination destination,
-                                          PathResult result, PathNode walkTo) {
-        return destination.equals(this.destination) &&
-                result.operation().nodeProvider().equals(nodeProvider) &&
-                result.operation().agent().characteristics().equals(agent.characteristics()) &&
-                result.visitedNodes().containsKey(walkTo) &&
-                result.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode);
+    private boolean validateAngle(PathNode first, PathNode second) {
+        double b = first.position().distance(destination.position());
+        double a = second.position().distance(destination.position());
+        double c = first.position().distanceSquared(second.position());
+
+        return Math.acos(((a * a) + (b * b) - c) / (2 * a * b)) <= MAX_MERGE_ANGLE;
+    }
+
+    private boolean destinationComparable(PathfinderContext context, PathResult result, PathNode walkTo, boolean checkInverseWalkability) {
+        return !result.destination().equals(this.destination) ||
+                !result.operation().nodeProvider().equals(nodeProvider) ||
+                !result.operation().agent().characteristics().equals(agent.characteristics()) ||
+                !result.visitedNodes().containsKey(walkTo) ||
+                !checkInverseWalkability || result.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode);
     }
 
     private void complete(boolean success, PathDestination destination) {
         state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(success ? currentNode : bestFound, this, visited, destination, state);
+        result = new PathResultImpl(success ? currentNode.reverse() : bestFound.reverse(), this, visited, destination, state);
     }
 }
