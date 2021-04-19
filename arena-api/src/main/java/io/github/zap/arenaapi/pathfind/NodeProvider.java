@@ -21,10 +21,10 @@ public abstract class NodeProvider {
         public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathNode from) {
             PathNode[] nodes = new PathNode[4];
 
-            nodes[0] = from.add(1, 0, 0);
-            nodes[1] = from.add(0, 0, 1);
-            nodes[2] = from.add(-1, 0, 0);
-            nodes[3] = from.add(0, 0, -1);
+            nodes[0] = from.add(Direction.NORTH.offset());
+            nodes[1] = from.add(Direction.EAST.offset());
+            nodes[2] = from.add(Direction.SOUTH.offset());
+            nodes[3] = from.add(Direction.WEST.offset());
 
             return nodes;
         }
