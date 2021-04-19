@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector2.BlockVector;
+import io.github.zap.arenaapi.vector2.WorldVector;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -15,12 +16,11 @@ public interface PathDestination {
 
     static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) :
-                new WorldVector(entity.getLocation().toVector()));
+        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) : WorldVector.immutable(entity.getLocation().toVector()));
     }
 
-    static @NotNull PathDestination fromCoordinates(int x, int y, int z) {
-        return new PathDestinationImpl(new WorldVector(x, y, z));
+    static @NotNull PathDestination fromCoordinates(double x, double y, double z) {
+        return new PathDestinationImpl(WorldVector.immutable(x, y, z));
     }
 
     static @NotNull PathDestination fromSource(@NotNull WorldVector source) {
@@ -36,7 +36,7 @@ public interface PathDestination {
 
         for(Entity entity : entities) {
             destinations.add(new PathDestinationImpl(findBlocks ? vectorOnGround(entity) :
-                    new WorldVector(entity.getLocation().toVector())));
+                    WorldVector.immutable(entity.getLocation().toVector())));
         }
 
         return destinations;
@@ -57,6 +57,6 @@ public interface PathDestination {
         }
         while(block.getType().isAir() && --y > -1);
 
-        return new WorldVector(x, ++y, z);
+        return WorldVector.immutable((double)x, ++y, z);
     }
 }

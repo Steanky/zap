@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector2.WorldVector;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -79,14 +79,14 @@ public interface PathAgent {
      */
     static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathAgentImpl(new Characteristics(entity), new WorldVector(entity.getLocation().toVector()));
+        return new PathAgentImpl(new Characteristics(entity), WorldVector.immutable(entity.getLocation().toVector()));
     }
 
     static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
         Objects.requireNonNull(vector, "vector cannot be null!");
         Objects.requireNonNull(characteristics, "characteristics cannot be null!");
 
-        return new PathAgentImpl(characteristics, new WorldVector(vector));
+        return new PathAgentImpl(characteristics, WorldVector.immutable(vector));
     }
 
     static @NotNull PathAgent fromVector(@NotNull Vector vector) {

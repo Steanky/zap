@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.BlockVector;
-import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.arenaapi.vector2.BlockVector;
+import io.github.zap.arenaapi.vector2.ChunkVector;
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;

@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector2.WorldVector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,7 +91,7 @@ public class PathNode {
     }
 
     public @NotNull WorldVector position() {
-        return new WorldVector(x, y, z);
+        return vectorSource;
     }
 
     @NotNull PathNode reverse() {

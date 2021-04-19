@@ -12,12 +12,12 @@ public abstract class BlockVector extends ChunkVector {
     public abstract int blockZ();
 
     @Override
-    int chunkX() {
+    public int chunkX() {
         return blockX() >> 4;
     }
 
     @Override
-    int chunkZ() {
+    public int chunkZ() {
         return blockZ() >> 4;
     }
 

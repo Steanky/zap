@@ -10,12 +10,12 @@ class ChunkVectorImpl extends ChunkVector {
     }
 
     @Override
-    int chunkX() {
+    public int chunkX() {
         return x;
     }
 
     @Override
-    int chunkZ() {
+    public int chunkZ() {
         return z;
     }
 }

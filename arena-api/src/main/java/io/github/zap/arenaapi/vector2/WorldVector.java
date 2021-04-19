@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.vector2;
 
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -70,7 +71,15 @@ public abstract class WorldVector extends BlockVector {
         return new WorldVectorImpl(x, y, z);
     }
 
+    public static WorldVector immutable(@NotNull Vector vector) {
+        return new WorldVectorImpl(vector.getX(), vector.getY(), vector.getZ());
+    }
+
     public static MutableWorldVector mutable(double x, double y, double z) {
         return new MutableWorldVectorImpl(x, y, z);
+    }
+
+    public static MutableWorldVector mutable(@NotNull Vector vector) {
+        return new MutableWorldVectorImpl(vector.getX(), vector.getY(), vector.getZ());
     }
 }

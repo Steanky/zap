@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.arenaapi.vector2.ChunkVector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -24,7 +24,7 @@ class ChunkRange implements ChunkCoordinateProvider {
                 z++;
             }
 
-            return new ChunkVector(x, z);
+            return ChunkVector.immutable(x, z);
         }
     }
 

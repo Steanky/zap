@@ -6,9 +6,9 @@ public abstract class ChunkVector {
     protected boolean hasHash;
     protected int hash;
 
-    abstract int chunkX();
+    public abstract int chunkX();
 
-    abstract int chunkZ();
+    public abstract int chunkZ();
 
     @Override
     public int hashCode() {
@@ -23,5 +23,9 @@ public abstract class ChunkVector {
         }
 
         return false;
+    }
+
+    public static ChunkVector immutable(int x, int z) {
+        return new ChunkVectorImpl(x, z);
     }
 }

@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,11 +45,6 @@ public abstract class NodeProvider {
         @Override
         public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathNode nodeAt) {
             PathNode[] nodes = new PathNode[8];
-            WorldVector pos = nodeAt.position();
-            BlockProvider provider = context.blockProvider();
-
-            pos.sumSelf(1, 0, 0);
-
             return nodes;
         }
 

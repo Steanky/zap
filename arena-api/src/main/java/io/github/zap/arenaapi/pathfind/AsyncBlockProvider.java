@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.arenaapi.vector2.ChunkVector;
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import org.bukkit.World;
@@ -29,11 +29,11 @@ class AsyncBlockProvider implements BlockProvider {
 
     @Override
     public boolean hasChunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkVector(x, z))) != null;
+        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), ChunkVector.immutable(x, z))) != null;
     }
 
     private void updateChunkInternal(int x, int z) {
-        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), new ChunkVector(x, z)),
+        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), ChunkVector.immutable(x, z)),
                 ArenaApi.getInstance().getNmsBridge().worldBridge().takeSnapshot(world.getChunkAt(x, z)));
     }
 
@@ -62,7 +62,7 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     private CollisionChunkSnapshot chunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), new ChunkVector(x, z)));
+        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), ChunkVector.immutable(x, z)));
     }
 
     @Override
