@@ -2,17 +2,17 @@ package io.github.zap.arenaapi.vector;
 
 import java.util.Objects;
 
-public class ChunkVectorSource {
+public class ChunkVector {
     private final int x;
     private final int z;
     private int hash = -1;
 
-    public ChunkVectorSource(int x, int z) {
+    public ChunkVector(int x, int z) {
         this.x = x;
         this.z = z;
     }
 
-    protected ChunkVectorSource() {
+    protected ChunkVector() {
         x = 0;
         z = 0;
     }
@@ -32,8 +32,8 @@ public class ChunkVectorSource {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj.getClass() == ChunkVectorSource.class) {
-            ChunkVectorSource other = (ChunkVectorSource) obj;
+        if(obj.getClass() == ChunkVector.class) {
+            ChunkVector other = (ChunkVector) obj;
             return x == other.x && z == other.z;
         }
 

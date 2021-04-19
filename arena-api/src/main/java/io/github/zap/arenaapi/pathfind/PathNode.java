@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVectorSource;
+import io.github.zap.arenaapi.vector.WorldVector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +22,7 @@ public class PathNode {
     public final int blockZ;
 
     private final int hash;
-    private WorldVectorSource vectorSource = null;
+    private WorldVector vectorSource = null;
 
     final Score score;
     PathNode parent;
@@ -82,12 +82,16 @@ public class PathNode {
         return new PathNode(new Score(), this, x, y, z);
     }
 
+    public @NotNull PathNode link(@NotNull WorldVector source) {
+        return link(source.worldX(), source.worldY(), source.worldZ());
+    }
+
     public @NotNull PathNode copy() {
         return new PathNode(score, parent, x, y, z, hash);
     }
 
-    public @NotNull WorldVectorSource position() {
-        return vectorSource == null ? vectorSource = new WorldVectorSource(x, y, z) : vectorSource;
+    public @NotNull WorldVector position() {
+        return new WorldVector(x, y, z);
     }
 
     @NotNull PathNode reverse() {

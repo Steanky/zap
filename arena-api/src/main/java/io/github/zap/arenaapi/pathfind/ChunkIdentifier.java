@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.ChunkVectorSource;
+import io.github.zap.arenaapi.vector.ChunkVector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -8,10 +8,10 @@ import java.util.UUID;
 
 class ChunkIdentifier {
     public final UUID worldID;
-    public final ChunkVectorSource position;
+    public final ChunkVector position;
     private final int hash;
 
-    ChunkIdentifier(@NotNull UUID worldID, @NotNull ChunkVectorSource position) {
+    ChunkIdentifier(@NotNull UUID worldID, @NotNull ChunkVector position) {
         this.worldID = worldID;
         this.position = position;
         hash = Objects.hash(worldID, position);
@@ -37,7 +37,7 @@ class ChunkIdentifier {
         return "ChunkIdentifier{worldID=" + worldID + ", position=" + position + "}";
     }
 
-    public ChunkVectorSource position() {
+    public ChunkVector position() {
         return position;
     }
 }

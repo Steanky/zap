@@ -1,17 +1,14 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
-    private static final double MAX_MERGE_ANGLE = Math.PI / 6D;
-
     private final PathAgent agent;
     private final Set<PathDestination> destinations;
     private State state;
-    private final ScoreCalculator calculator;
+    private final ScoreCalculator scoreCalculator;
     private final SuccessCondition condition;
     private final NodeProvider nodeProvider;
     private final DestinationSelector destinationSelector;
@@ -20,20 +17,19 @@ class PathOperationImpl implements PathOperation {
     //TODO: maintain separate NodeQueue for lower-priority nodes and only take from that queue when needed
     private final NodeQueue openSet = new BinaryHeapNodeQueue(128);
     private final Map<PathNode, PathNode> visited = new HashMap<>();
-    private final Set<PathResult> consideredResults = new HashSet<>();
-    private PathDestination destination;
+    private PathDestination bestDestination;
     private PathNode currentNode;
     private PathNode bestFound;
     private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
-                      @NotNull ScoreCalculator calculator, @NotNull SuccessCondition condition,
+                      @NotNull ScoreCalculator scoreCalculator, @NotNull SuccessCondition condition,
                       @NotNull NodeProvider nodeProvider, @NotNull DestinationSelector destinationSelector,
                       @NotNull ChunkCoordinateProvider searchArea) {
         this.agent = agent;
         this.destinations = destinations;
         this.state = State.NOT_STARTED;
-        this.calculator = calculator;
+        this.scoreCalculator = scoreCalculator;
         this.condition = condition;
         this.nodeProvider = nodeProvider;
         this.destinationSelector = destinationSelector;
@@ -61,13 +57,15 @@ class PathOperationImpl implements PathOperation {
             if(currentNode != null) {
                 PathDestination best = null;
                 double bestScore = Double.POSITIVE_INFINITY;
+
                 for(PathDestination destination : destinations) {
                     if(condition.hasCompleted(context, currentNode, destination)) {
-                        complete(true, destination);
+                        bestDestination = destination;
+                        complete(true);
                         return true;
                     }
 
-                    double score = calculator.computeH(context, currentNode, destination);
+                    double score = scoreCalculator.computeH(context, currentNode, destination);
                     if(best == null || score < bestScore) {
                         best = destination;
                         bestScore = score;
@@ -75,7 +73,7 @@ class PathOperationImpl implements PathOperation {
                 }
 
                 if(best == null) {
-                    complete(false, PathDestination.fromSource(currentNode.position()));
+                    complete(false);
                     return true;
                 }
 
@@ -83,14 +81,14 @@ class PathOperationImpl implements PathOperation {
                     currentNode = openSet.takeBest();
                 }
                 else {
-                    complete(false, PathDestination.fromSource(bestFound.position()));
+                    complete(false);
                     return true;
                 }
             }
             else {
                 currentNode = new PathNode(null, agent);
-                destination = destinationSelector.selectDestinationFor(this, currentNode);
-                currentNode.score.set(0, calculator.computeH(context, currentNode, destination));
+                bestDestination = destinationSelector.selectDestinationFor(this, currentNode);
+                currentNode.score.set(0, scoreCalculator.computeH(context, currentNode, bestDestination));
                 bestFound = currentNode.copy();
             }
 
@@ -106,48 +104,14 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
+                //TODO: implement fancy optimizations
                 if(nodeProvider.mayTraverse(context, agent, currentNode, sample)) {
-                    destination = destinationSelector.selectDestinationFor(this, sample);
+                    bestDestination = destinationSelector.selectDestinationFor(this, sample);
 
-                    //remove the unreachable destination so we don't expand a ton of nodes
-                    for(PathResult failed : context.failedPaths()) {
-                        if(!consideredResults.contains(failed)) {
-                            if(destinationComparable(context, failed, sample, true)) {
-                                PathNode connectionPoint = failed.visitedNodes().remove(sample);
-                                PathNode start = sample.reverse();
-                                sample.parent = connectionPoint;
-
-                                state = State.FAILED;
-                                result = new PathResultImpl(start, this, visited, destination, state);
-                                ArenaApi.info("Failed by merge strategy");
-                                return true;
-                            }
-
-                            consideredResults.add(failed);
-                        }
-                    }
-
-                    for(PathResult succeeded : context.successfulPaths()) {
-                        if(!consideredResults.contains(succeeded)) {
-                            if(destinationComparable(context, succeeded, sample, false)) {
-                                PathNode connectionPoint = succeeded.visitedNodes().remove(sample);
-                                PathNode start = sample.reverse();
-                                sample.parent = connectionPoint;
-
-                                state = State.SUCCEEDED;
-                                result = new PathResultImpl(start, this, visited, destination, state);
-                                ArenaApi.info("Succeeded by merge strategy");
-                                return true;
-                            }
-
-                            consideredResults.add(succeeded);
-                        }
-                    }
-
-                    double g = calculator.computeG(context, currentNode, sample, destination);
+                    double g = scoreCalculator.computeG(context, currentNode, sample, bestDestination);
                     if(g < sample.score.getG()) {
                         PathNode newSample = sample.copy();
-                        newSample.score.set(g, calculator.computeH(context, sample, destination));
+                        newSample.score.set(g, scoreCalculator.computeH(context, sample, bestDestination));
                         openSet.replaceNode(sample, newSample);
                         sample = newSample;
                     }
@@ -219,24 +183,9 @@ class PathOperationImpl implements PathOperation {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
 
-    private boolean validateAngle(PathNode first, PathNode second) {
-        double b = first.position().distance(destination.position());
-        double a = second.position().distance(destination.position());
-        double c = first.position().distanceSquared(second.position());
-
-        return Math.acos(((a * a) + (b * b) - c) / (2 * a * b)) <= MAX_MERGE_ANGLE;
-    }
-
-    private boolean destinationComparable(PathfinderContext context, PathResult result, PathNode walkTo, boolean checkInverseWalkability) {
-        return result.destination().equals(this.destination) &&
-                result.operation().nodeProvider().equals(nodeProvider) &&
-                result.operation().agent().characteristics().equals(agent.characteristics()) &&
-                result.visitedNodes().containsKey(walkTo) &&
-                (!checkInverseWalkability || result.operation().nodeProvider().mayTraverse(context, agent, walkTo, currentNode));
-    }
-
-    private void complete(boolean success, PathDestination destination) {
+    private void complete(boolean success) {
         state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(success ? currentNode.reverse() : bestFound.reverse(), this, visited, destination, state);
+        result = new PathResultImpl(success ? currentNode.reverse() : bestFound.reverse(), this, visited,
+                bestDestination, state);
     }
 }

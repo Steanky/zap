@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVectorSource;
+import io.github.zap.arenaapi.vector.WorldVector;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,30 +12,30 @@ public interface SuccessCondition {
      * Simple termination condition: the path is complete when the agent occupies the same block as the destination.
      */
     SuccessCondition WITHIN_BLOCK = (context, node, destination) -> {
-        WorldVectorSource position = destination.position();
+        WorldVector position = destination.position();
         return node.blockX == position.blockX() && node.blockY == position.blockY() && node.blockZ == position.blockZ();
     };
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
-    static SuccessCondition whenWithin(double destinationScore) {
-        Validate.isTrue(destinationScore > 0, "destinationScore must be greater than 0!");
-        Validate.isTrue(Double.isFinite(destinationScore), "destinationScore must be finite!");
-        return (context, node, destination) -> destination.position().distanceSquared(node.position()) <= destinationScore;
+    static @NotNull SuccessCondition whenWithin(double distanceSquared) {
+        Validate.isTrue(distanceSquared > 0, "distanceSquared must be greater than 0!");
+        Validate.isTrue(Double.isFinite(distanceSquared), "distanceSquared must be finite!");
+        return (context, node, destination) -> destination.position().distanceSquared(node.position()) <= distanceSquared;
     }
 
-    static SuccessCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {
+    static @NotNull SuccessCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {
         Objects.requireNonNull(nodePredicate, "nodePredicate cannot be null!");
         return (context, node, destination) -> nodePredicate.test(node);
     }
 
-    static SuccessCondition both(@NotNull SuccessCondition first, @NotNull SuccessCondition second) {
+    static @NotNull SuccessCondition whenBoth(@NotNull SuccessCondition first, @NotNull SuccessCondition second) {
         Objects.requireNonNull(first, "first cannot be null!");
         Objects.requireNonNull(first, "second cannot be null!");
         return (context, node, destination) -> first.hasCompleted(context, node, destination) && second.hasCompleted(context, node, destination);
     }
 
-    static SuccessCondition either(@NotNull SuccessCondition first, @NotNull SuccessCondition second) {
+    static @NotNull SuccessCondition whenEither(@NotNull SuccessCondition first, @NotNull SuccessCondition second) {
         Objects.requireNonNull(first, "first cannot be null!");
         Objects.requireNonNull(first, "second cannot be null!");
         return (context, node, destination) -> first.hasCompleted(context, node, destination) || second.hasCompleted(context, node, destination);

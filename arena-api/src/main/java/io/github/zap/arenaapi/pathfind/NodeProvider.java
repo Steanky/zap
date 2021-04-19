@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.vector.WorldVector;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +35,29 @@ public abstract class NodeProvider {
                                    @NotNull PathNode start, @NotNull PathNode next) {
             BlockData blockData = context.blockProvider().getData((int)next.x, (int)next.y, (int)next.z);
             return blockData != null && blockData.getMaterial().isAir();
+        }
+    };
+
+    /**
+     * NodeProvider implementation that mimics vanilla pathfinding to a certain extent, with some bugs fixed. Uses
+     * advanced collision detection and supports asynchronous PathfinderEngine implementations.
+     */
+    public static final NodeProvider DEFAULT = new NodeProvider() {
+        @Override
+        public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathNode nodeAt) {
+            PathNode[] nodes = new PathNode[8];
+            WorldVector pos = nodeAt.position();
+            BlockProvider provider = context.blockProvider();
+
+            pos.sumSelf(1, 0, 0);
+
+            return nodes;
+        }
+
+        @Override
+        public boolean mayTraverse(@NotNull PathfinderContext context, @NotNull PathAgent agent,
+                                   @NotNull PathNode start, @NotNull PathNode next) {
+            return false;
         }
     };
 

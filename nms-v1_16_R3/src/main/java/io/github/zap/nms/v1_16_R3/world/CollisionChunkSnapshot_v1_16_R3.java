@@ -1,7 +1,7 @@
 package io.github.zap.nms.v1_16_R3.world;
 
-import io.github.zap.nms.common.world.SimpleChunkSnapshot;
-import io.github.zap.nms.common.world.VoxelShapeWrapper;
+import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot {
+class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSnapshot {
     private static final DataPaletteBlock<IBlockData> EMPTY_BLOCK_IDS = (new ChunkSection(0, null, null, true)).getBlocks();
     private static final Predicate<IBlockData> IS_PARTIAL_BLOCK = blockData ->
             isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO).d());
@@ -31,9 +31,9 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] blockids;
-    private final Map<Long, VoxelShapeWrapper> collisionMap = new HashMap<>();
+    private final Map<Long, BlockCollisionSnapshot> collisionMap = new HashMap<>();
 
-    SimpleChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
+    CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
         worldName = chunk.getWorld().getName();
         chunkX = chunk.getX();
         chunkZ = chunk.getZ();
@@ -42,7 +42,7 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
     }
 
     @Override
-    public @Nullable VoxelShapeWrapper collisionFor(int chunkX, int chunkY, int chunkZ) {
+    public @Nullable BlockCollisionSnapshot collisionSnapshot(int chunkX, int chunkY, int chunkZ) {
         return collisionMap.get(org.bukkit.block.Block.getBlockKey(chunkX, chunkY, chunkZ));
     }
 
@@ -106,7 +106,9 @@ class SimpleChunkSnapshot_v1_16_R3 implements SimpleChunkSnapshot, ChunkSnapshot
 
                         List<AxisAlignedBB> shape = blockData.getCollisionShape(chunk, examine).d();
                         if(isPartialSolidBlock(shape)) {
-                            collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), new VoxelShape_Wrapper_v1_16_R3(shape));
+                            collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z),
+                                    BlockCollisionSnapshot.from(blockData.createCraftBlockData(),
+                                            new VoxelShape_Wrapper_v1_16_R3(shape)));
                         }
                     });
                 }

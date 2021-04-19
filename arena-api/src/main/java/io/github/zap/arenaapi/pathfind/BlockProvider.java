@@ -1,8 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.BlockVectorSource;
-import io.github.zap.arenaapi.vector.ChunkVectorSource;
-import io.github.zap.nms.common.world.VoxelShapeWrapper;
+import io.github.zap.arenaapi.vector.BlockVector;
+import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +15,7 @@ public interface BlockProvider {
 
     void updateChunk(int x, int y);
 
-    default void updateChunk(@NotNull ChunkVectorSource source) {
+    default void updateChunk(@NotNull ChunkVector source) {
         updateChunk(source.chunkX(), source.chunkZ());
     }
 
@@ -23,15 +23,16 @@ public interface BlockProvider {
 
     @NotNull ChunkCoordinateProvider coordinateProvider();
 
+    //TODO: make getData method return a wrapper object that also contains the block collision
     @Nullable BlockData getData(int x, int y, int z);
 
-    default BlockData getData(@NotNull BlockVectorSource source) {
+    default BlockData getData(@NotNull BlockVector source) {
         return getData(source.blockX(), source.blockY(), source.blockZ());
     }
 
-    @Nullable VoxelShapeWrapper getCollision(int x, int y, int z);
+    @Nullable BlockCollisionSnapshot getCollision(int x, int y, int z);
 
-    default VoxelShapeWrapper getCollision(@NotNull BlockVectorSource source) {
+    default @Nullable BlockCollisionSnapshot getCollision(@NotNull BlockVector source) {
         return getCollision(source.blockX(), source.blockY(), source.blockZ());
     }
 }

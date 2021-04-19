@@ -4,7 +4,7 @@ import io.github.zap.arenaapi.util.VectorUtils;
 import org.jetbrains.annotations.NotNull;
 
 public interface ScoreCalculator {
-    ScoreCalculator DISTANCE = new ScoreCalculator() {
+    ScoreCalculator DISTANCE_ONLY = new ScoreCalculator() {
         @Override
         public double computeG(@NotNull PathfinderContext context, @NotNull PathNode current, @NotNull PathNode to, @NotNull PathDestination destination) {
             return current.score.getG() + VectorUtils.distance(current.x, current.y, current.z, to.x, to.y, to.z);

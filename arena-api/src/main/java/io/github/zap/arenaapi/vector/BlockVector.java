@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class BlockVectorSource extends ChunkVectorSource {
+public class BlockVector extends ChunkVector {
     private final int x;
     private final int y;
     private final int z;
@@ -15,13 +15,13 @@ public class BlockVectorSource extends ChunkVectorSource {
     private Integer chunkX = null;
     private Integer chunkZ = null;
 
-    public BlockVectorSource(int x, int y, int z) {
+    public BlockVector(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    public BlockVectorSource(@NotNull Vector vector) {
+    public BlockVector(@NotNull Vector vector) {
         x = vector.getBlockX();
         y = vector.getBlockY();
         z = vector.getBlockZ();
@@ -49,11 +49,11 @@ public class BlockVectorSource extends ChunkVectorSource {
         return z;
     }
 
-    public double blockDistanceSquared(@NotNull BlockVectorSource other) {
+    public double blockDistanceSquared(@NotNull BlockVector other) {
         return VectorUtils.distanceSquared(x, y, z, other.x, other.y, other.z);
     }
 
-    public double blockDistance(@NotNull BlockVectorSource other) {
+    public double blockDistance(@NotNull BlockVector other) {
         return VectorUtils.distance(x, y, z, other.x, other.y, other.z);
     }
 
@@ -64,8 +64,8 @@ public class BlockVectorSource extends ChunkVectorSource {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj.getClass() == BlockVectorSource.class) {
-            BlockVectorSource other = (BlockVectorSource) obj;
+        if(obj.getClass() == BlockVector.class) {
+            BlockVector other = (BlockVector) obj;
             return x == other.x && y == other.y && z == other.z;
         }
 

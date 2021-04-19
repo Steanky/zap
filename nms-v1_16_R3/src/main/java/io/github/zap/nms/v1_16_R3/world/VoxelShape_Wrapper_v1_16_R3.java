@@ -20,9 +20,9 @@ class VoxelShape_Wrapper_v1_16_R3 implements VoxelShapeWrapper {
     }
 
     @Override
-    public boolean containsPoint(double x, double y, double z) {
+    public boolean containsPoint(double relativeX, double relativeY, double relativeZ) {
         for(AxisAlignedBB box : boundingBoxes) {
-            if(box.e(x, y, z)) {
+            if(box.e(relativeX, relativeY, relativeZ)) {
                 return true;
             }
         }

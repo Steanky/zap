@@ -22,17 +22,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     private static class Entry {
         private final PathOperation operation;
-        private final Map<PathDestination, List<Consumer<PathResult>>> consumers;
+        private final Consumer<PathResult> consumer;
 
         private Entry(@NotNull PathOperation operation, @NotNull Consumer<PathResult> consumer) {
             this.operation = Objects.requireNonNull(operation, "operation cannot be null!");
-            this.consumers = new HashMap<>();
-
-            for(PathDestination destination : operation.getDestinations()) {
-                List<Consumer<PathResult>> list = new ArrayList<>(1);
-                list.add(consumer);
-                consumers.put(destination, list);
-            }
+            this.consumer = consumer;
         }
     }
 
@@ -196,38 +190,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             int operationStartingIndex;
             synchronized (context.lockHandle) {
                 operationStartingIndex = context.entries.size() - 1;
-
-                //merge operations that calculate exactly the same path
-                for(int i = operationStartingIndex; i > -1; i--) {
-                    Entry sample = context.entries.get(i);
-
-                    for(int j = operationStartingIndex; j > i; j--) {
-                        Entry otherSample = context.entries.get(j);
-
-                        //let operations allow or deny merges if they want
-                        if(otherSample.operation.state() == PathOperation.State.NOT_STARTED &&
-                                sample.operation.allowMerge(otherSample.operation)) {
-                            Set<PathDestination> sampleDestinations = sample.operation.getDestinations();
-                            Set<PathDestination> otherDestinations = otherSample.operation.getDestinations();
-
-                            for(PathDestination sampleDestination : sampleDestinations) {
-                                if(otherDestinations.remove(sampleDestination)) {
-                                    List<Consumer<PathResult>> otherConsumers = otherSample.consumers.get(sampleDestination);
-                                    otherConsumers.clear();
-
-                                    sample.consumers.get(sampleDestination).addAll(otherConsumers);
-
-                                    //we may be able to prune some entries entirely
-                                    if(otherSample.consumers.size() == 0) {
-                                        context.entries.remove(j);
-                                        operationStartingIndex--;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             for (int i = operationStartingIndex; i > -1; i--) { //iterate all pathfinding operations for this world
@@ -255,17 +217,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 break;
                             }
 
-                            List<Consumer<PathResult>> consumers = entry.consumers.get(result.destination());
-                            if(consumers != null && consumers.size() > 0) {
-                                for(Consumer<PathResult> consumer : consumers) {
-                                    consumer.accept(result);
-                                }
-                            }
-                            else {
-                                ArenaApi.warning("PathDestination " + result.destination() + " has no consumers " +
-                                        "associated with it.");
-                            }
-
+                            entry.consumer.accept(result);
                             removeOperation(context, i);
                             break;
                         }
