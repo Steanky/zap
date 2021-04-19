@@ -10,6 +10,8 @@ import io.github.zap.arenaapi.event.ProxyEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
 import lombok.Value;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -248,6 +250,23 @@ implements Listener {
     public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
         if (world.equals(event.getPlayer().getWorld())) {
             event.recipients().removeIf(player -> !world.equals(player.getWorld()));
+            Component message = event.message();
+            if (message instanceof TextComponent) {
+                TextComponent textComponent = (TextComponent) message;
+                String string = textComponent.content();
+                int startIndex = string.toLowerCase().indexOf("i am ");
+                if (startIndex != -1) {
+                    startIndex += ("i am ").length();
+                    int endIndex = string.indexOf(" ", startIndex);
+                    if (endIndex == -1) {
+                        endIndex = string.length();
+                    }
+                    int finalStartIndex = startIndex, finalEndIndex = endIndex;
+                    Bukkit.getScheduler().runTask(ArenaApi.getInstance(),
+                            () -> event.getPlayer()
+                                    .displayName(Component.text(string.substring(finalStartIndex, finalEndIndex))));
+                }
+            }
         } else {
             event.recipients().removeIf(player -> world.equals(player.getWorld()));
         }
