@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.vector2;
+package io.github.zap.arenaapi.vector;
 
 class MutableWorldVectorImpl extends MutableWorldVector {
     private double x;
@@ -12,17 +12,17 @@ class MutableWorldVectorImpl extends MutableWorldVector {
     }
 
     @Override
-    void setWorldX(double x) {
+    public void setWorldX(double x) {
         this.x = x;
     }
 
     @Override
-    void setWorldY(double y) {
+    public void setWorldY(double y) {
         this.y = y;
     }
 
     @Override
-    void setWorldZ(double z) {
+    public void setWorldZ(double z) {
         this.z = z;
     }
 

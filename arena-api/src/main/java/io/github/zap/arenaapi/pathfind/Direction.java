@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.BlockVector;
-import io.github.zap.arenaapi.vector2.WorldVector;
+import io.github.zap.arenaapi.vector.WorldVector;
 
 public enum Direction {
     NORTH(WorldVector.immutable(0D, 0D, -1D)),
@@ -11,7 +10,9 @@ public enum Direction {
     SOUTH(WorldVector.immutable(0D, 0D, 1D)),
     SOUTHWEST(WorldVector.immutable(-1D, 0D, 1D)),
     WEST(WorldVector.immutable(-1D, 0D, 0D)),
-    NORTHWEST(WorldVector.immutable(-1D, 0D, -1D));
+    NORTHWEST(WorldVector.immutable(-1D, 0D, -1D)),
+    UP(WorldVector.immutable(0D, 1D, 0D)),
+    DOWN(WorldVector.immutable(0D, -1D, 0D));
 
     private final WorldVector offset;
 

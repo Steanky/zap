@@ -1,10 +1,9 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.BlockVector;
-import io.github.zap.arenaapi.vector2.ChunkVector;
-import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.nms.common.world.BlockSnapshot;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,16 +22,9 @@ public interface BlockProvider {
 
     @NotNull ChunkCoordinateProvider coordinateProvider();
 
-    //TODO: make getData method return a wrapper object that also contains the block collision
-    @Nullable BlockData getData(int x, int y, int z);
+    @Nullable BlockSnapshot getBlock(int x, int y, int z);
 
-    default BlockData getData(@NotNull BlockVector source) {
-        return getData(source.blockX(), source.blockY(), source.blockZ());
-    }
-
-    @Nullable BlockCollisionSnapshot getCollision(int x, int y, int z);
-
-    default @Nullable BlockCollisionSnapshot getCollision(@NotNull BlockVector source) {
-        return getCollision(source.blockX(), source.blockY(), source.blockZ());
+    default @Nullable BlockSnapshot getBlock(@NotNull WorldVector source) {
+        return getBlock(source.blockX(), source.blockY(), source.blockZ());
     }
 }

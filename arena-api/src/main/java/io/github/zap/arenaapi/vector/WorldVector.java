@@ -1,11 +1,11 @@
-package io.github.zap.arenaapi.vector2;
+package io.github.zap.arenaapi.vector;
 
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public abstract class WorldVector extends BlockVector {
+public abstract class WorldVector extends ChunkVector {
     public abstract double worldX();
 
     public abstract double worldY();
@@ -13,18 +13,33 @@ public abstract class WorldVector extends BlockVector {
     public abstract double worldZ();
 
     @Override
+    public int chunkX() {
+        return blockX() >> 4;
+    }
+
+    @Override
+    public int chunkZ() {
+        return blockZ() >> 4;
+    }
+
     public int blockX() {
         return (int)worldX();
     }
 
-    @Override
     public int blockY() {
         return (int)worldY();
     }
 
-    @Override
     public int blockZ() {
         return (int)worldZ();
+    }
+
+    public MutableWorldVector asMutable() {
+        return new MutableWorldVectorImpl(worldX(), worldY(), worldZ());
+    }
+
+    public WorldVector copy() {
+        return mutable(worldX(), worldY(), worldZ());
     }
 
     public double manhattanDistance(double x, double y, double z) {
@@ -45,6 +60,14 @@ public abstract class WorldVector extends BlockVector {
 
     public double distanceSquared(@NotNull WorldVector to) {
         return distanceSquared(to.worldX(), to.worldY(), to.worldZ());
+    }
+
+    public @NotNull WorldVector add(double x, double y, double z) {
+        return immutable(worldX() + x, worldY() + y, worldZ() + z);
+    }
+
+    public @NotNull WorldVector add(@NotNull WorldVector other) {
+        return add(other.worldX(), other.worldY(), other.worldZ());
     }
 
     @Override

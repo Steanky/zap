@@ -1,11 +1,10 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.vector2.ChunkVector;
-import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,32 +65,13 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     @Override
-    public @Nullable BlockData getData(int worldX, int worldY, int worldZ) {
-        int chunkX = worldX >> 4; //convert world coords to chunk coords
-        int chunkZ = worldZ >> 4;
-
-        CollisionChunkSnapshot snapshot = chunkAt(chunkX, chunkZ); //get the chunk we need
-        if(snapshot != null) {
-            int remX = worldX % 16;
-            int remZ = worldZ % 16;
-
-            return snapshot.getBlockData(remX < 0 ? 16 + remX : remX, worldY, remZ < 0 ? 16 + remZ : remZ);
-        }
-
-        return null;
-    }
-
-    @Override
-    public @Nullable BlockCollisionSnapshot getCollision(int worldX, int worldY, int worldZ) {
+    public @Nullable BlockSnapshot getBlock(int worldX, int worldY, int worldZ) {
         int chunkX = worldX >> 4;
         int chunkZ = worldZ >> 4;
 
         CollisionChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
         if(snapshot != null) {
-            int remX = worldX % 16;
-            int remZ = worldZ % 16;
-
-            return snapshot.collisionSnapshot(remX < 0 ? 16 + remX : remX, worldY, remZ < 0 ? 16 + remZ : remZ);
+            return snapshot.blockSnapshot(worldX & 15, worldY, worldZ & 15);
         }
 
         return null;

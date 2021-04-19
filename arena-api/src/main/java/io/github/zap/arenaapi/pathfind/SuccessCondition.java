@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.WorldVector;
+import io.github.zap.arenaapi.vector.WorldVector;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,7 +13,7 @@ public interface SuccessCondition {
      */
     SuccessCondition WITHIN_BLOCK = (context, node, destination) -> {
         WorldVector position = destination.position();
-        return node.blockX == position.blockX() && node.blockY == position.blockY() && node.blockZ == position.blockZ();
+        return node.blockX() == position.blockX() && node.blockY() == position.blockY() && node.blockZ() == position.blockZ();
     };
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
@@ -21,7 +21,7 @@ public interface SuccessCondition {
     static @NotNull SuccessCondition whenWithin(double distanceSquared) {
         Validate.isTrue(distanceSquared > 0, "distanceSquared must be greater than 0!");
         Validate.isTrue(Double.isFinite(distanceSquared), "distanceSquared must be finite!");
-        return (context, node, destination) -> destination.position().distanceSquared(node.position()) <= distanceSquared;
+        return (context, node, destination) -> destination.position().distanceSquared(node) <= distanceSquared;
     }
 
     static @NotNull SuccessCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {

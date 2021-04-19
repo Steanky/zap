@@ -308,7 +308,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                             ChunkCoordinateProvider.squareFromAgent(blockAgent, 5)),
                             event.getPlayer().getWorld(), (pathResult) -> Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                                 for(PathNode node : pathResult) {
-                                    event.getPlayer().getWorld().getBlockAt(node.blockX, node.blockY - 1, node.blockZ).setType(Material.GREEN_WOOL);
+                                    event.getPlayer().getWorld().getBlockAt(node.blockX(), node.blockY() - 1, node.blockZ()).setType(Material.GREEN_WOOL);
                                 }
                             }));
                 }

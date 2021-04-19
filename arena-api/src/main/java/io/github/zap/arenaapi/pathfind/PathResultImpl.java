@@ -5,26 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 class PathResultImpl implements PathResult {
-    private static class ResultIterator implements Iterator<PathNode> {
-        private PathNode current;
-
-        private ResultIterator(PathNode current) {
-            this.current = current;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return current != null;
-        }
-
-        @Override
-        public PathNode next() {
-            PathNode save = current;
-            current = current.parent;
-            return save;
-        }
-    }
-
     private final PathNode start;
     private final PathNode end;
     private final PathOperation operation;
@@ -90,6 +70,6 @@ class PathResultImpl implements PathResult {
     @NotNull
     @Override
     public Iterator<PathNode> iterator() {
-        return new ResultIterator(start);
+        return pathNodes.iterator();
     }
 }

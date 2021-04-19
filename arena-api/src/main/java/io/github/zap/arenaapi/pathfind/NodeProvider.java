@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.bukkit.block.data.BlockData;
+import io.github.zap.arenaapi.vector.MutableWorldVector;
+import io.github.zap.nms.common.world.BlockSnapshot;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class NodeProvider {
     /**
-     * NodeProvider that can be used to debug pathfinding implementations. It only allows movement along the same
+     * NodeProvider that can be used to debug pathfinding implementations. It will only generate nodes along the same
      * Y-axis, and will not consider nodes that move into non-air blocks.
      */
     public static final NodeProvider DEBUG = new NodeProvider() {
@@ -32,8 +33,8 @@ public abstract class NodeProvider {
         @Override
         public boolean mayTraverse(@NotNull PathfinderContext context, @NotNull PathAgent agent,
                                    @NotNull PathNode start, @NotNull PathNode next) {
-            BlockData blockData = context.blockProvider().getData((int)next.x, (int)next.y, (int)next.z);
-            return blockData != null && blockData.getMaterial().isAir();
+            BlockSnapshot blockData = context.blockProvider().getBlock(next.blockX(), next.blockY(), next.blockZ());
+            return blockData != null && blockData.data().getMaterial().isAir();
         }
     };
 
@@ -41,10 +42,14 @@ public abstract class NodeProvider {
      * NodeProvider implementation that mimics vanilla pathfinding to a certain extent, with some bugs fixed. Uses
      * advanced collision detection and supports asynchronous PathfinderEngine implementations.
      */
-    public static final NodeProvider DEFAULT = new NodeProvider() {
+    public static final NodeProvider DEFAULT_GROUND = new NodeProvider() {
         @Override
         public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathNode nodeAt) {
             PathNode[] nodes = new PathNode[8];
+            BlockProvider provider = context.blockProvider();
+            MutableWorldVector at = nodeAt.asMutable();
+
+
             return nodes;
         }
 
@@ -52,6 +57,13 @@ public abstract class NodeProvider {
         public boolean mayTraverse(@NotNull PathfinderContext context, @NotNull PathAgent agent,
                                    @NotNull PathNode start, @NotNull PathNode next) {
             return false;
+        }
+
+        private void seekHighest(BlockProvider provider, MutableWorldVector from) {
+            BlockSnapshot block = provider.getBlock(from);
+            while(block != null && block.data().getMaterial().isSolid()) {
+                block = provider.getBlock(from.add(Direction.UP.offset()));
+            }
         }
     };
 

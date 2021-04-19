@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.vector2;
+package io.github.zap.arenaapi.vector;
 
 import java.util.Objects;
 
@@ -12,7 +12,12 @@ public abstract class ChunkVector {
 
     @Override
     public int hashCode() {
-        return Objects.hash(chunkX(), chunkZ());
+        if(!hasHash) {
+            hasHash = true;
+            hash = Objects.hash(chunkX(), chunkZ());
+        }
+
+        return hash;
     }
 
     @Override

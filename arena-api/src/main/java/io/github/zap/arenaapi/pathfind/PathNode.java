@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.WorldVector;
+import io.github.zap.arenaapi.vector.WorldVector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,17 +12,12 @@ import java.util.Objects;
  * block coordinates, but may point to a location within any particular block (ex. [0.5, 0.5, 0.5] referring to the
  * exact center of the block at [0, 0, 0]).
  */
-public class PathNode {
-    public final double x;
-    public final double y;
-    public final double z;
-
-    public final int blockX;
-    public final int blockY;
-    public final int blockZ;
+public class PathNode extends WorldVector {
+    private final double x;
+    private final double y;
+    private final double z;
 
     private final int hash;
-    private WorldVector vectorSource = null;
 
     final Score score;
     PathNode parent;
@@ -33,9 +28,6 @@ public class PathNode {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.blockX = (int)x;
-        this.blockY = (int)y;
-        this.blockZ = (int)z;
         this.hash = hash;
     }
 
@@ -44,7 +36,7 @@ public class PathNode {
     }
 
     PathNode(@Nullable PathNode parent, @NotNull PathAgent agent) {
-        this(new Score(), parent, agent.position().worldX(), agent.position().worldY(), agent.position().worldZ());
+        this(new Score(), parent, agent.worldX(), agent.worldY(), agent.worldZ());
     }
 
     PathNode(@Nullable PathNode parent, @NotNull Vector vector) {
@@ -56,6 +48,21 @@ public class PathNode {
     }
 
     @Override
+    public double worldX() {
+        return x;
+    }
+
+    @Override
+    public double worldY() {
+        return y;
+    }
+
+    @Override
+    public double worldZ() {
+        return z;
+    }
+
+    @Override
     public int hashCode() {
         return hash;
     }
@@ -63,7 +70,8 @@ public class PathNode {
     @Override
     public boolean equals(Object other) {
         if(other instanceof PathNode) {
-            return position().equals(((PathNode) other).position());
+            PathNode otherNode = (PathNode) other;
+            return x == otherNode.x && y == otherNode.y && z == otherNode.z;
         }
 
         return false;
@@ -74,24 +82,22 @@ public class PathNode {
         return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", score=" + score + "}";
     }
 
-    public @NotNull PathNode add(@NotNull WorldVector offset) {
-        return new PathNode(new Score(), this, this.x + offset.worldX(), this.y + offset.worldY(), this.z + offset.worldZ());
+    @Override
+    public @NotNull PathNode add(double x, double y, double z) {
+        return new PathNode(new Score(), this, this.x + x, this.y + y, this.z + z);
+    }
+
+    @Override
+    public @NotNull PathNode add(@NotNull WorldVector other) {
+        return add(other.worldX(), other.worldY(), other.worldZ());
     }
 
     public @NotNull PathNode link(double x, double y, double z) {
         return new PathNode(new Score(), this, x, y, z);
     }
 
-    public @NotNull PathNode link(@NotNull WorldVector source) {
-        return link(source.worldX(), source.worldY(), source.worldZ());
-    }
-
     public @NotNull PathNode copy() {
         return new PathNode(score, parent, x, y, z, hash);
-    }
-
-    public @NotNull WorldVector position() {
-        return vectorSource;
     }
 
     @NotNull PathNode reverse() {

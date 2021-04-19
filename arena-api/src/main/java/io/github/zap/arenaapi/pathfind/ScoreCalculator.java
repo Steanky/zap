@@ -7,12 +7,12 @@ public interface ScoreCalculator {
     ScoreCalculator DISTANCE_ONLY = new ScoreCalculator() {
         @Override
         public double computeG(@NotNull PathfinderContext context, @NotNull PathNode current, @NotNull PathNode to, @NotNull PathDestination destination) {
-            return current.score.getG() + VectorUtils.distance(current.x, current.y, current.z, to.x, to.y, to.z);
+            return current.score.getG() + VectorUtils.distance(current.worldX(), current.worldY(), current.worldZ(), to.worldX(), to.worldY(), to.worldZ());
         }
 
         @Override
         public double computeH(@NotNull PathfinderContext context, @NotNull PathNode current, @NotNull PathDestination destination) {
-            return current.position().distanceSquared(destination.position());
+            return current.distanceSquared(destination.position());
         }
     };
 

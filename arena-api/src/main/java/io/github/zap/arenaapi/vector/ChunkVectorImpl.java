@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.vector2;
+package io.github.zap.arenaapi.vector;
 
 class ChunkVectorImpl extends ChunkVector {
     private final int x;

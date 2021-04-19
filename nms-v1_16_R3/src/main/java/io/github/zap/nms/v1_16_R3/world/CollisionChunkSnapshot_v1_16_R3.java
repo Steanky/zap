@@ -1,7 +1,8 @@
 package io.github.zap.nms.v1_16_R3.world;
 
-import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -31,7 +32,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSn
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] blockids;
-    private final Map<Long, BlockCollisionSnapshot> collisionMap = new HashMap<>();
+    private final Map<Long, BlockSnapshot> collisionMap = new HashMap<>();
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
         worldName = chunk.getWorld().getName();
@@ -42,8 +43,9 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSn
     }
 
     @Override
-    public @Nullable BlockCollisionSnapshot collisionSnapshot(int chunkX, int chunkY, int chunkZ) {
-        return collisionMap.get(org.bukkit.block.Block.getBlockKey(chunkX, chunkY, chunkZ));
+    public @Nullable BlockSnapshot blockSnapshot(int chunkX, int chunkY, int chunkZ) {
+        BlockSnapshot collision = collisionMap.get(org.bukkit.block.Block.getBlockKey(chunkX, chunkY, chunkZ));
+        return collision == null ? BlockSnapshot.from(getBlockData(chunkX, chunkY, chunkZ), VoxelShapeWrapper.FULL_BLOCK) : collision;
     }
 
     private static boolean isUnit(AxisAlignedBB aabb) {
@@ -107,7 +109,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSn
                         List<AxisAlignedBB> shape = blockData.getCollisionShape(chunk, examine).d();
                         if(isPartialSolidBlock(shape)) {
                             collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z),
-                                    BlockCollisionSnapshot.from(blockData.createCraftBlockData(),
+                                    BlockSnapshot.from(blockData.createCraftBlockData(),
                                             new VoxelShape_Wrapper_v1_16_R3(shape)));
                         }
                     });

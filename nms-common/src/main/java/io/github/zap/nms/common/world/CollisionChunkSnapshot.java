@@ -4,5 +4,5 @@ import org.bukkit.ChunkSnapshot;
 import org.jetbrains.annotations.Nullable;
 
 public interface CollisionChunkSnapshot extends ChunkSnapshot {
-    @Nullable BlockCollisionSnapshot collisionSnapshot(int chunkX, int chunkY, int chunkZ);
+    @Nullable BlockSnapshot blockSnapshot(int chunkX, int chunkY, int chunkZ);
 }

@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.BlockVector;
-import io.github.zap.arenaapi.vector2.WorldVector;
+import io.github.zap.arenaapi.vector.WorldVector;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -57,6 +56,6 @@ public interface PathDestination {
         }
         while(block.getType().isAir() && --y > -1);
 
-        return WorldVector.immutable((double)x, ++y, z);
+        return WorldVector.immutable(x, ++y, z);
     }
 }

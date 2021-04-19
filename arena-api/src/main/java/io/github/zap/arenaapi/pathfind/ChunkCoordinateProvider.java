@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.ChunkVector;
+import io.github.zap.arenaapi.vector.ChunkVector;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +25,6 @@ public interface ChunkCoordinateProvider extends Iterable<ChunkVector> {
         Objects.requireNonNull(agent, "agent cannot be null!");
         Validate.isTrue(radius > 0, "radius cannot be negative!");
 
-        return new ChunkRange(agent.position(), radius);
+        return new ChunkRange(agent, radius);
     }
 }

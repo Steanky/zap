@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.vector2;
+package io.github.zap.arenaapi.vector;
 
 class WorldVectorImpl extends WorldVector {
     private final double x;

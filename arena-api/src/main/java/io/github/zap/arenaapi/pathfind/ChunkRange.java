@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.ChunkVector;
+import io.github.zap.arenaapi.vector.ChunkVector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -28,10 +28,10 @@ class ChunkRange implements ChunkCoordinateProvider {
         }
     }
 
-    public final int minX;
-    public final int maxX;
-    public final int minZ;
-    public final int maxZ;
+    private final int minX;
+    private final int maxX;
+    private final int minZ;
+    private final int maxZ;
     private final int hash;
 
     ChunkRange(int x1, int z1, int x2, int z2) {

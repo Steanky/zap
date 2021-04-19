@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector2.WorldVector;
+import io.github.zap.arenaapi.vector.WorldVector;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -11,8 +11,8 @@ import java.util.Objects;
  * Represents an navigation-capable object. Commonly used to wrap Bukkit objects such as Entity. Provides information
  * which may be critical to determine the 'navigability' of a node using a Characteristics object.
  */
-public interface PathAgent {
-    class Characteristics {
+public abstract class PathAgent extends WorldVector {
+    public static class Characteristics {
         public final double width;
         public final double height;
         public final double jumpHeight;
@@ -46,7 +46,7 @@ public interface PathAgent {
         public boolean equals(Object obj) {
             if(obj instanceof Characteristics) {
                 Characteristics other = (Characteristics) obj;
-                return width == other.width && height == other.height;
+                return width == other.width && height == other.height && jumpHeight == other.jumpHeight;
             }
 
             return false;
@@ -58,18 +58,37 @@ public interface PathAgent {
         }
     }
 
+    private final double x;
+    private final double y;
+    private final double z;
+
+    @Override
+    public double worldX() {
+        return x;
+    }
+
+    @Override
+    public double worldY() {
+        return y;
+    }
+
+    @Override
+    public double worldZ() {
+        return z;
+    }
+
+    protected PathAgent(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     /**
      * Returns an object representing the characteristics of this PathAgent. It essentially defines what nodes the
      * agent may be able to traverse.
      * @return A PathAgent.Characteristics object containing PathAgent data used to determine node navigability
      */
-    @NotNull Characteristics characteristics();
-
-    /**
-     * Gets the position of this PathAgent.
-     * @return The position of this PathAgent
-     */
-    @NotNull WorldVector position();
+    public abstract @NotNull Characteristics characteristics();
 
     /**
      * Creates a new PathAgent from the given Entity. The resulting PathAgent will have the same width, height, and
@@ -77,19 +96,19 @@ public interface PathAgent {
      * @param entity The entity from which to create a PathAgent
      * @return A PathAgent object corresponding to the given Entity
      */
-    static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
+    public static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "entity cannot be null!");
         return new PathAgentImpl(new Characteristics(entity), WorldVector.immutable(entity.getLocation().toVector()));
     }
 
-    static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
+    public static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
         Objects.requireNonNull(vector, "vector cannot be null!");
         Objects.requireNonNull(characteristics, "characteristics cannot be null!");
 
         return new PathAgentImpl(characteristics, WorldVector.immutable(vector));
     }
 
-    static @NotNull PathAgent fromVector(@NotNull Vector vector) {
+    public static @NotNull PathAgent fromVector(@NotNull Vector vector) {
         return fromVector(vector, new Characteristics());
     }
 }
