@@ -65,10 +65,9 @@ class PathOperationImpl implements PathOperation {
                         return true;
                     }
 
-                    double score = scoreCalculator.computeH(context, currentNode, destination);
-                    if(best == null || score < bestScore) {
+                    if(best == null || currentNode.score.getH() < bestScore) {
                         best = destination;
-                        bestScore = score;
+                        bestScore = currentNode.score.getH();
                     }
                 }
 
