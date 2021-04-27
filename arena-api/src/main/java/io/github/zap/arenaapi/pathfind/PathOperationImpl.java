@@ -15,7 +15,7 @@ class PathOperationImpl implements PathOperation {
     private final ChunkCoordinateProvider searchArea;
 
     //TODO: maintain separate NodeQueue for lower-priority nodes and only take from that queue when needed
-    private final NodeQueue openSet = new BinaryHeapNodeQueue(128);
+    private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
     private final Map<PathNode, PathNode> visited = new HashMap<>();
     private PathDestination bestDestination;
     private PathNode currentNode;
@@ -77,8 +77,8 @@ class PathOperationImpl implements PathOperation {
                     return true;
                 }
 
-                if(openSet.size() > 0) {
-                    currentNode = openSet.takeBest();
+                if(openHeap.size() > 0) {
+                    currentNode = openHeap.takeBest();
                 }
                 else {
                     complete(false);
@@ -110,10 +110,8 @@ class PathOperationImpl implements PathOperation {
 
                     double g = scoreCalculator.computeG(context, currentNode, sample, bestDestination);
                     if(g < sample.score.getG()) {
-                        PathNode newSample = sample.copy();
-                        newSample.score.set(g, scoreCalculator.computeH(context, sample, bestDestination));
-                        openSet.replaceNode(sample, newSample);
-                        sample = newSample;
+                        openHeap.updateNode(sample, (node) ->
+                                node.score.set(g, scoreCalculator.computeH(context, node, bestDestination)));
                     }
 
                     //comparison for best path in case of inaccessible target

@@ -3,11 +3,12 @@ package io.github.zap.arenaapi.pathfind;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * Implementation of NodeQueue based on a binary min-heap
  */
-class BinaryHeapNodeQueue implements NodeQueue {
+class BinaryMinNodeHeap implements NodeHeap {
     private static final int DEFAULT_CAPACITY = 16;
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     private static final NodeComparator NODE_COMPARATOR = NodeComparator.instance();
@@ -15,11 +16,11 @@ class BinaryHeapNodeQueue implements NodeQueue {
     private PathNode[] nodes;
     private int size = 0;
 
-    BinaryHeapNodeQueue(int initialCapacity) {
+    BinaryMinNodeHeap(int initialCapacity) {
         nodes = new PathNode[initialCapacity];
     }
 
-    BinaryHeapNodeQueue() {
+    BinaryMinNodeHeap() {
         this(DEFAULT_CAPACITY);
     }
 
@@ -42,29 +43,39 @@ class BinaryHeapNodeQueue implements NodeQueue {
     }
 
     @Override
+    public @NotNull PathNode nodeAt(int index) {
+        if(index < size) {
+            return nodes[index];
+        }
+
+        throw new ArrayIndexOutOfBoundsException();
+    }
+
+    @Override
     public void addNode(@NotNull PathNode node) {
         ensureCapacity(size + 1);
         siftUp(size++, node);
     }
 
     @Override
-    public void replaceNode(@NotNull PathNode currentNode, @NotNull PathNode newNode) {
+    public void updateNode(@NotNull PathNode currentNode, @NotNull Consumer<PathNode> updateFunction) {
         int index = indexOf(currentNode);
 
         if(index == -1) {
-            addNode(newNode);
+            addNode(currentNode);
             return;
         }
 
-        int comparison = NODE_COMPARATOR.compare(newNode, currentNode);
+        Score scoreBefore = currentNode.score;
+        updateFunction.accept(currentNode);
+        Score scoreAfter = currentNode.score;
+
+        int comparison = ScoreComparator.instance().compare(scoreAfter, scoreBefore);
         if(comparison < 0) {
-            siftUp(index, newNode);
+            siftUp(index, currentNode);
         }
         else if(comparison > 0) {
-            siftDown(index, newNode);
-        }
-        else {
-            nodes[index] = newNode;
+            siftDown(index, currentNode);
         }
     }
 
