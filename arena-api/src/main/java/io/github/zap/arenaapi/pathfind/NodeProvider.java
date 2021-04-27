@@ -22,10 +22,10 @@ public abstract class NodeProvider {
         public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathNode from) {
             PathNode[] nodes = new PathNode[4];
 
-            nodes[0] = from.add(Direction.NORTH.offset());
-            nodes[1] = from.add(Direction.EAST.offset());
-            nodes[2] = from.add(Direction.SOUTH.offset());
-            nodes[3] = from.add(Direction.WEST.offset());
+            nodes[0] = from.chain(Direction.NORTH.offset());
+            nodes[1] = from.chain(Direction.EAST.offset());
+            nodes[2] = from.chain(Direction.SOUTH.offset());
+            nodes[3] = from.chain(Direction.WEST.offset());
 
             return nodes;
         }
@@ -48,7 +48,6 @@ public abstract class NodeProvider {
             PathNode[] nodes = new PathNode[8];
             BlockProvider provider = context.blockProvider();
             MutableWorldVector at = nodeAt.asMutable();
-
 
             return nodes;
         }

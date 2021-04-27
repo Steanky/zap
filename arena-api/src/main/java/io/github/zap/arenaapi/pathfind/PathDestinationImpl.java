@@ -1,12 +1,13 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector.ImmutableWorldVector;
+import io.github.zap.arenaapi.vector.VectorAccess;
 import org.jetbrains.annotations.NotNull;
 
 class PathDestinationImpl implements PathDestination {
-    private final WorldVector position;
+    private final ImmutableWorldVector position;
 
-    PathDestinationImpl(@NotNull WorldVector position) {
+    PathDestinationImpl(@NotNull ImmutableWorldVector position) {
         this.position = position;
     }
 
@@ -25,7 +26,7 @@ class PathDestinationImpl implements PathDestination {
     }
 
     @Override
-    public @NotNull WorldVector position() {
+    public @NotNull VectorAccess position() {
         return position;
     }
 }

@@ -5,7 +5,6 @@ import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
 import org.bukkit.block.Biome;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.NotImplementedException;
@@ -21,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSnapshot {
+class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private static final DataPaletteBlock<IBlockData> EMPTY_BLOCK_IDS = (new ChunkSection(0, null, null, true)).getBlocks();
     private static final Predicate<IBlockData> IS_PARTIAL_BLOCK = blockData ->
             isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO).d());
@@ -136,7 +135,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSn
     }
 
     @Override
-    public org.bukkit.@NotNull Material getBlockType(int x, int y, int z) {
+    public @NotNull org.bukkit.Material getBlockType(int x, int y, int z) {
         if(WorldBridge_v1_16_R3.INSTANCE.isValidChunkCoordinate(x, y, z)) {
             return (this.blockids[y >> 4].a(x, y & 15, z)).getBukkitMaterial();
         }
@@ -155,42 +154,42 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSn
 
     @Override
     public int getData(int i, int i1, int i2) {
-        throw new NotImplementedException("getData not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getData not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
     public int getBlockSkyLight(int i, int i1, int i2) {
-        throw new NotImplementedException("getBlockSkyLight not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getBlockSkyLight not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
     public int getBlockEmittedLight(int i, int i1, int i2) {
-        throw new NotImplementedException("getBlockEmittedLight not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getBlockEmittedLight not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
     public int getHighestBlockYAt(int i, int i1) {
-        throw new NotImplementedException("getHighestBlockYAt not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getHighestBlockYAt not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
     public @NotNull Biome getBiome(int i, int i1) {
-        throw new NotImplementedException("getBiome not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getBiome not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
     public @NotNull Biome getBiome(int i, int i1, int i2) {
-        throw new NotImplementedException("getBiome not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getBiome not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
     public double getRawBiomeTemperature(int i, int i1) {
-        throw new NotImplementedException("getRawBiomeTemperature not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getRawBiomeTemperature not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
     public double getRawBiomeTemperature(int i, int i1, int i2) {
-        throw new NotImplementedException("getRawBiomeTemperature not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("getRawBiomeTemperature not implemented for CollisionChunkSnapshot!");
     }
 
     @Override
@@ -200,7 +199,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot, ChunkSn
 
     @Override
     public boolean isSectionEmpty(int i) {
-        throw new NotImplementedException("isSectionEmpty not implemented for SimpleChunkSnapshot!");
+        throw new NotImplementedException("isSectionEmpty not implemented for CollisionChunkSnapshot!");
     }
 
     @Override

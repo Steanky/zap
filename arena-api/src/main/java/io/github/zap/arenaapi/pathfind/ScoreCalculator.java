@@ -6,8 +6,9 @@ import org.jetbrains.annotations.NotNull;
 public interface ScoreCalculator {
     ScoreCalculator DISTANCE_ONLY = new ScoreCalculator() {
         @Override
-        public double computeG(@NotNull PathfinderContext context, @NotNull PathNode current, @NotNull PathNode to, @NotNull PathDestination destination) {
-            return current.score.getG() + VectorUtils.distance(current.worldX(), current.worldY(), current.worldZ(), to.worldX(), to.worldY(), to.worldZ());
+        public double computeG(@NotNull PathfinderContext context, @NotNull PathNode current, @NotNull PathNode to,
+                               @NotNull PathDestination destination) {
+            return current.score.getG() + VectorUtils.distance(current.x(), current.y(), current.z(), to.x(), to.y(), to.z());
         }
 
         @Override

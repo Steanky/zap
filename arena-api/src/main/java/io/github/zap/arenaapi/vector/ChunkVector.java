@@ -1,22 +1,19 @@
 package io.github.zap.arenaapi.vector;
 
-import java.util.Objects;
+public class ChunkVector implements ChunkVectorAccess {
+    private final int x;
+    private final int z;
 
-public abstract class ChunkVector {
-    protected boolean hasHash;
-    protected int hash;
-
-    public abstract int chunkX();
-
-    public abstract int chunkZ();
+    public ChunkVector(int x, int z) {
+        this.x = x;
+        this.z = z;
+    }
 
     @Override
     public int hashCode() {
-        if(!hasHash) {
-            hasHash = true;
-            hash = Objects.hash(chunkX(), chunkZ());
-        }
-
+        int hash = 7;
+        hash = hash * 79 + x;
+        hash = hash * 79 + z;
         return hash;
     }
 
@@ -24,13 +21,19 @@ public abstract class ChunkVector {
     public boolean equals(Object other) {
         if(other instanceof ChunkVector) {
             ChunkVector otherVector = (ChunkVector) other;
-            return otherVector.chunkX() == chunkX() && otherVector.chunkZ() == chunkZ();
+            return otherVector.x == x && otherVector.z == z;
         }
 
         return false;
     }
 
-    public static ChunkVector immutable(int x, int z) {
-        return new ChunkVectorImpl(x, z);
+    @Override
+    public int chunkX() {
+        return x;
+    }
+
+    @Override
+    public int chunkZ() {
+        return z;
     }
 }

@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector.ImmutableWorldVector;
+import io.github.zap.arenaapi.vector.Positional;
+import io.github.zap.arenaapi.vector.VectorAccess;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,12 +14,13 @@ import java.util.Objects;
  * block coordinates, but may point to a location within any particular block (ex. [0.5, 0.5, 0.5] referring to the
  * exact center of the block at [0, 0, 0]).
  */
-public class PathNode extends WorldVector {
+public class PathNode implements Positional {
     private final double x;
     private final double y;
     private final double z;
 
     private final int hash;
+    private final ImmutableWorldVector position;
 
     final Score score;
     PathNode parent;
@@ -29,6 +32,7 @@ public class PathNode extends WorldVector {
         this.y = y;
         this.z = z;
         this.hash = hash;
+        position = VectorAccess.immutable(x, y, z);
     }
 
     PathNode(@NotNull Score score, @Nullable PathNode parent, double x, double y, double z) {
@@ -36,7 +40,7 @@ public class PathNode extends WorldVector {
     }
 
     PathNode(@Nullable PathNode parent, @NotNull PathAgent agent) {
-        this(new Score(), parent, agent.worldX(), agent.worldY(), agent.worldZ());
+        this(new Score(), parent, agent.x(), agent.y(), agent.z());
     }
 
     PathNode(@Nullable PathNode parent, @NotNull Vector vector) {
@@ -45,21 +49,6 @@ public class PathNode extends WorldVector {
 
     PathNode(@Nullable PathNode parent, double x, double y, double z) {
         this(new Score(), parent, x, y, z);
-    }
-
-    @Override
-    public double worldX() {
-        return x;
-    }
-
-    @Override
-    public double worldY() {
-        return y;
-    }
-
-    @Override
-    public double worldZ() {
-        return z;
     }
 
     @Override
@@ -82,18 +71,21 @@ public class PathNode extends WorldVector {
         return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", score=" + score + "}";
     }
 
-    @Override
-    public @NotNull PathNode add(double x, double y, double z) {
+    public @NotNull PathNode chainOffset(double x, double y, double z) {
         return new PathNode(new Score(), this, this.x + x, this.y + y, this.z + z);
     }
 
-    @Override
-    public @NotNull PathNode add(@NotNull WorldVector other) {
-        return add(other.worldX(), other.worldY(), other.worldZ());
+    public @NotNull PathNode chain(@NotNull VectorAccess other) {
+        return chainOffset(other.x(), other.y(), other.z());
     }
 
-    public @NotNull PathNode link(double x, double y, double z) {
+    public @NotNull PathNode chain(double x, double y, double z) {
         return new PathNode(new Score(), this, x, y, z);
+    }
+
+    @Override
+    public @NotNull VectorAccess position() {
+        return position;
     }
 
     public @NotNull PathNode copy() {

@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.arenaapi.vector.ChunkVectorAccess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -8,7 +9,7 @@ import java.util.Objects;
 
 
 class ChunkRange implements ChunkCoordinateProvider {
-    private final class ChunkRangeIterator implements Iterator<ChunkVector> {
+    private final class ChunkRangeIterator implements Iterator<ChunkVectorAccess> {
         private int x = minX;
         private int z = minZ;
 
@@ -18,13 +19,13 @@ class ChunkRange implements ChunkCoordinateProvider {
         }
 
         @Override
-        public ChunkVector next() {
+        public ChunkVectorAccess next() {
             if(++x == maxX) {
                 x = minX;
                 z++;
             }
 
-            return ChunkVector.immutable(x, z);
+            return ChunkVectorAccess.immutable(x, z);
         }
     }
 
@@ -42,11 +43,11 @@ class ChunkRange implements ChunkCoordinateProvider {
         hash = Objects.hash(minX, maxX, minZ, maxZ);
     }
 
-    ChunkRange(@NotNull ChunkVector first, @NotNull ChunkVector second) {
+    ChunkRange(@NotNull ChunkVectorAccess first, @NotNull ChunkVectorAccess second) {
         this(first.chunkX(), first.chunkZ(), second.chunkX(), second.chunkZ());
     }
 
-    ChunkRange(@NotNull ChunkVector center, int radius) {
+    ChunkRange(@NotNull ChunkVectorAccess center, int radius) {
         this(center.chunkX() - radius, center.chunkZ() - radius, center.chunkX() + radius, center.chunkZ() + radius);
     }
 
@@ -71,7 +72,7 @@ class ChunkRange implements ChunkCoordinateProvider {
 
     @NotNull
     @Override
-    public Iterator<ChunkVector> iterator() {
+    public Iterator<ChunkVectorAccess> iterator() {
         return new ChunkRangeIterator();
     }
 }

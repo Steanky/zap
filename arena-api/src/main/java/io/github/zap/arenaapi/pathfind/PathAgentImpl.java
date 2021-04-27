@@ -1,13 +1,13 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector.ImmutableWorldVector;
 import org.jetbrains.annotations.NotNull;
 
 class PathAgentImpl extends PathAgent {
     private final Characteristics characteristics;
 
-    PathAgentImpl(@NotNull Characteristics characteristics, @NotNull WorldVector source) {
-        super(source.worldX(), source.worldY(), source.worldZ());
+    PathAgentImpl(@NotNull Characteristics characteristics, @NotNull ImmutableWorldVector vector) {
+        super(vector);
         this.characteristics = characteristics;
     }
 

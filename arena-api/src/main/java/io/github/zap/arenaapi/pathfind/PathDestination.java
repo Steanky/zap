@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector.ImmutableWorldVector;
+import io.github.zap.arenaapi.vector.Positional;
+import io.github.zap.arenaapi.vector.VectorAccess;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,19 +12,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public interface PathDestination {
-    @NotNull WorldVector position();
-
+public interface PathDestination extends Positional {
     static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) : WorldVector.immutable(entity.getLocation().toVector()));
+        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) : VectorAccess.immutable(entity.getLocation().toVector()));
     }
 
     static @NotNull PathDestination fromCoordinates(double x, double y, double z) {
-        return new PathDestinationImpl(WorldVector.immutable(x, y, z));
+        return new PathDestinationImpl(VectorAccess.immutable(x, y, z));
     }
 
-    static @NotNull PathDestination fromSource(@NotNull WorldVector source) {
+    static @NotNull PathDestination fromVector(@NotNull ImmutableWorldVector source) {
         Objects.requireNonNull(source, "source cannot be null!");
         return new PathDestinationImpl(source);
     }
@@ -35,13 +35,13 @@ public interface PathDestination {
 
         for(Entity entity : entities) {
             destinations.add(new PathDestinationImpl(findBlocks ? vectorOnGround(entity) :
-                    WorldVector.immutable(entity.getLocation().toVector())));
+                    VectorAccess.immutable(entity.getLocation().toVector())));
         }
 
         return destinations;
     }
 
-    private static WorldVector vectorOnGround(Entity entity) {
+    private static ImmutableWorldVector vectorOnGround(Entity entity) {
         Location targetLocation = entity.getLocation();
 
         int x = targetLocation.getBlockX();
@@ -56,6 +56,6 @@ public interface PathDestination {
         }
         while(block.getType().isAir() && --y > -1);
 
-        return WorldVector.immutable(x, ++y, z);
+        return VectorAccess.immutable(x, ++y, z);
     }
 }

@@ -1,7 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
-import org.apache.commons.lang3.Validate;
+import io.github.zap.arenaapi.vector.ImmutableWorldVector;
+import io.github.zap.arenaapi.vector.VectorAccess;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -12,7 +13,7 @@ public interface SuccessCondition {
      * Simple termination condition: the path is complete when the agent occupies the same block as the destination.
      */
     SuccessCondition WITHIN_BLOCK = (context, node, destination) -> {
-        WorldVector position = destination.position();
+        VectorAccess position = destination.position();
         return node.blockX() == position.blockX() && node.blockY() == position.blockY() && node.blockZ() == position.blockZ();
     };
 
@@ -24,7 +25,7 @@ public interface SuccessCondition {
         return (context, node, destination) -> destination.position().distanceSquared(node) <= distanceSquared;
     }
 
-    static @NotNull SuccessCondition whenSatisfies(@NotNull Predicate<PathNode> nodePredicate) {
+    static @NotNull SuccessCondition when(@NotNull Predicate<PathNode> nodePredicate) {
         Objects.requireNonNull(nodePredicate, "nodePredicate cannot be null!");
         return (context, node, destination) -> nodePredicate.test(node);
     }

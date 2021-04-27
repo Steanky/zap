@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector.ImmutableWorldVector;
+import io.github.zap.arenaapi.vector.Positional;
+import io.github.zap.arenaapi.vector.VectorAccess;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +13,7 @@ import java.util.Objects;
  * Represents an navigation-capable object. Commonly used to wrap Bukkit objects such as Entity. Provides information
  * which may be critical to determine the 'navigability' of a node using a Characteristics object.
  */
-public abstract class PathAgent extends WorldVector {
+public abstract class PathAgent implements Positional {
     public static class Characteristics {
         public final double width;
         public final double height;
@@ -58,29 +60,15 @@ public abstract class PathAgent extends WorldVector {
         }
     }
 
-    private final double x;
-    private final double y;
-    private final double z;
+    private final ImmutableWorldVector position;
 
-    @Override
-    public double worldX() {
-        return x;
+    PathAgent(@NotNull ImmutableWorldVector position) {
+        this.position = position;
     }
 
     @Override
-    public double worldY() {
-        return y;
-    }
-
-    @Override
-    public double worldZ() {
-        return z;
-    }
-
-    protected PathAgent(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public @NotNull VectorAccess position() {
+        return position;
     }
 
     /**
@@ -98,14 +86,14 @@ public abstract class PathAgent extends WorldVector {
      */
     public static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathAgentImpl(new Characteristics(entity), WorldVector.immutable(entity.getLocation().toVector()));
+        return new PathAgentImpl(new Characteristics(entity), VectorAccess.immutable(entity.getLocation().toVector()));
     }
 
     public static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull Characteristics characteristics) {
         Objects.requireNonNull(vector, "vector cannot be null!");
         Objects.requireNonNull(characteristics, "characteristics cannot be null!");
 
-        return new PathAgentImpl(characteristics, WorldVector.immutable(vector));
+        return new PathAgentImpl(characteristics, VectorAccess.immutable(vector));
     }
 
     public static @NotNull PathAgent fromVector(@NotNull Vector vector) {

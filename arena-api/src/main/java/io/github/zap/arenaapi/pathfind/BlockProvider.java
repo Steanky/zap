@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.vector.ChunkVector;
-import io.github.zap.arenaapi.vector.WorldVector;
+import io.github.zap.arenaapi.vector.VectorAccess;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ public interface BlockProvider {
 
     @Nullable BlockSnapshot getBlock(int x, int y, int z);
 
-    default @Nullable BlockSnapshot getBlock(@NotNull WorldVector source) {
+    default @Nullable BlockSnapshot getBlock(@NotNull VectorAccess source) {
         return getBlock(source.blockX(), source.blockY(), source.blockZ());
     }
 }
