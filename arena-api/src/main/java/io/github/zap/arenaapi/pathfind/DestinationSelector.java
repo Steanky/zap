@@ -23,5 +23,5 @@ public interface DestinationSelector {
         return bestDestination;
     };
 
-    @NotNull PathDestination selectDestinationFor(@NotNull PathOperation operation, @NotNull PathNode node);
+    @NotNull PathDestination selectDestination(@NotNull PathOperation operation, @NotNull PathNode node);
 }

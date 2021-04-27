@@ -87,7 +87,7 @@ class PathOperationImpl implements PathOperation {
             }
             else {
                 currentNode = new PathNode(null, agent);
-                bestDestination = destinationSelector.selectDestinationFor(this, currentNode);
+                bestDestination = destinationSelector.selectDestination(this, currentNode);
                 currentNode.score.set(0, scoreCalculator.computeH(context, currentNode, bestDestination));
                 bestFound = currentNode.copy();
             }
@@ -106,7 +106,7 @@ class PathOperationImpl implements PathOperation {
 
                 //TODO: implement fancy optimizations
                 if(nodeProvider.mayTraverse(context, agent, currentNode, sample)) {
-                    bestDestination = destinationSelector.selectDestinationFor(this, sample);
+                    bestDestination = destinationSelector.selectDestination(this, sample);
 
                     double g = scoreCalculator.computeG(context, currentNode, sample, bestDestination);
                     if(g < sample.score.getG()) {

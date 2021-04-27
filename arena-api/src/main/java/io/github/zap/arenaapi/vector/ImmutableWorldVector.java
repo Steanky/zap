@@ -42,4 +42,9 @@ public class ImmutableWorldVector extends WorldVector<ImmutableWorldVector> {
     protected ImmutableWorldVector operation(double x, double y, double z) {
         return new ImmutableWorldVector(x, y, z);
     }
+
+    @Override
+    public String toString() {
+        return "ImmutableWorldVector{x=" + x + ", y=" + y + ", z=" + z + "}";
+    }
 }
