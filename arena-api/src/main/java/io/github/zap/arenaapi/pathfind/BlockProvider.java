@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.ChunkVector;
+import io.github.zap.arenaapi.vector.ImmutableChunkVector;
 import io.github.zap.arenaapi.vector.VectorAccess;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import org.bukkit.World;
@@ -14,7 +14,7 @@ public interface BlockProvider {
 
     void updateChunk(int x, int y);
 
-    default void updateChunk(@NotNull ChunkVector source) {
+    default void updateChunk(@NotNull ImmutableChunkVector source) {
         updateChunk(source.chunkX(), source.chunkZ());
     }
 

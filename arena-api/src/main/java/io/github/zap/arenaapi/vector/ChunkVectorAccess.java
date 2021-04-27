@@ -5,7 +5,7 @@ public interface ChunkVectorAccess {
 
     int chunkZ();
 
-    static ChunkVectorAccess immutable(int chunkX, int chunkZ) {
-        return new ChunkVector(chunkX, chunkZ);
+    static ImmutableChunkVector immutable(int chunkX, int chunkZ) {
+        return new ImmutableChunkVector(chunkX, chunkZ);
     }
 }

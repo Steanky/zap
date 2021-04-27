@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.ChunkVector;
 import io.github.zap.arenaapi.vector.ChunkVectorAccess;
 import org.jetbrains.annotations.NotNull;
 

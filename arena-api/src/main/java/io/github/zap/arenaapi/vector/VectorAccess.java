@@ -3,6 +3,11 @@ package io.github.zap.arenaapi.vector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Defines a 3-dimensional coordinate, along with useful methods for manipulating it. Implementations may be mutable or
+ * immutable; which will determine the behavior of basic vector arithmetic (mutable vectors will act on themselves, and
+ * immutable vectors will return new instances without changing their own internal state).
+ */
 public interface VectorAccess extends ChunkVectorAccess {
     double EPSILON = 1.0E-6D;
 

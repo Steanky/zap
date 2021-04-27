@@ -2,6 +2,10 @@ package io.github.zap.arenaapi.vector;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Describes an object that may have a position; i.e. supplies a VectorAccess object. Positional instances inherit all
+ * the methods of VectorAccess, which should act on or read from the vector returned by a call to position().
+ */
 public interface Positional extends VectorAccess {
     @NotNull VectorAccess position();
 
