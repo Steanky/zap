@@ -1,2 +1,2 @@
 rootProject.name = "root"
-include(":arena-api", ":zombies")
+include(":arena-api", ":zombies", ":party")
