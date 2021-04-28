@@ -11,6 +11,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+/**
+ * A group of players which can join games together.
+ */
 public class Party {
 
     private final static Random RANDOM = new Random();

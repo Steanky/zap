@@ -12,22 +12,59 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Manages all party logic
+ */
 public class PartyManager {
 
     private final Map<OfflinePlayer, Party> partyMap = new HashMap<>();
 
+    /**
+     * Creates a party's default settings
+     * @param player The player to base settings off of with preferences
+     * @return The generated party settings
+     */
     public @NotNull PartySettings createPartySettings(@NotNull OfflinePlayer player) {
         return new PartySettings(); // TODO: have party settings from defaults based on player preferences
     }
 
+    /**
+     * Gets the party of a player
+     * @param player The player to get the party of
+     * @return The party of a player, or null if it does not exist
+     */
     public @Nullable Party getPartyForPlayer(@NotNull OfflinePlayer player) {
         return partyMap.get(player);
     }
 
+    /**
+     * Creates a party
+     * @param owner The owner of the party
+     * @return The new party
+     */
     public @NotNull Party createParty(@NotNull OfflinePlayer owner) {
         return partyMap.computeIfAbsent(owner, (unused) -> new Party(owner));
     }
 
+    /**
+     * Removes a player from their party
+     * @param player The player to be removed from their party
+     */
+    public void removePlayerFromParty(@NotNull OfflinePlayer player) {
+        Party party = partyMap.get(player);
+
+        if (player.getName() != null && party != null) {
+            party.removeMember(player.getName());
+            partyMap.remove(player);
+        }
+    }
+
+    /**
+     * Invites a player to a party
+     * @param party The party to invite to
+     * @param inviter The person who invited the player
+     * @param invitee The invited player
+     */
     public void invitePlayer(@NotNull Party party, @NotNull Player inviter, @NotNull Player invitee) {
         OfflinePlayer partyOwner = party.getOwner().getPlayer();
 

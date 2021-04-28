@@ -13,6 +13,9 @@ import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+/**
+ * Invites a player to your party
+ */
 public class InvitePlayerForm extends CommandForm<Player> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {

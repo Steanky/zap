@@ -8,6 +8,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
 
+/**
+ * Creates cool parties for you!
+ */
 public class PartyPlusPlus extends JavaPlugin {
 
     @Getter
@@ -29,6 +32,9 @@ public class PartyPlusPlus extends JavaPlugin {
         instance.getLogger().log(Level.INFO, String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
+    /**
+     * Registers the command manager
+     */
     private void initCommands() {
         commandManager = new CommandManager(this);
     }

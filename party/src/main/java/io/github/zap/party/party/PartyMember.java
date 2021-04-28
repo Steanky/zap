@@ -7,6 +7,9 @@ import org.bukkit.OfflinePlayer;
 
 import java.util.Objects;
 
+/**
+ * A member of a party
+ */
 @Getter
 @RequiredArgsConstructor
 public class PartyMember {

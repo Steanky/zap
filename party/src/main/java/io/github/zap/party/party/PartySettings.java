@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+/**
+ * Settings for a party. These can be modified by the owner.
+ */
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)

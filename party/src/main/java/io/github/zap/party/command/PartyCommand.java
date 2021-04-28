@@ -2,6 +2,9 @@ package io.github.zap.party.command;
 
 import io.github.regularcommands.commands.RegularCommand;
 
+/**
+ * Generic party command
+ */
 public class PartyCommand extends RegularCommand {
 
     public PartyCommand() {

@@ -13,6 +13,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
+/**
+ * Joins a player's party if it exists
+ */
 public class JoinPartyForm extends CommandForm<Party> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {
