@@ -135,6 +135,22 @@ public class Party {
         return offlinePlayers;
     }
 
+    /**
+     * Toggles whether a player is mute in the party
+     * @param player The player to toggle on
+     */
+    public void mute(@NotNull OfflinePlayer player) {
+        PartyMember member = members.get(player.getName());
+        if (member != null && member != owner) {
+            member.setMuted(!member.isMuted());
+
+            Component muted = Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY)
+                    .append(Component.text(String.format(" has been %s.", member.isMuted() ? "muted" : "unmuted"),
+                            NamedTextColor.YELLOW));
+            broadcastMessage(muted);
+        }
+    }
+
     private void chooseNewOwner() {
         List<PartyMember> memberArray = members.values().stream()
                 .filter(member -> member.getPlayer().isOnline() && !owner.equals(member))

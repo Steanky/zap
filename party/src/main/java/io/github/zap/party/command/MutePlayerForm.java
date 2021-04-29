@@ -13,13 +13,10 @@ import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
-/**
- * Kicks a member from the party
- */
-public class KickMemberForm extends CommandForm<OfflinePlayer> {
+public class MutePlayerForm extends CommandForm<OfflinePlayer> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {
-            new Parameter("kick"),
+            new Parameter("mute"),
             new Parameter("\\w+", "[player-name]")
     };
 
@@ -54,7 +51,7 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
         return ValidationResult.of(true, null, toKick);
     }, Validators.PLAYER_EXECUTOR);
 
-    public KickMemberForm() {
+    public MutePlayerForm() {
         super("Kicks a member from your party.", Permissions.NONE, PARAMETERS);
     }
 
@@ -65,8 +62,13 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
     @Override
     public String execute(Context context, Object[] arguments, OfflinePlayer data) {
-        PartyPlusPlus.getInstance().getPartyManager().removePlayerFromParty(data, true);
+        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(data);
+        if (party != null) {
+            party.mute(data);
+        }
+
         return null;
     }
 
 }
+

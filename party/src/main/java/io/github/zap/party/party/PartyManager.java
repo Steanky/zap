@@ -166,12 +166,17 @@ public class PartyManager implements Listener {
             if (partyMember != null && partyMember.isInPartyChat()) {
                 event.setCancelled(true);
 
-                Component message = Component.empty()
-                        .append(Component.text("Party > ", NamedTextColor.BLUE))
-                        .append(Component.text(String.format("<%s> ", event.getPlayer().getName()),
-                                NamedTextColor.WHITE))
-                        .append(event.message());
-                party.broadcastMessage(message);
+                if (partyMember.isMuted()) {
+                    player.sendMessage(Component.text("You are muted from speaking in the party chat.",
+                            NamedTextColor.RED));
+                } else {
+                    Component message = Component.empty()
+                            .append(Component.text("Party > ", NamedTextColor.BLUE))
+                            .append(Component.text(String.format("<%s> ", event.getPlayer().getName()),
+                                    NamedTextColor.WHITE))
+                            .append(event.message());
+                    party.broadcastMessage(message);
+                }
             }
         }
     }

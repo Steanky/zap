@@ -11,6 +11,9 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
 
+/**
+ * Kicks all offline members from the party
+ */
 public class KickOfflineMembersForm extends CommandForm<Party> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {

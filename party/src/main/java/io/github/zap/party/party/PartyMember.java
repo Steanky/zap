@@ -21,6 +21,9 @@ public class PartyMember {
     @Setter
     private boolean inPartyChat = false;
 
+    @Setter
+    private boolean muted = false;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -16,6 +16,7 @@ public class PartyCommand extends RegularCommand {
         addForm(new JoinPartyForm());
         addForm(new LeavePartyForm());
         addForm(new ListMembersForm());
+        addForm(new MutePlayerForm());
         addForm(new KickMemberForm());
         addForm(new KickOfflineMembersForm());
         addForm(new TransferPartyForm());
