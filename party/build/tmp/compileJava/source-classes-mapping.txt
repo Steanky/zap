@@ -10,6 +10,8 @@ io/github/zap/party/command/InvitePlayerForm.java
  io.github.zap.party.command.InvitePlayerForm
 io/github/zap/party/party/PartyMember.java
  io.github.zap.party.party.PartyMember
+io/github/zap/party/command/ListMembersForm.java
+ io.github.zap.party.command.ListMembersForm
 io/github/zap/party/command/JoinPartyForm.java
  io.github.zap.party.command.JoinPartyForm
 io/github/zap/party/party/PartyManager.java

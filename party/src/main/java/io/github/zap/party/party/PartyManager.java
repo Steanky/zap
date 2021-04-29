@@ -78,7 +78,7 @@ public class PartyManager {
      */
     public void invitePlayer(@NotNull Party party, @NotNull Player inviter, @NotNull Player invitee) {
         OfflinePlayer partyOwner = party.getOwner().getPlayer();
-        party.getInvites().add(invitee);
+        party.addInvite(invitee);
 
         double expirationTime = party.getPartySettings().getInviteExpirationTime() / 20F;
 
@@ -105,7 +105,7 @@ public class PartyManager {
         party.broadcastMessage(invitationNotification);
 
         Bukkit.getScheduler().runTaskLater(PartyPlusPlus.getInstance(), () -> {
-            party.getInvites().remove(invitee);
+            party.removeInvite(invitee);
 
             if (!party.hasMember(invitee.getName())) {
                 Component expiration = Component.text("The invite to ", NamedTextColor.YELLOW)

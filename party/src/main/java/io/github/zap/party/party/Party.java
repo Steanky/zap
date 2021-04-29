@@ -27,7 +27,6 @@ public class Party {
 
     private final Map<String, PartyMember> members = new HashMap<>();
 
-    @Getter
     private final Set<OfflinePlayer> invites = new HashSet<>();
 
     @Getter
@@ -49,6 +48,7 @@ public class Party {
 
         if (memberName != null && !members.containsKey(memberName)) {
             members.put(memberName, new PartyMember(this, player));
+            invites.remove(player);
 
             Component newPlayer = Component.text(memberName, NamedTextColor.GRAY)
                     .append(Component.text(" has joined the party.", NamedTextColor.YELLOW));
@@ -88,6 +88,22 @@ public class Party {
     }
 
     /**
+     * Adds a player invite
+     * @param player The invited player
+     */
+    public void addInvite(@NotNull OfflinePlayer player) {
+        invites.add(player);
+    }
+
+    /**
+     * Removes a player invite
+     * @param player The player invite to remove
+     */
+    public void removeInvite(@NotNull OfflinePlayer player) {
+        invites.remove(player);
+    }
+
+    /**
      * Determines if the party has a member
      * @param name The name of the member
      * @return Whether the party has the member
@@ -108,6 +124,76 @@ public class Party {
                 player.sendMessage(message);
             }
         }
+    }
+
+    /**
+     * Gets a collection of components for a list of the members in the party
+     * @return The collection of components
+     */
+    public Collection<Component> getPartyListComponents() {
+        Component online = Component.text("Online", NamedTextColor.GREEN)
+                .append(Component.text(": ", NamedTextColor.WHITE));
+        Component offline = Component.text("Offline", NamedTextColor.RED)
+                .append(Component.text(": ", NamedTextColor.WHITE));
+        Component invited = Component.text("Invites", NamedTextColor.BLUE)
+                .append(Component.text(": ", NamedTextColor.WHITE));
+
+        Collection<PartyMember> memberCollection = members.values();
+        List<OfflinePlayer> onlinePlayers = new ArrayList<>(memberCollection.size()),
+                offlinePlayers = new ArrayList<>(memberCollection.size());
+
+        for (PartyMember member : memberCollection) {
+            OfflinePlayer player = member.getPlayer();
+            String playerName = player.getName();
+
+            if (playerName != null) {
+                if (player.isOnline()) {
+                    onlinePlayers.add(player);
+                } else {
+                    offlinePlayers.add(player);
+                }
+            }
+        }
+
+        for (int i = 0; i < onlinePlayers.size(); i++) {
+            String playerName = onlinePlayers.get(i).getName();
+
+            if (playerName != null) {
+                online = online.append(Component.text(playerName, NamedTextColor.GREEN));
+
+                if (i < onlinePlayers.size() - 1) {
+                    online = online.append(Component.text(", ", NamedTextColor.WHITE));
+                }
+            }
+        }
+
+        for (int i = 0; i < offlinePlayers.size(); i++) {
+            String playerName = offlinePlayers.get(i).getName();
+
+            if (playerName != null) {
+                online = online.append(Component.text(playerName, NamedTextColor.RED));
+
+                if (i < offlinePlayers.size() - 1) {
+                    online = online.append(Component.text(", ", NamedTextColor.WHITE));
+                }
+            }
+        }
+
+        Iterator<OfflinePlayer> inviteIterator = invites.iterator();
+        while (inviteIterator.hasNext()) {
+            OfflinePlayer next = inviteIterator.next();
+            String playerName = next.getName();
+
+            if (playerName != null) {
+                invited = invited.append(Component.text(playerName, NamedTextColor.BLUE));
+
+                if (inviteIterator.hasNext()) {
+                    invited = invited.append(Component.text(", ", NamedTextColor.WHITE));
+                }
+            }
+        }
+
+        return List.of(online, offline, invited);
     }
 
     @Override
