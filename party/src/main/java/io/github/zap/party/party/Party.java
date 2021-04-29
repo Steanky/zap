@@ -29,7 +29,6 @@ public class Party {
 
     private final Set<OfflinePlayer> invites = new HashSet<>();
 
-    @Getter
     private PartyMember owner;
 
     public Party(@NotNull OfflinePlayer owner) {
@@ -101,6 +100,58 @@ public class Party {
      */
     public void removeInvite(@NotNull OfflinePlayer player) {
         invites.remove(player);
+    }
+
+    /**
+     * Determines whether a player has an invite to this party
+     * @param player The potentially invited player
+     * @return Whether the player has an invite
+     */
+    public boolean hasInvite(@NotNull OfflinePlayer player) {
+        return invites.contains(player);
+    }
+
+    /**
+     * Determines if a player is the owner of the party
+     * @param player The player to test
+     * @return Whether the player is the party owner
+     */
+    public boolean isOwner(@NotNull OfflinePlayer player) {
+        return owner.getPlayer().equals(player);
+    }
+
+    /**
+     * Gets the owner of the party as an offline player
+     * @return The owner of the party
+     */
+    public @NotNull OfflinePlayer getOwner() {
+        return owner.getPlayer();
+    }
+
+    /**
+     * Disbands the party
+     * @return The players that were in the party
+     */
+    public Collection<OfflinePlayer> disband() {
+        Collection<PartyMember> memberCollection = members.values();
+        List<OfflinePlayer> offlinePlayers = new ArrayList<>(memberCollection.size());
+
+        Component disband = Component.text("The party has been disbanded.", NamedTextColor.RED);
+
+        Iterator<PartyMember> iterator = memberCollection.iterator();
+        while (iterator.hasNext()) {
+            OfflinePlayer offlinePlayer = iterator.next().getPlayer();
+            Player player = offlinePlayer.getPlayer();
+
+            if (player != null) {
+                player.sendMessage(disband);
+            }
+
+            iterator.remove();
+            offlinePlayers.add(offlinePlayer);
+        }
+
+        return offlinePlayers;
     }
 
     /**
@@ -179,15 +230,15 @@ public class Party {
             }
         }
 
-        Iterator<OfflinePlayer> inviteIterator = invites.iterator();
-        while (inviteIterator.hasNext()) {
-            OfflinePlayer next = inviteIterator.next();
+        Iterator<OfflinePlayer> iterator = invites.iterator();
+        while (iterator.hasNext()) {
+            OfflinePlayer next = iterator.next();
             String playerName = next.getName();
 
             if (playerName != null) {
                 invited = invited.append(Component.text(playerName, NamedTextColor.BLUE));
 
-                if (inviteIterator.hasNext()) {
+                if (iterator.hasNext()) {
                     invited = invited.append(Component.text(", ", NamedTextColor.WHITE));
                 }
             }

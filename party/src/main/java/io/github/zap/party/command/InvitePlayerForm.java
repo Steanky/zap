@@ -55,7 +55,7 @@ public class InvitePlayerForm extends CommandForm<Player> {
             party = partyManager.createParty(sender);
         }
 
-        if (party.getOwner().getPlayer().equals(sender) || party.getPartySettings().isAllInvite()) {
+        if (party.isOwner(sender) || party.getPartySettings().isAllInvite()) {
             partyManager.invitePlayer(party, sender, data);
             return null;
         }

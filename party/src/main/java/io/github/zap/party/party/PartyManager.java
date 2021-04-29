@@ -71,18 +71,29 @@ public class PartyManager {
     }
 
     /**
+     * Disbands a party and removes all players from it
+     * @param party The party to disband
+     */
+    public void disbandParty(@NotNull Party party) {
+        for (OfflinePlayer player : party.disband()) {
+            partyMap.remove(player);
+        }
+    }
+
+    /**
      * Invites a player to a party
      * @param party The party to invite to
      * @param inviter The person who invited the player
      * @param invitee The invited player
      */
     public void invitePlayer(@NotNull Party party, @NotNull Player inviter, @NotNull Player invitee) {
-        OfflinePlayer partyOwner = party.getOwner().getPlayer();
+        OfflinePlayer partyOwner = party.getOwner();
         party.addInvite(invitee);
 
         double expirationTime = party.getPartySettings().getInviteExpirationTime() / 20F;
 
         String ownerName = partyOwner.getName();
+        String inviteeName = invitee.getName();
         String joinCommand = String.format("/party join %s", ownerName);
 
         Component invitation = Component.text(inviter.getName(), NamedTextColor.GRAY)
@@ -99,8 +110,10 @@ public class PartyManager {
         invitee.sendMessage(invitation);
 
         Component invitationNotification = Component.text(inviter.getName(), NamedTextColor.GRAY)
-                .append(Component.text(String.format(" has invited %s to the party! They have %.1f seconds to accept!",
-                        invitee.getName(), expirationTime), NamedTextColor.YELLOW));
+                .append(Component.text(" has invited ", NamedTextColor.YELLOW))
+                .append(Component.text(inviteeName, NamedTextColor.GRAY))
+                .append(Component.text(String.format(" to the party! They have %.1f seconds to accept.",
+                        expirationTime), NamedTextColor.YELLOW));
 
         party.broadcastMessage(invitationNotification);
 
@@ -108,11 +121,18 @@ public class PartyManager {
             party.removeInvite(invitee);
 
             if (!party.hasMember(invitee.getName())) {
-                Component expiration = Component.text("The invite to ", NamedTextColor.YELLOW)
-                        .append(Component.text(invitee.getName(), NamedTextColor.GRAY))
+                Component partyExpiration = Component.text("The invite to ", NamedTextColor.YELLOW)
+                        .append(Component.text(inviteeName, NamedTextColor.GRAY))
                         .append(Component.text(" has expired.", NamedTextColor.YELLOW));
 
-                party.broadcastMessage(expiration);
+                party.broadcastMessage(partyExpiration);
+
+                Component inviteeExpiration = Component.text("The invite to ", NamedTextColor.YELLOW)
+                        .append(Component.text(ownerName, NamedTextColor.GRAY))
+                        .append(Component.text("'s party has expired.", NamedTextColor.YELLOW));
+                if (invitee.isOnline()) {
+                    invitee.sendMessage(inviteeExpiration);
+                }
             }
         }, party.getPartySettings().getInviteExpirationTime());
     }

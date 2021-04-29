@@ -47,8 +47,7 @@ public class JoinPartyForm extends CommandForm<Party> {
             return ValidationResult.of(false, String.format("%s is not in a party.", owner), null);
         }
 
-        if (!(party.getInvites().contains((OfflinePlayer) context.getSender())
-                || party.getPartySettings().isAnyoneCanJoin())) {
+        if (!(party.hasInvite((OfflinePlayer) context.getSender()) || party.getPartySettings().isAnyoneCanJoin())) {
             return ValidationResult.of(false, String.format("You don't have an invite to %s's party!",
                     ownerName), null);
         }
