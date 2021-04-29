@@ -10,7 +10,6 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import net.kyori.adventure.text.Component;
-import org.bukkit.OfflinePlayer;
 
 /**
  * Lists all members in a party
@@ -23,8 +22,7 @@ public class ListMembersForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager()
-                .getPartyForPlayer((OfflinePlayer) context.getSender());
+        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);

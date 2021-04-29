@@ -22,8 +22,7 @@ public class LeavePartyForm extends CommandForm<Void> {
 
     private static final CommandValidator<Void, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager()
-                .getPartyForPlayer((OfflinePlayer) context.getSender());
+        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);

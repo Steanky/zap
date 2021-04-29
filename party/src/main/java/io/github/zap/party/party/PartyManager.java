@@ -51,7 +51,7 @@ public class PartyManager implements Listener {
      * @param owner The owner of the party
      * @return The new party
      */
-    public @NotNull Party createParty(@NotNull OfflinePlayer owner) {
+    public @NotNull Party createParty(@NotNull Player owner) {
         return partyMap.computeIfAbsent(owner, (unused) -> new Party(owner));
     }
 

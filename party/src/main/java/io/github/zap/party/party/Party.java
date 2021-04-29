@@ -33,11 +33,11 @@ public class Party {
 
     private PartyMember owner;
 
-    public Party(@NotNull OfflinePlayer owner) {
+    public Party(@NotNull Player owner) {
         this.owner = new PartyMember(this, owner);
         this.partySettings = PartyPlusPlus.getInstance().getPartyManager().createPartySettings(owner);
 
-        members.put(owner.getName(), this.owner);
+        members.put(owner.getName().toLowerCase(), this.owner);
     }
 
     /**
@@ -48,7 +48,7 @@ public class Party {
         String memberName = player.getName();
 
         if (memberName != null && !members.containsKey(memberName)) {
-            members.put(memberName, new PartyMember(this, player));
+            members.put(memberName.toLowerCase(), new PartyMember(this, player));
             invites.remove(player);
 
             Component newPlayer = Component.text(memberName, NamedTextColor.GRAY)
@@ -63,7 +63,7 @@ public class Party {
      * @param name The name of the member to remove
      */
     public void removeMember(@NotNull String name, boolean forced) {
-        if (members.containsKey(name)) {
+        if (members.containsKey(name.toLowerCase())) {
             PartyMember removed = members.remove(name);
             String message = (forced) ? "been removed from" : "left";
 
@@ -143,7 +143,10 @@ public class Party {
         if (memberArray.size() > 0) {
             owner = memberArray.get(RANDOM.nextInt(memberArray.size()));
         } else {
-            owner = members.values().toArray(ARRAY)[0];
+            PartyMember[] array = members.values().toArray(ARRAY);
+            if (array.length > 0) {
+                owner = array[0];
+            }
         }
     }
 
@@ -223,7 +226,7 @@ public class Party {
         String playerName = player.getName();
 
         if (playerName != null) {
-            PartyMember member = members.get(playerName);
+            PartyMember member = members.get(playerName.toLowerCase());
 
             if (member != null) {
                 Component transfer = Component.text("The party has been transferred from ",
@@ -246,7 +249,16 @@ public class Party {
      * @return The party member corresponding to the player, or null if it does not exist
      */
     public @Nullable PartyMember getMember(@NotNull String name) {
-        return members.get(name);
+        return members.get(name.toLowerCase());
+    }
+
+    /**
+     * Gets all online players in the party
+     * @return The online players in the party
+     */
+    public @NotNull List<Player> getOnlinePlayers() {
+        return members.values().stream().map(PartyMember::getPlayer).filter(OfflinePlayer::isOnline)
+                .map(player -> (Player) player).collect(Collectors.toUnmodifiableList());
     }
 
     /**
@@ -255,7 +267,7 @@ public class Party {
      * @return Whether the party has the member
      */
     public boolean hasMember(@NotNull String name) {
-        return members.containsKey(name);
+        return members.containsKey(name.toLowerCase());
     }
 
     /**

@@ -26,20 +26,19 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
 
     private static final CommandValidator<Pair<Party, Player>, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Player player = (Player) context.getSender();
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer(player);
+        Party party = partyManager.getPartyForPlayer(previousData);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        if (!party.isOwner(player)) {
+        if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
 
         String playerName = (String) arguments[1];
-        if (context.getSender().getName().equals(playerName)) {
+        if (previousData.getName().equalsIgnoreCase(playerName)) {
             return ValidationResult.of(false, "You cannot transfer the party to yourself.", null);
         }
 

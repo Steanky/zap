@@ -22,6 +22,7 @@ val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins
 
 dependencies {
     api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
+
     shade("com.fasterxml.jackson.core:jackson-core:2.12.2")
     shade("com.fasterxml.jackson.core:jackson-databind:2.12.2")
     shade("com.fasterxml.jackson.core:jackson-annotations:2.12.2")

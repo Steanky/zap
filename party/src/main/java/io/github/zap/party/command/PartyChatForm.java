@@ -10,7 +10,6 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 public class PartyChatForm extends CommandForm<Void> {
@@ -21,8 +20,7 @@ public class PartyChatForm extends CommandForm<Void> {
 
     private static final CommandValidator<Void, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager()
-                .getPartyForPlayer((OfflinePlayer) context.getSender());
+        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);

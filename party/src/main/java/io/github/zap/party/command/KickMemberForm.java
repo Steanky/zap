@@ -12,7 +12,6 @@ import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
@@ -23,20 +22,19 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
     private static final CommandValidator<OfflinePlayer, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Player player = (Player) context.getSender();
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer(player);
+        Party party = partyManager.getPartyForPlayer(previousData);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        if (!party.isOwner(player)) {
+        if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
 
         String playerName = (String) arguments[1];
-        if (context.getSender().getName().equals(playerName)) {
+        if (previousData.getName().equalsIgnoreCase(playerName)) {
             return ValidationResult.of(false, "You cannot kick yourself.", null);
         }
 

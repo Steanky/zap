@@ -11,6 +11,8 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.party.PartyPlusPlus;
+import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.MapData;
@@ -292,7 +294,17 @@ public class ZombiesNPC implements Listener {
                     player.closeInventory();
 
                     ArenaApi arenaApi = Zombies.getInstance().getArenaApi();
-                    Joinable joinable = new SimpleJoinable(Collections.singletonList(player));
+                    Joinable joinable = null;
+                    PartyPlusPlus partyPlusPlus = Zombies.getInstance().getPartyPlusPlus();
+                    if (partyPlusPlus != null) {
+                        Party party = partyPlusPlus.getPartyManager().getPartyForPlayer(player);
+                        if (party != null) {
+                            joinable = new SimpleJoinable(party.getOnlinePlayers());
+                        }
+                    }
+                    if (joinable == null) {
+                        joinable = new SimpleJoinable(Collections.singletonList(player));
+                    }
 
                     JoinInformation testInformation = new JoinInformation(joinable,
                             Zombies.getInstance().getArenaManager().getGameName(), mapData, null,

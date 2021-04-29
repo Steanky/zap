@@ -27,7 +27,7 @@ public class InvitePlayerForm extends CommandForm<Player> {
             = new CommandValidator<>((context, arguments, previousData) -> {
         String playerName = (String) arguments[1];
 
-        if (context.getSender().getName().equals(playerName)) {
+        if (previousData.getName().equalsIgnoreCase(playerName)) {
             return ValidationResult.of(false, "You cannot join your own party.", null);
         }
 

@@ -10,7 +10,6 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.OfflinePlayer;
 
 import java.util.Arrays;
 
@@ -25,15 +24,14 @@ public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
 
     private static final CommandValidator<Pair<Party, Object[]>, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        OfflinePlayer player = (OfflinePlayer) context.getSender();
         Party party = PartyPlusPlus.getInstance().getPartyManager()
-                .getPartyForPlayer(player);
+                .getPartyForPlayer(previousData);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        if (!party.isOwner(player)) {
+        if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
 

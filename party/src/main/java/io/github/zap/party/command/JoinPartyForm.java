@@ -12,7 +12,6 @@ import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 /**
  * Joins a player's party if it exists
@@ -26,16 +25,15 @@ public class JoinPartyForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>(((context, arguments, previousData) -> {
-        Player player = (Player) context.getSender();
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
 
-        if (partyManager.getPartyForPlayer(player) != null) {
+        if (partyManager.getPartyForPlayer(previousData) != null) {
             return ValidationResult.of(false,
                     "You are already in a party! Leave it to join another one.", null);
         }
 
         String ownerName = (String) arguments[1];
-        if (context.getSender().getName().equals(ownerName)) {
+        if (previousData.getName().equalsIgnoreCase(ownerName)) {
             return ValidationResult.of(false, "You cannot join your own party.", null);
         }
 
@@ -53,7 +51,7 @@ public class JoinPartyForm extends CommandForm<Party> {
             return ValidationResult.of(false, String.format("%s is not in a party.", owner), null);
         }
 
-        if (!(party.hasInvite(player) || party.getPartySettings().isAnyoneCanJoin())) {
+        if (!(party.hasInvite(previousData) || party.getPartySettings().isAnyoneCanJoin())) {
             return ValidationResult.of(false, String.format("You don't have an invite to %s's party!",
                     ownerName), null);
         }

@@ -10,6 +10,7 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 /**
  * Creates a new party
@@ -48,7 +49,7 @@ public class CreatePartyForm extends CommandForm<Void> {
 
     @Override
     public String execute(Context context, Object[] arguments, Void data) {
-        PartyPlusPlus.getInstance().getPartyManager().createParty((OfflinePlayer) context.getSender());
+        PartyPlusPlus.getInstance().getPartyManager().createParty((Player) context.getSender());
 
         return ">gold{Created a new party.}";
     }

@@ -51,5 +51,5 @@ tasks.jar {
     })
 }
 
-description = "party++"
+description = "party-plus-plus"
 version = 1.0
