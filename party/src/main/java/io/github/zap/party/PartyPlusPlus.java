@@ -18,7 +18,7 @@ public class PartyPlusPlus extends JavaPlugin {
     private static PartyPlusPlus instance;
 
     @Getter
-    private final PartyManager partyManager = new PartyManager();
+    private PartyManager partyManager;
 
     private CommandManager commandManager;
 
@@ -27,11 +27,19 @@ public class PartyPlusPlus extends JavaPlugin {
         StopWatch timer = StopWatch.createStarted();
 
         instance = this;
-        
+
+        initPartyManager();
         initCommands();
 
         timer.stop();
         instance.getLogger().log(Level.INFO, String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
+    }
+
+    /**
+     * Initializes the party manager
+     */
+    private void initPartyManager() {
+        partyManager = new PartyManager();
     }
 
     /**

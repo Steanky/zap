@@ -9,15 +9,14 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import io.github.zap.party.party.PartyMember;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
-/**
- * Leaves your current party
- */
-public class LeavePartyForm extends CommandForm<Void> {
+public class PartyChatForm extends CommandForm<Void> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {
-            new Parameter("leave")
+            new Parameter("chat")
     };
 
     private static final CommandValidator<Void, ?> VALIDATOR
@@ -32,8 +31,13 @@ public class LeavePartyForm extends CommandForm<Void> {
         return ValidationResult.of(true, null, null);
     }, Validators.PLAYER_EXECUTOR);
 
-    public LeavePartyForm() {
-        super("Leaves your party.", Permissions.NONE, PARAMETERS);
+    public PartyChatForm() {
+        super("Toggles party chat.", Permissions.NONE, PARAMETERS);
+    }
+
+    @Override
+    public boolean canStylize() {
+        return true;
     }
 
     @Override
@@ -43,9 +47,17 @@ public class LeavePartyForm extends CommandForm<Void> {
 
     @Override
     public String execute(Context context, Object[] arguments, Void data) {
-        PartyPlusPlus.getInstance().getPartyManager().removePlayerFromParty((OfflinePlayer) context.getSender(),
-                false);
+        Player sender = (Player) context.getSender();
+        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(sender);
+
+        if (party != null) {
+            PartyMember member = party.getMember(sender.getName());
+            if (member != null) {
+                member.setInPartyChat(!member.isInPartyChat());
+                return String.format(">gold{Turned party chat %s!}", (member.isInPartyChat()) ? "ON" : "OFF");
+            }
+        }
+
         return null;
     }
-
 }

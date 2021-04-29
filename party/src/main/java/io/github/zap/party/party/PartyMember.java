@@ -2,6 +2,7 @@ package io.github.zap.party.party;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.bukkit.OfflinePlayer;
 
 import java.util.Objects;
@@ -16,6 +17,9 @@ public class PartyMember {
     private final Party party;
 
     private final OfflinePlayer player;
+
+    @Setter
+    private boolean inPartyChat = false;
 
     @Override
     public boolean equals(Object o) {

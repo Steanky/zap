@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -237,6 +238,15 @@ public class Party {
                 owner = member;
             }
         }
+    }
+
+    /**
+     * Gets a party member
+     * @param name The name of the player
+     * @return The party member corresponding to the player, or null if it does not exist
+     */
+    public @Nullable PartyMember getMember(@NotNull String name) {
+        return members.get(name);
     }
 
     /**

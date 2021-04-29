@@ -1,24 +1,32 @@
 package io.github.zap.party.party;
 
 import io.github.zap.party.PartyPlusPlus;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Manages all party logic
  */
-public class PartyManager {
+public class PartyManager implements Listener {
 
     private final Map<OfflinePlayer, Party> partyMap = new HashMap<>();
+
+    public PartyManager() {
+        Bukkit.getPluginManager().registerEvents(this, PartyPlusPlus.getInstance());
+    }
 
     /**
      * Creates a party's default settings
@@ -103,7 +111,7 @@ public class PartyManager {
 
         double expirationTime = party.getPartySettings().getInviteExpirationTime() / 20F;
 
-        String ownerName = partyOwner.getName();
+        String ownerName = Objects.toString(partyOwner.getName());
         String inviteeName = invitee.getName();
         String joinCommand = String.format("/party join %s", ownerName);
 
@@ -146,6 +154,26 @@ public class PartyManager {
                 }
             }
         }, party.getPartySettings().getInviteExpirationTime());
+    }
+
+    @EventHandler
+    private void onAsyncChat(AsyncChatEvent event) {
+        Player player = event.getPlayer();
+        Party party = getPartyForPlayer(player);
+
+        if (party != null) {
+            PartyMember partyMember = party.getMember(player.getName());
+            if (partyMember != null && partyMember.isInPartyChat()) {
+                event.setCancelled(true);
+
+                Component message = Component.empty()
+                        .append(Component.text("Party > ", NamedTextColor.BLUE))
+                        .append(Component.text(String.format("<%s> ", event.getPlayer().getName()),
+                                NamedTextColor.WHITE))
+                        .append(event.message());
+                party.broadcastMessage(message);
+            }
+        }
     }
 
 }
