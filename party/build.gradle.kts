@@ -11,9 +11,7 @@ java {
 }
 
 repositories {
-    maven {
-        url = uri("https://jitpack.io")
-    }
+    maven(url = "https://jitpack.io")
 }
 
 val shade: Configuration by configurations.creating {

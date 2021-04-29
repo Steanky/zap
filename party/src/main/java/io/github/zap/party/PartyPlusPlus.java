@@ -1,6 +1,7 @@
 package io.github.zap.party;
 
 import io.github.regularcommands.commands.CommandManager;
+import io.github.zap.party.command.PartyCommand;
 import io.github.zap.party.party.PartyManager;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
@@ -24,9 +25,10 @@ public class PartyPlusPlus extends JavaPlugin {
     @Override
     public void onEnable() {
         StopWatch timer = StopWatch.createStarted();
-        timer.start();
 
         instance = this;
+        
+        initCommands();
 
         timer.stop();
         instance.getLogger().log(Level.INFO, String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
@@ -37,6 +39,7 @@ public class PartyPlusPlus extends JavaPlugin {
      */
     private void initCommands() {
         commandManager = new CommandManager(this);
+        commandManager.registerCommand(new PartyCommand());
     }
 
 }

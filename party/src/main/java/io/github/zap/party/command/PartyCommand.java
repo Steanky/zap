@@ -11,6 +11,7 @@ public class PartyCommand extends RegularCommand {
         super("party");
         addForm(new InvitePlayerForm());
         addForm(new JoinPartyForm());
+        addForm(new LeavePartyForm());
     }
 
 }

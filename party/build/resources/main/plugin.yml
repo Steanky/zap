@@ -1,5 +1,5 @@
 name: PartyPlusPlus
-version: ${version}
+version: 1.0
 main: io.github.zap.party.PartyPlusPlus
 api-version: 1.16
 commands:

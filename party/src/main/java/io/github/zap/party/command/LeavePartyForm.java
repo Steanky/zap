@@ -33,7 +33,12 @@ public class LeavePartyForm extends CommandForm<Void> {
     }, Validators.PLAYER_EXECUTOR);
 
     public LeavePartyForm() {
-        super("Invites a player to your party.", Permissions.NONE, PARAMETERS);
+        super("Leaves your party.", Permissions.NONE, PARAMETERS);
+    }
+
+    @Override
+    public boolean canStylize() {
+        return true;
     }
 
     @Override

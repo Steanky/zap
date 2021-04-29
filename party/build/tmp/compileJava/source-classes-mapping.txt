@@ -1,0 +1,18 @@
+io/github/zap/party/party/PartySettings.java
+ io.github.zap.party.party.PartySettings
+io/github/zap/party/command/PartyCommand.java
+ io.github.zap.party.command.PartyCommand
+io/github/zap/party/party/Party.java
+ io.github.zap.party.party.Party
+io/github/zap/party/command/LeavePartyForm.java
+ io.github.zap.party.command.LeavePartyForm
+io/github/zap/party/command/InvitePlayerForm.java
+ io.github.zap.party.command.InvitePlayerForm
+io/github/zap/party/party/PartyMember.java
+ io.github.zap.party.party.PartyMember
+io/github/zap/party/command/JoinPartyForm.java
+ io.github.zap.party.command.JoinPartyForm
+io/github/zap/party/party/PartyManager.java
+ io.github.zap.party.party.PartyManager
+io/github/zap/party/PartyPlusPlus.java
+ io.github.zap.party.PartyPlusPlus

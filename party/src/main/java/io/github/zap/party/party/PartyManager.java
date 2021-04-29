@@ -2,6 +2,7 @@ package io.github.zap.party.party;
 
 import io.github.zap.party.PartyPlusPlus;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -60,6 +61,16 @@ public class PartyManager {
     }
 
     /**
+     * Adds a player to a party
+     * @param party The party to add the player to
+     * @param player The player to add to the party
+     */
+    public void addPlayerToParty(@NotNull Party party, @NotNull OfflinePlayer player) {
+        party.addMember(player);
+        partyMap.put(player, party);
+    }
+
+    /**
      * Invites a player to a party
      * @param party The party to invite to
      * @param inviter The person who invited the player
@@ -67,44 +78,41 @@ public class PartyManager {
      */
     public void invitePlayer(@NotNull Party party, @NotNull Player inviter, @NotNull Player invitee) {
         OfflinePlayer partyOwner = party.getOwner().getPlayer();
+        party.getInvites().add(invitee);
 
-        Component inviteeComponent = Component.text(String.format("%s ", inviter.getName()), NamedTextColor.GRAY)
+        double expirationTime = party.getPartySettings().getInviteExpirationTime() / 20F;
+
+        String ownerName = partyOwner.getName();
+        String joinCommand = String.format("/party join %s", ownerName);
+
+        Component invitation = Component.text(inviter.getName(), NamedTextColor.GRAY)
                 .append(Component.text((partyOwner.equals(inviter))
-                        ? "has invited you to join their party! Click "
-                        : String.format("has invited you to join %s's party! Click ", partyOwner.getName())))
-                .append(Component.text("here ", NamedTextColor.RED)
-                        .hoverEvent(Component.text(String.format("/party join %s", partyOwner.getName()),
-                                NamedTextColor.YELLOW)))
-                .append(Component.text("to join!", NamedTextColor.YELLOW));
+                        ? " has invited you to join their party! Click"
+                        : String.format(" has invited you to join %s's party! Click", ownerName),
+                        NamedTextColor.YELLOW))
+                .append(Component.text(" here ", NamedTextColor.RED)
+                        .hoverEvent(Component.text(joinCommand, NamedTextColor.YELLOW))
+                        .clickEvent(ClickEvent.runCommand(joinCommand)))
+                .append(Component.text(String.format("to join! You have %.1f seconds to accept!", expirationTime),
+                        NamedTextColor.YELLOW));
 
-        invitee.sendMessage(inviteeComponent);
+        invitee.sendMessage(invitation);
 
-        Component partyMemberComponent = Component.text(String.format("%s ", inviter.getName()), NamedTextColor.GRAY)
-                .append(Component.text(String.format("has invited %s to the party!", invitee.getName())));
+        Component invitationNotification = Component.text(inviter.getName(), NamedTextColor.GRAY)
+                .append(Component.text(String.format(" has invited %s to the party! They have %.1f seconds to accept!",
+                        invitee.getName(), expirationTime), NamedTextColor.YELLOW));
 
-        for (PartyMember partyMember : party.getMembers()) {
-            Player player = partyMember.getPlayer().getPlayer();
-
-            if (player != null) {
-                player.sendMessage(partyMemberComponent);
-            }
-        }
+        party.broadcastMessage(invitationNotification);
 
         Bukkit.getScheduler().runTaskLater(PartyPlusPlus.getInstance(), () -> {
             party.getInvites().remove(invitee);
 
             if (!party.hasMember(invitee.getName())) {
-                Component expirationComponent = Component.text("The invite to ", NamedTextColor.YELLOW)
+                Component expiration = Component.text("The invite to ", NamedTextColor.YELLOW)
                         .append(Component.text(invitee.getName(), NamedTextColor.GRAY))
                         .append(Component.text(" has expired.", NamedTextColor.YELLOW));
 
-                for (PartyMember partyMember : party.getMembers()) {
-                    Player player = partyMember.getPlayer().getPlayer();
-
-                    if (player != null) {
-                        player.sendMessage(expirationComponent);
-                    }
-                }
+                party.broadcastMessage(expiration);
             }
         }, party.getPartySettings().getInviteExpirationTime());
     }

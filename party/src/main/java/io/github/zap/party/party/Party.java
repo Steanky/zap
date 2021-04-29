@@ -7,7 +7,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -34,12 +33,18 @@ public class Party {
     @Getter
     private PartyMember owner;
 
-    public Party(OfflinePlayer owner) {
+    public Party(@NotNull OfflinePlayer owner) {
         this.owner = new PartyMember(this, owner);
         this.partySettings = PartyPlusPlus.getInstance().getPartyManager().createPartySettings(owner);
+
+        members.put(owner.getName(), this.owner);
     }
 
-    public boolean addMember(@NotNull OfflinePlayer player) {
+    /**
+     * Adds a member to the party
+     * @param player The new player
+     */
+    public void addMember(@NotNull OfflinePlayer player) {
         String memberName = player.getName();
 
         if (memberName != null && !members.containsKey(memberName)) {
@@ -48,20 +53,15 @@ public class Party {
             Component newPlayer = Component.text(memberName, NamedTextColor.GRAY)
                     .append(Component.text(" has joined the party.", NamedTextColor.YELLOW));
 
-            for (PartyMember partyMember : getMembers()) {
-                Player member = partyMember.getPlayer().getPlayer();
-                if (member != null) {
-                    member.sendMessage(newPlayer);
-                }
-            }
-
-            return true;
+            broadcastMessage(newPlayer);
         }
-
-        return false;
     }
 
-    public @Nullable PartyMember removeMember(@NotNull String name) {
+    /**
+     * Removes a member from the party
+     * @param name The name of the member to remove
+     */
+    public void removeMember(@NotNull String name) {
         if (members.containsKey(name)) {
             PartyMember removed = members.remove(name);
 
@@ -69,45 +69,45 @@ public class Party {
                 PartyMember[] memberArray = members.values().toArray(ARRAY);
 
                 owner = memberArray[RANDOM.nextInt(memberArray.length)];
-                owner.setOwner(true);
 
                 Component partyTransferred = Component.text(name, NamedTextColor.GRAY)
                         .append(Component.text(" has left the party. The party has been transferred to ",
                                 NamedTextColor.YELLOW))
                         .append(Component.text(Objects.toString(owner.getPlayer().getName()), NamedTextColor.GRAY));
 
-                for (PartyMember partyMember : getMembers()) {
-                    Player member = partyMember.getPlayer().getPlayer();
-                    if (member != null) {
-                        member.sendMessage(partyTransferred);
-                    }
-                }
-
-                return removed;
+                broadcastMessage(partyTransferred);
+                return;
             }
 
             Component memberLeft = Component.text(name, NamedTextColor.GRAY)
                     .append(Component.text(" has left the party.", NamedTextColor.YELLOW));
 
-            for (PartyMember partyMember : getMembers()) {
-                Player member = partyMember.getPlayer().getPlayer();
-                if (member != null) {
-                    member.sendMessage(memberLeft);
-                }
-            }
-
-            return removed;
+            broadcastMessage(memberLeft);
         }
 
-        return null;
     }
 
+    /**
+     * Determines if the party has a member
+     * @param name The name of the member
+     * @return Whether the party has the member
+     */
     public boolean hasMember(@NotNull String name) {
         return members.containsKey(name);
     }
 
-    public Collection<PartyMember> getMembers() {
-        return members.values();
+    /**
+     * Broadcasts a message to the entire party
+     * @param message The component to send
+     */
+    public void broadcastMessage(@NotNull Component message) {
+        for (PartyMember partyMember : members.values()) {
+            Player player = partyMember.getPlayer().getPlayer();
+
+            if (player != null) {
+                player.sendMessage(message);
+            }
+        }
     }
 
     @Override

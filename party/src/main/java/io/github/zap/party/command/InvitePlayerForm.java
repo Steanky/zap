@@ -20,7 +20,7 @@ public class InvitePlayerForm extends CommandForm<Player> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("invite"),
-            new Parameter("\\w+")
+            new Parameter("\\w+", "[player-name]")
     };
 
     private static final CommandValidator<Player, ?> VALIDATOR
@@ -57,11 +57,7 @@ public class InvitePlayerForm extends CommandForm<Player> {
 
         if (party.getOwner().getPlayer().equals(sender) || party.getPartySettings().isAllInvite()) {
             partyManager.invitePlayer(party, sender, data);
-
-            double expirationTime = party.getPartySettings().getInviteExpirationTime() / 20F;
-
-            return String.format(">yellow{Invited %s to the party! They have %.1f seconds to accept the invitation.}",
-                    data.getName(), expirationTime);
+            return null;
         }
 
         return ">red{You do not have permission to invite players!}";
