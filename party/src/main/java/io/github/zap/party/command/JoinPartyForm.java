@@ -33,8 +33,11 @@ public class JoinPartyForm extends CommandForm<Party> {
         }
 
         String ownerName = (String) arguments[1];
-        OfflinePlayer owner = Bukkit.getOfflinePlayerIfCached(ownerName);
+        if (context.getSender().getName().equals(ownerName)) {
+            return ValidationResult.of(false, "You cannot join your own party.", null);
+        }
 
+        OfflinePlayer owner = Bukkit.getOfflinePlayerIfCached(ownerName);
         if (owner == null) {
             return ValidationResult.of(false, String.format("%s is not online!", ownerName), null);
         }

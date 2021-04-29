@@ -129,6 +129,31 @@ public class Party {
     }
 
     /**
+     * Transfers the party to another player
+     * @param player The player to transfer the party to
+     */
+    public void transferPartyToPlayer(@NotNull OfflinePlayer player) {
+        String playerName = player.getName();
+
+        if (playerName != null) {
+            PartyMember member = members.get(playerName);
+
+            if (member != null) {
+                Component transfer = Component.text("The party has been transferred from ",
+                        NamedTextColor.YELLOW)
+                        .append(Component.text(Objects.toString(owner.getPlayer().getName()), NamedTextColor.GRAY))
+                        .append(Component.text(" to ", NamedTextColor.YELLOW))
+                        .append(Component.text(playerName, NamedTextColor.GRAY))
+                        .append(Component.text(".", NamedTextColor.YELLOW));
+
+                broadcastMessage(transfer);
+
+                owner = member;
+            }
+        }
+    }
+
+    /**
      * Disbands the party
      * @return The players that were in the party
      */

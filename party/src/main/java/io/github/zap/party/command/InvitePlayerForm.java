@@ -26,8 +26,12 @@ public class InvitePlayerForm extends CommandForm<Player> {
     private static final CommandValidator<Player, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
         String playerName = (String) arguments[1];
-        Player player = Bukkit.getPlayer(playerName);
 
+        if (context.getSender().getName().equals(playerName)) {
+            return ValidationResult.of(false, "You cannot join your own party.", null);
+        }
+
+        Player player = Bukkit.getPlayer(playerName);
         if (player == null) {
             return ValidationResult.of(false, String.format("%s is currently not online.", playerName), null);
         }
