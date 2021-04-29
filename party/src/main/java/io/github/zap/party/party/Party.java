@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A group of players which can join games together.
@@ -60,30 +61,115 @@ public class Party {
      * Removes a member from the party
      * @param name The name of the member to remove
      */
-    public void removeMember(@NotNull String name) {
+    public void removeMember(@NotNull String name, boolean forced) {
         if (members.containsKey(name)) {
             PartyMember removed = members.remove(name);
+            String message = (forced) ? "been removed from" : "left";
 
             if (owner.equals(removed)) {
-                PartyMember[] memberArray = members.values().toArray(ARRAY);
+                chooseNewOwner();
 
-                owner = memberArray[RANDOM.nextInt(memberArray.length)];
+                if (owner != null) {
+                    Component partyTransferred = Component.text(name, NamedTextColor.GRAY)
+                            .append(Component
+                                    .text(String.format(" has %s the party. The party has been transferred to ",
+                                            message), NamedTextColor.YELLOW))
+                            .append(Component.text(Objects.toString(owner.getPlayer().getName()), NamedTextColor.GRAY));
+                    broadcastMessage(partyTransferred);
+                }
+                // if there was nobody else in the party, there was nobody else to transfer the party to.
 
-                Component partyTransferred = Component.text(name, NamedTextColor.GRAY)
-                        .append(Component.text(" has left the party. The party has been transferred to ",
-                                NamedTextColor.YELLOW))
-                        .append(Component.text(Objects.toString(owner.getPlayer().getName()), NamedTextColor.GRAY));
-
-                broadcastMessage(partyTransferred);
                 return;
             }
 
             Component memberLeft = Component.text(name, NamedTextColor.GRAY)
-                    .append(Component.text(" has left the party.", NamedTextColor.YELLOW));
-
+                    .append(Component.text(String.format(" has %s the party.", message), NamedTextColor.YELLOW));
             broadcastMessage(memberLeft);
+
+            Player player = removed.getPlayer().getPlayer();
+            if (player != null) {
+                player.sendMessage(Component.text(String.format("You have %s the party.", message),
+                        NamedTextColor.YELLOW));
+            }
+        }
+    }
+
+    /**
+     * Kicks all offline players
+     * @return The kicked players
+     */
+    public Collection<OfflinePlayer> kickOffline() {
+        List<OfflinePlayer> offlinePlayers = new ArrayList<>();
+
+        Iterator<PartyMember> iterator = members.values().iterator();
+        while (iterator.hasNext()) {
+            PartyMember partyMember = iterator.next();
+
+            if (!partyMember.getPlayer().isOnline()) {
+                if (owner.equals(partyMember)) {
+                    chooseNewOwner();
+
+                    if (owner != null) {
+                        Component partyTransferred = Component.text(Objects.toString(partyMember.getPlayer().getName()),
+                                NamedTextColor.GRAY)
+                                .append(Component.text(" has been removed from the party. " +
+                                                "The party has been transferred to ", NamedTextColor.YELLOW))
+                                .append(Component.text(Objects.toString(owner.getPlayer().getName()),
+                                        NamedTextColor.GRAY));
+                        broadcastMessage(partyTransferred);
+                    }
+                    // if there was nobody else in the party, there was nobody else to transfer the party to.
+                }
+
+                iterator.remove();
+                offlinePlayers.add(partyMember.getPlayer());
+            }
         }
 
+        Component kicked = Component.text(offlinePlayers.size(), NamedTextColor.RED)
+                .append(Component.text(" offline players have been removed from the party.",
+                        NamedTextColor.RED));
+        broadcastMessage(kicked);
+
+        return offlinePlayers;
+    }
+
+    private void chooseNewOwner() {
+        List<PartyMember> memberArray = members.values().stream()
+                .filter(member -> member.getPlayer().isOnline() && !owner.equals(member))
+                .collect(Collectors.toUnmodifiableList());
+
+        if (memberArray.size() > 0) {
+            owner = memberArray.get(RANDOM.nextInt(memberArray.size()));
+        } else {
+            owner = members.values().toArray(ARRAY)[0];
+        }
+    }
+
+    /**
+     * Disbands the party
+     * @return The players that were in the party
+     */
+    public Collection<OfflinePlayer> disband() {
+        Collection<PartyMember> memberCollection = members.values();
+        List<OfflinePlayer> offlinePlayers = new ArrayList<>(memberCollection.size());
+
+        Component disband = Component.text("The party has been disbanded.", NamedTextColor.RED);
+
+        Iterator<PartyMember> iterator = memberCollection.iterator();
+        while (iterator.hasNext()) {
+            OfflinePlayer offlinePlayer = iterator.next().getPlayer();
+            Player player = offlinePlayer.getPlayer();
+
+            if (player != null) {
+                player.sendMessage(disband);
+            }
+
+            iterator.remove();
+            offlinePlayers.add(offlinePlayer);
+        }
+
+        return offlinePlayers;
     }
 
     /**
@@ -151,32 +237,6 @@ public class Party {
                 owner = member;
             }
         }
-    }
-
-    /**
-     * Disbands the party
-     * @return The players that were in the party
-     */
-    public Collection<OfflinePlayer> disband() {
-        Collection<PartyMember> memberCollection = members.values();
-        List<OfflinePlayer> offlinePlayers = new ArrayList<>(memberCollection.size());
-
-        Component disband = Component.text("The party has been disbanded.", NamedTextColor.RED);
-
-        Iterator<PartyMember> iterator = memberCollection.iterator();
-        while (iterator.hasNext()) {
-            OfflinePlayer offlinePlayer = iterator.next().getPlayer();
-            Player player = offlinePlayer.getPlayer();
-
-            if (player != null) {
-                player.sendMessage(disband);
-            }
-
-            iterator.remove();
-            offlinePlayers.add(offlinePlayer);
-        }
-
-        return offlinePlayers;
     }
 
     /**

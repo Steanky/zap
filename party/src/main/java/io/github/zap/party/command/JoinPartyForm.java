@@ -39,7 +39,8 @@ public class JoinPartyForm extends CommandForm<Party> {
 
         OfflinePlayer owner = Bukkit.getOfflinePlayerIfCached(ownerName);
         if (owner == null) {
-            return ValidationResult.of(false, String.format("%s is not online!", ownerName), null);
+            return ValidationResult.of(false, String.format("%s is registered on the server!", ownerName),
+                    null);
         }
 
         ownerName = owner.getName(); // change any capitalization

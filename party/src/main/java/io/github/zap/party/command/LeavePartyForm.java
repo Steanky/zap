@@ -48,9 +48,9 @@ public class LeavePartyForm extends CommandForm<Void> {
 
     @Override
     public String execute(Context context, Object[] arguments, Void data) {
-        PartyPlusPlus.getInstance().getPartyManager().removePlayerFromParty((OfflinePlayer) context.getSender());
-
-        return ">yellow{You left the party.}";
+        PartyPlusPlus.getInstance().getPartyManager().removePlayerFromParty((OfflinePlayer) context.getSender(),
+                false);
+        return null;
     }
 
 }

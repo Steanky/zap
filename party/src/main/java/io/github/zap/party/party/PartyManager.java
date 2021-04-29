@@ -48,19 +48,6 @@ public class PartyManager {
     }
 
     /**
-     * Removes a player from their party
-     * @param player The player to be removed from their party
-     */
-    public void removePlayerFromParty(@NotNull OfflinePlayer player) {
-        Party party = partyMap.get(player);
-
-        if (player.getName() != null && party != null) {
-            party.removeMember(player.getName());
-            partyMap.remove(player);
-        }
-    }
-
-    /**
      * Adds a player to a party
      * @param party The party to add the player to
      * @param player The player to add to the party
@@ -71,11 +58,35 @@ public class PartyManager {
     }
 
     /**
+     * Removes a player from their party
+     * @param player The player to be removed from their party
+     * @param forced Whether the removal was forced
+     */
+    public void removePlayerFromParty(@NotNull OfflinePlayer player, boolean forced) {
+        Party party = partyMap.get(player);
+
+        if (player.getName() != null && party != null) {
+            party.removeMember(player.getName(), forced);
+            partyMap.remove(player);
+        }
+    }
+
+    /**
      * Disbands a party and removes all players from it
      * @param party The party to disband
      */
     public void disbandParty(@NotNull Party party) {
         for (OfflinePlayer player : party.disband()) {
+            partyMap.remove(player);
+        }
+    }
+
+    /**
+     * Kicks offline players in a party
+     * @param party The party kick offline players in
+     */
+    public void kickOffline(@NotNull Party party) {
+        for (OfflinePlayer player : party.kickOffline()) {
             partyMap.remove(player);
         }
     }
