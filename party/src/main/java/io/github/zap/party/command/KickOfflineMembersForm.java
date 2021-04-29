@@ -10,7 +10,7 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 public class KickOfflineMembersForm extends CommandForm<Party> {
 
@@ -20,14 +20,15 @@ public class KickOfflineMembersForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
+        Player player = (Player) context.getSender();
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer((OfflinePlayer) context.getSender());
+        Party party = partyManager.getPartyForPlayer(player);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        if (!party.isOwner((OfflinePlayer) context.getSender())) {
+        if (!party.isOwner(player)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
 

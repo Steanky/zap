@@ -20,7 +20,7 @@ public class InvitePlayerForm extends CommandForm<Player> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("invite"),
-            new Parameter("\\w+", "[player-name]", true)
+            new Parameter("\\w+", "[player-name]")
     };
 
     private static final CommandValidator<Player, ?> VALIDATOR

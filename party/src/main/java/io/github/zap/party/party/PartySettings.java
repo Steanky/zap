@@ -13,8 +13,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PartySettings {
 
-    boolean ableToExpand = true;
-
     boolean allInvite = false;
 
     boolean anyoneCanJoin = false;

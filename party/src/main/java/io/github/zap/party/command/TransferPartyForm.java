@@ -12,7 +12,6 @@ import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 /**
@@ -27,14 +26,15 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
 
     private static final CommandValidator<Pair<Party, Player>, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
+        Player player = (Player) context.getSender();
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer((OfflinePlayer) context.getSender());
+        Party party = partyManager.getPartyForPlayer(player);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        if (!party.isOwner((OfflinePlayer) context.getSender())) {
+        if (!party.isOwner(player)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
 
@@ -43,16 +43,16 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
             return ValidationResult.of(false, "You cannot transfer the party to yourself.", null);
         }
 
-        Player player = Bukkit.getPlayer(playerName);
-        if (player == null) {
+        Player toTransfer = Bukkit.getPlayer(playerName);
+        if (toTransfer == null) {
             return ValidationResult.of(false, String.format("%s is currently not online.", playerName), null);
         }
 
-        if (!party.equals(partyManager.getPartyForPlayer(player))) {
+        if (!party.equals(partyManager.getPartyForPlayer(toTransfer))) {
             return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
         }
 
-        return ValidationResult.of(true, null, Pair.of(party, player));
+        return ValidationResult.of(true, null, Pair.of(party, toTransfer));
     }, Validators.PLAYER_EXECUTOR);
 
     public TransferPartyForm() {

@@ -9,7 +9,7 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 /**
  * Removes all players in a party
@@ -22,14 +22,15 @@ public class DisbandPartyForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
+        Player player = (Player) context.getSender();
         Party party = PartyPlusPlus.getInstance().getPartyManager()
-                .getPartyForPlayer((OfflinePlayer) context.getSender());
+                .getPartyForPlayer(player);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        if (!party.isOwner((OfflinePlayer) context.getSender())) {
+        if (!party.isOwner(player)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
 

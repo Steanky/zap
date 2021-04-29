@@ -50,7 +50,7 @@ public class CreatePartyForm extends CommandForm<Void> {
     public String execute(Context context, Object[] arguments, Void data) {
         PartyPlusPlus.getInstance().getPartyManager().createParty((OfflinePlayer) context.getSender());
 
-        return ">yellow{Created a new party.}";
+        return ">gold{Created a new party.}";
     }
 
 }

@@ -12,6 +12,7 @@ import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
@@ -22,14 +23,15 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
     private static final CommandValidator<OfflinePlayer, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
+        Player player = (Player) context.getSender();
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer((OfflinePlayer) context.getSender());
+        Party party = partyManager.getPartyForPlayer(player);
 
         if (party == null) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        if (!party.isOwner((OfflinePlayer) context.getSender())) {
+        if (!party.isOwner(player)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
 
@@ -38,17 +40,17 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
             return ValidationResult.of(false, "You cannot kick yourself.", null);
         }
 
-        OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(playerName);
-        if (player == null) {
+        OfflinePlayer toKick = Bukkit.getOfflinePlayerIfCached(playerName);
+        if (toKick == null) {
             return ValidationResult.of(false, String.format("%s is not registered on the server!", playerName),
                     null);
         }
 
-        if (!party.equals(partyManager.getPartyForPlayer(player))) {
+        if (!party.equals(partyManager.getPartyForPlayer(toKick))) {
             return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
         }
 
-        return ValidationResult.of(true, null, player);
+        return ValidationResult.of(true, null, toKick);
     }, Validators.PLAYER_EXECUTOR);
 
     public KickMemberForm() {
