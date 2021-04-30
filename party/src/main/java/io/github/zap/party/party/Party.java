@@ -136,10 +136,21 @@ public class Party {
     }
 
     /**
+     * Toggles whether the party is muted
+     */
+    public void mute() {
+        partySettings.setMuted(!partySettings.isMuted());
+        Component muted = Component.text(String.format("The party has been %s.",
+                partySettings.isMuted() ? "muted" : "unmuted"), NamedTextColor.YELLOW);
+
+        broadcastMessage(muted);
+    }
+
+    /**
      * Toggles whether a player is mute in the party
      * @param player The player to toggle on
      */
-    public void mute(@NotNull OfflinePlayer player) {
+    public void mutePlayer(@NotNull OfflinePlayer player) {
         PartyMember member = members.get(player.getName());
         if (member != null && member != owner) {
             member.setMuted(!member.isMuted());

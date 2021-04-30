@@ -17,6 +17,8 @@ public class PartySettings {
 
     boolean anyoneCanJoin = false;
 
+    boolean muted = false;
+
     long inviteExpirationTime = 1200L;
 
 }

@@ -169,6 +169,9 @@ public class PartyManager implements Listener {
                 if (partyMember.isMuted()) {
                     player.sendMessage(Component.text("You are muted from speaking in the party chat.",
                             NamedTextColor.RED));
+                } else if (party.getPartySettings().isMuted() && !party.isOwner(player)) {
+                    player.sendMessage(Component.text("The party chat is muted.",
+                            NamedTextColor.RED));
                 } else {
                     Component message = Component.empty()
                             .append(Component.text("Party > ", NamedTextColor.BLUE))
