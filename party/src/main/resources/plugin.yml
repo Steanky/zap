@@ -5,3 +5,4 @@ api-version: 1.16
 commands:
   party:
     description: "All party-related commands"
+    aliases: [ p ]
