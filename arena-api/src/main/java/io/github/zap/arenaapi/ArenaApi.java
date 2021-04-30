@@ -109,7 +109,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     }
 
     private void initDependencies() throws LoadFailureException {
-        protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB, true);
+        protocolLib = getDependentPlugin(PluginNames.PROTOCOL_LIB, true,true);
     }
 
     private void initMapper() {
@@ -185,27 +185,28 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         module.addDeserializer(type, deserializer);
     }
 
-    public static <T extends Plugin> T getRequiredPlugin(String pluginName, boolean requireEnabled)
-            throws LoadFailureException {
+    public static <T extends Plugin> T getDependentPlugin(String pluginName, boolean requireExists,
+                                                          boolean requireEnabled) throws LoadFailureException {
         Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
 
-        if(plugin != null) {
-            if(plugin.isEnabled() || !requireEnabled) {
+        if (plugin != null) {
+            if (plugin.isEnabled() || !requireEnabled) {
                 try {
                     //noinspection unchecked
-                    return (T)plugin;
+                    return (T) plugin;
+                } catch (ClassCastException ignored) {
+                    throw new LoadFailureException(String.format("ClassCastException when loading plugin %s.",
+                            pluginName));
                 }
-                catch (ClassCastException ignored) {
-                    throw new LoadFailureException(String.format("ClassCastException when loading plugin %s.", pluginName));
-                }
-            }
-            else {
+            } else if (requireExists) {
                 throw new LoadFailureException(String.format("Plugin %s is not enabled.", pluginName));
             }
         }
-        else {
+        else if (requireExists) {
             throw new LoadFailureException(String.format("Required plugin %s cannot be found.", pluginName));
         }
+
+        return null;
     }
 
     public void sendPacketToPlayer(Plugin plugin, Player player, PacketContainer packetContainer) {

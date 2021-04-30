@@ -13,6 +13,7 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
+import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
@@ -65,6 +66,9 @@ public final class Zombies extends JavaPlugin implements Listener {
     private ArenaApi arenaApi;
 
     @Getter
+    private PartyPlusPlus partyPlusPlus;
+
+    @Getter
     private SWMPlugin SWM;
 
     @Getter
@@ -114,7 +118,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        org.bukkit.craftbukkit.libs.org.apache.commons.lang3.time.StopWatch.createStarted();
         StopWatch timer = new StopWatch();
         timer.start();
         instance = this;
@@ -211,9 +214,10 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initDependencies() throws LoadFailureException {
-        arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
-        SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
-        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, false);
+        arenaApi = ArenaApi.getDependentPlugin(PluginNames.ARENA_API, true, true);
+        SWM = ArenaApi.getDependentPlugin(PluginNames.SLIME_WORLD_MANAGER, true, true);
+        mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true,false);
+        partyPlusPlus = ArenaApi.getDependentPlugin(PluginNames.PARTY_PLUS_PLUS, false, false);
     }
 
     @SafeVarargs

@@ -10,6 +10,10 @@ java {
     }
 }
 
+repositories {
+    maven(url = "https://jitpack.io")
+}
+
 val shade: Configuration by configurations.creating {
     isTransitive = false
 }
@@ -22,13 +26,7 @@ val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins
 
 dependencies {
     api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
-
-    shade("com.fasterxml.jackson.core:jackson-core:2.12.2")
-    shade("com.fasterxml.jackson.core:jackson-databind:2.12.2")
-    shade("com.fasterxml.jackson.core:jackson-annotations:2.12.2")
-    shade("org.apache.commons:commons-lang3:3.12.0")
-
-    bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.6.0")
+    shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
     compileOnly("org.projectlombok:lombok:1.18.4")
     annotationProcessor("org.projectlombok:lombok:1.18.4")
@@ -53,5 +51,5 @@ tasks.jar {
     })
 }
 
-description = "arena-api"
+description = "party-plus-plus"
 version = 1.0

@@ -10,18 +10,10 @@ java {
 }
 
 repositories {
-    maven {
-        url = uri("https://jitpack.io")
-    }
-    maven {
-        url = uri("https://repo.rapture.pw/repository/maven-snapshots")
-    }
-    maven {
-        url = uri("https://repo.glaremasters.me/repository/concuncan/")
-    }
-    maven {
-        url = uri("https://mvn.lumine.io/repository/maven-public/")
-    }
+    maven(url = "https://jitpack.io")
+    maven(url = "https://repo.rapture.pw/repository/maven-snapshots")
+    maven(url = "https://repo.glaremasters.me/repository/concuncan/")
+    maven(url = "https://mvn.lumine.io/repository/maven-public/")
 }
 
 val shade: Configuration by configurations.creating {
@@ -40,10 +32,11 @@ val pluginDir = "$outputDir/plugins"
 
 dependencies {
     implementation(project(":arena-api"))
+    implementation(project(":party"))
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
-    bukkitPlugin("io.lumine.xikage:MythicMobs:4.11.2")
+    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0-SNAPSHOT")
     bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.5.4-SNAPSHOT")
 
     classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.5.4-SNAPSHOT")
