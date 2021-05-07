@@ -147,6 +147,12 @@ public class MapData {
     int reviveRadius = 3;
 
     /**
+     * Whether or not to allow "wallshooting", allowing players to shoot mobs through walls if their shot passes through
+     * a non-solid block
+     */
+    boolean allowWallshooting = false;
+
+    /**
      * The MythicMobs mob level that mobs will spawn at
      */
     int mobSpawnLevel = 1;
