@@ -254,9 +254,22 @@ implements Listener {
             if (message instanceof TextComponent) {
                 TextComponent textComponent = (TextComponent) message;
                 String string = textComponent.content();
-                int startIndex = string.toLowerCase().indexOf("i am ");
+                String lowerCase = string.toLowerCase();
+
+                boolean isIAm = false;
+                int startIndex = lowerCase.indexOf("i am ");
+
                 if (startIndex != -1) {
-                    startIndex += ("i am ").length();
+                    startIndex += "i am ".length();
+                    isIAm = true;
+                } else {
+                    startIndex = lowerCase.indexOf("i'm ");
+                    if (startIndex != -1) {
+                        startIndex += "i'm ".length();
+                        isIAm = true;
+                    }
+                }
+                if (isIAm) {
                     int endIndex = string.indexOf(" ", startIndex);
                     if (endIndex == -1) {
                         endIndex = string.length();
