@@ -274,13 +274,11 @@ public class EditorContext implements Disposable {
                 List<VectorProvider> vectorProviders = new ArrayList<>();
 
                 for(ShopData shop : map.getShops()) {
-                    if(shop instanceof BlockShopData) {
-                        BlockShopData blockShopData = (BlockShopData) shop;
+                    if (shop instanceof BlockShopData blockShopData) {
                         vectorProviders.add(new RectangularPrism(BoundingBox.of(blockShopData.getBlockLocation(),
                                 blockShopData.getBlockLocation().clone().add(UNIT)), 1));
                     }
-                    if(shop instanceof ArmorStandShopData) {
-                        ArmorStandShopData armorShopData = (ArmorStandShopData) shop;
+                    if (shop instanceof ArmorStandShopData armorShopData) {
                         vectorProviders.add(new RectangularPrism(BoundingBox.of(armorShopData.getRootLocation(),
                                 armorShopData.getRootLocation().clone().add(UNIT)), 1));
                     }

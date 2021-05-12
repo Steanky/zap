@@ -136,8 +136,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
         Event event = args.getEvent();
-        if (event instanceof PlayerInteractEvent) {
-            PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) event;
+        if (event instanceof PlayerInteractEvent playerInteractEvent) {
             Block clickedBlock = playerInteractEvent.getClickedBlock();
 
             if (left.equals(clickedBlock) || right.equals(clickedBlock)) {
@@ -270,18 +269,16 @@ public class LuckyChest extends Shop<LuckyChestData> {
     private boolean attemptToRefill(@NotNull HotbarObjectGroup hotbarObjectGroup,
                                     @NotNull EquipmentData<?> equipmentData) {
         for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-            if (hotbarObject instanceof Gun<?, ?>) {
-                Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
-                if (gun.getEquipmentData().getName().equals(equipmentData.getName())) {
-                    ((Gun<?, ?>) hotbarObject).refill();
+            if (hotbarObject instanceof Gun<?, ?> gun &&
+                    gun.getEquipmentData().getName().equals(equipmentData.getName())) {
+                gun.refill();
 
-                    gunSwapper.destroy();
+                gunSwapper.destroy();
 
-                    hotbarObjectGroup.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
-                            Sound.Source.MASTER, 1.0F, 2.0F));
+                hotbarObjectGroup.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
+                        Sound.Source.MASTER, 1.0F, 2.0F));
 
-                    return true;
-                }
+                return true;
             }
         }
 

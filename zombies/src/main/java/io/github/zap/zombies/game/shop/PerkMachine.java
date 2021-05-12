@@ -145,12 +145,9 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
             if (equipmentObjectGroup != null) {
                 for (HotbarObject hotbarObject : equipmentObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof Perk) {
-                        Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
-
-                        if (perk.getEquipmentData().getName().equals(getShopData().getPerkName())) {
-                            return perk;
-                        }
+                    if (hotbarObject instanceof Perk<?, ?, ?, ?> perk &&
+                            perk.getEquipmentData().getName().equals(getShopData().getPerkName())) {
+                        return perk;
                     }
                 }
             }

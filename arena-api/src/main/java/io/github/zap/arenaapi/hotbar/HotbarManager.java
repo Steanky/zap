@@ -192,6 +192,14 @@ public class HotbarManager {
     }
 
     /**
+     * Gets the currently selected hotbar object group
+     * @return The currently selected hotbar object group
+     */
+    public @Nullable HotbarObjectGroup getSelectedHotbarObjectGroup() {
+        return current.getHotbarObjectGroup(player.getInventory().getHeldItemSlot());
+    }
+
+    /**
      * Gets the currently selected hotbar object
      * @return The currently selected hotbar object
      */

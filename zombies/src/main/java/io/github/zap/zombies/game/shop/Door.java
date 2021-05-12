@@ -120,16 +120,13 @@ public class Door extends Shop<DoorData> {
 
     @Override
     public boolean purchase(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
-        Event event = args.getEvent();
-        if (event instanceof PlayerInteractEvent) {
+        if (args.getEvent() instanceof PlayerInteractEvent event) {
             DoorData doorData = getShopData();
             ZombiesPlayer player = args.getManagedPlayer();
 
             if (player != null) {
                 Player bukkitPlayer = player.getPlayer();
-
-                PlayerInteractEvent playerInteractEvent = (PlayerInteractEvent) args.getEvent();
-                Block block = playerInteractEvent.getClickedBlock();
+                Block block = event.getClickedBlock();
 
                 if (bukkitPlayer != null && block != null && !block.getType().isAir()
                         && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
@@ -271,10 +268,8 @@ public class Door extends Shop<DoorData> {
 
             if (hotbarObjectGroup != null) {
                 for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof Speed) {
-                        Speed speed = (Speed) hotbarObject;
+                    if (hotbarObject instanceof Speed speed) {
                         speed.activate(); // update speed to synchronize timings
-
                         break;
                     }
                 }

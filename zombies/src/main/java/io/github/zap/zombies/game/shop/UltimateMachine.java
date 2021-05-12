@@ -5,8 +5,8 @@ import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
-import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -64,9 +64,11 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                             bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
                             HotbarObject hotbarObject = player.getHotbarManager().getSelectedObject();
-                            if (hotbarObject instanceof Ultimateable
-                                    && hotbarObject instanceof UpgradeableEquipment<?, ?>) {
-                                return attemptToUltimate((UpgradeableEquipment<?, ?>) hotbarObject, player, cost);
+                            if (hotbarObject instanceof UpgradeableEquipment<?, ?> upgradeableEquipment
+                                    && player.getHotbarManager().getSelectedHotbarObjectGroup()
+                                    instanceof UpgradeableEquipmentObjectGroup upgradeableEquipmentObjectGroup
+                                    && upgradeableEquipmentObjectGroup.isUltimateable()) {
+                                return attemptToUltimate(upgradeableEquipment, player, cost);
                             } else {
                                 bukkitPlayer.sendMessage(Component
                                         .text("Choose a slot to receive the upgrade for!", NamedTextColor.RED));

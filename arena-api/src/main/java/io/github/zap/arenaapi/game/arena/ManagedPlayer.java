@@ -63,8 +63,8 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof ManagedPlayer) {
-            return ((ManagedPlayer<?,?>) obj).getId().equals(getId());
+        if(obj instanceof ManagedPlayer<?, ?> player) {
+            return player.getId().equals(getId());
         }
 
         return false;

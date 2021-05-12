@@ -111,8 +111,8 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, TextWriter {
      */
     public SidebarTextWriter text(Object... contents) {
         for(Object content : contents) {
-            if(content instanceof ITextFragment)
-                add((ITextFragment)content);
+            if(content instanceof ITextFragment textFragment)
+                add(textFragment);
             else
                 add(new StringFragment(content.toString()));
         }

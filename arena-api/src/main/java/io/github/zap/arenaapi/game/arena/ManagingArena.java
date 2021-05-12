@@ -251,8 +251,7 @@ implements Listener {
         if (world.equals(event.getPlayer().getWorld())) {
             event.recipients().removeIf(player -> !world.equals(player.getWorld()));
             Component message = event.message();
-            if (message instanceof TextComponent) {
-                TextComponent textComponent = (TextComponent) message;
+            if (message instanceof TextComponent textComponent) {
                 String string = textComponent.content();
                 String lowerCase = string.toLowerCase();
 

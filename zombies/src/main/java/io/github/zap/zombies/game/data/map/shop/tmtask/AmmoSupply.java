@@ -26,8 +26,7 @@ public class AmmoSupply extends TeamMachineTask {
 
                 if (gunObjectGroup != null) {
                     for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
-                        if (hotbarObject instanceof Gun<?, ?>) {
-                            Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
+                        if (hotbarObject instanceof Gun<?, ?> gun) {
                             gun.refill();
                         }
                     }

@@ -224,9 +224,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initPathfinding(Class<? extends PathfinderAdapter>... customGoals) throws LoadFailureException {
         VolatileAIHandler handler = mythicMobs.getVolatileCodeHandler().getAIHandler();
 
-        if(handler instanceof VolatileAIHandler_v1_16_R3) {
-            VolatileAIHandler_v1_16_R3 target = (VolatileAIHandler_v1_16_R3)handler;
-
+        if(handler instanceof VolatileAIHandler_v1_16_R3 target) {
             try {
                 Field aiGoalsField = VolatileAIHandler_v1_16_R3.class.getDeclaredField("AI_GOALS");
                 aiGoalsField.setAccessible(true);

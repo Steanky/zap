@@ -30,15 +30,16 @@ public class AmmoModificationPowerUp extends PowerUp {
         getArena().getPlayerMap().forEach((l,r) -> {
             var gunGroup = r.getHotbarManager()
                     .getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
-            gunGroup.getHotbarObjectMap().forEach((slot, eq) -> {
-                if(eq instanceof Gun) {
-                    var gun = (Gun<? extends GunData<?>, ? extends GunLevel>)eq;
-                    var reference = cData.getModifierMode() == ModifierMode.ABSOLUTE ? gun.getCurrentLevel().getAmmo() : gun.getCurrentAmmo();
-                    gun.setAmmo((int) MathUtils.normalizeMultiplier(reference * cData.getMultiplier() + cData.getAmount(), reference));
-                    gun.setClipAmmo(MathUtils.clamp(gun.getCurrentAmmo(), 0, gun.getCurrentLevel().getClipAmmo()));
-                    gun.cancelReloadShootingDelay();
-                }
-            });
+            if (gunGroup != null) {
+                gunGroup.getHotbarObjectMap().forEach((slot, eq) -> {
+                    if (eq instanceof Gun<? extends GunData<?>, ? extends GunLevel> gun) {
+                        var reference = cData.getModifierMode() == ModifierMode.ABSOLUTE ? gun.getCurrentLevel().getAmmo() : gun.getCurrentAmmo();
+                        gun.setAmmo((int) MathUtils.normalizeMultiplier(reference * cData.getMultiplier() + cData.getAmount(), reference));
+                        gun.setClipAmmo(MathUtils.clamp(gun.getCurrentAmmo(), 0, gun.getCurrentLevel().getClipAmmo()));
+                        gun.cancelReloadShootingDelay();
+                    }
+                });
+            }
         });
 
         deactivate();

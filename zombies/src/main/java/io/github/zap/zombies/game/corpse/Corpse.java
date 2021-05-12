@@ -137,8 +137,7 @@ public class Corpse {
 
                 if (hotbarObjectGroup != null) {
                     for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                        if (hotbarObject instanceof FastRevive) {
-                            FastRevive fastRevive = (FastRevive) hotbarObject;
+                        if (hotbarObject instanceof FastRevive fastRevive) {
                             reviveTime = Math.max(reviver.getArena().getMap()
                                     .getDefaultReviveTime() - fastRevive.getReducedReviveTime(), 0);
 
@@ -193,10 +192,8 @@ public class Corpse {
 
                     if (hotbarObjectGroup != null) {
                         for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                            if (hotbarObject instanceof Speed) {
-                                Speed speed = (Speed) hotbarObject;
+                            if (hotbarObject instanceof Speed speed) {
                                 speed.activate();
-
                                 break;
                             }
                         }

@@ -454,16 +454,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
         @Override
         public boolean remove(Object o) {
-            if (o instanceof Player) {
-                Player player = (Player) o;
-
-                if (super.remove(o)) {
-                    for (Player otherPlayer : world.getPlayers()) {
-                        otherPlayer.showPlayer(Zombies.getInstance(), player);
-                    }
-
-                    return true;
+            if (o instanceof Player player && super.remove(o)) {
+                for (Player otherPlayer : world.getPlayers()) {
+                    otherPlayer.showPlayer(Zombies.getInstance(), player);
                 }
+
+                return true;
             }
 
             return false;
@@ -805,18 +801,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         Entity entity = event.getEntity(), damager = event.getDamager();
         ZombiesPlayer damagingPlayer = getPlayerMap().get(damager.getUniqueId());
 
-        if (damagingPlayer != null && entity instanceof Mob) {
-            Mob mob = (Mob) entity;
-
+        if (damagingPlayer != null && entity instanceof Mob mob) {
             if(!damagingPlayer.isAlive()) {
                 event.setCancelled(true);
             } else if (getEntitySet().contains(mob.getUniqueId())) {
                 HotbarManager hotbarManager = damagingPlayer.getHotbarManager();
                 HotbarObject hotbarObject = hotbarManager.getSelectedObject();
 
-                if (hotbarObject instanceof MeleeWeapon) {
-                    MeleeWeapon<?, ?> meleeWeapon = (MeleeWeapon<?, ?>) hotbarObject;
-
+                if (hotbarObject instanceof MeleeWeapon<?, ?> meleeWeapon) {
                     if (meleeWeapon.isUsable() &&
                             (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK
                                     || meleeWeapon.getCurrentLevel().isShouldSweep())) {

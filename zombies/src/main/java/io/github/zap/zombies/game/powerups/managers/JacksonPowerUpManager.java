@@ -182,8 +182,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     @Override
     public void registerPowerUp(Class<? extends PowerUp> classType) {
         for (var at : classType.getAnnotations()) {
-            if(at instanceof PowerUpType) {
-                registerPowerUp(((PowerUpType) at).name(), classType);
+            if (at instanceof PowerUpType powerUpType) {
+                registerPowerUp(powerUpType.name(), classType);
                 return;
             }
         }
@@ -248,8 +248,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     @Override
     public void registerSpawnRule(Class<? extends PowerUpSpawnRule<?>> spawnRuleType) {
         for (var at : spawnRuleType.getAnnotations()) {
-            if(at instanceof SpawnRuleType) {
-                registerSpawnRule(((SpawnRuleType) at).getName(), spawnRuleType);
+            if(at instanceof SpawnRuleType spawnRuleTypeAnnotation) {
+                registerSpawnRule(spawnRuleTypeAnnotation.getName(), spawnRuleType);
                 return;
             }
         }

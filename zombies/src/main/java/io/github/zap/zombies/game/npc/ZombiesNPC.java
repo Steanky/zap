@@ -284,9 +284,7 @@ public class ZombiesNPC implements Listener {
         HumanEntity humanEntity = event.getWhoClicked();
         Inventory clickedInventory = event.getClickedInventory();
 
-        if (clickedInventory != null && humanEntity instanceof Player) {
-            Player player = (Player) humanEntity;
-
+        if (clickedInventory != null && humanEntity instanceof Player player) {
             if (clickedInventory.equals(mapInventory)) {
                 String mapData = mapNameMap.get(event.getSlot());
 

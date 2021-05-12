@@ -88,8 +88,8 @@ public class GameScoreboard implements Disposable, Runnable {
             }
         }
 
-        if(currentState != null && currentState instanceof Disposable) {
-            ((Disposable) currentState).dispose();
+        if(currentState != null && currentState instanceof Disposable disposable) {
+            disposable.dispose();
         }
     }
 }

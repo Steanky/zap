@@ -195,25 +195,22 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
         if (bukkitPlayer != null) {
             for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
-                if (hotbarObject instanceof Gun<?, ?>) {
-                    Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
+                if (hotbarObject instanceof Gun<?, ?> gun
+                        && gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
+                    if (gun.getCurrentAmmo() == gun.getCurrentLevel().getAmmo()) {
+                        bukkitPlayer.sendMessage(ChatColor.RED + "Your gun is already filled!");
+                        return false;
+                    } else {
+                        int refillCost = gunShopData.getRefillCost();
+                        if (player.getCoins() < refillCost) {
+                            bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
 
-                    if (gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
-                        if (gun.getCurrentAmmo() == gun.getCurrentLevel().getAmmo()) {
-                            bukkitPlayer.sendMessage(ChatColor.RED + "Your gun is already filled!");
                             return false;
                         } else {
-                            int refillCost = gunShopData.getRefillCost();
-                            if (player.getCoins() < refillCost) {
-                                bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                            player.subtractCoins(refillCost);
+                            gun.refill();
 
-                                return false;
-                            } else {
-                                player.subtractCoins(refillCost);
-                                gun.refill();
-
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }

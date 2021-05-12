@@ -169,9 +169,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             if (hotbarObjectGroup != null) {
                 for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
-                        Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
-
+                    if (hotbarObject instanceof Perk<?, ?, ?, ?> perk && perk.getActionTriggerEvent() != null) {
                         Event<?> event = perk.getActionTriggerEvent();
                         if (event != null) {
                             event.dispose();
@@ -471,9 +469,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
                 if (hotbarObjectGroup != null) {
                     for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                        if (hotbarObject instanceof FrozenBullets) {
-                            FrozenBullets frozenBullets = (FrozenBullets) hotbarObject;
-
+                        if (hotbarObject instanceof FrozenBullets frozenBullets) {
                             AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
 
                             if (speed != null) {
@@ -495,8 +491,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                                             () -> speed.removeModifier(modifier)).getTaskId();
                                 }
                             }
-                        } else if (hotbarObject instanceof FlamingBullets) {
-                            FlamingBullets flamingBullets = (FlamingBullets) hotbarObject;
+                        } else if (hotbarObject instanceof FlamingBullets flamingBullets) {
                             damaged.setFireTicks(flamingBullets.getDuration());
                         }
                     }
@@ -516,8 +511,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if (hotbarObjectGroup != null) {
             for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
                 HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
-                if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
-                    Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+                if (hotbarObject instanceof Perk<?, ?, ?, ?> perk) {
                     perk.activate();
                 }
             }
@@ -542,10 +536,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             } else {
                 for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
                     HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
-                    if (hotbarObject instanceof Perk<?, ?, ?, ?>) {
-                        Perk<?, ?, ?, ?> perk = (Perk<?, ?, ?, ?>) hotbarObject;
+                    if (hotbarObject instanceof Perk<?, ?, ?, ?> perk) {
                         perk.deactivate();
-                        ;
                     }
                 }
             }

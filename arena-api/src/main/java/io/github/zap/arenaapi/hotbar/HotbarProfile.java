@@ -192,6 +192,22 @@ public class HotbarProfile {
     }
 
     /**
+     * Gets a hotbar object group
+     * @param slot The slot to get the hotbar object group from
+     * @return The hotbar object group
+     */
+    public HotbarObjectGroup getHotbarObjectGroup(int slot) {
+        for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
+            HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+            if (hotbarObject != null) {
+                return hotbarObjectGroup;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Gets a hotbar object
      * @param slot The slot to get the hotbar object from
      * @return The hotbar object

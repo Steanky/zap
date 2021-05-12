@@ -66,10 +66,8 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
 
     @Override
     public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        Event event = args.getEvent();
-        if (event instanceof PlayerInteractAtEntityEvent) {
-            PlayerInteractAtEntityEvent playerInteractAtEntityEvent = (PlayerInteractAtEntityEvent) event;
-            return playerInteractAtEntityEvent.getRightClicked().equals(armorStand);
+        if (args.getEvent() instanceof PlayerInteractAtEntityEvent event) {
+            return event.getRightClicked().equals(armorStand);
         }
 
         return false;

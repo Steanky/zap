@@ -46,10 +46,8 @@ public class Hologram {
      * @param message A pair of the message key and format arguments
      */
     public void addLine(String message) {
-        TextLine textLine = createTextLine(
-                rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),
-                message
-        );
+        TextLine textLine = createTextLine(rootLocation.clone().subtract(0, lineSpace * hologramLines.size(),
+                0), message);
         hologramLines.add(textLine);
         TEXT_LINE_SET.add(textLine.getEntityId());
     }
@@ -85,8 +83,8 @@ public class Hologram {
      */
     public void updateLineForEveryone(int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisualForEveryone(message);
+        if (hologramLine instanceof TextLine textLine) {
+            textLine.setVisualForEveryone(message);
         } else {
 
         }
@@ -99,8 +97,8 @@ public class Hologram {
      */
     public void updateLine(int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisual(message);
+        if (hologramLine instanceof TextLine textLine) {
+            textLine.setVisual(message);
         } else {
 
         }
@@ -114,8 +112,8 @@ public class Hologram {
      */
     public void updateLineForPlayer(Player player, int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisualForPlayer(player, message);
+        if (hologramLine instanceof TextLine textLine) {
+            textLine.setVisualForPlayer(player, message);
         } else {
 
         }
@@ -128,8 +126,8 @@ public class Hologram {
      */
     public void updateLineForEveryone(int index, Material material) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof ItemLine) {
-            ((ItemLine) hologramLine).setVisualForEveryone(material);
+        if (hologramLine instanceof ItemLine itemLine) {
+            itemLine.setVisualForEveryone(material);
         } else {
 
         }
@@ -142,8 +140,8 @@ public class Hologram {
      */
     public void updateLine(int index, Material material) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof ItemLine) {
-            ((ItemLine) hologramLine).setVisual(material);
+        if (hologramLine instanceof ItemLine itemLine) {
+            itemLine.setVisual(material);
         } else {
 
         }
@@ -157,8 +155,8 @@ public class Hologram {
      */
     public void updateLineForPlayer(Player player, int index, Material material) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof ItemLine) {
-            ((ItemLine) hologramLine).setVisualForPlayer(player, material);
+        if (hologramLine instanceof ItemLine itemLine) {
+            itemLine.setVisualForPlayer(player, material);
         } else {
 
         }

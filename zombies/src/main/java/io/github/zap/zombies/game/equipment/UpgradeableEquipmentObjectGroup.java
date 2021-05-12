@@ -32,8 +32,7 @@ public abstract class UpgradeableEquipmentObjectGroup extends EquipmentObjectGro
         if (shouldSaveLevels && replace) {
             HotbarObject hotbarObject = getHotbarObject(slot);
 
-            if (hotbarObject instanceof UpgradeableEquipment<?, ?>) {
-                UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
+            if (hotbarObject instanceof UpgradeableEquipment<?, ?> upgradeableEquipment) {
                 equipmentLevelMap.put(upgradeableEquipment.getEquipmentData().getName(),
                         upgradeableEquipment.getLevel());
             }
@@ -44,9 +43,7 @@ public abstract class UpgradeableEquipmentObjectGroup extends EquipmentObjectGro
 
     @Override
     public void setHotbarObject(int slot, @NotNull HotbarObject hotbarObject) {
-        if (shouldSaveLevels && hotbarObject instanceof UpgradeableEquipment<?, ?>) {
-            UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
-
+        if (shouldSaveLevels && hotbarObject instanceof UpgradeableEquipment<?, ?> upgradeableEquipment) {
             Integer level = equipmentLevelMap.get(upgradeableEquipment.getEquipmentData().getName());
             if (level != null) {
                 while (upgradeableEquipment.getLevel() < level) {
