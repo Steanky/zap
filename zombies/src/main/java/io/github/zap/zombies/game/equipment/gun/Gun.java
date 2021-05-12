@@ -5,7 +5,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
-import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
@@ -32,8 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <L> The gun level type
  */
 @Getter
-public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends UpgradeableEquipment<D, L>
-        implements Ultimateable {
+public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends UpgradeableEquipment<D, L> {
 
     private int currentClipAmmo;
 

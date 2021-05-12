@@ -6,7 +6,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeLevel;
-import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import lombok.Getter;
 import org.bukkit.Material;
@@ -23,8 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <D> The data type of the weapon
  * @param <L> The level type of the weapon
  */
-public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> extends UpgradeableEquipment<D, L>
-        implements Ultimateable {
+public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> extends UpgradeableEquipment<D, L> {
 
     protected class MeleeDamageAttempt implements DamageAttempt {
 
