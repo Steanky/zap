@@ -31,7 +31,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     }
 
     private class Context implements PathfinderContext {
-        //don't lock onto context object itself as it may be used by implementations
+        //don't lock onto context object itself as it is visible to implementations
+
         private final Object lockHandle = new Object();
 
         private final Semaphore semaphore = new Semaphore(0);
@@ -63,6 +64,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         @Override
         public @NotNull BlockProvider blockProvider() {
             return blockProvider;
+        }
+
+        @Override
+        public String toString() {
+            return "Context{" + "}";
         }
     }
 
@@ -193,38 +199,46 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             }
 
             for (int i = operationStartingIndex; i > -1; i--) { //iterate all pathfinding operations for this world
-                Entry entry = context.entries.get(i);
+                try {
+                    Entry entry = context.entries.get(i);
 
-                if(entry.operation.state() == PathOperation.State.NOT_STARTED) {
-                    entry.operation.init();
-                }
+                    if(entry.operation.state() == PathOperation.State.NOT_STARTED) {
+                        entry.operation.init();
+                    }
 
-                PathOperation.State entryState = entry.operation.state();
-                if (entryState == PathOperation.State.STARTED) {
-                    for (int j = 0; j < entry.operation.iterations(); j++) {
-                        if (entry.operation.step(context)) {
-                            PathResult result = entry.operation.result();
+                    PathOperation.State entryState = entry.operation.state();
+                    if (entryState == PathOperation.State.STARTED) {
+                        for (int j = 0; j < entry.operation.iterations(); j++) {
+                            if (entry.operation.step(context)) {
+                                PathResult result = entry.operation.result();
 
-                            if (entry.operation.state() == PathOperation.State.SUCCEEDED) {
-                                context.successfulPaths.add(result);
-                            } else if (entry.operation.state() == PathOperation.State.FAILED) {
-                                context.failedPaths.add(result);
-                            } else {
-                                ArenaApi.warning("PathOperation " + entry.operation + " has an invalid state: should be " +
-                                        "either SUCCEEDED or FAILED");
-                                ArenaApi.warning("Removing invalid PathOperation without calling consumer.");
+                                if (entry.operation.state() == PathOperation.State.SUCCEEDED) {
+                                    context.successfulPaths.add(result);
+                                } else if (entry.operation.state() == PathOperation.State.FAILED) {
+                                    context.failedPaths.add(result);
+                                } else {
+                                    ArenaApi.warning("PathOperation " + entry.operation + " has an invalid state: should be " +
+                                            "either SUCCEEDED or FAILED");
+                                    ArenaApi.warning("Removing invalid PathOperation without calling consumer.");
+                                    removeOperation(context, i);
+                                    break;
+                                }
+
+                                entry.consumer.accept(result);
                                 removeOperation(context, i);
                                 break;
                             }
 
-                            entry.consumer.accept(result);
-                            removeOperation(context, i);
-                            break;
+                            if (Thread.interrupted()) {
+                                throw new InterruptedException();
+                            }
                         }
-
-                        if (Thread.interrupted()) {
-                            throw new InterruptedException();
-                        }
+                    }
+                }
+                catch (Exception ex) {
+                    if(!(ex instanceof InterruptedException)) {
+                        ArenaApi.warning("A PathOperation threw an unhandled exception.");
+                        ArenaApi.warning("Context: " + context);
                     }
                 }
             }
@@ -334,7 +348,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         catch (InterruptedException ignored) {
             ArenaApi.warning("Interrupted while waiting for pathfinder thread to shut down!");
             ArenaApi.warning("Pathfinder thread state: " + pathfinderThread.getState());
-            ArenaApi.warning("The thread may never terminate and could throw exceptions.");
+            ArenaApi.warning("It may never terminate and could throw exceptions.");
         }
         finally {
             disposed = true;

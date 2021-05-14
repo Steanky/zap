@@ -65,7 +65,7 @@ public class ResourceManager implements Disposable {
                 disposable.dispose();
             }
             catch (RuntimeException exception) {
-                plugin.getLogger().warning("Disposable threw unchecked exception!\n" + exception.toString());
+                plugin.getLogger().warning("Disposable threw unchecked exception!\n" + exception);
             }
         }
 

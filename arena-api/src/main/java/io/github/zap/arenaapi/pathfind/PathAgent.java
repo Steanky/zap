@@ -15,6 +15,8 @@ import java.util.Objects;
  */
 public abstract class PathAgent implements Positional {
     public static class Characteristics {
+        private static final double DEFAULT_JUMP_HEIGHT = 1.125D;
+
         public final double width;
         public final double height;
         public final double jumpHeight;
@@ -28,15 +30,15 @@ public abstract class PathAgent implements Positional {
         }
 
         public Characteristics(double width, double height) {
-            this(width, height, 1);
+            this(width, height, DEFAULT_JUMP_HEIGHT);
         }
 
         public Characteristics(@NotNull Entity fromEntity) {
-            this(fromEntity.getWidth(), fromEntity.getHeight(), 1);
+            this(fromEntity.getWidth(), fromEntity.getHeight(), DEFAULT_JUMP_HEIGHT);
         }
 
         public Characteristics() {
-            this(0, 0, 1);
+            this(0, 0, DEFAULT_JUMP_HEIGHT);
         }
 
         @Override

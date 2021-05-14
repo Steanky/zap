@@ -109,7 +109,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                         if(isPartialSolidBlock(shape)) {
                             collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z),
                                     BlockSnapshot.from(blockData.createCraftBlockData(),
-                                            new VoxelShape_Wrapper_v1_16_R3(shape)));
+                                            new VoxelShapeWrapper_v1_16_R3(shape)));
                         }
                     });
                 }

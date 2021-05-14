@@ -38,8 +38,7 @@ public class ImmutableWorldVector extends WorldVector<ImmutableWorldVector> {
     }
 
     @Override
-    @NotNull
-    protected ImmutableWorldVector operation(double x, double y, double z) {
+    @NotNull ImmutableWorldVector operation(double x, double y, double z) {
         return new ImmutableWorldVector(x, y, z);
     }
 

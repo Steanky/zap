@@ -4,9 +4,14 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Describes an object that may have a position; i.e. supplies a VectorAccess object. Positional instances inherit all
- * the methods of VectorAccess, which should act on or read from the vector returned by a call to position().
+ * the methods of VectorAccess, which act on or read from the vector returned by a call to position().
  */
 public interface Positional extends VectorAccess {
+    /**
+     * Returns the VectorAccess object used by the Positional instance to store its location. The VectorAccess may be
+     * mutable or immutable, depending on the needs of the Positional implementation.
+     * @return The VectorAccess object used
+     */
     @NotNull VectorAccess position();
 
     @Override
@@ -27,11 +32,6 @@ public interface Positional extends VectorAccess {
     @Override
     default double z() {
         return position().z();
-    }
-
-    @Override
-    default int chunkX() {
-        return VectorAccess.super.chunkX();
     }
 
     @Override

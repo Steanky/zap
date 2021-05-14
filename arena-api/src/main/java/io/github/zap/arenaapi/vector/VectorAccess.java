@@ -76,9 +76,9 @@ public interface VectorAccess extends ChunkVectorAccess {
     }
 
     default double distanceSquared(double x, double y, double z) {
-        double xD = x - x();
-        double yD = y - y();
-        double zD = z - z();
+        double xD = x() - x;
+        double yD = y() - y;
+        double zD = z() - z;
 
         return (xD * xD) + (yD * yD) + (zD * zD);
     }

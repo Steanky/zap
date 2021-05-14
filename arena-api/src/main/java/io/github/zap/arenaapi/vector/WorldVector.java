@@ -29,7 +29,7 @@ abstract class WorldVector<T extends WorldVector<T>> implements VectorAccess {
     }
 
     public @NotNull T add(double x, double y, double z) {
-        return operation(x + x(), y + y(), z + z());
+        return operation(x() + x, y() + y, z() + z);
     }
 
     public @NotNull T subtract(double x, double y, double z) {
@@ -37,7 +37,7 @@ abstract class WorldVector<T extends WorldVector<T>> implements VectorAccess {
     }
 
     public @NotNull T multiply(double x, double y, double z) {
-        return operation(x * x(), y * y(), z * z());
+        return operation(x() * x, y() * y, z() * z);
     }
 
     public @NotNull T divide(double x, double y, double z) {

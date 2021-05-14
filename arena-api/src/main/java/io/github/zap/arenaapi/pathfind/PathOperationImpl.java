@@ -71,7 +71,7 @@ class PathOperationImpl implements PathOperation {
                     }
                 }
 
-                if(best == null) {
+                if(best == null) { //couldn't find a destination
                     complete(false);
                     return true;
                 }

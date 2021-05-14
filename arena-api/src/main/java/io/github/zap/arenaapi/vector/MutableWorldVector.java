@@ -56,7 +56,7 @@ public class MutableWorldVector extends WorldVector<MutableWorldVector> {
     }
 
     @Override
-    protected @NotNull MutableWorldVector operation(double x, double y, double z) {
+    @NotNull MutableWorldVector operation(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;

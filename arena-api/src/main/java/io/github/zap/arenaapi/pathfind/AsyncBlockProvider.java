@@ -76,4 +76,21 @@ class AsyncBlockProvider implements BlockProvider {
 
         return null;
     }
+
+    @Override
+    public boolean collisionAt(double x, double y, double z) {
+        int blockX = (int)x;
+        int blockY = (int)y;
+        int blockZ = (int)z;
+
+        int chunkX = blockX >> 4;
+        int chunkZ = blockZ >> 4;
+
+        CollisionChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
+        if(snapshot != null) {
+            snapshot.blockSnapshot(chunkX, blockY, chunkZ);
+        }
+
+        return false;
+    }
 }
