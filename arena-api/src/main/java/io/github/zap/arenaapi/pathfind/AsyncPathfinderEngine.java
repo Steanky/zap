@@ -108,17 +108,14 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         //syncing must be run on main thread
                         AtomicBoolean syncRun = new AtomicBoolean(false);
-                        BukkitTask syncTask = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
+                        int syncId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                             if(!syncRun.getAndSet(true)) {
                                 context.blockProvider.updateAll();
                                 context.semaphore.release();
                             }
-                        });
+                        }).getTaskId();
 
                         if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
-                            //noinspection ResultOfMethodCallIgnored
-                            context.semaphore.tryAcquire(1); //reset the semaphore
-
                             try {
                                 completionService.submit(() -> calculatePathsFor(context));
                                 operations++;
@@ -130,8 +127,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         else {
                             if(!syncRun.getAndSet(true)) {
                                 ArenaApi.warning("Timed out while waiting on main thread to sync chunks.");
-                                Bukkit.getScheduler().cancelTask(syncTask.getTaskId());
-                                context.semaphore.release();
+                                Bukkit.getScheduler().cancelTask(syncId);
                             }
                         }
                     }
