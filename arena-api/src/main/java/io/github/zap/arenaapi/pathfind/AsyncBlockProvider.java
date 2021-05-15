@@ -28,7 +28,7 @@ class AsyncBlockProvider implements BlockProvider {
 
     @Override
     public boolean hasChunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z))) != null;
+        return GLOBAL_CHUNKS.containsKey(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
     }
 
     private void updateChunkInternal(int x, int z) {
