@@ -144,10 +144,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
 
                     //check the operations on each context, if none have pending operations, lock again
+                    sync:
                     synchronized (completedLockHandle) {
                         for(Context completed : completedContexts) {
                             if(completed.entries.size() > 0) {
-                                break;
+                                break sync;
                             }
                         }
 
