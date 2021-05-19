@@ -19,6 +19,7 @@ public class ShopCreator {
      * Interface to create a shop from its respective data class
      * @param <D> The data class of the shop
      */
+    @FunctionalInterface
     public interface ShopMapping<D extends ShopData> {
         /**
          * Creates a shop

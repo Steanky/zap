@@ -22,6 +22,7 @@ public class EquipmentCreator {
      * @param <D> The data class of the equipment
      * @param <L> The level class of the equipment
      */
+    @FunctionalInterface
     public interface EquipmentMapping<D extends EquipmentData<L>, L> {
         /**
          * Creates a new piece of equipment
