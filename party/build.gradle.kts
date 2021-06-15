@@ -28,8 +28,8 @@ dependencies {
     api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
-    compileOnly("org.projectlombok:lombok:1.18.4")
-    annotationProcessor("org.projectlombok:lombok:1.18.4")
+    compileOnly("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.20")
 }
 
 tasks.register<Copy>("copyPlugins") {
@@ -48,7 +48,9 @@ tasks.jar {
     destinationDirectory.set(File(pluginDir))
     from (shade.map {
         if (it.isDirectory) it else zipTree(it)
-    })
+    }) {
+        exclude("META-INF", "META-INF/**")
+    }
 }
 
 description = "party-plus-plus"

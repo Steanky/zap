@@ -15,6 +15,7 @@ import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
+import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import org.apache.commons.lang3.Validate;
@@ -55,6 +56,9 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     @Getter
     private NMSProxy nmsProxy;
+
+    @Getter
+    private PartyPlusPlus partyPlusPlus;
 
     @Getter
     private ProtocolLib protocolLib;
@@ -110,6 +114,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     private void initDependencies() throws LoadFailureException {
         protocolLib = getDependentPlugin(PluginNames.PROTOCOL_LIB, true,true);
+        partyPlusPlus = ArenaApi.getDependentPlugin(PluginNames.PARTY_PLUS_PLUS, false, false);
     }
 
     private void initMapper() {

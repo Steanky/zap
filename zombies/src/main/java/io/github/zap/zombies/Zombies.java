@@ -13,7 +13,6 @@ import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
@@ -64,9 +63,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Getter
     private ArenaApi arenaApi;
-
-    @Getter
-    private PartyPlusPlus partyPlusPlus;
 
     @Getter
     private SWMPlugin SWM;
@@ -217,7 +213,6 @@ public final class Zombies extends JavaPlugin implements Listener {
         arenaApi = ArenaApi.getDependentPlugin(PluginNames.ARENA_API, true, true);
         SWM = ArenaApi.getDependentPlugin(PluginNames.SLIME_WORLD_MANAGER, true, true);
         mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true,false);
-        partyPlusPlus = ArenaApi.getDependentPlugin(PluginNames.PARTY_PLUS_PLUS, false, false);
     }
 
     @SafeVarargs

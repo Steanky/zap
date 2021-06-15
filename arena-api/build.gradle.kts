@@ -10,13 +10,18 @@ java {
     }
 }
 
+repositories {
+    maven(url = "https://jitpack.io")
+}
+
 val shade: Configuration by configurations.creating {
     isTransitive = false
 }
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
-configurations.api.get().extendsFrom(shade, bukkitPlugin)
+val resolvableApi: Configuration by configurations.creating
+configurations.api.get().extendsFrom(shade, bukkitPlugin, resolvableApi)
 
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
@@ -31,8 +36,8 @@ dependencies {
 
     bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.6.0")
 
-    compileOnly("org.projectlombok:lombok:1.18.4")
-    annotationProcessor("org.projectlombok:lombok:1.18.4")
+    compileOnly("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.20")
 }
 
 tasks.register<Copy>("copyPlugins") {
@@ -48,10 +53,13 @@ tasks.processResources {
 }
 
 tasks.jar {
+    dependsOn(resolvableApi)
     destinationDirectory.set(File(pluginDir))
     from (shade.map {
         if (it.isDirectory) it else zipTree(it)
-    })
+    }) {
+        exclude("META-INF", "META-INF/**", "module-info.class")
+    }
 }
 
 description = "arena-api"

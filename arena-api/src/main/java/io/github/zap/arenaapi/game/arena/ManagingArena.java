@@ -7,7 +7,6 @@ import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.PartyMember;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
@@ -252,7 +251,7 @@ implements Listener {
     public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
         // TODO: remove hard-dependency on PartyPlusPlus
         PartyMember partyMember
-                = PartyPlusPlus.getInstance().getPartyManager().getPlayerAsPartyMember(event.getPlayer());
+                = ArenaApi.getInstance().getPartyPlusPlus().getPartyManager().getPlayerAsPartyMember(event.getPlayer());
         if ((partyMember == null || !partyMember.isInPartyChat()) && world.equals(event.getPlayer().getWorld())) {
             event.recipients().removeIf(player -> !world.equals(player.getWorld()));
             Component message = event.message();

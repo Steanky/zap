@@ -44,7 +44,7 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
         }
 
         Joinable joinable = null;
-        PartyPlusPlus partyPlusPlus = Zombies.getInstance().getPartyPlusPlus();
+        PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
         if (partyPlusPlus != null) {
             Party party = partyPlusPlus.getPartyManager().getPartyForPlayer(previousData);
             if (party != null) {
