@@ -32,7 +32,6 @@ val pluginDir = "$outputDir/plugins"
 
 dependencies {
     implementation(project(":arena-api"))
-    implementation(project(":party"))
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 

@@ -7,6 +7,8 @@ import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
+import io.github.zap.party.PartyPlusPlus;
+import io.github.zap.party.party.PartyMember;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
 import lombok.Value;
@@ -224,7 +226,7 @@ implements Listener {
         this.resourceManager = new ResourceManager(plugin);
 
         startTimeout(timeoutTicks);
-        getProxyFor(PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
+        getProxyFor( PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
 
         Bukkit.getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
@@ -248,7 +250,10 @@ implements Listener {
      */
     @EventHandler
     public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
-        if (world.equals(event.getPlayer().getWorld())) {
+        // TODO: remove hard-dependency on PartyPlusPlus
+        PartyMember partyMember
+                = PartyPlusPlus.getInstance().getPartyManager().getPlayerAsPartyMember(event.getPlayer());
+        if ((partyMember == null || !partyMember.isInPartyChat()) && world.equals(event.getPlayer().getWorld())) {
             event.recipients().removeIf(player -> !world.equals(player.getWorld()));
             Component message = event.message();
             if (message instanceof TextComponent textComponent) {

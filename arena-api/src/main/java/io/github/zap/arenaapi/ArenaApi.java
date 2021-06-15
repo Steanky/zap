@@ -213,14 +213,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         try {
             ProtocolLibrary.getProtocolManager().sendServerPacket(player, packetContainer);
         } catch (InvocationTargetException e) {
-            plugin.getLogger().log(
-                    Level.WARNING,
-                    String.format(
-                            "Error sending packet of type '%s' to player '%s'",
-                            packetContainer.getType().name(),
-                            player.getName()
-                    )
-            );
+            plugin.getLogger().log(Level.WARNING, String.format("Error sending packet of type '%s' to player '%s'",
+                    packetContainer.getType().name(), player.getName()));
         }
     }
 

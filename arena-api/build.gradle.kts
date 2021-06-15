@@ -21,6 +21,7 @@ configurations.api.get().extendsFrom(shade, bukkitPlugin)
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
 dependencies {
+    api(project(":party"))
     api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
 
     shade("com.fasterxml.jackson.core:jackson-core:2.12.2")

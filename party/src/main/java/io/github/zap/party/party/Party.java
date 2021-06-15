@@ -285,7 +285,7 @@ public class Party {
      */
     public @NotNull List<Player> getOnlinePlayers() {
         return members.values().stream().map(PartyMember::getPlayer).filter(OfflinePlayer::isOnline)
-                .map(player -> (Player) player).collect(Collectors.toUnmodifiableList());
+                .map(player -> (Player) player).toList();
     }
 
     /**

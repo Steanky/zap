@@ -40,10 +40,27 @@ public class PartyManager implements Listener {
     /**
      * Gets the party of a player
      * @param player The player to get the party of
-     * @return The party of a player, or null if it does not exist
+     * @return The party of the player, or null if it does not exist
      */
     public @Nullable Party getPartyForPlayer(@NotNull OfflinePlayer player) {
         return partyMap.get(player);
+    }
+
+    /**
+     * Gets the player as a member of a party
+     * @param player The player to get the party member of
+     * @return The party member representation of the player, or null if the player is not in a party
+     */
+    public @Nullable PartyMember getPlayerAsPartyMember(@NotNull OfflinePlayer player) {
+        String name = player.getName();
+        if (name != null) {
+            Party party = getPartyForPlayer(player);
+            if (party != null) {
+                return party.getMember(player.getName());
+            }
+        }
+
+        return null;
     }
 
     /**

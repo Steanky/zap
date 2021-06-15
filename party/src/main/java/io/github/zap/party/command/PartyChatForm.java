@@ -46,14 +46,11 @@ public class PartyChatForm extends CommandForm<Void> {
     @Override
     public String execute(Context context, Object[] arguments, Void data) {
         Player sender = (Player) context.getSender();
-        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(sender);
 
-        if (party != null) {
-            PartyMember member = party.getMember(sender.getName());
-            if (member != null) {
-                member.setInPartyChat(!member.isInPartyChat());
-                return String.format(">gold{Turned party chat %s!}", (member.isInPartyChat()) ? "ON" : "OFF");
-            }
+        PartyMember partyMember = PartyPlusPlus.getInstance().getPartyManager().getPlayerAsPartyMember(sender);
+        if (partyMember != null) {
+            partyMember.setInPartyChat(!partyMember.isInPartyChat());
+            return String.format(">gold{Turned party chat %s!}", (partyMember.isInPartyChat()) ? "ON" : "OFF");
         }
 
         return null;
