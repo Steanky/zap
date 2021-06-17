@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.anticheat.AntiCheat;
+import io.github.zap.arenaapi.anticheat.PlayerInteractionManager;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
@@ -28,6 +30,7 @@ import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -42,6 +45,8 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -69,6 +74,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @Getter
     private ObjectMapper mapper;
 
+    private PlayerInteractionManager playerInteractionManager;
+
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
     @Override
@@ -77,9 +84,11 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         instance = this;
 
         try {
+            initConfig();
             initProxy();
             initDependencies();
             initMapper();
+            initAntiCheat();
             Bukkit.getPluginManager().registerEvents(this, this);
         }
         catch(LoadFailureException exception)
@@ -99,6 +108,15 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         for(ArenaManager<?> manager : arenaManagers.values()) {
             manager.dispose();
         }
+    }
+
+    private void initConfig() {
+        FileConfiguration config = getConfig();
+
+        config.addDefault(ConfigNames.ANTICHEAT_ENABLED, false);
+
+        config.options().copyDefaults(true);
+        saveConfig();
     }
 
     private void initProxy() throws LoadFailureException {
@@ -142,6 +160,29 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                 .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
                 .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE)
                 .withSetterVisibility(JsonAutoDetect.Visibility.NONE));
+    }
+
+    private void initAntiCheat() throws LoadFailureException {
+        if (getConfig().getBoolean(ConfigNames.ANTICHEAT_ENABLED)) {
+            try {
+                String path = getConfig().getString(ConfigNames.AUTOCLICK_TRAINING_DATA_PATH);
+
+                if (path != null) {
+                    try {
+                        AntiCheat antiCheat = new AntiCheat(new FileReader(path));
+                        playerInteractionManager = new PlayerInteractionManager(antiCheat);
+                    } catch (IllegalArgumentException e) {
+                        throw new LoadFailureException(e.getMessage());
+                    }
+                } else {
+                    // TODO: bundle in jar?
+                    throw new LoadFailureException("AntiCheat was enabled but no training data was provided for Autoclick!");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new LoadFailureException(String.format("IOException: %s", e.getLocalizedMessage()));
+            }
+        }
     }
 
     public void registerArenaManager(ArenaManager<?> manager) {

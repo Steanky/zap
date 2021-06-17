@@ -33,6 +33,7 @@ dependencies {
     shade("com.fasterxml.jackson.core:jackson-databind:2.12.2")
     shade("com.fasterxml.jackson.core:jackson-annotations:2.12.2")
     shade("org.apache.commons:commons-lang3:3.12.0")
+    shade("org.apache.commons:commons-csv:1.8")
 
     bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.6.0")
 
