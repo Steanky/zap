@@ -17,15 +17,15 @@ public class AntiCheat {
         List<CSVRecord> records = CSVFormat.DEFAULT.parse(classifierData).getRecords();
 
         if (!records.isEmpty()) {
-            double[][] X = new double[records.size()][];
+            long[][] X = new long[records.size()][];
             int[] y = new int[records.size()];
 
             for (int i = 0; i < records.size(); i++) {
                 CSVRecord record = records.get(i);
-                double[] intervals = X[i] = new double[record.size() - 1];
+                long[] intervals = X[i] = new long[record.size() - 1];
                 y[i] = record.get(0).equals("ac") ? 0 : 1;
                 for (int j = 1; j < record.size(); j++) {
-                    intervals[j - 1] = Double.parseDouble(record.get(j));
+                    intervals[j - 1] = Long.parseLong(record.get(j));
                 }
             }
 
@@ -36,12 +36,7 @@ public class AntiCheat {
     }
 
     public boolean isUsingAutoClicker(long[] X) {
-        double[] array = new double[X.length];
-        for (int i = 0; i < X.length; i++) {
-            array[i] = X[i];
-        }
-
-        return classifier.predict(array) == 0;
+        return classifier.predict(X) == 0;
     }
 
 }
