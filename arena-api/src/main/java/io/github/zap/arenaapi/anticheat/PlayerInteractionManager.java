@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.anticheat;
 
 import io.github.zap.arenaapi.ArenaApi;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,9 +12,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class PlayerInteractionManager implements Listener {
 
@@ -23,9 +23,15 @@ public class PlayerInteractionManager implements Listener {
      */
     private static final long[] INTERACTION_ARRAY = new long[]{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    private final AntiCheat antiCheat;
+    private static final int SUSPICION_THRESHOLD = 4;
 
     private final Map<Player, long[]> interactionMap = new HashMap<>();
+
+    private final Map<Player, Integer> playerSuspicionMap = new HashMap<>();
+
+    private final Timer timer = new Timer();
+
+    private final AntiCheat antiCheat;
 
     public PlayerInteractionManager(AntiCheat antiCheat) {
         this.antiCheat = antiCheat;
@@ -66,7 +72,29 @@ public class PlayerInteractionManager implements Listener {
     }
 
     private void suspectPlayer(@NotNull Player player, @NotNull ReportType reportType) {
+        Integer suspicion = playerSuspicionMap.get(player);
+        if (suspicion == null) {
+            playerSuspicionMap.put(player, 1);
+        } else if (suspicion + 1 >= SUSPICION_THRESHOLD) {
+            player.kick(Component.text("Suspicious Activity!", NamedTextColor.RED));
+            playerSuspicionMap.remove(player);
+        } else {
+            playerSuspicionMap.put(player, suspicion + 1);
+        }
 
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Integer suspicion = playerSuspicionMap.get(player);
+                if (suspicion != null) {
+                    if (suspicion == 1) {
+                        playerSuspicionMap.remove(player);
+                    } else {
+                        playerSuspicionMap.put(player, suspicion - 1);
+                    }
+                }
+            }
+        }, 60L * 1000);
     }
 
     @EventHandler
