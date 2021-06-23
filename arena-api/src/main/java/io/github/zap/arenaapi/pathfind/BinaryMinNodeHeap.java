@@ -43,15 +43,6 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
-    public @NotNull PathNode nodeAt(int index) {
-        if(index < size) {
-            return nodes[index];
-        }
-
-        throw new ArrayIndexOutOfBoundsException();
-    }
-
-    @Override
     public void addNode(@NotNull PathNode node) {
         ensureCapacity(size + 1);
         siftUp(size++, node);

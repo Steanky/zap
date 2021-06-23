@@ -4,12 +4,12 @@ import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface BlockSnapshot {
+public interface BlockCollisionSnapshot {
     @NotNull BlockData data();
 
     @NotNull VoxelShapeWrapper collision();
 
-    static BlockSnapshot from(@NotNull BlockData data, @Nullable VoxelShapeWrapper shape) {
-        return new BlockSnapshotImpl(data, shape);
+    static BlockCollisionSnapshot from(@NotNull BlockData data, @NotNull VoxelShapeWrapper shape) {
+        return new BlockCollisionSnapshotImpl(data, shape);
     }
 }
