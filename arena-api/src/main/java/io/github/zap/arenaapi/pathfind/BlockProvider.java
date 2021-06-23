@@ -20,12 +20,6 @@ public interface BlockProvider {
      */
     @NotNull World getWorld();
 
-    /**
-     *
-     * @param x
-     * @param y
-     * @return
-     */
     boolean hasChunkAt(int x, int y);
 
     void updateChunk(int x, int y);

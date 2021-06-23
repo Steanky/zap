@@ -17,7 +17,7 @@ public interface PathOperation {
 
     void init();
 
-    boolean allowMerge(@NotNull PathOperation other);
+    boolean comparableTo(@NotNull PathOperation other);
 
     boolean step(@NotNull PathfinderContext context);
 

@@ -7,7 +7,6 @@ import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -17,7 +16,7 @@ import java.util.function.Consumer;
 
 class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
-
+    private static final int MIN_SYNC_INTERVAL = 40;
     private static final long SYNC_TIMEOUT = 5L;
 
     private static class Entry {
@@ -42,6 +41,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         private final List<PathResult> failedPaths = new ArrayList<>();
         private final BlockProvider blockProvider;
 
+        private int lastSync;
+
         private Context(@NotNull BlockProvider blockProvider) {
             this.blockProvider = blockProvider;
         }
@@ -64,11 +65,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         @Override
         public @NotNull BlockProvider blockProvider() {
             return blockProvider;
-        }
-
-        @Override
-        public String toString() {
-            return "Context{" + "}";
         }
     }
 
@@ -106,10 +102,16 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     for(int i = contextStartingIndex; i > -1; i--) {
                         Context context = contexts.get(i);
 
-                        //syncing must be run on main thread
+                        //only update snapshots with old data
+                        if(Bukkit.getServer().getCurrentTick() - context.lastSync < MIN_SYNC_INTERVAL) {
+                            continue;
+                        }
+
+                        //syncing must block main thread
                         AtomicBoolean syncRun = new AtomicBoolean(false);
                         int syncId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                             if(!syncRun.getAndSet(true)) {
+                                context.lastSync = Bukkit.getCurrentTick();
                                 context.blockProvider.updateAll();
                                 context.semaphore.release();
                             }
@@ -117,7 +119,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
                             try {
-                                completionService.submit(() -> calculatePathsFor(context));
+                                completionService.submit(() -> processContext(context));
                                 operations++;
                             }
                             catch (RejectedExecutionException exception) {
@@ -156,6 +158,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         contextsSemaphore.tryAcquire(1);
                     }
 
+                    //clean up contexts that may have been removed, such as by a world unload
                     synchronized (contexts) {
                         while(!removalQueue.isEmpty()) {
                             contexts.remove(removalQueue.remove());
@@ -166,9 +169,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                             contextsSemaphore.tryAcquire(1);
                         }
                     }
-
-                    //noinspection BusyWait
-                    Thread.sleep(400);
                 }
                 catch(InterruptedException ignored) {
                     break;
@@ -188,10 +188,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
     }
 
-    private Context calculatePathsFor(Context context) throws InterruptedException {
+    private Context processContext(Context context) throws InterruptedException {
         while (true) { //iterate all context operations until they are complete
             int operationStartingIndex;
             synchronized (context.lockHandle) {
+                //get index of first operation, iterate backwards allowing new operations to be appended in meanwhile
                 operationStartingIndex = context.entries.size() - 1;
             }
 
@@ -311,7 +312,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private void onWorldUnload(WorldUnloadEvent event) {
         synchronized (contexts) {
             for(Context context : contexts) {
-                if(context.blockProvider.getWorld().equals(event.getWorld())) {
+                if(context.blockProvider.getWorld().getUID().equals(event.getWorld().getUID())) {
                     removalQueue.add(context);
                 }
             }

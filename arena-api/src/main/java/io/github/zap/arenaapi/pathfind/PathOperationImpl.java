@@ -14,7 +14,6 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
-    //TODO: maintain separate NodeQueue for lower-priority nodes and only take from that queue when needed
     private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
     private final Map<PathNode, PathNode> visited = new HashMap<>();
     private PathDestination bestDestination;
@@ -47,7 +46,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public boolean allowMerge(@NotNull PathOperation other) {
+    public boolean comparableTo(@NotNull PathOperation other) {
         return other != this && nodeProvider.equals(other.nodeProvider()) && agent.equals(other.agent());
     }
 
