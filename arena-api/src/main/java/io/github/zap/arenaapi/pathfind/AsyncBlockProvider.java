@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.vector.ChunkVectorAccess;
-import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
@@ -65,13 +65,13 @@ class AsyncBlockProvider implements BlockProvider {
     }
 
     @Override
-    public @Nullable BlockSnapshot getBlock(int worldX, int worldY, int worldZ) {
+    public @Nullable BlockCollisionSnapshot getBlock(int worldX, int worldY, int worldZ) {
         int chunkX = worldX >> 4;
         int chunkZ = worldZ >> 4;
 
         CollisionChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
         if(snapshot != null) {
-            return snapshot.blockSnapshot(worldX & 15, worldY, worldZ & 15);
+            return snapshot.blockCollisionSnapshot(worldX & 15, worldY, worldZ & 15);
         }
 
         return null;
@@ -88,7 +88,7 @@ class AsyncBlockProvider implements BlockProvider {
 
         CollisionChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
         if(snapshot != null) {
-            snapshot.blockSnapshot(chunkX, blockY, chunkZ);
+            snapshot.blockCollisionSnapshot(chunkX, blockY, chunkZ);
         }
 
         return false;

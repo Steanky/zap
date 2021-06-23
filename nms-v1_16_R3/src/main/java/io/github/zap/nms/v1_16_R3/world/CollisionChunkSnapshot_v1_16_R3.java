@@ -1,6 +1,6 @@
 package io.github.zap.nms.v1_16_R3.world;
 
-import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.*;
@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -23,7 +22,7 @@ import java.util.function.Predicate;
 class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private static final DataPaletteBlock<IBlockData> EMPTY_BLOCK_IDS = (new ChunkSection(0, null, null, true)).getBlocks();
     private static final Predicate<IBlockData> IS_PARTIAL_BLOCK = blockData ->
-            isPartialSolidBlock(blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO).d());
+            blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO) != VoxelShapes.fullCube();
     private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
 
     private final String worldName;
@@ -31,7 +30,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] blockids;
-    private final Map<Long, BlockSnapshot> collisionMap = new HashMap<>();
+    private final Map<Long, BlockCollisionSnapshot> collisionMap = new HashMap<>();
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
         worldName = chunk.getWorld().getName();
@@ -42,9 +41,10 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
-    public @Nullable BlockSnapshot blockSnapshot(int chunkX, int chunkY, int chunkZ) {
-        BlockSnapshot collision = collisionMap.get(org.bukkit.block.Block.getBlockKey(chunkX, chunkY, chunkZ));
-        return collision == null ? BlockSnapshot.from(getBlockData(chunkX, chunkY, chunkZ), VoxelShapeWrapper.FULL_BLOCK) : collision;
+    public @Nullable BlockCollisionSnapshot blockCollisionSnapshot(int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ) {
+        return collisionMap.getOrDefault(org.bukkit.block.Block.getBlockKey(chunkRelativeX, chunkRelativeY, chunkRelativeZ),
+                BlockCollisionSnapshot.from(getBlockData(chunkRelativeX, chunkRelativeY, chunkRelativeZ),
+                        VoxelShapeWrapper_v1_16_R3.FULL_BLOCK));
     }
 
     private static boolean isUnit(AxisAlignedBB aabb) {
@@ -53,16 +53,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         double z = aabb.maxZ - aabb.minZ;
 
         return x == 1 && y == 1 && z == 1;
-    }
-
-    private static boolean isPartialSolidBlock(List<AxisAlignedBB> bounds) {
-        int size = bounds.size();
-
-        if(size == 1) {
-            return !isUnit(bounds.get(0));
-        }
-
-        return size > 0;
     }
 
     private DataPaletteBlock<IBlockData>[] loadFromChunk(net.minecraft.server.v1_16_R3.Chunk chunk) {
@@ -85,6 +75,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
                 int yOffset = section.getYPosition();
                 BlockPosition examine = new BlockPosition(0, 0, 0);
+
                 if(blocks.contains(IS_PARTIAL_BLOCK)) {
                     blocks.forEachLocation((blockData, position) -> {
                         /*
@@ -105,11 +96,12 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                         examine.p(y);
                         examine.q(z);
 
-                        List<AxisAlignedBB> shape = blockData.getCollisionShape(chunk, examine).d();
-                        if(isPartialSolidBlock(shape)) {
+                        VoxelShape voxelShape = blockData.getCollisionShape(chunk, examine);
+
+                        if(voxelShape != VoxelShapes.fullCube()) {
                             collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z),
-                                    BlockSnapshot.from(blockData.createCraftBlockData(),
-                                            new VoxelShapeWrapper_v1_16_R3(shape)));
+                                    BlockCollisionSnapshot.from(blockData.createCraftBlockData(),
+                                            new VoxelShapeWrapper_v1_16_R3(voxelShape)));
                         }
                     });
                 }

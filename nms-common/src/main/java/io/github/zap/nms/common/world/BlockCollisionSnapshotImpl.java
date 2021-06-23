@@ -4,13 +4,13 @@ import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class BlockSnapshotImpl implements BlockSnapshot {
+class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
     private final BlockData data;
     private final VoxelShapeWrapper collision;
 
-    BlockSnapshotImpl(@NotNull BlockData data, @Nullable VoxelShapeWrapper collision) {
+    BlockCollisionSnapshotImpl(@NotNull BlockData data, @NotNull VoxelShapeWrapper collision) {
         this.data = data;
-        this.collision = collision == null ? VoxelShapeWrapper.FULL_BLOCK : collision;
+        this.collision = collision;
     }
 
     @Override

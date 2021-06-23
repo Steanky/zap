@@ -1,44 +1,41 @@
 package io.github.zap.nms.v1_16_R3.world;
 
+import io.github.zap.nms.common.world.BoxConsumer;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.VoxelShape;
+import net.minecraft.server.v1_16_R3.VoxelShapes;
+import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
-    private final List<AxisAlignedBB> boundingBoxes;
+    public static final VoxelShapeWrapper_v1_16_R3 FULL_BLOCK = new VoxelShapeWrapper_v1_16_R3(VoxelShapes.fullCube());
 
-    VoxelShapeWrapper_v1_16_R3(@NotNull VoxelShape handle) {
-        boundingBoxes = handle.d();
-    }
+    private final VoxelShape shape;
 
-    VoxelShapeWrapper_v1_16_R3(@NotNull List<AxisAlignedBB> boundingBoxes) {
-        this.boundingBoxes = boundingBoxes;
+    VoxelShapeWrapper_v1_16_R3(VoxelShape shape) {
+        this.shape = shape;
     }
 
     @Override
-    public boolean containsPoint(double relativeX, double relativeY, double relativeZ) {
-        for(AxisAlignedBB box : boundingBoxes) {
-            if(box.e(relativeX, relativeY, relativeZ)) {
-                return true;
-            }
-        }
-
+    public boolean contains(double relativeX, double relativeY, double relativeZ) {
         return false;
     }
 
     @Override
     public boolean overlaps(@NotNull BoundingBox boundingBox) {
-        for(AxisAlignedBB box : boundingBoxes) {
-            if(box.intersects(boundingBox.getMinX(), boundingBox.getMinY(), boundingBox.getMinZ(),
-                    boundingBox.getMaxX(), boundingBox.getMaxY(), boundingBox.getMaxZ())) {
-                return true;
-            }
-        }
-
         return false;
+    }
+
+    @Override
+    public void forEachBox(@NotNull BoxConsumer consumer) {
+
+    }
+
+    @Override
+    public @NotNull RayTraceResult raycast(@NotNull Vector start, @NotNull Vector end, @NotNull BlockVector pos) {
+        return null;
     }
 }

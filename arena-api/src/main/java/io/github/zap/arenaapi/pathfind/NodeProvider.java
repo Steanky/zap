@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.vector.MutableWorldVector;
-import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,7 +33,7 @@ public abstract class NodeProvider {
         @Override
         public boolean mayTraverse(@NotNull PathfinderContext context, @NotNull PathAgent agent,
                                    @NotNull PathNode start, @NotNull PathNode next) {
-            BlockSnapshot blockData = context.blockProvider().getBlock(next.blockX(), next.blockY(), next.blockZ());
+            BlockCollisionSnapshot blockData = context.blockProvider().getBlock(next.blockX(), next.blockY(), next.blockZ());
             return blockData != null && blockData.data().getMaterial().isAir();
         }
     };
@@ -59,7 +59,7 @@ public abstract class NodeProvider {
         }
 
         private void seekHighest(BlockProvider provider, MutableWorldVector from) {
-            BlockSnapshot block = provider.getBlock(from);
+            BlockCollisionSnapshot block = provider.getBlock(from);
             while(block != null && block.data().getMaterial().isSolid()) {
                 block = provider.getBlock(from.add(Direction.UP.offset()));
             }

@@ -1,9 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.vector.ChunkVectorAccess;
-import io.github.zap.arenaapi.vector.ImmutableChunkVector;
 import io.github.zap.arenaapi.vector.VectorAccess;
-import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,11 +31,11 @@ public interface BlockProvider {
 
     @NotNull ChunkCoordinateProvider coordinateProvider();
 
-    @Nullable BlockSnapshot getBlock(int x, int y, int z);
+    @Nullable BlockCollisionSnapshot getBlock(int x, int y, int z);
 
     boolean collisionAt(double x, double y, double z);
 
-    default @Nullable BlockSnapshot getBlock(@NotNull VectorAccess at) {
+    default @Nullable BlockCollisionSnapshot getBlock(@NotNull VectorAccess at) {
         return getBlock(at.blockX(), at.blockY(), at.blockZ());
     }
 }
