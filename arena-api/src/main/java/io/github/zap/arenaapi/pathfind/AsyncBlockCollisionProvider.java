@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
+    private final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
 
     private final World world;
     private final ChunkCoordinateProvider coordinateProvider;
@@ -27,30 +27,29 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public void clearChunksFor(@NotNull UUID worldUID) {
-        GLOBAL_CHUNKS.entrySet().removeIf(chunkIdentifierCollisionChunkSnapshotEntry ->
-                chunkIdentifierCollisionChunkSnapshotEntry.getKey().worldID.equals(world.getUID()));
-    }
-
-    @Override
     public boolean supportsAsync() {
         return true;
     }
 
     @Override
     public boolean hasChunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.containsKey(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+        return chunks.containsKey(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
     }
 
     private void updateChunkInternal(int x, int z) {
-        GLOBAL_CHUNKS.put(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)),
+        chunks.put(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)),
                 ArenaApi.getInstance().getNmsBridge().worldBridge().takeSnapshot(world.getChunkAt(x, z)));
     }
 
     @Override
     public void updateChunk(int x, int z) {
-        if(coordinateProvider.hasChunk(x, z) && world.isChunkLoaded(x, z)) {
-            updateChunkInternal(x, z);
+        if(coordinateProvider.hasChunk(x, z)) {
+            if(world.isChunkLoaded(x, z)) {
+                updateChunkInternal(x, z);
+            }
+            else {
+                chunks.remove(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+            }
         }
     }
 
@@ -61,7 +60,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
                 updateChunkInternal(coordinate.chunkX(), coordinate.chunkZ());
             }
             else {
-                GLOBAL_CHUNKS.remove(new ChunkIdentifier(world.getUID(), coordinate));
+                chunks.remove(new ChunkIdentifier(world.getUID(), coordinate));
             }
         }
     }
@@ -72,7 +71,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     private CollisionChunkSnapshot chunkAt(int x, int z) {
-        return GLOBAL_CHUNKS.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+        return chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
     }
 
     @Override

@@ -24,12 +24,6 @@ public interface BlockCollisionProvider {
     @NotNull World getWorld();
 
     /**
-     * Clears all of the chunks associated with the given world.
-     * @param worldUID The world UUID to remove chunks for
-     */
-    void clearChunksFor(@NotNull UUID worldUID);
-
-    /**
      * Returns whether or not this BlockCollisionProvider supports asynchronous access; that is, access by threads other
      * than the main server. This does not guarantee any sort of safety in regards to concurrent access.
      * @return True if this objects supports access off of the main server thread, false otherwise

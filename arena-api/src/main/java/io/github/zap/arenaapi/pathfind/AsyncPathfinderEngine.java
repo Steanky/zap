@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
 
 class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
-    private static final int MIN_SYNC_INTERVAL = 40;
+    private static final int MAX_AGE_BEFORE_UPDATE = 40;
     private static final long SYNC_TIMEOUT = 5L;
 
     private static class Entry {
@@ -101,8 +102,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     for(int i = contextStartingIndex; i > -1; i--) {
                         Context context = contexts.get(i);
 
-                        //only update snapshots with old enough data
-                        if(Bukkit.getServer().getCurrentTick() - context.lastSync < MIN_SYNC_INTERVAL) {
+                        //only update snapshots if their data is old enough
+                        if(Bukkit.getServer().getCurrentTick() - context.lastSync > MAX_AGE_BEFORE_UPDATE) {
                             continue;
                         }
 
@@ -160,7 +161,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     //clean up contexts that may have been removed, such as by a world unload
                     synchronized (contexts) {
                         while(!removalQueue.isEmpty()) {
-                            contexts.remove(removalQueue.remove());
+                            Context context = removalQueue.remove();
+                            contexts.remove(context);
                         }
 
                         if(contexts.size() == 0) { //lock semaphore, we have no contexts
@@ -318,6 +320,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
     }
 
+    @EventHandler
+    private void onChunkUnload(ChunkUnloadEvent event) {
+
+    }
+
     @Override
     public synchronized void dispose() {
         if(disposed) {
@@ -333,7 +340,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             if(!pathWorker.awaitTermination(5L, TimeUnit.SECONDS)) {
                 ArenaApi.warning("Pathfinder thread successfully shut down, but the worker service did not terminate" +
                         " after 5s.");
-                ArenaApi.warning("Attempting to interrupt threads. There may be exception spam.");
+                ArenaApi.warning("Attempting to interrupt threads...");
                 pathWorker.shutdownNow();
 
                 if(!pathWorker.awaitTermination(5L, TimeUnit.SECONDS)) {
