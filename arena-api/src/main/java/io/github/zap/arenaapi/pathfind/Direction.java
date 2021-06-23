@@ -1,8 +1,10 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.vector.Positional;
 import io.github.zap.arenaapi.vector.VectorAccess;
+import org.jetbrains.annotations.NotNull;
 
-public enum Direction {
+public enum Direction implements Positional {
     NORTH(VectorAccess.immutable(0D, 0D, -1D)),
     NORTHEAST(VectorAccess.immutable(1D, 0D, -1D)),
     EAST(VectorAccess.immutable(1D, 0D, 0D)),
@@ -38,7 +40,8 @@ public enum Direction {
         this.offset = offset;
     }
 
-    public VectorAccess offset() {
+    @Override
+    public @NotNull VectorAccess position() {
         return offset;
     }
 }

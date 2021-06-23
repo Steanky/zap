@@ -11,5 +11,5 @@ public interface PathfinderContext {
 
     @NotNull List<PathResult> failedPaths();
 
-    @NotNull BlockProvider blockProvider();
+    @NotNull BlockCollisionProvider blockProvider();
 }

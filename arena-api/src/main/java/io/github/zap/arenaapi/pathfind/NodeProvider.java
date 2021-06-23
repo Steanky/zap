@@ -15,17 +15,18 @@ import org.jetbrains.annotations.NotNull;
 public abstract class NodeProvider {
     /**
      * NodeProvider that can be used to debug pathfinding implementations. It will only generate nodes along the same
-     * Y-axis, and will not consider nodes that move into non-air blocks.
+     * Y-axis, and will not consider nodes that move into non-air blocks. Agents will effectively move according to
+     * taxicab geometry.
      */
     public static final NodeProvider DEBUG = new NodeProvider() {
         @Override
         public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathNode from) {
             PathNode[] nodes = new PathNode[4];
 
-            nodes[0] = from.chain(Direction.NORTH.offset());
-            nodes[1] = from.chain(Direction.EAST.offset());
-            nodes[2] = from.chain(Direction.SOUTH.offset());
-            nodes[3] = from.chain(Direction.WEST.offset());
+            nodes[0] = from.chain(Direction.NORTH);
+            nodes[1] = from.chain(Direction.EAST);
+            nodes[2] = from.chain(Direction.SOUTH);
+            nodes[3] = from.chain(Direction.WEST);
 
             return nodes;
         }
@@ -46,7 +47,7 @@ public abstract class NodeProvider {
         @Override
         public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathNode nodeAt) {
             PathNode[] nodes = new PathNode[8];
-            BlockProvider provider = context.blockProvider();
+            BlockCollisionProvider provider = context.blockProvider();
             MutableWorldVector at = nodeAt.asMutable();
 
             return nodes;
@@ -58,10 +59,10 @@ public abstract class NodeProvider {
             return false;
         }
 
-        private void seekHighest(BlockProvider provider, MutableWorldVector from) {
+        private void seekHighest(BlockCollisionProvider provider, MutableWorldVector from) {
             BlockCollisionSnapshot block = provider.getBlock(from);
             while(block != null && block.data().getMaterial().isSolid()) {
-                block = provider.getBlock(from.add(Direction.UP.offset()));
+                block = provider.getBlock(from.add(Direction.UP));
             }
         }
     };
@@ -71,7 +72,8 @@ public abstract class NodeProvider {
      * from a given 'origin' node. PathNode instances may be constructed from the origin node by using the origin's
      * add() or link() methods. Nodes generated this way will have their parent node set to the origin node.
      *
-     * The returned array may contain nodes that can't be traversed.
+     * The returned array may contain nodes that can't be traversed. It is up to the implementation to perform a
+     * detailed check, typically by calling mayTraverse, to ensure nodes are valid.
      * @param context The current PathfinderContext
      * @param nodeAt The PathNode we're pathfinding from
      * @return A null-terminated array of PathNode objects, which may be empty or contain null elements
@@ -80,7 +82,8 @@ public abstract class NodeProvider {
 
     /**
      * Returns true if PathAgent 'agent' may traverse the distance between the PathNode 'start' and PathNode 'next'.
-     * Only nodes for which this returns true will be inspected by a PathOperation.
+     * PathOperations will typically use this method to perform collision checks, ensuring that the agent can actually
+     * travel from "start" to "next".
      * @param context The current PathfinderContext
      * @param agent The current PathAgent
      * @param start The starting node

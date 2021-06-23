@@ -31,7 +31,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     private class Context implements PathfinderContext {
         //don't lock onto context object itself as it is visible to implementations
-
         private final Object lockHandle = new Object();
 
         private final Semaphore semaphore = new Semaphore(0);
@@ -39,12 +38,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         private final List<Entry> entries = new ArrayList<>();
         private final List<PathResult> successfulPaths = new ArrayList<>();
         private final List<PathResult> failedPaths = new ArrayList<>();
-        private final BlockProvider blockProvider;
+        private final BlockCollisionProvider blockCollisionProvider;
 
         private int lastSync;
 
-        private Context(@NotNull BlockProvider blockProvider) {
-            this.blockProvider = blockProvider;
+        private Context(@NotNull BlockCollisionProvider blockCollisionProvider) {
+            this.blockCollisionProvider = blockCollisionProvider;
         }
 
         @Override
@@ -63,8 +62,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         @Override
-        public @NotNull BlockProvider blockProvider() {
-            return blockProvider;
+        public @NotNull BlockCollisionProvider blockProvider() {
+            return blockCollisionProvider;
         }
     }
 
@@ -102,7 +101,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     for(int i = contextStartingIndex; i > -1; i--) {
                         Context context = contexts.get(i);
 
-                        //only update snapshots with old data
+                        //only update snapshots with old enough data
                         if(Bukkit.getServer().getCurrentTick() - context.lastSync < MIN_SYNC_INTERVAL) {
                             continue;
                         }
@@ -112,7 +111,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         int syncId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                             if(!syncRun.getAndSet(true)) {
                                 context.lastSync = Bukkit.getCurrentTick();
-                                context.blockProvider.updateAll();
+                                context.blockCollisionProvider.updateAll();
                                 context.semaphore.release();
                             }
                         }).getTaskId();
@@ -123,7 +122,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 operations++;
                             }
                             catch (RejectedExecutionException exception) {
-                                ArenaApi.warning("Unable to queue pathfinding operation(s) for world " + context.blockProvider.getWorld());
+                                ArenaApi.warning("Unable to queue pathfinding operation(s) for world " + context.blockCollisionProvider.getWorld());
                             }
                         }
                         else {
@@ -285,7 +284,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new Context(new AsyncBlockProvider(world, operation.searchArea()));
+            targetContext = new Context(new AsyncBlockCollisionProvider(world, operation.searchArea()));
             targetContext.entries.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {
@@ -312,7 +311,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private void onWorldUnload(WorldUnloadEvent event) {
         synchronized (contexts) {
             for(Context context : contexts) {
-                if(context.blockProvider.getWorld().getUID().equals(event.getWorld().getUID())) {
+                if(context.blockCollisionProvider.getWorld().getUID().equals(event.getWorld().getUID())) {
                     removalQueue.add(context);
                 }
             }

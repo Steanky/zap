@@ -10,13 +10,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-class AsyncBlockProvider implements BlockProvider {
+class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     private static final Map<ChunkIdentifier, CollisionChunkSnapshot> GLOBAL_CHUNKS = new HashMap<>();
 
     private final World world;
     private final ChunkCoordinateProvider coordinateProvider;
 
-    AsyncBlockProvider(@NotNull World world, @NotNull ChunkCoordinateProvider coordinateProvider) {
+    AsyncBlockCollisionProvider(@NotNull World world, @NotNull ChunkCoordinateProvider coordinateProvider) {
         this.world = world;
         this.coordinateProvider = coordinateProvider;
     }
@@ -24,6 +24,17 @@ class AsyncBlockProvider implements BlockProvider {
     @Override
     public @NotNull World getWorld() {
         return world;
+    }
+
+    @Override
+    public void clearChunksFor(@NotNull UUID worldUID) {
+        GLOBAL_CHUNKS.entrySet().removeIf(chunkIdentifierCollisionChunkSnapshotEntry ->
+                chunkIdentifierCollisionChunkSnapshotEntry.getKey().worldID.equals(world.getUID()));
+    }
+
+    @Override
+    public boolean supportsAsync() {
+        return true;
     }
 
     @Override
