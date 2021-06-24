@@ -7,6 +7,7 @@ import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,16 +91,16 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public boolean collidesWithAny(@NotNull BoundingBox bounds) {
-        ChunkVectorAccess minChunk = VectorAccess.immutable(bounds.getMin()).asChunkVector();
-        ChunkVectorAccess maxChunk = VectorAccess.immutable(bounds.getMax()).asChunkVector();
+    public boolean collidesWithAnySolid(@NotNull BoundingBox worldRelativeBounds) {
+        ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin()).asChunkVector();
+        ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax()).asChunkVector();
 
         for(int x = minChunk.chunkX(); x < maxChunk.chunkX(); x++) {
             for(int z = minChunk.chunkZ(); z < maxChunk.chunkZ(); z++) {
                 CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
 
-                if(chunk != null && chunk.collidesWithAny(bounds)) {
-                    return true;
+                if(chunk != null) {
+                    return chunk.collidesWithAny(worldRelativeBounds.shift(new Vector(-(x << 4), 0, -(z << 4))));
                 }
             }
         }

@@ -7,5 +7,5 @@ import org.jetbrains.annotations.NotNull;
 public interface CollisionChunkSnapshot extends ChunkSnapshot {
     @NotNull BlockCollisionSnapshot blockCollisionSnapshot(int chunkX, int chunkY, int chunkZ);
 
-    boolean collidesWithAny(@NotNull BoundingBox bounds);
+    boolean collidesWithAny(@NotNull BoundingBox chunkRelativeBounds);
 }
