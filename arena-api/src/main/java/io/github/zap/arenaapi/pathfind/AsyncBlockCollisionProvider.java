@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
+import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +91,19 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public boolean collidesWithAny(@NotNull BoundingBox bounds) {
+        ChunkVectorAccess minChunk = VectorAccess.immutable(bounds.getMin()).asChunkVector();
+        ChunkVectorAccess maxChunk = VectorAccess.immutable(bounds.getMax()).asChunkVector();
+
+        for(int x = minChunk.chunkX(); x < maxChunk.chunkX(); x++) {
+            for(int z = minChunk.chunkZ(); z < maxChunk.chunkZ(); z++) {
+                CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+
+                if(chunk != null && chunk.collidesWithAny(bounds)) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 }

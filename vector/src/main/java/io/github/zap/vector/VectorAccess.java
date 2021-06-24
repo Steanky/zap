@@ -119,6 +119,10 @@ public interface VectorAccess extends ChunkVectorAccess {
         return new Vector(x(), y(), z());
     }
 
+    default @NotNull ChunkVectorAccess asChunkVector() {
+        return new ImmutableChunkVector(chunkX(), chunkZ());
+    }
+
     static @NotNull ImmutableWorldVector immutable(double x, double y, double z) {
         return new ImmutableWorldVector(x, y, z);
     }
