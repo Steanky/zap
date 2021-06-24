@@ -25,6 +25,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO) != VoxelShapes.fullCube();
     private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
     private static final WorldBridge bridge = WorldBridge_v1_16_R3.INSTANCE;
+    private static final BoundingBox CHUNK_BOUNDING_BOX = new BoundingBox(0, 0, 0, 16, 255, 16);
 
     private final String worldName;
     private final int worldX;
@@ -33,7 +34,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] palette;
-    private final List<Map<Long, BlockCollisionSnapshot>> collisionMap = new ArrayList<>(16);
+    private final Map<Long, BlockCollisionSnapshot> collisionMap = new HashMap<>();
     private final BoundingBox chunkBounds;
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
@@ -45,17 +46,16 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
         worldX = chunkX << 4;
         worldZ = chunkZ << 4;
-        chunkBounds = new BoundingBox(worldX << 4, 0, worldZ, worldX + 16, 255, worldZ + 16);
+        chunkBounds = new BoundingBox(worldX, 0, worldZ, worldX + 16, 255, worldZ + 16);
     }
 
     @Override
     public @NotNull BlockCollisionSnapshot blockCollisionSnapshot(int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ) {
         if(bridge.isValidChunkCoordinate(chunkRelativeX, chunkRelativeY, chunkRelativeZ)) {
-            return collisionMap.get(chunkRelativeY >> 4).getOrDefault(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
+            return collisionMap.getOrDefault(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
                     chunkRelativeY, chunkRelativeZ), BlockCollisionSnapshot.from(
-                            VectorAccess.immutable(worldX + chunkRelativeX, chunkRelativeY,
-                                    worldZ + chunkRelativeZ), getBlockData(chunkRelativeX, chunkRelativeY,
-                            chunkRelativeZ), VoxelShapeWrapper_v1_16_R3.FULL_BLOCK));
+                            VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ),
+                    getBlockData(chunkRelativeX, chunkRelativeY, chunkRelativeZ), VoxelShapeWrapper_v1_16_R3.FULL_BLOCK));
         }
 
         throw new IllegalArgumentException("Chunk-relative coordinates out of range: [" + chunkRelativeX + ", " +
@@ -63,9 +63,29 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
-    public boolean collidesWithAny(@NotNull BoundingBox bounds) {
-        if(bounds.overlaps(chunkBounds)) {
+    public boolean collidesWithAny(@NotNull BoundingBox relativeBounds) {
+        if(relativeBounds.overlaps(CHUNK_BOUNDING_BOX)) {
+            BoundingBox overlap = relativeBounds.intersection(chunkBounds);
 
+            Vector min = overlap.getMin();
+            Vector max = overlap.getMax();
+
+            for(int x = min.getBlockX(); x < max.getBlockX(); x++) {
+                for(int y = min.getBlockY(); y < max.getBlockY(); y++) {
+                    for(int z = min.getBlockZ(); z < max.getBlockZ(); z++) {
+                        BlockCollisionSnapshot snapshot = collisionMap.get(org.bukkit.block.Block.getBlockKey(x, y, z));
+
+                        if(snapshot != null) {
+                            if(snapshot.overlaps(relativeBounds)) {
+                                return true;
+                            }
+                        }
+                        else if(palette[y >> 4].a(x, y, z).getBukkitMaterial().isSolid()) {
+                            return true;
+                        }
+                    }
+                }
+            }
         }
 
         return false;
@@ -77,8 +97,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         DataPaletteBlock<IBlockData>[] sectionBlockIDs = new DataPaletteBlock[sections.length];
 
         for(int i = 0; i < sections.length; ++i) {
-            collisionMap.add(null);
-
             ChunkSection section = sections[i];
 
             if (section == null) {
@@ -97,35 +115,33 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                 BlockPosition.MutableBlockPosition examine = BlockPosition.ZERO.i();
 
                 if(blocks.contains(IS_PARTIAL_BLOCK)) {
-                    int finalI = i;
                     blocks.forEachLocation((blockData, position) -> {
-                        /*
-                        bit operator magic:
-                        (2^n) & (2^n - 1) == x % (2^n) for all positive integer values of n
-                        x >> n == x / 2^n for all positive integer n
+                        if(!blockData.isAir()) {
+                             /*
+                            bit operator magic:
+                            (2^n) & (2^n - 1) == x % (2^n) for all positive integer values of n
+                            x >> n == x / 2^n for all positive integer n
 
-                        translation:
-                        int x = position % 16;
-                        int y = (position / 256) + yOffset;
-                        int z = (position % 256) / 16;
-                         */
-                        int x = position & 15;
-                        int y = (position >> 8) + yOffset;
-                        int z = (position & 255) >> 4;
+                            translation:
+                            int x = position % 16;
+                            int y = (position / 256) + yOffset;
+                            int z = (position % 256) / 16;
 
-                        examine.d(x, y, z);
+                            these coordinates are chunk-relative
+                             */
+                            int x = position & 15;
+                            int y = (position >> 8) + yOffset;
+                            int z = (position & 255) >> 4;
 
-                        VoxelShape voxelShape = blockData.getCollisionShape(chunk, examine);
+                            examine.d(x, y, z);
 
-                        if(voxelShape != VoxelShapes.fullCube()) {
-                            Map<Long, BlockCollisionSnapshot> segMaps = collisionMap.get(finalI);
-                            if(segMaps == null) {
-                                segMaps = new HashMap<>();
+                            VoxelShape voxelShape = blockData.getCollisionShape(chunk, examine);
+
+                            if(voxelShape != VoxelShapes.fullCube()) {
+                                collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), BlockCollisionSnapshot
+                                        .from(VectorAccess.immutable(x, y, z),
+                                                blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(voxelShape)));
                             }
-
-                            segMaps.put(org.bukkit.block.Block.getBlockKey(x, y, z), BlockCollisionSnapshot
-                                    .from(VectorAccess.immutable(worldX + x, y, worldZ + z),
-                                            blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(voxelShape)));
                         }
                     });
                 }

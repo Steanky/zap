@@ -25,13 +25,8 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     }
 
     @Override
-    public boolean overlaps(@NotNull BoundingBox boundingBox) {
-        return false;
-    }
-
-    @Override
     public void forEachBox(@NotNull BoxConsumer consumer) {
-
+        shape.b(consumer::consume);
     }
 
     @Override

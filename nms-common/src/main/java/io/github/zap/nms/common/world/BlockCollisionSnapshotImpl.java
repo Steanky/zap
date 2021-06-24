@@ -2,23 +2,26 @@ package io.github.zap.nms.common.world;
 
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.util.BlockVector;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
-    private final VectorAccess vector;
+    private final VectorAccess chunkVector;
     private final BlockData data;
     private final VoxelShapeWrapper collision;
 
-    BlockCollisionSnapshotImpl(@NotNull VectorAccess vector, @NotNull BlockData data, @NotNull VoxelShapeWrapper collision) {
-        this.vector = vector;
+    BlockCollisionSnapshotImpl(@NotNull VectorAccess chunkVector, @NotNull BlockData data, @NotNull VoxelShapeWrapper collision) {
+        this.chunkVector = chunkVector;
         this.data = data;
         this.collision = collision;
     }
 
     @Override
     public @NotNull VectorAccess position() {
-        return vector;
+        return chunkVector;
     }
 
     @Override
@@ -29,5 +32,23 @@ class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
     @Override
     public @NotNull VoxelShapeWrapper collision() {
         return collision;
+    }
+
+    @Override
+    public boolean overlaps(@NotNull BoundingBox chunkRelativeBounds) {
+        BoundingBox blockRelative = toBlockRelative(chunkRelativeBounds);
+
+        AtomicBoolean collided = new AtomicBoolean();
+        collision.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) -> {
+            if(blockRelative.overlaps(new Vector(minX, minY, minZ), new Vector(maxX, maxY, maxZ))) {
+                collided.set(true);
+            }
+        });
+
+        return collided.get();
+    }
+
+    private BoundingBox toBlockRelative(BoundingBox chunkRelative) {
+        return chunkRelative.shift(chunkVector.asBukkit().multiply(-1));
     }
 }

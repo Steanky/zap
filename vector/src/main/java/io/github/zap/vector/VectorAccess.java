@@ -37,6 +37,10 @@ public interface VectorAccess extends ChunkVectorAccess {
         return multiply(other.x(), other.y(), other.z());
     }
 
+    default @NotNull VectorAccess multiply(double v) {
+        return multiply(v, v, v);
+    }
+
     @NotNull VectorAccess divide(double x, double y, double z);
 
     default @NotNull VectorAccess divide(@NotNull VectorAccess other) {
@@ -109,6 +113,10 @@ public interface VectorAccess extends ChunkVectorAccess {
 
     default MutableWorldVector asMutable() {
         return new MutableWorldVector(x(), y(), z());
+    }
+
+    default @NotNull Vector asBukkit() {
+        return new Vector(x(), y(), z());
     }
 
     static @NotNull ImmutableWorldVector immutable(double x, double y, double z) {

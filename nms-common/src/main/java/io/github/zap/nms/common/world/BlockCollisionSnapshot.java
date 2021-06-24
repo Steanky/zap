@@ -2,6 +2,7 @@ package io.github.zap.nms.common.world;
 
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 public interface BlockCollisionSnapshot {
@@ -11,8 +12,10 @@ public interface BlockCollisionSnapshot {
 
     @NotNull VoxelShapeWrapper collision();
 
-    static BlockCollisionSnapshot from(@NotNull VectorAccess vector, @NotNull BlockData data,
+    boolean overlaps(@NotNull BoundingBox relativeBounds);
+
+    static BlockCollisionSnapshot from(@NotNull VectorAccess chunkRelative, @NotNull BlockData data,
                                        @NotNull VoxelShapeWrapper shape) {
-        return new BlockCollisionSnapshotImpl(vector, data, shape);
+        return new BlockCollisionSnapshotImpl(chunkRelative, data, shape);
     }
 }
