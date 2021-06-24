@@ -35,9 +35,9 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             if(blockCollisionSnapshot.data().getMaterial().isSolid()) {
                 double currentHeight = blockCollisionSnapshot.height();
 
-                currentHeight -= excessHeight;
+                jumpHeightRequired -= excessHeight; //block on top of fence takes away what the fence adds
                 jumpHeightRequired += currentHeight;
-                excessHeight = currentHeight - 1;
+                excessHeight = currentHeight - 1 <= 0 ? 0 : currentHeight - 1;
 
                 if(currentHeight > agent.characteristics().jumpHeight) {
                     return -1;
