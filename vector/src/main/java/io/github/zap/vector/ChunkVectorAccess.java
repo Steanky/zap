@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.vector;
+package io.github.zap.vector;
 
 public interface ChunkVectorAccess {
     int chunkX();

@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.ChunkVectorAccess;
-import org.bukkit.World;
+import io.github.zap.vector.ChunkVectorAccess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;

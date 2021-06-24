@@ -1,8 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.vector.ImmutableWorldVector;
-import io.github.zap.arenaapi.vector.Positional;
-import io.github.zap.arenaapi.vector.VectorAccess;
+import io.github.zap.vector.ImmutableWorldVector;
+import io.github.zap.vector.Positional;
+import io.github.zap.vector.VectorAccess;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;

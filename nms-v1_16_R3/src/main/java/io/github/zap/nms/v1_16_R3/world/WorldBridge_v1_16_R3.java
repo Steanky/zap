@@ -26,4 +26,14 @@ public class WorldBridge_v1_16_R3 implements WorldBridge {
     public boolean isValidChunkCoordinate(int x, int y, int z) {
         return (0 <= x && x <= 15) && (0 <= y && y <= 255) && (0 <= z && z <= 15);
     }
+
+    @Override
+    public int minimumY() {
+        return 0;
+    }
+
+    @Override
+    public int maximumY() {
+        return 255;
+    }
 }

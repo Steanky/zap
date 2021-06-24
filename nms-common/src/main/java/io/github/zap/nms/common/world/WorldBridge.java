@@ -16,4 +16,8 @@ public interface WorldBridge {
     @NotNull CollisionChunkSnapshot takeSnapshot(@NotNull Chunk chunk);
 
     boolean isValidChunkCoordinate(int x, int y, int z);
+
+    int minimumY();
+
+    int maximumY();
 }

@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.vector;
+package io.github.zap.vector;
 
 abstract class ChunkVector<T extends ChunkVector<T>> implements ChunkVectorAccess {
     @Override

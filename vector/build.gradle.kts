@@ -18,14 +18,13 @@ subprojects {
 
 java {
     @Suppress("UnstableApiUsage")
-            toolchain {
+    toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
 dependencies {
     api("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    api(project(":vector"))
 }
 
-description = "nms-common"
+description = "vector"

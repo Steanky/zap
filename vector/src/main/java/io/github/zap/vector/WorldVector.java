@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.vector;
+package io.github.zap.vector;
 
 import org.jetbrains.annotations.NotNull;
 

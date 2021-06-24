@@ -1,10 +1,11 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.vector.ChunkVectorAccess;
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.vector.ChunkVectorAccess;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,19 +89,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public boolean collisionAt(double x, double y, double z) {
-        int blockX = (int)x;
-        int blockY = (int)y;
-        int blockZ = (int)z;
-
-        int chunkX = blockX >> 4;
-        int chunkZ = blockZ >> 4;
-
-        CollisionChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
-        if(snapshot != null) {
-            snapshot.blockCollisionSnapshot(chunkX, blockY, chunkZ);
-        }
-
+    public boolean collidesWithAny(@NotNull BoundingBox bounds) {
         return false;
     }
 }
