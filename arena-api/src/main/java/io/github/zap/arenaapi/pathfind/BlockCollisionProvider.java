@@ -41,11 +41,11 @@ public interface BlockCollisionProvider {
 
     @NotNull ChunkCoordinateProvider coordinateProvider();
 
-    @Nullable BlockCollisionSnapshot getBlock(int x, int y, int z);
+    @NotNull BlockCollisionSnapshot getBlock(int x, int y, int z);
 
     boolean collidesWithAnySolid(@NotNull BoundingBox bounds);
 
-    default @Nullable BlockCollisionSnapshot getBlock(@NotNull VectorAccess at) {
+    default @NotNull BlockCollisionSnapshot getBlock(@NotNull VectorAccess at) {
         return getBlock(at.blockX(), at.blockY(), at.blockZ());
     }
 }

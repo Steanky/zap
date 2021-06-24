@@ -28,8 +28,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private static final BoundingBox CHUNK_BOUNDING_BOX = new BoundingBox(0, 0, 0, 16, 255, 16);
 
     private final String worldName;
-    private final int worldX;
-    private final int worldZ;
     private final int chunkX;
     private final int chunkZ;
     private final long captureFullTime;
@@ -44,8 +42,8 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         captureFullTime = chunk.getWorld().getFullTime();
         palette = loadFromChunk(((CraftChunk)chunk).getHandle());
 
-        worldX = chunkX << 4;
-        worldZ = chunkZ << 4;
+        int worldX = chunkX << 4;
+        int worldZ = chunkZ << 4;
         chunkBounds = new BoundingBox(worldX, 0, worldZ, worldX + 16, 255, worldZ + 16);
     }
 

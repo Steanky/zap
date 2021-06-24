@@ -7,9 +7,9 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 public interface VoxelShapeWrapper {
-    boolean contains(double relativeX, double relativeY, double relativeZ);
-
     void forEachBox(@NotNull BoxConsumer consumer);
 
     @NotNull RayTraceResult raycast(@NotNull Vector start, @NotNull Vector end, @NotNull BlockVector pos);
+
+    double maxHeight();
 }

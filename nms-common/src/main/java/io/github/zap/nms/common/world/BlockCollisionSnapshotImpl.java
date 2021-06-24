@@ -5,6 +5,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -13,7 +14,8 @@ class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
     private final BlockData data;
     private final VoxelShapeWrapper collision;
 
-    BlockCollisionSnapshotImpl(@NotNull VectorAccess chunkVector, @NotNull BlockData data, @NotNull VoxelShapeWrapper collision) {
+    BlockCollisionSnapshotImpl(@NotNull VectorAccess chunkVector, @NotNull BlockData data,
+                               @Nullable VoxelShapeWrapper collision) {
         this.chunkVector = chunkVector;
         this.data = data;
         this.collision = collision;
@@ -30,12 +32,16 @@ class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
     }
 
     @Override
-    public @NotNull VoxelShapeWrapper collision() {
+    public @Nullable VoxelShapeWrapper collision() {
         return collision;
     }
 
     @Override
     public boolean overlaps(@NotNull BoundingBox chunkRelativeBounds) {
+        if(collision == null) {
+            return false;
+        }
+
         BoundingBox blockRelative = toBlockRelative(chunkRelativeBounds);
 
         AtomicBoolean collided = new AtomicBoolean();
@@ -46,6 +52,11 @@ class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
         });
 
         return collided.get();
+    }
+
+    @Override
+    public double height() {
+        return 0;
     }
 
     private BoundingBox toBlockRelative(BoundingBox chunkRelative) {

@@ -5,11 +5,11 @@ import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -78,16 +78,15 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public @Nullable BlockCollisionSnapshot getBlock(int worldX, int worldY, int worldZ) {
-        int chunkX = worldX >> 4;
-        int chunkZ = worldZ >> 4;
-
-        CollisionChunkSnapshot snapshot = chunkAt(chunkX, chunkZ);
+    public @NotNull BlockCollisionSnapshot getBlock(int worldX, int worldY, int worldZ) {
+        CollisionChunkSnapshot snapshot = chunkAt(worldX >> 4, worldZ >> 4);
         if(snapshot != null) {
             return snapshot.blockCollisionSnapshot(worldX & 15, worldY, worldZ & 15);
         }
-
-        return null;
+        else {
+            return BlockCollisionSnapshot.from(VectorAccess.immutable(worldX & 15, worldY, worldZ & 15),
+                    Material.AIR.createBlockData(), null);
+        }
     }
 
     @Override

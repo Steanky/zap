@@ -2,6 +2,7 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.BoxConsumer;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
+import net.minecraft.server.v1_16_R3.EnumDirection;
 import net.minecraft.server.v1_16_R3.VoxelShape;
 import net.minecraft.server.v1_16_R3.VoxelShapes;
 import org.bukkit.util.BlockVector;
@@ -20,11 +21,6 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     }
 
     @Override
-    public boolean contains(double relativeX, double relativeY, double relativeZ) {
-        return false;
-    }
-
-    @Override
     public void forEachBox(@NotNull BoxConsumer consumer) {
         shape.b(consumer::consume);
     }
@@ -32,5 +28,10 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     @Override
     public @NotNull RayTraceResult raycast(@NotNull Vector start, @NotNull Vector end, @NotNull BlockVector pos) {
         return null;
+    }
+
+    @Override
+    public double maxHeight() {
+        return shape.c(EnumDirection.EnumAxis.Y);
     }
 }

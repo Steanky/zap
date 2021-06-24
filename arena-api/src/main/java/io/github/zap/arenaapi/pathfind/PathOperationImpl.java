@@ -92,7 +92,7 @@ class PathOperationImpl implements PathOperation {
 
             visited.put(currentNode, currentNode);
 
-            PathNode[] possibleNodes = nodeProvider.generateNodes(context, currentNode);
+            PathNode[] possibleNodes = nodeProvider.generateNodes(context, agent, currentNode);
             for(PathNode sample : possibleNodes) {
                 if(sample == null) {
                     break;
@@ -103,19 +103,17 @@ class PathOperationImpl implements PathOperation {
                 }
 
                 //TODO: implement fancy optimizations
-                if(nodeProvider.mayTraverse(context, agent, currentNode, sample)) {
-                    bestDestination = destinationSelector.selectDestination(this, sample);
+                bestDestination = destinationSelector.selectDestination(this, sample);
 
-                    double g = scoreCalculator.computeG(context, currentNode, sample, bestDestination);
-                    if(g < sample.score.getG()) {
-                        openHeap.updateNode(sample, (node) ->
-                                node.score.set(g, scoreCalculator.computeH(context, node, bestDestination)));
-                    }
+                double g = scoreCalculator.computeG(context, currentNode, sample, bestDestination);
+                if(g < sample.score.getG()) {
+                    openHeap.updateNode(sample, (node) ->
+                            node.score.set(g, scoreCalculator.computeH(context, node, bestDestination)));
+                }
 
-                    //comparison for best path in case of inaccessible target
-                    if(sample.score.getF() < bestFound.score.getF()) {
-                        bestFound = sample.copy();
-                    }
+                //comparison for best path in case of inaccessible target
+                if(sample.score.getF() < bestFound.score.getF()) {
+                    bestFound = sample.copy();
                 }
             }
         }
