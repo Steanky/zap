@@ -35,6 +35,11 @@ public enum Direction implements Positional {
     NORTHWEST_DOWN(VectorAccess.immutable(-1D, -1D, -1D));
 
     private final VectorAccess offset;
+    private static final Direction[] values;
+
+    static {
+        values = Direction.values();
+    }
 
     Direction(VectorAccess offset) {
         this.offset = offset;
@@ -43,5 +48,9 @@ public enum Direction implements Positional {
     @Override
     public @NotNull VectorAccess position() {
         return offset;
+    }
+
+    public static Direction valueAtIndex(int position) {
+        return values[position];
     }
 }

@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.MutableWorldVector;
+import io.github.zap.vector.VectorAccess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,8 +10,17 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     @Override
     public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent,
                                              @NotNull PathNode at) {
+        PathNode[] nodes = new PathNode[8];
+        int j = 0;
+        for(int i = 0; i < 8; i++) {
+            PathNode node = tryWalkDirectionalSimplified(context, agent, at, Direction.valueAtIndex(i));
 
-        return new PathNode[0];
+            if(node != null) {
+                nodes[j++] = node;
+            }
+        }
+
+        return nodes;
     }
 
     /**
@@ -18,13 +28,25 @@ public class DefaultWalkNodeProvider extends NodeProvider {
      */
     private @Nullable PathNode tryWalkDirectionalSimplified(@NotNull PathfinderContext context, @NotNull PathAgent agent,
                                                   @NotNull PathNode node, @NotNull Direction direction) {
+        if(agent.characteristics().width > 1) {
+            throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
+        }
+
         PathNode candidate = node.chain(direction);
         MutableWorldVector nodePosition = candidate.position().asMutable();
+        VectorAccess access = simpleRequiredJumpHeight(agent, context.blockProvider(), nodePosition);
 
-        return null;
+        PathNode newNode = null;
+        if(access != null) {
+            newNode = node.chain(access);
+        }
+
+        return newNode;
     }
 
-    private double simpleRequiredJumpHeight(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector nodePosition) {
+    private @Nullable VectorAccess simpleRequiredJumpHeight(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector nodePosition) {
+        VectorAccess lastSolid = null;
+
         double jumpHeightRequired = 0;
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
@@ -33,6 +55,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         double height = agent.characteristics().height;
 
         int iterations = (int)Math.ceil(jumpHeight);
+        boolean lastWasFull = false;
         for(int i = 0; i < iterations; i++) {
             VoxelShapeWrapper shape = provider.getBlock(nodePosition).collision();
 
@@ -46,12 +69,18 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 if(additionalHeadroom > 0) {
                     headroom += additionalHeadroom;
                 }
+
+                if(lastWasFull) {
+                    lastWasFull = false;
+                    lastSolid = nodePosition.copyVector();
+                }
             }
             else if(shape.isFull()) {
                 headroom = 0;
                 jumpHeightRequired++;
 
                 spillover = Math.min(spillover - 1, 0);
+                lastWasFull = true;
             }
             else {
                 double newSpillover = spillover - maxY;
@@ -69,15 +98,20 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     spillover = newSpillover;
                     headroom = 0;
                 }
+
+                if(lastWasFull) {
+                    lastWasFull = false;
+                    lastSolid = nodePosition.copyVector();
+                }
             }
 
             if(jumpHeight >= jumpHeightRequired && height <= headroom) {
-                return jumpHeightRequired;
+                return lastSolid;
             }
 
             nodePosition.add(Direction.UP);
         }
 
-        return -1;
+        return lastSolid;
     }
 }

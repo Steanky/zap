@@ -1,7 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.nms.common.world.BlockCollisionSnapshot;
-import io.github.zap.vector.MutableWorldVector;
 import org.jetbrains.annotations.NotNull;
 
 /**
