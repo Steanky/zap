@@ -2,6 +2,7 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.nms.common.world.WorldBridge;
 import io.github.zap.vector.VectorAccess;
 import net.minecraft.server.v1_16_R3.*;
@@ -26,6 +27,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
     private static final WorldBridge bridge = WorldBridge_v1_16_R3.INSTANCE;
     private static final BoundingBox CHUNK_BOUNDING_BOX = new BoundingBox(0, 0, 0, 16, 255, 16);
+    private static final BoundingBox BLOCK_BOUNDING_BOX = new BoundingBox(0, 0, 0, 1, 1, 1);
 
     private final String worldName;
     private final int chunkX;
@@ -53,7 +55,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             return collisionMap.getOrDefault(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
                     chunkRelativeY, chunkRelativeZ), BlockCollisionSnapshot.from(
                             VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ),
-                    getBlockData(chunkRelativeX, chunkRelativeY, chunkRelativeZ), VoxelShapeWrapper_v1_16_R3.FULL_BLOCK));
+                    getBlockData(chunkRelativeX, chunkRelativeY, chunkRelativeZ), VoxelShapeWrapper.FULL_BLOCK));
         }
 
         throw new IllegalArgumentException("Chunk-relative coordinates out of range: [" + chunkRelativeX + ", " +
@@ -101,11 +103,13 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                 sectionBlockIDs[i] = EMPTY_BLOCK_IDS;
             } else {
                 NBTTagCompound data = new NBTTagCompound();
-                section.getBlocks().a(data, "Palette", "BlockStates");
+                section.getBlocks().a(data, "Palette", "BlockStates"); //fill up nbt data for this segment
 
                 DataPaletteBlock<IBlockData> blocks = new DataPaletteBlock<>(ChunkSection.GLOBAL_PALETTE,
                         Block.REGISTRY_ID, GameProfileSerializer::c, GameProfileSerializer::a, AIR_BLOCK_DATA,
                         null, false);
+
+                //load nbt data to palette
                 blocks.a(data.getList("Palette", 10), data.getLongArray("BlockStates"));
                 sectionBlockIDs[i] = blocks;
 
@@ -136,9 +140,9 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                             VoxelShape voxelShape = blockData.getCollisionShape(chunk, examine);
 
                             if(voxelShape != VoxelShapes.fullCube()) {
-                                collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z), BlockCollisionSnapshot
-                                        .from(VectorAccess.immutable(x, y, z),
-                                                blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(voxelShape)));
+                                long currentKey = org.bukkit.block.Block.getBlockKey(x, y, z);
+                                collisionMap.put(currentKey, BlockCollisionSnapshot.from(VectorAccess.immutable(x, y, z),
+                                        blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(voxelShape)));
                             }
                         }
                     });

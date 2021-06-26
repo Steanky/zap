@@ -5,7 +5,6 @@ import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -83,10 +82,8 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         if(snapshot != null) {
             return snapshot.blockCollisionSnapshot(worldX & 15, worldY, worldZ & 15);
         }
-        else {
-            return BlockCollisionSnapshot.from(VectorAccess.immutable(worldX & 15, worldY, worldZ & 15),
-                    Material.AIR.createBlockData(), null);
-        }
+
+        throw new IllegalArgumentException("Block at [" + worldX + ", " + worldY + ", " + worldZ + "] out of range!");
     }
 
     @Override

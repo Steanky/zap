@@ -11,14 +11,14 @@ public interface BlockCollisionSnapshot {
 
     @NotNull BlockData data();
 
-    @Nullable VoxelShapeWrapper collision();
+    @NotNull VoxelShapeWrapper collision();
 
     boolean overlaps(@NotNull BoundingBox relativeBounds);
 
     double height();
 
     static BlockCollisionSnapshot from(@NotNull VectorAccess chunkRelative, @NotNull BlockData data,
-                                       @Nullable VoxelShapeWrapper shape) {
+                                       @NotNull VoxelShapeWrapper shape) {
         return new BlockCollisionSnapshotImpl(chunkRelative, data, shape);
     }
 }

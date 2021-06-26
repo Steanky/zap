@@ -3,6 +3,8 @@ package io.github.zap.vector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 /**
  * Defines a 3-dimensional coordinate, along with useful methods for manipulating it. Implementations may be mutable or
  * immutable; which will determine the behavior of basic vector arithmetic (mutable vectors will act on themselves, and

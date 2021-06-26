@@ -1,8 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.MutableWorldVector;
-import io.github.zap.vector.VectorAccess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,30 +24,56 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return null;
     }
 
-    private double requiredJumpHeight(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector nodePosition) {
+    private double simpleRequiredJumpHeight(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector nodePosition) {
         double jumpHeightRequired = 0;
         double headroom = 0;
-        double excessHeight = 0;
+        double spillover = 0; //this helps us account for blocks with collision height larger than 1
 
-        for(int i = 0; i < agent.characteristics().jumpHeight; i++) {
-            BlockCollisionSnapshot blockCollisionSnapshot = provider.getBlock(nodePosition);
-            if(blockCollisionSnapshot.data().getMaterial().isSolid()) {
-                double currentHeight = blockCollisionSnapshot.height();
+        double jumpHeight = agent.characteristics().jumpHeight;
+        double height = agent.characteristics().height;
 
-                jumpHeightRequired -= excessHeight; //block on top of fence takes away what the fence adds
-                jumpHeightRequired += currentHeight;
-                excessHeight = currentHeight - 1 <= 0 ? 0 : currentHeight - 1;
+        int iterations = (int)Math.ceil(jumpHeight);
+        for(int i = 0; i < iterations; i++) {
+            VoxelShapeWrapper shape = provider.getBlock(nodePosition).collision();
 
-                if(currentHeight > agent.characteristics().jumpHeight) {
-                    return -1;
+            double minY = shape.minY();
+            double maxY = shape.isEmpty() ? 1 : shape.maxY();
+
+            if(shape.isEmpty()) {
+                headroom++;
+                spillover = Math.min(spillover - 1, 0);
+
+                double additionalHeadroom = maxY - spillover;
+                if(additionalHeadroom > 0) {
+                    headroom += additionalHeadroom;
                 }
             }
-            else {
-                if(++headroom <= agent.characteristics().height) {
-                    return jumpHeightRequired;
-                }
+            else if(shape.isFull()) {
+                headroom = 0;
+                jumpHeightRequired++;
 
-                i--;
+                spillover = Math.min(spillover - 1, 0);
+            }
+            else {
+                double newSpillover = spillover - maxY;
+
+                if(newSpillover <= 0) { //maxY larger or equal to spillover
+                    spillover = maxY - 1;
+                    jumpHeightRequired += Math.abs(newSpillover);
+
+                    double headroomIncrement = minY - spillover;
+                    if(headroomIncrement > 0) {
+                        headroom += headroomIncrement;
+                    }
+                }
+                else { //maxY smaller than spillover
+                    spillover = newSpillover;
+                    headroom = 0;
+                }
+            }
+
+            if(jumpHeight >= jumpHeightRequired && height <= headroom) {
+                return jumpHeightRequired;
             }
 
             nodePosition.add(Direction.UP);
