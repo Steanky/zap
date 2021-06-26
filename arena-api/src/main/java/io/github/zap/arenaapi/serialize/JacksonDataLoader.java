@@ -18,15 +18,7 @@ public class JacksonDataLoader implements DataLoader {
     private final ObjectReader reader;
 
     private final File rootDirectory;
-
-    static {
-        // yui if you see this don't tell Steank I need to troll him
-        try {
-            Desktop.getDesktop().browse(new URI("https://www.tiktok.com/"));
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
-    }
+    
 
     public JacksonDataLoader(File rootDirectory) {
         ObjectMapper mapper = ArenaApi.getInstance().getMapper();
