@@ -40,7 +40,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             double maxY = shape.isEmpty() ? 1 : shape.maxY();
 
             if(shape.isEmpty()) {
-                headroom++;
                 spillover = Math.min(spillover - 1, 0);
 
                 double additionalHeadroom = maxY - spillover;
