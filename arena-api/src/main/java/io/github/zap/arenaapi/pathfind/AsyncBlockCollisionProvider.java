@@ -80,7 +80,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     public @NotNull BlockCollisionSnapshot getBlock(int worldX, int worldY, int worldZ) {
         CollisionChunkSnapshot snapshot = chunkAt(worldX >> 4, worldZ >> 4);
         if(snapshot != null) {
-            return snapshot.blockCollisionSnapshot(worldX & 15, worldY, worldZ & 15);
+            return snapshot.collisionSnapshot(worldX & 15, worldY, worldZ & 15);
         }
 
         throw new IllegalArgumentException("Block at [" + worldX + ", " + worldY + ", " + worldZ + "] out of range!");
@@ -96,7 +96,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
                 CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
 
                 if(chunk != null) {
-                    return chunk.collidesWithAny(worldRelativeBounds.shift(new Vector(-(x << 4), 0, -(z << 4))));
+                    return chunk.collidesWithAny(worldRelativeBounds.clone().shift(new Vector(-(x << 4), 0, -(z << 4))));
                 }
             }
         }

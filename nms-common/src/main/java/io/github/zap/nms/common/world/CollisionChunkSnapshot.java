@@ -5,7 +5,7 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 public interface CollisionChunkSnapshot extends ChunkSnapshot {
-    @NotNull BlockCollisionSnapshot blockCollisionSnapshot(int chunkX, int chunkY, int chunkZ);
+    @NotNull BlockCollisionSnapshot collisionSnapshot(int chunkX, int chunkY, int chunkZ);
 
     boolean collidesWithAny(@NotNull BoundingBox chunkRelativeBounds);
 }

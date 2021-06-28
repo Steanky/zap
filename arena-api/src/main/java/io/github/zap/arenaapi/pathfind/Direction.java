@@ -50,6 +50,18 @@ public enum Direction implements Positional {
         return offset;
     }
 
+    boolean isIntercardinal() {
+        switch (this) {
+            case NORTHEAST:
+            case SOUTHEAST:
+            case SOUTHWEST:
+            case NORTHWEST:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static Direction valueAtIndex(int position) {
         return values[position];
     }

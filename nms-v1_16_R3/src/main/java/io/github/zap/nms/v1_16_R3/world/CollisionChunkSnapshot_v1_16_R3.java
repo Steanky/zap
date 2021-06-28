@@ -50,7 +50,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
-    public @NotNull BlockCollisionSnapshot blockCollisionSnapshot(int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ) {
+    public @NotNull BlockCollisionSnapshot collisionSnapshot(int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ) {
         if(bridge.isValidChunkCoordinate(chunkRelativeX, chunkRelativeY, chunkRelativeZ)) {
             return collisionMap.getOrDefault(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
                     chunkRelativeY, chunkRelativeZ), BlockCollisionSnapshot.from(

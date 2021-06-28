@@ -4,6 +4,7 @@ import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.Positional;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,14 +18,13 @@ public abstract class PathAgent implements Positional {
     public static class Characteristics {
         private static final double DEFAULT_JUMP_HEIGHT = 1.125D;
 
-        public final double width;
-        public final double height;
-        public final double jumpHeight;
+        private final BoundingBox bounds;
+        private final double jumpHeight;
+
         private final int hash;
 
         public Characteristics(double width, double height, double jumpHeight) {
-            this.width = width;
-            this.height = height;
+            bounds = new BoundingBox(0, 0, 0, width, height, width);
             this.jumpHeight = jumpHeight;
             this.hash = Objects.hash(width, height, jumpHeight);
         }
@@ -41,6 +41,22 @@ public abstract class PathAgent implements Positional {
             this(0, 0, DEFAULT_JUMP_HEIGHT);
         }
 
+        public double width() {
+            return bounds.getWidthX();
+        }
+
+        public double height() {
+            return bounds.getHeight();
+        }
+
+        public double jumpHeight() {
+            return jumpHeight;
+        }
+
+        public BoundingBox getBounds() {
+            return bounds.clone();
+        }
+
         @Override
         public int hashCode() {
             return hash;
@@ -50,7 +66,7 @@ public abstract class PathAgent implements Positional {
         public boolean equals(Object obj) {
             if(obj instanceof Characteristics) {
                 Characteristics other = (Characteristics) obj;
-                return width == other.width && height == other.height && jumpHeight == other.jumpHeight;
+                return width() == other.width() && height() == other.height() && jumpHeight == other.jumpHeight;
             }
 
             return false;
@@ -58,7 +74,7 @@ public abstract class PathAgent implements Positional {
 
         @Override
         public String toString() {
-            return "PathAgent.Characteristics{width=" + width + ", height=" + height + "jumpHeight=" + jumpHeight + "}";
+            return "PathAgent.Characteristics{width=" + width() + ", height=" + height() + "jumpHeight=" + jumpHeight + "}";
         }
     }
 
