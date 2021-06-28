@@ -34,8 +34,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
         }
 
-        VectorAccess access = heightTest(agent, context.blockProvider(), node.add(direction).asMutable());
-        if(access == null) {
+        VectorAccess jump = heightTest(agent, context.blockProvider(), node.add(direction).asMutable());
+        if(jump == null) {
             return null;
         }
 
@@ -43,10 +43,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
         if(!context.blockProvider().collidesWithAnySolid(scaled)) {
             BoundingBox extendedBounds = new BoundingBox(0, 0, 0, agent.characteristics().width(),
-                    access.y() - agent.position().y(), agent.characteristics().width());
+                    jump.y() - agent.position().y(), agent.characteristics().width());
 
             if(context.blockProvider().collidesWithAnySolid(extendedBounds)) {
-                return node.chain(access);
+                return node.chain(jump);
             }
         }
 
@@ -79,10 +79,17 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
             }
             else if(shape.isFull()) { //full block (1x1x1)
-                spillover = Math.min(spillover - 1, 0);
+                double newSpillover = spillover - 1;
+
+                if(newSpillover < 0) {
+                    jumpHeightRequired += Math.abs(newSpillover);
+                    spillover = 0;
+                }
+                else {
+                    spillover = newSpillover;
+                }
 
                 headroom = 0;
-                jumpHeightRequired++;
             }
             else { //anything that does not fall into the above categories
                 double newSpillover = spillover - maxY;
