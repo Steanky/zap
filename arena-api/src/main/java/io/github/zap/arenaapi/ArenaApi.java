@@ -13,8 +13,6 @@ import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.pathfind.*;
-import io.github.zap.arenaapi.proxy.NMSProxy;
-import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
 import io.github.zap.nms.common.NMSBridge;
 import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
@@ -53,9 +51,6 @@ import java.util.logging.Level;
 public final class ArenaApi extends JavaPlugin implements Listener {
     @Getter
     private static ArenaApi instance;
-
-    @Getter
-    private NMSProxy nmsProxy; //TODO: remove and fully replace with NMSBridge since it has actual version compat
 
     @Getter
     private NMSBridge nmsBridge;
@@ -120,16 +115,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         if(nmsBridge == null) {
             throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", NMSBridge.NMS_VERSION));
-        }
-
-        //TODO: remove this and replace with NMSBridge
-        switch (Bukkit.getBukkitVersion()) {
-            case "1.16.4-R0.1-SNAPSHOT":
-            case "1.16.5-R0.1-SNAPSHOT":
-                nmsProxy = new NMSProxy_v1_16_R3();
-                break;
-            default:
-                throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));
         }
     }
 

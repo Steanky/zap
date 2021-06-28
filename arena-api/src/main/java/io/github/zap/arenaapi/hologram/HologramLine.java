@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.hologram;
 import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.proxy.NMSProxy;
+import io.github.zap.nms.common.NMSBridge;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -20,7 +21,7 @@ public abstract class HologramLine<V> {
 
     private final ArenaApi arenaApi;
 
-    private final NMSProxy nmsProxy;
+    private final NMSBridge bridge;
 
     private final Location location;
 
@@ -34,9 +35,9 @@ public abstract class HologramLine<V> {
 
     public HologramLine(Location location) {
         this.arenaApi = ArenaApi.getInstance();
-        this.nmsProxy = arenaApi.getNmsProxy();
+        this.bridge = arenaApi.getNmsBridge();
         this.location = location;
-        this.entityId = nmsProxy.nextEntityId();
+        this.entityId = bridge.entityBridge().nextEntityID();
         this.spawnPacketContainer = createSpawnPacketContainer();
 
         for (Player player : location.getWorld().getPlayers()) {
