@@ -144,16 +144,19 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
             if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
                 //check if mob will collide with something on its way up
+                BoundingBox agentBounds = agent.characteristics().getBounds();
+                agentBounds.expandDirectional(0, jumpHeightRequired, 0);
+
+                if(provider.collidesWithAnySolid(agentBounds)) {
+                    return null;
+                }
+
                 return jump.add(0, jumpHeightRequired, 0);
             }
 
             seek.add(Direction.UP);
         }
 
-        return null;
-    }
-
-    private @Nullable MutableWorldVector fallTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek) {
         return null;
     }
 }
