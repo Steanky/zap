@@ -91,8 +91,8 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin()).asChunkVector();
         ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax()).asChunkVector();
 
-        for(int x = minChunk.chunkX(); x < maxChunk.chunkX(); x++) {
-            for(int z = minChunk.chunkZ(); z < maxChunk.chunkZ(); z++) {
+        for(int x = minChunk.chunkX(); x < maxChunk.chunkX() + 1; x++) {
+            for(int z = minChunk.chunkZ(); z < maxChunk.chunkZ() + 1; z++) {
                 CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
 
                 if(chunk != null) {
