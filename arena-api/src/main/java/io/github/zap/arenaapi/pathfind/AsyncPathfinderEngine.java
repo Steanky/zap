@@ -41,7 +41,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         private final List<PathResult> failedPaths = new ArrayList<>();
         private final BlockCollisionProvider blockCollisionProvider;
 
-        private int lastSync;
+        private int lastSync = -1;
 
         private Context(@NotNull BlockCollisionProvider blockCollisionProvider) {
             this.blockCollisionProvider = blockCollisionProvider;
@@ -91,10 +91,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             try {
                 try {
                     contextsSemaphore.acquire();
+                    ArenaApi.info("Acquired contextsSemaphore");
 
                     int contextStartingIndex;
                     synchronized (contexts) {
                         contextStartingIndex = contexts.size() - 1;
+                        ArenaApi.info("contextStartingIndex=" + contextStartingIndex);
                     }
 
                     //each EngineContext object = different world
@@ -103,7 +105,9 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         Context context = contexts.get(i);
 
                         //only update snapshots if their data is old enough
-                        if(Bukkit.getServer().getCurrentTick() - context.lastSync > MAX_AGE_BEFORE_UPDATE) {
+                        if(context.lastSync != -1 && Bukkit.getServer().getCurrentTick() - context.lastSync <
+                                MAX_AGE_BEFORE_UPDATE) {
+                            ArenaApi.info("Skipping sync, data is too young: " + (Bukkit.getServer().getCurrentTick() - context.lastSync) + " ticks");
                             continue;
                         }
 
@@ -114,6 +118,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 context.lastSync = Bukkit.getCurrentTick();
                                 context.blockCollisionProvider.updateAll();
                                 context.semaphore.release();
+                                ArenaApi.info("Did a hecking sync");
                             }
                         }).getTaskId();
 
@@ -156,6 +161,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         //noinspection ResultOfMethodCallIgnored
                         contextsSemaphore.tryAcquire(1);
+                        ArenaApi.info("Locked semaphore (no pending operations)");
                     }
 
                     //clean up contexts that may have been removed, such as by a world unload
@@ -168,10 +174,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         if(contexts.size() == 0) { //lock semaphore, we have no contexts
                             //noinspection ResultOfMethodCallIgnored
                             contextsSemaphore.tryAcquire(1);
+                            ArenaApi.info("Locked semaphore (context was removed)");
                         }
                     }
                 }
                 catch(InterruptedException ignored) {
+                    ArenaApi.info("Thread interrupted");
                     break;
                 }
             }
@@ -206,7 +214,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
 
                     PathOperation.State entryState = entry.operation.state();
-                    if (entryState == PathOperation.State.STARTED) {
+                    if(entryState == PathOperation.State.STARTED) {
                         for (int j = 0; j < entry.operation.iterations(); j++) {
                             if (entry.operation.step(context)) {
                                 PathResult result = entry.operation.result();

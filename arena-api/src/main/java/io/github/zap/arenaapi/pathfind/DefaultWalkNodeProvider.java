@@ -1,13 +1,26 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.MutableWorldVector;
 import io.github.zap.vector.VectorAccess;
+import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DefaultWalkNodeProvider extends NodeProvider {
+    private enum JunctionType {
+        FALL,
+        JUMP,
+        NO_CHANGE
+    }
+
+    @Getter
+    private static final DefaultWalkNodeProvider instance = new DefaultWalkNodeProvider();
+
+    private DefaultWalkNodeProvider() {}
+
     @Override
     public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent,
                                              @NotNull PathNode at) {
@@ -25,6 +38,29 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return nodes;
     }
 
+    private JunctionType determineType(@NotNull PathfinderContext context, @NotNull PathAgent agent,
+                                       @NotNull PathNode node, @NotNull Direction direction) {
+        MutableWorldVector forwardVector = node.add(direction).asMutable();
+
+        BoundingBox agentBounds = agent.characteristics().getBounds();
+        agentBounds.expandDirectional(direction.asBukkit());
+
+        if(context.blockProvider().collidesWithAnySolid(agentBounds)) {
+            return JunctionType.JUMP;
+        }
+        else {
+            forwardVector.add(Direction.DOWN);
+
+            BlockCollisionSnapshot snapshot = context.blockProvider().getBlock(forwardVector);
+            if(snapshot.collision().isFull()) {
+                return JunctionType.NO_CHANGE;
+            }
+            else {
+                return JunctionType.FALL;
+            }
+        }
+    }
+
     /**
      * Simplified, faster algorithm for entities whose width is < 1
      */
@@ -34,26 +70,22 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
         }
 
-        VectorAccess jump = heightTest(agent, context.blockProvider(), node.add(direction).asMutable());
-        if(jump == null) {
-            return null;
-        }
+        MutableWorldVector targetVector = node.add(direction).asMutable();
 
-        BoundingBox scaled = agent.characteristics().getBounds().expandDirectional(direction.multiply(-1).asBukkit());
-
-        if(!context.blockProvider().collidesWithAnySolid(scaled)) {
-            BoundingBox extendedBounds = new BoundingBox(0, 0, 0, agent.characteristics().width(),
-                    jump.y() - agent.position().y(), agent.characteristics().width());
-
-            if(context.blockProvider().collidesWithAnySolid(extendedBounds)) {
-                return node.chain(jump);
-            }
+        switch (determineType(context, agent, node, direction)) {
+            case FALL:
+                break;
+            case JUMP:
+                MutableWorldVector jumpVec = jumpTest(agent, context.blockProvider(), targetVector);
+                return jumpVec == null ? null : node.chain(jumpVec);
+            case NO_CHANGE:
+                return node.chain(direction);
         }
 
         return null;
     }
 
-    private @Nullable MutableWorldVector heightTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek) {
+    private @Nullable MutableWorldVector jumpTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek) {
         double jumpHeightRequired = 0;
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
@@ -63,6 +95,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
         MutableWorldVector jump = seek.copyVector();
 
+        //TODO: make sure height can't overflow max height (255 for vanilla 1.16.5)
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
             VoxelShapeWrapper shape = provider.getBlock(seek).collision();
@@ -110,12 +143,17 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             }
 
             if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
+                //check if mob will collide with something on its way up
                 return jump.add(0, jumpHeightRequired, 0);
             }
 
             seek.add(Direction.UP);
         }
 
+        return null;
+    }
+
+    private @Nullable MutableWorldVector fallTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek) {
         return null;
     }
 }
