@@ -35,15 +35,25 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         VectorAccess access = heightTest(agent, context.blockProvider(), node.add(direction).asMutable());
-        if(!direction.isIntercardinal()) {
-            return access == null ? null : node.chain(access);
+        if(access == null) {
+            return null;
         }
-        else {
 
+        BoundingBox scaled = agent.characteristics().getBounds().expandDirectional(direction.multiply(-1).asBukkit());
+
+        if(!context.blockProvider().collidesWithAnySolid(scaled)) {
+            BoundingBox extendedBounds = new BoundingBox(0, 0, 0, agent.characteristics().width(),
+                    access.y() - agent.position().y(), agent.characteristics().width());
+
+            if(context.blockProvider().collidesWithAnySolid(extendedBounds)) {
+                return node.chain(access);
+            }
         }
+
+        return null;
     }
 
-    private @Nullable VectorAccess heightTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek) {
+    private @Nullable MutableWorldVector heightTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek) {
         double jumpHeightRequired = 0;
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
