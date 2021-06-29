@@ -22,6 +22,7 @@ public class PathNode implements Positional {
     private final int hash;
     private final ImmutableWorldVector position;
 
+    int heapIndex = -1;
     final Score score;
     PathNode parent;
     boolean updateFlag;

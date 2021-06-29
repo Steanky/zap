@@ -39,6 +39,7 @@ class BinaryMinNodeHeap implements NodeHeap {
             siftDown(0, last);
         }
 
+        best.heapIndex = -1;
         return best;
     }
 
@@ -73,13 +74,7 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     public int indexOf(@NotNull PathNode node) {
-        for(int i = 0; i < size; i++) {
-            if(nodes[i].equals(node)) {
-                return i;
-            }
-        }
-
-        return -1;
+        return node.heapIndex;
     }
 
     private void siftUp(int index, PathNode node) {
@@ -93,10 +88,13 @@ class BinaryMinNodeHeap implements NodeHeap {
             }
 
             nodes[index] = parent;
+            parent.heapIndex = index;
+
             index = parentIndex;
         }
 
         nodes[index] = node;
+        node.heapIndex = index;
     }
 
     private void siftDown(int index, PathNode node) {
@@ -115,10 +113,12 @@ class BinaryMinNodeHeap implements NodeHeap {
             }
 
             nodes[index] = smallestChild;
+            smallestChild.heapIndex = index;
             index = childIndex;
         }
 
         nodes[index] = node;
+        node.heapIndex = index;
     }
 
     private void ensureCapacity(int size) {

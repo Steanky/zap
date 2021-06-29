@@ -27,7 +27,8 @@ public interface NodeHeap {
     void addNode(@NotNull PathNode node);
 
     /**
-     * Performs an update on the given node. The node must be a part of the heap.
+     * Performs an update on the given node.
+     * @param index The index of the node to update.
      */
     void updateNode(int index);
 
