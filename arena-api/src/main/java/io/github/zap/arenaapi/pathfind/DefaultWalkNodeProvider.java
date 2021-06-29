@@ -70,8 +70,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
         else {
             forwardVector.add(Direction.DOWN);
-
             BlockSnapshot snapshot = context.blockProvider().getBlock(forwardVector);
+
             if(snapshot.collision().isFull()) {
                 return JunctionType.NO_CHANGE;
             }

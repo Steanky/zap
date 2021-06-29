@@ -47,16 +47,30 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
         int worldX = chunkX << 4;
         int worldZ = chunkZ << 4;
+
         chunkBounds = new BoundingBox(worldX, 0, worldZ, worldX + 16, 255, worldZ + 16);
     }
 
     @Override
     public @NotNull BlockSnapshot collisionSnapshot(int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ) {
         if(bridge.isValidChunkCoordinate(chunkRelativeX, chunkRelativeY, chunkRelativeZ)) {
-            return collisionMap.getOrDefault(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
-                    chunkRelativeY, chunkRelativeZ), BlockSnapshot.from(
-                            VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ).asWorldRelative(chunkX, chunkZ),
-                    getBlockData(chunkRelativeX, chunkRelativeY, chunkRelativeZ), VoxelShapeWrapper.FULL_BLOCK));
+            BlockSnapshot block = collisionMap.get(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
+                    chunkRelativeY, chunkRelativeZ));
+
+            if(block != null) {
+                return block;
+            }
+            else {
+                IBlockData data = palette[chunkRelativeY >> 4].a(chunkRelativeX, chunkRelativeY & 15, chunkRelativeZ);
+                if(data.getBukkitMaterial().isSolid()) {
+                    return BlockSnapshot.from(VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ)
+                            .asWorldRelative(chunkX, chunkZ), data.createCraftBlockData(), VoxelShapeWrapper.FULL_BLOCK);
+                }
+                else {
+                    return BlockSnapshot.from(VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ)
+                            .asWorldRelative(chunkX, chunkZ), data.createCraftBlockData(), VoxelShapeWrapper.EMPTY_BLOCK);
+                }
+            }
         }
 
         throw new IllegalArgumentException("Chunk-relative coordinates out of range: [" + chunkRelativeX + ", " +
@@ -84,7 +98,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                                 return true;
                             }
                         }
-                        else if(palette[y >> 4].a(chunkX, y, chunkZ).getBukkitMaterial().isSolid()) {
+                        else if(palette[y >> 4].a(chunkX, y & 15, chunkZ).getBukkitMaterial().isSolid()) {
                             return true;
                         }
                     }
@@ -119,7 +133,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                             }
                         }
                         else {
-                            BlockBase.BlockData data = palette[y >> 4].a(chunkX, y, chunkZ);
+                            BlockBase.BlockData data = palette[y >> 4].a(chunkX, y & 15, chunkZ);
 
                             if(data.getMaterial().isSolid()) {
                                 shapes.add(BlockSnapshot.from(VectorAccess.immutable(x, y, z),
