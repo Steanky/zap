@@ -28,6 +28,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             PathNode node = walkDirectional(context, agent, at, Direction.valueAtIndex(i));
 
             if(node != null) {
+                calculateAversion(node, context.blockProvider());
                 buffer[j++] = node;
             }
         }
@@ -231,5 +232,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         BlockSnapshot block = provider.getBlock(Direction.DOWN);
         double materialAversion = getAversionCalculator().aversionForMaterial(block.data().getMaterial());
         double distanceAversion = getAversionCalculator().aversionForNode(node);
+        node.score.setG(node.score.getG() + materialAversion + distanceAversion);
     }
 }
