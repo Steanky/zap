@@ -8,6 +8,7 @@ import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -76,13 +77,13 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public @NotNull BlockSnapshot getBlock(int worldX, int worldY, int worldZ) {
+    public @Nullable BlockSnapshot getBlock(int worldX, int worldY, int worldZ) {
         CollisionChunkSnapshot snapshot = chunkAt(worldX >> 4, worldZ >> 4);
         if(snapshot != null) {
             return snapshot.collisionSnapshot(worldX & 15, worldY, worldZ & 15);
         }
 
-        throw new IllegalArgumentException("Block at [" + worldX + ", " + worldY + ", " + worldZ + "] out of range!");
+        return null;
     }
 
     @Override

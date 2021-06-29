@@ -13,7 +13,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private enum JunctionType {
         FALL,
         JUMP,
-        NO_CHANGE
+        NO_CHANGE,
+        IGNORE
     }
 
     public DefaultWalkNodeProvider(@NotNull AversionCalculator aversionCalculator) {
@@ -72,15 +73,19 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             forwardVector.add(Direction.DOWN);
             BlockSnapshot snapshot = context.blockProvider().getBlock(forwardVector);
 
-            if(snapshot.collision().isFull()) {
-                return JunctionType.NO_CHANGE;
+            if(snapshot != null) {
+                if(snapshot.collision().isFull()) {
+                    return JunctionType.NO_CHANGE;
+                }
+                else if(snapshot.collision().isEmpty()) {
+                    return JunctionType.FALL;
+                }
+                else {
+                    return JunctionType.NO_CHANGE;
+                }
             }
-            else if(snapshot.collision().isEmpty()) {
-                return JunctionType.FALL;
-            }
-            else {
-                return JunctionType.NO_CHANGE;
-            }
+
+            return JunctionType.IGNORE;
         }
     }
 
@@ -97,7 +102,12 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
-            VoxelShapeWrapper shape = provider.getBlock(seek).collision();
+            BlockSnapshot snapshot = provider.getBlock(seek);
+            if(snapshot == null) {
+                return null;
+            }
+
+            VoxelShapeWrapper shape = snapshot.collision();
 
             double minY = shape.minY();
             double maxY = shape.isEmpty() ? 1 : shape.maxY();
@@ -177,6 +187,11 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             }
 
             BlockSnapshot snapshot = provider.getBlock(seek);
+
+            if(snapshot == null) {
+                return null;
+            }
+
             VoxelShapeWrapper collision = snapshot.collision();
 
             if(collision.isFull()) {
@@ -230,10 +245,12 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
         BlockSnapshot block = provider.getBlock(node.add(Direction.DOWN));
 
-        double materialAversion = getAversionCalculator().aversionForMaterial(block.data().getMaterial());
-        double distanceAversion = getAversionCalculator().aversionForNode(node);
-        double sum = materialAversion + distanceAversion;
+        if(block != null) {
+            double materialAversion = getAversionCalculator().aversionForMaterial(block.data().getMaterial());
+            double distanceAversion = getAversionCalculator().aversionForNode(node);
+            double sum = materialAversion + distanceAversion;
 
-        node.score.setG(Double.isFinite(node.score.getG()) ? node.score.getG() + sum : sum);
+            node.score.setG(Double.isFinite(node.score.getG()) ? node.score.getG() + sum : sum);
+        }
     }
 }

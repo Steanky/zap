@@ -6,6 +6,7 @@ import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -42,13 +43,13 @@ public interface BlockCollisionProvider {
 
     @NotNull ChunkCoordinateProvider coordinateProvider();
 
-    @NotNull BlockSnapshot getBlock(int x, int y, int z);
+    @Nullable BlockSnapshot getBlock(int x, int y, int z);
 
     boolean collidesWithAnySolid(@NotNull BoundingBox bounds);
 
     List<BlockSnapshot> collidingSolids(@NotNull BoundingBox bounds);
 
-    default @NotNull BlockSnapshot getBlock(@NotNull VectorAccess at) {
+    default @Nullable BlockSnapshot getBlock(@NotNull VectorAccess at) {
         return getBlock(at.blockX(), at.blockY(), at.blockZ());
     }
 }
