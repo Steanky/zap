@@ -37,7 +37,7 @@ public interface DestinationSelector {
      * or more of the following measures:
      *
      * <ul>
-     *     <li>Apply appropriate synchronization measures</li>
+     *     <li>Apply appropriate synchronization techniques</li>
      *     <li>Check if the PathfinderEngine used by this operation is synchronous</li>
      *     <li>Ensure that the method is inherently thread-safe</li>
      * </ul>

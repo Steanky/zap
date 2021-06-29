@@ -106,10 +106,6 @@ class PathOperationImpl implements PathOperation {
                 bestDestination = destinationSelector.selectDestination(this, sample);
 
                 double g = scoreCalculator.computeG(context, currentNode, sample, bestDestination);
-                if(g == -1) {
-                    continue;
-                }
-
                 if(g < sample.score.getG()) {
                     openHeap.updateNode(sample, (node) ->
                             node.score.set(g, scoreCalculator.computeH(context, node, bestDestination)));

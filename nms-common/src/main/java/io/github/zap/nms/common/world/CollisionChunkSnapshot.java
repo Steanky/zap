@@ -7,9 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface CollisionChunkSnapshot extends ChunkSnapshot {
-    @NotNull BlockCollisionSnapshot collisionSnapshot(int chunkX, int chunkY, int chunkZ);
+    @NotNull BlockSnapshot collisionSnapshot(int chunkX, int chunkY, int chunkZ);
 
     boolean collidesWithAny(@NotNull BoundingBox chunkRelativeBounds);
 
-    List<BlockCollisionSnapshot> collisionsWith(@NotNull BoundingBox worldRelativeBounds);
+    List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldRelativeBounds);
 }

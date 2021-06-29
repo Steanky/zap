@@ -8,13 +8,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
+class BlockSnapshotImpl implements BlockSnapshot {
     private final VectorAccess worldVector;
     private final BlockData data;
     private final VoxelShapeWrapper collision;
 
-    BlockCollisionSnapshotImpl(@NotNull VectorAccess worldVector, @NotNull BlockData data,
-                               @NotNull VoxelShapeWrapper collision) {
+    BlockSnapshotImpl(@NotNull VectorAccess worldVector, @NotNull BlockData data,
+                      @NotNull VoxelShapeWrapper collision) {
         this.worldVector = worldVector;
         this.data = data;
         this.collision = collision;

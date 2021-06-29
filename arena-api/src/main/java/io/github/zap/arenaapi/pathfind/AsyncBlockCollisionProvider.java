@@ -1,14 +1,12 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
-import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -78,7 +76,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public @NotNull BlockCollisionSnapshot getBlock(int worldX, int worldY, int worldZ) {
+    public @NotNull BlockSnapshot getBlock(int worldX, int worldY, int worldZ) {
         CollisionChunkSnapshot snapshot = chunkAt(worldX >> 4, worldZ >> 4);
         if(snapshot != null) {
             return snapshot.collisionSnapshot(worldX & 15, worldY, worldZ & 15);
@@ -106,11 +104,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public List<BlockCollisionSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
+    public List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
         ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin());
         ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax());
 
-        List<BlockCollisionSnapshot> shapes = new ArrayList<>();
+        List<BlockSnapshot> shapes = new ArrayList<>();
 
         for(int x = minChunk.chunkX(); x <= maxChunk.chunkX(); x++) {
             for(int z = minChunk.chunkZ(); z <= maxChunk.chunkZ(); z++) {

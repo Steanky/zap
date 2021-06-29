@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.nms.common.NMSBridge;
+import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.MutableWorldVector;
 import lombok.Getter;
@@ -50,7 +51,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         else {
             forwardVector.add(Direction.DOWN);
 
-            BlockCollisionSnapshot snapshot = context.blockProvider().getBlock(forwardVector);
+            BlockSnapshot snapshot = context.blockProvider().getBlock(forwardVector);
             if(snapshot.collision().isFull()) {
                 return JunctionType.NO_CHANGE;
             }
@@ -172,11 +173,19 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private boolean collidesMovingAlong(BoundingBox bounds, BlockCollisionProvider provider, Direction direction) {
-        List<BlockCollisionSnapshot> candidates = provider.collidingSolids(bounds.clone()
-                .expandDirectional(direction.asBukkit()));
+        BoundingBox expanded = bounds.clone().expandDirectional(direction.asBukkit());
+        if(!direction.isIntercardinal()) {
+            if(provider.collidesWithAnySolid(expanded)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
 
         if(candidates.size() > 0) {
-            for(BlockCollisionSnapshot snapshot : candidates) {
+            for(BlockSnapshot snapshot : candidates) {
                 for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
                     collision.shift(snapshot.position().asBukkit());
 
