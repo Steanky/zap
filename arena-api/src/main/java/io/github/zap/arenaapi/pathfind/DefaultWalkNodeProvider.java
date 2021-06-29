@@ -7,6 +7,7 @@ import io.github.zap.vector.MutableWorldVector;
 import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -23,20 +24,20 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private DefaultWalkNodeProvider() {}
 
     @Override
-    public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent,
-                                             @NotNull PathNode at) {
-        PathNode[] nodes = new PathNode[8];
-
+    public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathfinderContext context, @NotNull PathAgent agent,
+                              @NotNull PathNode at) {
         int j = 0;
         for(int i = 0; i < 8; i++) {
             PathNode node = walkDirectional(context, agent, at, Direction.valueAtIndex(i));
 
             if(node != null) {
-                nodes[j++] = node;
+                buffer[j++] = node;
             }
         }
 
-        return nodes;
+        if(j < 8) {
+            buffer[j] = null;
+        }
     }
 
     /**

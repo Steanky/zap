@@ -16,6 +16,7 @@ class PathOperationImpl implements PathOperation {
 
     private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
     private final Map<PathNode, PathNode> visited = new HashMap<>();
+    private final PathNode[] sampleBuffer = new PathNode[8];
     private PathDestination bestDestination;
     private PathNode currentNode;
     private PathNode bestFound;
@@ -92,8 +93,8 @@ class PathOperationImpl implements PathOperation {
 
             visited.put(currentNode, currentNode);
 
-            PathNode[] possibleNodes = nodeProvider.generateNodes(context, agent, currentNode);
-            for(PathNode sample : possibleNodes) {
+            nodeProvider.generateNodes(sampleBuffer, context, agent, currentNode);
+            for(PathNode sample : sampleBuffer) {
                 if(sample == null) {
                     break;
                 }

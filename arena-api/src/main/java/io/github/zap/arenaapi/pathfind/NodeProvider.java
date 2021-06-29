@@ -11,16 +11,8 @@ import org.jetbrains.annotations.NotNull;
  * of performance.
  */
 public abstract class NodeProvider {
-    public static final NodeProvider DEBUG = new NodeProvider() {
-        @Override
-        public @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent,
-                                                 @NotNull PathNode at) {
-            return new PathNode[0];
-        }
-    };
-
-    public abstract @NotNull PathNode[] generateNodes(@NotNull PathfinderContext context, @NotNull PathAgent agent,
-                                                      @NotNull PathNode at);
+    public abstract void generateNodes(@NotNull PathNode[] buffer, @NotNull PathfinderContext context,
+                                       @NotNull PathAgent agent, @NotNull PathNode at);
 
     @Override
     public int hashCode() {
