@@ -27,11 +27,9 @@ public interface NodeHeap {
     void addNode(@NotNull PathNode node);
 
     /**
-     * Performs an update on the given node. For this to work, the node must be part of the collection.
-     * @param currentNode The node to update
-     * @param updateConsumer The consumer that will be used to update the node
+     * Performs an update on the given node. The node must be a part of the heap.
      */
-    void updateNode(@NotNull PathNode currentNode, Consumer<PathNode> updateConsumer);
+    void updateNode(int index);
 
     /**
      * Check if this NodeHeap contains the given node. This should use equals() comparison rather than reference
@@ -40,6 +38,13 @@ public interface NodeHeap {
      * @return Whether or not the node exists
      */
     boolean contains(@NotNull PathNode node);
+
+    /**
+     * Returns the index of the given node. This can be used to update specific nodes later.
+     * @param node The node to index
+     * @return The index of the node
+     */
+    int indexOf(@NotNull PathNode node);
 
     /**
      * Returns the number of nodes currently in the heap.

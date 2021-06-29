@@ -11,8 +11,18 @@ import org.jetbrains.annotations.NotNull;
  * of performance.
  */
 public abstract class NodeProvider {
+    private final AversionCalculator aversionCalculator;
+
+    protected NodeProvider(@NotNull AversionCalculator aversionCalculator) {
+        this.aversionCalculator = aversionCalculator;
+    }
+
     public abstract void generateNodes(@NotNull PathNode[] buffer, @NotNull PathfinderContext context,
                                        @NotNull PathAgent agent, @NotNull PathNode at);
+
+    public AversionCalculator getAversionCalculator() {
+        return aversionCalculator;
+    }
 
     @Override
     public int hashCode() {

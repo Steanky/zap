@@ -87,7 +87,7 @@ class PathOperationImpl implements PathOperation {
             else {
                 currentNode = new PathNode(null, agent);
                 bestDestination = destinationSelector.selectDestination(this, currentNode);
-                currentNode.score.set(0, scoreCalculator.computeH(context, currentNode, bestDestination));
+                currentNode.score.setH(scoreCalculator.computeH(context, currentNode, bestDestination));
                 bestFound = currentNode.copy();
             }
 
@@ -103,13 +103,16 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
-                //TODO: implement fancy optimizations
-                bestDestination = destinationSelector.selectDestination(this, sample);
-
-                double g = scoreCalculator.computeG(context, currentNode, sample, bestDestination);
-                if(g < sample.score.getG()) {
-                    openHeap.updateNode(sample, (node) ->
-                            node.score.set(g, scoreCalculator.computeH(context, node, bestDestination)));
+                if(sample.score.deltaG() == Score.Delta.DECREASE) {
+                    int index = openHeap.indexOf(sample);
+                    if(index != -1) {
+                        openHeap.updateNode(index);
+                    }
+                    else {
+                        bestDestination = destinationSelector.selectDestination(this, sample);
+                        sample.score.setH(scoreCalculator.computeH(context, sample, bestDestination));
+                        openHeap.addNode(sample);
+                    }
                 }
 
                 //comparison for best path in case of inaccessible target

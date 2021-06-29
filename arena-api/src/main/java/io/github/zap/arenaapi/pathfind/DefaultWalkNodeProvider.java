@@ -1,10 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.nms.common.NMSBridge;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.MutableWorldVector;
-import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,10 +16,9 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         NO_CHANGE
     }
 
-    @Getter
-    private static final DefaultWalkNodeProvider instance = new DefaultWalkNodeProvider();
-
-    private DefaultWalkNodeProvider() {}
+    public DefaultWalkNodeProvider(@NotNull AversionCalculator aversionCalculator) {
+        super(aversionCalculator);
+    }
 
     @Override
     public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathfinderContext context, @NotNull PathAgent agent,
@@ -40,9 +37,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
     }
 
-    /**
-     * Simplified, faster algorithm for entities whose width is < 1
-     */
     private PathNode walkDirectional(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
         if(agent.characteristics().width() > 1) {
             throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
@@ -231,5 +225,11 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         return false;
+    }
+
+    private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
+        BlockSnapshot block = provider.getBlock(Direction.DOWN);
+        double materialAversion = getAversionCalculator().aversionForMaterial(block.data().getMaterial());
+        double distanceAversion = getAversionCalculator().aversionForNode(node);
     }
 }

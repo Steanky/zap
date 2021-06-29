@@ -291,7 +291,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                             new PathAgent.Characteristics(0.75, 1.75D));
                     engine.giveOperation(PathOperation.forAgent(blockAgent,
                             PathDestination.fromEntities(stands, false), ScoreCalculator.DISTANCE_ONLY,
-                            SuccessCondition.WITHIN_BLOCK, DefaultWalkNodeProvider.getInstance(), DestinationSelector.CLOSEST,
+                            SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
                             ChunkCoordinateProvider.squareFromCenter(blockAgent, 5)),
                             event.getPlayer().getWorld(), (pathResult) -> Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                                 for(PathNode node : pathResult) {

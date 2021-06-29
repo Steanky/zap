@@ -49,24 +49,16 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
-    public void updateNode(@NotNull PathNode currentNode, @NotNull Consumer<PathNode> updateFunction) {
-        int index = indexOf(currentNode);
+    public void updateNode(int index) {
+        PathNode currentNode = nodes[index];
 
-        if(index == -1) {
-            addNode(currentNode);
-            return;
-        }
-
-        Score scoreBefore = currentNode.score;
-        updateFunction.accept(currentNode);
-        Score scoreAfter = currentNode.score;
-
-        int comparison = ScoreComparator.instance().compare(scoreAfter, scoreBefore);
-        if(comparison < 0) {
-            siftUp(index, currentNode);
-        }
-        else if(comparison > 0) {
-            siftDown(index, currentNode);
+        switch (currentNode.score.deltaG()) {
+            case DECREASE:
+                siftUp(index, currentNode);
+                break;
+            case INCREASE:
+                siftDown(index, currentNode);
+                break;
         }
     }
 
@@ -80,7 +72,7 @@ class BinaryMinNodeHeap implements NodeHeap {
         return size;
     }
 
-    private int indexOf(PathNode node) {
+    public int indexOf(@NotNull PathNode node) {
         for(int i = 0; i < size; i++) {
             if(nodes[i].equals(node)) {
                 return i;
