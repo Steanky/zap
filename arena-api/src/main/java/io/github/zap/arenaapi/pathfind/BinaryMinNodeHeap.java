@@ -77,6 +77,15 @@ class BinaryMinNodeHeap implements NodeHeap {
         return node.heapIndex;
     }
 
+    @Override
+    public @NotNull PathNode nodeAt(int index) {
+        if(index < size) {
+            return nodes[index];
+        }
+
+        throw new IndexOutOfBoundsException();
+    }
+
     private void siftUp(int index, PathNode node) {
         while(index > 0) {
             int parentIndex = (index - 1) >> 1;

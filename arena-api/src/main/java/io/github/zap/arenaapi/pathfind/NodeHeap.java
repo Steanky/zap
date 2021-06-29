@@ -47,6 +47,8 @@ public interface NodeHeap {
      */
     int indexOf(@NotNull PathNode node);
 
+    @NotNull PathNode nodeAt(int index);
+
     /**
      * Returns the number of nodes currently in the heap.
      * @return The number of nodes contained in this heap
