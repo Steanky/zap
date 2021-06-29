@@ -64,14 +64,14 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, PathNode node, Direction direction) {
-        MutableWorldVector forwardVector = node.add(direction).asMutable();
+        MutableWorldVector nodeVector = node.copyVector().asMutable();
 
         if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
             return JunctionType.JUMP;
         }
         else {
-            forwardVector.add(Direction.DOWN);
-            BlockSnapshot snapshot = context.blockProvider().getBlock(forwardVector);
+            nodeVector.add(Direction.DOWN);
+            BlockSnapshot snapshot = context.blockProvider().getBlock(nodeVector);
 
             if(snapshot != null) {
                 if(snapshot.collision().isFull()) {
