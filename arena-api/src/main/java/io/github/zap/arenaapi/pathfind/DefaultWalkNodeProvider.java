@@ -9,6 +9,8 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class DefaultWalkNodeProvider extends NodeProvider {
     private enum JunctionType {
         FALL,
@@ -76,7 +78,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             case FALL:
                 break;
             case JUMP:
-                MutableWorldVector jumpVec = jumpTest(agent, context.blockProvider(), targetVector);
+                MutableWorldVector jumpVec = jumpTest(agent, context.blockProvider(), targetVector, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
                 return node.chain(direction);
@@ -85,7 +87,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return null;
     }
 
-    private @Nullable MutableWorldVector jumpTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek) {
+    private @Nullable MutableWorldVector jumpTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek, Direction direction) {
         double jumpHeightRequired = 0;
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
@@ -93,7 +95,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         double jumpHeight = agent.characteristics().jumpHeight();
         double height = agent.characteristics().height();
 
-        MutableWorldVector jump = seek.copyVector();
+        MutableWorldVector jumpVector = seek.copyVector();
+
+        BoundingBox agentBounds = agent.characteristics().getBounds();
+        agentBounds.shift(agent.position().asBukkit());
 
         //TODO: make sure height can't overflow max height (255 for vanilla 1.16.5)
         int iterations = (int)Math.ceil(jumpHeight + height);
@@ -144,14 +149,38 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
             if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
                 //check if mob will collide with something on its way up
-                BoundingBox agentBounds = agent.characteristics().getBounds();
-                agentBounds.expandDirectional(0, jumpHeightRequired, 0);
+                BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
-                if(provider.collidesWithAnySolid(agentBounds)) {
+                if(provider.collidesWithAnySolid(verticalTest)) {
                     return null;
                 }
 
-                return jump.add(0, jumpHeightRequired, 0);
+                BoundingBox boundsCopy = agentBounds.clone().shift(0, jumpHeightRequired, 0);
+                List<BlockCollisionSnapshot> snapshots = provider.collidingSolids(boundsCopy.clone()
+                        .expandDirectional(direction.asBukkit()));
+
+                if(snapshots.size() > 0) {
+                    for(BlockCollisionSnapshot snapshot : snapshots) {
+                        for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
+                            collision.shift(snapshot.position().asBukkit());
+
+                            double Ax = boundsCopy.getCenterZ();
+                            double Bx = collision.getCenterZ();
+
+                            double Az = boundsCopy.getCenterZ();
+                            double Bz = collision.getCenterZ();
+
+                            double delta = ((Ax - Bx) + (Az - Bz)) / 2; //magic equation
+
+                            if(boundsCopy.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
+                                    .overlaps(collision)) {
+                                return null;
+                            }
+                        }
+                    }
+                }
+
+                return jumpVector.add(0, jumpHeightRequired, 0);
             }
 
             seek.add(Direction.UP);

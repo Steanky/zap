@@ -9,20 +9,20 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
-    private final VectorAccess chunkVector;
+    private final VectorAccess worldVector;
     private final BlockData data;
     private final VoxelShapeWrapper collision;
 
-    BlockCollisionSnapshotImpl(@NotNull VectorAccess chunkVector, @NotNull BlockData data,
+    BlockCollisionSnapshotImpl(@NotNull VectorAccess worldVector, @NotNull BlockData data,
                                @NotNull VoxelShapeWrapper collision) {
-        this.chunkVector = chunkVector;
+        this.worldVector = worldVector;
         this.data = data;
         this.collision = collision;
     }
 
     @Override
     public @NotNull VectorAccess position() {
-        return chunkVector;
+        return worldVector;
     }
 
     @Override
@@ -36,25 +36,16 @@ class BlockCollisionSnapshotImpl implements BlockCollisionSnapshot {
     }
 
     @Override
-    public boolean overlaps(@NotNull BoundingBox chunkRelativeBounds) {
-        BoundingBox blockRelative = toBlockRelative(chunkRelativeBounds);
-
+    public boolean overlaps(@NotNull BoundingBox worldBounds) {
         AtomicBoolean collided = new AtomicBoolean();
+        Vector min = worldBounds.getMin();
+
         collision.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) -> {
-            if(blockRelative.overlaps(new Vector(minX, minY, minZ), new Vector(maxX, maxY, maxZ))) {
+            if(worldBounds.overlaps(new Vector(minX, minY, minZ).add(min), new Vector(maxX, maxY, maxZ).add(min))) {
                 collided.set(true);
             }
         });
 
         return collided.get();
-    }
-
-    @Override
-    public double height() {
-        return 0;
-    }
-
-    private BoundingBox toBlockRelative(BoundingBox chunkRelative) {
-        return chunkRelative.shift(chunkVector.asBukkit().multiply(-1));
     }
 }

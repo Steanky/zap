@@ -1,12 +1,15 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * This interface provides a general template for a class which provides block state information over a limited
@@ -44,6 +47,8 @@ public interface BlockCollisionProvider {
     @NotNull BlockCollisionSnapshot getBlock(int x, int y, int z);
 
     boolean collidesWithAnySolid(@NotNull BoundingBox bounds);
+
+    List<BlockCollisionSnapshot> collidingSolids(@NotNull BoundingBox bounds);
 
     default @NotNull BlockCollisionSnapshot getBlock(@NotNull VectorAccess at) {
         return getBlock(at.blockX(), at.blockY(), at.blockZ());

@@ -13,9 +13,7 @@ public interface BlockCollisionSnapshot {
 
     @NotNull VoxelShapeWrapper collision();
 
-    boolean overlaps(@NotNull BoundingBox relativeBounds);
-
-    double height();
+    boolean overlaps(@NotNull BoundingBox worldBounds);
 
     static BlockCollisionSnapshot from(@NotNull VectorAccess chunkRelative, @NotNull BlockData data,
                                        @NotNull VoxelShapeWrapper shape) {

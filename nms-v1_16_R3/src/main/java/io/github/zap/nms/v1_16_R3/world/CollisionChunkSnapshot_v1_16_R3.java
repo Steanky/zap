@@ -26,8 +26,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             blockData.getCollisionShape(BlockAccessAir.INSTANCE, BlockPosition.ZERO) != VoxelShapes.fullCube();
     private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
     private static final WorldBridge bridge = WorldBridge_v1_16_R3.INSTANCE;
-    private static final BoundingBox CHUNK_BOUNDING_BOX = new BoundingBox(0, 0, 0, 16, 255, 16);
-    private static final BoundingBox BLOCK_BOUNDING_BOX = new BoundingBox(0, 0, 0, 1, 1, 1);
 
     private final String worldName;
     private final int chunkX;
@@ -54,7 +52,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         if(bridge.isValidChunkCoordinate(chunkRelativeX, chunkRelativeY, chunkRelativeZ)) {
             return collisionMap.getOrDefault(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
                     chunkRelativeY, chunkRelativeZ), BlockCollisionSnapshot.from(
-                            VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ),
+                            VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ).asWorldRelative(chunkX, chunkZ),
                     getBlockData(chunkRelativeX, chunkRelativeY, chunkRelativeZ), VoxelShapeWrapper.FULL_BLOCK));
         }
 
@@ -63,20 +61,20 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
-    public boolean collidesWithAny(@NotNull BoundingBox relativeBounds) {
-        if(relativeBounds.overlaps(CHUNK_BOUNDING_BOX)) {
-            BoundingBox overlap = relativeBounds.intersection(chunkBounds);
+    public boolean collidesWithAny(@NotNull BoundingBox worldBounds) {
+        if(worldBounds.overlaps(chunkBounds)) {
+            BoundingBox overlap = worldBounds.intersection(chunkBounds);
 
             Vector min = overlap.getMin();
             Vector max = overlap.getMax();
 
-            for(int x = min.getBlockX(); x < max.getBlockX(); x++) {
-                for(int y = min.getBlockY(); y < max.getBlockY(); y++) {
-                    for(int z = min.getBlockZ(); z < max.getBlockZ(); z++) {
+            for(int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+                for(int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                    for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         BlockCollisionSnapshot snapshot = collisionMap.get(org.bukkit.block.Block.getBlockKey(x, y, z));
 
                         if(snapshot != null) {
-                            if(snapshot.overlaps(relativeBounds)) {
+                            if(snapshot.overlaps(worldBounds)) {
                                 return true;
                             }
                         }
@@ -89,6 +87,42 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         }
 
         return false;
+    }
+
+    @Override
+    public List<BlockCollisionSnapshot> collisionsWith(@NotNull BoundingBox worldBounds) {
+        List<BlockCollisionSnapshot> shapes = new ArrayList<>();
+
+        if(worldBounds.overlaps(chunkBounds)) {
+            BoundingBox overlap = worldBounds.intersection(chunkBounds);
+
+            Vector min = overlap.getMin();
+            Vector max = overlap.getMax();
+
+            for(int x = min.getBlockX(); x < max.getBlockX(); x++) {
+                for(int y = min.getBlockY(); y < max.getBlockY(); y++) {
+                    for(int z = min.getBlockZ(); z < max.getBlockZ(); z++) {
+                        BlockCollisionSnapshot snapshot = collisionMap.get(org.bukkit.block.Block.getBlockKey(x, y, z));
+
+                        if(snapshot != null) {
+                            if(snapshot.overlaps(worldBounds)) {
+                                shapes.add(snapshot);
+                            }
+                        }
+                        else {
+                            BlockBase.BlockData data = palette[y >> 4].a(x, y, z);
+
+                            if(data.getMaterial().isSolid()) {
+                                shapes.add(BlockCollisionSnapshot.from(VectorAccess.immutable(x, y, z),
+                                        data.createCraftBlockData(), VoxelShapeWrapper.FULL_BLOCK));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return shapes;
     }
 
     private DataPaletteBlock<IBlockData>[] loadFromChunk(net.minecraft.server.v1_16_R3.Chunk chunk) {
@@ -140,8 +174,8 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                             VoxelShape voxelShape = blockData.getCollisionShape(chunk, examine);
 
                             if(voxelShape != VoxelShapes.fullCube()) {
-                                long currentKey = org.bukkit.block.Block.getBlockKey(x, y, z);
-                                collisionMap.put(currentKey, BlockCollisionSnapshot.from(VectorAccess.immutable(x, y, z),
+                                collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z),
+                                        BlockCollisionSnapshot.from(VectorAccess.immutable(x, y, z).asWorldRelative(chunkX, chunkZ),
                                         blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(voxelShape)));
                             }
                         }

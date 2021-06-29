@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
@@ -88,19 +89,39 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public boolean collidesWithAnySolid(@NotNull BoundingBox worldRelativeBounds) {
-        ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin()).asChunkVector();
-        ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax()).asChunkVector();
+        ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin());
+        ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax());
 
-        for(int x = minChunk.chunkX(); x < maxChunk.chunkX() + 1; x++) {
-            for(int z = minChunk.chunkZ(); z < maxChunk.chunkZ() + 1; z++) {
+        for(int x = minChunk.chunkX(); x <= maxChunk.chunkX(); x++) {
+            for(int z = minChunk.chunkZ(); z <= maxChunk.chunkZ(); z++) {
                 CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
 
                 if(chunk != null) {
-                    return chunk.collidesWithAny(worldRelativeBounds.clone().shift(new Vector(-(x << 4), 0, -(z << 4))));
+                    return chunk.collidesWithAny(worldRelativeBounds);
                 }
             }
         }
 
         return false;
+    }
+
+    @Override
+    public List<BlockCollisionSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
+        ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin());
+        ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax());
+
+        List<BlockCollisionSnapshot> shapes = new ArrayList<>();
+
+        for(int x = minChunk.chunkX(); x <= maxChunk.chunkX(); x++) {
+            for(int z = minChunk.chunkZ(); z <= maxChunk.chunkZ(); z++) {
+                CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+
+                if(chunk != null) {
+                    shapes.addAll(chunk.collisionsWith(worldRelativeBounds));
+                }
+            }
+        }
+
+        return shapes;
     }
 }

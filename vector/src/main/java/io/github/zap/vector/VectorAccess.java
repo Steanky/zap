@@ -3,8 +3,6 @@ package io.github.zap.vector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-
 /**
  * Defines a 3-dimensional coordinate, along with useful methods for manipulating it. Implementations may be mutable or
  * immutable; which will determine the behavior of basic vector arithmetic (mutable vectors will act on themselves, and
@@ -121,8 +119,16 @@ public interface VectorAccess extends ChunkVectorAccess {
         return new Vector(x(), y(), z());
     }
 
-    default @NotNull ChunkVectorAccess asChunkVector() {
-        return new ImmutableChunkVector(chunkX(), chunkZ());
+    default @NotNull VectorAccess asChunkRelative() {
+        return VectorAccess.immutable(blockX() & 15, blockY(), blockZ() & 15);
+    }
+
+    default @NotNull VectorAccess asWorldRelative(int chunkX, int chunkZ) {
+        if(validChunkVector()) {
+            return VectorAccess.immutable((chunkX << 4) + blockX(), y(), (chunkZ << 4) + blockZ());
+        }
+
+        throw new IllegalArgumentException("This VectorAccess object does not represent a valid chunk-relative vector.");
     }
 
     static @NotNull ImmutableWorldVector immutable(double x, double y, double z) {
@@ -139,5 +145,9 @@ public interface VectorAccess extends ChunkVectorAccess {
 
     static @NotNull MutableWorldVector mutable(@NotNull Vector vector) {
         return new MutableWorldVector(vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    default boolean validChunkVector() {
+        return blockX() >= 0 && blockX() < 16 && blockY() >= 0 && blockY() < 256 && blockZ() >= 0 && blockZ() < 16;
     }
 }

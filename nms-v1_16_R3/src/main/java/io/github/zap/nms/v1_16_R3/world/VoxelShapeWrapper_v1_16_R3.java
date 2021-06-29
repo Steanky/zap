@@ -2,10 +2,15 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.BoxConsumer;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
+import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EnumDirection;
 import net.minecraft.server.v1_16_R3.VoxelShape;
 import net.minecraft.server.v1_16_R3.VoxelShapes;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     private final VoxelShape shape;
@@ -37,6 +42,16 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     @Override
     public boolean isEmpty() {
         return shape == VoxelShapes.empty();
+    }
+
+    @Override
+    public List<BoundingBox> boundingBoxes() {
+        List<BoundingBox> bounds = new ArrayList<>();
+        for(AxisAlignedBB bb : shape.d()) {
+            bounds.add(new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxX));
+        }
+
+        return bounds;
     }
 
     public @NotNull VoxelShape getShape() {
