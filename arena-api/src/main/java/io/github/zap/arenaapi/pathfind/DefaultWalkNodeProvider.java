@@ -22,10 +22,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     @Override
     public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathfinderContext context, @NotNull PathAgent agent,
-                              @NotNull PathNode at) {
+                              @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < 8; i++) {
-            PathNode node = walkDirectional(context, agent, at, Direction.valueAtIndex(i));
+            PathNode node = walkDirectional(context, agent, current, Direction.valueAtIndex(i));
 
             if(node != null) {
                 calculateAversion(node, context.blockProvider());
@@ -229,9 +229,12 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
-        BlockSnapshot block = provider.getBlock(Direction.DOWN);
+        BlockSnapshot block = provider.getBlock(node.add(Direction.DOWN));
+
         double materialAversion = getAversionCalculator().aversionForMaterial(block.data().getMaterial());
         double distanceAversion = getAversionCalculator().aversionForNode(node);
-        node.score.setG(node.score.getG() + materialAversion + distanceAversion);
+        double sum = materialAversion + distanceAversion;
+
+        node.score.setG(Double.isFinite(node.score.getG()) ? node.score.getG() + sum : sum);
     }
 }

@@ -65,6 +65,10 @@ public class Score {
         return deltaG;
     }
 
+    public void resetDelta() {
+        deltaG = Delta.UNCHANGED;
+    }
+
     void setG(double g) {
         if(this.g > g) {
             deltaG = Delta.DECREASE;

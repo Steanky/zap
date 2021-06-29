@@ -246,6 +246,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     if(!(ex instanceof InterruptedException)) {
                         ArenaApi.warning("A PathOperation threw an unhandled exception.");
                         ArenaApi.warning("Context: " + context);
+                        ArenaApi.warning("Stack trace: ");
+                        ex.printStackTrace();
                     }
                 }
             }

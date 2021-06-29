@@ -42,10 +42,10 @@ public interface AversionCalculator {
             double height = linkedNode.parent.y() - linkedNode.y();
 
             if(height <= 4) {
-                return height;
+                return linkedNode.distanceSquared(linkedNode.parent);
             }
             else {
-                return height / 2;
+                return linkedNode.distanceSquared(linkedNode.parent) * 2;
             }
         }
     };

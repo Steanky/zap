@@ -18,7 +18,7 @@ public abstract class NodeProvider {
     }
 
     public abstract void generateNodes(@NotNull PathNode[] buffer, @NotNull PathfinderContext context,
-                                       @NotNull PathAgent agent, @NotNull PathNode at);
+                                       @NotNull PathAgent agent, @NotNull PathNode current);
 
     public AversionCalculator getAversionCalculator() {
         return aversionCalculator;
