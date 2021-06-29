@@ -54,4 +54,6 @@ public interface NodeHeap {
      * @return The number of nodes contained in this heap
      */
     int size();
+
+    PathNode[] internalArray();
 }

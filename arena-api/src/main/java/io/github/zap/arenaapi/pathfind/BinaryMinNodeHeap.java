@@ -73,6 +73,11 @@ class BinaryMinNodeHeap implements NodeHeap {
         return size;
     }
 
+    @Override
+    public PathNode[] internalArray() {
+        return nodes;
+    }
+
     public int indexOf(@NotNull PathNode node) {
         return node.heapIndex;
     }
