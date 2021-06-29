@@ -104,8 +104,10 @@ class BinaryMinNodeHeap implements NodeHeap {
             PathNode smallestChild = nodes[childIndex];
             int secondChild = childIndex + 1;
 
-            if(secondChild < size && NODE_COMPARATOR.compare(smallestChild, nodes[secondChild]) > 0) {
-                smallestChild = nodes[childIndex = secondChild];
+            PathNode second = nodes[secondChild];
+            if(secondChild < size && NODE_COMPARATOR.compare(smallestChild, second) > 0) {
+                smallestChild = second;
+                childIndex = secondChild;
             }
 
             if(NODE_COMPARATOR.compare(node, smallestChild) <= 0) {
