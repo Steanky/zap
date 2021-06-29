@@ -44,12 +44,16 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         MutableWorldVector targetVector = node.add(direction).asMutable();
-        switch (determineType(context, agent, node, direction)) {
+        double halfWidth = agent.characteristics().width() / 2;
+        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node
+                .add(0.5 - halfWidth, 0, 0.5 - halfWidth).asBukkit());
+
+        switch (determineType(context, agentBounds, node, direction)) {
             case FALL:
                 MutableWorldVector fallVec = fallTest(context.blockProvider(), targetVector);
                 return fallVec == null ? null : node.chain(fallVec);
             case JUMP:
-                MutableWorldVector jumpVec = jumpTest(agent, context.blockProvider(), targetVector, direction);
+                MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), targetVector, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
                 return node.chain(direction);
@@ -58,11 +62,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return null;
     }
 
-    private JunctionType determineType(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
+    private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, PathNode node, Direction direction) {
         MutableWorldVector forwardVector = node.add(direction).asMutable();
-
-        BoundingBox agentBounds = agent.characteristics().getBounds();
-        agentBounds.expandDirectional(direction.asBukkit());
 
         if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
             return JunctionType.JUMP;
@@ -83,8 +84,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
     }
 
-    private MutableWorldVector jumpTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek,
-                                        Direction direction) {
+    private MutableWorldVector jumpTest(PathAgent agent, BoundingBox agentBounds, BlockCollisionProvider provider,
+                                        MutableWorldVector seek, Direction direction) {
         double jumpHeightRequired = 0;
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
@@ -93,9 +94,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         double height = agent.characteristics().height();
 
         MutableWorldVector jumpVector = seek.copyVector();
-
-        BoundingBox agentBounds = agent.characteristics().getBounds();
-        agentBounds.shift(agent.position().asBukkit());
 
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
@@ -215,7 +213,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     double Az = bounds.getCenterZ();
                     double Bz = collision.getCenterZ();
 
-                    double delta = ((Ax - Bx) + (Az - Bz)) / 2; //magic equation
+                    //magic equation, DM steank for exhaustive proof
+                    double delta = (Math.abs(Az - Bz) - Math.abs(Ax - Bx)) / 2;
 
                     if(bounds.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
                             .overlaps(collision)) {
