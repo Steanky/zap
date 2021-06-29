@@ -3,11 +3,9 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.nms.common.world.BlockCollisionSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.MutableWorldVector;
-import io.github.zap.vector.VectorAccess;
 import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -40,14 +38,13 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return nodes;
     }
 
-    private JunctionType determineType(@NotNull PathfinderContext context, @NotNull PathAgent agent,
-                                       @NotNull PathNode node, @NotNull Direction direction) {
+    private JunctionType determineType(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
         MutableWorldVector forwardVector = node.add(direction).asMutable();
 
         BoundingBox agentBounds = agent.characteristics().getBounds();
         agentBounds.expandDirectional(direction.asBukkit());
 
-        if(context.blockProvider().collidesWithAnySolid(agentBounds)) {
+        if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
             return JunctionType.JUMP;
         }
         else {
@@ -57,8 +54,11 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             if(snapshot.collision().isFull()) {
                 return JunctionType.NO_CHANGE;
             }
-            else {
+            else if(snapshot.collision().isEmpty()) {
                 return JunctionType.FALL;
+            }
+            else {
+                return JunctionType.NO_CHANGE;
             }
         }
     }
@@ -66,14 +66,12 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     /**
      * Simplified, faster algorithm for entities whose width is < 1
      */
-    private @Nullable PathNode walkDirectional(@NotNull PathfinderContext context, @NotNull PathAgent agent,
-                                               @NotNull PathNode node, @NotNull Direction direction) {
+    private PathNode walkDirectional(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
         if(agent.characteristics().width() > 1) {
             throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
         }
 
         MutableWorldVector targetVector = node.add(direction).asMutable();
-
         switch (determineType(context, agent, node, direction)) {
             case FALL:
                 break;
@@ -87,7 +85,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return null;
     }
 
-    private @Nullable MutableWorldVector jumpTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek, Direction direction) {
+    private MutableWorldVector jumpTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek,
+                                        Direction direction) {
         double jumpHeightRequired = 0;
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
@@ -100,7 +99,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         BoundingBox agentBounds = agent.characteristics().getBounds();
         agentBounds.shift(agent.position().asBukkit());
 
-        //TODO: make sure height can't overflow max height (255 for vanilla 1.16.5)
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
             VoxelShapeWrapper shape = provider.getBlock(seek).collision();
@@ -148,44 +146,56 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             }
 
             if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
-                //check if mob will collide with something on its way up
                 BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
-                if(provider.collidesWithAnySolid(verticalTest)) {
+                if(provider.collidesWithAnySolid(verticalTest)) { //check if mob will collide with something on its way up
                     return null;
                 }
 
-                BoundingBox boundsCopy = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-                List<BlockCollisionSnapshot> snapshots = provider.collidingSolids(boundsCopy.clone()
-                        .expandDirectional(direction.asBukkit()));
-
-                if(snapshots.size() > 0) {
-                    for(BlockCollisionSnapshot snapshot : snapshots) {
-                        for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
-                            collision.shift(snapshot.position().asBukkit());
-
-                            double Ax = boundsCopy.getCenterZ();
-                            double Bx = collision.getCenterZ();
-
-                            double Az = boundsCopy.getCenterZ();
-                            double Bz = collision.getCenterZ();
-
-                            double delta = ((Ax - Bx) + (Az - Bz)) / 2; //magic equation
-
-                            if(boundsCopy.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
-                                    .overlaps(collision)) {
-                                return null;
-                            }
-                        }
-                    }
+                BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
+                if(!collidesMovingAlong(jumpedAgent, provider, direction)) {
+                    return jumpVector.add(0, jumpHeightRequired, 0);
                 }
-
-                return jumpVector.add(0, jumpHeightRequired, 0);
+                else {
+                    return null;
+                }
             }
 
             seek.add(Direction.UP);
+
+            if(seek.y() >= 256) {
+                return null;
+            }
         }
 
         return null;
+    }
+
+    private boolean collidesMovingAlong(BoundingBox bounds, BlockCollisionProvider provider, Direction direction) {
+        List<BlockCollisionSnapshot> candidates = provider.collidingSolids(bounds.clone()
+                .expandDirectional(direction.asBukkit()));
+
+        if(candidates.size() > 0) {
+            for(BlockCollisionSnapshot snapshot : candidates) {
+                for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
+                    collision.shift(snapshot.position().asBukkit());
+
+                    double Ax = bounds.getCenterZ();
+                    double Bx = collision.getCenterZ();
+
+                    double Az = bounds.getCenterZ();
+                    double Bz = collision.getCenterZ();
+
+                    double delta = ((Ax - Bx) + (Az - Bz)) / 2; //magic equation
+
+                    if(bounds.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
+                            .overlaps(collision)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }
