@@ -39,6 +39,29 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return nodes;
     }
 
+    /**
+     * Simplified, faster algorithm for entities whose width is < 1
+     */
+    private PathNode walkDirectional(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
+        if(agent.characteristics().width() > 1) {
+            throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
+        }
+
+        MutableWorldVector targetVector = node.add(direction).asMutable();
+        switch (determineType(context, agent, node, direction)) {
+            case FALL:
+                MutableWorldVector fallVec = fallTest(context.blockProvider(), targetVector);
+                return fallVec == null ? null : node.chain(fallVec);
+            case JUMP:
+                MutableWorldVector jumpVec = jumpTest(agent, context.blockProvider(), targetVector, direction);
+                return jumpVec == null ? null : node.chain(jumpVec);
+            case NO_CHANGE:
+                return node.chain(direction);
+        }
+
+        return null;
+    }
+
     private JunctionType determineType(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
         MutableWorldVector forwardVector = node.add(direction).asMutable();
 
@@ -62,28 +85,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 return JunctionType.NO_CHANGE;
             }
         }
-    }
-
-    /**
-     * Simplified, faster algorithm for entities whose width is < 1
-     */
-    private PathNode walkDirectional(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
-        if(agent.characteristics().width() > 1) {
-            throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
-        }
-
-        MutableWorldVector targetVector = node.add(direction).asMutable();
-        switch (determineType(context, agent, node, direction)) {
-            case FALL:
-                break;
-            case JUMP:
-                MutableWorldVector jumpVec = jumpTest(agent, context.blockProvider(), targetVector, direction);
-                return jumpVec == null ? null : node.chain(jumpVec);
-            case NO_CHANGE:
-                return node.chain(direction);
-        }
-
-        return null;
     }
 
     private MutableWorldVector jumpTest(PathAgent agent, BlockCollisionProvider provider, MutableWorldVector seek,
@@ -172,14 +173,37 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return null;
     }
 
+    private MutableWorldVector fallTest(BlockCollisionProvider provider, MutableWorldVector seek) {
+        MutableWorldVector endVector = seek.copyVector();
+        while(true) {
+            seek.add(Direction.DOWN);
+
+            if(seek.y() < 0) {
+                return null;
+            }
+
+            BlockSnapshot snapshot = provider.getBlock(seek);
+            VoxelShapeWrapper collision = snapshot.collision();
+
+            if(collision.isFull()) {
+                break;
+            }
+            else if(collision.isEmpty()) {
+                endVector.add(0, -1, 0);
+            }
+            else {
+                endVector.add(0, -(1 - collision.maxY()), 0);
+                break;
+            }
+        }
+
+        return endVector;
+    }
+
     private boolean collidesMovingAlong(BoundingBox bounds, BlockCollisionProvider provider, Direction direction) {
         BoundingBox expanded = bounds.clone().expandDirectional(direction.asBukkit());
         if(!direction.isIntercardinal()) {
-            if(provider.collidesWithAnySolid(expanded)) {
-                return true;
-            }
-
-            return false;
+            return provider.collidesWithAnySolid(expanded);
         }
 
         List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
