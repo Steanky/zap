@@ -83,7 +83,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     @Override
     public boolean collidesWithAny(@NotNull BoundingBox worldBounds) {
         if(worldBounds.overlaps(chunkBounds)) {
-            BoundingBox overlap = worldBounds.intersection(chunkBounds);
+            BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
 
             Vector min = overlap.getMin();
             Vector max = overlap.getMax();
@@ -117,7 +117,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         List<BlockSnapshot> shapes = new ArrayList<>();
 
         if(worldBounds.overlaps(chunkBounds)) {
-            BoundingBox overlap = worldBounds.intersection(chunkBounds);
+            BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
 
             Vector min = overlap.getMin();
             Vector max = overlap.getMax();
