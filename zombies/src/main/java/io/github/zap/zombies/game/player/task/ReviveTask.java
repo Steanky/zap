@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Task to revive nearby players
  */
-public class ReviveTask extends EventToggledPlayerTask<PlayerToggleSneakEvent> {
+public class ReviveTask extends EventToggledZombiesTask<PlayerToggleSneakEvent> {
 
     private final ZombiesPlayer player;
 
@@ -43,6 +43,7 @@ public class ReviveTask extends EventToggledPlayerTask<PlayerToggleSneakEvent> {
         }
     }
 
+    
     private void attemptToContinueReviving(@NotNull Player bukkitPlayer) {
         int maxDistance = arena.getMap().getReviveRadius();
         double distance = bukkitPlayer.getLocation().toVector()

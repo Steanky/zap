@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A repeating task that the player executes
  */
-public abstract class PlayerTask {
+public abstract class ZombiesTask {
 
     protected final ZombiesArena arena;
 
@@ -17,7 +17,7 @@ public abstract class PlayerTask {
 
     private int taskId = -1;
 
-    public PlayerTask(@NotNull ZombiesArena arena, long delay, long period) {
+    public ZombiesTask(@NotNull ZombiesArena arena, long delay, long period) {
         this.arena = arena;
         this.delay = delay;
         this.period = period;

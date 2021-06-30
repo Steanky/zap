@@ -8,11 +8,11 @@ import org.jetbrains.annotations.NotNull;
  * Player task that can be influenced by a bukkit event
  * @param <E> The influencing bukkit event
  */
-public abstract class EventToggledPlayerTask<E extends Event> extends PlayerTask {
+public abstract class EventToggledZombiesTask<E extends Event> extends ZombiesTask {
 
     private final Class<E> clazz;
 
-    public EventToggledPlayerTask(@NotNull ZombiesArena arena, long delay, long period, @NotNull Class<E> clazz) {
+    public EventToggledZombiesTask(@NotNull ZombiesArena arena, long delay, long period, @NotNull Class<E> clazz) {
         super(arena, delay, period);
         this.clazz = clazz;
     }

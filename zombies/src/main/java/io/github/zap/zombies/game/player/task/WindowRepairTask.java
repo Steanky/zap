@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Task to repair nearby windows
  */
-public class WindowRepairTask extends EventToggledPlayerTask<PlayerToggleSneakEvent> {
+public class WindowRepairTask extends EventToggledZombiesTask<PlayerToggleSneakEvent> {
 
     private final ZombiesPlayer player;
 

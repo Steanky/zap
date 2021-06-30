@@ -12,16 +12,14 @@ import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.*;
 import io.github.zap.zombies.game.corpse.Corpse;
-import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.data.map.RoomData;
-import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.perk.FlamingBullets;
 import io.github.zap.zombies.game.equipment.perk.FrozenBullets;
 import io.github.zap.zombies.game.equipment.perk.Perk;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
-import io.github.zap.zombies.game.player.task.PlayerTask;
+import io.github.zap.zombies.game.player.task.BoundsCheckTask;
+import io.github.zap.zombies.game.player.task.ZombiesTask;
 import io.github.zap.zombies.game.player.task.ReviveTask;
 import io.github.zap.zombies.game.player.task.WindowRepairTask;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
@@ -45,7 +43,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -96,9 +93,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     private int frozenBulletsTaskId = -1;
 
     @Getter
-    private final List<PlayerTask> tasks = new ArrayList<>();
-
-    private int boundsCheckTaskId = -1;
+    private final List<ZombiesTask> tasks = new ArrayList<>();
 
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
@@ -256,29 +251,20 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     }
 
     /**
-     * Starts tasks related to when the player shifts
+     * Starts all tasks
      */
     public void startTasks() {
-        for (PlayerTask playerTask : tasks) {
-            playerTask.start();
-        }
-
-        if (boundsCheckTaskId == -1) {
-            boundsCheckTaskId = arena.runTaskTimer(0, 5, this::ensureInBounds).getTaskId();
+        for (ZombiesTask zombiesTask : tasks) {
+            zombiesTask.start();
         }
     }
 
     /**
-     * Ends tasks related to when the player shifts
+     * Ends all tasks
      */
     public void endTasks() {
-        for (PlayerTask playerTask : tasks) {
-            playerTask.stop();
-        }
-
-        if (boundsCheckTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(boundsCheckTaskId);
-            boundsCheckTaskId = -1;
+        for (ZombiesTask zombiesTask : tasks) {
+            zombiesTask.stop();
         }
     }
 
@@ -293,8 +279,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             corpse = new Corpse(this);
 
-            for (PlayerTask playerTask : tasks) {
-                playerTask.notifyChange();
+            for (ZombiesTask zombiesTask : tasks) {
+                zombiesTask.notifyChange();
             }
 
             getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
@@ -318,8 +304,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
 
-            for (PlayerTask playerTask : tasks) {
-                playerTask.notifyChange();
+            for (ZombiesTask zombiesTask : tasks) {
+                zombiesTask.notifyChange();
             }
 
             Location corpseLocation = corpse.getLocation();
@@ -356,8 +342,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 corpse = null;
             }
 
-            for (PlayerTask playerTask : tasks) {
-                playerTask.notifyChange();
+            for (ZombiesTask zombiesTask : tasks) {
+                zombiesTask.notifyChange();
             }
 
             enablePerks();
@@ -473,7 +459,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         if (hotbarObjectGroup != null) {
             if (remove) {
-                List<Integer> slotsToRemove = new ArrayList<>();
                 for (Integer slot : new HashSet<>(hotbarObjectGroup.getHotbarObjectMap().keySet())) {
                     hotbarObjectGroup.remove(slot, true);
                 }
@@ -488,31 +473,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         }
     }
 
+    /**
+     * Adds all default zombies player tasks
+     */
     protected void addTasks() {
-        tasks.add(new WindowRepairTask(ZombiesPlayer.this));
-        tasks.add(new ReviveTask(ZombiesPlayer.this));
-    }
-
-    private void ensureInBounds() {
-        MapData map = arena.getMap();
-
-        Player bukkitPlayer = getPlayer();
-
-        if(bukkitPlayer != null) {
-            RoomData roomIn = map.roomAt(getPlayer().getLocation().toVector());
-
-            if(roomIn != null) {
-                for(WindowData windowData : roomIn.getWindows()) {
-                    if(windowData.playerInside(getPlayer().getLocation().toVector())) {
-                        Player player = getPlayer();
-                        Location current = player.getLocation();
-                        Vector target = windowData.getTarget();
-                        player.teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ(),
-                                current.getYaw(), current.getPitch()));
-                    }
-                }
-            }
-        }
+        tasks.add(new WindowRepairTask(this));
+        tasks.add(new ReviveTask(this));
+        tasks.add(new BoundsCheckTask(this));
     }
 
     public void setKnockedState() {
@@ -558,4 +525,5 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             arena.getHiddenPlayers().add(player);
         }
     }
+
 }
