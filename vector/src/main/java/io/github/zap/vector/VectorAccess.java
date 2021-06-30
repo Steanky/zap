@@ -123,14 +123,6 @@ public interface VectorAccess extends ChunkVectorAccess {
         return VectorAccess.immutable(blockX() & 15, blockY(), blockZ() & 15);
     }
 
-    default @NotNull ImmutableWorldVector asWorldRelative(int chunkX, int chunkZ) {
-        if(validChunkVector()) {
-            return VectorAccess.immutable((chunkX << 4) + blockX(), y(), (chunkZ << 4) + blockZ());
-        }
-
-        throw new IllegalArgumentException("This VectorAccess object does not represent a valid chunk-relative vector.");
-    }
-
     static @NotNull ImmutableWorldVector immutable(double x, double y, double z) {
         return new ImmutableWorldVector(x, y, z);
     }

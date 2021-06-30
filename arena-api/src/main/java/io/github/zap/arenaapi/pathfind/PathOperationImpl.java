@@ -1,8 +1,12 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 class PathOperationImpl implements PathOperation {
     private final PathAgent agent;
@@ -103,6 +107,7 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
+                boolean deltaDecreased = false;
                 if(sample.score.deltaG() == Score.Delta.DECREASE) {
                     int index = openHeap.indexOf(sample);
 
@@ -114,6 +119,7 @@ class PathOperationImpl implements PathOperation {
                         sample.score.setH(scoreCalculator.computeH(context, sample, bestDestination));
                         openHeap.addNode(sample);
                     }
+                    deltaDecreased = true;
                 }
 
                 sample.score.resetDelta();
@@ -122,6 +128,18 @@ class PathOperationImpl implements PathOperation {
                 if(sample.score.getF() < bestFound.score.getF()) {
                     bestFound = sample.copy();
                 }
+
+                boolean finalDeltaDecreased = deltaDecreased;
+                Bukkit.getServer().getScheduler().runTask(ArenaApi.getInstance(), () -> {
+                    Material mat = finalDeltaDecreased ? Material.RED_WOOL : Material.BLACK_WOOL;
+                    context.blockProvider().getWorld().getBlockAt(currentNode.blockX(), currentNode.blockY() - 1,
+                            currentNode.blockZ()).setType(mat);
+                });
+
+                try {
+                    Thread.sleep(50);
+                }
+                catch (InterruptedException e) {}
             }
         }
         else {

@@ -1,8 +1,10 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.MutableWorldVector;
+import io.github.zap.vector.VectorAccess;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +31,11 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             PathNode node = walkDirectional(context, agent, current, Direction.valueAtIndex(i));
 
             if(node != null) {
+                //15, 84, 114
+                if(node.position().blockX() == 15 && node.position().blockY() == 85 && node.position().blockZ() == 114) {
+                    ArenaApi.info("This is literally impossible.");
+                }
+
                 calculateAversion(node, context.blockProvider());
                 buffer[j++] = node;
             }
@@ -44,20 +51,19 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
         }
 
-        MutableWorldVector targetVector = node.add(direction).asMutable();
+        MutableWorldVector walkingTo = node.add(direction).asMutable();
         double halfWidth = agent.characteristics().width() / 2;
-        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node
-                .add(0.5 - halfWidth, 0, 0.5 - halfWidth).asBukkit());
+        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(0.5 - halfWidth, 0, 0.5 - halfWidth).asBukkit());
 
         switch (determineType(context, agentBounds, node, direction)) {
             case FALL:
-                MutableWorldVector fallVec = fallTest(context.blockProvider(), targetVector);
+                MutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
                 return fallVec == null ? null : node.chain(fallVec);
             case JUMP:
-                MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), targetVector, direction);
+                MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), walkingTo, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
-                return node.chain(direction);
+                return node.chain(node.add(direction));
         }
 
         return null;
@@ -65,6 +71,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, PathNode node, Direction direction) {
         MutableWorldVector nodeVector = node.copyVector().asMutable();
+
+        if(nodeVector.equals(new MutableWorldVector(15, 85, 112)) && direction == Direction.SOUTHEAST) {
+            ArenaApi.info("TTsuperTT");
+        }
 
         if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
             return JunctionType.JUMP;
@@ -113,7 +123,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             double maxY = shape.isEmpty() ? 1 : shape.maxY();
 
             if(shape.isEmpty()) { //anything w/o collision
-                spillover = Math.min(spillover - 1, 0);
+                spillover = Math.max(spillover - 1, 0);
 
                 double additionalHeadroom = maxY - spillover;
                 if(additionalHeadroom > 0) {
@@ -215,21 +225,28 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             return provider.collidesWithAnySolid(expanded);
         }
 
+        ArenaApi.info("Attemping intercardinal collision check moving " + direction + " " + direction.asBukkit());
+
         List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
+        ArenaApi.info("Candidates size: " + candidates.size());
 
         if(candidates.size() > 0) {
             for(BlockSnapshot snapshot : candidates) {
                 for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
+                    ArenaApi.info("Checking collision BoundingBox " + collision);
                     collision.shift(snapshot.position().asBukkit());
+                    ArenaApi.info("After shift: " + collision);
 
-                    double Ax = bounds.getCenterZ();
-                    double Bx = collision.getCenterZ();
+                    double Ax = bounds.getCenterX();
+                    double Bx = collision.getCenterX();
 
                     double Az = bounds.getCenterZ();
                     double Bz = collision.getCenterZ();
 
                     //magic equation, DM steank for exhaustive proof
                     double delta = (Math.abs(Az - Bz) - Math.abs(Ax - Bx)) / 2;
+
+                    ArenaApi.info("Delta: " + delta);
 
                     if(bounds.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
                             .overlaps(collision)) {
@@ -239,6 +256,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             }
         }
 
+        ArenaApi.info("Didn't collide with anything.");
         return false;
     }
 

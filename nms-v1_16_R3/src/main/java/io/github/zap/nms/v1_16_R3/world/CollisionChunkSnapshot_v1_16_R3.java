@@ -5,6 +5,7 @@ import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.nms.common.world.WorldBridge;
 import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.util.VectorHelper;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Chunk;
 import org.bukkit.block.Biome;
@@ -45,10 +46,10 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         captureFullTime = chunk.getWorld().getFullTime();
         palette = loadFromChunk(((CraftChunk)chunk).getHandle());
 
-        int worldX = chunkX << 4;
-        int worldZ = chunkZ << 4;
+        int originX = chunkX << 4;
+        int originZ = chunkZ << 4;
 
-        chunkBounds = new BoundingBox(worldX, 0, worldZ, worldX + 16, 255, worldZ + 16);
+        chunkBounds = new BoundingBox(originX, 0, originZ, originX + 16, 255, originZ + 16);
     }
 
     @Override
@@ -63,12 +64,14 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             else {
                 IBlockData data = palette[chunkRelativeY >> 4].a(chunkRelativeX, chunkRelativeY & 15, chunkRelativeZ);
                 if(data.getBukkitMaterial().isSolid()) {
-                    return BlockSnapshot.from(VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ)
-                            .asWorldRelative(chunkX, chunkZ), data.createCraftBlockData(), VoxelShapeWrapper.FULL_BLOCK);
+                    return BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(chunkRelativeX,
+                            chunkRelativeY, chunkRelativeZ), chunkX, chunkZ), data.createCraftBlockData(),
+                            VoxelShapeWrapper.FULL_BLOCK);
                 }
                 else {
-                    return BlockSnapshot.from(VectorAccess.immutable(chunkRelativeX, chunkRelativeY, chunkRelativeZ)
-                            .asWorldRelative(chunkX, chunkZ), data.createCraftBlockData(), VoxelShapeWrapper.EMPTY_BLOCK);
+                    return BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(chunkRelativeX,
+                            chunkRelativeY, chunkRelativeZ), chunkX, chunkZ), data.createCraftBlockData(),
+                            VoxelShapeWrapper.EMPTY_BLOCK);
                 }
             }
         }
@@ -119,9 +122,9 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             Vector min = overlap.getMin();
             Vector max = overlap.getMax();
 
-            for(int x = min.getBlockX(); x < max.getBlockX(); x++) {
-                for(int y = min.getBlockY(); y < max.getBlockY(); y++) {
-                    for(int z = min.getBlockZ(); z < max.getBlockZ(); z++) {
+            for(int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+                for(int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                    for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         int chunkX = x & 15;
                         int chunkZ = z & 15;
 
@@ -198,8 +201,9 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
                             if(voxelShape != VoxelShapes.fullCube()) {
                                 collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z),
-                                        BlockSnapshot.from(VectorAccess.immutable(x, y, z).asWorldRelative(chunkX, chunkZ),
-                                        blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(voxelShape)));
+                                        BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(x, y, z),
+                                                chunkX, chunkZ), blockData.createCraftBlockData(),
+                                                new VoxelShapeWrapper_v1_16_R3(voxelShape)));
                             }
                         }
                     });

@@ -28,6 +28,11 @@ abstract class WorldVector<T extends WorldVector<T>> implements VectorAccess {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "WorldVector{x=" + x() + ", y=" + y() + ", z=" + z() + "}";
+    }
+
     public @NotNull T add(double x, double y, double z) {
         return operation(x() + x, y() + y, z() + z);
     }

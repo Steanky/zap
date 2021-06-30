@@ -34,8 +34,10 @@ public interface VoxelShapeWrapper {
         }
 
         @Override
-        public List<BoundingBox> boundingBoxes() {
-            return new ArrayList<>();
+        public @NotNull List<BoundingBox> boundingBoxes() {
+            ArrayList<BoundingBox> full = new ArrayList<>();
+            full.add(new BoundingBox(0, 0, 0, 1, 1, 1));
+            return full;
         }
     };
 
@@ -79,5 +81,5 @@ public interface VoxelShapeWrapper {
 
     boolean isEmpty();
 
-    List<BoundingBox> boundingBoxes();
+    @NotNull List<BoundingBox> boundingBoxes();
 }

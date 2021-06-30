@@ -77,7 +77,7 @@ public class PathNode implements Positional {
     }
 
     public @NotNull PathNode chain(@NotNull VectorAccess other) {
-        return chainOffset(other.x(), other.y(), other.z());
+        return chain(other.x(), other.y(), other.z());
     }
 
     public @NotNull PathNode chain(double x, double y, double z) {
