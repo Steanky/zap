@@ -63,6 +63,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             }
             else {
                 IBlockData data = palette[chunkRelativeY >> 4].a(chunkRelativeX, chunkRelativeY & 15, chunkRelativeZ);
+
                 if(data.getBukkitMaterial().isSolid()) {
                     return BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(chunkRelativeX,
                             chunkRelativeY, chunkRelativeZ), chunkX, chunkZ), data.createCraftBlockData(),

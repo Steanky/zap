@@ -5,6 +5,7 @@ import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.MutableWorldVector;
+import io.github.zap.vector.VectorAccess;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class DefaultWalkNodeProvider extends NodeProvider {
+    private static final double DIAGONAL_DISTANCE = Math.sqrt(2);
+
     private enum JunctionType {
         FALL,
         JUMP,
@@ -47,11 +50,14 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
-        double halfWidth = agent.characteristics().width() / 2;
-        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(0.5 - halfWidth, 0,
-                0.5 - halfWidth).asBukkit());
+        double offset = 0.5 - (agent.characteristics().width() / 2);
+        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(offset, 0, offset).asBukkit());
 
-        switch (determineType(context, agentBounds, node, direction)) {
+        if(walkingTo.equals(VectorAccess.immutable(6, 85, 104)) && direction == Direction.NORTHWEST) {
+            System.out.println("t");
+        }
+
+        switch (determineType(context, agentBounds, direction, walkingTo)) {
             case FALL:
                 ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
                 return fallVec == null ? null : node.chain(fallVec);
@@ -59,30 +65,26 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), walkingTo, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
-                return node.chain(node.add(direction));
+                return node.chain(walkingTo);
         }
 
         return null;
     }
 
-    private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, PathNode node, Direction direction) {
-        MutableWorldVector nodeVector = node.asMutable();
-
+    private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, Direction direction,
+                                       ImmutableWorldVector target) {
         if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
             return JunctionType.JUMP;
         }
         else {
-            BlockSnapshot snapshot = context.blockProvider().getBlock(nodeVector.add(Direction.DOWN));
+            BlockSnapshot belowTarget = context.blockProvider().getBlock(target.add(Direction.DOWN));
 
-            if(snapshot != null) {
-                if(snapshot.collision().isFull()) {
+            if(belowTarget != null) {
+                if(belowTarget.collision().isFull()) {
                     return JunctionType.NO_CHANGE;
-                }
-                else if(snapshot.collision().isEmpty()) {
-                    return JunctionType.FALL;
                 }
                 else {
-                    return JunctionType.NO_CHANGE;
+                    return JunctionType.FALL;
                 }
             }
 
@@ -161,7 +163,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
-            ArenaApi.info("Can make jump: " + jumpHeightRequired + " blocks up");
             BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
             if(provider.collidesWithAnySolid(verticalTest)) { //check if mob will collide with something on its way up
@@ -213,8 +214,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return endVector;
     }
 
-    private boolean collidesMovingAlong(BoundingBox bounds, BlockCollisionProvider provider, Direction direction) {
-        BoundingBox expanded = bounds.clone().expandDirectional(direction.asBukkit());
+    private boolean collidesMovingAlong(BoundingBox agentBounds, BlockCollisionProvider provider, Direction direction) {
+        BoundingBox expanded = agentBounds.clone().expandDirectional(direction.asBukkit());
 
         if(!direction.isIntercardinal()) {
             return provider.collidesWithAnySolid(expanded);
@@ -227,16 +228,16 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
                     collision.shift(snapshot.position().asBukkit());
 
-                    double Ax = bounds.getCenterX();
+                    double Ax = agentBounds.getCenterX();
                     double Bx = collision.getCenterX();
 
-                    double Az = bounds.getCenterZ();
+                    double Az = agentBounds.getCenterZ();
                     double Bz = collision.getCenterZ();
 
                     //magic equation, DM steank for exhaustive proof
                     double delta = (Math.abs(Az - Bz) - Math.abs(Ax - Bx)) / 2;
 
-                    if(bounds.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
+                    if(agentBounds.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
                             .overlaps(collision)) {
                         return true;
                     }
