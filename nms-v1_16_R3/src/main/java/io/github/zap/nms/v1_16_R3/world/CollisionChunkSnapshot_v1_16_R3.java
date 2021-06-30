@@ -131,7 +131,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                         BlockSnapshot snapshot = collisionMap.get(org.bukkit.block.Block.getBlockKey(chunkX, y, chunkZ));
 
                         if(snapshot != null) {
-                            if(snapshot.overlaps(worldBounds)) {
+                            if(snapshot.overlaps(overlap)) {
                                 shapes.add(snapshot);
                             }
                         }
