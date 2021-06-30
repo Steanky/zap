@@ -36,11 +36,13 @@ class BlockSnapshotImpl implements BlockSnapshot {
     }
 
     @Override
-    public boolean overlaps(@NotNull BoundingBox worldBounds) {
+    public boolean overlaps(@NotNull BoundingBox worldBounds) { //TODO: Optimize this (currently it works but is slow zz low iq)
         AtomicBoolean collided = new AtomicBoolean();
-        Vector min = worldBounds.getMin();
+
+        //will likely need to add a better method to VoxelShapeWrapper
         collision.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) -> {
-            if(worldBounds.overlaps(new Vector(minX, minY, minZ).add(min), new Vector(maxX, maxY, maxZ).add(min))) {
+            BoundingBox bounds = new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ).shift(worldVector.asBukkit());
+            if(bounds.overlaps(worldBounds)) {
                 collided.set(true);
             }
         });
