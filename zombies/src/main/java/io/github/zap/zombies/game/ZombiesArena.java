@@ -995,14 +995,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
         if (managedPlayer != null) {
-            if (event.isSneaking()) {
-                if (managedPlayer.isAlive()) {
-                    managedPlayer.activateRevive();
-                }
-            } else {
-                managedPlayer.disableRevive();
-            }
-
             for (PlayerTask playerTask : managedPlayer.getTasks()) {
                 if (playerTask instanceof EventToggledPlayerTask<?>
                         && ((EventToggledPlayerTask<?>) playerTask).acceptsEventClass(PlayerToggleSneakEvent.class)) {

@@ -22,6 +22,7 @@ import io.github.zap.zombies.game.equipment.perk.FrozenBullets;
 import io.github.zap.zombies.game.equipment.perk.Perk;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.player.task.PlayerTask;
+import io.github.zap.zombies.game.player.task.ReviveTask;
 import io.github.zap.zombies.game.player.task.WindowRepairTask;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
@@ -32,8 +33,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -101,10 +100,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     private int boundsCheckTaskId = -1;
 
-    private boolean reviveOn;
-    private int reviveTaskId = -1;
-    private Corpse targetCorpse;
-
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
@@ -122,7 +117,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         //noinspection ConstantConditions
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
 
-        createTasks();
+        addTasks();
 
         setAliveState();
 
@@ -268,11 +263,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             playerTask.start();
         }
 
-        if (reviveTaskId == -1) {
-            reviveTaskId = arena.runTaskTimer(0, 2L, this::checkForCorpses).getTaskId();
-        }
-
-        if(boundsCheckTaskId == -1) {
+        if (boundsCheckTaskId == -1) {
             boundsCheckTaskId = arena.runTaskTimer(0, 5, this::ensureInBounds).getTaskId();
         }
     }
@@ -282,41 +273,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      */
     public void endTasks() {
         for (PlayerTask playerTask : tasks) {
-            playerTask.start();
+            playerTask.stop();
         }
 
-        if (reviveTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(reviveTaskId);
-            reviveTaskId = -1;
-        }
-
-        if(boundsCheckTaskId != -1) {
+        if (boundsCheckTaskId != -1) {
             Bukkit.getScheduler().cancelTask(boundsCheckTaskId);
             boundsCheckTaskId = -1;
         }
-    }
-
-    /**
-     * Puts the player into a reviving state
-     */
-    public void activateRevive() {
-        reviveOn = true;
-    }
-
-    /**
-     * Disables revive state
-     */
-    public void disableRevive() {
-        if (targetCorpse != null) {
-            Player player = getPlayer();
-            if (player != null) {
-                getPlayer().sendActionBar(Component.empty());
-            }
-            targetCorpse.setReviver(null);
-            targetCorpse = null;
-        }
-
-        reviveOn = false;
     }
 
     /**
@@ -333,7 +296,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             for (PlayerTask playerTask : tasks) {
                 playerTask.notifyChange();
             }
-            disableRevive();
 
             getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
                     getOfflinePlayer().getUniqueId(), (stats) -> {
@@ -400,11 +362,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             enablePerks();
             setAliveState();
-
-            Player player = getPlayer();
-            if (player != null && getPlayer().isSneaking()) {
-                activateRevive();
-            }
         }
     }
 
@@ -531,8 +488,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         }
     }
 
-    private void createTasks() {
-        tasks.add(new WindowRepairTask(this));
+    protected void addTasks() {
+        tasks.add(new WindowRepairTask(ZombiesPlayer.this));
+        tasks.add(new ReviveTask(ZombiesPlayer.this));
     }
 
     private void ensureInBounds() {
@@ -551,73 +509,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         Vector target = windowData.getTarget();
                         player.teleport(new Location(arena.getWorld(), target.getX(), target.getY(), target.getZ(),
                                 current.getYaw(), current.getPitch()));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Checks for corpses to revive or continues reviving the current corpse
-     */
-    private void checkForCorpses() {
-        Player player = getPlayer();
-        if (player != null && isAlive()) {
-            int maxDistance = arena.getMap().getReviveRadius();
-
-            if (targetCorpse == null) {
-                selectNewCorpse();
-            } else if (!targetCorpse.isActive()) {
-                getPlayer().sendActionBar(Component.text());
-                targetCorpse = null;
-
-                selectNewCorpse();
-            } else {
-                double distance
-                        = getPlayer().getLocation().toVector().distanceSquared(targetCorpse.getLocation().toVector());
-
-                if (distance < maxDistance && reviveOn) {
-                    targetCorpse.continueReviving();
-                } else {
-                    getPlayer().sendActionBar(Component.text());
-                    targetCorpse.setReviver(null);
-                    targetCorpse = null;
-
-                    selectNewCorpse();
-                }
-            }
-        } else if (targetCorpse != null) {
-            targetCorpse.setReviver(null);
-        }
-    }
-
-    /**
-     * Finds a new corpse to revive
-     */
-    private void selectNewCorpse() {
-        Player player = getPlayer();
-
-        if (player != null) {
-            int maxDistance = arena.getMap().getReviveRadius();
-
-            for (Corpse corpse : arena.getAvailableCorpses()) {
-                double distance
-                        = player.getLocation().toVector().distanceSquared(corpse.getLocation().toVector());
-                if (distance <= maxDistance) {
-                    Player corpseBukkitPlayer = corpse.getZombiesPlayer().getPlayer();
-                    if (corpseBukkitPlayer != null) {
-                        if (reviveOn) {
-                            targetCorpse = corpse;
-                            targetCorpse.setReviver(this);
-                            targetCorpse.continueReviving();
-                        } else {
-                            getPlayer().sendActionBar(Component
-                                    .text(String.format("Hold SHIFT to Revive %s!", corpseBukkitPlayer.getName()))
-                                    .color(NamedTextColor.YELLOW)
-                            );
-                        }
-
-                        break;
                     }
                 }
             }
