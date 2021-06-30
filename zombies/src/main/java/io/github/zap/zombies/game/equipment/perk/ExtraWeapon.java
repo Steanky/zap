@@ -4,7 +4,7 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraWeaponData;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraWeaponLevel;
 import org.jetbrains.annotations.NotNull;

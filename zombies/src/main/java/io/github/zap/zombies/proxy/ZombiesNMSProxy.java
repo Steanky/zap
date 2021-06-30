@@ -4,7 +4,7 @@ import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.arenaapi.proxy.NMSProxy;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.entity.Player;

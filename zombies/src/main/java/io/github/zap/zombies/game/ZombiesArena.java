@@ -28,6 +28,9 @@ import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
+import io.github.zap.zombies.game.player.task.EventToggledPlayerTask;
+import io.github.zap.zombies.game.player.task.PlayerTask;
 import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpBossBar;
@@ -991,16 +994,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         PlayerToggleSneakEvent event = args.getEvent();
         ZombiesPlayer managedPlayer = args.getManagedPlayer();
 
-        if(managedPlayer != null) {
-            if(event.isSneaking()) {
+        if (managedPlayer != null) {
+            if (event.isSneaking()) {
                 if (managedPlayer.isAlive()) {
-                    managedPlayer.activateRepair();
                     managedPlayer.activateRevive();
                 }
-            }
-            else {
-                managedPlayer.disableRepair();
+            } else {
                 managedPlayer.disableRevive();
+            }
+
+            for (PlayerTask playerTask : managedPlayer.getTasks()) {
+                if (playerTask instanceof EventToggledPlayerTask<?>
+                        && ((EventToggledPlayerTask<?>) playerTask).acceptsEventClass(PlayerToggleSneakEvent.class)) {
+                    @SuppressWarnings("unchecked") EventToggledPlayerTask<PlayerToggleSneakEvent> eventToggledPlayerTask
+                            = (EventToggledPlayerTask<PlayerToggleSneakEvent>) playerTask;
+                    eventToggledPlayerTask.onEvent(event);
+                }
             }
         }
     }

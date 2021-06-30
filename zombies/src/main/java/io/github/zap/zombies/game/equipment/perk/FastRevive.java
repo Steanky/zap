@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.equipment.perk;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.perk.FastReviveData;
 import io.github.zap.zombies.game.data.equipment.perk.FastReviveLevel;
 import lombok.Getter;

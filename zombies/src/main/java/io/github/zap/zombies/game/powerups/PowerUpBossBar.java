@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.powerups;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
 import io.github.zap.zombies.game.util.MathUtils;
 import org.bukkit.Bukkit;

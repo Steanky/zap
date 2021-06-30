@@ -5,7 +5,7 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.corpse.Corpse;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;

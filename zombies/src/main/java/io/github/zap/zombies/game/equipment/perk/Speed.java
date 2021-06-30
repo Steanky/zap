@@ -4,7 +4,7 @@ import io.github.zap.arenaapi.event.EmptyEventArgs;
 import io.github.zap.arenaapi.event.RepeatingEvent;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.perk.SpeedPerkData;
 import io.github.zap.zombies.game.data.equipment.perk.SpeedPerkLevel;
 import org.bukkit.entity.Player;

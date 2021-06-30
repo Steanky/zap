@@ -2,7 +2,7 @@ package io.github.zap.zombies.game.equipment.perk;
 
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraHealthData;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraHealthLevel;
 import org.bukkit.attribute.Attribute;

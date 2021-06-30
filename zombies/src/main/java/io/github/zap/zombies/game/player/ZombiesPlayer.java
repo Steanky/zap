@@ -1,7 +1,6 @@
-package io.github.zap.zombies.game;
+package io.github.zap.zombies.game.player;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
@@ -11,6 +10,7 @@ import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.zombies.game.*;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
@@ -21,6 +21,8 @@ import io.github.zap.zombies.game.equipment.perk.FlamingBullets;
 import io.github.zap.zombies.game.equipment.perk.FrozenBullets;
 import io.github.zap.zombies.game.equipment.perk.Perk;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
+import io.github.zap.zombies.game.player.task.PlayerTask;
+import io.github.zap.zombies.game.player.task.WindowRepairTask;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.stats.CacheInformation;
@@ -39,8 +41,6 @@ import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -96,10 +96,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     private int frozenBulletsTaskId = -1;
 
-    private WindowData targetWindow;
-
-    private boolean repairOn;
-    private int windowRepairTaskId = -1;
+    @Getter
+    private final List<PlayerTask> tasks = new ArrayList<>();
 
     private int boundsCheckTaskId = -1;
 
@@ -123,6 +121,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
         //noinspection ConstantConditions
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
+
+        createTasks();
 
         setAliveState();
 
@@ -264,8 +264,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Starts tasks related to when the player shifts
      */
     public void startTasks() {
-        if (windowRepairTaskId == -1) {
-            windowRepairTaskId = arena.runTaskTimer(0, arena.getMap().getWindowRepairTicks(), this::checkForWindow).getTaskId();
+        for (PlayerTask playerTask : tasks) {
+            playerTask.start();
         }
 
         if (reviveTaskId == -1) {
@@ -281,9 +281,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * Ends tasks related to when the player shifts
      */
     public void endTasks() {
-        if (windowRepairTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(windowRepairTaskId);
-            windowRepairTaskId = -1;
+        for (PlayerTask playerTask : tasks) {
+            playerTask.start();
         }
 
         if (reviveTaskId != -1) {
@@ -295,27 +294,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             Bukkit.getScheduler().cancelTask(boundsCheckTaskId);
             boundsCheckTaskId = -1;
         }
-    }
-
-    /**
-     * Puts the player into a window repairing state.
-     */
-    public void activateRepair() {
-        repairOn = true;
-    }
-
-    /**
-     * Disables window repair state.
-     */
-    public void disableRepair() {
-        if(targetWindow != null) {
-            Property<ZombiesPlayer> repairingPlayerProperty = targetWindow.getRepairingPlayerProperty();
-            if(repairingPlayerProperty.getValue(arena) == this) {
-                repairingPlayerProperty.setValue(arena, null);
-            }
-        }
-
-        repairOn = false;
     }
 
     /**
@@ -352,7 +330,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             corpse = new Corpse(this);
 
-            disableRepair();
+            for (PlayerTask playerTask : tasks) {
+                playerTask.notifyChange();
+            }
             disableRevive();
 
             getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
@@ -375,6 +355,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             disablePerks(arena.getMap().isPerksLostOnDeath());
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
+
+            for (PlayerTask playerTask : tasks) {
+                playerTask.notifyChange();
+            }
 
             Location corpseLocation = corpse.getLocation();
             for (Player player : getArena().getWorld().getPlayers()) {
@@ -410,12 +394,15 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 corpse = null;
             }
 
+            for (PlayerTask playerTask : tasks) {
+                playerTask.notifyChange();
+            }
+
             enablePerks();
             setAliveState();
 
             Player player = getPlayer();
             if (player != null && getPlayer().isSneaking()) {
-                activateRepair();
                 activateRevive();
             }
         }
@@ -544,44 +531,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         }
     }
 
-    /**
-     * Tries to find and repair a window.
-     */
-    private void checkForWindow() {
-        MapData map = arena.getMap();
-        Player player = getPlayer();
-
-        if (player != null) {
-            if (isAlive()) {
-                if (targetWindow == null) { //our target window is null, so look for one to repair
-                    WindowData window = map.windowMatching(windowData -> !windowData.isFullyRepaired(arena)
-                            && windowData.getRepairingPlayerProperty().getValue(arena) == null
-                            && windowData.inRange(getPlayer().getLocation().toVector(), arena.getMap().getWindowRepairRadiusSquared()));
-
-                    if (window != null) {
-                        if (repairOn) {
-                            targetWindow = window;
-                            tryRepairWindow(targetWindow); //directly repair window; no need to perform checks
-                            player.sendActionBar(Component.text());
-                        } else {
-                            player.sendActionBar(Component.text("Hold SHIFT to repair!")
-                                    .color(NamedTextColor.YELLOW));
-                        }
-                    } else {
-                        player.sendActionBar(Component.text());
-                    }
-
-                    return;
-                } else if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
-                        && repairOn && isAlive()) { //we already have a target window - make sure it's still in range
-                    tryRepairWindow(targetWindow);
-
-                    return;
-                }
-            }
-
-            targetWindow = null;
-        }
+    private void createTasks() {
+        tasks.add(new WindowRepairTask(this));
     }
 
     private void ensureInBounds() {
@@ -606,57 +557,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         }
     }
 
-    /**
-     * Attempts to repair the given window.
-     */
-    private void tryRepairWindow(WindowData targetWindow) {
-        Player player = getPlayer();
-
-        if (player != null) {
-            Property<Entity> attackingEntityProperty = targetWindow.getAttackingEntityProperty();
-            Entity attacker = attackingEntityProperty.getValue(arena);
-
-            if (attacker == null || attacker.isDead()) {
-                attackingEntityProperty.setValue(arena, null);
-
-                Property<ZombiesPlayer> currentRepairerProperty = targetWindow.getRepairingPlayerProperty();
-                ZombiesPlayer currentRepairer = currentRepairerProperty.getValue(arena);
-
-                if (currentRepairer == null || !currentRepairer.isAlive()) {
-                    currentRepairer = this;
-                    currentRepairerProperty.setValue(arena, this);
-                }
-
-                if (currentRepairer == this) {
-                    //advance repair state
-                    int previousIndex = targetWindow.getCurrentIndexProperty().getValue(arena);
-                    int blocksRepaired = targetWindow.advanceRepairState(arena, repairIncrement);
-                    for (int i = previousIndex; i < previousIndex + blocksRepaired; i++) {
-                        Block target = WorldUtils.getBlockAt(arena.getWorld(), targetWindow.getFaceVectors().get(i + 1));
-                        target.setBlockData(Bukkit.createBlockData(targetWindow.getRepairedData().get(i + 1)));
-
-                        Vector center = targetWindow.getCenter();
-                        if (i < targetWindow.getVolume() - 2) {
-                            arena.getWorld().playSound(targetWindow.getBlockRepairSound(), center.getX(), center.getY(), center.getZ());
-                        } else {
-                            arena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                                    player.getUniqueId(), (stats) -> {
-                                PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
-                                mapStats.setWindowsRepaired(mapStats.getWindowsRepaired() + 1);
-                            }, PlayerGeneralStats::new);
-                            arena.getWorld().playSound(targetWindow.getWindowRepairSound(), center.getX(), center.getY(), center.getZ());
-                        }
-                    }
-
-                    addCoins(blocksRepaired * arena.getMap().getCoinsOnRepair());
-                } else {
-                    getPlayer().sendMessage(ChatColor.RED + "Someone is already repairing that window!");
-                }
-            } else {
-                getPlayer().sendMessage(ChatColor.RED + "A mob is attacking that window!");
-            }
-        }
-    }
     /**
      * Checks for corpses to revive or continues reviving the current corpse
      */
@@ -727,7 +627,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     public void setKnockedState() {
         Player player = getPlayer();
 
-        if(player != null) {
+        if (player != null) {
             ArenaApi.getInstance().applyDefaultCondition(player);
             //noinspection ConstantConditions
             player.getEquipment().setArmorContents(new ItemStack[4]);
@@ -737,14 +637,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             player.setInvulnerable(true);
             player.setGameMode(GameMode.ADVENTURE);
             getArena().getHiddenPlayers().add(player);
-            endTasks();
         }
     }
 
     public void setAliveState() {
         Player player = getPlayer();
 
-        if(player != null) {
+        if (player != null) {
             ArenaApi.getInstance().applyDefaultCondition(player);
             //noinspection ConstantConditions
             player.getEquipment().setArmorContents(equipment);
@@ -753,20 +652,19 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, false, false, false));
             player.setInvulnerable(false);
             player.setGameMode(GameMode.ADVENTURE);
-            startTasks();
-            getArena().getHiddenPlayers().remove(player);
+            arena.getHiddenPlayers().remove(player);
         }
     }
 
     public void setDeadState() {
         Player player = getPlayer();
 
-        if(player != null) {
+        if (player != null) {
             ArenaApi.getInstance().applyDefaultCondition(player);
             player.setAllowFlight(true);
             player.setCollidable(false);
             player.setGameMode(GameMode.ADVENTURE);
-            getArena().getHiddenPlayers().add(player);
+            arena.getHiddenPlayers().add(player);
         }
     }
 }

@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;

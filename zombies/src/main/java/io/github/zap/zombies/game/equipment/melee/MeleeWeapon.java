@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.equipment.melee;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
