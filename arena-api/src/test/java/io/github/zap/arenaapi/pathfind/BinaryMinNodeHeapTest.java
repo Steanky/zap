@@ -77,7 +77,7 @@ public class BinaryMinNodeHeapTest {
         for(int i = 0; i < size; i++) {
             PathNode node = heap.nodeAt(i);
             node.score.set(69420, 69420);
-            heap.updateNode(i);
+            heap.updateNode(i, node);
 
             PathNode retrieved = heap.nodeAt(node.heapIndex);
             Assert.assertEquals(node, retrieved);

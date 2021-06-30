@@ -1,8 +1,12 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -50,16 +54,18 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
-    public void updateNode(int index) {
+    public void updateNode(int index, @NotNull PathNode replace) {
         PathNode currentNode = nodes[index];
 
-        switch (currentNode.score.deltaG()) {
-            case DECREASE:
-                siftUp(index, currentNode);
-                break;
-            case INCREASE:
-                siftDown(index, currentNode);
-                break;
+        int comparison = NODE_COMPARATOR.compare(currentNode, replace);
+        if(comparison < 0) {
+            siftUp(index, replace);
+        }
+        else if(comparison > 0) {
+            siftDown(index, replace);
+        }
+        else {
+            nodes[index] = replace;
         }
     }
 
@@ -78,6 +84,17 @@ class BinaryMinNodeHeap implements NodeHeap {
         return nodes;
     }
 
+    @Override
+    public @NotNull List<PathNode> toSortedList() {
+        List<PathNode> nodes = new ArrayList<>();
+
+        while(size > 0) {
+            nodes.add(takeBest());
+        }
+
+        return nodes;
+    }
+
     public int indexOf(@NotNull PathNode node) {
         return node.heapIndex;
     }
@@ -89,6 +106,17 @@ class BinaryMinNodeHeap implements NodeHeap {
         }
 
         throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public @Nullable PathNode nodeAt(double x, double y, double z) {
+        for(int i = 0; i < size; i++) {
+            PathNode node = nodes[i];
+            if(node.positionEquals(x, y, z)) {
+                return node;
+            }
+        }
+        return null;
     }
 
     private void siftUp(int index, PathNode node) {

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import org.bukkit.Material;
 
 /**
@@ -35,13 +36,9 @@ public interface AversionCalculator {
 
         @Override
         public double aversionForNode(PathNode linkedNode) {
-            if(linkedNode.parent == null) {
-                return 0;
-            }
+            double deltaHeight = linkedNode.parent.y() - linkedNode.y();
 
-            double height = linkedNode.parent.y() - linkedNode.y();
-
-            if(height <= 4) {
+            if(deltaHeight <= 4) {
                 return linkedNode.distanceSquared(linkedNode.parent);
             }
             else {

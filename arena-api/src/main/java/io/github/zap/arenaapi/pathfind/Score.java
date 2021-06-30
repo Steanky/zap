@@ -3,16 +3,9 @@ package io.github.zap.arenaapi.pathfind;
 import java.util.Objects;
 
 public class Score {
-    public enum Delta {
-        UNCHANGED,
-        INCREASE,
-        DECREASE
-    }
-
     private double g;
     private double h;
     private double f;
-    private Delta deltaG = Delta.UNCHANGED;
     private int hash;
 
     Score(double g, double h) {
@@ -61,25 +54,7 @@ public class Score {
         return f;
     }
 
-    public Delta deltaG() {
-        return deltaG;
-    }
-
-    public void resetDelta() {
-        deltaG = Delta.UNCHANGED;
-    }
-
     void setG(double g) {
-        if(this.g > g) {
-            deltaG = Delta.DECREASE;
-        }
-        else if(this.g < g) {
-            deltaG = Delta.INCREASE;
-        }
-        else{
-            deltaG = Delta.UNCHANGED;
-        }
-
         this.g = g;
         this.f = g + h;
         hash = Objects.hash(g, h, f);

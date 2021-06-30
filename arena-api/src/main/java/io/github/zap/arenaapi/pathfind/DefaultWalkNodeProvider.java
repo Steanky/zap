@@ -3,8 +3,8 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
+import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.MutableWorldVector;
-import io.github.zap.vector.VectorAccess;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,11 +31,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             PathNode node = walkDirectional(context, agent, current, Direction.valueAtIndex(i));
 
             if(node != null) {
-                //15, 84, 114
-                if(node.position().blockX() == 15 && node.position().blockY() == 85 && node.position().blockZ() == 114) {
-                    ArenaApi.info("This is literally impossible.");
-                }
-
                 calculateAversion(node, context.blockProvider());
                 buffer[j++] = node;
             }
@@ -51,13 +46,14 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
         }
 
-        MutableWorldVector walkingTo = node.add(direction).asMutable();
+        ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
         double halfWidth = agent.characteristics().width() / 2;
-        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(0.5 - halfWidth, 0, 0.5 - halfWidth).asBukkit());
+        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(0.5 - halfWidth, 0,
+                0.5 - halfWidth).asBukkit());
 
         switch (determineType(context, agentBounds, node, direction)) {
             case FALL:
-                MutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
+                ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
                 return fallVec == null ? null : node.chain(fallVec);
             case JUMP:
                 MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), walkingTo, direction);
@@ -70,18 +66,13 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, PathNode node, Direction direction) {
-        MutableWorldVector nodeVector = node.copyVector().asMutable();
-
-        if(nodeVector.equals(new MutableWorldVector(15, 85, 112)) && direction == Direction.SOUTHEAST) {
-            ArenaApi.info("TTsuperTT");
-        }
+        MutableWorldVector nodeVector = node.asMutable();
 
         if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
             return JunctionType.JUMP;
         }
         else {
-            nodeVector.add(Direction.DOWN);
-            BlockSnapshot snapshot = context.blockProvider().getBlock(nodeVector);
+            BlockSnapshot snapshot = context.blockProvider().getBlock(nodeVector.add(Direction.DOWN));
 
             if(snapshot != null) {
                 if(snapshot.collision().isFull()) {
@@ -100,7 +91,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private MutableWorldVector jumpTest(PathAgent agent, BoundingBox agentBounds, BlockCollisionProvider provider,
-                                        MutableWorldVector seek, Direction direction) {
+                                        ImmutableWorldVector start, Direction direction) {
         double jumpHeightRequired = 0;
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
@@ -108,7 +99,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         double jumpHeight = agent.characteristics().jumpHeight();
         double height = agent.characteristics().height();
 
-        MutableWorldVector jumpVector = seek.copyVector();
+        MutableWorldVector jumpVector = start.asMutable();
+        MutableWorldVector seek = start.asMutable();
 
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
@@ -161,22 +153,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
             }
 
-            if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
-                BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
-
-                if(provider.collidesWithAnySolid(verticalTest)) { //check if mob will collide with something on its way up
-                    return null;
-                }
-
-                BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-                if(!collidesMovingAlong(jumpedAgent, provider, direction)) {
-                    return jumpVector.add(0, jumpHeightRequired, 0);
-                }
-                else {
-                    return null;
-                }
-            }
-
             seek.add(Direction.UP);
 
             if(seek.y() >= 256) {
@@ -184,11 +160,29 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             }
         }
 
+        if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
+            ArenaApi.info("Can make jump: " + jumpHeightRequired + " blocks up");
+            BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
+
+            if(provider.collidesWithAnySolid(verticalTest)) { //check if mob will collide with something on its way up
+                return null;
+            }
+
+            BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
+            if(!collidesMovingAlong(jumpedAgent, provider, direction)) {
+                return jumpVector.add(0, jumpHeightRequired, 0);
+            }
+            else {
+                return null;
+            }
+        }
+
         return null;
     }
 
-    private MutableWorldVector fallTest(BlockCollisionProvider provider, MutableWorldVector seek) {
-        MutableWorldVector endVector = seek.copyVector();
+    private ImmutableWorldVector fallTest(BlockCollisionProvider provider, ImmutableWorldVector seek) {
+        ImmutableWorldVector endVector = seek.copyVector();
+
         while(true) {
             seek.add(Direction.DOWN);
 
@@ -221,21 +215,17 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private boolean collidesMovingAlong(BoundingBox bounds, BlockCollisionProvider provider, Direction direction) {
         BoundingBox expanded = bounds.clone().expandDirectional(direction.asBukkit());
+
         if(!direction.isIntercardinal()) {
             return provider.collidesWithAnySolid(expanded);
         }
 
-        ArenaApi.info("Attemping intercardinal collision check moving " + direction + " " + direction.asBukkit());
-
         List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
-        ArenaApi.info("Candidates size: " + candidates.size());
 
         if(candidates.size() > 0) {
             for(BlockSnapshot snapshot : candidates) {
                 for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
-                    ArenaApi.info("Checking collision BoundingBox " + collision);
                     collision.shift(snapshot.position().asBukkit());
-                    ArenaApi.info("After shift: " + collision);
 
                     double Ax = bounds.getCenterX();
                     double Bx = collision.getCenterX();
@@ -246,8 +236,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     //magic equation, DM steank for exhaustive proof
                     double delta = (Math.abs(Az - Bz) - Math.abs(Ax - Bx)) / 2;
 
-                    ArenaApi.info("Delta: " + delta);
-
                     if(bounds.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
                             .overlaps(collision)) {
                         return true;
@@ -256,19 +244,23 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             }
         }
 
-        ArenaApi.info("Didn't collide with anything.");
         return false;
     }
 
     private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
-        BlockSnapshot block = provider.getBlock(node.add(Direction.DOWN));
+        BlockSnapshot standingOn = provider.getBlock(node.add(Direction.DOWN));
 
-        if(block != null) {
-            double materialAversion = getAversionCalculator().aversionForMaterial(block.data().getMaterial());
+        if(standingOn != null) {
+            double materialAversion = getAversionCalculator().aversionForMaterial(standingOn.data().getMaterial());
+            assert materialAversion == 0;
+
             double distanceAversion = getAversionCalculator().aversionForNode(node);
-            double sum = materialAversion + distanceAversion;
 
-            node.score.setG(Double.isFinite(node.score.getG()) ? node.score.getG() + sum : sum);
+            double sum = materialAversion + distanceAversion;
+            node.score.setG(node.parent.score.getG() + sum);
+        }
+        else {
+            ArenaApi.warning("No block below target PathNode");
         }
     }
 }

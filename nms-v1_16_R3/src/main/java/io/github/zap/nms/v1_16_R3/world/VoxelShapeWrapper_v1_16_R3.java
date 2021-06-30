@@ -45,7 +45,7 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     }
 
     @Override
-    public List<BoundingBox> boundingBoxes() {
+    public @NotNull List<BoundingBox> boundingBoxes() {
         List<BoundingBox> bounds = new ArrayList<>();
         for(AxisAlignedBB bb : shape.d()) {
             bounds.add(new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxX));

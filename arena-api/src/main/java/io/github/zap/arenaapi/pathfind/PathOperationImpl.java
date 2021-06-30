@@ -6,13 +6,12 @@ import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 class PathOperationImpl implements PathOperation {
     private final PathAgent agent;
     private final Set<PathDestination> destinations;
     private State state;
-    private final ScoreCalculator scoreCalculator;
+    private final HeuristicCalculator heuristicCalculator;
     private final SuccessCondition condition;
     private final NodeProvider nodeProvider;
     private final DestinationSelector destinationSelector;
@@ -27,13 +26,13 @@ class PathOperationImpl implements PathOperation {
     private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
-                      @NotNull ScoreCalculator scoreCalculator, @NotNull SuccessCondition condition,
+                      @NotNull HeuristicCalculator heuristicCalculator, @NotNull SuccessCondition condition,
                       @NotNull NodeProvider nodeProvider, @NotNull DestinationSelector destinationSelector,
                       @NotNull ChunkCoordinateProvider searchArea) {
         this.agent = agent;
         this.destinations = destinations;
         this.state = State.NOT_STARTED;
-        this.scoreCalculator = scoreCalculator;
+        this.heuristicCalculator = heuristicCalculator;
         this.condition = condition;
         this.nodeProvider = nodeProvider;
         this.destinationSelector = destinationSelector;
@@ -91,12 +90,11 @@ class PathOperationImpl implements PathOperation {
             else {
                 currentNode = new PathNode(null, agent);
                 bestDestination = destinationSelector.selectDestination(this, currentNode);
-                currentNode.score.set(0, scoreCalculator.computeH(context, currentNode, bestDestination));
+                currentNode.score.set(0, heuristicCalculator.compute(context, currentNode, bestDestination));
                 bestFound = currentNode.copy();
             }
 
             visited.put(currentNode, currentNode);
-
             nodeProvider.generateNodes(sampleBuffer, context, agent, currentNode);
             for(PathNode sample : sampleBuffer) {
                 if(sample == null) {
@@ -107,37 +105,30 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
-                boolean deltaDecreased = false;
-                if(sample.score.deltaG() == Score.Delta.DECREASE) {
-                    int index = openHeap.indexOf(sample);
-
-                    if(index != -1) {
-                        openHeap.updateNode(index);
-                    }
-                    else {
-                        bestDestination = destinationSelector.selectDestination(this, sample);
-                        sample.score.setH(scoreCalculator.computeH(context, sample, bestDestination));
-                        openHeap.addNode(sample);
-                    }
-                    deltaDecreased = true;
+                PathNode heapNode = openHeap.nodeAt(sample.x(), sample.y(), sample.z());
+                if(heapNode == null) {
+                    bestDestination = destinationSelector.selectDestination(this, sample);
+                    sample.score.setH(heuristicCalculator.compute(context, sample, bestDestination));
+                    openHeap.addNode(sample);
                 }
-
-                sample.score.resetDelta();
+                else {
+                    if(sample.score.getG() < heapNode.score.getG()) {
+                        openHeap.updateNode(heapNode.heapIndex, sample);
+                    }
+                }
 
                 //comparison for best path in case of inaccessible target
                 if(sample.score.getF() < bestFound.score.getF()) {
                     bestFound = sample.copy();
                 }
 
-                boolean finalDeltaDecreased = deltaDecreased;
                 Bukkit.getServer().getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                    Material mat = finalDeltaDecreased ? Material.RED_WOOL : Material.BLACK_WOOL;
-                    context.blockProvider().getWorld().getBlockAt(currentNode.blockX(), currentNode.blockY() - 1,
-                            currentNode.blockZ()).setType(mat);
+                    context.blockProvider().getWorld().getBlockAt(sample.blockX(), sample.blockY() - 1,
+                            sample.blockZ()).setType(Material.RED_WOOL);
                 });
 
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(25);
                 }
                 catch (InterruptedException e) {}
             }

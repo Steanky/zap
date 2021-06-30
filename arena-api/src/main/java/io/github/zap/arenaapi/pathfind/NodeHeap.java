@@ -1,7 +1,9 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -30,7 +32,7 @@ public interface NodeHeap {
      * Performs an update on the given node.
      * @param index The index of the node to update.
      */
-    void updateNode(int index);
+    void updateNode(int index, @NotNull PathNode replace);
 
     /**
      * Check if this NodeHeap contains the given node. This should use equals() comparison rather than reference
@@ -49,6 +51,8 @@ public interface NodeHeap {
 
     @NotNull PathNode nodeAt(int index);
 
+    @Nullable PathNode nodeAt(double x, double y, double z);
+
     /**
      * Returns the number of nodes currently in the heap.
      * @return The number of nodes contained in this heap
@@ -56,4 +60,6 @@ public interface NodeHeap {
     int size();
 
     PathNode[] internalArray();
+
+    @NotNull List<PathNode> toSortedList();
 }

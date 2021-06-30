@@ -106,4 +106,12 @@ public class PathNode implements Positional {
 
         return previous;
     }
+
+    public boolean positionEquals(@NotNull PathNode other) {
+        return x == other.x && y == other.y && z == other.z;
+    }
+
+    public boolean positionEquals(double x, double y, double z) {
+        return this.x == x && this.y == y && this.z == z;
+    }
 }

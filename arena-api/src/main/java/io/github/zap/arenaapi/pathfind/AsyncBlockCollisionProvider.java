@@ -105,7 +105,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
+    public @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
         ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin());
         ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax());
 

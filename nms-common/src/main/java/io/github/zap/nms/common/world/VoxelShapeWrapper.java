@@ -66,7 +66,7 @@ public interface VoxelShapeWrapper {
         }
 
         @Override
-        public List<BoundingBox> boundingBoxes() {
+        public @NotNull List<BoundingBox> boundingBoxes() {
             return new ArrayList<>();
         }
     };

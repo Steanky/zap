@@ -113,7 +113,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
-    public List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldBounds) {
+    public @NotNull List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldBounds) {
         List<BlockSnapshot> shapes = new ArrayList<>();
 
         if(worldBounds.overlaps(chunkBounds)) {
@@ -199,7 +199,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
                             VoxelShape voxelShape = blockData.getCollisionShape(chunk, examine);
 
-                            if(voxelShape != VoxelShapes.fullCube()) {
+                            if(voxelShape != VoxelShapes.fullCube() && voxelShape != VoxelShapes.empty()) {
                                 collisionMap.put(org.bukkit.block.Block.getBlockKey(x, y, z),
                                         BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(x, y, z),
                                                 chunkX, chunkZ), blockData.createCraftBlockData(),

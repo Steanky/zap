@@ -11,5 +11,5 @@ public interface CollisionChunkSnapshot extends ChunkSnapshot {
 
     boolean collidesWithAny(@NotNull BoundingBox chunkRelativeBounds);
 
-    List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldRelativeBounds);
+    @NotNull List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldRelativeBounds);
 }
