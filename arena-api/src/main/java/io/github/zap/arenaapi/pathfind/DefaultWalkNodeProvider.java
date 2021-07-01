@@ -28,7 +28,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                               @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < 8; i++) {
-            buffer[i] = null;
             PathNode node = walkDirectional(context, agent, current, Direction.valueAtIndex(i));
 
             if(node != null) {
@@ -53,12 +52,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
         switch (determineType(context, agentBounds, direction, walkingTo)) {
             case FALL:
-                ArenaApi.info("Falling");
                 ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
                 return fallVec == null ? null : node.chain(fallVec);
             case JUMP:
                 MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), walkingTo, direction);
-                ArenaApi.info("Jumping: " + jumpVec);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
                 return node.chain(walkingTo);
@@ -151,25 +148,25 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
             }
 
+            if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
+                BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
+
+                if(provider.collidesWithAnySolid(verticalTest)) { //check if mob will collide with something on its way up
+                    return null;
+                }
+
+                BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
+                if(!collidesMovingAlong(jumpedAgent, provider, direction)) {
+                    return jumpVector.add(0, jumpHeightRequired, 0);
+                }
+                else {
+                    return null;
+                }
+            }
+
             seek.add(Direction.UP);
 
             if(seek.y() >= 256) {
-                return null;
-            }
-        }
-
-        if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
-            BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
-
-            if(provider.collidesWithAnySolid(verticalTest)) { //check if mob will collide with something on its way up
-                return null;
-            }
-
-            BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-            if(!collidesMovingAlong(jumpedAgent, provider, direction)) {
-                return jumpVector.add(0, jumpHeightRequired, 0);
-            }
-            else {
                 return null;
             }
         }
@@ -231,7 +228,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     double Bz = collision.getCenterZ();
 
                     //magic equation, DM steank for exhaustive proof
-                    double delta = Math.abs(((Az - Bz) + (Ax - Bx)) / 2);
+                    double delta = (Math.abs(Az - Bz) + Math.abs(Ax - Bx)) / 2;
 
                     if(agentBounds.clone().shift(direction.multiply(delta).asBukkit()).overlaps(collision)) {
                         return true;

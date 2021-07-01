@@ -90,15 +90,21 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public boolean collidesWithAnySolid(@NotNull BoundingBox worldRelativeBounds) {
-        ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin());
-        ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax());
+        Vector min = worldRelativeBounds.getMin();
+        Vector max = worldRelativeBounds.getMax();
 
-        for(int x = minChunk.chunkX(); x <= maxChunk.chunkX(); x++) {
-            for(int z = minChunk.chunkZ(); z <= maxChunk.chunkZ(); z++) {
+        int minChunkX = min.getBlockX() >> 4;
+        int minChunkZ = min.getBlockZ() >> 4;
+
+        int maxChunkX = max.getBlockX() >> 4;
+        int maxChunkZ = max.getBlockZ() >> 4;
+
+        for(int x = minChunkX; x <= maxChunkX; x++) {
+            for(int z = minChunkZ; z <= maxChunkZ; z++) {
                 CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
 
-                if(chunk != null) {
-                    return chunk.collidesWithAny(worldRelativeBounds);
+                if(chunk != null && chunk.collidesWithAny(worldRelativeBounds)) {
+                    return true;
                 }
             }
         }

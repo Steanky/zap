@@ -115,9 +115,6 @@ class PathOperationImpl implements PathOperation {
                     sample.score.setH(heuristicCalculator.compute(context, sample, bestDestination));
                     openHeap.replaceNode(heapNode.heapIndex, sample);
                 }
-                else {
-                    continue;
-                }
 
                 //comparison for best path in case of inaccessible target
                 if(sample.score.getF() < bestFound.score.getF()) {
@@ -130,7 +127,7 @@ class PathOperationImpl implements PathOperation {
                 });
 
                 try {
-                    Thread.sleep(25);
+                    Thread.sleep(10);
                 }
                 catch (InterruptedException e) {}
             }

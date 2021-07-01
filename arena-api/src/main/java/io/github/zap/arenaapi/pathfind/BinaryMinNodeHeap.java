@@ -109,7 +109,7 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
-    public @Nullable PathNode nodeAt(double x, double y, double z) {
+    public @Nullable PathNode nodeAt(double x, double y, double z) {//TODO: make this fast, use hash, etc
         for(int i = 0; i < size; i++) {
             PathNode node = nodes[i];
             if(node.positionEquals(x, y, z)) {
