@@ -76,6 +76,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final Queue<Context> removalQueue = new ArrayDeque<>();
 
     private boolean disposed = false;
+    private boolean deliberateInterrupt = false;
 
     private final Object completedLockHandle = new Object();
 
@@ -105,8 +106,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         Context context = contexts.get(i);
 
                         //only update snapshots if their data is old enough
-                        if(context.lastSync != -1 && Bukkit.getServer().getCurrentTick() - context.lastSync <
-                                MAX_AGE_BEFORE_UPDATE) {
+                        if(context.lastSync != -1 && Bukkit.getServer().getCurrentTick() - context.lastSync
+                                < MAX_AGE_BEFORE_UPDATE) {
                             ArenaApi.info("Skipping sync, data is too young: " + (Bukkit.getServer().getCurrentTick() - context.lastSync) + " ticks");
                             continue;
                         }
@@ -179,8 +180,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
                 }
                 catch(InterruptedException ignored) {
-                    ArenaApi.info("Thread interrupted");
-                    break;
+                    ArenaApi.warning("Pathfinder thread was interrupted");
+
+                    if(deliberateInterrupt) {
+                        break;
+                    }
                 }
             }
             catch (Exception exception) {
@@ -344,6 +348,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         WorldUnloadEvent.getHandlerList().unregister(this);
 
         try {
+            deliberateInterrupt = true;
             pathfinderThread.interrupt();
             pathfinderThread.join();
             pathWorker.shutdown();

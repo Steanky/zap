@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
+    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
 
     private final World world;
     private final ChunkCoordinateProvider coordinateProvider;
