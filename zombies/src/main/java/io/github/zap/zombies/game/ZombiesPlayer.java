@@ -410,8 +410,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 corpse = null;
             }
 
-            enablePerks();
             setAliveState();
+            enablePerks();
 
             Player player = getPlayer();
             if (player != null && getPlayer().isSneaking()) {

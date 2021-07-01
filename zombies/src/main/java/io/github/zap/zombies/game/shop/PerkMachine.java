@@ -31,6 +31,18 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     }
 
     @Override
+    protected void registerArenaEvents() {
+        super.registerArenaEvents();
+
+        getArena().getShopEvent(getShopType()).registerHandler(args -> {
+            Player player = args.getZombiesPlayer().getPlayer();
+            if (player != null) {
+                displayToPlayer(player);
+            }
+        });
+    }
+
+    @Override
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
@@ -104,7 +116,6 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
                                     perk.upgrade();
 
                                     onPurchaseSuccess(player);
-
                                     return true;
                                 }
                             } else {
