@@ -118,7 +118,7 @@ class PathOperationImpl implements PathOperation {
 
                 //comparison for best path in case of inaccessible target
                 if(sample.score.getF() < bestFound.score.getF()) {
-                    bestFound = sample.copy();
+                    bestFound = sample;
                 }
 
                 Bukkit.getServer().getScheduler().runTask(ArenaApi.getInstance(), () -> {

@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
@@ -50,7 +49,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         double offset = 0.5 - (agent.characteristics().width() / 2);
         BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(offset, 0, offset).asBukkit());
 
-        switch (determineType(context, agentBounds, direction, walkingTo)) {
+        switch (determineType(context, agentBounds, direction, walkingTo, node)) {
             case FALL:
                 ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
                 return fallVec == null ? null : node.chain(fallVec);
@@ -65,15 +64,19 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, Direction direction,
-                                       ImmutableWorldVector target) {
+                                       ImmutableWorldVector target, PathNode current) {
         if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
             return JunctionType.JUMP;
         }
         else {
             BlockSnapshot belowTarget = context.blockProvider().getBlock(target.add(Direction.DOWN));
+            BlockSnapshot belowAgent = context.blockProvider().getBlock(current.add(Direction.DOWN));
 
-            if(belowTarget != null) {
-                if(belowTarget.collision().isFull()) {
+            if(belowTarget != null && belowAgent != null) {
+                double targetY = belowTarget.collision().maxY();
+                double currentY = belowAgent.collision().maxY();
+
+                if(targetY == currentY) {
                     return JunctionType.NO_CHANGE;
                 }
                 else {
@@ -175,16 +178,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private ImmutableWorldVector fallTest(BlockCollisionProvider provider, ImmutableWorldVector seek) {
-        ImmutableWorldVector endVector = seek.copyVector();
+        MutableWorldVector endVector = seek.asMutable();
 
-        while(true) {
-            seek.add(Direction.DOWN);
-
-            if(seek.y() < 0) {
-                return null;
-            }
-
-            BlockSnapshot snapshot = provider.getBlock(seek);
+        while(endVector.y() >= 0) {
+            BlockSnapshot snapshot = provider.getBlock(endVector);
 
             if(snapshot == null) {
                 return null;
@@ -193,18 +190,17 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             VoxelShapeWrapper collision = snapshot.collision();
 
             if(collision.isFull()) {
+                return endVector.add(Direction.UP).asImmutable();
+            }
+            else if(!collision.isEmpty()) {
+                endVector.add(0, collision.maxY(), 0);
                 break;
             }
-            else if(collision.isEmpty()) {
-                endVector.add(0, -1, 0);
-            }
-            else {
-                endVector.add(0, -(1 - collision.maxY()), 0);
-                break;
-            }
+
+            endVector.add(Direction.DOWN);
         }
 
-        return endVector;
+        return null;
     }
 
     private boolean collidesMovingAlong(BoundingBox agentBounds, BlockCollisionProvider provider, Direction direction) {
