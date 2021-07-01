@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import org.bukkit.Material;
 
 /**
@@ -15,34 +14,29 @@ public interface AversionCalculator {
                 case SLIME_BLOCK:
                 case HONEY_BLOCK:
                     return 4;
-                case CAVE_AIR:
-                case VOID_AIR:
-                    return 0.00069420; //for the memes
                 case FIRE:
-                    return 256;
+                    return 16;
                 case COBWEB:
                     return 1024;
                 case CACTUS:
                 case SWEET_BERRY_BUSH:
-                    return 64;
+                    return 8;
                 case LAVA:
-                    return 65536;
+                    return 256;
                 case WATER:
-                    return 9;
+                    return 3;
                 default:
                     return 0;
             }
         }
 
         @Override
-        public double aversionForNode(PathNode linkedNode) {
-            double deltaHeight = linkedNode.parent.y() - linkedNode.y();
-
-            if(deltaHeight <= 4) {
-                return linkedNode.distance(linkedNode.parent);
+        public double aversionFactor(PathNode linkedNode) {
+            if(linkedNode.parent.y() - linkedNode.y() <= 4) {
+                return 1;
             }
             else {
-                return linkedNode.distance(linkedNode.parent) * 2;
+                return 2;
             }
         }
     };
@@ -63,5 +57,5 @@ public interface AversionCalculator {
      * @param linkedNode The node to calculate the distance for
      * @return The distance, which will be added to the result returned by aversionFor
      */
-    double aversionForNode(PathNode linkedNode);
+    double aversionFactor(PathNode linkedNode);
 }

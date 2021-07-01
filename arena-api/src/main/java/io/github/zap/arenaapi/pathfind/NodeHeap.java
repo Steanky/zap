@@ -32,7 +32,7 @@ public interface NodeHeap {
      * Performs an update on the given node.
      * @param index The index of the node to update.
      */
-    void updateNode(int index, @NotNull PathNode replace);
+    void replaceNode(int index, @NotNull PathNode replace);
 
     /**
      * Check if this NodeHeap contains the given node. This should use equals() comparison rather than reference

@@ -5,7 +5,6 @@ import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.MutableWorldVector;
-import io.github.zap.vector.VectorAccess;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,8 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class DefaultWalkNodeProvider extends NodeProvider {
-    private static final double DIAGONAL_DISTANCE = Math.sqrt(2);
-
     private enum JunctionType {
         FALL,
         JUMP,
@@ -31,6 +28,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                               @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < 8; i++) {
+            buffer[i] = null;
             PathNode node = walkDirectional(context, agent, current, Direction.valueAtIndex(i));
 
             if(node != null) {
@@ -53,16 +51,14 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         double offset = 0.5 - (agent.characteristics().width() / 2);
         BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(offset, 0, offset).asBukkit());
 
-        if(walkingTo.equals(VectorAccess.immutable(6, 85, 104)) && direction == Direction.NORTHWEST) {
-            System.out.println("t");
-        }
-
         switch (determineType(context, agentBounds, direction, walkingTo)) {
             case FALL:
+                ArenaApi.info("Falling");
                 ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
                 return fallVec == null ? null : node.chain(fallVec);
             case JUMP:
                 MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), walkingTo, direction);
+                ArenaApi.info("Jumping: " + jumpVec);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
                 return node.chain(walkingTo);
@@ -235,10 +231,9 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     double Bz = collision.getCenterZ();
 
                     //magic equation, DM steank for exhaustive proof
-                    double delta = (Math.abs(Az - Bz) - Math.abs(Ax - Bx)) / 2;
+                    double delta = Math.abs(((Az - Bz) + (Ax - Bx)) / 2);
 
-                    if(agentBounds.clone().shift(Ax > Bx ? delta : -delta, 0, Az > Bz ? delta : -delta)
-                            .overlaps(collision)) {
+                    if(agentBounds.clone().shift(direction.multiply(delta).asBukkit()).overlaps(collision)) {
                         return true;
                     }
                 }
@@ -253,15 +248,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
         if(standingOn != null) {
             double materialAversion = getAversionCalculator().aversionForMaterial(standingOn.data().getMaterial());
-            assert materialAversion == 0;
-
-            double distanceAversion = getAversionCalculator().aversionForNode(node);
-
-            double sum = materialAversion + distanceAversion;
-            node.score.setG(node.parent.score.getG() + sum);
-        }
-        else {
-            ArenaApi.warning("No block below target PathNode");
+            double factor = getAversionCalculator().aversionFactor(node);
+            node.score.setG(node.parent.score.getG() + materialAversion + (factor * node.distance(node.parent)));
         }
     }
 }

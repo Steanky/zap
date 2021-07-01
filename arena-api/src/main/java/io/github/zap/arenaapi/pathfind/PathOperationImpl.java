@@ -111,10 +111,12 @@ class PathOperationImpl implements PathOperation {
                     sample.score.setH(heuristicCalculator.compute(context, sample, bestDestination));
                     openHeap.addNode(sample);
                 }
+                else if(sample.score.getG() < heapNode.score.getG()) {
+                    sample.score.setH(heuristicCalculator.compute(context, sample, bestDestination));
+                    openHeap.replaceNode(heapNode.heapIndex, sample);
+                }
                 else {
-                    if(sample.score.getG() < heapNode.score.getG()) {
-                        openHeap.updateNode(heapNode.heapIndex, sample);
-                    }
+                    continue;
                 }
 
                 //comparison for best path in case of inaccessible target

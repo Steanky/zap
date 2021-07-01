@@ -129,6 +129,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                     for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(VectorAccess.immutable(x, y, z));
 
+                        System.out.println("Checking chunk-relative block " + chunkRelative + ", world-relative x=" + x + ", y=" + y + ", z=" + z);
                         BlockSnapshot snapshot = collisionMap.get(org.bukkit.block.Block
                                 .getBlockKey(chunkRelative.blockX(), chunkRelative.blockY(), chunkRelative.blockZ()));
 
@@ -138,12 +139,16 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                             }
                         }
                         else {
-                            snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), palette[y >> 4]
-                                    .a(chunkRelative.blockX(),chunkRelative.blockY() & 15, chunkRelative.blockZ())
-                                    .createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(VoxelShapes.fullCube()));
+                            BlockData data = palette[y >> 4].a(chunkRelative.blockX(),chunkRelative.blockY() & 15,
+                                    chunkRelative.blockZ()).createCraftBlockData();
 
-                            if(snapshot.overlaps(overlap)) {
-                                shapes.add(snapshot);
+                            if(data.getMaterial().isSolid()) {
+                                snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), data,
+                                        new VoxelShapeWrapper_v1_16_R3(VoxelShapes.fullCube()));
+
+                                if(snapshot.overlaps(overlap)) {
+                                    shapes.add(snapshot);
+                                }
                             }
                         }
                     }

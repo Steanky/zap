@@ -54,7 +54,7 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
-    public void updateNode(int index, @NotNull PathNode replace) {
+    public void replaceNode(int index, @NotNull PathNode replace) {
         PathNode currentNode = nodes[index];
 
         int comparison = NODE_COMPARATOR.compare(currentNode, replace);
