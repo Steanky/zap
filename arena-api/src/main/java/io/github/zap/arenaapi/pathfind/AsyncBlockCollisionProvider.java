@@ -7,6 +7,7 @@ import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -107,13 +108,19 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
-        ChunkVectorAccess minChunk = VectorAccess.immutable(worldRelativeBounds.getMin());
-        ChunkVectorAccess maxChunk = VectorAccess.immutable(worldRelativeBounds.getMax());
+        Vector min = worldRelativeBounds.getMin();
+        Vector max = worldRelativeBounds.getMax();
+
+        int minChunkX = min.getBlockX() >> 4;
+        int minChunkZ = min.getBlockZ() >> 4;
+
+        int maxChunkX = max.getBlockX() >> 4;
+        int maxChunkZ = max.getBlockZ() >> 4;
 
         List<BlockSnapshot> shapes = new ArrayList<>();
 
-        for(int x = minChunk.chunkX(); x <= maxChunk.chunkX(); x++) {
-            for(int z = minChunk.chunkZ(); z <= maxChunk.chunkZ(); z++) {
+        for(int x = minChunkX; x <= maxChunkX; x++) {
+            for(int z = minChunkZ; z <= maxChunkZ; z++) {
                 CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
 
                 if(chunk != null) {

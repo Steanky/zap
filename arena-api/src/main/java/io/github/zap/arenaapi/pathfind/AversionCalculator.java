@@ -14,21 +14,21 @@ public interface AversionCalculator {
                 case SOUL_SAND:
                 case SLIME_BLOCK:
                 case HONEY_BLOCK:
-                    return 2;
+                    return 4;
                 case CAVE_AIR:
                 case VOID_AIR:
                     return 0.00069420; //for the memes
                 case FIRE:
-                    return 16;
+                    return 256;
                 case COBWEB:
-                    return 32;
+                    return 1024;
                 case CACTUS:
                 case SWEET_BERRY_BUSH:
-                    return 8;
+                    return 64;
                 case LAVA:
-                    return 256;
+                    return 65536;
                 case WATER:
-                    return 3;
+                    return 9;
                 default:
                     return 0;
             }
@@ -39,10 +39,10 @@ public interface AversionCalculator {
             double deltaHeight = linkedNode.parent.y() - linkedNode.y();
 
             if(deltaHeight <= 4) {
-                return linkedNode.distanceSquared(linkedNode.parent);
+                return linkedNode.distance(linkedNode.parent);
             }
             else {
-                return linkedNode.distanceSquared(linkedNode.parent) * 2;
+                return linkedNode.distance(linkedNode.parent) * 2;
             }
         }
     };

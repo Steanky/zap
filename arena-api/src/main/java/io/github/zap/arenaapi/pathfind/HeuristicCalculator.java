@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.util.VectorUtils;
 import org.jetbrains.annotations.NotNull;
 
 public interface HeuristicCalculator {
