@@ -66,6 +66,7 @@ class BinaryMinNodeHeap implements NodeHeap {
         }
         else {
             nodes[index] = replace;
+            replace.heapIndex = index;
         }
     }
 

@@ -26,6 +26,9 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private double negativeHalfWidth;
     private double blockOffset;
 
+    private double width;
+    private double negativeWidth;
+
     public DefaultWalkNodeProvider(@NotNull AversionCalculator aversionCalculator) {
         super(aversionCalculator);
     }
@@ -38,6 +41,9 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         halfWidth = agent.characteristics().width() / 2;
         negativeHalfWidth = -halfWidth;
         blockOffset = 0.5 - halfWidth;
+
+        width = agent.characteristics().width();
+        negativeWidth = -width;
     }
 
     @Override
@@ -81,7 +87,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, Direction direction,
                                        ImmutableWorldVector target, PathNode current) {
-        if(collidesMovingAlong(agentBounds, context.blockProvider(), direction)) {
+        if(collidesMovingAlong(agentBounds, context.blockProvider(), direction, current.position().asImmutable())) {
             return JunctionType.JUMP;
         }
         else {
@@ -175,7 +181,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
 
                 BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-                if(!collidesMovingAlong(jumpedAgent, provider, direction)) {
+                if(!collidesMovingAlong(jumpedAgent, provider, direction, start.add(0, jumpHeightRequired, 0))) {
                     return jumpVector.add(0, jumpHeightRequired, 0);
                 }
                 else {
@@ -204,7 +210,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             }
 
             VoxelShapeWrapper collision = snapshot.collision();
-
             if(collision.isFull()) {
                 return endVector.add(Direction.UP).asImmutable();
             }
@@ -219,7 +224,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return null;
     }
 
-    private boolean collidesMovingAlong(BoundingBox agentBounds, BlockCollisionProvider provider, Direction direction) {
+    private boolean collidesMovingAlong(BoundingBox agentBounds, BlockCollisionProvider provider, Direction direction,
+                                        ImmutableWorldVector nodePosition) {
         BoundingBox expanded = agentBounds.clone().expandDirectional(direction.asBukkit());
 
         if(!direction.isIntercardinal()) {
@@ -227,14 +233,13 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
-
         if(candidates.size() > 0) {
             int dirFactor = direction.blockX() * direction.blockZ();
-
-            return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(halfWidth,
-                    negativeHalfWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
-                    collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(halfWidth, negativeHalfWidth, dirFactor,
-                    collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()));
+            return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(width,
+                    negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
+                    collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(width, negativeWidth,
+                    dirFactor, collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()),
+                    nodePosition.blockX(), nodePosition.blockZ());
         }
 
         return false;
@@ -254,24 +259,25 @@ public class DefaultWalkNodeProvider extends NodeProvider {
      * fast enough to make our lord and savior Josh approve
      * this is my favorite method in the entire plugin
      */
-    private boolean fastDiagonalCollisionCheck(double halfWidth, double negativeHalfWidth, int dirFac, double minX, double minZ,
+    private boolean fastDiagonalCollisionCheck(double width, double negativeWidth, int dirFac, double minX, double minZ,
                                                double maxX, double maxZ) {
         double zMinusXMin = minZ - (minX * dirFac);
-        if(!(zMinusXMin <= halfWidth)) {
-            return maxZ - (maxX * dirFac) <= halfWidth;
+        if(!(zMinusXMin <= width)) {
+            return maxZ - (maxX * dirFac) <= width;
         }
 
-        if(zMinusXMin >= negativeHalfWidth) {
+        if(zMinusXMin >= negativeWidth) {
             return true;
         }
 
-        return maxZ - (maxX * dirFac) >= negativeHalfWidth;
+        return maxZ - (maxX * dirFac) >= negativeWidth;
     }
 
-    private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides) {
+    private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides,
+                                      double agentX, double agentZ) {
         for(BlockSnapshot snapshot : candidates) {
             for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
-                collision.shift(snapshot.position().blockX(), snapshot.position().blockY(), snapshot.position().blockZ());
+                collision.shift(snapshot.position().asBukkit()).shift(-agentX, 0, -agentZ);
 
                 if(collides.apply(collision)) {
                     return true;

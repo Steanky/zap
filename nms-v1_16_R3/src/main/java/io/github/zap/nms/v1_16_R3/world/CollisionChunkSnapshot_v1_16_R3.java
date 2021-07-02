@@ -129,7 +129,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                     for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(VectorAccess.immutable(x, y, z));
 
-                        System.out.println("Checking chunk-relative block " + chunkRelative + ", world-relative x=" + x + ", y=" + y + ", z=" + z);
                         BlockSnapshot snapshot = collisionMap.get(org.bukkit.block.Block
                                 .getBlockKey(chunkRelative.blockX(), chunkRelative.blockY(), chunkRelative.blockZ()));
 

@@ -130,11 +130,6 @@ class PathOperationImpl implements PathOperation {
                 Bukkit.getServer().getScheduler().runTask(ArenaApi.getInstance(), () ->
                         context.blockProvider().getWorld().getBlockAt(sample.blockX(), sample.blockY() - 1,
                         sample.blockZ()).setType(Material.RED_WOOL));
-
-                try {
-                    Thread.sleep(10);
-                }
-                catch (InterruptedException e) {}
             }
         }
         else {

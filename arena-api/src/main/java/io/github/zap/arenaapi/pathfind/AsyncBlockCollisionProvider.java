@@ -37,19 +37,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     public void updateRegion(@NotNull ChunkCoordinateProvider coordinates) {
         for(ChunkVectorAccess coordinate : coordinates) {
             ChunkIdentifier targetChunk = new ChunkIdentifier(world.getUID(), coordinate);
-            CollisionChunkSnapshot existingChunk = chunks.get(targetChunk);
 
+            //TODO: make this more performant
             if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
-                if(existingChunk != null) {
-                    if(world.getFullTime() - existingChunk.getCaptureFullTime() > minUpdateAge) {
-                        chunks.replace(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
-                                .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
-                    }
-                }
-                else {
-                    chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
-                            .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
-                }
+                chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
+                        .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
             }
             else {
                 chunks.remove(new ChunkIdentifier(world.getUID(), coordinate));

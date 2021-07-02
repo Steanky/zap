@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
     private static final int MAX_AGE_BEFORE_UPDATE = 40;
-    private static final long SYNC_TIMEOUT = 5L;
+    private static final long SYNC_TIMEOUT = 10L;
 
     private static class Entry {
         private final PathOperation operation;

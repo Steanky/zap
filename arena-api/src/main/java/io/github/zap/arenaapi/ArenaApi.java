@@ -288,7 +288,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
                         event.getClickedBlock().getLocation(), 40D);
                 if(stands.size() > 0) {
                     PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(),
-                            new PathAgent.Characteristics(0.75, 1.75D));
+                            new PathAgent.Characteristics(0.6, 1.95D));
                     engine.giveOperation(PathOperation.forAgent(blockAgent,
                             PathDestination.fromEntities(stands, false), HeuristicCalculator.DISTANCE_ONLY,
                             SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK),
