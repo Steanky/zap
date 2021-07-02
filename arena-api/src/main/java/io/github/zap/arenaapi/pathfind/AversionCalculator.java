@@ -15,12 +15,12 @@ public interface AversionCalculator {
                 case HONEY_BLOCK:
                     return 4;
                 case FIRE:
-                    return 16;
+                    return 8;
                 case COBWEB:
-                    return 1024;
+                    return 16;
                 case CACTUS:
                 case SWEET_BERRY_BUSH:
-                    return 8;
+                    return 12;
                 case LAVA:
                     return 256;
                 case WATER:

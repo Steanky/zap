@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class DefaultWalkNodeProvider extends NodeProvider {
     private enum JunctionType {
@@ -213,24 +214,14 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
 
         if(candidates.size() > 0) {
-            for(BlockSnapshot snapshot : candidates) {
-                for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
-                    collision.shift(snapshot.position().asBukkit());
+            double halfWidth = agentBounds.getWidthX() / 2;
+            double negativeHalfWidth = -halfWidth;
+            int dirFactor = direction.blockX() * direction.blockZ();
 
-                    double Ax = agentBounds.getCenterX();
-                    double Bx = collision.getCenterX();
-
-                    double Az = agentBounds.getCenterZ();
-                    double Bz = collision.getCenterZ();
-
-                    //magic equation, DM steank for exhaustive proof
-                    double delta = (Math.abs(Az - Bz) + Math.abs(Ax - Bx)) / 2;
-
-                    if(agentBounds.clone().shift(direction.multiply(delta).asBukkit()).overlaps(collision)) {
-                        return true;
-                    }
-                }
-            }
+            return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(halfWidth,
+                    negativeHalfWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
+                    collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(halfWidth, negativeHalfWidth, dirFactor,
+                    collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()));
         }
 
         return false;
@@ -244,5 +235,37 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             double factor = getAversionCalculator().aversionFactor(node);
             node.score.setG(node.parent.score.getG() + materialAversion + (factor * node.distance(node.parent)));
         }
+    }
+
+    /**
+     * fast enough to make our lord and savior Josh approve
+     * this is my favorite method in the entire plugin
+     */
+    private boolean fastDiagonalCollisionCheck(double halfWidth, double negativeHalfWidth, int dirFac, double minX, double minZ,
+                                               double maxX, double maxZ) {
+        double zMinusXMin = minZ - (minX * dirFac);
+        if(!(zMinusXMin <= halfWidth)) {
+            return maxZ - (maxX * dirFac) <= halfWidth;
+        }
+
+        if(zMinusXMin >= negativeHalfWidth) {
+            return true;
+        }
+
+        return maxZ - (maxX * dirFac) >= negativeHalfWidth;
+    }
+
+    private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides) {
+        for(BlockSnapshot snapshot : candidates) {
+            for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
+                collision.shift(snapshot.position().blockX(), snapshot.position().blockY(), snapshot.position().blockZ());
+
+                if(collides.apply(collision)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
