@@ -198,8 +198,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     private void complete(boolean success) {
-        state = success ? State.SUCCEEDED : State.FAILED;
         result = new PathResultImpl(success ? currentNode.reverse() : bestFound.reverse(), this, visited,
-                bestDestination, state);
+                bestDestination, state = success ? State.SUCCEEDED : State.FAILED);
     }
 }

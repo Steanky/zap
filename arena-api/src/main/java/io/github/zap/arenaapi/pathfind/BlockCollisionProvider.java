@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
@@ -31,17 +32,7 @@ public interface BlockCollisionProvider {
      */
     boolean supportsAsync();
 
-    boolean hasChunkAt(int x, int y);
-
-    void updateChunk(int x, int y);
-
-    default void updateChunk(@NotNull ChunkVectorAccess vector) {
-        updateChunk(vector.chunkX(), vector.chunkZ());
-    }
-
-    void updateAll();
-
-    @NotNull ChunkCoordinateProvider coordinateProvider();
+    void updateRegion(@NotNull ChunkCoordinateProvider coordinates);
 
     @Nullable BlockSnapshot getBlock(int x, int y, int z);
 

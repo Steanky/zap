@@ -105,25 +105,37 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     for(int i = contextStartingIndex; i > -1; i--) {
                         Context context = contexts.get(i);
 
-                        //only update snapshots if their data is old enough
+                        //don't try to update snapshots too fast
+                        boolean skipSync = false;
                         if(context.lastSync != -1 && Bukkit.getServer().getCurrentTick() - context.lastSync
                                 < MAX_AGE_BEFORE_UPDATE) {
                             ArenaApi.info("Skipping sync, data is too young: " + (Bukkit.getServer().getCurrentTick() - context.lastSync) + " ticks");
-                            continue;
+                            skipSync = true;
                         }
 
-                        //syncing must block main thread
-                        AtomicBoolean syncRun = new AtomicBoolean(false);
-                        int syncId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                            if(!syncRun.getAndSet(true)) {
-                                context.lastSync = Bukkit.getCurrentTick();
-                                context.blockCollisionProvider.updateAll();
-                                context.semaphore.release();
-                                ArenaApi.info("Did a hecking sync");
-                            }
-                        }).getTaskId();
+                        AtomicBoolean syncRun = null;
+                        int syncId = -1;
 
-                        if(context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
+                        if(!skipSync) {
+                            //syncing must block main thread
+                            syncRun = new AtomicBoolean(false);
+
+                            AtomicBoolean finalSyncRun = syncRun;
+                            syncId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
+                                if(!finalSyncRun.getAndSet(true)) {
+                                    context.lastSync = Bukkit.getCurrentTick();
+
+                                    for(Entry entry : context.entries) {
+                                        context.blockCollisionProvider.updateRegion(entry.operation.searchArea());
+                                    }
+
+                                    context.semaphore.release();
+                                    ArenaApi.info("Did a hecking sync");
+                                }
+                            }).getTaskId();
+                        }
+
+                        if(skipSync || context.semaphore.tryAcquire(SYNC_TIMEOUT, TimeUnit.SECONDS)) {
                             try {
                                 completionService.submit(() -> processContext(context));
                                 operations++;
@@ -300,7 +312,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new Context(new AsyncBlockCollisionProvider(world, operation.searchArea()));
+            targetContext = new Context(new AsyncBlockCollisionProvider(world, MAX_AGE_BEFORE_UPDATE));
             targetContext.entries.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {

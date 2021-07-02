@@ -13,14 +13,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
+    private final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
 
     private final World world;
-    private final ChunkCoordinateProvider coordinateProvider;
+    private final int minUpdateAge;
 
-    AsyncBlockCollisionProvider(@NotNull World world, @NotNull ChunkCoordinateProvider coordinateProvider) {
+    AsyncBlockCollisionProvider(@NotNull World world, int minUpdateAge) {
         this.world = world;
-        this.coordinateProvider = coordinateProvider;
+        this.minUpdateAge = minUpdateAge;
     }
 
     @Override
@@ -34,42 +34,27 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public boolean hasChunkAt(int x, int z) {
-        return chunks.containsKey(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
-    }
+    public void updateRegion(@NotNull ChunkCoordinateProvider coordinates) {
+        for(ChunkVectorAccess coordinate : coordinates) {
+            ChunkIdentifier targetChunk = new ChunkIdentifier(world.getUID(), coordinate);
+            CollisionChunkSnapshot existingChunk = chunks.get(targetChunk);
 
-    private void updateChunkInternal(int x, int z) {
-        chunks.put(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)),
-                ArenaApi.getInstance().getNmsBridge().worldBridge().takeSnapshot(world.getChunkAt(x, z)));
-    }
-
-    @Override
-    public void updateChunk(int x, int z) {
-        if(coordinateProvider.hasChunk(x, z)) {
-            if(world.isChunkLoaded(x, z)) {
-                updateChunkInternal(x, z);
-            }
-            else {
-                chunks.remove(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
-            }
-        }
-    }
-
-    @Override
-    public void updateAll() {
-        for(ChunkVectorAccess coordinate : coordinateProvider) {
             if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
-                updateChunkInternal(coordinate.chunkX(), coordinate.chunkZ());
+                if(existingChunk != null) {
+                    if(world.getFullTime() - existingChunk.getCaptureFullTime() > minUpdateAge) {
+                        chunks.replace(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
+                                .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
+                    }
+                }
+                else {
+                    chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
+                            .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
+                }
             }
             else {
                 chunks.remove(new ChunkIdentifier(world.getUID(), coordinate));
             }
         }
-    }
-
-    @Override
-    public @NotNull ChunkCoordinateProvider coordinateProvider() {
-        return coordinateProvider;
     }
 
     private CollisionChunkSnapshot chunkAt(int x, int z) {
@@ -100,7 +85,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
         for(int x = minChunkX; x <= maxChunkX; x++) {
             for(int z = minChunkZ; z <= maxChunkZ; z++) {
-                CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+                CollisionChunkSnapshot chunk = chunkAt(x, z);
 
                 if(chunk != null && chunk.collidesWithAny(worldRelativeBounds)) {
                     return true;
@@ -126,7 +111,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
         for(int x = minChunkX; x <= maxChunkX; x++) {
             for(int z = minChunkZ; z <= maxChunkZ; z++) {
-                CollisionChunkSnapshot chunk = chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+                CollisionChunkSnapshot chunk = chunkAt(x, z);
 
                 if(chunk != null) {
                     shapes.addAll(chunk.collisionsWith(worldRelativeBounds));
