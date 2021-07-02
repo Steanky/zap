@@ -54,8 +54,8 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public void clearWorld(@NotNull UUID worldID) {
-        chunks.keySet().removeIf(id -> id.worldID.equals(worldID));
+    public void clearOwned() {
+        chunks.keySet().removeIf(id -> id.worldID.equals(world.getUID()));
     }
 
     private CollisionChunkSnapshot chunkAt(int x, int z) {

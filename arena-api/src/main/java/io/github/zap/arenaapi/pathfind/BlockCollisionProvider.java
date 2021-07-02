@@ -37,7 +37,7 @@ public interface BlockCollisionProvider {
 
     void clearRegion(@NotNull ChunkCoordinateProvider coordinates);
 
-    void clearWorld(@NotNull UUID worldID);
+    void clearOwned();
 
     @Nullable BlockSnapshot getBlock(int x, int y, int z);
 

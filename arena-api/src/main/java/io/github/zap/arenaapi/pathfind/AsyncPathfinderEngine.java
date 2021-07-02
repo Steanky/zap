@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -127,7 +126,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     context.lastSync = Bukkit.getCurrentTick();
 
                                     for(Entry entry : context.entries) {
-                                        if(entry.lastSync != -1 && Bukkit.getCurrentTick() - entry.lastSync < MAX_AGE_BEFORE_UPDATE) {
+                                        if(entry.lastSync == -1 || Bukkit.getCurrentTick() - entry.lastSync > MAX_AGE_BEFORE_UPDATE) {
                                             entry.lastSync = Bukkit.getCurrentTick();
                                             context.blockCollisionProvider.updateRegion(entry.operation.searchArea());
                                         }
@@ -186,6 +185,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         while(!removalQueue.isEmpty()) {
                             Context context = removalQueue.remove();
                             contexts.remove(context);
+
+                            context.blockCollisionProvider.clearOwned();
                         }
 
                         if(contexts.size() == 0) { //lock semaphore, we have no contexts
@@ -348,11 +349,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 }
             }
         }
-    }
-
-    @EventHandler
-    private void onChunkUnload(ChunkUnloadEvent event) {
-
     }
 
     @Override
