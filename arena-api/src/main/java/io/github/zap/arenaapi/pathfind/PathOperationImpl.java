@@ -126,10 +126,6 @@ class PathOperationImpl implements PathOperation {
                 if(sample.score.getF() < bestFound.score.getF()) {
                     bestFound = sample;
                 }
-
-                Bukkit.getServer().getScheduler().runTask(ArenaApi.getInstance(), () ->
-                        context.blockProvider().getWorld().getBlockAt(sample.blockX(), sample.blockY() - 1,
-                        sample.blockZ()).setType(Material.RED_WOOL));
             }
         }
         else {

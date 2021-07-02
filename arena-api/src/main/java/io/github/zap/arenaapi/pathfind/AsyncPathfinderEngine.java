@@ -23,6 +23,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static class Entry {
         private final PathOperation operation;
         private final Consumer<PathResult> consumer;
+        private int lastSync = -1;
 
         private Entry(@NotNull PathOperation operation, @NotNull Consumer<PathResult> consumer) {
             this.operation = Objects.requireNonNull(operation, "operation cannot be null!");
@@ -107,9 +108,9 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         //don't try to update snapshots too fast
                         boolean skipSync = false;
-                        if(context.lastSync != -1 && Bukkit.getServer().getCurrentTick() - context.lastSync
+                        if(context.lastSync != -1 && Bukkit.getCurrentTick() - context.lastSync
                                 < MAX_AGE_BEFORE_UPDATE) {
-                            ArenaApi.info("Skipping sync, data is too young: " + (Bukkit.getServer().getCurrentTick() - context.lastSync) + " ticks");
+                            ArenaApi.info("Skipping sync, data is too young: " + (Bukkit.getCurrentTick() - context.lastSync) + " ticks");
                             skipSync = true;
                         }
 
@@ -126,7 +127,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     context.lastSync = Bukkit.getCurrentTick();
 
                                     for(Entry entry : context.entries) {
-                                        context.blockCollisionProvider.updateRegion(entry.operation.searchArea());
+                                        if(entry.lastSync != -1 && Bukkit.getCurrentTick() - entry.lastSync < MAX_AGE_BEFORE_UPDATE) {
+                                            entry.lastSync = Bukkit.getCurrentTick();
+                                            context.blockCollisionProvider.updateRegion(entry.operation.searchArea());
+                                        }
                                     }
 
                                     context.semaphore.release();
@@ -312,7 +316,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new Context(new AsyncBlockCollisionProvider(world, MAX_AGE_BEFORE_UPDATE));
+            targetContext = new Context(new AsyncBlockCollisionProvider(world));
             targetContext.entries.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {

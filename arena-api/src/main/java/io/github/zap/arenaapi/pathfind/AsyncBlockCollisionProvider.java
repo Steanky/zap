@@ -13,14 +13,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
+    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
 
     private final World world;
-    private final int minUpdateAge;
 
-    AsyncBlockCollisionProvider(@NotNull World world, int minUpdateAge) {
+    AsyncBlockCollisionProvider(@NotNull World world) {
         this.world = world;
-        this.minUpdateAge = minUpdateAge;
     }
 
     @Override
@@ -38,15 +36,26 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         for(ChunkVectorAccess coordinate : coordinates) {
             ChunkIdentifier targetChunk = new ChunkIdentifier(world.getUID(), coordinate);
 
-            //TODO: make this more performant
             if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
                 chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
                         .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
             }
             else {
-                chunks.remove(new ChunkIdentifier(world.getUID(), coordinate));
+                chunks.remove(targetChunk);
             }
         }
+    }
+
+    @Override
+    public void clearRegion(@NotNull ChunkCoordinateProvider coordinates) {
+        for(ChunkVectorAccess coordinate : coordinates) {
+            chunks.remove(new ChunkIdentifier(world.getUID(), coordinate));
+        }
+    }
+
+    @Override
+    public void clearWorld(@NotNull UUID worldID) {
+        chunks.keySet().removeIf(id -> id.worldID.equals(worldID));
     }
 
     private CollisionChunkSnapshot chunkAt(int x, int z) {

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This interface provides a general template for a class which provides block state information over a limited
@@ -33,6 +34,10 @@ public interface BlockCollisionProvider {
     boolean supportsAsync();
 
     void updateRegion(@NotNull ChunkCoordinateProvider coordinates);
+
+    void clearRegion(@NotNull ChunkCoordinateProvider coordinates);
+
+    void clearWorld(@NotNull UUID worldID);
 
     @Nullable BlockSnapshot getBlock(int x, int y, int z);
 
