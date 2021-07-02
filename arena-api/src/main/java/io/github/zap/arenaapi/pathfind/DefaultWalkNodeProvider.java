@@ -19,16 +19,32 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         IGNORE
     }
 
+    private PathfinderContext context;
+    private PathAgent agent;
+
+    private double halfWidth;
+    private double negativeHalfWidth;
+    private double blockOffset;
+
     public DefaultWalkNodeProvider(@NotNull AversionCalculator aversionCalculator) {
         super(aversionCalculator);
     }
 
     @Override
-    public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathfinderContext context, @NotNull PathAgent agent,
-                              @NotNull PathNode current) {
+    public void init(@NotNull PathfinderContext context, @NotNull PathAgent agent) {
+        this.context = context;
+        this.agent = agent;
+
+        halfWidth = agent.characteristics().width() / 2;
+        negativeHalfWidth = -halfWidth;
+        blockOffset = 0.5 - halfWidth;
+    }
+
+    @Override
+    public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < 8; i++) {
-            PathNode node = walkDirectional(context, agent, current, Direction.valueAtIndex(i));
+            PathNode node = walkDirectional(context, current, Direction.valueAtIndex(i));
 
             if(node != null) {
                 calculateAversion(node, context.blockProvider());
@@ -41,21 +57,20 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
     }
 
-    private PathNode walkDirectional(PathfinderContext context, PathAgent agent, PathNode node, Direction direction) {
+    private PathNode walkDirectional(PathfinderContext context, PathNode node, Direction direction) {
         if(agent.characteristics().width() > 1) {
             throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
         }
 
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
-        double offset = 0.5 - (agent.characteristics().width() / 2);
-        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(offset, 0, offset).asBukkit());
+        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(blockOffset, 0, blockOffset).asBukkit());
 
         switch (determineType(context, agentBounds, direction, walkingTo, node)) {
             case FALL:
                 ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
                 return fallVec == null ? null : node.chain(fallVec);
             case JUMP:
-                MutableWorldVector jumpVec = jumpTest(agent, agentBounds, context.blockProvider(), walkingTo, direction);
+                MutableWorldVector jumpVec = jumpTest(agentBounds, context.blockProvider(), walkingTo, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
                 return node.chain(walkingTo);
@@ -89,7 +104,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
     }
 
-    private MutableWorldVector jumpTest(PathAgent agent, BoundingBox agentBounds, BlockCollisionProvider provider,
+    private MutableWorldVector jumpTest(BoundingBox agentBounds, BlockCollisionProvider provider,
                                         ImmutableWorldVector start, Direction direction) {
         double jumpHeightRequired = 0;
         double headroom = 0;
@@ -214,8 +229,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
 
         if(candidates.size() > 0) {
-            double halfWidth = agentBounds.getWidthX() / 2;
-            double negativeHalfWidth = -halfWidth;
             int dirFactor = direction.blockX() * direction.blockZ();
 
             return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(halfWidth,

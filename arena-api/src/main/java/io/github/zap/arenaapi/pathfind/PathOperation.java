@@ -12,10 +12,10 @@ public interface PathOperation {
         NOT_STARTED,
         STARTED,
         SUCCEEDED,
-        FAILED;
+        FAILED
     }
 
-    void init();
+    void init(@NotNull PathfinderContext context);
 
     boolean comparableTo(@NotNull PathOperation other);
 

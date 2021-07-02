@@ -214,7 +214,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     Entry entry = context.entries.get(i);
 
                     if(entry.operation.state() == PathOperation.State.NOT_STARTED) {
-                        entry.operation.init();
+                        entry.operation.init(context);
                     }
 
                     PathOperation.State entryState = entry.operation.state();

@@ -40,9 +40,10 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public void init() {
+    public void init(@NotNull PathfinderContext context) {
         if(state == State.NOT_STARTED) {
             state = State.STARTED;
+            nodeProvider.init(context, agent);
         }
         else {
             throw new IllegalStateException("Cannot initialize a PathOperation with state " + state);
@@ -95,7 +96,7 @@ class PathOperationImpl implements PathOperation {
             }
 
             visited.put(currentNode, currentNode);
-            nodeProvider.generateNodes(sampleBuffer, context, agent, currentNode);
+            nodeProvider.generateNodes(sampleBuffer, currentNode);
             for(PathNode sample : sampleBuffer) {
                 if(sample == null) {
                     break;
@@ -126,10 +127,9 @@ class PathOperationImpl implements PathOperation {
                     bestFound = sample;
                 }
 
-                Bukkit.getServer().getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                    context.blockProvider().getWorld().getBlockAt(sample.blockX(), sample.blockY() - 1,
-                            sample.blockZ()).setType(Material.RED_WOOL);
-                });
+                Bukkit.getServer().getScheduler().runTask(ArenaApi.getInstance(), () ->
+                        context.blockProvider().getWorld().getBlockAt(sample.blockX(), sample.blockY() - 1,
+                        sample.blockZ()).setType(Material.RED_WOOL));
 
                 try {
                     Thread.sleep(10);
