@@ -60,10 +60,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private PathNode walkDirectional(PathfinderContext context, PathNode node, Direction direction) {
-        if(agent.characteristics().width() > 1) {
-            throw new UnsupportedOperationException("You cannot use this NodeProvider for thick entities (yet!)");
-        }
-
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
         BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(blockOffset, 0, blockOffset).asBukkit());
 
