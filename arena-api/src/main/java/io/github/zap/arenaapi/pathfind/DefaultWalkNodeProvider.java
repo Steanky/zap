@@ -14,7 +14,7 @@ import java.util.function.Function;
 public class DefaultWalkNodeProvider extends NodeProvider {
     private enum JunctionType {
         FALL,
-        JUMP,
+        INCREASE,
         NO_CHANGE,
         IGNORE
     }
@@ -22,8 +22,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private PathfinderContext context;
     private PathAgent agent;
 
-    private double halfWidth;
-    private double negativeHalfWidth;
     private double blockOffset;
 
     private double width;
@@ -38,9 +36,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         this.context = context;
         this.agent = agent;
 
-        halfWidth = agent.characteristics().width() / 2;
-        negativeHalfWidth = -halfWidth;
-        blockOffset = 0.5 - halfWidth;
+        blockOffset = 0.5 - (agent.characteristics().width() / 2);
 
         width = agent.characteristics().width();
         negativeWidth = -width;
@@ -73,9 +69,9 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
         switch (determineType(context, agentBounds, direction, walkingTo, node)) {
             case FALL:
-                ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo);
+                ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo, agentBounds, direction);
                 return fallVec == null ? null : node.chain(fallVec);
-            case JUMP:
+            case INCREASE:
                 MutableWorldVector jumpVec = jumpTest(agentBounds, context.blockProvider(), walkingTo, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
@@ -88,25 +84,32 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, Direction direction,
                                        ImmutableWorldVector target, PathNode current) {
         if(collidesMovingAlong(agentBounds, context.blockProvider(), direction, current.position().asImmutable())) {
-            return JunctionType.JUMP;
+            return JunctionType.INCREASE;
         }
         else {
-            BlockSnapshot belowTarget = context.blockProvider().getBlock(target.add(Direction.DOWN));
-            BlockSnapshot belowAgent = context.blockProvider().getBlock(current.add(Direction.DOWN));
+            BoundingBox shiftedBounds = agentBounds.clone().shift(direction.asBukkit()).expandDirectional(Direction.DOWN.asBukkit());
+            List<BlockSnapshot> collidingSnapshots = context.blockProvider().collidingSolids(shiftedBounds);
 
-            if(belowTarget != null && belowAgent != null) {
-                double targetY = belowTarget.collision().maxY();
-                double currentY = belowAgent.collision().maxY();
+            if(collidingSnapshots.size() > 0) {
+                //we hit something
+                double highestY = -1;
+                BlockSnapshot highestSnapshot = highestSnapshot(collidingSnapshots);
 
-                if(targetY == currentY) {
-                    return JunctionType.NO_CHANGE;
-                }
-                else {
+                if(highestSnapshot != null) {
+                    double newY = highestSnapshot.position().blockY() + highestY;
+
+                    if(newY == target.y()) {
+                        return JunctionType.NO_CHANGE;
+                    }
+
                     return JunctionType.FALL;
                 }
+
+                //this should never happen, but if it does, ignore the node
+                return JunctionType.IGNORE;
             }
 
-            return JunctionType.IGNORE;
+            return JunctionType.FALL;
         }
     }
 
@@ -119,7 +122,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         double jumpHeight = agent.characteristics().jumpHeight();
         double height = agent.characteristics().height();
 
-        MutableWorldVector jumpVector = start.asMutable();
         MutableWorldVector seek = start.asMutable();
 
         int iterations = (int)Math.ceil(jumpHeight + height);
@@ -181,8 +183,9 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
 
                 BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-                if(!collidesMovingAlong(jumpedAgent, provider, direction, start.add(0, jumpHeightRequired, 0))) {
-                    return jumpVector.add(0, jumpHeightRequired, 0);
+                ImmutableWorldVector jumpedVector = start.add(0, jumpHeightRequired, 0);
+                if(!collidesMovingAlong(jumpedAgent, provider, direction, jumpedVector)) {
+                    return jumpedVector.asMutable();
                 }
                 else {
                     return null;
@@ -199,26 +202,27 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         return null;
     }
 
-    private ImmutableWorldVector fallTest(BlockCollisionProvider provider, ImmutableWorldVector seek) {
-        MutableWorldVector endVector = seek.asMutable();
+    private ImmutableWorldVector fallTest(BlockCollisionProvider provider, ImmutableWorldVector vector,
+                                          BoundingBox agentBounds, Direction direction) {
+        BoundingBox bounds = agentBounds.clone().shift(direction.asBukkit());
 
-        while(endVector.y() >= 0) {
-            BlockSnapshot snapshot = provider.getBlock(endVector);
+        double deltaY = 0;
+        while(bounds.getMinY() > 0) {
+            bounds.expandDirectional(Direction.DOWN.asBukkit());
 
-            if(snapshot == null) {
+            List<BlockSnapshot> snapshots = provider.collidingSolids(bounds);
+            if(snapshots.size() > 0) {
+                BlockSnapshot highest = highestSnapshot(snapshots);
+
+                if(highest != null) {
+                    deltaY -= 1 - highest.collision().maxY();
+                    return vector.add(0, deltaY, 0);
+                }
+
                 return null;
             }
 
-            VoxelShapeWrapper collision = snapshot.collision();
-            if(collision.isFull()) {
-                return endVector.add(Direction.UP).asImmutable();
-            }
-            else if(!collision.isEmpty()) {
-                endVector.add(0, collision.maxY(), 0);
-                break;
-            }
-
-            endVector.add(Direction.DOWN);
+            deltaY--;
         }
 
         return null;
@@ -239,7 +243,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
                     collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(width, negativeWidth,
                     dirFactor, collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()),
-                    nodePosition.blockX(), nodePosition.blockZ());
+                    nodePosition.blockX() + 0.5, nodePosition.blockZ() + 0.5);
         }
 
         return false;
@@ -286,5 +290,20 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         return false;
+    }
+
+    private @Nullable BlockSnapshot highestSnapshot(List<BlockSnapshot> collidingSnapshots) {
+        double highestY = -1;
+        BlockSnapshot highestSnapshot = null;
+        for(BlockSnapshot snapshot : collidingSnapshots) {
+            VoxelShapeWrapper voxelShape = snapshot.collision();
+
+            if(voxelShape.maxY() > highestY) {
+                highestY = voxelShape.maxY();
+                highestSnapshot = snapshot;
+            }
+        }
+
+        return highestSnapshot;
     }
 }

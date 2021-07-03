@@ -133,7 +133,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     }
 
                                     context.semaphore.release();
-                                    ArenaApi.info("Did a hecking sync");
                                 }
                             }).getTaskId();
                         }
@@ -270,6 +269,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         ArenaApi.warning("Stack trace: ");
                         ex.printStackTrace();
                     }
+
+                    removeOperation(context, i);
                 }
             }
 
