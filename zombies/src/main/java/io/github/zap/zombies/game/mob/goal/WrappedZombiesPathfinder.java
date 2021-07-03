@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.*;
-import io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
@@ -36,7 +36,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     private ZombiesArena arena;
 
     @Getter
-    private ZombiesPlayer result;
+    private ZombiesPlayer target;
 
     private int locateInitial;
     private int counter;
@@ -89,21 +89,23 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
             arena = getMetadata(Zombies.ARENA_METADATA_NAME);
         }
 
-        if(result == null) { //if our target is null, periodically keep trying to find it
+        if(target == null) { //if our target is null, periodically keep trying to find it
             if(++locateInitial == 20) {
                 locateInitial = 0;
 
                 if(!handler.isWorking()) {
+                    ArenaApi.info("Queued operation...");
                     handler.queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
                             new HashSet<>(arena.getPlayerMap().values()), 5), arena.getWorld());
                 }
 
                 if(handler.isComplete()) {
-                    PathHandler.Entry latestResult = handler.latestResult();
+                    ArenaApi.info("Operation complete.");
+                    PathHandler.Entry latestResult = handler.takeResult();
 
                     if(latestResult != null) {
-                        result = (ZombiesPlayer) latestResult.getResult().destination();
-                        Player player = result.getPlayer();
+                        target = (ZombiesPlayer) latestResult.getResult().destination();
+                        Player player = target.getPlayer();
 
                         if(player != null) {
                             getHandle().setGoalTarget(((CraftPlayer)player).getHandle(),
@@ -112,9 +114,9 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
                         else { //target player is now out of game, do not start
                             return false;
                         }
-
-                        return wrappedGoal.a();
                     }
+
+                    return wrappedGoal.a();
                 }
             }
 
@@ -126,7 +128,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
 
     @Override
     public boolean stayActive() {
-        return arena.runAI() && result.isAlive() && wrappedGoal.b();
+        return arena.runAI() && target.isAlive() && wrappedGoal.b();
     }
 
     @Override
@@ -138,7 +140,7 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
     public void onEnd() {
         getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, true);
         getHandle().getNavigation().stopPathfinding(); //necessary for some aigoals to work right
-        result = null;
+        target = null;
         locateInitial = getHandle().getRandom().nextInt(20);
         wrappedGoal.d();
     }
@@ -149,10 +151,10 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         periodic target recalculation; this by default doesn't happen
          */
         if(counter > -1 && ++counter == retargetInterval) {
-            result = getProxy().findClosest(getHandle(), arena, 0, ZombiesPlayer::isAlive);
+            target = getProxy().findClosest(getHandle(), arena, 0, ZombiesPlayer::isAlive);
 
-            if(result != null) {
-                Player player = result.getPlayer();
+            if(target != null) {
+                Player player = target.getPlayer();
 
                 if(player != null) {
                     getHandle().setGoalTarget(((CraftPlayer)player).getHandle());
@@ -166,8 +168,8 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         if some NMS pathfinder sets the goal target to null, and we have a ZombiesPlayer to target, re-set the goal
         target. This generally should not happen, but poorly behaved pathfinders may exist.
         */
-        if(result != null && getHandle().getGoalTarget() == null) {
-            Player player = result.getPlayer();
+        if(target != null && getHandle().getGoalTarget() == null) {
+            Player player = target.getPlayer();
 
             if(player != null) {
                 getHandle().setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, true);

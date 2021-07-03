@@ -31,8 +31,6 @@ public class PathHandler {
 
     public void queueOperation(@NotNull PathOperation operation, @NotNull World world) {
         if(working.compareAndSet(false, true)) {
-            complete.set(false);
-
             engine.giveOperation(operation, world, (result) -> {
                 this.result.set(new Entry(operation, result));
                 complete.set(true);
@@ -41,12 +39,16 @@ public class PathHandler {
         }
     }
 
-    public @Nullable Entry latestResult() {
-        return result.getAndSet(null);
+    public @Nullable Entry takeResult() {
+        if(complete.compareAndSet(true, false)) {
+            return result.get();
+        }
+
+        return null;
     }
 
     public boolean isComplete() {
-        return complete.getAndSet(false);
+        return complete.get();
     }
 
     public boolean isWorking() {

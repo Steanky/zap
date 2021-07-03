@@ -92,12 +92,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             try {
                 try {
                     contextsSemaphore.acquire();
-                    ArenaApi.info("Acquired contextsSemaphore");
 
                     int contextStartingIndex;
                     synchronized (contexts) {
                         contextStartingIndex = contexts.size() - 1;
-                        ArenaApi.info("contextStartingIndex=" + contextStartingIndex);
                     }
 
                     //each EngineContext object = different world
@@ -109,7 +107,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         boolean skipSync = false;
                         if(context.lastSync != -1 && Bukkit.getCurrentTick() - context.lastSync
                                 < MAX_AGE_BEFORE_UPDATE) {
-                            ArenaApi.info("Skipping sync, data is too young: " + (Bukkit.getCurrentTick() - context.lastSync) + " ticks");
                             skipSync = true;
                         }
 
@@ -176,7 +173,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         //noinspection ResultOfMethodCallIgnored
                         contextsSemaphore.tryAcquire(1);
-                        ArenaApi.info("Locked semaphore (no pending operations)");
                     }
 
                     //clean up contexts that may have been removed, such as by a world unload
@@ -191,7 +187,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         if(contexts.size() == 0) { //lock semaphore, we have no contexts
                             //noinspection ResultOfMethodCallIgnored
                             contextsSemaphore.tryAcquire(1);
-                            ArenaApi.info("Locked semaphore (context was removed)");
                         }
                     }
                 }

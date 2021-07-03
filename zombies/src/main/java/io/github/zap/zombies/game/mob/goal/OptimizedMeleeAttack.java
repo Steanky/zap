@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathOperation;
@@ -11,7 +12,6 @@ import net.minecraft.server.v1_16_R3.*;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 
 /**
  * Effectively a copy of the NMS PathfinderGoalMeleeAttack, but modified so that zombies will not 'pause' when certain
@@ -36,7 +36,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     private int attackTimer;
 
     private PathEntity currentPath;
-    private PathHandler pathHandler;
+    private final PathHandler pathHandler;
 
     public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval,
                                 float attackReach, int targetDeviation) {
@@ -87,13 +87,15 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 //randomly offset the delay
                 this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
+                ArenaApi.info("Queued operation for OptimizedMeleeAttack");
                 pathHandler.queueOperation(PathOperation.forEntityWalking(self.getBukkitEntity(),
                         Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), false)),
                         5), target.getWorld().getWorld());
 
-                PathHandler.Entry result = pathHandler.latestResult();
+                PathHandler.Entry result = pathHandler.takeResult();
 
                 if(result != null) {
+                    ArenaApi.info("Result is not null");
                     currentPath = ((PathEntityWrapper_v1_16_R3)result.getResult().toPathEntity()).pathEntity();
                 }
                 else {
