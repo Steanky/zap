@@ -1,15 +1,12 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
     private final PathAgent agent;
-    private final Set<PathDestination> destinations;
+    private final Set<? extends PathDestination> destinations;
     private State state;
     private final HeuristicCalculator heuristicCalculator;
     private final SuccessCondition condition;
@@ -25,7 +22,7 @@ class PathOperationImpl implements PathOperation {
     private PathNode bestFound;
     private PathResult result;
 
-    PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
+    PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                       @NotNull HeuristicCalculator heuristicCalculator, @NotNull SuccessCondition condition,
                       @NotNull NodeProvider nodeProvider, @NotNull DestinationSelector destinationSelector,
                       @NotNull ChunkCoordinateProvider searchArea) {
@@ -159,7 +156,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull Set<PathDestination> getDestinations() {
+    public @NotNull Set<? extends PathDestination> getDestinations() {
         return destinations;
     }
 

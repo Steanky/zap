@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.vector.VectorAccess;
 import org.apache.commons.lang3.Validate;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -27,7 +29,7 @@ public interface PathOperation {
 
     int iterations();
 
-    @NotNull Set<PathDestination> getDestinations();
+    @NotNull Set<? extends PathDestination> getDestinations();
 
     @NotNull Map<PathNode, PathNode> visitedNodes();
 
@@ -37,7 +39,7 @@ public interface PathOperation {
 
     @NotNull NodeProvider nodeProvider();
 
-    static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<PathDestination> destinations,
+    static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                                   @NotNull HeuristicCalculator calculator, @NotNull SuccessCondition successCondition,
                                   @NotNull NodeProvider provider, @NotNull DestinationSelector destinationSelector,
                                   @NotNull ChunkCoordinateProvider coordinateProvider) {
@@ -52,5 +54,11 @@ public interface PathOperation {
 
         return new PathOperationImpl(agent, destinations, calculator, successCondition, provider,
                 destinationSelector, coordinateProvider);
+    }
+
+    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int radius) {
+        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY, SuccessCondition.WITHIN_BLOCK,
+                new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
+                ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), radius));
     }
 }

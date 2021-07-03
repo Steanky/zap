@@ -30,7 +30,8 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
     private PathEntity currentPath;
 
-    public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval, float attackReach, int targetDeviation) {
+    public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval,
+                                float attackReach, int targetDeviation) {
         this.self = self;
         this.speed = speed;
         this.attackInterval = attackInterval;
@@ -76,6 +77,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             if (this.navigationCounter <= 0) {
                 //randomly offset the delay
                 this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
+
 
                 PathEntity path = proxy.calculatePathTo(self, target, targetDeviation);
                 if(path != null) {

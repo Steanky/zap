@@ -7,8 +7,10 @@ import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
+import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
@@ -51,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager {
+public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager, PathDestination {
 
     private static final String FROZEN_BULLETS_ATTRIBUTE_NAME = "frozen_bullets_slowdown";
 
@@ -729,5 +731,16 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             player.setGameMode(GameMode.ADVENTURE);
             getArena().getHiddenPlayers().add(player);
         }
+    }
+
+    @Override
+    public @NotNull VectorAccess position() {
+        Player player = getPlayer();
+
+        if(player != null) {
+            return VectorAccess.immutable(player.getLocation().toVector());
+        }
+
+        return VectorAccess.ZERO;
     }
 }

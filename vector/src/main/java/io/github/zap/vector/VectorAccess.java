@@ -12,6 +12,7 @@ public interface VectorAccess extends ChunkVectorAccess {
     double EPSILON = 1.0E-6D;
 
     VectorAccess UNIT = new ImmutableWorldVector(1, 1, 1);
+    VectorAccess ZERO = new ImmutableWorldVector(0, 0, 0);
 
     double x();
 
