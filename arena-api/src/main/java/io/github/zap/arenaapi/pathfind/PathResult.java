@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface PathResult extends Iterable<PathNode> {
     @NotNull List<PathNode> pathNodes();
 
     @NotNull PathOperation.State state();
+
+    @NotNull PathEntityWrapper toPathEntity();
 }

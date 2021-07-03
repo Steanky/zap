@@ -12,7 +12,7 @@ import java.util.Objects;
  * Used to provide a consistent interface between various NMS versions and ZAP-related code modules.
  */
 public interface NMSBridge {
-    String NMS_VERSION = nmsVersion();
+    String CURRENT_NMS_VERSION = nmsVersion();
 
     private static String nmsVersion() {
         String bukkitVersion = Bukkit.getServer().getClass().getPackage().getName();
@@ -50,7 +50,7 @@ public interface NMSBridge {
         Objects.requireNonNull(bridges, "bridges cannot be null!");
 
         for(NMSBridge bridge : bridges) {
-            if(bridge.version().equals(NMS_VERSION)) {
+            if(bridge.version().equals(CURRENT_NMS_VERSION)) {
                 return bridge;
             }
         }

@@ -41,8 +41,7 @@ class BlockSnapshotImpl implements BlockSnapshot {
 
         //will likely need to add a better method to VoxelShapeWrapper
         collision.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) -> {
-            BoundingBox bounds = new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ).shift(worldVector.asBukkit());
-            if(bounds.overlaps(worldBounds)) {
+            if(new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ).shift(worldVector.asBukkit()).overlaps(worldBounds)) {
                 collided.set(true);
             }
         });

@@ -11,8 +11,7 @@ import java.util.Objects;
 
 /**
  * Represents a single node in the graph, which may be linked to another node. Its coordinates generally represent
- * block coordinates, but may point to a location within any particular block (ex. [0.5, 0.5, 0.5] referring to the
- * exact center of the block at [0, 0, 0]).
+ * block coordinates.
  */
 public class PathNode implements Positional {
     private final double x;

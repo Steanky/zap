@@ -114,7 +114,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         nmsBridge = NMSBridge.selectBridge(NMSBridge_v1_16_R3.INSTANCE);
 
         if(nmsBridge == null) {
-            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", NMSBridge.NMS_VERSION));
+            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", NMSBridge.CURRENT_NMS_VERSION));
         }
     }
 
@@ -285,10 +285,12 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         if(event.getClickedBlock() != null && event.getHand() == EquipmentSlot.HAND) {
             if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
                 Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class,
-                        event.getClickedBlock().getLocation(), 40D);
+                        event.getClickedBlock().getLocation(), 80D);
+
                 if(stands.size() > 0) {
                     PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(),
                             new PathAgent.Characteristics(0.6, 1.95D));
+
                     engine.giveOperation(PathOperation.forAgent(blockAgent,
                             PathDestination.fromEntities(stands, false), HeuristicCalculator.DISTANCE_ONLY,
                             SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK),

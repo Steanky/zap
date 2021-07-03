@@ -1,8 +1,12 @@
 package io.github.zap.nms.common.entity;
 
+import io.github.zap.nms.common.pathfind.PathEntityWrapper;
+import io.github.zap.nms.common.pathfind.PathPointWrapper;
+import io.github.zap.vector.VectorAccess;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,4 +31,9 @@ public interface EntityBridge {
      * @return The NMS ID for the EntityType
      */
     int getEntityTypeID(@NotNull EntityType type);
+
+    @NotNull PathEntityWrapper makePathEntity(@NotNull List<PathPointWrapper> pointWrappers,
+                                              @NotNull VectorAccess target, boolean reachesDestination);
+
+    @NotNull PathPointWrapper makePathPoint(@NotNull VectorAccess blockLocation);
 }
