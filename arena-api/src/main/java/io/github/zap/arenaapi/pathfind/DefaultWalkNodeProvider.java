@@ -88,11 +88,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
             if(collidingSnapshots.size() > 0) {
                 //we hit something
-                double highestY = -1;
                 BlockSnapshot highestSnapshot = highestSnapshot(collidingSnapshots);
 
                 if(highestSnapshot != null) {
-                    double newY = highestSnapshot.position().blockY() + highestY;
+                    double newY = highestSnapshot.position().blockY() + highestSnapshot.collision().maxY();
 
                     if(newY == target.y()) {
                         return JunctionType.NO_CHANGE;
@@ -101,7 +100,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     return JunctionType.FALL;
                 }
 
-                //this should never happen, but if it does, ignore the node
+                //this should never happen, but if it somehow does, ignore the node
                 return JunctionType.IGNORE;
             }
 
@@ -111,7 +110,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private MutableWorldVector jumpTest(BoundingBox agentBounds, BlockCollisionProvider provider,
                                         ImmutableWorldVector start, Direction direction) {
-        double jumpHeightRequired = 0;
+        double jumpHeightRequired = start.blockY() - start.y();
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
 
@@ -202,7 +201,6 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                                           BoundingBox agentBounds, Direction direction) {
         BoundingBox bounds = agentBounds.clone().shift(direction.asBukkit());
 
-        double deltaY = 0;
         while(bounds.getMinY() > 0) {
             bounds.expandDirectional(Direction.DOWN.asBukkit());
 
@@ -211,14 +209,12 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 BlockSnapshot highest = highestSnapshot(snapshots);
 
                 if(highest != null) {
-                    deltaY -= 1 - highest.collision().maxY();
-                    return vector.add(0, deltaY, 0);
+                    double contribution = 1 - highest.collision().maxY();
+                    return vector.subtract(0, (vector.y() - highest.position().y() - 1) - contribution, 0);
                 }
 
                 return null;
             }
-
-            deltaY--;
         }
 
         return null;
