@@ -1,10 +1,17 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.pathfind.PathDestination;
+import io.github.zap.arenaapi.pathfind.PathHandler;
+import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.arenaapi.pathfind.PathfinderEngine;
+import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import net.minecraft.server.v1_16_R3.*;
 
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 
 /**
  * Effectively a copy of the NMS PathfinderGoalMeleeAttack, but modified so that zombies will not 'pause' when certain
@@ -29,6 +36,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     private int attackTimer;
 
     private PathEntity currentPath;
+    private PathHandler pathHandler;
 
     public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval,
                                 float attackReach, int targetDeviation) {
@@ -37,6 +45,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.attackInterval = attackInterval;
         this.attackReach = attackReach;
         this.targetDeviation = targetDeviation;
+        this.pathHandler = new PathHandler(PathfinderEngine.async());
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
         proxy = Zombies.getInstance().getNmsProxy();
@@ -78,10 +87,14 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 //randomly offset the delay
                 this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
+                pathHandler.queueOperation(PathOperation.forEntityWalking(self.getBukkitEntity(),
+                        Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), false)),
+                        5), target.getWorld().getWorld());
 
-                PathEntity path = proxy.calculatePathTo(self, target, targetDeviation);
-                if(path != null) {
-                    currentPath = path;
+                PathHandler.Entry result = pathHandler.latestResult();
+
+                if(result != null) {
+                    currentPath = ((PathEntityWrapper_v1_16_R3)result.getResult().toPathEntity()).pathEntity();
                 }
                 else {
                     navigationCounter += 50;
