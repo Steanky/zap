@@ -109,9 +109,6 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                     currentPath = (pathResult.toPathEntity());
                     navigator.navigateAlongPath(currentPath, speed);
                 }
-                else {
-                    navigationCounter += 50;
-                }
 
                 if(currentPath != null) {
                     int nodes = currentPath.pathLength();
