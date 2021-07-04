@@ -73,7 +73,6 @@ public class BreakWindow extends ZombiesPathfinder {
 
     @Override
     public void doTick() {
-        ArenaApi.info("Ticking breakWindow");
         if(++counter == breakTicks) {
             Vector center = window.getCenter();
             if(getProxy().getDistanceToSquared(getHandle(), center.getX(), center.getY(), center.getZ()) < breakReachSquared) {

@@ -64,9 +64,11 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
 
     @Override
     public @NotNull MobNavigator overrideNavigatorFor(Mob mob) throws NoSuchFieldException, IllegalAccessException {
+        MobNavigator_v1_16_R3 customNavigator = new MobNavigator_v1_16_R3(((CraftMob)mob).getHandle(), ((CraftWorld)mob.getWorld()).getHandle());
+
         Field navigator = EntityInsentient.class.getDeclaredField("navigation");
         navigator.setAccessible(true);
-        navigator.set(((CraftMob)mob).getHandle(), navigator);
-        return new MobNavigator_v1_16_R3(((CraftMob)mob).getHandle(), ((CraftWorld)mob.getWorld()).getHandle());
+        navigator.set(((CraftMob)mob).getHandle(), customNavigator);
+        return customNavigator;
     }
 }
