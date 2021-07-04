@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
@@ -72,6 +73,7 @@ public class BreakWindow extends ZombiesPathfinder {
 
     @Override
     public void doTick() {
+        ArenaApi.info("Ticking breakWindow");
         if(++counter == breakTicks) {
             Vector center = window.getCenter();
             if(getProxy().getDistanceToSquared(getHandle(), center.getX(), center.getY(), center.getZ()) < breakReachSquared) {

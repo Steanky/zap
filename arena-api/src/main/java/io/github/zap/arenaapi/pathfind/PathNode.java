@@ -14,9 +14,9 @@ import java.util.Objects;
  * block coordinates.
  */
 public class PathNode implements Positional {
-    private final double x;
-    private final double y;
-    private final double z;
+    private final int x;
+    private final int y;
+    private final int z;
 
     private final int hash;
     private final ImmutableWorldVector position;
@@ -25,7 +25,7 @@ public class PathNode implements Positional {
     final Score score;
     PathNode parent;
 
-    private PathNode(Score score, PathNode parent, double x, double y, double z, int hash) {
+    private PathNode(Score score, PathNode parent, int x, int y, int z, int hash) {
         this.score = score;
         this.parent = parent;
         this.x = x;
@@ -35,19 +35,19 @@ public class PathNode implements Positional {
         position = VectorAccess.immutable(x, y, z);
     }
 
-    PathNode(@NotNull Score score, @Nullable PathNode parent, double x, double y, double z) {
+    PathNode(@NotNull Score score, @Nullable PathNode parent, int x, int y, int z) {
         this(score, parent, x, y, z, Objects.hash(x, y, z));
     }
 
     PathNode(@Nullable PathNode parent, @NotNull PathAgent agent) {
-        this(new Score(), parent, agent.x(), agent.y(), agent.z());
+        this(new Score(), parent, agent.blockX(), agent.blockY(), agent.blockZ());
     }
 
     PathNode(@Nullable PathNode parent, @NotNull Vector vector) {
-        this(new Score(), parent, vector.getX(), vector.getY(), vector.getZ());
+        this(new Score(), parent, vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
-    PathNode(@Nullable PathNode parent, double x, double y, double z) {
+    PathNode(@Nullable PathNode parent, int x, int y, int z) {
         this(new Score(), parent, x, y, z);
     }
 
@@ -71,15 +71,11 @@ public class PathNode implements Positional {
         return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", score=" + score + "}";
     }
 
-    public @NotNull PathNode chainOffset(double x, double y, double z) {
-        return new PathNode(new Score(), this, this.x + x, this.y + y, this.z + z);
-    }
-
     public @NotNull PathNode chain(@NotNull VectorAccess other) {
-        return chain(other.x(), other.y(), other.z());
+        return chain(other.blockX(), other.blockY(), other.blockZ());
     }
 
-    public @NotNull PathNode chain(double x, double y, double z) {
+    public @NotNull PathNode chain(int x, int y, int z) {
         return new PathNode(new Score(), this, x, y, z);
     }
 

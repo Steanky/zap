@@ -93,14 +93,10 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
             if(++locateInitial == 20) {
                 locateInitial = 0;
 
-                if(!handler.isWorking()) {
-                    ArenaApi.info("Queued operation...");
-                    handler.queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
-                            new HashSet<>(arena.getPlayerMap().values()), 5), arena.getWorld());
-                }
+                handler.queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
+                        new HashSet<>(arena.getPlayerMap().values()), 5), arena.getWorld());
 
                 if(handler.isComplete()) {
-                    ArenaApi.info("Operation complete.");
                     PathHandler.Entry latestResult = handler.takeResult();
 
                     if(latestResult != null) {

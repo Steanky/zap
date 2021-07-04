@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
@@ -61,14 +62,14 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private PathNode walkDirectional(PathfinderContext context, PathNode node, Direction direction) {
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
-        BoundingBox agentBounds = agent.characteristics().getBounds().shift(node.add(blockOffset, 0, blockOffset).asBukkit());
+        BoundingBox agentBoundsAtNode = agent.characteristics().getBounds().shift(node.add(blockOffset, 0, blockOffset).asBukkit());
 
-        switch (determineType(context, agentBounds, direction, walkingTo, node)) {
+        switch (determineType(context, agentBoundsAtNode, direction, walkingTo, node)) {
             case FALL:
-                ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo, agentBounds, direction);
+                ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo, agentBoundsAtNode, direction);
                 return fallVec == null ? null : node.chain(fallVec);
             case INCREASE:
-                MutableWorldVector jumpVec = jumpTest(agentBounds, context.blockProvider(), walkingTo, direction);
+                ImmutableWorldVector jumpVec = jumpTest(agentBoundsAtNode, context.blockProvider(), walkingTo, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
                 return node.chain(walkingTo);
@@ -101,6 +102,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
 
                 //this should never happen, but if it somehow does, ignore the node
+                ArenaApi.warning("Couldn't find highestSnapshot; ignoring node");
                 return JunctionType.IGNORE;
             }
 
@@ -108,7 +110,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
     }
 
-    private MutableWorldVector jumpTest(BoundingBox agentBounds, BlockCollisionProvider provider,
+    private ImmutableWorldVector jumpTest(BoundingBox agentBounds, BlockCollisionProvider provider,
                                         ImmutableWorldVector start, Direction direction) {
         double jumpHeightRequired = start.blockY() - start.y();
         double headroom = 0;
@@ -180,7 +182,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
                 ImmutableWorldVector jumpedVector = start.add(0, jumpHeightRequired, 0);
                 if(!collidesMovingAlong(jumpedAgent, provider, direction, jumpedVector)) {
-                    return jumpedVector.asMutable();
+                    return jumpedVector.asImmutable();
                 }
                 else {
                     return null;

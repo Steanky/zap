@@ -94,11 +94,10 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 if(result != null) {
                     PathResult pathResult = result.getResult();
                     currentPath = ((PathEntityWrapper_v1_16_R3)pathResult.toPathEntity()).pathEntity();
-                    PathEntity comparison = proxy.calculatePathTo(self, target, 1);
-                    ArenaApi.info("T");
-                    if(result.getResult().state() == PathOperation.State.FAILED) {
+                    //PathEntity comparison = proxy.calculatePathTo(self, target, 1);
 
-                    }
+                    ArenaApi.info("Path length: " + currentPath.getPoints().size());
+                    ArenaApi.info("Visited nodes: " + pathResult.visitedNodes().size());
                 }
                 else {
                     navigationCounter += 50;

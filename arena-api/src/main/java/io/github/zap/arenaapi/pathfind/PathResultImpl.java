@@ -80,6 +80,7 @@ class PathResultImpl implements PathResult {
         for(PathNode node : pathNodes) {
             PathPointWrapper point = bridge.makePathPoint(node);
             point.setParent(previous);
+
             wrapper.add(point);
             previous = point;
         }

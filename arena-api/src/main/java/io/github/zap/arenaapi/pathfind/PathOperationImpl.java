@@ -71,7 +71,6 @@ class PathOperationImpl implements PathOperation {
                 bestFound = currentNode.copy();
             }
 
-
             PathDestination best = null;
             double bestScore = Double.POSITIVE_INFINITY;
 
@@ -95,6 +94,7 @@ class PathOperationImpl implements PathOperation {
 
             visited.put(currentNode, currentNode);
             nodeProvider.generateNodes(sampleBuffer, currentNode);
+
             for(PathNode sample : sampleBuffer) {
                 if(sample == null) {
                     break;
@@ -187,6 +187,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     private void complete(boolean success) {
+        state = success ? State.FAILED : State.SUCCEEDED;
         result = new PathResultImpl(success ? currentNode.reverse() : bestFound.reverse(), this, visited,
                 bestDestination, state);
     }

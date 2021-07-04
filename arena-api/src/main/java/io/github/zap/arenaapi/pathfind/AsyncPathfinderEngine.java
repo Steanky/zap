@@ -245,8 +245,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     break;
                                 }
 
-                                entry.consumer.accept(result);
                                 removeOperation(context, i);
+                                entry.consumer.accept(result);
                                 break;
                             }
 
