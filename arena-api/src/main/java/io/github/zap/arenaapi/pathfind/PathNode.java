@@ -35,19 +35,23 @@ public class PathNode implements Positional {
         position = VectorAccess.immutable(x, y, z);
     }
 
-    PathNode(@NotNull Score score, @Nullable PathNode parent, int x, int y, int z) {
+    public PathNode(int x, int y, int z) {
+        this(new Score(), null, x, y, z, Objects.hash(x, y, z));
+    }
+
+    public PathNode(@NotNull Score score, @Nullable PathNode parent, int x, int y, int z) {
         this(score, parent, x, y, z, Objects.hash(x, y, z));
     }
 
-    PathNode(@Nullable PathNode parent, @NotNull PathAgent agent) {
+    public PathNode(@Nullable PathNode parent, @NotNull PathAgent agent) {
         this(new Score(), parent, agent.blockX(), agent.blockY(), agent.blockZ());
     }
 
-    PathNode(@Nullable PathNode parent, @NotNull Vector vector) {
+    public PathNode(@Nullable PathNode parent, @NotNull Vector vector) {
         this(new Score(), parent, vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
-    PathNode(@Nullable PathNode parent, int x, int y, int z) {
+    public PathNode(@Nullable PathNode parent, int x, int y, int z) {
         this(new Score(), parent, x, y, z);
     }
 
@@ -88,7 +92,7 @@ public class PathNode implements Positional {
         return new PathNode(score, parent, x, y, z, hash);
     }
 
-    @NotNull PathNode reverse() {
+    public @NotNull PathNode reverse() {
         PathNode current = this;
         PathNode previous = null;
 
