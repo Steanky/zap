@@ -1,12 +1,21 @@
 package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.pathfind.PathDestination;
+import io.github.zap.arenaapi.pathfind.PathHandler;
+import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.arenaapi.pathfind.PathfinderEngine;
+import io.github.zap.nms.common.pathfind.MobNavigator;
+import io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
+
+import java.util.Set;
 
 public class BreakWindow extends ZombiesPathfinder {
     private ZombiesArena arena;
@@ -20,11 +29,26 @@ public class BreakWindow extends ZombiesPathfinder {
     private final int breakCount;
     private final double breakReachSquared;
 
+    private final PathHandler handler;
+    private final MobNavigator navigator;
+
     public BreakWindow(AbstractEntity entity, int breakTicks, int breakCount, double breakReachSquared) {
         super(entity, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
+
+        handler = new PathHandler(PathfinderEngine.async());
+
+        MobNavigator navigatorTemp;
+        try {
+            navigatorTemp = ArenaApi.getInstance().getNmsBridge().entityBridge().overrideNavigatorFor((Mob)entity.getBukkitEntity());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+            navigatorTemp = null;
+        }
+
+        navigator = navigatorTemp;
     }
 
     @Override
@@ -93,7 +117,16 @@ public class BreakWindow extends ZombiesPathfinder {
         }
         else {
             getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(), destination.getZ(), 30.0F, 30.0F);
-            getProxy().navigateToLocation(getHandle(), destination.getX(), destination.getY(), destination.getZ(), 1);
+            handler.queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
+                    PathDestination.fromVector(VectorAccess.immutable(destination))), 5), arena.getWorld());
+
+            if(handler.isComplete()) {
+                PathHandler.Entry entry = handler.takeResult();
+
+                if(entry != null) {
+                    navigator.navigateAlongPath(entry.getResult().toPathEntity(), 1);
+                }
+            }
         }
     }
 }

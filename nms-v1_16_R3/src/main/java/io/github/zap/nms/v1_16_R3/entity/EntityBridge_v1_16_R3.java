@@ -69,6 +69,7 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
         Field navigator = EntityInsentient.class.getDeclaredField("navigation");
         navigator.setAccessible(true);
         navigator.set(((CraftMob)mob).getHandle(), customNavigator);
+
         return customNavigator;
     }
 }

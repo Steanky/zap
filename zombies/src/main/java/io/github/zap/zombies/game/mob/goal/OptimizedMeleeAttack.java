@@ -121,7 +121,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             }
 
             if(currentPath != null) {
-                navigator.navigateAlongPath(currentPath);
+                navigator.navigateAlongPath(currentPath, speed);
                 this.attackTimer = Math.max(this.attackTimer - 1, 0);
                 this.tryAttack(target);
             }

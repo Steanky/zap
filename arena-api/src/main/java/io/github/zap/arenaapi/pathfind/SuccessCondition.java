@@ -11,7 +11,7 @@ public interface SuccessCondition {
     /**
      * Simple termination condition: the path is complete when the agent occupies the same block as the destination.
      */
-    SuccessCondition WITHIN_BLOCK = (context, node, destination) -> node.manhattanDistance(destination) <= 1;
+    SuccessCondition WITHIN_BLOCK = (context, node, destination) -> node.manhattanDistance(destination) == 0;
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
