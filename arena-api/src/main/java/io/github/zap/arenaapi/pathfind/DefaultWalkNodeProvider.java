@@ -20,6 +20,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         IGNORE
     }
 
+    private final int MAX_FALL_TEST_ITERS = 20;
+
     private PathfinderContext context;
     private PathAgent agent;
 
@@ -203,7 +205,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                                           BoundingBox agentBounds, Direction direction) {
         BoundingBox bounds = agentBounds.clone().shift(direction.asBukkit());
 
-        while(bounds.getMinY() > 0) {
+        int iters = 0;
+        while(bounds.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
             bounds.expandDirectional(Direction.DOWN.asBukkit());
 
             List<BlockSnapshot> snapshots = provider.collidingSolids(bounds);
@@ -217,6 +220,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
                 return null;
             }
+
+            iters++;
         }
 
         return null;
@@ -260,15 +265,15 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private boolean fastDiagonalCollisionCheck(double width, double negativeWidth, int dirFac, double minX, double minZ,
                                                double maxX, double maxZ) {
         double zMinusXMin = minZ - (minX * dirFac);
-        if(!(zMinusXMin <= width)) {
-            return maxZ - (maxX * dirFac) <= width;
+        if(!(zMinusXMin < width)) {
+            return maxZ - (maxX * dirFac) < width;
         }
 
-        if(zMinusXMin >= negativeWidth) {
+        if(zMinusXMin > negativeWidth) {
             return true;
         }
 
-        return maxZ - (maxX * dirFac) >= negativeWidth;
+        return maxZ - (maxX * dirFac) > negativeWidth;
     }
 
     private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides,
