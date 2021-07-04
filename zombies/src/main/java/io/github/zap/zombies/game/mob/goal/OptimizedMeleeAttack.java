@@ -107,6 +107,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 if(result != null) {
                     PathResult pathResult = result.getResult();
                     currentPath = (pathResult.toPathEntity());
+                    navigator.navigateAlongPath(currentPath, speed);
                 }
                 else {
                     navigationCounter += 50;
@@ -121,9 +122,8 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             }
 
             if(currentPath != null) {
-                navigator.navigateAlongPath(currentPath, speed);
-                this.attackTimer = Math.max(this.attackTimer - 1, 0);
-                this.tryAttack(target);
+                attackTimer = Math.max(attackTimer - 1, 0);
+                tryAttack(target);
             }
         }
     }

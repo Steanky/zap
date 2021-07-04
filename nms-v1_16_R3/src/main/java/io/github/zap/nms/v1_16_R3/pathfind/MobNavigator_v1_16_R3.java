@@ -6,6 +6,7 @@ import net.minecraft.server.v1_16_R3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -16,8 +17,30 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
     @Override
     public void navigateAlongPath(@NotNull PathEntityWrapper pathEntityWrapper, double speed) {
-        c = ((PathEntityWrapper_v1_16_R3)pathEntityWrapper).pathEntity();
-        super.a(c, speed);
+        PathEntity newPath = ((PathEntityWrapper_v1_16_R3)pathEntityWrapper).pathEntity();
+
+        if(c != null) {
+            Vec3D currentPos = getEntity().getPositionVector();
+
+            PathPoint entityPoint = new PathPoint((int)currentPos.x, (int)currentPos.y, (int)currentPos.z);
+            for(PathPoint point : newPath.getPoints()) {
+                if(point.equals(entityPoint)) {
+                    super.a(newPath, speed);
+                    return;
+                }
+
+                if(newPath.hasNext()) {
+                    newPath.a();
+                }
+                else {
+                    break;
+                }
+            }
+
+            newPath.c(0);
+        }
+
+        super.a(newPath, speed);
     }
 
     @Override
@@ -188,7 +211,6 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
         if (!this.m()) {
             Vec3D vec3d;
             if (this.a()) {
-                System.out.println("continueFollowingPath, at valid position");
                 this.l();
             } else if (this.c != null && !this.c.c()) {
                 vec3d = this.b();
@@ -200,7 +222,6 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
             PacketDebug.a(this.b, this.a, this.c, this.l);
             if (!this.m()) {
-                System.out.println("Not idle, moving to node");
                 vec3d = this.c.a(this.a);
                 BlockPosition blockposition = new BlockPosition(vec3d);
                 this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a(this.b, blockposition), vec3d.z, this.d);

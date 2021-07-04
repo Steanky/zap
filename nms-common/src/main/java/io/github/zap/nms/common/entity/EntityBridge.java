@@ -35,7 +35,7 @@ public interface EntityBridge {
     int getEntityTypeID(@NotNull EntityType type);
 
     @NotNull PathEntityWrapper makePathEntity(@NotNull List<PathPointWrapper> pointWrappers,
-                                              @NotNull VectorAccess target, boolean reachesDestination);
+                                              @NotNull VectorAccess destination, boolean reachesDestination);
 
     @NotNull PathPointWrapper makePathPoint(@NotNull VectorAccess blockLocation);
 

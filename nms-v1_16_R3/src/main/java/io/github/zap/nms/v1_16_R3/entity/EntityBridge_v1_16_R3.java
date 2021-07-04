@@ -43,15 +43,15 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
 
     @Override
     public @NotNull PathEntityWrapper makePathEntity(@NotNull List<PathPointWrapper> pointWrappers,
-                                                     @NotNull VectorAccess target, boolean reachesDestination) {
+                                                     @NotNull VectorAccess destination, boolean reachesDestination) {
         List<PathPoint> points = new ArrayList<>();
         for(PathPointWrapper wrapper : pointWrappers) {
             PathPointWrapper_v1_16_R3 specific = (PathPointWrapper_v1_16_R3)wrapper;
             points.add(specific.pathPoint());
         }
 
-        return new PathEntityWrapper_v1_16_R3(new PathEntity(points, new BlockPosition(target.blockX(), target.blockY(),
-                target.blockZ()), reachesDestination));
+        return new PathEntityWrapper_v1_16_R3(new PathEntity(points, new BlockPosition(destination.blockX(), destination.blockY(),
+                destination.blockZ()), reachesDestination));
     }
 
     @Override

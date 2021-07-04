@@ -41,7 +41,7 @@ public class PathHandler {
 
     public @Nullable Entry takeResult() {
         if(complete.compareAndSet(true, false)) {
-            return result.get();
+            return result.getAndSet(null);
         }
 
         return null;
