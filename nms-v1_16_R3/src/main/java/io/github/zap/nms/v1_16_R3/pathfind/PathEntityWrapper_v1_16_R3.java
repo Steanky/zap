@@ -14,4 +14,9 @@ public class PathEntityWrapper_v1_16_R3 implements PathEntityWrapper {
     public PathEntity pathEntity() {
         return pathEntity;
     }
+
+    @Override
+    public int pathLength() {
+        return pathEntity.e();
+    }
 }

@@ -16,6 +16,7 @@ import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -62,7 +63,10 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
     }
 
     @Override
-    public @NotNull MobNavigator navigatorFor(Mob mob) {
+    public @NotNull MobNavigator overrideNavigatorFor(Mob mob) throws NoSuchFieldException, IllegalAccessException {
+        Field navigator = EntityInsentient.class.getDeclaredField("navigation");
+        navigator.setAccessible(true);
+        navigator.set(((CraftMob)mob).getHandle(), navigator);
         return new MobNavigator_v1_16_R3(((CraftMob)mob).getHandle(), ((CraftWorld)mob.getWorld()).getHandle());
     }
 }

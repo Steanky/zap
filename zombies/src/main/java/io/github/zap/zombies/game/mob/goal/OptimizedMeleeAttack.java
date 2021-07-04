@@ -3,11 +3,14 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
+import io.github.zap.nms.common.pathfind.MobNavigator;
+import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.entity.Mob;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.EnumSet;
 
@@ -26,6 +29,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     private final ZombiesNMSProxy proxy;
 
     protected final EntityCreature self;
+    private final MobNavigator navigator;
     private final double speed;
     private final int attackInterval;
     private final float attackReach;
@@ -33,7 +37,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
     private int navigationCounter;
     private int attackTimer;
 
-    private PathEntity currentPath;
+    private PathEntityWrapper currentPath;
     private final PathHandler pathHandler;
 
     public OptimizedMeleeAttack(EntityCreature self, double speed, int attackInterval,
@@ -48,6 +52,15 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
         proxy = Zombies.getInstance().getNmsProxy();
         navigationCounter = self.getRandom().nextInt(5);
+
+        MobNavigator tempNavigator;
+        try {
+            tempNavigator = ArenaApi.getInstance().getNmsBridge().entityBridge().overrideNavigatorFor((Mob)self.getBukkitEntity());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+            tempNavigator = null;
+        }
+        navigator = tempNavigator;
     }
 
     public boolean a() {
@@ -93,18 +106,14 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
 
                 if(result != null) {
                     PathResult pathResult = result.getResult();
-                    currentPath = ((PathEntityWrapper_v1_16_R3)pathResult.toPathEntity()).pathEntity();
-                    //PathEntity comparison = proxy.calculatePathTo(self, target, 1);
-
-                    ArenaApi.info("Path length: " + currentPath.getPoints().size());
-                    ArenaApi.info("Visited nodes: " + pathResult.visitedNodes().size());
+                    currentPath = (pathResult.toPathEntity());
                 }
                 else {
                     navigationCounter += 50;
                 }
 
                 if(currentPath != null) {
-                    int nodes = currentPath.getPoints().size();
+                    int nodes = currentPath.pathLength();
                     if(nodes >= 100) {
                         navigationCounter += nodes / 5;
                     }
@@ -112,7 +121,7 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
             }
 
             if(currentPath != null) {
-                proxy.moveAlongPath(self, currentPath, speed);
+                navigator.navigateAlongPath(currentPath);
                 this.attackTimer = Math.max(this.attackTimer - 1, 0);
                 this.tryAttack(target);
             }

@@ -39,5 +39,5 @@ public interface EntityBridge {
 
     @NotNull PathPointWrapper makePathPoint(@NotNull VectorAccess blockLocation);
 
-    @NotNull MobNavigator navigatorFor(Mob mob);
+    @NotNull MobNavigator overrideNavigatorFor(Mob mob) throws NoSuchFieldException, IllegalAccessException;
 }
