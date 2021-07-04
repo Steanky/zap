@@ -1,9 +1,11 @@
 package io.github.zap.nms.common.entity;
 
+import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -36,4 +38,6 @@ public interface EntityBridge {
                                               @NotNull VectorAccess target, boolean reachesDestination);
 
     @NotNull PathPointWrapper makePathPoint(@NotNull VectorAccess blockLocation);
+
+    @NotNull MobNavigator navigatorFor(Mob mob);
 }

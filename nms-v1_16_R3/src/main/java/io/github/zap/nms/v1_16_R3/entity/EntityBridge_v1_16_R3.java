@@ -1,13 +1,18 @@
 package io.github.zap.nms.v1_16_R3.entity;
 
 import io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
+import io.github.zap.nms.v1_16_R3.pathfind.MobNavigator_v1_16_R3;
 import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
 import io.github.zap.nms.v1_16_R3.pathfind.PathPointWrapper_v1_16_R3;
 import io.github.zap.vector.VectorAccess;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMob;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,5 +59,10 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
         pathPoint.l = PathType.WALKABLE;
         pathPoint.i = true;
         return new PathPointWrapper_v1_16_R3(pathPoint);
+    }
+
+    @Override
+    public @NotNull MobNavigator navigatorFor(Mob mob) {
+        return new MobNavigator_v1_16_R3(((CraftMob)mob).getHandle(), ((CraftWorld)mob.getWorld()).getHandle());
     }
 }
