@@ -12,6 +12,7 @@ public class PathPointWrapper_v1_16_R3 implements PathPointWrapper {
 
     public PathPointWrapper_v1_16_R3(@NotNull PathPoint pathPoint) {
         this.pathPoint = pathPoint;
+        pathPoint.i = true;
     }
 
     @Override

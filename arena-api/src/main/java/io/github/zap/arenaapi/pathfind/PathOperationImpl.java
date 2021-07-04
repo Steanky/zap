@@ -76,6 +76,7 @@ class PathOperationImpl implements PathOperation {
 
             for(PathDestination destination : destinations) {
                 if(condition.hasCompleted(context, currentNode, destination)) {
+                    bestFound = currentNode;
                     bestDestination = destination;
                     complete(true);
                     return true;
@@ -183,7 +184,6 @@ class PathOperationImpl implements PathOperation {
 
     private void complete(boolean success) {
         state = success ? State.FAILED : State.SUCCEEDED;
-        result = new PathResultImpl(success ? currentNode.reverse() : bestFound.reverse(), this, visited,
-                bestDestination, state);
+        result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
     }
 }
