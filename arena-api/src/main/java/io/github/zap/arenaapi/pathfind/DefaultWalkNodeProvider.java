@@ -20,7 +20,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         IGNORE
     }
 
-    private final int MAX_FALL_TEST_ITERS = 20;
+    private static final int MAX_FALL_TEST_ITERS = 20;
 
     private PathfinderContext context;
     private PathAgent agent;
@@ -39,10 +39,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         this.context = context;
         this.agent = agent;
 
-        blockOffset = 0.5 - (agent.characteristics().width() / 2);
-
         width = agent.characteristics().width();
         negativeWidth = -width;
+
+        blockOffset = 0.5D - (width / 2D);
     }
 
     @Override
@@ -242,7 +242,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
                     collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(width, negativeWidth,
                     dirFactor, collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()),
-                    nodePosition.blockX() + 0.5, nodePosition.blockZ() + 0.5);
+                    nodePosition.blockX(), nodePosition.blockZ());
         }
 
         return false;

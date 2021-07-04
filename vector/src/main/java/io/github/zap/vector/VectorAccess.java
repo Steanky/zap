@@ -61,15 +61,15 @@ public interface VectorAccess extends ChunkVectorAccess {
     }
 
     default int blockX() {
-        return (int) x();
+        return (int)Math.floor(x());
     }
 
     default int blockY() {
-        return (int) y();
+        return (int)Math.floor(y());
     }
 
     default int blockZ() {
-        return (int) z();
+        return (int)Math.floor(z());
     }
 
     default double manhattanDistance(double x, double y, double z) {
