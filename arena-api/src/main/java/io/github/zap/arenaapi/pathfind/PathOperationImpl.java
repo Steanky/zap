@@ -113,15 +113,10 @@ class PathOperationImpl implements PathOperation {
                 else if(sample.score.getG() < heapNode.score.getG()) {
                     sample.score.setH(heapNode.score.getH());
                     openHeap.replaceNode(heapNode.heapIndex, sample);
-
-                    if(heapNode == bestFound) {
-                        bestFound = sample;
-                        continue;
-                    }
                 }
 
                 //comparison for best path in case of inaccessible target
-                if(sample.score.getF() <= bestFound.score.getF()) {
+                if(sample.score.getH() <= bestFound.score.getH()) {
                     bestFound = sample;
                 }
             }
