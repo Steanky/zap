@@ -2,7 +2,6 @@ package io.github.zap.nms.v1_16_R3.pathfind;
 
 import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
-import io.github.zap.vector.VectorAccess;
 import net.minecraft.server.v1_16_R3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,8 +16,12 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
     @Override
     public void navigateAlongPath(@NotNull PathEntityWrapper pathEntityWrapper, double speed) {
-        super.a(((PathEntityWrapper_v1_16_R3)pathEntityWrapper).pathEntity(), speed);
+        c = ((PathEntityWrapper_v1_16_R3)pathEntityWrapper).pathEntity();
+        super.a(c, speed);
     }
+
+    @Override
+    public void j() { }
 
     @Override
     public PathEntity a(BlockPosition blockposition, int i) { return c; }
