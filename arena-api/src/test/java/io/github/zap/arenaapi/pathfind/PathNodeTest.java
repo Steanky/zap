@@ -6,7 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -14,7 +16,7 @@ public class PathNodeTest {
     private List<PathNode> testNodes = new ArrayList<>();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         PathNode node = null;
         for(int i = 0; i < 50; i++) {
             for(int j = 0; j < 50; j++) {
@@ -33,7 +35,7 @@ public class PathNodeTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         testNodes = null;
     }
 
@@ -48,7 +50,9 @@ public class PathNodeTest {
     @Test
     public void reverse() {
         PathNode reversed = testNodes.get(testNodes.size() - 1).reverse();
+
         Assert.assertTrue(deepEquals(reversed, testNodes.get(0)));
+        Assert.assertTrue(ensureOneWay(reversed));
 
         int parentCount = 0;
         while(reversed.parent != null) {
@@ -69,10 +73,22 @@ public class PathNodeTest {
             two = two.parent;
         }
 
-        if(two == null) {
-            return true;
+        return two == null;
+    }
+
+    private boolean ensureOneWay(PathNode node) {
+        Set<PathNode> previousNodes = new HashSet<>();
+        previousNodes.add(node);
+
+        while(node.parent != null) {
+            node = node.parent;
+            if(previousNodes.contains(node)) {
+                return false;
+            }
+
+            previousNodes.add(node);
         }
 
-        return false;
+        return true;
     }
 }
