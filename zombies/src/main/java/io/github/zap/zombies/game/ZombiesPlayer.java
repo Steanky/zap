@@ -738,7 +738,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         Player player = getPlayer();
 
         if(player != null) {
-            return VectorAccess.immutable(player.getLocation().toVector());
+            return VectorAccess.immutable(player.getLocation().toVector()).toBlockVector();
         }
 
         return VectorAccess.ZERO;

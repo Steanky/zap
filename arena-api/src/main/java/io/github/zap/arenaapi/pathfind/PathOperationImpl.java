@@ -56,27 +56,6 @@ class PathOperationImpl implements PathOperation {
     public boolean step(@NotNull PathfinderContext context) {
         if(state == State.STARTED) {
             if(currentNode != null) {
-                PathDestination best = null;
-                double bestScore = Double.POSITIVE_INFINITY;
-
-                for(PathDestination destination : destinations) {
-                    if(condition.hasCompleted(context, currentNode, destination)) {
-                        bestDestination = destination;
-                        complete(true);
-                        return true;
-                    }
-
-                    if(best == null || currentNode.score.getH() < bestScore) {
-                        best = destination;
-                        bestScore = currentNode.score.getH();
-                    }
-                }
-
-                if(best == null) { //couldn't find a destination
-                    complete(false);
-                    return true;
-                }
-
                 if(openHeap.size() > 0) {
                     currentNode = openHeap.takeBest();
                 }
@@ -90,6 +69,28 @@ class PathOperationImpl implements PathOperation {
                 bestDestination = destinationSelector.selectDestination(this, currentNode);
                 currentNode.score.set(0, heuristicCalculator.compute(context, currentNode, bestDestination));
                 bestFound = currentNode.copy();
+            }
+
+
+            PathDestination best = null;
+            double bestScore = Double.POSITIVE_INFINITY;
+
+            for(PathDestination destination : destinations) {
+                if(condition.hasCompleted(context, currentNode, destination)) {
+                    bestDestination = destination;
+                    complete(true);
+                    return true;
+                }
+
+                if(best == null || currentNode.score.getH() < bestScore) {
+                    best = destination;
+                    bestScore = currentNode.score.getH();
+                }
+            }
+
+            if(best == null) { //couldn't find a destination
+                complete(false);
+                return true;
             }
 
             visited.put(currentNode, currentNode);
@@ -110,7 +111,7 @@ class PathOperationImpl implements PathOperation {
                     openHeap.addNode(sample);
                 }
                 else if(sample.score.getG() < heapNode.score.getG()) {
-                    sample.score.setH(heuristicCalculator.compute(context, sample, bestDestination));
+                    sample.score.setH(heapNode.score.getH());
                     openHeap.replaceNode(heapNode.heapIndex, sample);
 
                     if(heapNode == bestFound) {
@@ -187,6 +188,6 @@ class PathOperationImpl implements PathOperation {
 
     private void complete(boolean success) {
         result = new PathResultImpl(success ? currentNode.reverse() : bestFound.reverse(), this, visited,
-                bestDestination, state = success ? State.SUCCEEDED : State.FAILED);
+                bestDestination, state);
     }
 }

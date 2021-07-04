@@ -8,7 +8,7 @@ class PathDestinationImpl implements PathDestination {
     private final ImmutableWorldVector position;
 
     PathDestinationImpl(@NotNull ImmutableWorldVector position) {
-        this.position = position;
+        this.position = VectorAccess.immutable(position.blockX(), position.blockY(), position.blockZ());
     }
 
     @Override

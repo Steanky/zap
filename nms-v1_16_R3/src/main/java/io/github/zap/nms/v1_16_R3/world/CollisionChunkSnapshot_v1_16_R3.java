@@ -2,12 +2,12 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
-import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.nms.common.world.WorldBridge;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.VectorAccess;
 import io.github.zap.vector.util.VectorHelper;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.block.Biome;
 import org.bukkit.block.data.BlockData;
@@ -33,15 +33,18 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private static final WorldBridge bridge = WorldBridge_v1_16_R3.INSTANCE;
 
     private final String worldName;
+    private final Chunk chunk;
     private final int chunkX;
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] palette;
     private final Map<Long, BlockSnapshot> collisionMap = new HashMap<>();
     private final BoundingBox chunkBounds;
+    private final int captureTick;
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
         worldName = chunk.getWorld().getName();
+        this.chunk = chunk;
         chunkX = chunk.getX();
         chunkZ = chunk.getZ();
         captureFullTime = chunk.getWorld().getFullTime();
@@ -51,6 +54,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         int originZ = chunkZ << 4;
 
         chunkBounds = new BoundingBox(originX, 0, originZ, originX + 16, 255, originZ + 16);
+        captureTick = Bukkit.getCurrentTick();
     }
 
     @Override
@@ -156,6 +160,16 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         }
 
         return shapes;
+    }
+
+    @Override
+    public int captureTick() {
+        return captureTick;
+    }
+
+    @Override
+    public @NotNull Chunk chunk() {
+        return chunk;
     }
 
     private DataPaletteBlock<IBlockData>[] loadFromChunk(net.minecraft.server.v1_16_R3.Chunk chunk) {

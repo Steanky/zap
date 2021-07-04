@@ -105,8 +105,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         //don't try to update snapshots too fast
                         boolean skipSync = false;
-                        if(context.lastSync != -1 && Bukkit.getCurrentTick() - context.lastSync
-                                < MAX_AGE_BEFORE_UPDATE) {
+                        if(context.lastSync != -1 && Bukkit.getCurrentTick() - context.lastSync < MAX_AGE_BEFORE_UPDATE) {
                             skipSync = true;
                         }
 
@@ -313,7 +312,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         if(targetContext == null) {
-            targetContext = new Context(new AsyncBlockCollisionProvider(world));
+            targetContext = new Context(new AsyncBlockCollisionProvider(world, MAX_AGE_BEFORE_UPDATE));
             targetContext.entries.add(new Entry(operation, resultConsumer));
 
             synchronized (contexts) {

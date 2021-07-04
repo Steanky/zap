@@ -1,10 +1,8 @@
 package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathHandler;
-import io.github.zap.arenaapi.pathfind.PathOperation;
-import io.github.zap.arenaapi.pathfind.PathfinderEngine;
 import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -87,16 +85,20 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
                 //randomly offset the delay
                 this.navigationCounter = 4 + this.self.getRandom().nextInt(17);
 
-                ArenaApi.info("Queued operation for OptimizedMeleeAttack");
                 pathHandler.queueOperation(PathOperation.forEntityWalking(self.getBukkitEntity(),
-                        Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), false)),
+                        Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), true)),
                         5), target.getWorld().getWorld());
 
                 PathHandler.Entry result = pathHandler.takeResult();
 
                 if(result != null) {
-                    ArenaApi.info("Result is not null");
-                    currentPath = ((PathEntityWrapper_v1_16_R3)result.getResult().toPathEntity()).pathEntity();
+                    PathResult pathResult = result.getResult();
+                    currentPath = ((PathEntityWrapper_v1_16_R3)pathResult.toPathEntity()).pathEntity();
+                    PathEntity comparison = proxy.calculatePathTo(self, target, 1);
+                    ArenaApi.info("T");
+                    if(result.getResult().state() == PathOperation.State.FAILED) {
+
+                    }
                 }
                 else {
                     navigationCounter += 50;

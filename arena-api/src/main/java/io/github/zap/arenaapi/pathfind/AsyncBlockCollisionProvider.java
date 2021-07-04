@@ -4,6 +4,8 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -16,9 +18,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
 
     private final World world;
+    private final int maxCaptureAge;
 
-    AsyncBlockCollisionProvider(@NotNull World world) {
+    AsyncBlockCollisionProvider(@NotNull World world, int maxCaptureAge) {
         this.world = world;
+        this.maxCaptureAge = maxCaptureAge;
     }
 
     @Override
@@ -37,6 +41,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
             ChunkIdentifier targetChunk = new ChunkIdentifier(world.getUID(), coordinate);
 
             if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
+                CollisionChunkSnapshot oldSnapshot = chunks.get(targetChunk);
+                if(oldSnapshot != null && Bukkit.getCurrentTick() - oldSnapshot.captureTick() < maxCaptureAge) {
+                    return;
+                }
+
                 chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
                         .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
             }

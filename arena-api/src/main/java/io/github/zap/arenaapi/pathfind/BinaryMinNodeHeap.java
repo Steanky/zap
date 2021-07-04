@@ -3,10 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -110,7 +107,7 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
-    public @Nullable PathNode nodeAt(double x, double y, double z) {//TODO: make this fast, use hash, etc
+    public @Nullable PathNode nodeAt(double x, double y, double z) { //TODO: make this fast, use hash, etc
         for(int i = 0; i < size; i++) {
             PathNode node = nodes[i];
             if(node.positionEquals(x, y, z)) {

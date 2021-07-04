@@ -52,6 +52,7 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
     public @NotNull PathPointWrapper makePathPoint(@NotNull VectorAccess blockLocation) {
         PathPoint pathPoint = new PathPoint(blockLocation.blockX(), blockLocation.blockY(), blockLocation.blockZ());
         pathPoint.l = PathType.WALKABLE;
+        pathPoint.i = true;
         return new PathPointWrapper_v1_16_R3(pathPoint);
     }
 }

@@ -132,6 +132,10 @@ public interface VectorAccess extends ChunkVectorAccess {
         return new ImmutableWorldVector(vector.getX(), vector.getY(), vector.getZ());
     }
 
+    default @NotNull ImmutableWorldVector toBlockVector() {
+        return new ImmutableWorldVector(blockX(), blockY(), blockZ());
+    }
+
     static @NotNull MutableWorldVector mutable(double x, double y, double z) {
         return new MutableWorldVector(x, y, z);
     }
