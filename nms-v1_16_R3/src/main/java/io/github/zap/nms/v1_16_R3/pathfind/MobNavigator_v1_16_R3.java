@@ -23,21 +23,27 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
             Vec3D currentPos = getEntity().getPositionVector();
 
             PathPoint entityPoint = new PathPoint((int)currentPos.x, (int)currentPos.y, (int)currentPos.z);
-            for(PathPoint point : newPath.getPoints()) {
-                if(point.equals(entityPoint)) {
+            float closestPointDistance = Float.MAX_VALUE;
+            int closestPointIndex = 0;
+            int currentIndex = 0;
+            for(PathPoint sample : newPath.getPoints()) {
+                if(sample.equals(entityPoint)) {
+                    newPath.c(currentIndex);
                     super.a(newPath, speed);
                     return;
                 }
+                else  {
+                    float distance = sample.a(entityPoint);
+                    if(distance < closestPointDistance) {
+                        closestPointDistance = distance;
+                        closestPointIndex = currentIndex;
+                    }
+                }
 
-                if(newPath.hasNext()) {
-                    newPath.a();
-                }
-                else {
-                    break;
-                }
+                currentIndex++;
             }
 
-            newPath.c(0);
+            newPath.c(closestPointIndex);
         }
 
         super.a(newPath, speed);
