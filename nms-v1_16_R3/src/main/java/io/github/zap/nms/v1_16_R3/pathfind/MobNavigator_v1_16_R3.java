@@ -10,11 +10,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
-    private PathEntity c = null;
-
     public MobNavigator_v1_16_R3(EntityInsentient entityinsentient, World world) {
         super(entityinsentient, world);
-        System.out.println("Constructing MobNavigator");
     }
 
     @Override
@@ -154,33 +151,6 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
     @Override
     public boolean setDestination(@Nullable PathEntity pathentity, double speed) {
         return false;
-    }
-
-    @Override
-    public boolean a(@Nullable PathEntity pathentity, double d0) {
-        if (pathentity == null) {
-            this.c = null;
-            return false;
-        } else {
-            if (!pathentity.a(this.c)) {
-                this.c = pathentity;
-            }
-
-            if (this.m()) {
-                return false;
-            } else {
-                this.D_();
-                if (this.c.e() <= 0) {
-                    return false;
-                } else {
-                    this.d = d0;
-                    Vec3D vec3d = this.b();
-                    this.f = this.e;
-                    this.g = vec3d;
-                    return true;
-                }
-            }
-        }
     }
 
     @Nullable

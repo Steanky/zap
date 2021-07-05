@@ -57,7 +57,8 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
         if(isRound) {
             //using new MetadataHelper util class; the old code would have failed if another plugin happened to register metadata to that entity
-            WaveData waveData = MetadataHelper.getMetadataFor(e.getEvent().getEntity(), Zombies.getInstance(), Zombies.SPAWNINFO_WAVE_METADATA_NAME);
+            WaveData waveData = (WaveData) MetadataHelper.getMetadataFor(e.getEvent().getEntity(), Zombies.getInstance(),
+                    Zombies.SPAWNINFO_WAVE_METADATA_NAME).value();
 
             if(waveData == chosenWave) {
                 if(deathCountUntilDrops == roundDeathCount && !isDisabledRound()) {

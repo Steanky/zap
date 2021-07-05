@@ -7,25 +7,21 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public class MetadataHelper {
     /**
      * Returns the named metadata for the specific entity, belonging to the specific plugin.
      * @param target The object for which to retrieve metadata
      * @param plugin The plugin to which the metadata belongs
      * @param metadataName The name of the metadata to retrieve
-     * @param <T> The type of the metadata
      * @return The metadata, or null if it could not be found or there was a type mismatch.
      */
-    public static <T> @Nullable T getMetadataFor(@NotNull Metadatable target, @NotNull Plugin plugin, @NotNull String metadataName) {
+    public static @Nullable MetadataValue getMetadataFor(@NotNull Metadatable target, @NotNull Plugin plugin,
+                                                         @NotNull String metadataName) {
         for(MetadataValue value : target.getMetadata(metadataName)) {
             if(value.getOwningPlugin() == plugin) {
-                try {
-                    //noinspection unchecked
-                    return (T)value.value();
-                }
-                catch (ClassCastException ignored) {
-                    return null;
-                }
+                return value;
             }
         }
 

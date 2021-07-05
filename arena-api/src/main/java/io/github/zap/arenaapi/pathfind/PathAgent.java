@@ -64,8 +64,7 @@ public abstract class PathAgent implements Positional {
 
         @Override
         public boolean equals(Object obj) {
-            if(obj instanceof Characteristics) {
-                Characteristics other = (Characteristics) obj;
+            if(obj instanceof Characteristics other) {
                 return width() == other.width() && height() == other.height() && jumpHeight == other.jumpHeight;
             }
 

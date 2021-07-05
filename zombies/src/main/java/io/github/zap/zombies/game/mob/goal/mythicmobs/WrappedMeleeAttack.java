@@ -16,19 +16,16 @@ public class WrappedMeleeAttack extends MythicWrapper {
     private final double speed;
     private final int attackInterval;
     private final float attackReachSquared;
-    private final int targetDeviation;
-
-    private final WrappedZombiesPathfinder.AttributeValue[] attributes;
 
     public WrappedMeleeAttack(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
         speed = mlc.getDouble("speed", 1);
         attackInterval = mlc.getInteger("attackTicks", 20);
         attackReachSquared = mlc.getFloat("attackReachSquared", 2);
-        targetDeviation = mlc.getInteger("targetDeviation", 0);
         double knockback = mlc.getDouble("knockback", 0);
 
         ActiveMob mob = MythicMobs.inst().getAPIHelper().getMythicMobInstance(entity.getBukkitEntity());
+        WrappedZombiesPathfinder.AttributeValue[] attributes;
         if(mob != null) {
             Entity nmsEntity = getHandle();
             if(nmsEntity instanceof EntityInsentient && !getProxy().hasAttribute((EntityInsentient)nmsEntity, GenericAttributes.ATTACK_DAMAGE)) {

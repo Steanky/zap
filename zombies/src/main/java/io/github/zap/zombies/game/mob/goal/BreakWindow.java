@@ -67,14 +67,10 @@ public class BreakWindow extends StandardMetadataPathfinder {
     }
 
     @Override
-    public void onStart() {
-
-    }
+    public void onStart() { }
 
     @Override
-    public void onEnd() {
-
-    }
+    public void onEnd() { }
 
     @Override
     public void doTick() {
