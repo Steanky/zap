@@ -9,25 +9,15 @@ public interface AversionCalculator {
     AversionCalculator DEFAULT_WALK = new AversionCalculator() {
         @Override
         public double aversionForMaterial(Material material) {
-            switch (material) {
-                case SOUL_SAND:
-                case SLIME_BLOCK:
-                case HONEY_BLOCK:
-                    return 4;
-                case FIRE:
-                    return 8;
-                case COBWEB:
-                    return 16;
-                case CACTUS:
-                case SWEET_BERRY_BUSH:
-                    return 12;
-                case LAVA:
-                    return 256;
-                case WATER:
-                    return 3;
-                default:
-                    return 0;
-            }
+            return switch (material) {
+                case SOUL_SAND, SLIME_BLOCK, HONEY_BLOCK -> 4;
+                case FIRE -> 8;
+                case COBWEB -> 16;
+                case CACTUS, SWEET_BERRY_BUSH -> 12;
+                case LAVA -> 256;
+                case WATER -> 3;
+                default -> 0;
+            };
         }
 
         @Override
