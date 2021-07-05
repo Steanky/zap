@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * High level interface defining logic used to select one out of a number of destinations for pathfinding.
  */
+@FunctionalInterface
 public interface DestinationSelector {
     /**
      * Basic heuristic selector. Returns the nearest target for any given node, using a straight-line distance
