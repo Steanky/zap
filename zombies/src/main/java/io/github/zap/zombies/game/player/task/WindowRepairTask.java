@@ -5,7 +5,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.github.zap.zombies.game.task.EventToggledZombiesTask;
+import io.github.zap.zombies.game.task.ZombiesTask;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Task to repair nearby windows
  */
-public class WindowRepairTask extends EventToggledZombiesTask<PlayerToggleSneakEvent> {
+public class WindowRepairTask extends ZombiesTask {
 
     private final ZombiesPlayer player;
 
@@ -31,9 +31,14 @@ public class WindowRepairTask extends EventToggledZombiesTask<PlayerToggleSneakE
     private WindowData targetWindow = null;
 
     public WindowRepairTask(ZombiesPlayer player) {
-        super(player.getArena(), 0L, player.getArena().getMap().getWindowRepairTicks(),
-                PlayerToggleSneakEvent.class);
+        super(player.getArena(), 0L, player.getArena().getMap().getWindowRepairTicks());
         this.player = player;
+
+        arena.getProxyFor(PlayerToggleSneakEvent.class).registerHandler(args -> {
+            if (args.getEvent().getPlayer().equals(player.getPlayer())) {
+                repairOn = args.getEvent().isSneaking();
+            }
+        });
     }
 
     @Override
@@ -161,13 +166,6 @@ public class WindowRepairTask extends EventToggledZombiesTask<PlayerToggleSneakE
             PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
             mapStats.setWindowsRepaired(mapStats.getWindowsRepaired() + 1);
             }, PlayerGeneralStats::new);
-    }
-
-    @Override
-    public void onEvent(@NotNull PlayerToggleSneakEvent event) {
-        if (event.getPlayer().equals(player.getPlayer())) {
-            repairOn = event.isSneaking();
-        }
     }
 
     @Override

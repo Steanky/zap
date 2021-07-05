@@ -2,7 +2,7 @@ package io.github.zap.zombies.game.player.task;
 
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.github.zap.zombies.game.task.EventToggledZombiesTask;
+import io.github.zap.zombies.game.task.ZombiesTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Task to revive nearby players
  */
-public class ReviveTask extends EventToggledZombiesTask<PlayerToggleSneakEvent> {
+public class ReviveTask extends ZombiesTask {
 
     private final ZombiesPlayer player;
 
@@ -21,8 +21,14 @@ public class ReviveTask extends EventToggledZombiesTask<PlayerToggleSneakEvent> 
     private boolean reviveOn = false;
 
     public ReviveTask(@NotNull ZombiesPlayer player) {
-        super(player.getArena(), 0L, 2L, PlayerToggleSneakEvent.class);
+        super(player.getArena(), 0L, 2L);
         this.player = player;
+
+        arena.getProxyFor(PlayerToggleSneakEvent.class).registerHandler(args -> {
+            if (args.getEvent().getPlayer().equals(player.getPlayer())) {
+                reviveOn = args.getEvent().isSneaking();
+            }
+        });
     }
 
     @Override
@@ -90,13 +96,6 @@ public class ReviveTask extends EventToggledZombiesTask<PlayerToggleSneakEvent> 
                     break;
                 }
             }
-        }
-    }
-
-    @Override
-    public void onEvent(@NotNull PlayerToggleSneakEvent event) {
-        if (event.getPlayer().equals(player.getPlayer())) {
-            reviveOn = event.isSneaking();
         }
     }
 

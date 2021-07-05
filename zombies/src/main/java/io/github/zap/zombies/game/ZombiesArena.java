@@ -38,8 +38,6 @@ import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
-import io.github.zap.zombies.game.task.EventToggledZombiesTask;
-import io.github.zap.zombies.game.task.ZombiesTask;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.map.MapStats;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
@@ -549,7 +547,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
         getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
         getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
-        getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
         getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
         getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
         getProxyFor(PlayerItemDamageEvent.class).registerHandler(this::onPlayerItemDamage);
@@ -986,22 +983,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             //disgusting! but works (allows head rotation but not movement)
             if(!args.getEvent().getFrom().toVector().equals(args.getEvent().getTo().toVector())) {
                 args.getEvent().setCancelled(true);
-            }
-        }
-    }
-
-    private void onPlayerToggleSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
-        PlayerToggleSneakEvent event = args.getEvent();
-        ZombiesPlayer managedPlayer = args.getManagedPlayer();
-
-        if (managedPlayer != null) {
-            for (ZombiesTask zombiesTask : managedPlayer.getTasks()) {
-                if (zombiesTask instanceof EventToggledZombiesTask<?>
-                        && ((EventToggledZombiesTask<?>) zombiesTask).acceptsEventClass(PlayerToggleSneakEvent.class)) {
-                    @SuppressWarnings("unchecked") EventToggledZombiesTask<PlayerToggleSneakEvent> eventToggledPlayerTask
-                            = (EventToggledZombiesTask<PlayerToggleSneakEvent>) zombiesTask;
-                    eventToggledPlayerTask.onEvent(event);
-                }
             }
         }
     }
