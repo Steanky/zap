@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.data.map.shop.tmtask;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import io.github.zap.zombies.game.shop.TeamMachine;
@@ -22,12 +22,11 @@ public class AmmoSupply extends TeamMachineTask {
         if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
             for (ZombiesPlayer otherZombiesPlayer : zombiesArena.getPlayerMap().values()) {
                 GunObjectGroup gunObjectGroup = (GunObjectGroup)
-                        otherZombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentType.GUN.name());
+                        otherZombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
 
                 if (gunObjectGroup != null) {
                     for (HotbarObject hotbarObject : gunObjectGroup.getHotbarObjectMap().values()) {
-                        if (hotbarObject instanceof Gun<?, ?>) {
-                            Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
+                        if (hotbarObject instanceof Gun<?, ?> gun) {
                             gun.refill();
                         }
                     }

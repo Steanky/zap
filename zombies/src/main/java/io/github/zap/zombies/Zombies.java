@@ -113,7 +113,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        org.bukkit.craftbukkit.libs.org.apache.commons.lang3.time.StopWatch.createStarted();
         StopWatch timer = new StopWatch();
         timer.start();
         instance = this;
@@ -209,18 +208,16 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initDependencies() throws LoadFailureException {
-        arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
-        SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
-        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, false);
+        arenaApi = ArenaApi.getDependentPlugin(PluginNames.ARENA_API, true, true);
+        SWM = ArenaApi.getDependentPlugin(PluginNames.SLIME_WORLD_MANAGER, true, true);
+        mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true,false);
     }
 
     @SafeVarargs
     private void initPathfinding(Class<? extends PathfinderAdapter>... customGoals) throws LoadFailureException {
         VolatileAIHandler handler = mythicMobs.getVolatileCodeHandler().getAIHandler();
 
-        if(handler instanceof VolatileAIHandler_v1_16_R3) {
-            VolatileAIHandler_v1_16_R3 target = (VolatileAIHandler_v1_16_R3)handler;
-
+        if(handler instanceof VolatileAIHandler_v1_16_R3 target) {
             try {
                 Field aiGoalsField = VolatileAIHandler_v1_16_R3.class.getDeclaredField("AI_GOALS");
                 aiGoalsField.setAccessible(true);

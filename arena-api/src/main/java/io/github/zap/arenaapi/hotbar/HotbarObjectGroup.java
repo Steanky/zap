@@ -2,6 +2,8 @@ package io.github.zap.arenaapi.hotbar;
 
 import lombok.Getter;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +26,9 @@ public class HotbarObjectGroup {
      * @param player The player the hotbar object group belongs to
      * @param slots The slots that the hotbar object group manages
      */
-    public HotbarObjectGroup(Player player, Set<Integer> slots) {
+    public HotbarObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots) {
         this.player = player;
+
         for (Integer slot : slots) {
             hotbarObjectMap.put(slot, createDefaultHotbarObject(player, slot));
         }
@@ -37,7 +40,7 @@ public class HotbarObjectGroup {
      * @param slot The slot of the hotbar object
      * @return The new hotbar object
      */
-    public HotbarObject createDefaultHotbarObject(Player player, int slot) {
+    public @NotNull HotbarObject createDefaultHotbarObject(@NotNull Player player, int slot) {
         return new HotbarObject(player, slot);
     }
 
@@ -51,6 +54,7 @@ public class HotbarObjectGroup {
                 hotbarObject.setVisible(visible);
             }
         }
+
         this.visible = visible;
     }
 
@@ -63,6 +67,7 @@ public class HotbarObjectGroup {
         if (hotbarObjectMap.containsKey(slot)) {
             HotbarObject remove = (replace) ? hotbarObjectMap.get(slot) : hotbarObjectMap.remove(slot);
             remove.remove();
+
             if (replace) {
                 setHotbarObject(slot, createDefaultHotbarObject(player, slot));
             }
@@ -96,11 +101,11 @@ public class HotbarObjectGroup {
      * @param slot The slot to add the hotbar object to
      * @param hotbarObject The hotbar object to add
      */
-    public void addHotbarObject(int slot, HotbarObject hotbarObject) {
+    public void addHotbarObject(int slot, @NotNull HotbarObject hotbarObject) {
         Map<Integer, HotbarObject> hotbarObjectMap = getHotbarObjectMap();
         if (!hotbarObjectMap.containsKey(slot)) {
             hotbarObjectMap.put(slot, hotbarObject);
-            hotbarObject.setVisible(isVisible());
+            hotbarObject.setVisible(visible);
         } else {
             throw new IllegalArgumentException(String.format("The HotbarObjectGroup already contains slot " +
                     "%d! (Did you mean to use setHotbarObject?)", slot));
@@ -112,7 +117,7 @@ public class HotbarObjectGroup {
      * @param slot The slot to get the hotbar object from
      * @return The hotbar object
      */
-    public HotbarObject getHotbarObject(int slot) {
+    public @Nullable HotbarObject getHotbarObject(int slot) {
         return hotbarObjectMap.get(slot);
     }
 
@@ -121,13 +126,14 @@ public class HotbarObjectGroup {
      * @param slot The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to set
      */
-    public void setHotbarObject(int slot, HotbarObject hotbarObject) {
+    public void setHotbarObject(int slot, @NotNull HotbarObject hotbarObject) {
         if (hotbarObjectMap.containsKey(slot)) {
             if (hotbarObject.getSlot() != slot) {
                 throw new IllegalArgumentException(String.format("Attempted to put a hotbar object that goes in slot " +
                         "%d in slot %d!", hotbarObject.getSlot(), slot));
             }
 
+            remove(slot, false);
             hotbarObjectMap.put(slot, hotbarObject);
 
             if (visible) {
@@ -142,7 +148,7 @@ public class HotbarObjectGroup {
     /**
      * Gets the next available slot to put an object in according to the hotbar object group's functionality
      */
-    public Integer getNextEmptySlot() {
+    public @Nullable Integer getNextEmptySlot() {
         return null;
     }
 

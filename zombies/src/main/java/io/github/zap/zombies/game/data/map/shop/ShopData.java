@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.data.map.shop;
 
-import io.github.zap.zombies.game.shop.ShopType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,7 +9,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public abstract class ShopData {
-    private final ShopType type;
+
+    private final String type;
 
     private final boolean requiresPower;
+
 }

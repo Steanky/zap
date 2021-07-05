@@ -16,6 +16,7 @@ import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.arenaapi.serialize.*;
 import io.github.zap.nms.common.NMSBridge;
 import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
+import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -54,6 +55,9 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
     @Getter
     private NMSBridge nmsBridge;
+
+    @Getter
+    private PartyPlusPlus partyPlusPlus;
 
     @Getter
     private ProtocolLib protocolLib;
@@ -119,7 +123,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     }
 
     private void initDependencies() throws LoadFailureException {
-        protocolLib = getRequiredPlugin(PluginNames.PROTOCOL_LIB, true);
+        protocolLib = getDependentPlugin(PluginNames.PROTOCOL_LIB, true,true);
+        partyPlusPlus = ArenaApi.getDependentPlugin(PluginNames.PARTY_PLUS_PLUS, false, false);
     }
 
     private void initMapper() {
@@ -195,41 +200,36 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         module.addDeserializer(type, deserializer);
     }
 
-    public static <T extends Plugin> T getRequiredPlugin(String pluginName, boolean requireEnabled)
-            throws LoadFailureException {
+    public static <T extends Plugin> T getDependentPlugin(String pluginName, boolean requireExists,
+                                                          boolean requireEnabled) throws LoadFailureException {
         Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
 
-        if(plugin != null) {
-            if(plugin.isEnabled() || !requireEnabled) {
+        if (plugin != null) {
+            if (plugin.isEnabled() || !requireEnabled) {
                 try {
                     //noinspection unchecked
-                    return (T)plugin;
+                    return (T) plugin;
+                } catch (ClassCastException ignored) {
+                    throw new LoadFailureException(String.format("ClassCastException when loading plugin %s.",
+                            pluginName));
                 }
-                catch (ClassCastException ignored) {
-                    throw new LoadFailureException(String.format("ClassCastException when loading plugin %s.", pluginName));
-                }
-            }
-            else {
+            } else if (requireExists) {
                 throw new LoadFailureException(String.format("Plugin %s is not enabled.", pluginName));
             }
         }
-        else {
+        else if (requireExists) {
             throw new LoadFailureException(String.format("Required plugin %s cannot be found.", pluginName));
         }
+
+        return null;
     }
 
     public void sendPacketToPlayer(Plugin plugin, Player player, PacketContainer packetContainer) {
         try {
             ProtocolLibrary.getProtocolManager().sendServerPacket(player, packetContainer);
         } catch (InvocationTargetException e) {
-            plugin.getLogger().log(
-                    Level.WARNING,
-                    String.format(
-                            "Error sending packet of type '%s' to player '%s'",
-                            packetContainer.getType().name(),
-                            player.getName()
-                    )
-            );
+            plugin.getLogger().log(Level.WARNING, String.format("Error sending packet of type '%s' to player '%s'",
+                    packetContainer.getType().name(), player.getName()));
         }
     }
 

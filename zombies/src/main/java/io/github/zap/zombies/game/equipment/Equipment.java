@@ -7,6 +7,7 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A piece of equipment in the hotbar
@@ -24,21 +25,26 @@ public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
 
     private final D equipmentData;
 
-    public Equipment(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
-        super(zombiesPlayer.getPlayer(), slot);
+    public Equipment(ZombiesArena zombiesArena, ZombiesPlayer player, int slot, D equipmentData) {
+        super(player.getPlayer(), slot);
+
+        if (player.getPlayer() == null) {
+            throw new IllegalArgumentException("Attempted to create an equipment for offline player "
+                    + player.getOfflinePlayer().getName() + " !");
+        }
 
         this.zombiesArena = zombiesArena;
-        this.zombiesPlayer = zombiesPlayer;
+        this.zombiesPlayer = player;
         this.localizationManager = Zombies.getInstance().getLocalizationManager();
         this.equipmentData = equipmentData;
-        setRepresentingItemStack(equipmentData.createItemStack(zombiesPlayer.getPlayer(), 0));
+        setRepresentingItemStack(equipmentData.createItemStack(player.getPlayer(), 0));
     }
 
     /**
      * Gets the current level of the equipment
      * @return The current level of the equipment
      */
-    public L getCurrentLevel() {
+    public @NotNull L getCurrentLevel() {
         return equipmentData.getLevels().get(0);
     }
 

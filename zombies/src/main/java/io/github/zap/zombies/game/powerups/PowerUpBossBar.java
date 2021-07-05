@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.text.DecimalFormat;
@@ -32,6 +33,7 @@ public class PowerUpBossBar implements Disposable, Runnable {
         updateTask = arena.runTaskTimer(0L, refreshRate, this);
         formatter = new DecimalFormat("##.#");
         arena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        arena.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
         arena.getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
         bukkitBossBar.setVisible(false);
     }
@@ -46,6 +48,15 @@ public class PowerUpBossBar implements Disposable, Runnable {
 
     private void onPlayerJoin(ManagingArena.PlayerListArgs playerListArgs) {
         playerListArgs.getPlayers().forEach(bukkitBossBar::addPlayer);
+    }
+
+    private void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs playerListArgs) {
+        for (ZombiesPlayer player : playerListArgs.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
+            if (bukkitPlayer != null) {
+                bukkitBossBar.addPlayer(player.getPlayer());
+            }
+        }
     }
 
     @Override

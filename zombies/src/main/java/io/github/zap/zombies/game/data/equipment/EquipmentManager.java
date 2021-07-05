@@ -5,6 +5,8 @@ import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -21,33 +23,36 @@ public interface EquipmentManager {
      * @param <D> The type of the data used for the equipment
      * @param <L> The type of the levels used by the equipment
      */
-    <D extends EquipmentData<L>, L> void addEquipmentType(String equipmentType, Class<D> dataClass,
-                                                          EquipmentCreator.EquipmentMapping<D, L> equipmentMapping);
+    <D extends EquipmentData<L>, L> void addEquipmentType(@NotNull String equipmentType, @NotNull Class<D> dataClass,
+                                                          @NotNull EquipmentCreator
+                                                                  .EquipmentMapping<D, L> equipmentMapping);
     /**
      * Gets a piece of equipment data
      * @param mapName The name of the map the equipment will be used in
      * @param name The name that the equipment data belongs to
      * @return The equipment data
      */
-    EquipmentData<?> getEquipmentData(String mapName, String name);
+    @Nullable EquipmentData<?> getEquipmentData(@NotNull String mapName, @NotNull String name);
 
     /**
      * Creates a piece of equipment
      * @param <D> The type of the data used for the equipment
      * @param <L> The type of the levels used for the equipment
-     * @param zombiesArena The zombies arena to create the equipment in
+     * @param arena The zombies arena to create the equipment in
      * @param player The player to create the equipment for
      * @param slot The slot the equipment will go in
      * @param mapName The name of the map the equipment will be used in
      * @param name The name key of the equipment
      * @return The new piece of equipment
      */
-    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena, ZombiesPlayer player,
-                                                                    int slot, String mapName, String name);
+    @NotNull <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(@NotNull ZombiesArena arena,
+                                                                             @NotNull ZombiesPlayer player,
+                                                                             int slot, @NotNull String mapName,
+                                                                             @NotNull String name);
 
     /**
      * Creates a piece of equipment
-     * @param zombiesArena The zombies arena to create the equipment in
+     * @param arena The zombies arena to create the equipment in
      * @param player The player to create the equipment for
      * @param slot The slot the equipment will go in
      * @param equipmentData The equipment data to create the equipment with
@@ -55,8 +60,10 @@ public interface EquipmentManager {
      * @param <L> The type of the levels used for the equipment
      * @return The new piece of equipment
      */
-    <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(ZombiesArena zombiesArena, ZombiesPlayer player,
-                                                                    int slot, D equipmentData);
+    @NotNull <D extends EquipmentData<L>, L> Equipment<D, L> createEquipment(@NotNull ZombiesArena arena,
+                                                                             @NotNull ZombiesPlayer player,
+                                                                             int slot,
+                                                                             @NotNull D equipmentData);
 
     /**
      * Creates an equipment object group based on its equipment type
@@ -65,5 +72,6 @@ public interface EquipmentManager {
      * @param slots The slots allocated for the equipment object group
      * @return The new equipment object group
      */
-    EquipmentObjectGroup createEquipmentObjectGroup(String equipmentType, Player player, Set<Integer> slots);
+    @NotNull EquipmentObjectGroup createEquipmentObjectGroup(@NotNull String equipmentType, @NotNull Player player,
+                                                             @NotNull Set<Integer> slots);
 }

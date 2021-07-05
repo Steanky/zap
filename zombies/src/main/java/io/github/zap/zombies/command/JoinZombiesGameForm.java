@@ -1,6 +1,5 @@
 package io.github.zap.zombies.command;
 
-import com.google.common.collect.Lists;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
@@ -13,8 +12,12 @@ import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.party.PartyPlusPlus;
+import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
 import org.bukkit.entity.Player;
+
+import java.util.Collections;
 
 public class JoinZombiesGameForm extends CommandForm<Joinable> {
     private static final Parameter[] parameters = new Parameter[] {
@@ -23,9 +26,10 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
             new Parameter("^([a-zA-Z0-9_ ]+)$", "[map-name]")
     };
 
-    private static final CommandValidator<Joinable, ?> validator = new CommandValidator<>((context, arguments, previousData) -> {
-        String managerName = (String)arguments[1];
-        String mapName = (String)arguments[2];
+    private static final CommandValidator<Joinable, ?> validator = new CommandValidator<>((context, arguments,
+                                                                                           previousData) -> {
+        String managerName = (String) arguments[1];
+        String mapName = (String) arguments[2];
 
         ArenaManager<?> arenaManager = ArenaApi.getInstance().getArenaManager(managerName);
 
@@ -34,12 +38,24 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
                     managerName), null);
         }
 
-        if(!arenaManager.hasMap(mapName)) {
+        if (!arenaManager.hasMap(mapName)) {
             return ValidationResult.of(false, String.format("A map named '%s' does not exist for " +
                     "ArenaManager '%s'", mapName, managerName), null);
         }
 
-        return ValidationResult.of(true, null, new SimpleJoinable(Lists.newArrayList(previousData)));
+        Joinable joinable = null;
+        PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
+        if (partyPlusPlus != null) {
+            Party party = partyPlusPlus.getPartyManager().getPartyForPlayer(previousData);
+            if (party != null) {
+                joinable = new SimpleJoinable(party.getOnlinePlayers());
+            }
+        }
+        if (joinable == null) {
+            joinable = new SimpleJoinable(Collections.singletonList(previousData));
+        }
+
+        return ValidationResult.of(true, null, joinable);
     }, Validators.PLAYER_EXECUTOR);
 
     public JoinZombiesGameForm() {

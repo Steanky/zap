@@ -4,17 +4,19 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.event.EmptyEventArgs;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.perk.FastRevive;
-import io.github.zap.zombies.game.perk.PerkType;
-import io.github.zap.zombies.game.perk.SpeedPerk;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
+import io.github.zap.zombies.game.equipment.perk.FastRevive;
+import io.github.zap.zombies.game.equipment.perk.Speed;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
@@ -86,6 +88,7 @@ public class Corpse {
             zombiesArena.getCorpses().add(this);
             zombiesArena.getAvailableCorpses().add(this);
             zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+            zombiesArena.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
 
             spawnDeadBody();
             startDying();
@@ -127,7 +130,28 @@ public class Corpse {
                     Bukkit.getScheduler().cancelTask(deathTaskId);
                 }
 
-                reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
+                boolean anyFastRevive = false;
+                HotbarManager hotbarManager = reviver.getHotbarManager();
+                HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                        .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+
+                if (hotbarObjectGroup != null) {
+                    for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                        if (hotbarObject instanceof FastRevive fastRevive) {
+                            reviveTime = Math.max(reviver.getArena().getMap()
+                                    .getDefaultReviveTime() - fastRevive.getReducedReviveTime(), 0);
+
+                            anyFastRevive = true;
+
+                            break;
+                        }
+                    }
+                }
+
+                if (!anyFastRevive) {
+                    reviveTime = reviver.getArena().getMap().getDefaultReviveTime();
+                }
+
                 hologram.updateLine(1, ChatColor.RED + "Reviving...");
             }
 
@@ -152,14 +176,8 @@ public class Corpse {
 
                     ZombiesArena zombiesArena = reviver.getArena();
                     MapData map = zombiesArena.getMap();
-                    PotionEffect speedEffect = new PotionEffect(
-                            PotionEffectType.SPEED,
-                            map.getReviveSpeedTicks(),
-                            map.getReviveSpeedLevel(),
-                            true,
-                            false,
-                            false
-                    );
+                    PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED, map.getReviveSpeedTicks(),
+                            map.getReviveSpeedLevel(), true, false, false);
                     reviverPlayer.addPotionEffect(speedEffect);
 
                     zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
@@ -168,9 +186,18 @@ public class Corpse {
                         mapStats.setPlayersRevived(mapStats.getPlayersRevived() + 1);
                     }, PlayerGeneralStats::new);
 
-                    SpeedPerk speedPerk = (SpeedPerk) reviver.getPerks().getPerk(PerkType.SPEED);
-                    zombiesArena.runTaskLater(map.getReviveSpeedTicks(),
-                            () -> speedPerk.execute(EmptyEventArgs.getInstance()));
+                    HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                    HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                            .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+
+                    if (hotbarObjectGroup != null) {
+                        for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                            if (hotbarObject instanceof Speed speed) {
+                                speed.activate();
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 destroy();
@@ -262,6 +289,13 @@ public class Corpse {
         }
     }
 
+    private void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs playerListArgs) {
+        for (ZombiesPlayer player : playerListArgs.getPlayers()) {
+            spawnDeadBodyForPlayer(zombiesPlayer.getPlayer());
+            hologram.renderToPlayer(zombiesPlayer.getPlayer());
+        }
+    }
+
     private void sendPacketToPlayer(PacketContainer packetContainer, Player player) {
         ArenaApi.getInstance().sendPacketToPlayer(Zombies.getInstance(), player, packetContainer);
     }
@@ -292,13 +326,9 @@ public class Corpse {
         sendPacketToPlayer(createSleepingPacketContainer(), player);
         addCorpseToScoreboardTeamForPlayer(player);
 
-        zombiesPlayer.getArena().runTaskLater(
-                1L,
-                () -> sendPacketToPlayer(
-                        createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER),
-                        player
-                )
-        );
+        zombiesPlayer.getArena().runTaskLater(1L,
+                () -> sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER),
+                        player));
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
@@ -306,19 +336,19 @@ public class Corpse {
         packetContainer.getPlayerInfoAction().write(0, playerInfoAction);
 
         WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, uniqueId.toString().substring(0, 16));
-        WrappedSignedProperty skin = nmsProxy.getSkin(zombiesPlayer.getPlayer());
-        if (skin != null) {
-            wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+
+        Player player = zombiesPlayer.getPlayer();
+        if (player != null) {
+            WrappedSignedProperty skin = nmsProxy.getSkin(zombiesPlayer.getPlayer());
+            if (skin != null) {
+                wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+            }
         }
 
-        packetContainer.getPlayerInfoDataLists().write(0, Collections.singletonList(
-                new PlayerInfoData(
-                        wrappedGameProfile,
-                        0,
+        packetContainer.getPlayerInfoDataLists().write(0,
+                Collections.singletonList(new PlayerInfoData(wrappedGameProfile, 0,
                         EnumWrappers.NativeGameMode.NOT_SET,
-                        WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16))
-                ))
-        );
+                        WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16)))));
 
         return packetContainer;
     }
@@ -388,6 +418,7 @@ public class Corpse {
         terminate();
         zombiesArena.getCorpses().remove(this);
         zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        zombiesArena.getPlayerRejoinEvent().removeHandler(this::onPlayerRejoin);
     }
 
     @Override

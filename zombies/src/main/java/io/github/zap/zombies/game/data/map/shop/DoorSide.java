@@ -15,6 +15,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class DoorSide {
+
    private int cost = 0;
 
    private List<String> opensTo = new ArrayList<>();
@@ -28,4 +29,5 @@ public class DoorSide {
    public DoorSide(Vector hologramLocation) {
       this.hologramLocation = hologramLocation;
    }
+
 }

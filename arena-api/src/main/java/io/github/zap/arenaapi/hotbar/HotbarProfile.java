@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.hotbar;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,7 +66,7 @@ public class HotbarProfile {
      * @param slot The slot to add the item to
      * @param itemStack The item stack to add
      */
-    public void addItem(int slot, ItemStack itemStack) {
+    public void addItem(int slot, @Nullable ItemStack itemStack) {
         addHotbarObject(slot, new HotbarObject(player, slot, itemStack));
     }
 
@@ -83,9 +84,8 @@ public class HotbarProfile {
             }
         }
 
-        throw new IllegalArgumentException(
-                String.format("The HotbarProfile does not manage slot %d, so we can't swap its ownership!", slot)
-        );
+        throw new IllegalArgumentException(String.format("The HotbarProfile does not manage slot %d, so we can't swap" +
+                " its ownership!", slot));
     }
 
     /**
@@ -189,6 +189,22 @@ public class HotbarProfile {
      */
     public HotbarObjectGroup getHotbarObjectGroup(String name) {
         return hotbarObjectGroupMap.get(name);
+    }
+
+    /**
+     * Gets a hotbar object group
+     * @param slot The slot to get the hotbar object group from
+     * @return The hotbar object group
+     */
+    public HotbarObjectGroup getHotbarObjectGroup(int slot) {
+        for (HotbarObjectGroup hotbarObjectGroup : hotbarObjectGroupMap.values()) {
+            HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+            if (hotbarObject != null) {
+                return hotbarObjectGroup;
+            }
+        }
+
+        return null;
     }
 
     /**

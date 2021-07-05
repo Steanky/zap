@@ -5,6 +5,7 @@ import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -25,17 +26,19 @@ public class LuckyChestData extends ShopData {
 
     private int cost = 1000;
 
-    public LuckyChestData(Vector chestLocation, boolean requiresPower) {
-        super(ShopType.LUCKY_CHEST, requiresPower);
+    public LuckyChestData(@NotNull Vector chestLocation, boolean requiresPower) {
+        super(ShopType.LUCKY_CHEST.name(), requiresPower);
+
         this.chestLocation = chestLocation;
     }
 
     public LuckyChestData() {
-        super(ShopType.LUCKY_CHEST, false);
+        super(ShopType.LUCKY_CHEST.name(), false);
     }
 
     public LuckyChestData(Vector chestLocation) {
-        super(ShopType.LUCKY_CHEST, false);
+        super(ShopType.LUCKY_CHEST.name(), false);
+
         this.chestLocation = chestLocation;
     }
 

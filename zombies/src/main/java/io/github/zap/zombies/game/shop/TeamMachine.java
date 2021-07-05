@@ -12,6 +12,7 @@ import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
@@ -48,56 +49,8 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
     protected void registerArenaEvents() {
         super.registerArenaEvents();
 
-        ZombiesArena zombiesArena = getZombiesArena();
-        zombiesArena.getProxyFor(InventoryClickEvent.class).registerHandler(args -> {
-            InventoryClickEvent inventoryClickEvent = args.getEvent();
-
-            if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
-                HumanEntity humanEntity = inventoryClickEvent.getWhoClicked();
-                ZombiesPlayer zombiesPlayer = zombiesArena.getPlayerMap()
-                        .get(humanEntity.getUniqueId());
-
-                if (zombiesPlayer != null) {
-                    Player bukkitPlayer = zombiesPlayer.getPlayer();
-
-                    if (bukkitPlayer != null) {
-                        inventoryClickEvent.setCancelled(true);
-                        TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
-
-                        if (teamMachineTask != null
-                                && teamMachineTask.execute(this, zombiesArena, zombiesPlayer)) {
-
-
-                            Sound sound = Sound.sound(
-                                    Key.key("minecraft:entity.player.levelup"),
-                                    Sound.Source.MASTER,
-                                    1.0F,
-                                    1.5F
-                            );
-                            for (Player player : zombiesArena.getWorld().getPlayers()) {
-                                player.sendMessage(
-                                        String.format(
-                                                "%sPlayer %s purchased %s from the Team Machine!",
-                                                ChatColor.YELLOW,
-                                                zombiesPlayer.getPlayer().getName(),
-                                                teamMachineTask.getDisplayName()
-                                        )
-                                );
-                                player.playSound(sound);
-                            }
-                            humanEntity.closeInventory();
-
-                            inventory.setItem(
-                                    inventoryClickEvent.getSlot(),
-                                    teamMachineTask.getItemStackRepresentationForTeamMachine(this)
-                            );
-
-                            onPurchaseSuccess(zombiesPlayer);
-                        }
-                    }
-                }
-            }
-        });
+        ZombiesArena zombiesArena = getArena();
+        zombiesArena.getProxyFor(InventoryClickEvent.class).registerHandler(this::onInventoryClick);
     }
 
     @Override
@@ -127,15 +80,69 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                 if (bukkitPlayer != null) {
                     if (!getShopData().isRequiresPower() || isPowered()) {
                         bukkitPlayer.openInventory(inventory);
+
                         return true;
                     } else {
-                        bukkitPlayer.sendMessage("The power is not active yet!");
+                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!",
+                                NamedTextColor.RED));
                     }
                 }
             }
         }
 
         return false;
+    }
+
+    @Override
+    public String getShopType() {
+        return ShopType.TEAM_MACHINE.name();
+    }
+
+    @Override
+    public void dispose() {
+        Property.removeMappingsFor(this);
+    }
+
+    /**
+     * Handler for inventory clicks to handle team machine events
+     * @param args The arguments passed to the handler
+     */
+    private void onInventoryClick(ZombiesArena.ProxyArgs<InventoryClickEvent> args) {
+        InventoryClickEvent inventoryClickEvent = args.getEvent();
+
+        if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
+            HumanEntity humanEntity = inventoryClickEvent.getWhoClicked();
+            ZombiesArena arena = getArena();
+            ZombiesPlayer player = arena.getPlayerMap().get(humanEntity.getUniqueId());
+
+            if (player != null) {
+                Player bukkitPlayer = player.getPlayer();
+
+                if (bukkitPlayer != null) {
+                    inventoryClickEvent.setCancelled(true);
+                    TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
+
+                    if (teamMachineTask != null
+                            && teamMachineTask.execute(this, arena, player)) {
+                        Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
+                                1.0F, 1.5F);
+                        for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {
+                            otherBukkitPlayer.sendMessage(
+                                    String.format("%sPlayer %s purchased %s from the Team Machine!", ChatColor.YELLOW,
+                                            player.getPlayer().getName(),
+                                            teamMachineTask.getDisplayName()));
+                            otherBukkitPlayer.playSound(sound);
+                        }
+                        humanEntity.closeInventory();
+
+                        inventory.setItem(inventoryClickEvent.getSlot(),
+                                teamMachineTask.getItemStackRepresentationForTeamMachine(this)); // update costs
+
+                        onPurchaseSuccess(player);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -189,16 +196,6 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
         }
 
         return inventory;
-    }
-
-    @Override
-    public ShopType getShopType() {
-        return ShopType.TEAM_MACHINE;
-    }
-
-    @Override
-    public void dispose() {
-        Property.removeMappingsFor(this);
     }
 
 }

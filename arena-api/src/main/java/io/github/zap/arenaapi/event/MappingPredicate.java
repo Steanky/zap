@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * @param <T> The input type
  * @param <U> The output type
  */
+@FunctionalInterface
 public interface MappingPredicate<T, U> {
     /**
      * Maps the provided input, validating it first. If the input is invalid, the first parameter of the returned

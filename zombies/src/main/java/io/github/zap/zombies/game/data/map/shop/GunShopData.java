@@ -2,8 +2,8 @@ package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
-import net.kyori.adventure.sound.Sound;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Data for a gun shop
@@ -21,11 +21,11 @@ public class GunShopData extends ArmorStandShopData {
     private int refillCost = 0;
 
     private GunShopData() {
-        super(ShopType.GUN_SHOP, false, null, null);
+        super(ShopType.GUN_SHOP.name(), false, null, null);
     }
 
-    public GunShopData(Vector rootLocation, Vector hologramLocation) {
-        super(ShopType.GUN_SHOP, false, rootLocation, hologramLocation);
-        Sound t = null;
+    public GunShopData(@NotNull Vector rootLocation, @NotNull Vector hologramLocation) {
+        super(ShopType.GUN_SHOP.name(), false, rootLocation, hologramLocation);
     }
+
 }

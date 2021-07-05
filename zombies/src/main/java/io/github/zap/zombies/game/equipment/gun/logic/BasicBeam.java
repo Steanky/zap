@@ -120,18 +120,24 @@ public class BasicBeam {
         Block targetBlock = null;
         Iterator<Block> iterator = new BlockIterator(world, root, directionVector, 0.0D, range);
 
-        while (iterator.hasNext()) {
+        boolean wallshot = false;
+        while (iterator.hasNext()) { // TODO: don't keep looping if it's a wallshot, just get the last block
             targetBlock = iterator.next();
 
-            if (!targetBlock.isPassable() && targetBlock.getType() != Material.BARRIER
+            if (!wallshot && !targetBlock.isPassable() && targetBlock.getType() != Material.BARRIER
                     && mapData.windowAt(targetBlock.getLocation().toVector()) == null) {
                 BoundingBox boundingBox = targetBlock.getBoundingBox();
                 if (boundingBox.getWidthX() != 1.0D
                         || boundingBox.getHeight() != 1.0D || boundingBox.getWidthZ() != 1.0D) {
-                    RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,range + 1.74);
+                    if (mapData.isAllowWallshooting()) {
+                        wallshot = true;
+                    } else {
+                        RayTraceResult rayTraceResult = boundingBox.rayTrace(root, directionVector,
+                                range + 1.74);
 
-                    if (rayTraceResult != null) {
-                        break;
+                        if (rayTraceResult != null) {
+                            break;
+                        }
                     }
                 } else {
                     break;

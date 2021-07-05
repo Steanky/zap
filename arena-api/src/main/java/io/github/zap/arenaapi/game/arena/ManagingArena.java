@@ -1,20 +1,27 @@
 package io.github.zap.arenaapi.game.arena;
 
 import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
+import io.github.zap.party.party.PartyMember;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
 import lombok.Value;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -30,7 +37,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @Getter
-public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T> {
+public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends ManagedPlayer<S, T>> extends Arena<T>
+implements Listener {
     @Value
     public static class PlayerListArgs {
         List<Player> players;
@@ -217,7 +225,9 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
         this.resourceManager = new ResourceManager(plugin);
 
         startTimeout(timeoutTicks);
-        getProxyFor(PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
+        getProxyFor( PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
+
+        Bukkit.getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
     /**
@@ -230,6 +240,51 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
 
         if(managedPlayer != null) {
             handleLeave(Lists.newArrayList(managedPlayer.getPlayer()));
+        }
+    }
+
+    /**
+     * Disables sending messages to other worlds other than the one this arena manages
+     * @param event The async chat even
+     */
+    @EventHandler
+    public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
+        // TODO: remove hard-dependency on PartyPlusPlus
+        PartyMember partyMember
+                = ArenaApi.getInstance().getPartyPlusPlus().getPartyManager().getPlayerAsPartyMember(event.getPlayer());
+        if ((partyMember == null || !partyMember.isInPartyChat()) && world.equals(event.getPlayer().getWorld())) {
+            event.recipients().removeIf(player -> !world.equals(player.getWorld()));
+            Component message = event.message();
+            if (message instanceof TextComponent textComponent) {
+                String string = textComponent.content();
+                String lowerCase = string.toLowerCase();
+
+                boolean isIAm = false;
+                int startIndex = lowerCase.indexOf("i am ");
+
+                if (startIndex != -1) {
+                    startIndex += "i am ".length();
+                    isIAm = true;
+                } else {
+                    startIndex = lowerCase.indexOf("i'm ");
+                    if (startIndex != -1) {
+                        startIndex += "i'm ".length();
+                        isIAm = true;
+                    }
+                }
+                if (isIAm) {
+                    int endIndex = string.indexOf(" ", startIndex);
+                    if (endIndex == -1) {
+                        endIndex = string.length();
+                    }
+                    int finalStartIndex = startIndex, finalEndIndex = endIndex;
+                    Bukkit.getScheduler().runTask(ArenaApi.getInstance(),
+                            () -> event.getPlayer()
+                                    .displayName(Component.text(string.substring(finalStartIndex, finalEndIndex))));
+                }
+            }
+        } else {
+            event.recipients().removeIf(player -> world.equals(player.getWorld()));
         }
     }
 
@@ -497,6 +552,8 @@ public abstract class ManagingArena<T extends ManagingArena<T, S>, S extends Man
                 bukkitEntity.remove();
             }
         }
+
+        AsyncChatEvent.getHandlerList().unregister(this);
     }
 
     /**
