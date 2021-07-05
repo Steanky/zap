@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.data.map.shop.tmtask;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.ZombiesPlayerState;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
 
 /**

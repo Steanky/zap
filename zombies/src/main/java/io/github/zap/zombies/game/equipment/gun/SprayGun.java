@@ -2,10 +2,10 @@ package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.SprayGunData;
 import io.github.zap.zombies.game.data.equipment.gun.SprayGunLevel;
 import io.github.zap.zombies.game.equipment.gun.logic.LinearBeam;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import org.bukkit.Location;
 import org.bukkit.entity.Mob;
 import org.bukkit.util.RayTraceResult;

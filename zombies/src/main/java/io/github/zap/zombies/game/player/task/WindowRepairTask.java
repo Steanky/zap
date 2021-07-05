@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
+import io.github.zap.zombies.game.task.EventToggledZombiesTask;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;

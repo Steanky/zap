@@ -2,8 +2,8 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.ChatColor;

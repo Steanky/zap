@@ -1,9 +1,9 @@
 package io.github.zap.zombies.game.equipment.melee;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.melee.BasicMeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.BasicMeleeLevel;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import org.bukkit.entity.Mob;
 
 /**

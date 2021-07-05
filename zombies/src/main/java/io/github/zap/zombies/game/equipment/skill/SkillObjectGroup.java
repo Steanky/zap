@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.equipment.skill;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroup;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;

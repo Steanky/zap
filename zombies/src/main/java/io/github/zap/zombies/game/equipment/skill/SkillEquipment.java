@@ -1,10 +1,10 @@
 package io.github.zap.zombies.game.equipment.skill;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;

@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.player.task;
+package io.github.zap.zombies.game.task;
 
 import io.github.zap.zombies.game.ZombiesArena;
 import org.bukkit.event.Event;

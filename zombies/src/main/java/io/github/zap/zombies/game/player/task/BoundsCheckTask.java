@@ -4,6 +4,7 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
+import io.github.zap.zombies.game.task.ZombiesTask;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;

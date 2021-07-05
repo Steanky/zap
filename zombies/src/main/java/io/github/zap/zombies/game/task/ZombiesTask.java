@@ -1,11 +1,11 @@
-package io.github.zap.zombies.game.player.task;
+package io.github.zap.zombies.game.task;
 
 import io.github.zap.zombies.game.ZombiesArena;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A repeating task that the player executes
+ * A repeating task that is executed by actions in a ZombiesArena
  */
 public abstract class ZombiesTask {
 

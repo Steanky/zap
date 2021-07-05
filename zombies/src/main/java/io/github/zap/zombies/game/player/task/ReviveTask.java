@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.player.task;
 
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
+import io.github.zap.zombies.game.task.EventToggledZombiesTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -43,7 +44,6 @@ public class ReviveTask extends EventToggledZombiesTask<PlayerToggleSneakEvent> 
         }
     }
 
-    
     private void attemptToContinueReviving(@NotNull Player bukkitPlayer) {
         int maxDistance = arena.getMap().getReviveRadius();
         double distance = bukkitPlayer.getLocation().toVector()
