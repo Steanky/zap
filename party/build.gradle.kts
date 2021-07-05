@@ -11,6 +11,8 @@ java {
 }
 
 repositories {
+    mavenCentral()
+    mavenLocal()
     maven(url = "https://jitpack.io")
 }
 
@@ -27,6 +29,7 @@ val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins
 dependencies {
     api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
+    shade("org.apache.commons:commons-lang3:3.12.0")
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")

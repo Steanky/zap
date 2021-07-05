@@ -7,6 +7,7 @@ import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.skills.INoTargetSkill;
 import io.lumine.xikage.mythicmobs.skills.SkillMechanic;
 import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
+import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ZombiesArenaSkill extends SkillMechanic implements INoTargetSkill {
@@ -17,11 +18,15 @@ public abstract class ZombiesArenaSkill extends SkillMechanic implements INoTarg
 
     @Override
     public boolean cast(SkillMetadata skillMetadata) {
-        ZombiesArena arena = MetadataHelper.getMetadataFor(skillMetadata.getCaster().getEntity().getBukkitEntity(),
+        MetadataValue metadata = MetadataHelper.getMetadataFor(skillMetadata.getCaster().getEntity().getBukkitEntity(),
                 Zombies.getInstance(), Zombies.ARENA_METADATA_NAME);
 
-        if(arena != null) {
-            return cast(skillMetadata, arena);
+        if(metadata != null) {
+            ZombiesArena arena = (ZombiesArena)metadata.value();
+
+            if(arena != null) {
+                return cast(skillMetadata, arena);
+            }
         }
 
         return false;

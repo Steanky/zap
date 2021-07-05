@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.mob.goal.mythicmobs;
 
+import io.github.zap.zombies.game.mob.goal.AttributeValue;
 import io.github.zap.zombies.game.mob.goal.BreakWindow;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
@@ -25,7 +26,7 @@ public class WrappedBreakWindow extends WrappedPathfindingGoal implements Pathfi
 
     @Override
     public PathfinderGoal create() {
-        return new BreakWindow(entity, breakTicks, breakCount, breakReachSquared);
+        return new BreakWindow(entity, new AttributeValue[0], breakTicks, breakCount, breakReachSquared);
     }
 
     @Override

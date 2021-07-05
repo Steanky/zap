@@ -65,9 +65,9 @@ public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
                 return String.format(">gold{Set allinvite to %s!}",
                         party.getPartySettings().isAllInvite() ? "ON" : "OFF");
             case "anyonecanjoin":
-                party.getPartySettings().setAnyoneCanJoin(Boolean.parseBoolean((String) parameters[1]));
+                party.getPartySettings().setAnyoneCanJoin(Boolean.parseBoolean((String)parameters[1]));
                 return String.format(">gold{Set anyonecanjoin to %s!}",
-                        party.getPartySettings().isAllInvite() ? "ON" : "OFF");
+                        party.getPartySettings().isAnyoneCanJoin() ? "ON" : "OFF");
             case "inviteexpirationtime":
                 try {
                     party.getPartySettings().setInviteExpirationTime(Long.parseLong((String) parameters[1]));

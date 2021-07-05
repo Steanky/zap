@@ -165,15 +165,9 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                     tfStatus.setValue(ChatColor.RED + "QUIT");
                 } else {
                     switch (player.getState()) {
-                        case DEAD:
-                            tfStatus.setValue(ChatColor.RED + "DEAD");
-                            break;
-                        case KNOCKED:
-                            tfStatus.setValue(ChatColor.YELLOW + "REVIVE");
-                            break;
-                        case ALIVE:
-                            tfStatus.setValue(ChatColor.GOLD + "" + player.getCoins());
-                            break;
+                        case DEAD -> tfStatus.setValue(ChatColor.RED + "DEAD");
+                        case KNOCKED -> tfStatus.setValue(ChatColor.YELLOW + "REVIVE");
+                        case ALIVE -> tfStatus.setValue(ChatColor.GOLD + "" + player.getCoins());
                     }
                 }
             } else {
@@ -193,6 +187,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                             Player otherPlayer = r.getPlayer();
                             if (otherPlayer != null) {
                                 playerSb.getValue().getZombiesKillObjective().getScore(otherPlayer.getName()).setScore(r.getKills());
+                                playerSb.getValue().getHealthObjective().getScore(otherPlayer.getName()).setScore((int) otherPlayer.getHealth());
                             }
                         });
             } else {

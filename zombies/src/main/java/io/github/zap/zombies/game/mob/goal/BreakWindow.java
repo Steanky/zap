@@ -1,5 +1,9 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.pathfind.PathDestination;
+import io.github.zap.arenaapi.pathfind.PathHandler;
+import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
@@ -7,7 +11,9 @@ import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public class BreakWindow extends ZombiesPathfinder {
+import java.util.Set;
+
+public class BreakWindow extends BasicMetadataPathfinder {
     private ZombiesArena arena;
     private WindowData window;
     private Vector destination;
@@ -19,8 +25,8 @@ public class BreakWindow extends ZombiesPathfinder {
     private final int breakCount;
     private final double breakReachSquared;
 
-    public BreakWindow(AbstractEntity entity, int breakTicks, int breakCount, double breakReachSquared) {
-        super(entity, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
+    public BreakWindow(AbstractEntity entity, AttributeValue[] values, int breakTicks, int breakCount, double breakReachSquared) {
+        super(entity, values);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
@@ -61,14 +67,10 @@ public class BreakWindow extends ZombiesPathfinder {
     }
 
     @Override
-    public void onStart() {
-
-    }
+    public void onStart() { }
 
     @Override
-    public void onEnd() {
-
-    }
+    public void onEnd() { }
 
     @Override
     public void doTick() {
@@ -91,8 +93,17 @@ public class BreakWindow extends ZombiesPathfinder {
             completed = true;
         }
         else {
-            getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(), destination.getZ(), 30.0F, 30.0F);
-            getProxy().navigateToLocation(getHandle(), destination.getX(), destination.getY(), destination.getZ(), 1);
+            getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(),
+                    destination.getZ(), 30.0F, 30.0F);
+
+            getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
+                    PathDestination.fromVector(VectorAccess.immutable(destination))), 5), arena.getWorld());
+
+            PathHandler.Entry entry = getHandler().takeResult();
+
+            if(entry != null) {
+                getNavigator().navigateAlongPath(entry.result().toPathEntity(), 1);
+            }
         }
     }
 }

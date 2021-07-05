@@ -13,9 +13,7 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Manages all party logic
@@ -23,6 +21,8 @@ import java.util.Objects;
 public class PartyManager implements Listener {
 
     private final Map<OfflinePlayer, Party> partyMap = new HashMap<>();
+
+    private final Map<Party, Map<OfflinePlayer, Integer>> partyInvitationMap = new HashMap<>();
 
     public PartyManager() {
         Bukkit.getPluginManager().registerEvents(this, PartyPlusPlus.getInstance());
@@ -80,6 +80,14 @@ public class PartyManager implements Listener {
     public void addPlayerToParty(@NotNull Party party, @NotNull OfflinePlayer player) {
         party.addMember(player);
         partyMap.put(player, party);
+
+        Map<OfflinePlayer, Integer> map = partyInvitationMap.get(party);
+        if (map != null) {
+            Bukkit.getScheduler().cancelTask(map.remove(player));
+            if (map.isEmpty()) {
+                partyInvitationMap.remove(party);
+            }
+        }
     }
 
     /**
@@ -103,6 +111,16 @@ public class PartyManager implements Listener {
     public void disbandParty(@NotNull Party party) {
         for (OfflinePlayer player : party.disband()) {
             partyMap.remove(player);
+        }
+
+        Map<OfflinePlayer, Integer> map = partyInvitationMap.get(party);
+        if (map != null) {
+            for (Integer task : map.values()) {
+                Bukkit.getScheduler().cancelTask(task);
+            }
+            if (map.isEmpty()) {
+                partyInvitationMap.remove(party);
+            }
         }
     }
 
@@ -153,7 +171,7 @@ public class PartyManager implements Listener {
 
         party.broadcastMessage(invitationNotification);
 
-        Bukkit.getScheduler().runTaskLater(PartyPlusPlus.getInstance(), () -> {
+        int taskId = Bukkit.getScheduler().runTaskLater(PartyPlusPlus.getInstance(), () -> {
             party.removeInvite(invitee);
 
             if (!party.hasMember(invitee.getName())) {
@@ -170,7 +188,8 @@ public class PartyManager implements Listener {
                     invitee.sendMessage(inviteeExpiration);
                 }
             }
-        }, party.getPartySettings().getInviteExpirationTime());
+        }, party.getPartySettings().getInviteExpirationTime()).getTaskId();
+        partyInvitationMap.computeIfAbsent(party, unused -> new HashMap<>()).put(invitee, taskId);
     }
 
     @EventHandler

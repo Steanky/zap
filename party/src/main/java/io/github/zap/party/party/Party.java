@@ -164,8 +164,7 @@ public class Party {
 
     private void chooseNewOwner() {
         List<PartyMember> memberArray = members.values().stream()
-                .filter(member -> member.getPlayer().isOnline() && !owner.equals(member))
-                .collect(Collectors.toUnmodifiableList());
+                .filter(member -> member.getPlayer().isOnline() && !owner.equals(member)).toList();
 
         if (memberArray.size() > 0) {
             owner = memberArray.get(RANDOM.nextInt(memberArray.size()));
@@ -285,7 +284,7 @@ public class Party {
      */
     public @NotNull List<Player> getOnlinePlayers() {
         return members.values().stream().map(PartyMember::getPlayer).filter(OfflinePlayer::isOnline)
-                .map(player -> (Player) player).toList();
+                .map(player -> (Player) player).collect(Collectors.toList());
     }
 
     /**

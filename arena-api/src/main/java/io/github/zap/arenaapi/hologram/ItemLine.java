@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.zap.arenaapi.proxy.NMSProxy;
+import io.github.zap.nms.common.NMSBridge;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -21,12 +22,12 @@ public class ItemLine extends HologramLine<Material> {
 
     @Override
     protected PacketContainer createSpawnPacketContainer() {
-        NMSProxy nmsProxy = getNmsProxy();
+        NMSBridge nmsBridge = getBridge();
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
         packetContainer.getIntegers().write(0, getEntityId());
-        packetContainer.getIntegers().write(1, nmsProxy.getEntityTypeId(EntityType.DROPPED_ITEM));
-        packetContainer.getUUIDs().write(0, nmsProxy.randomUUID());
+        packetContainer.getIntegers().write(1, nmsBridge.entityBridge().getEntityTypeID(EntityType.DROPPED_ITEM));
+        packetContainer.getUUIDs().write(0, nmsBridge.entityBridge().randomUUID());
 
         Location location = getLocation();
 

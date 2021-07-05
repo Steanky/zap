@@ -337,7 +337,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 }
                 catch (IllegalArgumentException ignored) {
                     Zombies.warning("Attempted to set velocity for entity " + target.getUniqueId() + " to a vector " +
-                            "with a non-finite value " + resultingVelocity.toString());
+                            "with a non-finite value " + resultingVelocity);
                 }
 
                 damager.onDealsDamage(with, target, deltaHealth);
@@ -1314,18 +1314,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
      */
     private void loadShops() {
         for (ShopData shopData : map.getShops()) {
-            Shop<?> shop = shopManager.createShop(this, shopData);
-            shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
-            getShopEvent(shop.getShopType());
-            shop.display();
+            if (shopData != null) {
+                Shop<?> shop = shopManager.createShop(this, shopData);
+                shops.add(shop);
+                shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
+                getShopEvent(shop.getShopType());
+                shop.display();
+            }
         }
 
         for(DoorData doorData : map.getDoors()) {
-            Shop<DoorData> shop = shopManager.createShop(this, doorData);
-            shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
-            shop.display();
+            if (doorData != null) {
+                Shop<DoorData> shop = shopManager.createShop(this, doorData);
+                shops.add(shop);
+                shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
+                shop.display();
+            }
         }
         getShopEvent(ShopType.DOOR.name());
 
@@ -1334,15 +1338,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             getResourceManager().addDisposable(teamMachine);
         }
 
-        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
-        if (chestEvent != null) {
+        Event<ShopEventArgs> chestEvent = getShopEvent(ShopType.LUCKY_CHEST.name());
+        List<Shop<?>> shopMapChests = shopMap.get(ShopType.LUCKY_CHEST.name());
+        if (chestEvent != null && shopMapChests != null) {
             chestEvent.registerHandler(new EventHandler<>() {
 
                 private final Random random = new Random();
                 int rolls = 0;
-
                 {
-                    List<Shop<?>> chests = new ArrayList<>(shopMap.get(ShopType.LUCKY_CHEST.name()));
+                    List<Shop<?>> chests = new ArrayList<>(shopMapChests);
 
                     if (map.isChestCanStartInSpawnRoom()) {
                         RoomData spawnRoom = map.roomAt(map.getSpawn());
