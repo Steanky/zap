@@ -49,11 +49,8 @@ public class WrappedZombiesPathfinder extends ZombiesPathfinder {
         this.wrappedGoal = wrappedGoal;
         this.retargetInterval = retargetInterval;
         this.locateInitial = getHandle().getRandom().nextInt(20);
-        getProxy().setDoubleFor(getHandle(), GenericAttributes.FOLLOW_RANGE, 1024F);
 
         EntityInsentient entityInsentient = getHandle();
-        entityInsentient.getNavigation().a(128F);
-
         counter = retargetInterval > 0 ? entityInsentient.getRandom().nextInt(retargetInterval) : -1;
 
         for(AttributeValue value : values) {

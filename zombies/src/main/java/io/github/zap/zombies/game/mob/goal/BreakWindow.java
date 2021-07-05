@@ -97,7 +97,8 @@ public class BreakWindow extends StandardMetadataPathfinder {
             completed = true;
         }
         else {
-            //getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(), destination.getZ(), 30.0F, 30.0F);
+            getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(),
+                    destination.getZ(), 30.0F, 30.0F);
 
             getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
                     PathDestination.fromVector(VectorAccess.immutable(destination))), 5), arena.getWorld());
