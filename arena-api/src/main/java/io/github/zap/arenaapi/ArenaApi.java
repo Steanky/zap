@@ -271,34 +271,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
-    private void onPlayerRightClick(PlayerInteractEvent event) {
-        if(event.getClickedBlock() != null && event.getHand() == EquipmentSlot.HAND) {
-            if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
-                Collection<ArmorStand> stands = event.getPlayer().getWorld().getNearbyEntitiesByType(ArmorStand.class,
-                        event.getClickedBlock().getLocation(), 80D);
-
-                if(stands.size() > 0) {
-                    PathAgent blockAgent = PathAgent.fromVector(event.getClickedBlock().getLocation().toVector(),
-                            new PathAgent.Characteristics(0.6, 1.95D));
-
-                    engine.giveOperation(PathOperation.forAgent(blockAgent,
-                            PathDestination.fromEntities(stands, false), HeuristicCalculator.DISTANCE_ONLY,
-                            SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK),
-                            DestinationSelector.CLOSEST, ChunkCoordinateProvider.squareFromCenter(blockAgent, 5)),
-                            event.getPlayer().getWorld(), (pathResult) -> Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                                for(PathNode node : pathResult) {
-                                    event.getPlayer().getWorld().getBlockAt(node.blockX(), node.blockY() - 1, node.blockZ()).setType(Material.GREEN_WOOL);
-                                }
-                            }));
-                }
-            }
-            else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE) {
-                event.getPlayer().sendMessage(Component.text(event.getClickedBlock().toString()));
-            }
-        }
-    }
-
     /**
      * Gets an iterator for every arena managed by this instance of ArenaApi.
      * @return An iterator that will iterate through each arena
