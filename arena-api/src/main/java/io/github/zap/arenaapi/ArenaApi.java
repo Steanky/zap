@@ -98,15 +98,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         engine = PathfinderEngine.async();
     }
 
-    private long average(long[] longs) {
-        long sum = 0;
-        for(long val : longs) {
-            sum += val;
-        }
-
-        return sum / longs.length;
-    }
-
     @Override
     public void onDisable() {
         for(ArenaManager<?> manager : arenaManagers.values()) {
