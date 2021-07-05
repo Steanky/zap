@@ -43,7 +43,7 @@ dependencies {
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
-    bukkitPlugin("io.lumine.xikage:MythicMobs:4.11.2")
+    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0")
     bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.5.4-SNAPSHOT")
 
     classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.5.4-SNAPSHOT")

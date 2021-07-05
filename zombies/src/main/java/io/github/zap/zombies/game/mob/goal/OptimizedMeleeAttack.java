@@ -26,8 +26,6 @@ import java.util.EnumSet;
  * Pathfinding does not use the entity pathfinding supplied by NMS; rather, it uses coordinate pathfinding.
  */
 public class OptimizedMeleeAttack extends PathfinderGoal {
-    private final ZombiesNMSProxy proxy;
-
     protected final EntityCreature self;
     private final MobNavigator navigator;
     private final double speed;
@@ -50,7 +48,6 @@ public class OptimizedMeleeAttack extends PathfinderGoal {
         this.pathHandler = new PathHandler(PathfinderEngine.async());
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
-        proxy = Zombies.getInstance().getNmsProxy();
         navigationCounter = self.getRandom().nextInt(5);
 
         MobNavigator tempNavigator;

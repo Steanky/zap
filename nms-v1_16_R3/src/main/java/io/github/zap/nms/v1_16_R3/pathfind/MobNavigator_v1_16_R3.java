@@ -6,7 +6,6 @@ import net.minecraft.server.v1_16_R3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -172,12 +171,6 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
     }
 
     @Override
-    protected void a(Vec3D vec3d) {
-        //idk what this does
-        //super.a(vec3d);
-    }
-
-    @Override
     public void stopPathfinding() { }
 
     @Override
@@ -206,32 +199,4 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
     @Override
     public void b(BlockPosition blockposition) { }
-
-    @Override
-    protected void D_() { }
-
-    @Override
-    public void c() {
-        ++this.e;
-
-        if (!this.m()) {
-            Vec3D vec3d;
-            if (this.a()) {
-                this.l();
-            } else if (this.c != null && !this.c.c()) {
-                vec3d = this.b();
-                Vec3D vec3d1 = this.c.a(this.a);
-                if (vec3d.y > vec3d1.y && !this.a.isOnGround() && MathHelper.floor(vec3d.x) == MathHelper.floor(vec3d1.x) && MathHelper.floor(vec3d.z) == MathHelper.floor(vec3d1.z)) {
-                    this.c.a();
-                }
-            }
-
-            PacketDebug.a(this.b, this.a, this.c, this.l);
-            if (!this.m()) {
-                vec3d = this.c.a(this.a);
-                BlockPosition blockposition = new BlockPosition(vec3d);
-                this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a(this.b, blockposition), vec3d.z, this.d);
-            }
-        }
-    }
 }
