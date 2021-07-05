@@ -147,7 +147,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 double newSpillover = spillover - 1;
 
                 if(newSpillover < 0) {
-                    jumpHeightRequired += Math.abs(newSpillover);
+                    jumpHeightRequired -= newSpillover;
                     spillover = 0;
                 }
                 else {
