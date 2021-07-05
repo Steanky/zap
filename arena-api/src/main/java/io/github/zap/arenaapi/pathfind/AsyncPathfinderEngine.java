@@ -67,8 +67,9 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
     }
 
-    private final ExecutorService pathWorker = Executors.newCachedThreadPool();
-    private final ExecutorCompletionService<Context> completionService = new ExecutorCompletionService<>(pathWorker);
+    private final ExecutorCompletionService<Context> completionService =
+            new ExecutorCompletionService<>(Executors.newCachedThreadPool());
+
     private final Queue<Context> contexts = new ConcurrentLinkedQueue<>();
     private final Semaphore contextsSemaphore = new Semaphore(0);
     private final Queue<Context> removalQueue = new ArrayDeque<>();

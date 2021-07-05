@@ -31,7 +31,7 @@ public class BinaryMinNodeHeapTest {
 
     @Test
     public void testPeekBest() {
-        Assert.assertTrue(heap.size() > 0);
+        Assert.assertFalse(heap.isEmpty());
 
         PathNode node = heap.peekBest();
         Assert.assertNotNull(node);
@@ -44,7 +44,7 @@ public class BinaryMinNodeHeapTest {
     @Test
     public void testTakeBest() {
         int size = heap.size();
-        Assert.assertTrue(size > 0);
+        Assert.assertFalse(heap.isEmpty());
 
         PathNode node = heap.peekBest();
         PathNode nodeTaken = heap.takeBest();
@@ -58,7 +58,7 @@ public class BinaryMinNodeHeapTest {
     @Test
     public void testAddNode() {
         int size = heap.size();
-        Assert.assertTrue(size > 0);
+        Assert.assertFalse(heap.isEmpty());
 
         PathNode node = new PathNode(null, new Vector(0, 0, 0));
         node.score.set(1000, 1000);
@@ -72,7 +72,7 @@ public class BinaryMinNodeHeapTest {
     @Test
     public void testUpdateNode() {
         int size = heap.size();
-        Assert.assertTrue(size > 0);
+        Assert.assertFalse(heap.isEmpty());
 
         for(int i = 0; i < size; i++) {
             PathNode node = heap.nodeAt(i);
@@ -90,7 +90,7 @@ public class BinaryMinNodeHeapTest {
     @Test
     public void ensureHeapInvariant() {
         int size = heap.size();
-        Assert.assertTrue(size > 0);
+        Assert.assertFalse(heap.isEmpty());
 
         PathNode[] nodes = heap.internalArray();
         for(int i = 0; i < size; i++) {
@@ -106,7 +106,7 @@ public class BinaryMinNodeHeapTest {
 
     @Test
     public void testIteration() {
-        Assert.assertTrue(heap.size() > 0);
+        Assert.assertFalse(heap.isEmpty());
 
         List<PathNode> nodes = new ArrayList<>();
         while(heap.size() > 0) {
