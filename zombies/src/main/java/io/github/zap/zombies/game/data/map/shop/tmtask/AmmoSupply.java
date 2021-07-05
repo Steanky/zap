@@ -2,10 +2,10 @@ package io.github.zap.zombies.game.data.map.shop.tmtask;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
 
 /**

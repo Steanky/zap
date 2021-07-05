@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.scoreboards;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

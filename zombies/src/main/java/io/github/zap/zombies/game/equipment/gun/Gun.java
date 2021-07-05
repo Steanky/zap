@@ -2,10 +2,10 @@ package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import lombok.Getter;
