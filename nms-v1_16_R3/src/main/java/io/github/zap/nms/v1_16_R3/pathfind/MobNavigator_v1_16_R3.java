@@ -10,8 +10,11 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
+    private PathEntity c = null;
+
     public MobNavigator_v1_16_R3(EntityInsentient entityinsentient, World world) {
         super(entityinsentient, world);
+        System.out.println("Constructing MobNavigator");
     }
 
     @Override
@@ -28,7 +31,7 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
             for(PathPoint sample : newPath.getPoints()) {
                 if(sample.equals(entityPoint)) {
                     newPath.c(currentIndex);
-                    super.a(newPath, speed);
+                    a(newPath, speed);
                     return;
                 }
                 else  {
@@ -45,7 +48,7 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
             newPath.c(closestPointIndex);
         }
 
-        super.a(newPath, speed);
+        a(newPath, speed);
     }
 
     @Override
@@ -155,7 +158,29 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
     @Override
     public boolean a(@Nullable PathEntity pathentity, double d0) {
-        return false;
+        if (pathentity == null) {
+            this.c = null;
+            return false;
+        } else {
+            if (!pathentity.a(this.c)) {
+                this.c = pathentity;
+            }
+
+            if (this.m()) {
+                return false;
+            } else {
+                this.D_();
+                if (this.c.e() <= 0) {
+                    return false;
+                } else {
+                    this.d = d0;
+                    Vec3D vec3d = this.b();
+                    this.f = this.e;
+                    this.g = vec3d;
+                    return true;
+                }
+            }
+        }
     }
 
     @Nullable
@@ -199,4 +224,33 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
     @Override
     public void b(BlockPosition blockposition) { }
+
+    @Override
+    public void c() {
+        ++this.e;
+        if (this.m) {
+            this.j();
+        }
+
+        if (!this.m()) {
+            Vec3D vec3d;
+            if (this.a()) {
+                this.l();
+            } else if (this.c != null && !this.c.c()) {
+                vec3d = this.b();
+                Vec3D vec3d1 = this.c.a(this.a);
+                if (vec3d.y > vec3d1.y && !this.a.isOnGround() && MathHelper.floor(vec3d.x) == MathHelper.floor(vec3d1.x)
+                        && MathHelper.floor(vec3d.z) == MathHelper.floor(vec3d1.z)) {
+                    this.c.a();
+                }
+            }
+
+            PacketDebug.a(this.b, this.a, this.c, this.l);
+            if (!this.m()) {
+                vec3d = this.c.a(this.a);
+                BlockPosition blockposition = new BlockPosition(vec3d);
+                this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a(this.b, blockposition), vec3d.z, this.d);
+            }
+        }
+    }
 }

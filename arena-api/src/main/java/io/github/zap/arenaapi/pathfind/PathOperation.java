@@ -61,4 +61,12 @@ public interface PathOperation {
                 new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
                 ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), radius));
     }
+
+    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
+                                          int loadRadius, int targetDeviation) {
+        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
+                SuccessCondition.whenWithin(targetDeviation * targetDeviation),
+                new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
+                ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), loadRadius));
+    }
 }

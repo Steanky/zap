@@ -1,6 +1,10 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.pathfind.PathHandler;
+import io.github.zap.arenaapi.pathfind.PathfinderEngine;
 import io.github.zap.arenaapi.util.MetadataHelper;
+import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
@@ -9,6 +13,7 @@ import net.minecraft.server.v1_16_R3.Entity;
 import net.minecraft.server.v1_16_R3.EntityInsentient;
 import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
+import org.bukkit.entity.Mob;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +35,12 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
     @Getter
     private final ZombiesNMSProxy proxy;
 
+    @Getter
+    private final MobNavigator navigator;
+
+    @Getter
+    private final PathHandler handler;
+
     private final Map<String, Object> metadata = new HashMap<>();
     private boolean metadataLoaded;
 
@@ -48,6 +59,14 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
             throw new UnsupportedOperationException("Tried to add PathfinderGoal to an Entity that does not subclass" +
                     " EntityInsentient!");
         }
+
+        try {
+            navigator = ArenaApi.getInstance().getNmsBridge().entityBridge().overrideNavigatorFor((Mob)entity.getBukkitEntity());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new UnsupportedOperationException("Failed to reflect entity navigator!");
+        }
+
+        handler = new PathHandler(PathfinderEngine.async());
     }
 
     /**

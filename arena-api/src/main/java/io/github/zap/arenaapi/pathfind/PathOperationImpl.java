@@ -114,10 +114,15 @@ class PathOperationImpl implements PathOperation {
                 else if(sample.score.getG() < heapNode.score.getG()) {
                     sample.score.setH(heapNode.score.getH());
                     openHeap.replaceNode(heapNode.heapIndex, sample);
+
+                    if(bestFound == heapNode) {
+                        bestFound = sample;
+                        continue;
+                    }
                 }
 
                 //comparison for best path in case of inaccessible target
-                if(sample.score.getH() <= bestFound.score.getH()) {
+                if(sample.score.getH() < bestFound.score.getH()) {
                     bestFound = sample;
                 }
             }
@@ -183,7 +188,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     private void complete(boolean success) {
-        state = success ? State.FAILED : State.SUCCEEDED;
+        state = success ? State.SUCCEEDED : State.FAILED;
         result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
     }
 }

@@ -27,7 +27,7 @@ public class WrappedStrafeShoot extends MythicWrapper {
 
     @Override
     public PathfinderGoal create() {
-        return new WrappedZombiesPathfinder(entity, new OptimizedBowAttack<>((EntitySkeletonAbstract) getHandle(),
+        return new WrappedZombiesPathfinder(entity, new OptimizedBowAttack(entity,
                 speed, fireInterval, targetDistance, targetDeviation), getRetargetInterval());
     }
 
