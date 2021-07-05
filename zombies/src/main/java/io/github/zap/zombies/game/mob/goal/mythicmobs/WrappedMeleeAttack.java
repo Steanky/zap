@@ -51,8 +51,7 @@ public class WrappedMeleeAttack extends MythicWrapper {
 
     @Override
     public PathfinderGoal create() {
-        return new WrappedZombiesPathfinder(entity, new OptimizedMeleeAttack(getEntity(), speed, attackInterval,
-                attackReachSquared), getRetargetInterval(), attributes);
+        return new OptimizedMeleeAttack(getEntity(), speed, attackInterval, attackReachSquared);
     }
 
     @Override
