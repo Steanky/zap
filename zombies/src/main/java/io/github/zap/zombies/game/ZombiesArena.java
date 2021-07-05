@@ -1313,18 +1313,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
      */
     private void loadShops() {
         for (ShopData shopData : map.getShops()) {
-            Shop<?> shop = shopManager.createShop(this, shopData);
-            shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
-            getShopEvent(shop.getShopType());
-            shop.display();
+            if (shopData != null) {
+                Shop<?> shop = shopManager.createShop(this, shopData);
+                shops.add(shop);
+                shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
+                getShopEvent(shop.getShopType());
+                shop.display();
+            }
         }
 
         for(DoorData doorData : map.getDoors()) {
-            Shop<DoorData> shop = shopManager.createShop(this, doorData);
-            shops.add(shop);
-            shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
-            shop.display();
+            if (doorData != null) {
+                Shop<DoorData> shop = shopManager.createShop(this, doorData);
+                shops.add(shop);
+                shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
+                shop.display();
+            }
         }
         getShopEvent(ShopType.DOOR.name());
 
