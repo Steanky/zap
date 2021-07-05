@@ -182,15 +182,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     entryIterator.remove();
                                     entryRemoved = true;
 
-                                    if (operation.state() == PathOperation.State.SUCCEEDED) {
-                                        context.successfulPaths.add(result);
-                                    } else if (operation.state() == PathOperation.State.FAILED) {
-                                        context.failedPaths.add(result);
-                                    } else {
-                                        ArenaApi.warning("PathOperation " + operation + " has an invalid state: should be " +
-                                                "either SUCCEEDED or FAILED");
-                                        ArenaApi.warning("Consumer will not be called.");
-                                        break;
+                                    switch (operation.state()) {
+                                        case SUCCEEDED -> context.successfulPaths.add(result);
+                                        case FAILED -> context.failedPaths.add(result);
+                                        default -> ArenaApi.warning("PathOperation " + operation + " has an invalid " +
+                                                "state: should be either SUCCEEDED or FAILED. Consumer will not be called.");
                                     }
 
                                     entry.consumer.accept(result);
