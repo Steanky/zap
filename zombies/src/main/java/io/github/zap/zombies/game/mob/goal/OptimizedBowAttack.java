@@ -8,12 +8,11 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.metadata.MetadataValue;
 
 import java.util.EnumSet;
 import java.util.Set;
 
-public class OptimizedBowAttack extends StandardMetadataPathfinder {
+public class OptimizedBowAttack extends BasicMetadataPathfinder {
     private final ZombiesNMSProxy proxy;
 
     private final double speed;

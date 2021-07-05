@@ -131,7 +131,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
         }
 
         if(handle.getGoalTarget() == null) {
-            return acquireTarget();
+            return acquireTarget() && canStart();
         }
         else{
             return canStart();

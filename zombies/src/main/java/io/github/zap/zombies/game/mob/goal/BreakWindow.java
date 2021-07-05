@@ -13,7 +13,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Set;
 
-public class BreakWindow extends StandardMetadataPathfinder {
+public class BreakWindow extends BasicMetadataPathfinder {
     private ZombiesArena arena;
     private WindowData window;
     private Vector destination;

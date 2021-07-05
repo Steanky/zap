@@ -242,7 +242,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
                     collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(width, negativeWidth,
                     dirFactor, collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()),
-                    nodePosition.blockX(), nodePosition.blockZ());
+                    nodePosition.blockX() + 0.5, nodePosition.blockZ() + 0.5);
         }
 
         return false;
@@ -277,10 +277,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides,
-                                      double agentX, double agentZ) {
+                                      double agentCenterX, double agentCenterZ) {
         for(BlockSnapshot snapshot : candidates) {
             for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
-                collision.shift(snapshot.position().asBukkit()).shift(-agentX, 0, -agentZ);
+                collision.shift(snapshot.position().asBukkit()).shift(-agentCenterX, 0, -agentCenterZ);
 
                 if(collides.apply(collision)) {
                     return true;

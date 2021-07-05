@@ -9,7 +9,7 @@ import net.minecraft.server.v1_16_R3.*;
 
 import java.util.Collections;
 
-public class OptimizedMeleeAttack extends StandardMetadataPathfinder {
+public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
     private final double speed;
     private final int attackInterval;
     private final float attackReach;

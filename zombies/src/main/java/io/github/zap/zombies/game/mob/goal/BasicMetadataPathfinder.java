@@ -6,13 +6,14 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import net.minecraft.server.v1_16_R3.EntityLiving;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.HashSet;
 
-public abstract class StandardMetadataPathfinder extends ZombiesPathfinder {
-    public StandardMetadataPathfinder(AbstractEntity entity, AttributeValue[] values) {
+public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
+    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values) {
         super(entity, values, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
     }
 
@@ -27,8 +28,12 @@ public abstract class StandardMetadataPathfinder extends ZombiesPathfinder {
             PathHandler.Entry result = getHandler().takeResult();
             if(result != null) {
                 ZombiesPlayer target = (ZombiesPlayer)result.getResult().destination();
-                getHandle().setGoalTarget((EntityLiving) target.getPlayer(), EntityTargetEvent.TargetReason.CUSTOM, false);
-                return true;
+                Player player = target.getPlayer();
+
+                if(player != null) {
+                    getHandle().setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
+                    return true;
+                }
             }
         }
         return false;
