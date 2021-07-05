@@ -129,7 +129,13 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
             metadataLoaded = true;
         }
 
-        return canStart();
+        if(handle.getGoalTarget() == null) {
+            acquireTarget();
+            return false;
+        }
+        else{
+            return canStart();
+        }
     }
 
     @Override
@@ -151,6 +157,8 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
     public final void tick() {
         doTick();
     }
+
+    public abstract boolean acquireTarget();
 
     public abstract boolean canStart();
 

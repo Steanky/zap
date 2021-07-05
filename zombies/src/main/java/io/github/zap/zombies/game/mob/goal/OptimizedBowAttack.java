@@ -8,6 +8,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -31,8 +32,9 @@ public class OptimizedBowAttack extends StandardMetadataPathfinder {
     private double distanceToTargetSquared;
     private boolean hasSight;
 
-    public OptimizedBowAttack(AbstractEntity entity, double speed, int attackInterval, float shootDistance, int targetDeviation) {
-        super(entity);
+    public OptimizedBowAttack(AbstractEntity entity, AttributeValue[] attributes, double speed, int attackInterval,
+                              float shootDistance, int targetDeviation) {
+        super(entity, attributes);
         this.speed = speed;
         this.attackInterval = attackInterval;
         this.shootDistanceSquared = shootDistance * shootDistance;

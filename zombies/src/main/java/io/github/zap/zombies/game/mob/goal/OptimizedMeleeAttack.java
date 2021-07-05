@@ -16,8 +16,9 @@ public class OptimizedMeleeAttack extends StandardMetadataPathfinder {
     private int navigationCounter;
     private int attackTimer;
 
-    public OptimizedMeleeAttack(AbstractEntity entity, double speed, int attackInterval, float attackReach) {
-        super(entity);
+    public OptimizedMeleeAttack(AbstractEntity entity, AttributeValue[] attributes, double speed, int attackInterval,
+                                float attackReach) {
+        super(entity, attributes);
         this.speed = speed;
         this.attackInterval = attackInterval;
         this.attackReach = attackReach;
