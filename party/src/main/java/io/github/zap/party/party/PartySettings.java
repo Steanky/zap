@@ -21,4 +21,5 @@ public class PartySettings {
 
     long inviteExpirationTime = 1200L;
 
+
 }

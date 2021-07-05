@@ -15,6 +15,7 @@ repositories {
     maven(url = "https://jitpack.io")
     maven(url = "https://repo.rapture.pw/repository/maven-snapshots")
     maven(url = "https://repo.glaremasters.me/repository/concuncan/")
+    maven(url = "https://mvn.lumine.io/repository/maven-public/")
 }
 
 val shade: Configuration by configurations.creating {
