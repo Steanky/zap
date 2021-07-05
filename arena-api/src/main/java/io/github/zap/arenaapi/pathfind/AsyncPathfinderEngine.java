@@ -139,11 +139,9 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                 ArenaApi.warning("Unable to queue pathfinding operation(s) for world " + context.blockCollisionProvider.getWorld());
                             }
                         }
-                        else {
-                            if(!syncRun.getAndSet(true)) {
+                        else if(!syncRun.getAndSet(true)) {
                                 ArenaApi.warning("Timed out while waiting on main thread to sync chunks.");
                                 Bukkit.getScheduler().cancelTask(syncId);
-                            }
                         }
                     }
 
