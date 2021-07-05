@@ -51,15 +51,10 @@ public enum Direction implements Positional {
     }
 
     boolean isIntercardinal() {
-        switch (this) {
-            case NORTHEAST:
-            case SOUTHEAST:
-            case SOUTHWEST:
-            case NORTHWEST:
-                return true;
-            default:
-                return false;
-        }
+        return switch (this) {
+            case NORTHEAST, SOUTHEAST, SOUTHWEST, NORTHWEST -> true;
+            default -> false;
+        };
     }
 
     public static Direction valueAtIndex(int position) {
