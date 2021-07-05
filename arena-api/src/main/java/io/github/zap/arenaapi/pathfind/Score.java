@@ -2,20 +2,34 @@ package io.github.zap.arenaapi.pathfind;
 
 import java.util.Objects;
 
+/**
+ * Represents the score of a node. This is used to sort nodes in some sort of collection, which is then used by an A*
+ * implementation.
+ *
+ * Here, g represents the total cumulative distance of the path up to and including the current node. h represents the
+ * heuristic, which is generally straight-line distance to the target. f is simply the sum of g and h. Nodes with the
+ * lowest f-values will be evaluated first by A*.
+ */
 public class Score {
     private double g;
     private double h;
     private double f;
     private int hash;
 
-    Score(double g, double h) {
+    /**
+     * Creates a Score object with initial g and h values
+     */
+    public Score(double g, double h) {
         this.g = g;
         this.h = h;
         this.f = g + h;
         hash = Objects.hash(g, h, f);
     }
 
-    Score() {
+    /**
+     * Creates a Score object with g, h, and f set to Double.POSITIVE_INFINITY, used to indicate an unexplored node.
+     */
+    public Score() {
         g = Double.POSITIVE_INFINITY;
         h = Double.POSITIVE_INFINITY;
         f = Double.POSITIVE_INFINITY;
