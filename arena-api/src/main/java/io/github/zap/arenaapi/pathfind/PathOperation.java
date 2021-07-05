@@ -56,10 +56,10 @@ public interface PathOperation {
                 destinationSelector, coordinateProvider);
     }
 
-    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int radius) {
+    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int loadRadius) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY, SuccessCondition.WITHIN_BLOCK,
                 new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
-                ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), radius));
+                ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), loadRadius));
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
