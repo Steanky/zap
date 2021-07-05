@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.mob.goal.mythicmobs;
 
-import io.github.zap.zombies.game.mob.goal.WrappedZombiesPathfinder;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
@@ -25,8 +24,7 @@ public class WrappedArrowShoot extends MythicWrapper {
 
     @Override
     public PathfinderGoal create() {
-        return new WrappedZombiesPathfinder(entity, new PathfinderGoalArrowAttack((IRangedEntity) getHandle(),
-                speed, fireInterval, targetDistance), getRetargetInterval());
+        return null;
     }
 
     @Override

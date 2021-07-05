@@ -9,12 +9,12 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import lombok.Getter;
-import net.minecraft.server.v1_16_R3.Entity;
-import net.minecraft.server.v1_16_R3.EntityInsentient;
-import net.minecraft.server.v1_16_R3.PathfinderGoal;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.entity.Mob;
+import org.bukkit.metadata.MetadataValue;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +44,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
     private final Map<String, Object> metadata = new HashMap<>();
     private boolean metadataLoaded;
 
-    public ZombiesPathfinder(AbstractEntity entity, String... metadataKeys) {
+    public ZombiesPathfinder(AbstractEntity entity, AttributeValue[] values, String... metadataKeys) {
         super();
         this.entity = entity;
 
@@ -67,6 +67,25 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
         }
 
         handler = new PathHandler(PathfinderEngine.async());
+
+        if(handle instanceof EntitySkeletonAbstract) {
+            try {
+                Field bowShootGoal = EntitySkeletonAbstract.class.getDeclaredField("b");
+                Field meleeAttackGoal = EntitySkeletonAbstract.class.getDeclaredField("c");
+
+                bowShootGoal.setAccessible(true);
+                meleeAttackGoal.setAccessible(true);
+
+                bowShootGoal.set(handle, new DummyPathfinderGoalBowShoot<>((EntitySkeletonAbstract)handle));
+                meleeAttackGoal.set(handle, new DummyPathfinderGoalMeleeAttack((EntityCreature)handle));
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                Zombies.warning("Failed to set AI field on EntitySkeletonAbstract due to a reflection-related exception.");
+            }
+        }
+
+        for(AttributeValue value : values) {
+            getProxy().setDoubleFor(handle, value.getAttribute(), value.getValue());
+        }
     }
 
     /**
@@ -97,10 +116,10 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
     public final boolean shouldActivate() {
         if(!metadataLoaded) {
             for(String key : metadataKeys) {
-                Object metaKey = MetadataHelper.getMetadataFor(entity.getBukkitEntity(), Zombies.getInstance(), key);
+                MetadataValue value = MetadataHelper.getMetadataFor(entity.getBukkitEntity(), Zombies.getInstance(), key);
 
-                if(metaKey != null) {
-                    this.metadata.put(key, metaKey);
+                if(value != null) {
+                    this.metadata.put(key, value.value());
                 }
                 else {
                     return false;

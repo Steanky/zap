@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.mob.goal.mythicmobs;
 
 import io.github.zap.zombies.game.mob.goal.OptimizedBowAttack;
-import io.github.zap.zombies.game.mob.goal.WrappedZombiesPathfinder;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
