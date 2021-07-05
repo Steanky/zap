@@ -46,7 +46,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     @Override
-    public void generateNodes(@NotNull PathNode[] buffer, @NotNull PathNode current) {
+    public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < buffer.length; i++) {
             PathNode node = walkDirectional(context, current, Direction.valueAtIndex(i));
