@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.mob.goal.mythicmobs;
 
+import io.github.zap.zombies.game.mob.goal.AttributeValue;
 import io.github.zap.zombies.game.mob.goal.OptimizedBowAttack;
-import io.github.zap.zombies.game.mob.goal.WrappedZombiesPathfinder;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.io.MythicLineConfig;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicAIGoal;
@@ -27,8 +27,7 @@ public class WrappedStrafeShoot extends MythicWrapper {
 
     @Override
     public PathfinderGoal create() {
-        return new WrappedZombiesPathfinder(entity, new OptimizedBowAttack<>((EntitySkeletonAbstract) getHandle(),
-                speed, fireInterval, targetDistance, targetDeviation), getRetargetInterval());
+        return new OptimizedBowAttack(entity, new AttributeValue[0], speed, fireInterval, targetDistance, targetDeviation);
     }
 
     @Override

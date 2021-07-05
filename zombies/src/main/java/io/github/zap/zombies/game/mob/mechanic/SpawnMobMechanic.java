@@ -14,6 +14,7 @@ import io.lumine.xikage.mythicmobs.skills.SkillMetadata;
 import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -94,16 +95,19 @@ public class SpawnMobMechanic extends ZombiesArenaSkill implements Listener {
         UUID deadUUID = event.getEntity().getUniqueId();
 
         if(mobs.remove(deadUUID) == null) { //if the caster died, remove its spawned instances
-            UUID owner = MetadataHelper.getMetadataFor(event.getEntity(), Zombies.getInstance(), OWNER_METADATA_NAME);
+            MetadataValue value = MetadataHelper.getMetadataFor(event.getEntity(), Zombies.getInstance(), OWNER_METADATA_NAME);
+            if(value != null) {
+                UUID owner = (UUID)value.value();
 
-            if(owner != null) {
-                Set<UUID> spawned = mobs.get(owner);
+                if(owner != null) {
+                    Set<UUID> spawned = mobs.get(owner);
 
-                if(spawned != null) {
-                    spawned.remove(deadUUID);
+                    if(spawned != null) {
+                        spawned.remove(deadUUID);
 
-                    if(spawned.size() == 0) {
-                        mobs.remove(owner);
+                        if(spawned.isEmpty()) {
+                            mobs.remove(owner);
+                        }
                     }
                 }
             }

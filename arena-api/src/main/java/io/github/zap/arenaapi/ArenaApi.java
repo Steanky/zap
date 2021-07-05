@@ -12,28 +12,30 @@ import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
-import io.github.zap.arenaapi.proxy.NMSProxy;
-import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
+import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.arenaapi.serialize.*;
+import io.github.zap.nms.common.NMSBridge;
+import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
 import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.time.StopWatch;
+import net.kyori.adventure.text.Component;
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.GameMode;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -48,14 +50,11 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public final class ArenaApi extends JavaPlugin implements Listener {
-    public static final String LOBBY_CONTEXT = "lobby";
-    public static final String DEFAULT_STAGE = "stage";
-
     @Getter
     private static ArenaApi instance;
 
     @Getter
-    private NMSProxy nmsProxy;
+    private NMSBridge nmsBridge;
 
     @Getter
     private PartyPlusPlus partyPlusPlus;
@@ -69,15 +68,18 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @Getter
     private ObjectMapper mapper;
 
+    private PathfinderEngine engine;
+
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
     @Override
     public void onEnable() {
-        StopWatch timer = StopWatch.createStarted();
         instance = this;
+        StopWatch timer = new StopWatch();
+        timer.start();
 
         try {
-            initProxy();
+            initBridge();
             initDependencies();
             initMapper();
             Bukkit.getPluginManager().registerEvents(this, this);
@@ -92,6 +94,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
+
+        engine = PathfinderEngine.async();
     }
 
     @Override
@@ -101,14 +105,11 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         }
     }
 
-    private void initProxy() throws LoadFailureException {
-        switch (Bukkit.getBukkitVersion()) {
-            case "1.16.4-R0.1-SNAPSHOT":
-            case "1.16.5-R0.1-SNAPSHOT":
-                nmsProxy = new NMSProxy_v1_16_R3();
-                break;
-            default:
-                throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));
+    private void initBridge() throws LoadFailureException {
+        nmsBridge = NMSBridge.selectBridge(NMSBridge_v1_16_R3.INSTANCE);
+
+        if(nmsBridge == null) {
+            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", NMSBridge.CURRENT_NMS_VERSION));
         }
     }
 
