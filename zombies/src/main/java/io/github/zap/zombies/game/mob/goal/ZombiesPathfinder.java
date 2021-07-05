@@ -90,6 +90,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
 
     /**
      * Gets the metadata value for the given string. Will throw ClassCastException if the metadata type does not match.
+     * Will return null if the metadata itself is null, or if there is no metadata associated with the given value.
      * @param key The name of the metadata to get
      * @param <T> The type of the metadata
      * @return The metadata, after casting to T
@@ -130,8 +131,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
         }
 
         if(handle.getGoalTarget() == null) {
-            acquireTarget();
-            return false;
+            return acquireTarget();
         }
         else{
             return canStart();
@@ -140,7 +140,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
 
     @Override
     public final boolean shouldStayActive() {
-        return stayActive();
+        return stayActive() && handle.getGoalTarget() != null;
     }
 
     @Override
