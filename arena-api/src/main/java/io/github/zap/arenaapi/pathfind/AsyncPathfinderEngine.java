@@ -104,10 +104,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         Context context = contexts.get(i);
 
                         //don't try to update snapshots too fast
-                        boolean skipSync = false;
-                        if(context.lastSync != -1 && Bukkit.getCurrentTick() - context.lastSync < MAX_AGE_BEFORE_UPDATE) {
-                            skipSync = true;
-                        }
+                        boolean skipSync = context.lastSync != -1 && Bukkit.getCurrentTick() - context.lastSync < MAX_AGE_BEFORE_UPDATE;
 
                         AtomicBoolean syncRun = null;
                         int syncId = -1;
