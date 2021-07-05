@@ -1337,15 +1337,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             getResourceManager().addDisposable(teamMachine);
         }
 
-        Event<ShopEventArgs> chestEvent = shopEvents.get(ShopType.LUCKY_CHEST.name());
-        if (chestEvent != null) {
+        Event<ShopEventArgs> chestEvent = getShopEvent(ShopType.LUCKY_CHEST.name());
+        List<Shop<?>> shopMapChests = shopMap.get(ShopType.LUCKY_CHEST.name());
+        if (chestEvent != null && shopMapChests != null) {
             chestEvent.registerHandler(new EventHandler<>() {
 
                 private final Random random = new Random();
                 int rolls = 0;
 
                 {
-                    List<Shop<?>> chests = new ArrayList<>(shopMap.get(ShopType.LUCKY_CHEST.name()));
+                    List<Shop<?>> chests = new ArrayList<>(shopMapChests);
 
                     if (map.isChestCanStartInSpawnRoom()) {
                         RoomData spawnRoom = map.roomAt(map.getSpawn());
