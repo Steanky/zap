@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import lombok.Getter;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,11 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PathHandler {
-    @Getter
-    public static class Entry {
-        private final PathOperation operation;
-        private final PathResult result;
-
+    public record Entry(PathOperation operation, PathResult result) {
         public Entry(@NotNull PathOperation operation, @NotNull PathResult result) {
             this.operation = operation;
             this.result = result;
