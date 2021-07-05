@@ -30,12 +30,9 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     }
 
     private class Context implements PathfinderContext {
-        //don't lock onto context object itself as it is visible to implementations
-        private final Object lockHandle = new Object();
-
         private final Semaphore semaphore = new Semaphore(0);
 
-        private final Queue<Entry> entries = new ConcurrentLinkedQueue<>();
+        private final BlockingQueue<Entry> entries = new ArrayBlockingQueue<>(2048);
         private final List<PathResult> successfulPaths = new ArrayList<>();
         private final List<PathResult> failedPaths = new ArrayList<>();
         private final BlockCollisionProvider blockCollisionProvider;
@@ -70,11 +67,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final ExecutorCompletionService<Context> completionService =
             new ExecutorCompletionService<>(Executors.newCachedThreadPool());
 
-    private final Queue<Context> contexts = new ConcurrentLinkedQueue<>();
-    private final Semaphore contextsSemaphore = new Semaphore(0);
+    private final BlockingQueue<Context> contexts = new ArrayBlockingQueue<>(128);
     private final Queue<Context> removalQueue = new ArrayDeque<>();
-
-    private final Object completedLockHandle = new Object();
 
     private AsyncPathfinderEngine() { //singleton: bad idea to create more than once instance
         Thread pathfinderThread = new Thread(this::pathfind, "Pathfinder");
@@ -87,8 +81,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         while(true) {
             try {
                 try {
-                    contextsSemaphore.acquire();
-
                     //each EngineContext object = different world
                     int operations = 0;
 
@@ -134,41 +126,21 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
 
                     //wait for all of the operations we just queued
-                    List<Context> completedContexts = new ArrayList<>();
                     for(int i = 0; i < operations; i++) {
                         try {
-                            completedContexts.add(completionService.take().get());
+                            completionService.take().get();
                         }
                         catch (InterruptedException exception) {
                             ArenaApi.warning("Worker task was interrupted: " + exception.getMessage());
                         }
                     }
 
-                    //check the operations on each context, if none have pending operations, lock again
-                    sync:
-                    synchronized (completedLockHandle) {
-                        for(Context completed : completedContexts) {
-                            if(!completed.entries.isEmpty()) {
-                                break sync;
-                            }
-                        }
-
-                        //noinspection ResultOfMethodCallIgnored
-                        contextsSemaphore.tryAcquire();
-                    }
-
                     //clean up contexts that may have been removed, such as by a world unload
-                    synchronized (contexts) {
+                    synchronized (removalQueue) {
                         while(!removalQueue.isEmpty()) {
                             Context context = removalQueue.remove();
-                            contexts.remove(context);
-
                             context.blockCollisionProvider.clearOwned();
-                        }
-
-                        if(contexts.isEmpty()) { //lock semaphore, we have no contexts
-                            //noinspection ResultOfMethodCallIgnored
-                            contextsSemaphore.tryAcquire();
+                            contexts.remove(context);
                         }
                     }
                 }
@@ -182,11 +154,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 exception.printStackTrace();
                 ArenaApi.warning("Clearing state and continuing.");
 
-                synchronized (contexts) {
-                    contexts.clear();
-                    //noinspection ResultOfMethodCallIgnored
-                    contextsSemaphore.tryAcquire(); //lock since we know we're empty
-                }
+                contexts.clear();
             }
         }
     }
@@ -250,12 +218,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 }
             }
 
-            synchronized (context.lockHandle) {
-                if (context.entries.isEmpty()) {
-                    context.failedPaths.clear();
-                    context.successfulPaths.clear();
-                    return context;
-                }
+            if (context.entries.isEmpty()) {
+                context.failedPaths.clear();
+                context.successfulPaths.clear();
+                return context;
             }
         }
     }
@@ -272,12 +238,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         Objects.requireNonNull(resultConsumer, "resultConsumer cannot be null!");
 
         Context targetContext = null;
-        synchronized (contexts) {
-            for(Context context : contexts) {
-                if(context.blockProvider().world().getUID().equals(world.getUID())) {
-                    targetContext = context;
-                    break;
-                }
+        for(Context context : contexts) {
+            if(context.blockProvider().world().getUID().equals(world.getUID())) {
+                targetContext = context;
+                break;
             }
         }
 
@@ -285,18 +249,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             targetContext = new Context(new AsyncBlockCollisionProvider(world, MAX_AGE_BEFORE_UPDATE));
             targetContext.entries.add(new Entry(operation, resultConsumer));
 
-            synchronized (contexts) {
-                contexts.add(targetContext);
-                contextsSemaphore.release();
-            }
+            contexts.add(targetContext);
         }
         else {
-            synchronized (targetContext.lockHandle) {
-                synchronized (completedLockHandle) {
-                    targetContext.entries.add(new Entry(operation, resultConsumer));
-                    contextsSemaphore.release();
-                }
-            }
+            targetContext.entries.add(new Entry(operation, resultConsumer));
         }
     }
 
@@ -307,9 +263,9 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     @EventHandler
     private void onWorldUnload(WorldUnloadEvent event) {
-        synchronized (contexts) {
-            for(Context context : contexts) {
-                if(context.blockCollisionProvider.world().getUID().equals(event.getWorld().getUID())) {
+        for(Context context : contexts) {
+            if(context.blockCollisionProvider.world().getUID().equals(event.getWorld().getUID())) {
+                synchronized (removalQueue) {
                     removalQueue.add(context);
                 }
             }
