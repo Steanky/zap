@@ -56,7 +56,7 @@ class PathOperationImpl implements PathOperation {
     public boolean step(@NotNull PathfinderContext context) {
         if(state == State.STARTED) {
             if(currentNode != null) {
-                if(openHeap.size() > 0) {
+                if(!openHeap.isEmpty()) {
                     currentNode = openHeap.takeBest();
                 }
                 else {
@@ -142,7 +142,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public @NotNull PathResult result() {
-        if(state == State.STARTED) {
+        if(state == State.STARTED || state == State.NOT_STARTED) {
             throw new IllegalStateException("Cannot get PathResult for a PathOperation that has not completed!");
         }
 

@@ -24,7 +24,7 @@ public interface BlockCollisionProvider {
      * Returns the World object this BlockProvider is linked to.
      * @return The Bukkit World this BlockProvider uses. Operations on this object are generally not thread-safe.
      */
-    @NotNull World getWorld();
+    @NotNull World world();
 
     /**
      * Returns whether or not this BlockCollisionProvider supports asynchronous access; that is, access by threads other

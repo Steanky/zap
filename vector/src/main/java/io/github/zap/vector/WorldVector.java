@@ -17,9 +17,7 @@ abstract class WorldVector<T extends WorldVector<T>> implements VectorAccess {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof WorldVector) {
-            WorldVector<?> otherVector = (WorldVector<?>) other;
-
+        if(other instanceof WorldVector<?> otherVector) {
             return Math.abs(otherVector.x() - x()) < EPSILON &&
                     Math.abs(otherVector.y() - y()) < EPSILON &&
                     Math.abs(otherVector.z() - z()) < EPSILON;

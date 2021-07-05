@@ -105,7 +105,7 @@ public class SpawnMobMechanic extends ZombiesArenaSkill implements Listener {
                     if(spawned != null) {
                         spawned.remove(deadUUID);
 
-                        if(spawned.size() == 0) {
+                        if(spawned.isEmpty()) {
                             mobs.remove(owner);
                         }
                     }

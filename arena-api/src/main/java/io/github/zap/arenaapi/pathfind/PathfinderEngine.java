@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.Disposable;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +17,7 @@ import java.util.function.Consumer;
  * Asynchronous implementations must have their isAsync() method return true. Synchronous implementations must have it
  * return false.
  */
-public interface PathfinderEngine extends Disposable {
+public interface PathfinderEngine {
     /**
      * Offers a PathOperation to this PathfinderEngine. Upon completion, the provided consumer will be called. The
      * thread it is called on depends upon the implementation — asynchronous PathfinderEngines may call the consumer on

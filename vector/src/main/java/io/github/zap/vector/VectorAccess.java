@@ -32,6 +32,9 @@ public interface VectorAccess extends ChunkVectorAccess {
         return subtract(other.x(), other.y(), other.z());
     }
 
+    /**
+     * Scalar vector multiplication
+     */
     @NotNull VectorAccess multiply(double x, double y, double z);
 
     default @NotNull VectorAccess multiply(@NotNull VectorAccess other) {
@@ -42,6 +45,9 @@ public interface VectorAccess extends ChunkVectorAccess {
         return multiply(v, v, v);
     }
 
+    /**
+     * Scalar vector division
+     */
     @NotNull VectorAccess divide(double x, double y, double z);
 
     default @NotNull VectorAccess divide(@NotNull VectorAccess other) {

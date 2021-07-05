@@ -78,6 +78,11 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    @Override
     public PathNode[] internalArray() {
         return nodes;
     }

@@ -29,7 +29,7 @@ public interface PathDestination extends Positional {
 
     static @NotNull Set<PathDestination> fromEntities(@NotNull Collection<? extends Entity> entities, boolean findBlocks) {
         Objects.requireNonNull(entities, "entities cannot be null!");
-        Validate.isTrue(entities.size() > 0, "entities collection cannot be empty");
+        Validate.isTrue(!entities.isEmpty(), "entities collection cannot be empty");
 
         Set<PathDestination> destinations = new HashSet<>();
 

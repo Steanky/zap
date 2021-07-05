@@ -45,6 +45,7 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
     public @NotNull PathEntityWrapper makePathEntity(@NotNull List<PathPointWrapper> pointWrappers,
                                                      @NotNull VectorAccess destination, boolean reachesDestination) {
         List<PathPoint> points = new ArrayList<>();
+
         for(PathPointWrapper wrapper : pointWrappers) {
             PathPointWrapper_v1_16_R3 specific = (PathPointWrapper_v1_16_R3)wrapper;
             points.add(specific.pathPoint());
@@ -62,21 +63,22 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
     }
 
     @Override
-    public @NotNull MobNavigator overrideNavigatorFor(Mob mob) throws NoSuchFieldException, IllegalAccessException {
-        MobNavigator_v1_16_R3 customNavigator = new MobNavigator_v1_16_R3(((CraftMob)mob).getHandle(), ((CraftWorld)mob.getWorld()).getHandle());
+    public @NotNull MobNavigator overrideNavigatorFor(@NotNull Mob mob) throws NoSuchFieldException, IllegalAccessException {
+
 
         Field navigator = EntityInsentient.class.getDeclaredField("navigation");
         navigator.setAccessible(true);
 
-        EntityInsentient craftMob = ((CraftMob)mob).getHandle();
-        Navigation navigation = (Navigation) navigator.get(craftMob);
+        EntityInsentient entityInsentient = ((CraftMob)mob).getHandle();
+        Navigation navigation = (Navigation) navigator.get(entityInsentient);
 
-        if(!(navigation instanceof MobNavigator_v1_16_R3)) {
-            navigator.set(((CraftMob)mob).getHandle(), customNavigator);
-            return customNavigator;
+        if(navigation instanceof MobNavigator_v1_16_R3 mobNavigator) {
+            return mobNavigator;
         }
         else {
-            return (MobNavigator_v1_16_R3)navigation;
+            MobNavigator_v1_16_R3 customNavigator = new MobNavigator_v1_16_R3(entityInsentient, entityInsentient.getWorld());
+            navigator.set(entityInsentient, customNavigator);
+            return customNavigator;
         }
     }
 }

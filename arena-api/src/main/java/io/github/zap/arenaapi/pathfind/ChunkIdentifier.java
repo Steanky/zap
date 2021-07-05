@@ -24,8 +24,7 @@ class ChunkIdentifier {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof ChunkIdentifier) {
-            ChunkIdentifier other = (ChunkIdentifier) obj;
+        if(obj instanceof ChunkIdentifier other) {
             return other.worldID.equals(worldID) && other.position.equals(position);
         }
 

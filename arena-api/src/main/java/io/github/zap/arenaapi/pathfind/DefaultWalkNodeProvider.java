@@ -89,7 +89,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             BoundingBox shiftedBounds = agentBounds.clone().shift(direction.asBukkit()).expandDirectional(Direction.DOWN.asBukkit());
             List<BlockSnapshot> collidingSnapshots = context.blockProvider().collidingSolids(shiftedBounds);
 
-            if(collidingSnapshots.size() > 0) {
+            if(!collidingSnapshots.isEmpty()) {
                 //we hit something
                 BlockSnapshot highestSnapshot = highestSnapshot(collidingSnapshots);
 
@@ -210,7 +210,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
             bounds.expandDirectional(Direction.DOWN.asBukkit());
 
             List<BlockSnapshot> snapshots = provider.collidingSolids(bounds);
-            if(snapshots.size() > 0) {
+            if(!snapshots.isEmpty()) {
                 BlockSnapshot highest = highestSnapshot(snapshots);
 
                 if(highest != null) {
@@ -236,7 +236,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         }
 
         List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
-        if(candidates.size() > 0) {
+        if(!candidates.isEmpty()) {
             int dirFactor = direction.blockX() * direction.blockZ();
             return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(width,
                     negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),

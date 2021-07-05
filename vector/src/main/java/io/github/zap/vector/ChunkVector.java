@@ -11,8 +11,7 @@ abstract class ChunkVector<T extends ChunkVector<T>> implements ChunkVectorAcces
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof ChunkVector) {
-            ChunkVector<?> otherVector = (ChunkVector<?>) other;
+        if(other instanceof ChunkVector<?> otherVector) {
             return chunkX() == otherVector.chunkX() && chunkZ() == otherVector.chunkZ();
         }
 

@@ -37,8 +37,8 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
     private static final WorldBridge bridge = WorldBridge_v1_16_R3.INSTANCE;
 
-    private final String worldName;
     private final Chunk chunk;
+    private final String worldName;
     private final int chunkX;
     private final int chunkZ;
     private final long captureFullTime;
@@ -48,8 +48,9 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private final int captureTick;
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
-        worldName = chunk.getWorld().getName();
         this.chunk = chunk;
+
+        worldName = chunk.getWorld().getName();
         chunkX = chunk.getX();
         chunkZ = chunk.getZ();
         captureFullTime = chunk.getWorld().getFullTime();
@@ -92,7 +93,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                         if(!blockData.isAir()) {
                              /*
                             bit operator magic:
-                            (2^n) & (2^n - 1) == x % (2^n) for all positive integer values of n
+                            x & (2^n - 1) == x % (2^n) for all positive integer values of n
                             x >> n == x / 2^n for all positive integer n
 
                             translation:

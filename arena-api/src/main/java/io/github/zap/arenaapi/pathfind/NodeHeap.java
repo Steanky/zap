@@ -59,6 +59,8 @@ public interface NodeHeap {
      */
     int size();
 
+    boolean isEmpty();
+
     PathNode[] internalArray();
 
     @NotNull List<PathNode> toSortedList();

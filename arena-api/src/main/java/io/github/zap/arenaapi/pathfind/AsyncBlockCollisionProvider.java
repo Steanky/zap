@@ -25,7 +25,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public @NotNull World getWorld() {
+    public @NotNull World world() {
         return world;
     }
 

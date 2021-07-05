@@ -1,12 +1,12 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.VectorAccess;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.Predicate;
 
+@FunctionalInterface
 public interface SuccessCondition {
     /**
      * Simple termination condition: the path is complete when the agent occupies the same block as the destination.

@@ -32,10 +32,6 @@ public abstract class NodeProvider {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof NodeProvider) {
-            return obj.getClass() == getClass();
-        }
-
-        return false;
+        return obj.getClass().equals(getClass());
     }
 }
