@@ -161,7 +161,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
                 if(newSpillover <= 0) { //maxY larger or equal to spillover
                     spillover = maxY - 1;
-                    jumpHeightRequired += Math.abs(newSpillover);
+                    jumpHeightRequired -= newSpillover;
 
                     double headroomIncrement = minY - spillover;
                     if(headroomIncrement > 0) {
