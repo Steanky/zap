@@ -18,8 +18,8 @@ class PathDestinationImpl implements PathDestination {
 
     @Override
     public boolean equals(Object object) {
-        if(object instanceof PathDestinationImpl) {
-            return ((PathDestinationImpl) object).position.equals(position);
+        if(object instanceof PathDestinationImpl pathDestination) {
+            return pathDestination.position.equals(position);
         }
 
         return false;
