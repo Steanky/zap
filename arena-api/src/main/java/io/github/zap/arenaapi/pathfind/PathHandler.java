@@ -8,12 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PathHandler {
-    public record Entry(PathOperation operation, PathResult result) {
-        public Entry(@NotNull PathOperation operation, @NotNull PathResult result) {
-            this.operation = operation;
-            this.result = result;
-        }
-    }
+    public record Entry(PathOperation operation, PathResult result) {}
 
     private final PathfinderEngine engine;
     private final AtomicReference<Entry> result = new AtomicReference<>();

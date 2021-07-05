@@ -73,7 +73,7 @@ public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
 
                 PathResult pathResult = null;
                 if(entry != null) {
-                    pathResult = entry.getResult();
+                    pathResult = entry.result();
                     getNavigator().navigateAlongPath(pathResult.toPathEntity(), speed);
                 }
 

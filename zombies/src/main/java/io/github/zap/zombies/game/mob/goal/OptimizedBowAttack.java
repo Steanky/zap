@@ -24,7 +24,7 @@ public class OptimizedBowAttack extends BasicMetadataPathfinder {
     private boolean strafeB;
     private boolean strafeA;
     private int strafeTimer = -1;
-    private int navigationCounter = 0;
+    private int navigationCounter;
 
     private PathEntity currentPath;
 
@@ -92,7 +92,7 @@ public class OptimizedBowAttack extends BasicMetadataPathfinder {
                 PathHandler.Entry entry = getHandler().takeResult();
 
                 if(entry != null) {
-                    currentPath = ((PathEntityWrapper_v1_16_R3) entry.getResult().toPathEntity()).pathEntity();
+                    currentPath = ((PathEntityWrapper_v1_16_R3) entry.result().toPathEntity()).pathEntity();
                 }
                 else {
                     navigationCounter += 25;

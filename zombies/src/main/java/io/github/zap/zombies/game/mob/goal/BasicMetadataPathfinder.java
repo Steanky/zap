@@ -27,7 +27,7 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
 
             PathHandler.Entry result = getHandler().takeResult();
             if(result != null) {
-                ZombiesPlayer target = (ZombiesPlayer)result.getResult().destination();
+                ZombiesPlayer target = (ZombiesPlayer)result.result().destination();
                 Player player = target.getPlayer();
 
                 if(player != null) {

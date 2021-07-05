@@ -102,7 +102,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
             PathHandler.Entry entry = getHandler().takeResult();
 
             if(entry != null) {
-                getNavigator().navigateAlongPath(entry.getResult().toPathEntity(), 1);
+                getNavigator().navigateAlongPath(entry.result().toPathEntity(), 1);
             }
         }
     }
