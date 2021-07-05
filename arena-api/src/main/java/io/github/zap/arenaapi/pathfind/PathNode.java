@@ -62,8 +62,7 @@ public class PathNode implements Positional {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof PathNode) {
-            PathNode otherNode = (PathNode) other;
+        if(other instanceof PathNode otherNode) {
             return x == otherNode.x && y == otherNode.y && z == otherNode.z;
         }
 
@@ -104,10 +103,6 @@ public class PathNode implements Positional {
         }
 
         return previous;
-    }
-
-    public boolean positionEquals(@NotNull PathNode other) {
-        return x == other.x && y == other.y && z == other.z;
     }
 
     public boolean positionEquals(double x, double y, double z) {
