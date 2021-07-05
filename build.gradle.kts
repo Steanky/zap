@@ -6,12 +6,8 @@ subprojects {
     repositories {
         mavenCentral()
         mavenLocal()
-        maven {
-            url = uri("https://repo.dmulloy2.net/nexus/repository/public/")
-        }
-        maven {
-            url = uri("https://papermc.io/repo/repository/maven-public/")
-        }
+        maven(url = uri("https://repo.dmulloy2.net/nexus/repository/public/"))
+        maven(url = uri("https://papermc.io/repo/repository/maven-public/"))
     }
 }
 

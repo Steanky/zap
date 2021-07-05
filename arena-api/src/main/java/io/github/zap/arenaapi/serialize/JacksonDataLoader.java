@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import io.github.zap.arenaapi.ArenaApi;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class JacksonDataLoader implements DataLoader {
     private static final String EXTENSION = ".json";
@@ -15,6 +18,7 @@ public class JacksonDataLoader implements DataLoader {
     private final ObjectReader reader;
 
     private final File rootDirectory;
+    
 
     public JacksonDataLoader(File rootDirectory) {
         ObjectMapper mapper = ArenaApi.getInstance().getMapper();

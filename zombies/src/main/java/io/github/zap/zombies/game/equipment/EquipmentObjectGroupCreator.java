@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.equipment;
 
 import lombok.Getter;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class EquipmentObjectGroupCreator {
          * @param slots The slots used by the equipment object group
          * @return The new equipment object group
          */
-        EquipmentObjectGroup createEquipmentObjectGroup(Player player, Set<Integer> slots);
+        @NotNull EquipmentObjectGroup createEquipmentObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots);
     }
 
 }

@@ -7,11 +7,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -64,6 +63,22 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
     public abstract void unloadArena(T arena);
 
     public abstract boolean hasMap(String mapName);
+
+    /**
+     * Gets a map of the UUIDs of arenas which manage a certain player
+     * @param player The player to get the arenas for
+     * @return A list of the UUIDs of arenas which manage the player
+     */
+    public @NotNull Map<UUID, T> getArenasWithPlayer(@NotNull Player player) {
+        Map<UUID, T> arenaMap = new HashMap<>();
+        for (Map.Entry<UUID, T> managedArena : managedArenas.entrySet()) {
+            if (managedArena.getValue().hasPlayer(player.getUniqueId())) {
+                arenaMap.put(managedArena.getKey(), managedArena.getValue());
+            }
+        }
+
+        return arenaMap;
+    }
 
     /**
      * Returns a read-only view of the Arena instances managed by this ArenaManager.

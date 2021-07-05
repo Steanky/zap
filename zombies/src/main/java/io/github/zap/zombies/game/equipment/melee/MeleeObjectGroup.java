@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.equipment.melee;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -18,12 +19,12 @@ import java.util.Set;
  */
 public class MeleeObjectGroup extends UpgradeableEquipmentObjectGroup {
 
-    public MeleeObjectGroup(Player player, Set<Integer> slots) {
-        super(player, slots);
+    public MeleeObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots) {
+        super(player, slots, true, true);
     }
 
     @Override
-    public ItemStack createPlaceholderItemStack(int placeholderNumber) {
+    public @NotNull ItemStack createPlaceholderItemStack(int placeholderNumber) {
         ItemStack itemStack = new ItemStack(Material.LIGHT_GRAY_DYE);
         TextComponent name = Component.text(String.format("Weapon #%d", placeholderNumber)).color(NamedTextColor.GREEN);
 
@@ -36,12 +37,13 @@ public class MeleeObjectGroup extends UpgradeableEquipmentObjectGroup {
     }
 
     @Override
-    public boolean isObjectRecommendedEquipment(HotbarObject hotbarObject) {
+    public boolean isObjectRecommendedEquipment(@NotNull HotbarObject hotbarObject) {
         return hotbarObject instanceof MeleeWeapon;
     }
 
     @Override
-    public String getEquipmentType() {
-        return EquipmentType.MELEE.name();
+    public @NotNull String getEquipmentType() {
+        return EquipmentObjectGroupType.MELEE.name();
     }
+
 }

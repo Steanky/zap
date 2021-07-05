@@ -1,30 +1,27 @@
-package io.github.zap.zombies.game.perk;
+package io.github.zap.zombies.game.equipment.perk;
 
-import io.github.zap.arenaapi.ObjectDisposedException;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.data.equipment.perk.ExtraHealthData;
+import io.github.zap.zombies.game.data.equipment.perk.ExtraHealthLevel;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-public class ExtraHealth extends MarkerPerk {
-    private final int healthIncrement;
+public class ExtraHealth extends MarkerPerk<ExtraHealthData, ExtraHealthLevel> {
 
-    public AttributeModifier currentMod;
+    private AttributeModifier currentMod;
 
-    public ExtraHealth(ZombiesPlayer owner, int maxLevel, int healthIncrement, boolean resetLevelOnDisable) {
-        super(owner, maxLevel, resetLevelOnDisable);
-        this.healthIncrement = healthIncrement;
+    public ExtraHealth(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot, @NotNull ExtraHealthData perkData) {
+        super(arena, player, slot, perkData);
     }
 
     @Override
     public void activate() {
-        if(disposed) {
-            throw new ObjectDisposedException();
-        }
-
-        Player player = getOwner().getPlayer();
+        Player player = getZombiesPlayer().getPlayer();
         if (player != null) {
             AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 
@@ -33,7 +30,7 @@ public class ExtraHealth extends MarkerPerk {
                     attribute.removeModifier(currentMod);
                 }
 
-                currentMod = new AttributeModifier("extra thicc", getCurrentLevel() * healthIncrement,
+                currentMod = new AttributeModifier("extra thicc", getCurrentLevel().getAdditionalHealth(),
                         AttributeModifier.Operation.ADD_NUMBER);
                 attribute.addModifier(currentMod);
             } else {
@@ -44,17 +41,14 @@ public class ExtraHealth extends MarkerPerk {
 
     @Override
     public void deactivate() {
-        if(disposed) {
-            throw new ObjectDisposedException();
-        }
-
-        Player player = getOwner().getPlayer();
+        Player player = getZombiesPlayer().getPlayer();
         if (player != null) {
             AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 
-            if(attribute != null && currentMod != null) {
+            if (attribute != null && currentMod != null) {
                 attribute.removeModifier(currentMod);
             }
         }
     }
+
 }

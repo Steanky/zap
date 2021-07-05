@@ -4,6 +4,7 @@ package io.github.zap.arenaapi.event;
  * Encapsulates a function that handles an event.
  * @param <T> The type of object received as an argument
  */
+@FunctionalInterface
 public interface EventHandler<T> {
     /**
      * Handles the actual event.

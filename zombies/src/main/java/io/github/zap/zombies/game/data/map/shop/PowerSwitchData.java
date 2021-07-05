@@ -14,10 +14,11 @@ public class PowerSwitchData extends BlockShopData {
     private int cost = 0;
 
     private PowerSwitchData() {
-        super(ShopType.POWER_SWITCH, false, null, null);
+        super(ShopType.POWER_SWITCH.name(), false, null, null);
     }
 
     public PowerSwitchData(Vector blockLocation, Vector hologramLocation) {
-        super(ShopType.POWER_SWITCH, false, blockLocation, hologramLocation);
+        super(ShopType.POWER_SWITCH.name(), false, blockLocation, hologramLocation);
     }
+    
 }

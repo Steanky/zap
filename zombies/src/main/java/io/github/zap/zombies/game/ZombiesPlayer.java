@@ -3,8 +3,10 @@ package io.github.zap.zombies.game;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
+import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.arenaapi.pathfind.PathDestination;
@@ -16,12 +18,11 @@ import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
-import io.github.zap.zombies.game.equipment.EquipmentType;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
+import io.github.zap.zombies.game.equipment.perk.FlamingBullets;
+import io.github.zap.zombies.game.equipment.perk.FrozenBullets;
+import io.github.zap.zombies.game.equipment.perk.Perk;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
-import io.github.zap.zombies.game.perk.FlamingBullets;
-import io.github.zap.zombies.game.perk.FrozenBullets;
-import io.github.zap.zombies.game.perk.PerkType;
-import io.github.zap.zombies.game.perk.ZombiesPerks;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.stats.CacheInformation;
@@ -50,6 +51,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -92,9 +96,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Getter
     private final State<Double> fireRateMultiplier = new State<>(1D);
 
-    @Getter
-    private final ZombiesPerks perks;
-
     private int frozenBulletsTaskId = -1;
 
     private WindowData targetWindow;
@@ -113,22 +114,21 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      * @param arena The ZombiesArena this player belongs to
      * @param player The underlying Player instance
      */
-    public ZombiesPlayer(ZombiesArena arena, Player player) {
+    public ZombiesPlayer(@NotNull ZombiesArena arena, @NotNull Player player) {
         super(arena, player);
 
         this.arena = arena;
+        player.getInventory().clear();
         //noinspection ConstantConditions
         this.equipment = player.getEquipment().getArmorContents();
         this.coins = arena.getMap().getStartingCoins();
 
+        //noinspection ConstantConditions
         this.hotbarManager = new ZombiesHotbarManager(getPlayer());
-
-        this.perks = new ZombiesPerks(this);
 
         setAliveState();
 
         resourceManager = new ResourceManager(arena.getPlugin());
-        resourceManager.addDisposable(perks);
     }
 
     public void quit() {
@@ -137,9 +137,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(super.isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            if (arena.getMap().isPerksLostOnQuit()) {
-                removePerks();
-            }
+            disablePerks(arena.getMap().isPerksLostOnQuit());
 
             endTasks();
         }
@@ -150,7 +148,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         super.rejoin();
 
         state = ZombiesPlayerState.DEAD;
-        perks.activateAll();
         setDeadState();
 
         //noinspection ConstantConditions
@@ -163,12 +160,28 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         resourceManager.dispose();
         endTasks();
 
-        if(corpse != null) {
+        if (corpse != null) {
             corpse.destroy();
             corpse = null;
         }
 
-        if(isInGame()) {
+        for (HotbarProfile hotbarProfile : hotbarManager.getProfiles().values()) {
+            HotbarObjectGroup hotbarObjectGroup = hotbarManager.
+                    getHotbarObjectGroup(hotbarProfile, EquipmentObjectGroupType.PERK.name());
+
+            if (hotbarObjectGroup != null) {
+                for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                    if (hotbarObject instanceof Perk<?, ?, ?, ?> perk && perk.getActionTriggerEvent() != null) {
+                        Event<?> event = perk.getActionTriggerEvent();
+                        if (event != null) {
+                            event.dispose();
+                        }
+                    }
+                }
+            }
+        }
+
+        if (isInGame()) {
             super.quit();
         }
     }
@@ -361,9 +374,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
-            if (arena.getMap().isPerksLostOnDeath()) {
-                removePerks();
-            }
+            disablePerks(arena.getMap().isPerksLostOnDeath());
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEAD_PROFILE_NAME);
 
@@ -401,8 +412,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 corpse = null;
             }
 
-            perks.activateAll();
             setAliveState();
+            enablePerks();
 
             Player player = getPlayer();
             if (player != null && getPlayer().isSneaking()) {
@@ -443,12 +454,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 addCoins(coins);
             }
 
-            player.playSound(Sound.sound(
-                    Key.key("minecraft:entity.arrow.hit_player"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    attempt.ignoresArmor(this, damaged) ? 1.5F : 2F
-            ));
+            player.playSound(Sound.sound(Key.key("minecraft:entity.arrow.hit_player"), Sound.Source.MASTER, 1.0F,
+                    attempt.ignoresArmor(this, damaged) ? 1.5F : 2F));
 
             if (damaged.getHealth() <= 0) {
                 getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(),
@@ -459,55 +466,83 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
                 addKills(1);
             } else {
-                FrozenBullets frozenBullets = (FrozenBullets) getPerks().getPerk(PerkType.FROZEN_BULLETS);
-                FlamingBullets flamingBullets = (FlamingBullets) getPerks().getPerk(PerkType.FLAME_BULLETS);
+                HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                        .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
 
-                if (frozenBullets.getCurrentLevel() > 0) {
-                    AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                if (hotbarObjectGroup != null) {
+                    for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                        if (hotbarObject instanceof FrozenBullets frozenBullets) {
+                            AttributeInstance speed = damaged.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
 
-                    if (speed != null) {
-                        Optional<AttributeModifier> optionalAttributeModifier
-                                = AttributeHelper.getModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME);
+                            if (speed != null) {
+                                Optional<AttributeModifier> optionalAttributeModifier
+                                        = AttributeHelper.getModifier(speed, FROZEN_BULLETS_ATTRIBUTE_NAME);
 
-                        if (optionalAttributeModifier.isPresent()) {
-                            Bukkit.getScheduler().cancelTask(frozenBulletsTaskId);
+                                if (optionalAttributeModifier.isPresent()) {
+                                    Bukkit.getScheduler().cancelTask(frozenBulletsTaskId);
 
-                            frozenBulletsTaskId = arena.runTaskLater(
-                                    frozenBullets.getDuration(),
-                                    () -> speed.removeModifier(optionalAttributeModifier.get())
-                            ).getTaskId();
-                        } else {
-                            AttributeModifier modifier = new AttributeModifier(
-                                    FROZEN_BULLETS_ATTRIBUTE_NAME,
-                                    -1D / ((double) frozenBullets.getCurrentLevel() + 1D),
-                                    AttributeModifier.Operation.ADD_SCALAR
-                            );
+                                    frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
+                                            () -> speed.removeModifier(optionalAttributeModifier.get())).getTaskId();
+                                } else {
+                                    AttributeModifier modifier = new AttributeModifier(FROZEN_BULLETS_ATTRIBUTE_NAME,
+                                            -frozenBullets.getReducedSpeed(), AttributeModifier.Operation.ADD_SCALAR);
 
-                            speed.addModifier(modifier);
+                                    speed.addModifier(modifier);
 
-                            frozenBulletsTaskId = arena.runTaskLater(
-                                    frozenBullets.getDuration(),
-                                    () -> speed.removeModifier(modifier)
-                            ).getTaskId();
+                                    frozenBulletsTaskId = arena.runTaskLater(frozenBullets.getDuration(),
+                                            () -> speed.removeModifier(modifier)).getTaskId();
+                                }
+                            }
+                        } else if (hotbarObject instanceof FlamingBullets flamingBullets) {
+                            damaged.setFireTicks(flamingBullets.getDuration());
                         }
                     }
-                }
-
-                if (flamingBullets.getCurrentLevel() > 0) {
-                    damaged.setFireTicks(flamingBullets.getDuration());
                 }
             }
         }
     }
 
-    private void removePerks() {
-        perks.disableAll();
-
+    /**
+     * Enables all the player's perks
+     */
+    public void enablePerks() {
         HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
         HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(defaultProfile,
-                EquipmentType.PERK.name());
-        for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
-            hotbarObjectGroup.remove(slot, true);
+                EquipmentObjectGroupType.PERK.name());
+
+        if (hotbarObjectGroup != null) {
+            for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+                if (hotbarObject instanceof Perk<?, ?, ?, ?> perk) {
+                    perk.activate();
+                }
+            }
+        }
+    }
+
+    /**
+     * Disables all the player's perks
+     * @param remove Whether the perks should be reset
+     */
+    public void disablePerks(boolean remove) {
+        HotbarProfile defaultProfile = hotbarManager.getProfiles().get(HotbarManager.DEFAULT_PROFILE_NAME);
+        HotbarObjectGroup hotbarObjectGroup = hotbarManager.getHotbarObjectGroup(defaultProfile,
+                EquipmentObjectGroupType.PERK.name());
+
+        if (hotbarObjectGroup != null) {
+            if (remove) {
+                List<Integer> slotsToRemove = new ArrayList<>();
+                for (Integer slot : new HashSet<>(hotbarObjectGroup.getHotbarObjectMap().keySet())) {
+                    hotbarObjectGroup.remove(slot, true);
+                }
+            } else {
+                for (Integer slot : hotbarObjectGroup.getHotbarObjectMap().keySet()) {
+                    HotbarObject hotbarObject = hotbarObjectGroup.getHotbarObject(slot);
+                    if (hotbarObject instanceof Perk<?, ?, ?, ?> perk) {
+                        perk.deactivate();
+                    }
+                }
+            }
         }
     }
 
@@ -519,31 +554,35 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         Player player = getPlayer();
 
         if (player != null) {
-            if (targetWindow == null) { //our target window is null, so look for one to repair
-                WindowData window = map.windowMatching(windowData -> !windowData.isFullyRepaired(arena)
-                        && windowData.getRepairingPlayerProperty().getValue(arena) == null
-                        && windowData.inRange(getPlayer().getLocation().toVector(), arena.getMap().getWindowRepairRadiusSquared()));
+            if (isAlive()) {
+                if (targetWindow == null) { //our target window is null, so look for one to repair
+                    WindowData window = map.windowMatching(windowData -> !windowData.isFullyRepaired(arena)
+                            && windowData.getRepairingPlayerProperty().getValue(arena) == null
+                            && windowData.inRange(getPlayer().getLocation().toVector(), arena.getMap().getWindowRepairRadiusSquared()));
 
-                if (window != null) {
-                    if (repairOn) {
-                        targetWindow = window;
-                        tryRepairWindow(targetWindow); //directly repair window; no need to perform checks
-                        player.sendActionBar(Component.text());
+                    if (window != null) {
+                        if (repairOn) {
+                            targetWindow = window;
+                            tryRepairWindow(targetWindow); //directly repair window; no need to perform checks
+                            player.sendActionBar(Component.text());
+                        } else {
+                            player.sendActionBar(Component.text("Hold SHIFT to repair!")
+                                    .color(NamedTextColor.YELLOW));
+                        }
                     } else {
-                        player.sendActionBar(Component.text("Hold SHIFT to repair!")
-                                .color(NamedTextColor.YELLOW));
+                        player.sendActionBar(Component.text());
                     }
-                } else {
-                    player.sendActionBar(Component.text());
-                }
-            } else { //we already have a target window - make sure it's still in range
-                if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
-                        && repairOn && isAlive()) {
+
+                    return;
+                } else if (targetWindow.inRange(getPlayer().getLocation().toVector(), map.getWindowRepairRadiusSquared())
+                        && repairOn && isAlive()) { //we already have a target window - make sure it's still in range
                     tryRepairWindow(targetWindow);
-                } else {
-                    targetWindow = null;
+
+                    return;
                 }
             }
+
+            targetWindow = null;
         }
     }
 

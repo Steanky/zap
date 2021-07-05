@@ -10,6 +10,10 @@ java {
     }
 }
 
+repositories {
+    maven(url = "https://jitpack.io")
+}
+
 val shade: Configuration by configurations.creating {
     isTransitive = false
 }
@@ -23,13 +27,15 @@ configurations.api.get().extendsFrom(shade, bukkitPlugin)
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
 dependencies {
+    api(project(":party"))
     api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
     shade(project(":nms-common"))
     shade(project(":nms-v1_16_R3"))
     shade(project(":vector"))
-    shade("com.fasterxml.jackson.core:jackson-core:2.12.2")
-    shade("com.fasterxml.jackson.core:jackson-databind:2.12.2")
-    shade("com.fasterxml.jackson.core:jackson-annotations:2.12.2")
+
+    shade("com.fasterxml.jackson.core:jackson-core:2.12.3")
+    shade("com.fasterxml.jackson.core:jackson-databind:2.12.3")
+    shade("com.fasterxml.jackson.core:jackson-annotations:2.12.3")
     shade("org.apache.commons:commons-lang3:3.12.0")
 
     bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.6.0")

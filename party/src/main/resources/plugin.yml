@@ -1,0 +1,8 @@
+name: PartyPlusPlus
+version: ${version}
+main: io.github.zap.party.PartyPlusPlus
+api-version: 1.16
+commands:
+  party:
+    description: "All party-related commands"
+    aliases: [ p ]

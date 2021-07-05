@@ -9,6 +9,8 @@ import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
 
@@ -21,7 +23,7 @@ public interface ZombiesNMSProxy extends NMSProxy {
      * @param player The player to get the skin from
      * @return A wrapped sign property of the texture
      */
-    WrappedSignedProperty getSkin(Player player);
+    @Nullable WrappedSignedProperty getSkin(@NotNull Player player);
 
     ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, int deviation, Predicate<ZombiesPlayer> filter);
 

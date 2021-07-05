@@ -11,7 +11,10 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.party.PartyPlusPlus;
+import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
@@ -19,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.HumanEntity;
@@ -42,7 +46,11 @@ import java.util.*;
  */
 public class ZombiesNPC implements Listener {
 
-    private final static String NAME = "Play Zombies";
+    private final static String UUID_REGEX = "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}";
+
+    private final static String PLAY_ZOMBIES = "Play Zombies";
+
+    private final static String REJOIN_ZOMBIES = "Rejoin Zombies";
 
     private final static Map<Integer, ZombiesNPC> NPC_MAP = new HashMap<>();
 
@@ -59,7 +67,7 @@ public class ZombiesNPC implements Listener {
                     Player player = event.getPlayer();
 
                     Bukkit.getScheduler().runTask(Zombies.getInstance(),
-                            () -> player.openInventory(zombiesNPC.inventory));
+                            () -> player.openInventory(zombiesNPC.mapInventory));
                 }
             }
         }
@@ -70,7 +78,9 @@ public class ZombiesNPC implements Listener {
 
     private final int id;
 
-    private final Inventory inventory;
+    private final Inventory mapInventory;
+
+    private final ItemStack rejoinButton, returnButton;
 
     private final Map<Integer, String> mapNameMap = new HashMap<>();
 
@@ -102,18 +112,14 @@ public class ZombiesNPC implements Listener {
 
         // init player info data
         UUID uniqueId = zombiesNMSProxy.randomUUID();
-        WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, NAME);
+        WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, PLAY_ZOMBIES);
         WrappedSignedProperty texture = data.texture;
         if (texture != null) {
             wrappedGameProfile.getProperties().put("textures", texture);
         }
 
-        PlayerInfoData playerInfoData = new PlayerInfoData(
-                wrappedGameProfile,
-                0,
-                EnumWrappers.NativeGameMode.NOT_SET,
-                WrappedChatComponent.fromText(NAME)
-        );
+        PlayerInfoData playerInfoData = new PlayerInfoData(wrappedGameProfile, 0,
+                EnumWrappers.NativeGameMode.NOT_SET, WrappedChatComponent.fromText(PLAY_ZOMBIES));
         List<PlayerInfoData> playerInfoDataList = Collections.singletonList(playerInfoData);
 
 
@@ -185,7 +191,7 @@ public class ZombiesNPC implements Listener {
             }
 
             int guiSize = 9 * Math.min(6, height + 2);
-            inventory = Bukkit.createInventory(null, guiSize, Component.text("Team Machine"));
+            mapInventory = Bukkit.createInventory(null, guiSize, Component.text(PLAY_ZOMBIES));
 
             int index = 0;
 
@@ -205,15 +211,27 @@ public class ZombiesNPC implements Listener {
 
                     mapDataItemStackRepresentation.setItemMeta(itemMeta);
 
-                    inventory.setItem(pos, mapDataItemStackRepresentation);
+                    mapInventory.setItem(pos, mapDataItemStackRepresentation);
 
                     mapNameMap.put(pos, mapData.getName());
                     index++;
                 }
             }
         } else {
-            inventory = Bukkit.createInventory(null, 9, Component.text("Play Zombies"));
+            mapInventory = Bukkit.createInventory(null, 9, Component.text(PLAY_ZOMBIES));
         }
+
+        rejoinButton = new ItemStack(Material.ENDER_EYE);
+        ItemMeta rejoinItemMeta = rejoinButton.getItemMeta();
+        rejoinItemMeta.displayName(Component.text(REJOIN_ZOMBIES));
+        rejoinButton.setItemMeta(rejoinItemMeta);
+
+        mapInventory.setItem(mapInventory.getSize() - 1, rejoinButton);
+
+        returnButton = new ItemStack(Material.ARROW);
+        ItemMeta returnItemMeta = returnButton.getItemMeta();
+        returnItemMeta.displayName(Component.text(PLAY_ZOMBIES));
+        returnButton.setItemMeta(returnItemMeta);
 
 
         // Register listener events
@@ -266,29 +284,103 @@ public class ZombiesNPC implements Listener {
         HumanEntity humanEntity = event.getWhoClicked();
         Inventory clickedInventory = event.getClickedInventory();
 
-        if (clickedInventory != null && clickedInventory.equals(inventory) && humanEntity instanceof Player) {
-            Player player = (Player) humanEntity;
-            String mapData = mapNameMap.get(event.getSlot());
+        if (clickedInventory != null && humanEntity instanceof Player player) {
+            if (clickedInventory.equals(mapInventory)) {
+                String mapData = mapNameMap.get(event.getSlot());
 
-            if (mapData != null) {
-                player.closeInventory();
+                if (mapData != null) {
+                    player.closeInventory();
 
-                ArenaApi arenaApi = Zombies.getInstance().getArenaApi();
-                Joinable joinable = new SimpleJoinable(Collections.singletonList(player));
-
-                JoinInformation testInformation = new JoinInformation(
-                        joinable,
-                        Zombies.getInstance().getArenaManager().getGameName(),
-                        mapData,
-                        null,
-                        null
-                );
-
-                arenaApi.handleJoin(testInformation, (pair) -> {
-                    if (!pair.getLeft()) {
-                        player.sendMessage(pair.getRight());
+                    ArenaApi arenaApi = Zombies.getInstance().getArenaApi();
+                    Joinable joinable = null;
+                    PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
+                    if (partyPlusPlus != null) {
+                        Party party = partyPlusPlus.getPartyManager().getPartyForPlayer(player);
+                        if (party != null) {
+                            joinable = new SimpleJoinable(party.getOnlinePlayers());
+                        }
                     }
-                });
+                    if (joinable == null) {
+                        joinable = new SimpleJoinable(Collections.singletonList(player));
+                    }
+
+                    JoinInformation testInformation = new JoinInformation(joinable,
+                            Zombies.getInstance().getArenaManager().getGameName(), mapData, null,
+                            null);
+
+                    arenaApi.handleJoin(testInformation, (pair) -> {
+                        if (!pair.getLeft()) {
+                            player.sendMessage(pair.getRight());
+                        }
+                    });
+                } else if (event.getSlot() == mapInventory.getSize() - 1) { // bukkit is weird so sidestep check
+                    Inventory rejoinInventory = Bukkit.createInventory(null, 54,
+                            Component.text(REJOIN_ZOMBIES));
+                    rejoinInventory.setItem(53, returnButton);
+
+                    Set<Map.Entry<UUID, ZombiesArena>> arenas = Zombies.getInstance().getArenaManager()
+                            .getArenasWithPlayer(player).entrySet();
+                    ItemStack[] itemStacks = new ItemStack[arenas.size()];
+
+                    int counter = 0;
+                    for (Map.Entry<UUID, ZombiesArena> arena : arenas) {
+                        MapData map = arena.getValue().getMap();
+
+                        ItemStack itemStack = new ItemStack(map.getItemStackMaterial());
+
+                        ItemMeta itemMeta = itemStack.getItemMeta();
+                        itemMeta.displayName(Component.text(map.getItemStackDisplayName()));
+
+                        List<String> lore = new ArrayList<>(map.getItemStackLore());
+                        lore.add(arena.getKey().toString());
+                        itemMeta.setLore(lore);
+                        itemStack.setItemMeta(itemMeta);
+
+                        itemStacks[counter++] = itemStack;
+                    }
+
+                    for (int i = 0; i < itemStacks.length; i++) { // TODO: size check
+                        rejoinInventory.setItem(i, itemStacks[i]);
+                    }
+
+                    player.openInventory(rejoinInventory);
+                }
+            } else if (event.getView().getTitle().equals(REJOIN_ZOMBIES)) {
+                if (event.getSlot() == 53) {
+                    player.openInventory(mapInventory);
+                } else {
+                    ItemStack clicked = event.getCurrentItem();
+
+                    if (clicked != null) {
+                        ItemMeta itemMeta = clicked.getItemMeta();
+
+                        if (itemMeta != null) {
+                            List<String> lore = itemMeta.getLore();
+
+                            if (lore != null && lore.size() > 0) {
+                                String uuidString = lore.get(lore.size() - 1);
+                                if (uuidString.matches(UUID_REGEX)) {
+                                    UUID uuid = UUID.fromString(uuidString);
+
+                                    if (Zombies.getInstance().getArenaManager().getArenas().containsKey(uuid)) {
+                                        ArenaApi arenaApi = Zombies.getInstance().getArenaApi();
+                                        Joinable joinable = new SimpleJoinable(Collections.singletonList(player));
+
+                                        JoinInformation testInformation = new JoinInformation(joinable,
+                                                Zombies.getInstance().getArenaManager().getGameName(), null,
+                                                uuid, null);
+
+                                        arenaApi.handleJoin(testInformation, (pair) -> {
+                                            if (!pair.getLeft()) {
+                                                player.sendMessage(pair.getRight());
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

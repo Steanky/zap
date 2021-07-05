@@ -31,8 +31,8 @@ public abstract class Arena<T extends Arena<T>> implements Unique, Disposable {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof Arena) {
-            return id == ((Arena<?>)other).id;
+        if (other instanceof Arena<?> arena) {
+            return id == arena.id;
         }
 
         return false;

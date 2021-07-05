@@ -71,6 +71,16 @@ public class MapData {
     Vector spawn = new Vector();
 
     /**
+     * The vector to the bottom of where records should be displayed
+     */
+    Vector bestTimesLocation = new Vector();
+
+    /**
+     * The number of best times to display in the pregame
+     */
+    int bestTimesCount = 12;
+
+    /**
      * The minimum required number of players that this map can start with
      */
     int minimumCapacity = 4;
@@ -137,6 +147,12 @@ public class MapData {
     int reviveRadius = 3;
 
     /**
+     * Whether or not to allow "wallshooting", allowing players to shoot mobs through walls if their shot passes through
+     * a non-solid block
+     */
+    boolean allowWallshooting = false;
+
+    /**
      * The MythicMobs mob level that mobs will spawn at
      */
     int mobSpawnLevel = 1;
@@ -159,84 +175,9 @@ public class MapData {
     boolean perksLostOnQuit = true;
 
     /**
-     * The maximum level of the speed perk (how many times it can be bought)
-     */
-    int speedMaxLevel = 1;
-
-    /**
-     * The strength of the speed effect given by the speed perk. Multiplicative with the current speed level.
-     */
-    int speedAmplifier = 1;
-
-    /**
-     * The duration of the effect given by the speed perk.
-     */
-    int speedDuration = 500;
-
-    /**
-     * The interval at which speed from the speed perk is applied to the player.
-     */
-    int speedReapplyInterval = 500;
-
-    /**
-     * Gets the maximum quick fire level supported by this map.
-     */
-    int quickFireMaxLevel = 1;
-
-    /**
-     * The maximum level of extra health
-     */
-    int extraHealthMaxLevel = 1;
-
-    /**
-     * The amount of HP extra health grants, per level
-     */
-    int extraHealthHpPerLevel = 10;
-
-    /**
-     * The maximum level of extra weapon
-     */
-    int extraWeaponMaxLevel = 1;
-
-    /**
-     * The maximum level of fast revive
-     */
-    int fastReviveMaxLevel = 1;
-
-    /**
-     * The maximum level of frozen bullets.
-     */
-    int frozenBulletsMaxLevel = 1;
-
-    /**
-     * The duration, in ticks, of the frozen bullet effect
-     */
-    int frozenBulletsEffectDuration = 50;
-
-    /**
-     * The factor by which speed is reduced when mobs are hit with frozen bullets
-     */
-    double frozenBulletSpeedReductionFactor = 0.5;
-
-    /**
-     * Duration of flaming bullets, in ticks
-     */
-    int flamingBulletsDuration = 69;
-
-    /**
-     * Why would you ever want this...
-     */
-    int flamingBulletsMaxLevel = 1;
-
-    /**
      * The default number of ticks it takes for a player to be revived
      */
     int defaultReviveTime = 30;
-
-    /**
-     * The amount of ticks subtracted from the revive time per each level
-     */
-    int tickReductionPerLevel = 10;
 
     /**
      * Number of rolls before a chest moves to a new location
