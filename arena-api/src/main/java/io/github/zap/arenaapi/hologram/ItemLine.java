@@ -22,12 +22,12 @@ public class ItemLine extends HologramLine<Material> {
 
     @Override
     protected PacketContainer createSpawnPacketContainer() {
-        NMSBridge nmsProxy = getBridge();
+        NMSBridge nmsBridge = getBridge();
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
         packetContainer.getIntegers().write(0, getEntityId());
-        packetContainer.getIntegers().write(1, nmsProxy.entityBridge().getEntityTypeID(EntityType.DROPPED_ITEM));
-        packetContainer.getUUIDs().write(0, nmsProxy.entityBridge().randomUUID());
+        packetContainer.getIntegers().write(1, nmsBridge.entityBridge().getEntityTypeID(EntityType.DROPPED_ITEM));
+        packetContainer.getUUIDs().write(0, nmsBridge.entityBridge().randomUUID());
 
         Location location = getLocation();
 
