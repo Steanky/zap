@@ -50,8 +50,7 @@ public class Score {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Score) {
-            Score other = (Score)obj;
+        if(obj instanceof Score other) {
             return g == other.g && h == other.h && f == other.f;
         }
 
