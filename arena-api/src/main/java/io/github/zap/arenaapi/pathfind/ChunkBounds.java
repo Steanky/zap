@@ -68,8 +68,7 @@ public class ChunkBounds implements ChunkCoordinateProvider {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof ChunkBounds) {
-            ChunkBounds other = (ChunkBounds) obj;
+        if(obj instanceof ChunkBounds other) {
             return minX == other.minX && maxX == other.maxX && minZ == other.minZ && maxZ == other.maxZ;
         }
 

@@ -184,7 +184,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                         if(operation.state() == PathOperation.State.STARTED) {
                             for (int j = 0; j < operation.iterations(); j++) {
-                                operation_step:
+                                operationStep:
                                 if (operation.step(context)) {
                                     PathResult result = operation.result();
 
@@ -197,7 +197,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                         default -> {
                                             ArenaApi.warning("PathOperation " + operation + " has an invalid " +
                                                     "state: should be either SUCCEEDED or FAILED. Consumer will not be called.");
-                                            break operation_step;
+                                            break operationStep;
                                         }
                                     }
 
