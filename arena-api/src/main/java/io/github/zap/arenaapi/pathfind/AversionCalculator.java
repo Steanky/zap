@@ -22,12 +22,7 @@ public interface AversionCalculator {
 
         @Override
         public double aversionFactor(PathNode linkedNode) {
-            if(linkedNode.parent.y() - linkedNode.y() <= 3) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
+            return linkedNode.parent.y() - linkedNode.y() <= 3 ? 1 : 2;
         }
     };
 

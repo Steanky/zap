@@ -66,6 +66,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         public @NotNull BlockCollisionProvider blockProvider() {
             return blockCollisionProvider;
         }
+
+        private void removeOperation(int index) {
+            synchronized (lockHandle) {
+                entries.remove(index);
+            }
+        }
     }
 
     private final Thread pathfinderThread;
@@ -166,7 +172,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         }
 
                         //noinspection ResultOfMethodCallIgnored
-                        contextsSemaphore.tryAcquire(1);
+                        contextsSemaphore.tryAcquire();
                     }
 
                     //clean up contexts that may have been removed, such as by a world unload
@@ -178,9 +184,9 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                             context.blockCollisionProvider.clearOwned();
                         }
 
-                        if(contexts.size() == 0) { //lock semaphore, we have no contexts
+                        if(contexts.isEmpty()) { //lock semaphore, we have no contexts
                             //noinspection ResultOfMethodCallIgnored
-                            contextsSemaphore.tryAcquire(1);
+                            contextsSemaphore.tryAcquire();
                         }
                     }
                 }
@@ -200,7 +206,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 synchronized (contexts) {
                     contexts.clear();
                     //noinspection ResultOfMethodCallIgnored
-                    contextsSemaphore.tryAcquire(1); //lock since we know we're empty
+                    contextsSemaphore.tryAcquire(); //lock since we know we're empty
                 }
             }
         }
@@ -236,11 +242,11 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                                     ArenaApi.warning("PathOperation " + entry.operation + " has an invalid state: should be " +
                                             "either SUCCEEDED or FAILED");
                                     ArenaApi.warning("Removing invalid PathOperation without calling consumer.");
-                                    removeOperation(context, i);
+                                    context.removeOperation(i);
                                     break;
                                 }
 
-                                removeOperation(context, i);
+                                context.removeOperation(i);
                                 entry.consumer.accept(result);
                                 break;
                             }
@@ -259,12 +265,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         ex.printStackTrace();
                     }
 
-                    removeOperation(context, i);
+                    context.removeOperation(i);
                 }
             }
 
             synchronized (context.lockHandle) {
-                if (context.entries.size() == 0) {
+                if (context.entries.isEmpty()) {
                     context.failedPaths.clear();
                     context.successfulPaths.clear();
                     break; //break if we did all the operations
@@ -273,12 +279,6 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         return context;
-    }
-
-    private void removeOperation(Context context, int index) {
-        synchronized (context.lockHandle) {
-            context.entries.remove(index);
-        }
     }
 
     /**

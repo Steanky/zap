@@ -54,8 +54,8 @@ public interface PathDestination extends Positional {
         do {
             block = world.getBlockAt(x, y, z);
         }
-        while(block.getType().isAir() && --y > -1);
+        while(block.getType().isEmpty() && --y > -1);
 
-        return VectorAccess.immutable(x, ++y, z);
+        return VectorAccess.immutable(x, y + 1, z);
     }
 }
