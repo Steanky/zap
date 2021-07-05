@@ -334,7 +334,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 }
                 catch (IllegalArgumentException ignored) {
                     Zombies.warning("Attempted to set velocity for entity " + target.getUniqueId() + " to a vector " +
-                            "with a non-finite value " + resultingVelocity.toString());
+                            "with a non-finite value " + resultingVelocity);
                 }
 
                 damager.onDealsDamage(with, target, deltaHealth);
@@ -1344,7 +1344,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                 private final Random random = new Random();
                 int rolls = 0;
-
                 {
                     List<Shop<?>> chests = new ArrayList<>(shopMapChests);
 

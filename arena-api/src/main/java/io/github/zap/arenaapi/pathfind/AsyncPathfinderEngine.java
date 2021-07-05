@@ -73,6 +73,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             new ExecutorCompletionService<>(Executors.newCachedThreadPool());
 
     private final BlockingQueue<Context> contexts = new ArrayBlockingQueue<>(128);
+
+    //inside joke, there's no good reason this should be a treemap
     private final TreeMap<Context, Context> removalQueue = new TreeMap<>(Comparator.comparingInt(o -> o.index));
 
     private AsyncPathfinderEngine() { //singleton: bad idea to create more than once instance
