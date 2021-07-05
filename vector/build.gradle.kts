@@ -19,7 +19,7 @@ subprojects {
 java {
     @Suppress("UnstableApiUsage")
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(16))
     }
 }
 

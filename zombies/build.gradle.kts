@@ -5,7 +5,7 @@ plugins {
 java {
     @Suppress("UnstableApiUsage")
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(16))
     }
 }
 
@@ -48,8 +48,8 @@ dependencies {
 
     classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.5.4-SNAPSHOT")
 
-    compileOnly("org.projectlombok:lombok:1.18.4")
-    annotationProcessor("org.projectlombok:lombok:1.18.4")
+    compileOnly("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.20")
 }
 
 tasks.register<Copy>("copyPlugins") {

@@ -6,7 +6,7 @@ plugins {
 java {
     @Suppress("UnstableApiUsage")
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(16))
     }
 }
 
@@ -34,11 +34,12 @@ dependencies {
 
     bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.6.0")
 
-    compileOnly("org.projectlombok:lombok:1.18.4")
-    annotationProcessor("org.projectlombok:lombok:1.18.4")
+    compileOnly("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.20")
 }
 
 tasks.register<Copy>("copyPlugins") {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     from(bukkitPlugin).into(pluginDir)
 }
 
@@ -51,6 +52,7 @@ tasks.processResources {
 }
 
 tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     dependsOn(shade)
 
     destinationDirectory.set(File(pluginDir))
