@@ -30,6 +30,10 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     }
 
     private class Context implements PathfinderContext {
+        private static int totalIndex;
+
+        private final int index;
+
         private final Semaphore semaphore = new Semaphore(0);
 
         private final BlockingQueue<Entry> entries = new ArrayBlockingQueue<>(2048);
@@ -41,6 +45,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
         private Context(@NotNull BlockCollisionProvider blockCollisionProvider) {
             this.blockCollisionProvider = blockCollisionProvider;
+            index = totalIndex++;
         }
 
         @Override
@@ -68,7 +73,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             new ExecutorCompletionService<>(Executors.newCachedThreadPool());
 
     private final BlockingQueue<Context> contexts = new ArrayBlockingQueue<>(128);
-    private final Queue<Context> removalQueue = new ArrayDeque<>();
+    private final TreeMap<Context, Context> removalQueue = new TreeMap<>(Comparator.comparingInt(o -> o.index));
 
     private AsyncPathfinderEngine() { //singleton: bad idea to create more than once instance
         Thread pathfinderThread = new Thread(this::pathfind, "Pathfinder");
@@ -137,11 +142,12 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                     //clean up contexts that may have been removed, such as by a world unload
                     synchronized (removalQueue) {
-                        while(!removalQueue.isEmpty()) {
-                            Context context = removalQueue.remove();
+                        for(Context context : removalQueue.values()) {
                             context.blockCollisionProvider.clearOwned();
                             contexts.remove(context);
                         }
+
+                        removalQueue.clear();
                     }
                 }
                 catch(InterruptedException ignored) {
@@ -266,7 +272,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         for(Context context : contexts) {
             if(context.blockCollisionProvider.world().getUID().equals(event.getWorld().getUID())) {
                 synchronized (removalQueue) {
-                    removalQueue.add(context);
+                    removalQueue.put(context, context);
                 }
             }
         }
