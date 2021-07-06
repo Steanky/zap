@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -12,9 +13,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new HashMap<>();
+    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new ConcurrentHashMap<>();
 
     private final World world;
     private final int maxCaptureAge;
@@ -66,7 +68,13 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         chunks.keySet().removeIf(id -> id.worldID.equals(world.getUID()));
     }
 
-    private CollisionChunkSnapshot chunkAt(int x, int z) {
+    @Override
+    public boolean hasChunk(int x, int z) {
+        return chunks.containsKey(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+    }
+
+    @Override
+    public CollisionChunkSnapshot chunkAt(int x, int z) {
         return chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
     }
 

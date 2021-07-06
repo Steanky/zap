@@ -3,7 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
+import java.util.concurrent.Future;
 
 /**
  * General interface implemented by classes responsible for handling multiple pathfinding operations. Depending on the
@@ -29,10 +29,9 @@ public interface PathfinderEngine {
      * terminated if the PathfinderEngine is disposed.
      * @param operation The operation to queue
      * @param world The world in which the operation is taking place
-     * @param resultConsumer The Consumer to invoke once the operation has completed (in either a successful or failed
-     *                       state).
+     * @return A Future object representing the result of this (possibly asynchronous) pathfinding operation
      */
-    void giveOperation(@NotNull PathOperation operation, @NotNull World world, @NotNull Consumer<PathResult> resultConsumer);
+    @NotNull Future<PathResult> giveOperation(@NotNull PathOperation operation, @NotNull World world);
 
     /**
      * Indicates the concurrent behavior of this PathfinderEngine.

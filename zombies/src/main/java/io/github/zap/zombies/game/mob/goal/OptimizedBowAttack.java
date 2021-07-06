@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.arenaapi.pathfind.PathResult;
 import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
@@ -89,10 +89,10 @@ public class OptimizedBowAttack extends BasicMetadataPathfinder {
                         Set.of(PathDestination.fromEntity(target.getBukkitEntity(), true)), 5,
                         targetDeviation), self.getWorld().getWorld());
 
-                PathHandler.Entry entry = getHandler().takeResult();
+                PathResult result = getHandler().tryTakeResult();
 
-                if(entry != null) {
-                    currentPath = ((PathEntityWrapper_v1_16_R3) entry.result().toPathEntity()).pathEntity();
+                if(result != null) {
+                    currentPath = ((PathEntityWrapper_v1_16_R3)result.toPathEntity()).pathEntity();
                 }
                 else {
                     navigationCounter += 25;

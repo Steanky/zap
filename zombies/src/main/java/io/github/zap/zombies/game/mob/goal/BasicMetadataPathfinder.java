@@ -1,7 +1,7 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.arenaapi.pathfind.PathResult;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
@@ -25,9 +25,9 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                     new HashSet<>(arenaMetadata.getPlayerMap().values()), 5),
                     getHandle().getWorld().getWorld());
 
-            PathHandler.Entry result = getHandler().takeResult();
+            PathResult result = getHandler().tryTakeResult();
             if(result != null) {
-                ZombiesPlayer target = (ZombiesPlayer)result.result().destination();
+                ZombiesPlayer target = (ZombiesPlayer)result.destination();
                 Player player = target.getPlayer();
 
                 if(player != null) {

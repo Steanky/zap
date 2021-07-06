@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
@@ -38,6 +39,10 @@ public interface BlockCollisionProvider {
     void clearRegion(@NotNull ChunkCoordinateProvider coordinates);
 
     void clearOwned();
+
+    boolean hasChunk(int x, int z);
+
+    @Nullable CollisionChunkSnapshot chunkAt(int x, int z);
 
     @Nullable BlockSnapshot getBlock(int x, int y, int z);
 

@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
@@ -69,16 +68,11 @@ public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
                         Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), true)),
                         5), target.getWorld().getWorld());
 
-                PathHandler.Entry entry = getHandler().takeResult();
+                PathResult result = getHandler().tryTakeResult();
+                if(result != null) {
+                    getNavigator().navigateAlongPath(result.toPathEntity(), speed);
 
-                PathResult pathResult = null;
-                if(entry != null) {
-                    pathResult = entry.result();
-                    getNavigator().navigateAlongPath(pathResult.toPathEntity(), speed);
-                }
-
-                if(pathResult != null) {
-                    int nodes = pathResult.pathNodes().size();
+                    int nodes = result.pathNodes().size();
                     if(nodes >= 100) {
                         navigationCounter += nodes / 5;
                     }

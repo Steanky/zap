@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.arenaapi.pathfind.PathResult;
 import io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -99,10 +99,10 @@ public class BreakWindow extends BasicMetadataPathfinder {
             getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
                     PathDestination.fromVector(VectorAccess.immutable(destination))), 5), arena.getWorld());
 
-            PathHandler.Entry entry = getHandler().takeResult();
+            PathResult result = getHandler().tryTakeResult();
 
-            if(entry != null) {
-                getNavigator().navigateAlongPath(entry.result().toPathEntity(), 1);
+            if(result != null) {
+                getNavigator().navigateAlongPath(result.toPathEntity(), 1);
             }
         }
     }
