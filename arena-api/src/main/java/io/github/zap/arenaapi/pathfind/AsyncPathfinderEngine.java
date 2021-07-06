@@ -13,12 +13,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.*;
 
-class AsyncPathfinderEngine implements PathfinderEngine, Listener {
+public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
     private static final int MIN_CHUNK_SYNC_AGE = 40;
     private static final int PATH_CAPACITY = 32;
     private static final int MAX_CONCURRENT_SYNC_TASKS = 8;
     private static final double URGENT_SYNC_THRESHOLD = 0.50;
+
+    private final ExecutorCompletionService<PathResult> completionService =
+            new ExecutorCompletionService<>(Executors.newCachedThreadPool());
+
+    private final Map<UUID, Context> contextMap = new ConcurrentHashMap<>();
 
     private class Context implements PathfinderContext {
         private final Semaphore syncSemaphore = new Semaphore(MAX_CONCURRENT_SYNC_TASKS);
@@ -51,7 +56,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             switch (state) {
                 case SUCCEEDED -> handleAddition(path, successfulPaths);
                 case FAILED -> handleAddition(path, failedPaths);
-                default -> throw new IllegalArgumentException("path.state() must be either SUCCEEDED or FAILED");
+                default -> throw new IllegalStateException("path.state() must be either SUCCEEDED or FAILED");
             }
         }
 
@@ -69,13 +74,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
     }
 
-    private final ExecutorCompletionService<PathResult> completionService =
-            new ExecutorCompletionService<>(Executors.newCachedThreadPool());
-
-    private final Map<UUID, Context> contextMap = new ConcurrentHashMap<>();
-
     private AsyncPathfinderEngine() { //singleton
-        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
+
     }
 
     private PathResult processOperation(Context context, PathOperation operation) {
@@ -116,7 +116,7 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             return operation.result();
         }
         catch (Exception exception) {
-            ArenaApi.warning("Exception thrown in PathOperation handler: ");
+            ArenaApi.warning("Exception thrown in PathOperation handler:");
             exception.printStackTrace();
         }
 
@@ -235,7 +235,14 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         contextMap.remove(event.getWorld().getUID());
     }
 
-    public static PathfinderEngine instance() {
+    public static AsyncPathfinderEngine instance() {
         return INSTANCE;
+    }
+
+    /**
+     * Re-register events on plugin reload or instantiation
+     */
+    public void registerEvents() {
+        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 }

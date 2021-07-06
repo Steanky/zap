@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.pathfind.AsyncPathfinderEngine;
 import io.github.zap.arenaapi.serialize.*;
 import io.github.zap.nms.common.NMSBridge;
 import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
@@ -74,6 +75,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         timer.start();
 
         try {
+            AsyncPathfinderEngine.instance().registerEvents();
             initBridge();
             initDependencies();
             initMapper();
