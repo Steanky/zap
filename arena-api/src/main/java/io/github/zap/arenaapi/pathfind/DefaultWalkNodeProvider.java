@@ -20,7 +20,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         IGNORE
     }
 
-    private static final int MAX_FALL_TEST_ITERS = 20;
+    private static final int MAX_FALL_TEST_ITERS = 8;
 
     private PathfinderContext context;
     private PathAgent agent;
@@ -220,6 +220,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private ImmutableWorldVector fallTest(BlockCollisionProvider provider, ImmutableWorldVector vector,
                                           BoundingBox agentBounds, Direction direction) {
         BoundingBox bounds = agentBounds.clone().shift(direction.asBukkit());
+        bounds.resize(bounds.getMinX(), bounds.getMinY(), bounds.getMinZ(), bounds.getMaxX(), 1, bounds.getMaxZ());
 
         int iters = 0;
         while(bounds.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
@@ -244,21 +245,25 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private boolean collidesMovingAlong(BoundingBox agentBounds, BlockCollisionProvider provider, Direction direction,
-                                        ImmutableWorldVector nodePosition) {
-        BoundingBox expanded = agentBounds.clone().expandDirectional(direction.asBukkit());
+                                        ImmutableWorldVector currentNode) {
+        BoundingBox boundsAtNewNode = agentBounds.clone().shift(direction.asBukkit());
 
-        if(!direction.isIntercardinal()) {
-            return provider.collidesWithAnySolid(expanded);
+        if(agentBounds.getWidthX() < 1) {
+            boundsAtNewNode.expandDirectional(direction.asBukkit().multiply(-1).multiply(1 - agentBounds.getWidthX()));
         }
 
-        List<BlockSnapshot> candidates = provider.collidingSolids(expanded);
+        if(!direction.isIntercardinal()) {
+            return provider.collidesWithAnySolid(boundsAtNewNode);
+        }
+
+        List<BlockSnapshot> candidates = provider.collidingSolids(boundsAtNewNode);
         if(!candidates.isEmpty()) {
             int dirFactor = direction.blockX() * direction.blockZ();
             return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(width,
                     negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
                     collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(width, negativeWidth,
                     dirFactor, collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()),
-                    nodePosition.blockX() + 0.5, nodePosition.blockZ() + 0.5);
+                    currentNode.blockX() + 0.5, currentNode.blockZ() + 0.5);
         }
 
         return false;
