@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":arena-api"))
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
+    shade("commons-io:commons-io:2.10.0")
 
     bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0")
     bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.1-SNAPSHOT")
