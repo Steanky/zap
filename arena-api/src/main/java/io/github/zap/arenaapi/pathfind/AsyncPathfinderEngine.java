@@ -17,7 +17,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
     private static final int MIN_CHUNK_SYNC_AGE = 40;
     private static final int PATH_CAPACITY = 32;
-    private static final int MAX_CONCURRENT_SYNC_TASKS = 8;
+    private static final int MAX_SCHEDULED_SYNC_TASKS = 16;
     private static final double URGENT_SYNC_THRESHOLD = 0.50;
 
     private final ExecutorCompletionService<PathResult> completionService =
@@ -26,7 +26,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final Map<UUID, Context> contextMap = new ConcurrentHashMap<>();
 
     private class Context implements PathfinderContext {
-        private final Semaphore syncSemaphore = new Semaphore(MAX_CONCURRENT_SYNC_TASKS);
+        private final Semaphore syncSemaphore = new Semaphore(MAX_SCHEDULED_SYNC_TASKS);
         private final Object contextSyncHandle = new Object();
         private final Object queueLock = new Object();
 

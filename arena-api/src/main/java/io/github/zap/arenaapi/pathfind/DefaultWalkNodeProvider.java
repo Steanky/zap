@@ -223,7 +223,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
         int iters = 0;
         while(bounds.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
-            bounds.expandDirectional(Direction.DOWN.asBukkit());
+            bounds.shift(0, -1, 0);
 
             List<BlockSnapshot> snapshots = provider.collidingSolids(bounds);
             if(!snapshots.isEmpty()) {
