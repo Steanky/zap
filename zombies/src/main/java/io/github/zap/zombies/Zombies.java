@@ -1,5 +1,6 @@
 package io.github.zap.zombies;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -11,6 +12,8 @@ import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
+import io.github.zap.arenaapi.serialize.PairDeserializer;
+import io.github.zap.arenaapi.serialize.PairSerializer;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.ZombiesCommand;
@@ -35,6 +38,9 @@ import io.lumine.xikage.mythicmobs.volatilecode.handlers.VolatileAIHandler;
 import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16_R3;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
@@ -137,6 +143,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
+            getServer().shutdown();
             return;
         }
 
@@ -211,6 +218,13 @@ public final class Zombies extends JavaPlugin implements Listener {
         arenaApi = ArenaApi.getDependentPlugin(PluginNames.ARENA_API, true, true);
         SWM = ArenaApi.getDependentPlugin(PluginNames.SLIME_WORLD_MANAGER, true, true);
         mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true,false);
+
+        SimpleModule module = arenaApi.getModule();
+        module.addSerializer(Pair.class, new PairSerializer());
+        module.addDeserializer(Pair.class, new PairDeserializer());
+
+        module.addAbstractTypeMapping(Pair.class, ImmutablePair.class);
+        module.addAbstractTypeMapping(Pair.class, MutablePair.class);
     }
 
     @SafeVarargs

@@ -12,30 +12,27 @@ import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
-import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.arenaapi.serialize.*;
 import io.github.zap.nms.common.NMSBridge;
 import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
 import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.text.Component;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -68,8 +65,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @Getter
     private ObjectMapper mapper;
 
-    private PathfinderEngine engine;
-
     private final Map<String, ArenaManager<?>> arenaManagers = new HashMap<>();
 
     @Override
@@ -94,8 +89,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         timer.stop();
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-
-        engine = PathfinderEngine.async();
     }
 
     @Override
@@ -121,7 +114,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private void initMapper() {
         module = new SimpleModule();
 
-        module.addSerializer(org.bukkit.util.Vector.class, new VectorSerializer());
+        module.addSerializer(Vector.class, new VectorSerializer());
         module.addDeserializer(Vector.class, new VectorDeserializer());
 
         module.addSerializer(BoundingBox.class, new BoundingBoxSerializer());
@@ -130,7 +123,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         module.addSerializer(Sound.class, new SoundSerializer());
         module.addDeserializer(Sound.class, new SoundDeserializer());
 
-        module.addDeserializer(Pair.class, new StringPairSerializer());
         module.addDeserializer(Color.class, new ColorDeserializer());
         module.addDeserializer(Particle.DustOptions.class, new DustOptionsDeserializer());
 

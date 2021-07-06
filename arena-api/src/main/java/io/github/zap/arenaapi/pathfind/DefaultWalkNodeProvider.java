@@ -63,25 +63,29 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private PathNode walkDirectional(PathfinderContext context, PathNode node, Direction direction) {
+        ImmutableWorldVector currentPos = node.position().asImmutable();
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
         BoundingBox agentBoundsAtNode = agent.characteristics().getBounds().shift(node.add(blockHorizontalOffset,
                 0, blockHorizontalOffset).asBukkit());
 
-        BlockSnapshot block = context.blockProvider().getBlock(node.add(Direction.DOWN));
+        BlockSnapshot block = context.blockProvider().getBlock(node);
         if(block != null) {
             double height = block.collision().maxY();
 
-            if(Double.isFinite(height) && height < 1) {
-                agentBoundsAtNode.shift(0, height, 0);
+            if(Double.isFinite(height) && height != 1) {
+                double offset = 1 - height;
+                agentBoundsAtNode.shift(0, offset, 0);
+                currentPos = currentPos.add(0, offset, 0);
             }
         }
 
-        switch (determineType(context, agentBoundsAtNode, direction, walkingTo, node)) {
+        switch (determineType(context, agentBoundsAtNode, direction, walkingTo, currentPos)) {
             case FALL:
                 ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo, agentBoundsAtNode, direction);
                 return fallVec == null ? null : node.chain(fallVec);
             case INCREASE:
-                ImmutableWorldVector jumpVec = jumpTest(agentBoundsAtNode, context.blockProvider(), walkingTo, direction);
+                ImmutableWorldVector jumpVec = jumpTest(agentBoundsAtNode, context.blockProvider(), walkingTo,
+                        currentPos, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
                 return node.chain(walkingTo);
@@ -91,8 +95,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, Direction direction,
-                                       ImmutableWorldVector target, PathNode current) {
-        if(collidesMovingAlong(agentBounds, context.blockProvider(), direction, current.position().asImmutable())) {
+                                       ImmutableWorldVector target, ImmutableWorldVector current) {
+        if(collidesMovingAlong(agentBounds, context.blockProvider(), direction, current)) {
             return JunctionType.INCREASE;
         }
         else {
@@ -123,15 +127,17 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private ImmutableWorldVector jumpTest(BoundingBox agentBounds, BlockCollisionProvider provider,
-                                        ImmutableWorldVector start, Direction direction) {
-        double jumpHeightRequired = start.blockY() - start.y();
+                                          ImmutableWorldVector walkingTo, ImmutableWorldVector entityPos,
+                                          Direction direction) {
+        double jumpHeightRequired = entityPos.blockY() - entityPos.y();
+
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
 
         double jumpHeight = agent.characteristics().jumpHeight();
         double height = agent.characteristics().height();
 
-        MutableWorldVector seek = start.asMutable();
+        MutableWorldVector seek = walkingTo.asMutable();
 
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
@@ -192,7 +198,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
 
                 BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-                ImmutableWorldVector jumpedVector = start.add(0, jumpHeightRequired, 0);
+                ImmutableWorldVector jumpedVector = walkingTo.add(0, jumpHeightRequired, 0);
                 if(!collidesMovingAlong(jumpedAgent, provider, direction, jumpedVector)) {
                     return jumpedVector.asImmutable();
                 }

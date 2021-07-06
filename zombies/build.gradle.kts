@@ -20,12 +20,15 @@ repositories {
 val shade: Configuration by configurations.creating {
     isTransitive = false
 }
+
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
+
 val classModifier: Configuration by configurations.creating {
     isTransitive = false
 }
+
 configurations.implementation.get().extendsFrom(shade, bukkitPlugin, classModifier)
 
 val outputDir = System.getProperty("outputDir") ?: "../run/server-1"
@@ -35,8 +38,10 @@ dependencies {
     implementation(project(":arena-api"))
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
+    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0") {
+        exclude("org.apache.commons", "lang3")
+    }
 
-    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0")
     bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.1-SNAPSHOT")
 
     classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.6.1-SNAPSHOT")
