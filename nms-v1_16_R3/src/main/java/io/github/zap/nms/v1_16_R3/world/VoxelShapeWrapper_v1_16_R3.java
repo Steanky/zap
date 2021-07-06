@@ -2,6 +2,7 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.BoxConsumer;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EnumDirection;
 import net.minecraft.server.v1_16_R3.VoxelShape;
@@ -14,9 +15,11 @@ import java.util.List;
 
 class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     private final VoxelShape shape;
+    private List<AxisAlignedBB> cachedBounds;
 
     VoxelShapeWrapper_v1_16_R3(VoxelShape shape) {
         this.shape = shape;
+        cachedBounds = null;
     }
 
     @Override
@@ -47,11 +50,30 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     @Override
     public @NotNull List<BoundingBox> boundingBoxes() {
         List<BoundingBox> bounds = new ArrayList<>();
-        for(AxisAlignedBB bb : shape.d()) {
+        for(AxisAlignedBB bb : getCachedBounds()) {
             bounds.add(new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxX));
         }
 
         return bounds;
+    }
+
+    private List<AxisAlignedBB> getCachedBounds() {
+        if(cachedBounds == null) {
+            cachedBounds = shape.d();
+        }
+
+        return cachedBounds;
+    }
+
+    @Override
+    public boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        for(AxisAlignedBB bounds : getCachedBounds()) {
+            if(bounds.intersects(minX, minY, minZ, maxX, maxY, maxZ)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public @NotNull VoxelShape getShape() {

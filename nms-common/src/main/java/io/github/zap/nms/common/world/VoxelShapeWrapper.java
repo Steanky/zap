@@ -17,4 +17,6 @@ public interface VoxelShapeWrapper {
     boolean isEmpty();
 
     @NotNull List<BoundingBox> boundingBoxes();
+
+    boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 }
