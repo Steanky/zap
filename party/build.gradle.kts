@@ -27,7 +27,9 @@ configurations.api.get().extendsFrom(shade, bukkitPlugin)
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
 dependencies {
-    api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
+    api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
+        exclude("io.papermc", "minecraft-server")
+    }
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
     compileOnly("org.projectlombok:lombok:1.18.20")

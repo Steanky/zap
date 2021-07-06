@@ -28,7 +28,9 @@ val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins
 
 dependencies {
     api(project(":party"))
-    api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
+    api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
+        exclude("io.papermc", "minecraft-server")
+    }
     shade(project(":nms-common"))
     shade(project(":nms-v1_16_R3"))
     shade(project(":vector"))

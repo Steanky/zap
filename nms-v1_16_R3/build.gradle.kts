@@ -25,7 +25,9 @@ java {
 
 dependencies {
     api(project(":nms-common"))
-    api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT")
+    api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
+        exclude("io.papermc", "minecraft-server")
+    }
 }
 
 description = "arena-nms_v1_16_R3"
