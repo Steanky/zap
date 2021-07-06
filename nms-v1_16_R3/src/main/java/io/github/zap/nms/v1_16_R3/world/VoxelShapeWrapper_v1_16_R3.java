@@ -57,14 +57,6 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
         return bounds;
     }
 
-    private List<AxisAlignedBB> getCachedBounds() {
-        if(cachedBounds == null) {
-            cachedBounds = shape.d();
-        }
-
-        return cachedBounds;
-    }
-
     @Override
     public boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         for(AxisAlignedBB bounds : getCachedBounds()) {
@@ -78,5 +70,13 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
 
     public @NotNull VoxelShape getShape() {
         return shape;
+    }
+
+    private List<AxisAlignedBB> getCachedBounds() {
+        if(cachedBounds == null) {
+            cachedBounds = shape.d();
+        }
+
+        return cachedBounds;
     }
 }
