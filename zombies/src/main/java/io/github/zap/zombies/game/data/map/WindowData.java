@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.data.map;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.MultiBoundingBox;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

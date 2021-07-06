@@ -28,6 +28,7 @@ import io.github.zap.zombies.game.data.map.shop.ShopManager;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpBossBar;
@@ -546,7 +547,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
         getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
         getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
-        getProxyFor(PlayerToggleSneakEvent.class).registerHandler(this::onPlayerToggleSneak);
         getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
         getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
         getProxyFor(PlayerItemDamageEvent.class).registerHandler(this::onPlayerItemDamage);
@@ -983,24 +983,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             //disgusting! but works (allows head rotation but not movement)
             if(!args.getEvent().getFrom().toVector().equals(args.getEvent().getTo().toVector())) {
                 args.getEvent().setCancelled(true);
-            }
-        }
-    }
-
-    private void onPlayerToggleSneak(ProxyArgs<PlayerToggleSneakEvent> args) {
-        PlayerToggleSneakEvent event = args.getEvent();
-        ZombiesPlayer managedPlayer = args.getManagedPlayer();
-
-        if(managedPlayer != null) {
-            if(event.isSneaking()) {
-                if (managedPlayer.isAlive()) {
-                    managedPlayer.activateRepair();
-                    managedPlayer.activateRevive();
-                }
-            }
-            else {
-                managedPlayer.disableRepair();
-                managedPlayer.disableRevive();
             }
         }
     }

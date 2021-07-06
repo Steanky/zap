@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.data.map.shop.tmtask;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;

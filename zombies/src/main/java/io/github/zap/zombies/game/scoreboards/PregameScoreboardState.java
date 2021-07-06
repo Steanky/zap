@@ -4,7 +4,7 @@ import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;

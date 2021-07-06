@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.equipment;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
