@@ -16,7 +16,7 @@ public interface SuccessCondition {
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
     static @NotNull SuccessCondition whenWithin(double distanceSquared) {
-        Validate.isTrue(distanceSquared > 0, "distanceSquared must be greater than 0!");
+        Validate.isTrue(distanceSquared >= 0, "distanceSquared must be greater than or equal to 0!");
         Validate.isTrue(Double.isFinite(distanceSquared), "distanceSquared must be finite!");
         return (context, node, destination) -> destination.position().distanceSquared(node) <= distanceSquared;
     }

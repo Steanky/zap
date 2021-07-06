@@ -25,7 +25,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private PathfinderContext context;
     private PathAgent agent;
 
-    private double blockOffset;
+    private double blockHorizontalOffset;
 
     private double width;
     private double negativeWidth;
@@ -42,7 +42,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
         width = agent.characteristics().width();
         negativeWidth = -width;
 
-        blockOffset = 0.5D - (width / 2D);
+        blockHorizontalOffset = 0.5D - (width / 2D);
     }
 
     @Override
@@ -64,7 +64,17 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private PathNode walkDirectional(PathfinderContext context, PathNode node, Direction direction) {
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
-        BoundingBox agentBoundsAtNode = agent.characteristics().getBounds().shift(node.add(blockOffset, 0, blockOffset).asBukkit());
+        BoundingBox agentBoundsAtNode = agent.characteristics().getBounds().shift(node.add(blockHorizontalOffset,
+                0, blockHorizontalOffset).asBukkit());
+
+        BlockSnapshot block = context.blockProvider().getBlock(node.add(Direction.DOWN));
+        if(block != null) {
+            double height = block.collision().maxY();
+
+            if(Double.isFinite(height) && height < 1) {
+                agentBoundsAtNode.shift(0, height, 0);
+            }
+        }
 
         switch (determineType(context, agentBoundsAtNode, direction, walkingTo, node)) {
             case FALL:

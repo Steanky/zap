@@ -120,6 +120,8 @@ class PathOperationImpl implements PathOperation {
                         bestFound = sample;
                         continue;
                     }
+
+                    heapNode.heapIndex = -1;
                 }
 
                 //comparison for best path in case of inaccessible target
