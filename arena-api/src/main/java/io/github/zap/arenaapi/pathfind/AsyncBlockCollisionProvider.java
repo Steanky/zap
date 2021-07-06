@@ -80,6 +80,10 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public @Nullable BlockSnapshot getBlock(int worldX, int worldY, int worldZ) {
+        if(worldY < 0) {
+            return null;
+        }
+
         CollisionChunkSnapshot snapshot = chunkAt(worldX >> 4, worldZ >> 4);
 
         if(snapshot != null) {

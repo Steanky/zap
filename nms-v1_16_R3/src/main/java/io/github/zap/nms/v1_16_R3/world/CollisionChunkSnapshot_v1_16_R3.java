@@ -161,6 +161,10 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
             for(int x = min.getBlockX(); x <= max.getBlockX(); x++) {
                 for(int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                    if(y < 0 || y > 255) {
+                        continue;
+                    }
+                    
                     for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         int chunkX = x & 15;
                         int chunkZ = z & 15;
@@ -196,6 +200,10 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
             for(int x = min.getBlockX(); x <= max.getBlockX(); x++) {
                 for(int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                    if(y < 0 || y > 255) {
+                        continue;
+                    }
+
                     for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(VectorAccess.immutable(x, y, z));
 

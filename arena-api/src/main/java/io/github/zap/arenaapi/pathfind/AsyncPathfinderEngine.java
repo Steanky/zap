@@ -217,7 +217,8 @@ class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         UUID worldID = world.getUID();
         Context context = contextMap.get(worldID);
         if(context == null) {
-            context = contextMap.put(worldID, new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
+            context = new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE));
+            contextMap.put(worldID, context);
         }
 
         Context finalContext = context;
