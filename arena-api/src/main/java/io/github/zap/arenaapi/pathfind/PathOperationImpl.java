@@ -105,7 +105,7 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
-                //THIS IS REALLY SLOW, need a better way of getting the node at a point
+                //nevermind this isn't actually bad, it's not even close to being a bottleneck somehow
                 PathNode heapNode = openHeap.nodeAt(sample.x(), sample.y(), sample.z());
                 if(heapNode == null) {
                     bestDestination = destinationSelector.selectDestination(this, sample);

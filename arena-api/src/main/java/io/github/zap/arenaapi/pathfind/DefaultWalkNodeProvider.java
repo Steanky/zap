@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 public class DefaultWalkNodeProvider extends NodeProvider {
@@ -49,7 +50,8 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < buffer.length; i++) {
-            PathNode node = walkDirectional(context, current, Direction.valueAtIndex(i));
+            Direction direction = Direction.valueAtIndex(i);
+            PathNode node = walkDirectional(context, current, direction);
 
             if(node != null) {
                 calculateAversion(node, context.blockProvider());
