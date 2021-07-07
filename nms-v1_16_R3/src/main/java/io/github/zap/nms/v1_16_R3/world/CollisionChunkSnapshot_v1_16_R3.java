@@ -112,7 +112,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                             VoxelShape shape = blockData.getCollisionShape(chunk, examine);
                             if(!blockData.getMaterial().isSolid() || (shape != VoxelShapes.empty() && shape != VoxelShapes.fullCube())) {
                                 nonSolidOrPartial.put(org.bukkit.block.Block.getBlockKey(x, y, z),
-                                        BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(x, y, z),
+                                        BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(x, y, z) ,
                                                 chunkX, chunkZ), blockData.createCraftBlockData(),
                                                 new VoxelShapeWrapper_v1_16_R3(shape)));
                             }

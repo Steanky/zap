@@ -326,9 +326,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             if (hasEntity(target.getUniqueId()) && !target.isDead()) {
                 target.playEffect(EntityEffect.HURT);
 
+                Optional<ActiveMob> activeMob = MythicMobs.inst().getMobManager().getActiveMob(target.getUniqueId());
+                double mobKbFactor = 1;
+                if(activeMob.isPresent()) {
+                    mobKbFactor = activeMob.get().getType().getConfig().getDouble("KnockbackFactor", 1);
+                }
+
                 double deltaHealth = inflictDamage(target, with.damageAmount(damager, target), with.ignoresArmor(damager, target));
                 Vector resultingVelocity = target.getVelocity().add(with.directionVector(damager, target)
-                        .multiply(with.knockbackFactor(damager, target)));
+                        .multiply(with.knockbackFactor(damager, target)).multiply(mobKbFactor));
 
                 try {
                     target.setVelocity(resultingVelocity);
