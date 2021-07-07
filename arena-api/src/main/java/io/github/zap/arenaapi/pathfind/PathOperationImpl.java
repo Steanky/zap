@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
-import io.github.zap.arenaapi.pathfind.traversal.ChunkedNodeGraph;
+import io.github.zap.arenaapi.pathfind.traversal.ChunkGraph;
+import io.github.zap.arenaapi.pathfind.traversal.ArrayChunkGraph;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -16,7 +16,7 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
-    private final NodeGraph visited = new ChunkedNodeGraph();
+    private final ChunkGraph<PathNode> visited = new ArrayChunkGraph<>();
     private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
     private final PathNode[] sampleBuffer = new PathNode[8];
 
@@ -96,7 +96,7 @@ class PathOperationImpl implements PathOperation {
                 return true;
             }
 
-            visited.putNode(currentNode);
+            visited.putElement(currentNode.nodeX(), currentNode.nodeY(), currentNode.nodeZ(), currentNode);
             nodeProvider.generateNodes(sampleBuffer, currentNode);
 
             for(PathNode candidateNode : sampleBuffer) {
@@ -104,7 +104,7 @@ class PathOperationImpl implements PathOperation {
                     break;
                 }
 
-                if(visited.containsNode(candidateNode)) {
+                if(visited.hasElement(candidateNode.nodeX(), candidateNode.nodeY(), candidateNode.nodeZ())) {
                     continue;
                 }
 
@@ -166,7 +166,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull NodeGraph visitedNodes() {
+    public @NotNull ChunkGraph<PathNode> visitedNodes() {
         return visited;
     }
 

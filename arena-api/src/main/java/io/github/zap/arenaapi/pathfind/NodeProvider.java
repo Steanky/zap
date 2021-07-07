@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
 import org.jetbrains.annotations.NotNull;
 
 /**

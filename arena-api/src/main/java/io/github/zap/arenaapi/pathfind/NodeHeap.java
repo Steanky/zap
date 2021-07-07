@@ -1,11 +1,9 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * General implementation for a class managing an aggregation of PathNode objects.

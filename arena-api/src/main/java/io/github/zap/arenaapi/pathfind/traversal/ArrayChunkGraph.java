@@ -1,18 +1,16 @@
 package io.github.zap.arenaapi.pathfind.traversal;
 
-import io.github.zap.arenaapi.pathfind.PathNode;
 import io.github.zap.vector.ChunkVectorAccess;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ChunkedNodeGraph implements NodeGraph {
+public class ArrayChunkGraph<T> implements ChunkGraph<T> {
     private final Map<ChunkVectorAccess, NodeChunk> chunks = new HashMap<>();
 
     @Override
-    public @Nullable NodeLocation nodeAt(int x, int y, int z) {
+    public @Nullable T elementAt(int x, int y, int z) {
         NodeChunk nodeChunk = chunks.get(ChunkVectorAccess.immutable(x >> 4, z >> 4));
 
         if(nodeChunk != null) {
@@ -25,7 +23,9 @@ public class ChunkedNodeGraph implements NodeGraph {
                     NodeRow row = layer.get(x & 15);
 
                     if(row != null) {
-                        return row.get(z & 15);
+                        NodeLocation nodeLocation = row.get(z & 15);
+                        //noinspection unchecked
+                        return nodeLocation == null ? null : (T)nodeLocation.node();
                     }
                 }
             }
@@ -35,48 +35,21 @@ public class ChunkedNodeGraph implements NodeGraph {
     }
 
     @Override
-    public void chainNode(int x, int y, int z, @NotNull PathNode parent) {
-        PathNode newNode = new PathNode(x, y, z);
-        newNode.chain(parent);
-
-        putNodeInternal(x, y, z, newNode);
+    public void removeElement(int x, int y, int z) {
+        putElement(x, y, z, null);
     }
 
     @Override
-    public void putNode(@NotNull PathNode node) {
-        putNodeInternal(node.nodeX(), node.nodeY(), node.nodeZ(), node);
+    public boolean hasElement(int x, int y, int z) {
+        return elementAt(x, y, z) != null;
     }
 
     @Override
-    public void removeNode(int x, int y, int z) {
-        putNodeInternal(x, y, z, null);
-    }
-
-    @Override
-    public void removeNode(@NotNull PathNode node) {
-        removeNode(node.nodeX(), node.nodeY(), node.nodeZ());
-    }
-
-    @Override
-    public void removeChunk(int chunkX, int chunkZ) {
-        chunks.remove(ChunkVectorAccess.immutable(chunkX, chunkX));
-    }
-
-    @Override
-    public boolean containsNode(int x, int y, int z) {
-        return nodeAt(x, y, z) != null;
-    }
-
-    @Override
-    public boolean containsNode(@NotNull PathNode node) {
-        return nodeAt(node.nodeX(), node.nodeY(), node.nodeZ()) != null;
-    }
-
-    private void putNodeInternal(int x, int y, int z, @Nullable PathNode node) {
+    public void putElement(int x, int y, int z, @Nullable T node) {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
         NodeChunk nodeChunk = chunks.computeIfAbsent(ChunkVectorAccess.immutable(chunkX, chunkZ),
-                (chunkVectorAccess -> new NodeChunk(this, chunkX, chunkZ)));
+                (chunkVectorAccess -> new NodeChunk( chunkX, chunkZ, (a, b) -> chunks.remove(ChunkVectorAccess.immutable(a, b)))));
 
         int segmentIndex = (y >> 4) & 15;
         int layerIndex = y & 15;

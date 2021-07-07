@@ -1,8 +1,6 @@
 package io.github.zap.arenaapi.pathfind.traversal;
 
 import io.github.zap.arenaapi.pathfind.*;
-import org.apache.commons.lang3.NotImplementedException;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -10,21 +8,20 @@ import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-public class ChunkedNodeGraphTest {
-    private NodeGraph nodeGraph;
+public class ArrayChunkGraphTest {
+    private ChunkGraph<PathNode> chunkGraph;
     private final Map<PathNode, PathNode> mapGraph = new HashMap<>();
     private static final int cuberootItersOver2 = 50;
 
     @Before
     public void setUp() {
-        nodeGraph = new ChunkedNodeGraph();
+        chunkGraph = new ArrayChunkGraph<>();
 
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    nodeGraph.chainNode(i, j, k, new PathNode(i, j, k));
+                    chunkGraph.putElement(i, j, k, new PathNode(i, j, k));
                     PathNode node = new PathNode(i, j, k);
                     mapGraph.put(node, node);
                 }
@@ -34,7 +31,7 @@ public class ChunkedNodeGraphTest {
 
     @After
     public void tearDown() {
-        nodeGraph = null;
+        chunkGraph = null;
     }
 
     @Test
@@ -42,7 +39,7 @@ public class ChunkedNodeGraphTest {
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    Assert.assertTrue(nodeGraph.containsNode(i, j, k));
+                    Assert.assertTrue(chunkGraph.hasElement(i, j, k));
                 }
             }
         }
@@ -53,7 +50,7 @@ public class ChunkedNodeGraphTest {
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    nodeGraph.removeNode(i, j, k);
+                    chunkGraph.removeElement(i, j, k);
                 }
             }
         }
@@ -61,7 +58,7 @@ public class ChunkedNodeGraphTest {
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    Assert.assertFalse(nodeGraph.containsNode(i, j, k));
+                    Assert.assertFalse(chunkGraph.hasElement(i, j, k));
                 }
             }
         }
@@ -74,7 +71,7 @@ public class ChunkedNodeGraphTest {
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    if(nodeGraph.containsNode(i, j, k)) {
+                    if(chunkGraph.hasElement(i, j, k)) {
                         zzz++;
                     }
                 }
@@ -102,7 +99,7 @@ public class ChunkedNodeGraphTest {
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    nodeGraph.removeNode(i, j, k);
+                    chunkGraph.removeElement(i, j, k);
                 }
             }
         }

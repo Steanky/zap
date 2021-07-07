@@ -1,11 +1,10 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
+import io.github.zap.arenaapi.pathfind.traversal.ChunkGraph;
 import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
-import io.github.zap.vector.VectorAccess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -15,12 +14,12 @@ class PathResultImpl implements PathResult {
     private final PathNode end;
     private final PathOperation operation;
     private final PathDestination destination;
-    private final NodeGraph visitedNodes;
+    private final ChunkGraph<PathNode> visitedNodes;
     private final List<PathNode> pathNodes = new ArrayList<>();
     private final PathOperation.State state;
 
     PathResultImpl(@NotNull PathNode start, @NotNull PathOperation operation,
-                   @NotNull NodeGraph visitedNodes, @NotNull PathDestination destination,
+                   @NotNull ChunkGraph<PathNode> visitedNodes, @NotNull PathDestination destination,
                    @NotNull PathOperation.State state) {
         this.start = start;
         this.operation = operation;
@@ -59,7 +58,7 @@ class PathResultImpl implements PathResult {
     }
 
     @Override
-    public @NotNull NodeGraph visitedNodes() {
+    public @NotNull ChunkGraph<PathNode> visitedNodes() {
         return visitedNodes;
     }
 

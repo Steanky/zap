@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.ChunkedNodeGraph;
 import org.bukkit.util.Vector;
 import org.junit.After;
 import org.junit.Assert;

@@ -1,12 +1,11 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
+import io.github.zap.arenaapi.pathfind.traversal.ChunkGraph;
 import io.github.zap.vector.VectorAccess;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -69,7 +68,7 @@ public interface PathOperation {
     /**
      * Returns a map of all of the nodes visited by this PathOperation so far.
      */
-    @NotNull NodeGraph visitedNodes();
+    @NotNull ChunkGraph<PathNode> visitedNodes();
 
     /**
      * Returns the PathAgent that this PathOperation is using.

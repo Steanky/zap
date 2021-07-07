@@ -1,12 +1,9 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
-import io.github.zap.arenaapi.pathfind.traversal.NodeLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Implementation of NodeQueue based on a binary min-heap
