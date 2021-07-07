@@ -173,7 +173,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                     spillover = newSpillover;
                 }
 
-                headroom = 0;
+                if(headroom != 0) {
+                    jumpHeightRequired += headroom;
+                    headroom = 0;
+                }
             }
             else { //anything that does not fall into the above categories
                 double newSpillover = spillover - maxY;
@@ -189,7 +192,11 @@ public class DefaultWalkNodeProvider extends NodeProvider {
                 }
                 else { //maxY smaller than spillover
                     spillover = newSpillover;
-                    headroom = 0;
+
+                    if(headroom != 0) {
+                        jumpHeightRequired += headroom;
+                        headroom = 0;
+                    }
                 }
             }
 
@@ -202,6 +209,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
                 BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
                 ImmutableWorldVector jumpedVector = walkingTo.add(0, jumpHeightRequired, 0);
+
                 if(!collidesMovingAlong(jumpedAgent, provider, direction, jumpedVector)) {
                     return jumpedVector.asImmutable();
                 }

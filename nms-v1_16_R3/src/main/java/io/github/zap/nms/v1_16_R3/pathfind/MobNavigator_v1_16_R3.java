@@ -42,12 +42,16 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
                 currentIndex++;
             }
 
+            //anti spin code
             int next = newPath.f() + 1;
             if(next < newPath.e()) {
                 PathPoint nextPoint = newPath.getPoints().get(next);
 
-                if(nextPoint.a(entityPoint) <= 2) {
-                    closestPointIndex++;
+                //mobs try to jump over gaps they can't make without this
+                if(nextPoint.getY() == entityPoint.getY()) {
+                    if(nextPoint.a(entityPoint) <= 2) {
+                        closestPointIndex++;
+                    }
                 }
             }
 
