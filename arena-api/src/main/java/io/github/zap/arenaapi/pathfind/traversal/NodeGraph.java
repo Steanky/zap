@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 public interface NodeGraph {
     @Nullable NodeLocation nodeAt(int x, int y, int z);
 
-    void putNode(@NotNull PathNode node, @NotNull PathOperation operation);
+    void putNode(int x, int y, int z, @NotNull PathNode node, @NotNull PathOperation operation);
 
     void removeNode(int x, int y, int z);
 

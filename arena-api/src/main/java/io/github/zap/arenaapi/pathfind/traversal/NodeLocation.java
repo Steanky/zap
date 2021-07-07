@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind.traversal;
 import io.github.zap.arenaapi.pathfind.PathNode;
 import io.github.zap.arenaapi.pathfind.PathOperation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class NodeLocation {
     private final NodeRow parent;

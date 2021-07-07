@@ -16,15 +16,18 @@ public class NodeGraphImpl implements NodeGraph {
     public @Nullable NodeLocation nodeAt(int x, int y, int z) {
         NodeChunk nodeChunk = chunks.get(ChunkVectorAccess.immutable(x >> 4, z >> 4));
 
-        NodeSegment segment = nodeChunk.get(y >> 4);
-        if(segment != null) {
-            NodeLayer layer = segment.get(y & 15);
+        if(nodeChunk != null) {
+            NodeSegment segment = nodeChunk.get((y >> 4) & 15);
 
-            if(layer != null) {
-                NodeRow row = layer.get(x & 15);
+            if(segment != null) {
+                NodeLayer layer = segment.get(y & 15);
 
-                if(row != null) {
-                    return row.get(z & 15);
+                if(layer != null) {
+                    NodeRow row = layer.get(x & 15);
+
+                    if(row != null) {
+                        return row.get(z & 15);
+                    }
                 }
             }
         }
@@ -33,50 +36,16 @@ public class NodeGraphImpl implements NodeGraph {
     }
 
     @Override
-    public void putNode(@NotNull PathNode node, @NotNull PathOperation operation) {
-        int chunkX = node.nodeX() >> 4;
-        int chunkZ = node.nodeZ() >> 4;
-        NodeChunk nodeChunk = chunks.computeIfAbsent(ChunkVectorAccess.immutable(chunkX, chunkZ),
-                (chunkVectorAccess -> new NodeChunk(this, chunkX, chunkZ)));
+    public void putNode(int x, int y, int z, @NotNull PathNode chainTo, @NotNull PathOperation operation) {
+        PathNode newNode = new PathNode(x, y, z);
+        newNode.chain(chainTo);
 
-        int segmentIndex = node.nodeY() >> 4;
-        int layerIndex = node.nodeY() & 15;
-        int rowIndex = node.nodeX() & 15;
-        int nodeIndex = node.nodeZ() & 15;
-
-        NodeSegment segment = nodeChunk.get(segmentIndex);
-        NodeLayer layer;
-        NodeRow row;
-
-        if(segment == null) {
-            nodeChunk.set(segmentIndex, (segment = new NodeSegment(nodeChunk, segmentIndex)));
-            segment.set(layerIndex, (layer = new NodeLayer(segment, layerIndex)));
-            layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
-            row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
-        }
-        else {
-            layer = segment.get(layerIndex);
-            if(layer == null) {
-                segment.set(layerIndex, (layer = new NodeLayer(segment, layerIndex)));
-                layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
-                row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
-            }
-            else {
-                row = layer.get(rowIndex);
-                if(row == null) {
-                    layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
-                    row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
-                }
-                else {
-                    row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
-                }
-            }
-        }
+        putNodeInternal(x, y, z, newNode, operation);
     }
 
     @Override
     public void removeNode(int x, int y, int z) {
-
+        putNodeInternal(x, y, z, null, null);
     }
 
     @Override
@@ -87,5 +56,42 @@ public class NodeGraphImpl implements NodeGraph {
     @Override
     public boolean containsNode(int x, int y, int z) {
         return nodeAt(x, y, z) != null;
+    }
+
+    private void putNodeInternal(int x, int y, int z, @Nullable PathNode node, @Nullable PathOperation operation) {
+        int chunkX = x >> 4;
+        int chunkZ = z >> 4;
+        NodeChunk nodeChunk = chunks.computeIfAbsent(ChunkVectorAccess.immutable(chunkX, chunkZ),
+                (chunkVectorAccess -> new NodeChunk(this, chunkX, chunkZ)));
+
+        int segmentIndex = (y >> 4) & 15;
+        int layerIndex = y & 15;
+        int rowIndex = x & 15;
+        int nodeIndex = z & 15;
+
+        NodeSegment segment = nodeChunk.get(segmentIndex);
+        NodeLayer layer;
+        NodeRow row;
+
+        if(segment == null) {
+            nodeChunk.set(segmentIndex, (segment = new NodeSegment(nodeChunk, segmentIndex)));
+            segment.set(layerIndex, (layer = new NodeLayer(segment, layerIndex)));
+            layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
+        }
+        else {
+            layer = segment.get(layerIndex);
+            if(layer == null) {
+                segment.set(layerIndex, (layer = new NodeLayer(segment, layerIndex)));
+                layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
+            }
+            else {
+                row = layer.get(rowIndex);
+                if(row == null) {
+                    layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
+                }
+            }
+        }
+
+        row.set(nodeIndex, (node == null || operation == null) ? null : new NodeLocation(row, node, operation, nodeIndex));
     }
 }

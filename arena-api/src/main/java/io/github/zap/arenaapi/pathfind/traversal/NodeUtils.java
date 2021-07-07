@@ -14,10 +14,12 @@ public class NodeUtils {
         else {
             if(array[index] != null) {
                 array[index] = null;
-                if(++currentEmptyCount == 16) {
-                    parentSetter.accept(parentIndex, null);
-                }
+                ++currentEmptyCount;
             }
+        }
+
+        if(currentEmptyCount == 16) {
+            parentSetter.accept(parentIndex, null);
         }
 
         return currentEmptyCount;
