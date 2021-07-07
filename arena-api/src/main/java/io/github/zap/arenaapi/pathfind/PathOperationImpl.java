@@ -16,8 +16,8 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
-    private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
-    private final NodeGraph visited = new ChunkedNodeGraph();
+    private final NodeGraph graph = new ChunkedNodeGraph();
+    private final NodeHeap openHeap = new BinaryMinNodeHeap(graph, 128);
     private final PathNode[] sampleBuffer = new PathNode[8];
 
     private PathDestination bestDestination;
@@ -96,41 +96,30 @@ class PathOperationImpl implements PathOperation {
                 return true;
             }
 
+            currentNode.visited = true;
+            graph.putNode(currentNode);
 
-            visited.putNode(currentNode, this);
-            nodeProvider.generateNodes(sampleBuffer, currentNode);
+            nodeProvider.generateNodes(graph, sampleBuffer, currentNode);
 
-            for(PathNode sample : sampleBuffer) {
-                if(sample == null) {
+            for(PathNode candidateNode : sampleBuffer) {
+                if(candidateNode == null) {
                     break;
                 }
 
-                if(visited.containsNode(sample)) {
-                    continue;
+                PathNode existingNode = openHeap.nodeAt(candidateNode.nodeX(), candidateNode.nodeY(), candidateNode.nodeZ());
+                if(existingNode == null) {
+                    bestDestination = destinationSelector.selectDestination(this, candidateNode);
+                    candidateNode.score.setH(heuristicCalculator.compute(context, candidateNode, bestDestination));
+                    openHeap.addNode(candidateNode);
                 }
-
-                //nevermind this isn't actually bad, it's not even close to being a bottleneck somehow
-                PathNode heapNode = openHeap.nodeAt(sample.x(), sample.y(), sample.z());
-                if(heapNode == null) {
-                    bestDestination = destinationSelector.selectDestination(this, sample);
-                    sample.score.setH(heuristicCalculator.compute(context, sample, bestDestination));
-                    openHeap.addNode(sample);
-                }
-                else if(sample.score.getG() < heapNode.score.getG()) {
-                    sample.score.setH(heapNode.score.getH());
-                    openHeap.replaceNode(heapNode.heapIndex, sample);
-
-                    if(bestFound == heapNode) {
-                        bestFound = sample;
-                        continue;
-                    }
-
-                    heapNode.heapIndex = -1;
+                else if(candidateNode.score.getG() < existingNode.score.getG()) {
+                    candidateNode.score.setH(existingNode.score.getH());
+                    openHeap.replaceNode(existingNode.heapIndex, candidateNode);
                 }
 
                 //comparison for best path in case of inaccessible target
-                if(sample.score.getH() < bestFound.score.getH()) {
-                    bestFound = sample;
+                if(candidateNode.score.getH() < bestFound.score.getH()) {
+                    bestFound = candidateNode;
                 }
             }
         }
@@ -171,7 +160,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public @NotNull NodeGraph visitedNodes() {
-        return visited;
+        return graph;
     }
 
     @Override
@@ -196,6 +185,6 @@ class PathOperationImpl implements PathOperation {
 
     private void complete(boolean success) {
         state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
+        result = new PathResultImpl(bestFound.reverse(), this, graph, bestDestination, state);
     }
 }

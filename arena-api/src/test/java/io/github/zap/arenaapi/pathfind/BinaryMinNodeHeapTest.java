@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.pathfind.traversal.ChunkedNodeGraph;
 import org.bukkit.util.Vector;
 import org.junit.After;
 import org.junit.Assert;
@@ -14,7 +15,7 @@ public class BinaryMinNodeHeapTest {
 
     @Before
     public void setUp() {
-        heap = new BinaryMinNodeHeap();
+        heap = new BinaryMinNodeHeap(new ChunkedNodeGraph());
         for(int i = 0; i < 100; i++) {
             for(int j = 0; j < 100; j++) {
                 PathNode node = new PathNode(null, new Vector(i, j, i+j));
@@ -101,6 +102,8 @@ public class BinaryMinNodeHeapTest {
                 int result = NodeComparator.instance().compare(parent, sample);
                 Assert.assertTrue(result <= 0);
             }
+
+            Assert.assertEquals(sample.heapIndex, i);
         }
     }
 

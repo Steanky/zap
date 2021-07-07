@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
+import io.github.zap.arenaapi.pathfind.traversal.NodeLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,14 +17,16 @@ class BinaryMinNodeHeap implements NodeHeap {
     private static final NodeComparator NODE_COMPARATOR = NodeComparator.instance();
 
     private PathNode[] nodes;
+    private final NodeGraph graph;
     private int size = 0;
 
-    BinaryMinNodeHeap(int initialCapacity) {
+    BinaryMinNodeHeap(@NotNull NodeGraph graph, int initialCapacity) {
         nodes = new PathNode[initialCapacity];
+        this.graph = graph;
     }
 
-    BinaryMinNodeHeap() {
-        this(DEFAULT_CAPACITY);
+    BinaryMinNodeHeap(@NotNull NodeGraph graph) {
+        this(graph, DEFAULT_CAPACITY);
     }
 
     @Override
@@ -46,6 +50,7 @@ class BinaryMinNodeHeap implements NodeHeap {
 
     @Override
     public void addNode(@NotNull PathNode node) {
+        graph.putNode(node);
         ensureCapacity(size + 1);
         siftUp(size++, node);
     }
@@ -65,6 +70,8 @@ class BinaryMinNodeHeap implements NodeHeap {
             nodes[index] = replace;
             replace.heapIndex = index;
         }
+
+        graph.putNode(replace);
     }
 
     @Override
@@ -98,6 +105,11 @@ class BinaryMinNodeHeap implements NodeHeap {
         return nodes;
     }
 
+    @Override
+    public @NotNull NodeGraph graph() {
+        return graph;
+    }
+
     public int indexOf(@NotNull PathNode node) {
         return node.heapIndex;
     }
@@ -112,14 +124,9 @@ class BinaryMinNodeHeap implements NodeHeap {
     }
 
     @Override
-    public @Nullable PathNode nodeAt(double x, double y, double z) { //TODO: make this fast, use hash, etc
-        for(int i = 0; i < size; i++) {
-            PathNode node = nodes[i];
-            if(node.positionEquals(x, y, z)) {
-                return node;
-            }
-        }
-        return null;
+    public @Nullable PathNode nodeAt(int x, int y, int z) {
+        NodeLocation node = graph.nodeAt(x, y, z);
+        return node == null ? null : node.node();
     }
 
     private void siftUp(int index, PathNode node) {
@@ -149,12 +156,8 @@ class BinaryMinNodeHeap implements NodeHeap {
             PathNode smallestChild = nodes[childIndex];
             int secondChild = childIndex + 1;
 
-            if(secondChild < size) {
-                PathNode second = nodes[secondChild];
-                if(NODE_COMPARATOR.compare(smallestChild, second) > 0) {
-                    smallestChild = second;
-                    childIndex = secondChild;
-                }
+            if(secondChild < size && NODE_COMPARATOR.compare(smallestChild, nodes[secondChild]) > 0) {
+                smallestChild = nodes[childIndex = secondChild];
             }
 
             if(NODE_COMPARATOR.compare(node, smallestChild) <= 0) {

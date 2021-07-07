@@ -24,6 +24,7 @@ public class PathNode implements Positional {
     int heapIndex = -1;
     final Score score;
     PathNode parent;
+    boolean visited = false;
 
     private PathNode(Score score, PathNode parent, int x, int y, int z, int hash) {
         this.score = score;

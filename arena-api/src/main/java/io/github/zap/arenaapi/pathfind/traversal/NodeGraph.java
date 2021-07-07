@@ -11,11 +11,13 @@ import org.jetbrains.annotations.Nullable;
 public interface NodeGraph {
     @Nullable NodeLocation nodeAt(int x, int y, int z);
 
-    void chainNode(int x, int y, int z, @NotNull PathNode parent, @NotNull PathOperation operation);
+    void chainNode(int x, int y, int z, @NotNull PathNode parent);
 
-    void putNode(@NotNull PathNode node, @NotNull PathOperation operation);
+    void putNode(@NotNull PathNode node);
 
     void removeNode(int x, int y, int z);
+
+    void removeNode(@NotNull PathNode node);
 
     void removeChunk(int x, int z);
 

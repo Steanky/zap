@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,7 @@ public interface NodeHeap {
 
     @NotNull PathNode nodeAt(int index);
 
-    @Nullable PathNode nodeAt(double x, double y, double z);
+    @Nullable PathNode nodeAt(int x, int y, int z);
 
     /**
      * Returns the number of nodes currently in the heap.
@@ -61,7 +62,12 @@ public interface NodeHeap {
 
     boolean isEmpty();
 
-    PathNode[] internalArray();
+    @NotNull PathNode[] internalArray();
 
     @NotNull List<PathNode> toSortedList();
+
+    /**
+     * Returns the linked NodeGraph this NodeHeap is using.
+     */
+    @NotNull NodeGraph graph();
 }

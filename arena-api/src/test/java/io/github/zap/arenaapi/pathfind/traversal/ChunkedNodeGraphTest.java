@@ -17,64 +17,6 @@ public class ChunkedNodeGraphTest {
     private final Map<PathNode, PathNode> mapGraph = new HashMap<>();
     private static final int cuberootItersOver2 = 50;
 
-    private static final PathOperation dummyOperation = new PathOperation() {
-        @Override
-        public void init(@NotNull PathfinderContext context) {
-            throw new NotImplementedException("Why would you call this??");
-        }
-
-        @Override
-        public boolean comparableTo(@NotNull PathOperation other) {
-            throw new NotImplementedException("Seriously, don't.");
-        }
-
-        @Override
-        public boolean step(@NotNull PathfinderContext context) {
-            throw new NotImplementedException("WHAT ARE YOU DOING???");
-        }
-
-        @Override
-        public @NotNull PathOperation.State state() {
-            throw new NotImplementedException("I told you to stop.");
-        }
-
-        @Override
-        public @NotNull PathResult result() {
-            throw new NotImplementedException("...");
-        }
-
-        @Override
-        public int iterations() {
-            throw new NotImplementedException(".....");
-        }
-
-        @Override
-        public @NotNull Set<? extends PathDestination> getDestinations() {
-            throw new NotImplementedException("When will you learn...");
-        }
-
-        @Override
-        public @NotNull NodeGraph visitedNodes() {
-            throw new NotImplementedException("That your actions....");
-        }
-
-        @Override
-        public @NotNull PathAgent agent() {
-            throw new NotImplementedException("HAVE CONSEQUENCES!!!!");
-        }
-
-        @Override
-        public @NotNull ChunkCoordinateProvider searchArea() {
-            throw new NotImplementedException("YOU FRICKING FRICKS");
-        }
-
-        @Override
-        public @NotNull NodeProvider nodeProvider() {
-            System.exit(69420);
-            throw new NotImplementedException("YOUR FANTASIES.... CAN NEVER BE QUENCHED!");
-        }
-    };
-
     @Before
     public void setUp() {
         nodeGraph = new ChunkedNodeGraph();
@@ -82,7 +24,7 @@ public class ChunkedNodeGraphTest {
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    nodeGraph.chainNode(i, j, k, new PathNode(i, j, k), dummyOperation);
+                    nodeGraph.chainNode(i, j, k, new PathNode(i, j, k));
                     PathNode node = new PathNode(i, j, k);
                     mapGraph.put(node, node);
                 }

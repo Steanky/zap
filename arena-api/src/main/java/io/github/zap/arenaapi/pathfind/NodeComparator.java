@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -16,6 +17,9 @@ public class NodeComparator implements Comparator<PathNode> {
 
     @Override
     public int compare(@NotNull PathNode first, @NotNull PathNode second) {
+        if(first == null || second == null) {
+            ArenaApi.warning("t");
+        }
         return SCORE_COMPARATOR.compare(first.score, second.score);
     }
 }

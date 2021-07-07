@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind.traversal;
 
 import io.github.zap.arenaapi.pathfind.PathNode;
-import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.vector.ChunkVectorAccess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,21 +35,26 @@ public class ChunkedNodeGraph implements NodeGraph {
     }
 
     @Override
-    public void chainNode(int x, int y, int z, @NotNull PathNode parent, @NotNull PathOperation operation) {
+    public void chainNode(int x, int y, int z, @NotNull PathNode parent) {
         PathNode newNode = new PathNode(x, y, z);
         newNode.chain(parent);
 
-        putNodeInternal(x, y, z, newNode, operation);
+        putNodeInternal(x, y, z, newNode);
     }
 
     @Override
-    public void putNode(@NotNull PathNode node, @NotNull PathOperation operation) {
-        putNodeInternal(node.nodeX(), node.nodeY(), node.nodeZ(), node, operation);
+    public void putNode(@NotNull PathNode node) {
+        putNodeInternal(node.nodeX(), node.nodeY(), node.nodeZ(), node);
     }
 
     @Override
     public void removeNode(int x, int y, int z) {
-        putNodeInternal(x, y, z, null, null);
+        putNodeInternal(x, y, z, null);
+    }
+
+    @Override
+    public void removeNode(@NotNull PathNode node) {
+        removeNode(node.nodeX(), node.nodeY(), node.nodeZ());
     }
 
     @Override
@@ -68,7 +72,7 @@ public class ChunkedNodeGraph implements NodeGraph {
         return nodeAt(node.nodeX(), node.nodeY(), node.nodeZ()) != null;
     }
 
-    private void putNodeInternal(int x, int y, int z, @Nullable PathNode node, @Nullable PathOperation operation) {
+    private void putNodeInternal(int x, int y, int z, @Nullable PathNode node) {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
         NodeChunk nodeChunk = chunks.computeIfAbsent(ChunkVectorAccess.immutable(chunkX, chunkZ),
@@ -102,6 +106,6 @@ public class ChunkedNodeGraph implements NodeGraph {
             }
         }
 
-        row.set(nodeIndex, (node == null || operation == null) ? null : new NodeLocation(row, node, operation, nodeIndex));
+        row.set(nodeIndex, node == null ? null : new NodeLocation(row, node, nodeIndex));
     }
 }

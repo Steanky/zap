@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
+import io.github.zap.arenaapi.pathfind.traversal.NodeLocation;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
@@ -47,15 +49,19 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     @Override
-    public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
+    public void generateNodes(@NotNull NodeGraph graph, @Nullable PathNode[] buffer, @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < buffer.length; i++) {
             Direction direction = Direction.valueAtIndex(i);
             PathNode node = walkDirectional(context, current, direction);
 
             if(node != null) {
-                calculateAversion(node, context.blockProvider());
-                buffer[j++] = node;
+                NodeLocation existingNodeLocation = graph.nodeAt(node.nodeX(), node.nodeY(), node.nodeZ());
+
+                if(existingNodeLocation == null || !existingNodeLocation.node().visited) {
+                    calculateAversion(node, context.blockProvider());
+                    buffer[j++] = node;
+                }
             }
         }
 
