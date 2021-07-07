@@ -14,10 +14,11 @@ class NodeUtils {
         else {
             if(array[index] != null) {
                 array[index] = null;
-                ++currentEmptyCount;
+                currentEmptyCount++;
             }
         }
 
+        //remove current node (whatever it is) from the parent, if we're totally empty
         if(currentEmptyCount == 16) {
             parentSetter.accept(parentIndex, null);
         }

@@ -16,6 +16,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -268,7 +269,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     @Override
     public PowerUpSpawnRule<?> createSpawnRule(String name, String powerUpName, ZombiesArena arena) {
         ensureLoad();
-        Validate.isTrue(spawnRuleDataMap.containsKey(name), " spawn rule does not exist");
+        Validate.isTrue(spawnRuleDataMap.containsKey(name), "spawn rule " + name + " does not exist");
         var data = spawnRuleDataMap.get(name);
         return spawnRuleTypeMap.get(data.getSpawnRuleType()).getLeft().construct(powerUpName, data, arena);
     }
@@ -293,17 +294,20 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             registerPowerUp(BarricadeCountModificationPowerUp.class);
             registerPowerUp(DamageModificationPowerUp.class);
 
-            Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {return null;}})
-                    .filter(Objects::nonNull)
-                    .forEach(x -> addPowerUpData(x, false));
-
             registerSpawnRule(DefaultPowerUpSpawnRule.class);
 
-            Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), SpawnRuleData.class); } catch (Exception e) {return null;}})
-                    .filter(Objects::nonNull)
-                    .forEach(x -> addSpawnRuleData(x, false));
+            File[] powerUpFiles = dataLoader.getRootDirectory().listFiles();
+            if(powerUpFiles != null) {
+                Arrays.stream(powerUpFiles)
+                        .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {return null;}})
+                        .filter(Objects::nonNull)
+                        .forEach(x -> addPowerUpData(x, false));
+
+                Arrays.stream(powerUpFiles)
+                        .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), SpawnRuleData.class); } catch (Exception e) {return null;}})
+                        .filter(Objects::nonNull)
+                        .forEach(x -> addSpawnRuleData(x, false));
+            }
 
             loaded = true;
         }

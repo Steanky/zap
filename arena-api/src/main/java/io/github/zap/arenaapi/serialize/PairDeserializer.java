@@ -16,10 +16,11 @@ public class PairDeserializer extends StdDeserializer<Pair> {
     }
 
     @Override
-    public Pair<String, String> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        ObjectMapper objectMapper = (ObjectMapper) p.getCodec();
-        JsonNode jsonNode = objectMapper.readTree(p);
-        var entry = jsonNode.fields().next();
-        return Pair.of(entry.getKey(), entry.getValue().asText());
+    public Pair<String, String> deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
+        JsonNode jsonNode = parser.getCodec().readTree(parser);
+        String left = jsonNode.get("left").asText();
+        String right = jsonNode.get("right").asText();
+
+        return Pair.of(left, right);
     }
 }

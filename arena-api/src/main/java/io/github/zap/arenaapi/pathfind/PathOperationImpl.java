@@ -16,8 +16,8 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
-    private final NodeGraph graph = new ChunkedNodeGraph();
-    private final NodeHeap openHeap = new BinaryMinNodeHeap(graph, 128);
+    private final NodeGraph visited = new ChunkedNodeGraph();
+    private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
     private final PathNode[] sampleBuffer = new PathNode[8];
 
     private PathDestination bestDestination;
@@ -96,14 +96,16 @@ class PathOperationImpl implements PathOperation {
                 return true;
             }
 
-            currentNode.visited = true;
-            graph.putNode(currentNode);
-
-            nodeProvider.generateNodes(graph, sampleBuffer, currentNode);
+            visited.putNode(currentNode);
+            nodeProvider.generateNodes(sampleBuffer, currentNode);
 
             for(PathNode candidateNode : sampleBuffer) {
                 if(candidateNode == null) {
                     break;
+                }
+
+                if(visited.containsNode(candidateNode)) {
+                    continue;
                 }
 
                 PathNode existingNode = openHeap.nodeAt(candidateNode.nodeX(), candidateNode.nodeY(), candidateNode.nodeZ());
@@ -115,6 +117,11 @@ class PathOperationImpl implements PathOperation {
                 else if(candidateNode.score.getG() < existingNode.score.getG()) {
                     candidateNode.score.setH(existingNode.score.getH());
                     openHeap.replaceNode(existingNode.heapIndex, candidateNode);
+
+                    if(bestFound == existingNode) {
+                        bestFound = candidateNode;
+                        continue;
+                    }
                 }
 
                 //comparison for best path in case of inaccessible target
@@ -160,7 +167,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public @NotNull NodeGraph visitedNodes() {
-        return graph;
+        return visited;
     }
 
     @Override
@@ -185,6 +192,6 @@ class PathOperationImpl implements PathOperation {
 
     private void complete(boolean success) {
         state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(bestFound.reverse(), this, graph, bestDestination, state);
+        result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
     }
 }

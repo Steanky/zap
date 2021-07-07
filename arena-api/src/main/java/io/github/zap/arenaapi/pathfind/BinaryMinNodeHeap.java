@@ -17,16 +17,14 @@ class BinaryMinNodeHeap implements NodeHeap {
     private static final NodeComparator NODE_COMPARATOR = NodeComparator.instance();
 
     private PathNode[] nodes;
-    private final NodeGraph graph;
     private int size = 0;
 
-    BinaryMinNodeHeap(@NotNull NodeGraph graph, int initialCapacity) {
+    BinaryMinNodeHeap(int initialCapacity) {
         nodes = new PathNode[initialCapacity];
-        this.graph = graph;
     }
 
-    BinaryMinNodeHeap(@NotNull NodeGraph graph) {
-        this(graph, DEFAULT_CAPACITY);
+    BinaryMinNodeHeap() {
+        this(DEFAULT_CAPACITY);
     }
 
     @Override
@@ -50,7 +48,6 @@ class BinaryMinNodeHeap implements NodeHeap {
 
     @Override
     public void addNode(@NotNull PathNode node) {
-        graph.putNode(node);
         ensureCapacity(size + 1);
         siftUp(size++, node);
     }
@@ -70,8 +67,6 @@ class BinaryMinNodeHeap implements NodeHeap {
             nodes[index] = replace;
             replace.heapIndex = index;
         }
-
-        graph.putNode(replace);
     }
 
     @Override
@@ -105,11 +100,6 @@ class BinaryMinNodeHeap implements NodeHeap {
         return nodes;
     }
 
-    @Override
-    public @NotNull NodeGraph graph() {
-        return graph;
-    }
-
     public int indexOf(@NotNull PathNode node) {
         return node.heapIndex;
     }
@@ -125,8 +115,14 @@ class BinaryMinNodeHeap implements NodeHeap {
 
     @Override
     public @Nullable PathNode nodeAt(int x, int y, int z) {
-        NodeLocation node = graph.nodeAt(x, y, z);
-        return node == null ? null : node.node();
+        for(int i = 0; i < size; i++) {
+            PathNode node = nodes[i];
+            if(node.positionEquals(x, y, z)) {
+                return node;
+            }
+        }
+
+        return null;
     }
 
     private void siftUp(int index, PathNode node) {

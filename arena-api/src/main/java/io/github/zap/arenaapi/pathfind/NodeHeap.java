@@ -65,9 +65,4 @@ public interface NodeHeap {
     @NotNull PathNode[] internalArray();
 
     @NotNull List<PathNode> toSortedList();
-
-    /**
-     * Returns the linked NodeGraph this NodeHeap is using.
-     */
-    @NotNull NodeGraph graph();
 }

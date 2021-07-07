@@ -20,7 +20,7 @@ public abstract class NodeProvider {
 
     public abstract void init(@NotNull PathfinderContext context, @NotNull PathAgent agent);
 
-    public abstract void generateNodes(@NotNull NodeGraph graph, @NotNull PathNode[] buffer, @NotNull PathNode current);
+    public abstract void generateNodes(@NotNull PathNode[] buffer, @NotNull PathNode current);
 
     public AversionCalculator getAversionCalculator() {
         return aversionCalculator;

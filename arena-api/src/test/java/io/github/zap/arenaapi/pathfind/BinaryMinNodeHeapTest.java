@@ -15,7 +15,7 @@ public class BinaryMinNodeHeapTest {
 
     @Before
     public void setUp() {
-        heap = new BinaryMinNodeHeap(new ChunkedNodeGraph());
+        heap = new BinaryMinNodeHeap(128);
         for(int i = 0; i < 100; i++) {
             for(int j = 0; j < 100; j++) {
                 PathNode node = new PathNode(null, new Vector(i, j, i+j));

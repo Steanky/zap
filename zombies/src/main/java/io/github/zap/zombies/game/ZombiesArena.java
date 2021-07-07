@@ -524,9 +524,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
         bestTimesHologram = setupTimeLeaderboard();
 
-        getMap().getPowerUpSpawnRules()
-                .forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager().createSpawnRule(x.getLeft(),
-                        x.getRight(), this), x.getRight())));
+        getMap().getPowerUpSpawnRules().forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager()
+                .createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
     }
 
     private void registerArenaEvents() {

@@ -49,19 +49,14 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     @Override
-    public void generateNodes(@NotNull NodeGraph graph, @Nullable PathNode[] buffer, @NotNull PathNode current) {
+    public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < buffer.length; i++) {
-            Direction direction = Direction.valueAtIndex(i);
-            PathNode node = walkDirectional(context, current, direction);
+            PathNode node = walkDirectional(context, current, Direction.valueAtIndex(i));
 
             if(node != null) {
-                NodeLocation existingNodeLocation = graph.nodeAt(node.nodeX(), node.nodeY(), node.nodeZ());
-
-                if(existingNodeLocation == null || !existingNodeLocation.node().visited) {
-                    calculateAversion(node, context.blockProvider());
-                    buffer[j++] = node;
-                }
+                calculateAversion(node, context.blockProvider());
+                buffer[j++] = node;
             }
         }
 
@@ -227,14 +222,15 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private ImmutableWorldVector fallTest(BlockCollisionProvider provider, ImmutableWorldVector vector,
                                           BoundingBox agentBounds, Direction direction) {
-        BoundingBox bounds = agentBounds.clone().shift(direction.asBukkit());
-        bounds.resize(bounds.getMinX(), bounds.getMinY(), bounds.getMinZ(), bounds.getMaxX(), 1, bounds.getMaxZ());
+        BoundingBox boundsAtNew = agentBounds.clone().shift(direction.asBukkit());
+        boundsAtNew.resize(boundsAtNew.getMinX(), boundsAtNew.getMinY(), boundsAtNew.getMinZ(), boundsAtNew.getMaxX(),
+                boundsAtNew.getMinY() + 1, boundsAtNew.getMaxZ());
 
         int iters = 0;
-        while(bounds.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
-            bounds.shift(0, -1, 0);
+        while(boundsAtNew.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
+            boundsAtNew.shift(0, -1, 0);
 
-            List<BlockSnapshot> snapshots = provider.collidingSolids(bounds);
+            List<BlockSnapshot> snapshots = provider.collidingSolids(boundsAtNew);
             if(!snapshots.isEmpty()) {
                 BlockSnapshot highest = highestSnapshot(snapshots);
 
@@ -254,24 +250,21 @@ public class DefaultWalkNodeProvider extends NodeProvider {
 
     private boolean collidesMovingAlong(BoundingBox agentBounds, BlockCollisionProvider provider, Direction direction,
                                         ImmutableWorldVector currentNode) {
-        BoundingBox boundsAtNewNode = agentBounds.clone().shift(direction.asBukkit());
-
-        if(agentBounds.getWidthX() < 1) {
-            boundsAtNewNode.expandDirectional(direction.asBukkit().multiply(-1).multiply(1 - agentBounds.getWidthX()));
-        }
+        ImmutableWorldVector targetNode = currentNode.add(direction).asImmutable();
+        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(direction.asBukkit());
 
         if(!direction.isIntercardinal()) {
-            return provider.collidesWithAnySolid(boundsAtNewNode);
+            return provider.collidesWithAnySolid(expandedBounds);
         }
 
-        List<BlockSnapshot> candidates = provider.collidingSolids(boundsAtNewNode);
+        List<BlockSnapshot> candidates = provider.collidingSolids(expandedBounds);
         if(!candidates.isEmpty()) {
             int dirFactor = direction.blockX() * direction.blockZ();
             return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(width,
                     negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
                     collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(width, negativeWidth,
                     dirFactor, collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()),
-                    currentNode.blockX() + 0.5, currentNode.blockZ() + 0.5);
+                    targetNode.blockX() + 0.5, targetNode.blockZ() + 0.5);
         }
 
         return false;
@@ -306,10 +299,10 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     }
 
     private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides,
-                                      double agentCenterX, double agentCenterZ) {
+                                      double agentBlockX, double agentBlockZ) {
         for(BlockSnapshot snapshot : candidates) {
             for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
-                collision.shift(snapshot.position().asBukkit()).shift(-agentCenterX, 0, -agentCenterZ);
+                collision.shift(snapshot.position().asBukkit()).shift(-agentBlockX, 0, -agentBlockZ);
 
                 if(collides.apply(collision)) {
                     return true;

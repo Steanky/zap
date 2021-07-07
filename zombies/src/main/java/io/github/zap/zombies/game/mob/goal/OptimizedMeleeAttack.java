@@ -61,8 +61,8 @@ public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
             this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
 
             if (this.navigationCounter <= 0) {
-                //randomly offset the delay
-                this.navigationCounter = 4 + this.getHandle().getRandom().nextInt(17);
+                //randomly offset the navigation so we don't flood the pathfinder
+                this.navigationCounter = 4 + this.getHandle().getRandom().nextInt(10);
 
                 getHandler().queueOperation(PathOperation.forEntityWalking(getHandle().getBukkitEntity(),
                         Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), true)),
