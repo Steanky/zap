@@ -47,11 +47,8 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
             if(next < newPath.e()) {
                 PathPoint nextPoint = newPath.getPoints().get(next);
 
-                //mobs try to jump over gaps they can't make without this
-                if(nextPoint.getY() == entityPoint.getY()) {
-                    if(nextPoint.a(entityPoint) <= 2) {
-                        closestPointIndex++;
-                    }
+                if(nextPoint.a(entityPoint) <= 2) {
+                    closestPointIndex++;
                 }
             }
 
@@ -207,4 +204,7 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
     @Override
     public void b(BlockPosition blockposition) { }
+
+    @Override
+    protected void D_() { }
 }

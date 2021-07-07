@@ -2,12 +2,13 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.BoxConsumer;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
-import it.unimi.dsi.fastutil.doubles.DoubleList;
+import io.github.zap.vector.util.MathUtils;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EnumDirection;
 import net.minecraft.server.v1_16_R3.VoxelShape;
 import net.minecraft.server.v1_16_R3.VoxelShapes;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.List;
 class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     private final VoxelShape shape;
     private List<AxisAlignedBB> cachedBounds;
+    private final double epsilon = Vector.getEpsilon();
 
     VoxelShapeWrapper_v1_16_R3(VoxelShape shape) {
         this.shape = shape;
@@ -60,7 +62,12 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     @Override
     public boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         for(AxisAlignedBB bounds : getCachedBounds()) {
-            if(bounds.intersects(minX, minY, minZ, maxX, maxY, maxZ)) {
+            if(MathUtils.fuzzyComparison(bounds.minX, maxX, MathUtils.Comparison.LESS_THAN) &&
+                    MathUtils.fuzzyComparison(bounds.maxX, minX, MathUtils.Comparison.GREATER_THAN) &&
+                    MathUtils.fuzzyComparison(bounds.minY, maxY, MathUtils.Comparison.LESS_THAN) &&
+                    MathUtils.fuzzyComparison(bounds.maxY, minY, MathUtils.Comparison.GREATER_THAN) &&
+                    MathUtils.fuzzyComparison(bounds.minZ, maxZ, MathUtils.Comparison.LESS_THAN) &&
+                    MathUtils.fuzzyComparison(bounds.maxZ, minZ, MathUtils.Comparison.GREATER_THAN)) {
                 return true;
             }
         }

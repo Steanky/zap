@@ -1,8 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
-import io.github.zap.arenaapi.pathfind.traversal.NodeLocation;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
@@ -12,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 public class DefaultWalkNodeProvider extends NodeProvider {
