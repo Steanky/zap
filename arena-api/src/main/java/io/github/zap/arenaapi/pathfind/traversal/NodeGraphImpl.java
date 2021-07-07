@@ -49,25 +49,29 @@ public class NodeGraphImpl implements NodeGraph {
         NodeRow row;
 
         if(segment == null) {
-            nodeChunk.set(segmentIndex, segment = new NodeSegment(nodeChunk, segmentIndex));
-            segment.set(layerIndex, layer = new NodeLayer(segment, layerIndex));
-            layer.set(rowIndex, row = new NodeRow(layer, rowIndex));
+            nodeChunk.set(segmentIndex, (segment = new NodeSegment(nodeChunk, segmentIndex)));
+            segment.set(layerIndex, (layer = new NodeLayer(segment, layerIndex)));
+            layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
+            row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
         }
         else {
-            layer = segment.get(segmentIndex);
+            layer = segment.get(layerIndex);
             if(layer == null) {
-                segment.set(layerIndex, layer = new NodeLayer(segment, layerIndex));
-                layer.set(rowIndex, row = new NodeRow(layer, rowIndex));
+                segment.set(layerIndex, (layer = new NodeLayer(segment, layerIndex)));
+                layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
+                row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
             }
             else {
                 row = layer.get(rowIndex);
                 if(row == null) {
-                    layer.set(rowIndex, row = new NodeRow(layer, rowIndex));
+                    layer.set(rowIndex, (row = new NodeRow(layer, rowIndex)));
+                    row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
+                }
+                else {
+                    row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
                 }
             }
         }
-
-        row.set(nodeIndex, new NodeLocation(row, node, operation, nodeIndex));
     }
 
     @Override
