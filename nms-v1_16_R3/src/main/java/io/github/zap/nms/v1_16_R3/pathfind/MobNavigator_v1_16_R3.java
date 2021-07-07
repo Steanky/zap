@@ -20,39 +20,19 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
         if(c != null) {
             Vec3D currentPos = getEntity().getPositionVector();
+            PathPoint entityPoint = new PathPoint((int)Math.floor(currentPos.x), (int)Math.floor(currentPos.y),
+                    (int)Math.floor(currentPos.z));
 
-            PathPoint entityPoint = new PathPoint((int)currentPos.x, (int)currentPos.y, (int)currentPos.z);
-            float closestPointDistance = Float.MAX_VALUE;
-            int closestPointIndex = 0;
-            int currentIndex = 0;
-            for(PathPoint sample : newPath.getPoints()) {
-                if(sample.equals(entityPoint)) {
-                    newPath.c(currentIndex);
+            int newIndex = 0;
+            for(PathPoint point : newPath.getPoints()) {
+                if(point.equals(entityPoint)) {
+                    newPath.c(newIndex);
                     a(newPath, speed);
                     return;
                 }
-                else  {
-                    float distance = sample.a(entityPoint);
-                    if(distance < closestPointDistance) {
-                        closestPointDistance = distance;
-                        closestPointIndex = currentIndex;
-                    }
-                }
 
-                currentIndex++;
+                newIndex++;
             }
-
-            //anti spin code
-            int next = newPath.f() + 1;
-            if(next < newPath.e()) {
-                PathPoint nextPoint = newPath.getPoints().get(next);
-
-                if(nextPoint.a(entityPoint) <= 2) {
-                    closestPointIndex++;
-                }
-            }
-
-            newPath.c(closestPointIndex);
         }
 
         a(newPath, speed);

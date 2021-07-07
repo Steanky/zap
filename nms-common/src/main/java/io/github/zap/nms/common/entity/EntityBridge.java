@@ -4,6 +4,7 @@ import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
 import io.github.zap.vector.VectorAccess;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;

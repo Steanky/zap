@@ -1,8 +1,8 @@
 package io.github.zap.nms.v1_16_R3.world;
 
+import com.google.common.math.DoubleMath;
 import io.github.zap.nms.common.world.BoxConsumer;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
-import io.github.zap.vector.util.MathUtils;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EnumDirection;
 import net.minecraft.server.v1_16_R3.VoxelShape;
@@ -62,12 +62,12 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     @Override
     public boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         for(AxisAlignedBB bounds : getCachedBounds()) {
-            if(MathUtils.fuzzyComparison(bounds.minX, maxX, MathUtils.Comparison.LESS_THAN) &&
-                    MathUtils.fuzzyComparison(bounds.maxX, minX, MathUtils.Comparison.GREATER_THAN) &&
-                    MathUtils.fuzzyComparison(bounds.minY, maxY, MathUtils.Comparison.LESS_THAN) &&
-                    MathUtils.fuzzyComparison(bounds.maxY, minY, MathUtils.Comparison.GREATER_THAN) &&
-                    MathUtils.fuzzyComparison(bounds.minZ, maxZ, MathUtils.Comparison.LESS_THAN) &&
-                    MathUtils.fuzzyComparison(bounds.maxZ, minZ, MathUtils.Comparison.GREATER_THAN)) {
+            if(DoubleMath.fuzzyCompare(bounds.minX, maxX, epsilon) < 0 &&
+                    DoubleMath.fuzzyCompare(bounds.maxX, minX, epsilon) > 0 &&
+                    DoubleMath.fuzzyCompare(bounds.minY, maxY, epsilon) < 0 &&
+                    DoubleMath.fuzzyCompare(bounds.maxY, minY, epsilon) > 0 &&
+                    DoubleMath.fuzzyCompare(bounds.minZ, maxZ, epsilon) < 0 &&
+                    DoubleMath.fuzzyCompare(bounds.maxZ, minZ, epsilon) > 0) {
                 return true;
             }
         }

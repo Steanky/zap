@@ -10,6 +10,7 @@ import io.github.zap.nms.v1_16_R3.pathfind.PathPointWrapper_v1_16_R3;
 import io.github.zap.vector.VectorAccess;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMob;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
@@ -64,8 +65,6 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
 
     @Override
     public @NotNull MobNavigator overrideNavigatorFor(@NotNull Mob mob) throws NoSuchFieldException, IllegalAccessException {
-
-
         Field navigator = EntityInsentient.class.getDeclaredField("navigation");
         navigator.setAccessible(true);
 

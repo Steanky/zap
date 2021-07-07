@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
@@ -41,6 +42,8 @@ public class BreakWindow extends BasicMetadataPathfinder {
 
                 if(window != null) {
                     destination = window.getTarget();
+                    double t = getEntity().getBukkitEntity().getWidth();
+                    ArenaApi.info(Double.toString(t));
 
                     if(destination == null) {
                         Zombies.warning("Entity " + getEntity().getUniqueId() + " spawned in a window that does not" +

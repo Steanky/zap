@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.Positional;
 import io.github.zap.vector.VectorAccess;
@@ -16,10 +18,13 @@ import java.util.Objects;
  */
 public abstract class PathAgent implements Positional {
     public static class Characteristics {
+        private static final EntityBridge bridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
         private static final double DEFAULT_JUMP_HEIGHT = 1.125D;
 
         private final BoundingBox bounds;
         private final double jumpHeight;
+        private final double width;
+        private final double height;
 
         private final int hash;
 
@@ -27,6 +32,9 @@ public abstract class PathAgent implements Positional {
             bounds = new BoundingBox(0, 0, 0, width, height, width);
             this.jumpHeight = jumpHeight;
             this.hash = Objects.hash(width, height, jumpHeight);
+
+            this.width  = width;
+            this.height = height;
         }
 
         public Characteristics(double width, double height) {
@@ -42,11 +50,11 @@ public abstract class PathAgent implements Positional {
         }
 
         public double width() {
-            return bounds.getWidthX();
+            return width;
         }
 
         public double height() {
-            return bounds.getHeight();
+            return height;
         }
 
         public double jumpHeight() {
