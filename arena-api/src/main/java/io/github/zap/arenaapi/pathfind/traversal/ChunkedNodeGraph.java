@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NodeGraphImpl implements NodeGraph {
+public class ChunkedNodeGraph implements NodeGraph {
     private final Map<ChunkVectorAccess, NodeChunk> chunks = new HashMap<>();
 
     @Override
@@ -36,11 +36,16 @@ public class NodeGraphImpl implements NodeGraph {
     }
 
     @Override
-    public void putNode(int x, int y, int z, @NotNull PathNode chainTo, @NotNull PathOperation operation) {
+    public void chainNode(int x, int y, int z, @NotNull PathNode parent, @NotNull PathOperation operation) {
         PathNode newNode = new PathNode(x, y, z);
-        newNode.chain(chainTo);
+        newNode.chain(parent);
 
         putNodeInternal(x, y, z, newNode, operation);
+    }
+
+    @Override
+    public void putNode(@NotNull PathNode node, @NotNull PathOperation operation) {
+        putNodeInternal(node.nodeX(), node.nodeY(), node.nodeZ(), node, operation);
     }
 
     @Override
@@ -56,6 +61,11 @@ public class NodeGraphImpl implements NodeGraph {
     @Override
     public boolean containsNode(int x, int y, int z) {
         return nodeAt(x, y, z) != null;
+    }
+
+    @Override
+    public boolean containsNode(@NotNull PathNode node) {
+        return nodeAt(node.nodeX(), node.nodeY(), node.nodeZ()) != null;
     }
 
     private void putNodeInternal(int x, int y, int z, @Nullable PathNode node, @Nullable PathOperation operation) {

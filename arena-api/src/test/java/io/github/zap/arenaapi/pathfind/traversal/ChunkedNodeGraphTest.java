@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class NodeGraphImplTest {
+public class ChunkedNodeGraphTest {
     private NodeGraph nodeGraph;
     private final Map<PathNode, PathNode> mapGraph = new HashMap<>();
     private static final int cuberootItersOver2 = 50;
@@ -54,7 +54,7 @@ public class NodeGraphImplTest {
         }
 
         @Override
-        public @NotNull Map<PathNode, PathNode> visitedNodes() {
+        public @NotNull NodeGraph visitedNodes() {
             throw new NotImplementedException("That your actions....");
         }
 
@@ -77,12 +77,12 @@ public class NodeGraphImplTest {
 
     @Before
     public void setUp() {
-        nodeGraph = new NodeGraphImpl();
+        nodeGraph = new ChunkedNodeGraph();
 
         for(int i = -cuberootItersOver2; i < cuberootItersOver2; i++) {
             for(int j = -cuberootItersOver2; j < cuberootItersOver2; j++) {
                 for(int k = -cuberootItersOver2; k < cuberootItersOver2; k++) {
-                    nodeGraph.putNode(i, j, k, new PathNode(i, j, k), dummyOperation);
+                    nodeGraph.chainNode(i, j, k, new PathNode(i, j, k), dummyOperation);
                     PathNode node = new PathNode(i, j, k);
                     mapGraph.put(node, node);
                 }

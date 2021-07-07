@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind.traversal;
 
 import java.util.function.BiConsumer;
 
-public class NodeUtils {
+class NodeUtils {
     static <T, V> int setterHelper(T element, T[] array, int index, int currentEmptyCount,
                                    BiConsumer<Integer, V> parentSetter, int parentIndex) {
         if(element != null) {

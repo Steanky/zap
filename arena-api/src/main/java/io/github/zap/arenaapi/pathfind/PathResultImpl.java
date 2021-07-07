@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
 import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
@@ -14,12 +15,12 @@ class PathResultImpl implements PathResult {
     private final PathNode end;
     private final PathOperation operation;
     private final PathDestination destination;
-    private final Map<PathNode, PathNode> visitedNodes;
+    private final NodeGraph visitedNodes;
     private final List<PathNode> pathNodes = new ArrayList<>();
     private final PathOperation.State state;
 
     PathResultImpl(@NotNull PathNode start, @NotNull PathOperation operation,
-                   @NotNull Map<PathNode, PathNode> visitedNodes, @NotNull PathDestination destination,
+                   @NotNull NodeGraph visitedNodes, @NotNull PathDestination destination,
                    @NotNull PathOperation.State state) {
         this.start = start;
         this.operation = operation;
@@ -58,7 +59,7 @@ class PathResultImpl implements PathResult {
     }
 
     @Override
-    public @NotNull Map<PathNode, PathNode> visitedNodes() {
+    public @NotNull NodeGraph visitedNodes() {
         return visitedNodes;
     }
 

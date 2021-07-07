@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.pathfind.traversal.NodeGraph;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.vector.VectorAccess;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,7 @@ public interface PathResult extends Iterable<PathNode> {
 
     @NotNull PathDestination destination();
 
-    @NotNull Map<PathNode, PathNode> visitedNodes();
+    @NotNull NodeGraph visitedNodes();
 
     @NotNull List<PathNode> pathNodes();
 
