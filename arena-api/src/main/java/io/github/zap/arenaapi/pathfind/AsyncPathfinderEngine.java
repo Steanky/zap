@@ -232,7 +232,10 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     @EventHandler
     private void onWorldUnload(WorldUnloadEvent event) {
-        contextMap.remove(event.getWorld().getUID());
+        Context context = contextMap.remove(event.getWorld().getUID());
+        if(context != null) {
+            context.blockProvider().clearOwned();
+        }
     }
 
     public static AsyncPathfinderEngine instance() {
