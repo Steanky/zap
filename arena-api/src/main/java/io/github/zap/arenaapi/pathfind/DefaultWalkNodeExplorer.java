@@ -1,11 +1,13 @@
 package io.github.zap.arenaapi.pathfind;
 
+import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.MutableWorldVector;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +48,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
     }
 
     @Override
-    public void generateNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
+    public void exploreNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
         int j = 0;
         for(int i = 0; i < buffer.length; i++) {
             PathNode node = walkDirectional(context, current, Direction.valueAtIndex(i));
@@ -292,15 +294,15 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
     private boolean fastDiagonalCollisionCheck(double width, double negativeWidth, int dirFac, double minX, double minZ,
                                                double maxX, double maxZ) {
         double zMinusXMin = minZ - (minX * dirFac);
-        if(!(zMinusXMin < width)) {
-            return maxZ - (maxX * dirFac) < width;
+        if(!(DoubleMath.fuzzyCompare(zMinusXMin, width, Vector.getEpsilon()) == -1)) {
+            return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), width, Vector.getEpsilon()) == -1;
         }
 
-        if(zMinusXMin > negativeWidth) {
+        if(DoubleMath.fuzzyCompare(zMinusXMin, negativeWidth, Vector.getEpsilon()) == 1) {
             return true;
         }
 
-        return maxZ - (maxX * dirFac) > negativeWidth;
+        return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), negativeWidth, Vector.getEpsilon()) == 1;
     }
 
     private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides,

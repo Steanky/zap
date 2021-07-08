@@ -97,7 +97,7 @@ class PathOperationImpl implements PathOperation {
             }
 
             visited.putElement(currentNode.nodeX(), currentNode.nodeY(), currentNode.nodeZ(), currentNode);
-            nodeExplorer.generateNodes(sampleBuffer, currentNode);
+            nodeExplorer.exploreNodes(sampleBuffer, currentNode);
 
             for(PathNode candidateNode : sampleBuffer) {
                 if(candidateNode == null) {
