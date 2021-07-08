@@ -21,7 +21,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final double URGENT_SYNC_THRESHOLD = 0.50;
 
     private final ExecutorCompletionService<PathResult> completionService =
-            new ExecutorCompletionService<>(Executors.newCachedThreadPool());
+            new ExecutorCompletionService<>(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
 
     private final Map<UUID, Context> contextMap = new ConcurrentHashMap<>();
 
