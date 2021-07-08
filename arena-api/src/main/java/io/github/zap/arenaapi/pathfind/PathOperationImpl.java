@@ -12,7 +12,7 @@ class PathOperationImpl implements PathOperation {
     private State state;
     private final HeuristicCalculator heuristicCalculator;
     private final SuccessCondition condition;
-    private final NodeProvider nodeProvider;
+    private final NodeExplorer nodeExplorer;
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
@@ -27,14 +27,14 @@ class PathOperationImpl implements PathOperation {
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                       @NotNull HeuristicCalculator heuristicCalculator, @NotNull SuccessCondition condition,
-                      @NotNull NodeProvider nodeProvider, @NotNull DestinationSelector destinationSelector,
+                      @NotNull NodeExplorer nodeExplorer, @NotNull DestinationSelector destinationSelector,
                       @NotNull ChunkCoordinateProvider searchArea) {
         this.agent = agent;
         this.destinations = destinations;
         this.state = State.NOT_STARTED;
         this.heuristicCalculator = heuristicCalculator;
         this.condition = condition;
-        this.nodeProvider = nodeProvider;
+        this.nodeExplorer = nodeExplorer;
         this.destinationSelector = destinationSelector;
         this.searchArea = searchArea;
     }
@@ -43,7 +43,7 @@ class PathOperationImpl implements PathOperation {
     public void init(@NotNull PathfinderContext context) {
         if(state == State.NOT_STARTED) {
             state = State.STARTED;
-            nodeProvider.init(context, agent);
+            nodeExplorer.init(context, agent);
         }
         else {
             throw new IllegalStateException("Cannot initialize a PathOperation with state " + state);
@@ -52,7 +52,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean comparableTo(@NotNull PathOperation other) {
-        return other != this && nodeProvider.equals(other.nodeProvider()) && agent.equals(other.agent());
+        return other != this && nodeExplorer.equals(other.nodeProvider()) && agent.equals(other.agent());
     }
 
     @Override
@@ -97,7 +97,7 @@ class PathOperationImpl implements PathOperation {
             }
 
             visited.putElement(currentNode.nodeX(), currentNode.nodeY(), currentNode.nodeZ(), currentNode);
-            nodeProvider.generateNodes(sampleBuffer, currentNode);
+            nodeExplorer.generateNodes(sampleBuffer, currentNode);
 
             for(PathNode candidateNode : sampleBuffer) {
                 if(candidateNode == null) {
@@ -181,8 +181,8 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull NodeProvider nodeProvider() {
-        return nodeProvider;
+    public @NotNull NodeExplorer nodeProvider() {
+        return nodeExplorer;
     }
 
     @Override

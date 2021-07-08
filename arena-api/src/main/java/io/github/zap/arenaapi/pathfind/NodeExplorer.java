@@ -10,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
  * as "coarse" paths that appear suboptimal to the user. Returning more nodes may improve path appearance at the cost
  * of performance.
  */
-public abstract class NodeProvider {
+public abstract class NodeExplorer {
     private final AversionCalculator aversionCalculator;
 
-    protected NodeProvider(@NotNull AversionCalculator aversionCalculator) {
+    protected NodeExplorer(@NotNull AversionCalculator aversionCalculator) {
         this.aversionCalculator = aversionCalculator;
     }
 

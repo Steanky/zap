@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Function;
 
-public class DefaultWalkNodeProvider extends NodeProvider {
+public class DefaultWalkNodeExplorer extends NodeExplorer {
     private enum JunctionType {
         FALL,
         INCREASE,
@@ -30,7 +30,7 @@ public class DefaultWalkNodeProvider extends NodeProvider {
     private double width;
     private double negativeWidth;
 
-    public DefaultWalkNodeProvider(@NotNull AversionCalculator aversionCalculator) {
+    public DefaultWalkNodeExplorer(@NotNull AversionCalculator aversionCalculator) {
         super(aversionCalculator);
     }
 

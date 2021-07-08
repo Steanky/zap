@@ -84,11 +84,11 @@ public interface PathOperation {
      * Returns the NodeProvider instance used by this object. This is used to create explorable nodes for the
      * pathfinding algorithm.
      */
-    @NotNull NodeProvider nodeProvider();
+    @NotNull NodeExplorer nodeProvider();
 
     static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                                   @NotNull HeuristicCalculator calculator, @NotNull SuccessCondition successCondition,
-                                  @NotNull NodeProvider provider, @NotNull DestinationSelector destinationSelector,
+                                  @NotNull NodeExplorer provider, @NotNull DestinationSelector destinationSelector,
                                   @NotNull ChunkCoordinateProvider coordinateProvider) {
         Objects.requireNonNull(agent, "agent cannot be null!");
         Objects.requireNonNull(destinations, "destinations cannot be null!");
@@ -105,7 +105,7 @@ public interface PathOperation {
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int loadRadius) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY, SuccessCondition.WITHIN_BLOCK,
-                new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
+                new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
                 ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), loadRadius));
     }
 
@@ -113,7 +113,7 @@ public interface PathOperation {
                                           int loadRadius, int targetDeviation) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
                 SuccessCondition.whenWithin(targetDeviation * targetDeviation),
-                new DefaultWalkNodeProvider(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
+                new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
                 ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), loadRadius));
     }
 }
