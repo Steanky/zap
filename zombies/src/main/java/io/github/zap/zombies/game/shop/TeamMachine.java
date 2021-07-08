@@ -70,8 +70,8 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (super.purchase(args)) {
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.interact(args)) {
             ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
 
             if (zombiesPlayer != null) {
@@ -80,7 +80,6 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                 if (bukkitPlayer != null) {
                     if (!getShopData().isRequiresPower() || isPowered()) {
                         bukkitPlayer.openInventory(inventory);
-
                         return true;
                     } else {
                         bukkitPlayer.sendMessage(Component.text("The power is not active yet!",

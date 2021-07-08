@@ -119,7 +119,7 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    public boolean purchase(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
+    public boolean interact(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
         if (args.getEvent() instanceof PlayerInteractEvent event) {
             DoorData doorData = getShopData();
             ZombiesPlayer player = args.getManagedPlayer();

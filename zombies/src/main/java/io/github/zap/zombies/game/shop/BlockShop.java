@@ -60,7 +60,7 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
         if (args.getEvent() instanceof PlayerInteractEvent playerInteractEvent) {
             return block.equals(playerInteractEvent.getClickedBlock());
         }

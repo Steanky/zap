@@ -103,15 +103,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                         .getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
                 if (hotbarObjectGroup != null) {
                     for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                        if (hotbarObject instanceof Gun<?, ?>) {
-                            Gun<?, ?> gun = (Gun<?, ?>) hotbarObject;
-
-                            if (gun.getEquipmentData().getName().equals(gunName)) {
-                                firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunDisplayName);
-                                secondHologramLine =
-                                        String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getRefillCost());
-                                break;
-                            }
+                        if (hotbarObject instanceof Gun<?, ?> gun && gun.getEquipmentData().getName().equals(gunName)) {
+                            firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunDisplayName);
+                            secondHologramLine =
+                                    String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getRefillCost());
+                            break;
                         }
                     }
                 }
@@ -130,46 +126,43 @@ public class GunShop extends ArmorStandShop<GunShopData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (super.purchase(args)) {
-            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            if (zombiesPlayer != null) {
-                Player player = zombiesPlayer.getPlayer();
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.interact(args)) {
+            ZombiesPlayer player = args.getManagedPlayer();
+            if (player != null) {
+                Player bukkitPlayer = player.getPlayer();
 
-                if (player != null) {
+                if (bukkitPlayer != null) {
                     if (!getShopData().isRequiresPower() || isPowered()) {
-                        HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                        HotbarManager hotbarManager = player.getHotbarManager();
                         GunObjectGroup gunObjectGroup = (GunObjectGroup)
                                 hotbarManager.getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
 
                         if (gunObjectGroup != null) {
-                            Boolean refillAttempt = tryRefill(zombiesPlayer, gunObjectGroup);
+                            Boolean refillAttempt = tryRefill(player, gunObjectGroup);
                             if (refillAttempt == null) {
-                                if (tryBuy(zombiesPlayer, gunObjectGroup)) {
-                                    player.playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
+                                if (tryBuy(player, gunObjectGroup)) {
+                                    bukkitPlayer.playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
                                             1.0F, 2.0F));
-                                    onPurchaseSuccess(zombiesPlayer);
-
+                                    onPurchaseSuccess(player);
                                     return true;
                                 }
                             } else if (refillAttempt) {
-                                player.playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
+                                bukkitPlayer.playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
                                         1.0F, 2.0F));
-                                onPurchaseSuccess(zombiesPlayer);
-
+                                onPurchaseSuccess(player);
                                 return true;
                             }
                         } else {
-                            player.sendMessage(Component.text("You cannot purchase guns in this map",
+                            bukkitPlayer.sendMessage(Component.text("You cannot purchase guns in this map",
                                     NamedTextColor.RED));
                         }
                     } else {
-                        player.sendMessage(Component.text("The power is not active yet!", NamedTextColor.RED));
+                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!", NamedTextColor.RED));
                     }
 
-                    player.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"), Sound.Source.MASTER,
+                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"), Sound.Source.MASTER,
                             1.0F, 0.5F));
-
                     return true;
                 }
             }

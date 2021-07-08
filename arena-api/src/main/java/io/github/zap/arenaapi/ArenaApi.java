@@ -94,13 +94,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
-
-    @EventHandler
-    public void onPlayerIdk(PlayerToggleSneakEvent event) {
-        for (ProfileProperty property : event.getPlayer().getPlayerProfile().getProperties()) {
-            System.out.println(property.getName() + " " + property.getSignature() + " " + property.getValue());
-        }
-    }
     @Override
     public void onDisable() {
         for(ArenaManager<?> manager : arenaManagers.values()) {

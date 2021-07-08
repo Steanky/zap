@@ -7,6 +7,7 @@ import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
+import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.PartyMember;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
@@ -249,11 +250,17 @@ implements Listener {
      */
     @EventHandler
     public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
-        // TODO: remove hard-dependency on PartyPlusPlus
-        PartyMember partyMember
-                = ArenaApi.getInstance().getPartyPlusPlus().getPartyManager().getPlayerAsPartyMember(event.getPlayer());
-        if ((partyMember == null || !partyMember.isInPartyChat()) && world.equals(event.getPlayer().getWorld())) {
-            event.recipients().removeIf(player -> !world.equals(player.getWorld()));
+        PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
+        if (partyPlusPlus != null) {
+            PartyMember partyMember = partyPlusPlus.getPartyManager().getPlayerAsPartyMember(event.getPlayer());
+            if (partyMember != null && partyMember.isInPartyChat()) {
+                return;
+            }
+        }
+
+        if (world.equals(event.getPlayer().getWorld())) {
+            event.viewers().removeIf(audience -> !(audience instanceof Entity entity)
+                    || !world.equals(entity.getWorld()));
             Component message = event.message();
             if (message instanceof TextComponent textComponent) {
                 String string = textComponent.content();
@@ -284,7 +291,8 @@ implements Listener {
                 }
             }
         } else {
-            event.recipients().removeIf(player -> world.equals(player.getWorld()));
+            event.viewers().removeIf(audience -> !(audience instanceof Entity entity)
+                    || world.equals(entity.getWorld()));
         }
     }
 

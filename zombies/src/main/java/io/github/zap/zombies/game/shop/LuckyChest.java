@@ -134,7 +134,7 @@ public class LuckyChest extends Shop<LuckyChestData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
         Event event = args.getEvent();
         if (event instanceof PlayerInteractEvent playerInteractEvent) {
             Block clickedBlock = playerInteractEvent.getClickedBlock();
