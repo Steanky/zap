@@ -1,8 +1,7 @@
 package io.github.zap.zombies;
 
-import com.destroystokyo.paper.profile.ProfileProperty;
+import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
-import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
@@ -12,13 +11,7 @@ import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
-import io.github.zap.arenaapi.serialize.PairDeserializer;
-import io.github.zap.arenaapi.serialize.PairSerializer;
-import io.github.zap.arenaapi.shadow.com.fasterxml.jackson.databind.module.SimpleModule;
 import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.time.StopWatch;
-import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.ImmutablePair;
-import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.MutablePair;
-import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.ZombiesCommand;
@@ -48,9 +41,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -73,7 +64,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private ArenaApi arenaApi;
 
     @Getter
-    private SWMPlugin SWM;
+    private SlimePlugin SWM;
 
     @Getter
     private File slimeWorldDirectory;
@@ -298,7 +289,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         timer.start();
         slimeWorldDirectory = new File("slime_worlds");
         slimeExtension = ".slime";
-        slimeLoader = new FileLoader(slimeWorldDirectory);
+        slimeLoader = new FileLoader(slimeWorldDirectory); // this is the only instance of swm-plugin code, wish we could remove it
         worldLoader = new SlimeWorldLoader(slimeLoader);
         worldLoader.preload();
         timer.stop();
