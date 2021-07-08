@@ -1,32 +1,27 @@
 package io.github.zap.nms.v1_16_R3.world;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 import io.github.zap.nms.common.world.BoxConsumer;
+import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
-import net.minecraft.server.v1_16_R3.EnumDirection;
-import net.minecraft.server.v1_16_R3.VoxelShape;
-import net.minecraft.server.v1_16_R3.VoxelShapes;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     private final VoxelShape shape;
-    private List<AxisAlignedBB> cachedBounds;
-    private final double epsilon = Vector.getEpsilon();
+    private final List<AxisAlignedBB> bounds;
 
     VoxelShapeWrapper_v1_16_R3(VoxelShape shape) {
         this.shape = shape;
-        cachedBounds = null;
-    }
-
-    @Override
-    public void forEachBox(@NotNull BoxConsumer consumer) {
-        shape.b(consumer::consume);
+        bounds = shape.d();
     }
 
     @Override
@@ -51,23 +46,14 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
 
     @Override
     public @NotNull List<BoundingBox> boundingBoxes() {
-        List<BoundingBox> bounds = new ArrayList<>();
-        for(AxisAlignedBB bb : getCachedBounds()) {
-            bounds.add(new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxX));
-        }
-
-        return bounds;
+        return shape.d().stream().map(bb -> new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        for(AxisAlignedBB bounds : getCachedBounds()) {
-            if(DoubleMath.fuzzyCompare(bounds.minX, maxX, epsilon) < 0 &&
-                    DoubleMath.fuzzyCompare(bounds.maxX, minX, epsilon) > 0 &&
-                    DoubleMath.fuzzyCompare(bounds.minY, maxY, epsilon) < 0 &&
-                    DoubleMath.fuzzyCompare(bounds.maxY, minY, epsilon) > 0 &&
-                    DoubleMath.fuzzyCompare(bounds.minZ, maxZ, epsilon) < 0 &&
-                    DoubleMath.fuzzyCompare(bounds.maxZ, minZ, epsilon) > 0) {
+    public boolean anyBoundsMatches(@NotNull BoxPredicate predicate) {
+        for(AxisAlignedBB bounds : bounds) {
+            if(predicate.test(bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ)) {
                 return true;
             }
         }
@@ -75,15 +61,12 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
         return false;
     }
 
-    public @NotNull VoxelShape getShape() {
-        return shape;
+    @Override
+    public boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        return VoxelShapes.applyOperation(shape, VoxelShapes.create(minX, minY, minZ, maxX, maxY, maxZ), OperatorBoolean.AND);
     }
 
-    private List<AxisAlignedBB> getCachedBounds() {
-        if(cachedBounds == null) {
-            cachedBounds = shape.d();
-        }
-
-        return cachedBounds;
+    public @NotNull VoxelShape getShape() {
+        return shape;
     }
 }

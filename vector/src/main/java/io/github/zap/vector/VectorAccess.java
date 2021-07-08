@@ -1,5 +1,6 @@
 package io.github.zap.vector;
 
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,15 +68,15 @@ public interface VectorAccess extends ChunkVectorAccess {
     }
 
     default int blockX() {
-        return (int)Math.floor(x());
+        return NumberConversions.floor(x());
     }
 
     default int blockY() {
-        return (int)Math.floor(y());
+        return NumberConversions.floor(y());
     }
 
     default int blockZ() {
-        return (int)Math.floor(z());
+        return NumberConversions.floor(z());
     }
 
     default double manhattanDistance(double x, double y, double z) {

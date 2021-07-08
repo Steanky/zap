@@ -4,10 +4,9 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public interface VoxelShapeWrapper {
-    void forEachBox(@NotNull BoxConsumer consumer);
-
     double maxY();
 
     double minY();
@@ -17,6 +16,8 @@ public interface VoxelShapeWrapper {
     boolean isEmpty();
 
     @NotNull List<BoundingBox> boundingBoxes();
+
+    boolean anyBoundsMatches(@NotNull BoxPredicate predicate);
 
     boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 }

@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.MutableWorldVector;
@@ -12,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Function;
 
 public class DefaultWalkNodeExplorer extends NodeExplorer {
     private enum JunctionType {
@@ -202,7 +202,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
             if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
                 BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
-                if(provider.collidesWithAnySolid(verticalTest)) { //check if mob will collide with something on its way up
+                if(provider.collidesWithAny(verticalTest)) { //check if mob will collide with something on its way up
                     return null;
                 }
 
@@ -257,21 +257,21 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
     private boolean collidesMovingAlong(BoundingBox agentBounds, BlockCollisionProvider provider, Direction direction,
                                         ImmutableWorldVector currentNode) {
-        ImmutableWorldVector targetNode = currentNode.add(direction).asImmutable();
         BoundingBox expandedBounds = agentBounds.clone().expandDirectional(direction.asBukkit());
 
         if(!direction.isIntercardinal()) {
-            return provider.collidesWithAnySolid(expandedBounds);
+            return provider.collidesWithAny(expandedBounds);
         }
 
         List<BlockSnapshot> candidates = provider.collidingSolids(expandedBounds);
         if(!candidates.isEmpty()) {
             int dirFactor = direction.blockX() * direction.blockZ();
-            return processCollisions(candidates, dirFactor < 0 ? collision -> fastDiagonalCollisionCheck(width,
-                    negativeWidth, dirFactor, collision.getMinX(), collision.getMinZ(), collision.getMaxX(),
-                    collision.getMaxZ()) : collision -> fastDiagonalCollisionCheck(width, negativeWidth,
-                    dirFactor, collision.getMaxX(), collision.getMinZ(), collision.getMinX(), collision.getMaxZ()),
-                    targetNode.blockX() + 0.5, targetNode.blockZ() + 0.5);
+
+            return processCollisions(candidates, dirFactor < 0 ? (x, y, z, x2, y2, z2) ->
+                    fastDiagonalCollisionCheck(width, negativeWidth, dirFactor, x, z, x2, z2) :
+                    (x, y, z, x2, y2, z2) -> fastDiagonalCollisionCheck(width, negativeWidth,
+                            dirFactor, x2, z, x, z2), currentNode.blockX() + 0.5,
+                    currentNode.blockZ() + 0.5);
         }
 
         return false;
@@ -305,15 +305,25 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), negativeWidth, Vector.getEpsilon()) == 1;
     }
 
-    private boolean processCollisions(List<BlockSnapshot> candidates, Function<BoundingBox, Boolean> collides,
-                                      double agentBlockX, double agentBlockZ) {
+    private boolean processCollisions(List<BlockSnapshot> candidates, BoxPredicate collisionChecker,
+                                      double agentCenterX, double agentCenterZ) {
         for(BlockSnapshot snapshot : candidates) {
-            for(BoundingBox collision : snapshot.collision().boundingBoxes()) {
-                collision.shift(snapshot.position().asBukkit()).shift(-agentBlockX, 0, -agentBlockZ);
+            double x = snapshot.position().blockX() - agentCenterX;
+            double y = snapshot.position().blockY();
+            double z = snapshot.position().blockZ() - agentCenterZ;
 
-                if(collides.apply(collision)) {
-                    return true;
-                }
+            if(snapshot.collision().anyBoundsMatches((minX, minY, minZ, maxX, maxY, maxZ) -> {
+                minX += x;
+                minY += y;
+                minZ += z;
+
+                maxX += x;
+                maxY += y;
+                maxZ += z;
+
+                return collisionChecker.test(minX, minY, minZ, maxX, maxY, maxZ);
+            })) {
+                return true;
             }
         }
 

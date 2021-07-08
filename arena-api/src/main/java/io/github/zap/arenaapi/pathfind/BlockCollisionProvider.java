@@ -46,7 +46,7 @@ public interface BlockCollisionProvider {
 
     @Nullable BlockSnapshot getBlock(int x, int y, int z);
 
-    boolean collidesWithAnySolid(@NotNull BoundingBox bounds);
+    boolean collidesWithAny(@NotNull BoundingBox bounds);
 
     @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox bounds);
 

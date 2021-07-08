@@ -94,7 +94,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public boolean collidesWithAnySolid(@NotNull BoundingBox worldRelativeBounds) {
+    public boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds) {
         Vector min = worldRelativeBounds.getMin();
         Vector max = worldRelativeBounds.getMax();
 

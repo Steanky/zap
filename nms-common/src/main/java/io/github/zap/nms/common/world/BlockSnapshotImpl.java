@@ -3,16 +3,12 @@ package io.github.zap.nms.common.world;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 class BlockSnapshotImpl implements BlockSnapshot {
     private final VectorAccess worldVector;
     private final BlockData data;
     private final VoxelShapeWrapper collision;
-    private BoundingBox adjustBounds;
 
     BlockSnapshotImpl(@NotNull VectorAccess worldVector, @NotNull BlockData data,
                       @NotNull VoxelShapeWrapper collision) {
@@ -38,9 +34,7 @@ class BlockSnapshotImpl implements BlockSnapshot {
 
     @Override
     public boolean overlaps(@NotNull BoundingBox worldBounds) {
-        return collision.collidesWith(worldBounds.getMinX() - worldVector.x(),
-                worldBounds.getMinY() - worldVector.y(), worldBounds.getMinZ() - worldVector.z(),
-                worldBounds.getMaxX() - worldVector.x(), worldBounds.getMaxY() - worldVector.y(),
-                worldBounds.getMaxZ() - worldVector.z());
+        return collision.collidesWith(worldBounds.getMinX(), worldBounds.getMinY(), worldBounds.getMinZ(),
+                worldBounds.getMaxX(), worldBounds.getMaxY(), worldBounds.getMaxZ());
     }
 }

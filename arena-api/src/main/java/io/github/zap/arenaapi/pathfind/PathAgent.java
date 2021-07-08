@@ -18,7 +18,6 @@ import java.util.Objects;
  */
 public abstract class PathAgent implements Positional {
     public static class Characteristics {
-        private static final EntityBridge bridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
         private static final double DEFAULT_JUMP_HEIGHT = 1.125D;
 
         private final BoundingBox bounds;
