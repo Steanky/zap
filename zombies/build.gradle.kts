@@ -36,6 +36,9 @@ val outputDir = System.getProperty("outputDir") ?: "../run/server-1"
 val pluginDir = "$outputDir/plugins"
 
 dependencies {
+    implementation("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
+        exclude("io.papermc", "minecraft-server")
+    }
     implementation(project(":arena-api", "dependencyApi"))
     implementation(project(":arena-api", "shadow"))
 

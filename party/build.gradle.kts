@@ -14,10 +14,8 @@ java {
 
 repositories {
     mavenCentral()
-    mavenLocal()
     maven("https://jitpack.io")
-    maven("https://libraries.minecraft.net")
-    maven("https://repo.aikar.co/content/groups/aikar/")
+    maven("https://papermc.io/repo/repository/maven-public/")
 }
 
 val shade: Configuration by configurations.creating
@@ -29,9 +27,7 @@ configurations.api.get().extendsFrom(dependencyApi)
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
 dependencies {
-    dependencyApi("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
-        exclude("io.papermc", "minecraft-server")
-    }
+    dependencyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
     shade("org.apache.commons:commons-lang3:3.12.0")
 
