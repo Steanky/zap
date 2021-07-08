@@ -100,7 +100,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
         Player bukkitPlayer = player.getPlayer();
 
         if (bukkitPlayer != null) {
-            if (equipment.getLevel() + 1 < equipment.getEquipmentData().getLevels().size()) {
+            if (equipment.getLevel() < equipment.getEquipmentData().getLevels().size() - 1) {
                 equipment.upgrade();
 
                 bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.player.levelup"),
@@ -108,6 +108,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
                 player.subtractCoins(cost);
                 onPurchaseSuccess(player);
+                return;
             }
 
             bukkitPlayer.sendMessage(Component.text("You have already maxed out this item!",
