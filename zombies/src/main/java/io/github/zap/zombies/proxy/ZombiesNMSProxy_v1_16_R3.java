@@ -1,10 +1,6 @@
 package io.github.zap.zombies.proxy;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
-import org.bukkit.inventory.ItemStack;
 
 public class ZombiesNMSProxy_v1_16_R3 implements ZombiesNMSProxy {
 
@@ -31,21 +27,6 @@ public class ZombiesNMSProxy_v1_16_R3 implements ZombiesNMSProxy {
             //noinspection ConstantConditions
             attributeMap.a(attribute).setValue(value);
         }
-    }
-
-    @Override
-    public ItemStack getItemStackFromDescription(ItemStackDescription info) throws CommandSyntaxException {
-
-        var itemStack = new ItemStack(info.getMaterial(), info.getCount());
-        if(info.getNbt() != null && !info.getNbt().isEmpty()) {
-            var nbt = MojangsonParser.parse(info.getNbt());
-            var nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
-            nmsItemStack.setTag(nbt);
-            return nmsItemStack.getBukkitStack();
-        } else {
-            return itemStack;
-        }
-
     }
 
     @Override
