@@ -23,11 +23,9 @@ repositories {
 }
 
 val shade: Configuration by configurations.creating
-
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
-
 val classModifier: Configuration by configurations.creating {
     isTransitive = false
 }

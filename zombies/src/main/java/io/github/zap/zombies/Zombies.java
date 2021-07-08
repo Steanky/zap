@@ -1,5 +1,6 @@
 package io.github.zap.zombies;
 
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
@@ -47,7 +48,9 @@ import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -126,8 +129,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
             initProxy();
-            initConfig();
             initDependencies();
+            initConfig();
             initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class);
             initMechanics(CobwebMechanic.class, SpawnMobMechanic.class, StealCoinsMechanic.class,
                     SlowFireRateMechanic.class, SummonMountMechanic.class, TeleportBehindTargetMechanic.class);
@@ -143,7 +146,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
-            getServer().shutdown();
+            // getServer().shutdown();
             return;
         }
 
@@ -196,7 +199,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
-        config.addDefault(ConfigNames.LOBBY_WORLD, nmsProxy.getDefaultWorldName());
+        config.addDefault(ConfigNames.LOBBY_WORLD, ArenaApi.getInstance().getNmsBridge().worldBridge()
+                .getDefaultWorldName());
         config.addDefault(ConfigNames.NPC_LIST, Collections.emptyList());
 
         config.options().copyDefaults(true);

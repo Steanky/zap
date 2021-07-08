@@ -3,6 +3,7 @@ package io.github.zap.arenaapi;
 import com.comphenix.protocol.ProtocolLib;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -34,6 +35,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -92,6 +94,13 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
+
+    @EventHandler
+    public void onPlayerIdk(PlayerToggleSneakEvent event) {
+        for (ProfileProperty property : event.getPlayer().getPlayerProfile().getProperties()) {
+            System.out.println(property.getName() + " " + property.getSignature() + " " + property.getValue());
+        }
+    }
     @Override
     public void onDisable() {
         for(ArenaManager<?> manager : arenaManagers.values()) {

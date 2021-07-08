@@ -11,6 +11,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.shadow.io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
@@ -100,8 +101,8 @@ public class ZombiesNPC implements Listener {
     public ZombiesNPC(World world, ZombiesNPCData data) {
         this.location = data.location.toLocation(world);
 
-        ZombiesNMSProxy zombiesNMSProxy = Zombies.getInstance().getNmsProxy();
-        this.id = zombiesNMSProxy.nextEntityId();
+        EntityBridge entityBridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
+        this.id = entityBridge.nextEntityID();
 
         // potentially init packet listener
         NPC_MAP.put(id, this);
@@ -111,7 +112,7 @@ public class ZombiesNPC implements Listener {
         }
 
         // init player info data
-        UUID uniqueId = zombiesNMSProxy.randomUUID();
+        UUID uniqueId = entityBridge.randomUUID();
         WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, PLAY_ZOMBIES);
         WrappedSignedProperty texture = data.texture;
         if (texture != null) {

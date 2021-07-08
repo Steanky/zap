@@ -16,6 +16,7 @@ repositories {
     mavenCentral()
     mavenLocal()
     maven("https://jitpack.io")
+    maven("https://repo.dmulloy2.net/repository/public/")
     maven("https://libraries.minecraft.net")
     maven("https://repo.aikar.co/content/groups/aikar/")
 }

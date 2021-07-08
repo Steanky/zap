@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.shadow.io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -35,6 +36,8 @@ public class GuardianBeam extends BasicBeam {
 
     private final static Map<Mob, UUID> mobFreezeUUIDMap = new HashMap<>();
 
+    private final EntityBridge entityBridge;
+
     private final int freezeTime;
 
     private final int guardianId;
@@ -44,10 +47,9 @@ public class GuardianBeam extends BasicBeam {
     public GuardianBeam(MapData mapData, ZombiesPlayer zombiesPlayer, Location root, GuardianGunLevel level) {
         super(mapData, zombiesPlayer, root, level);
         this.freezeTime = level.getFreezeTime();
-
-        ZombiesNMSProxy zombiesNMSProxy = Zombies.getInstance().getNmsProxy();
-        guardianId = zombiesNMSProxy.nextEntityId();
-        armorStandId = zombiesNMSProxy.nextEntityId();
+        this.entityBridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
+        this.guardianId = entityBridge.nextEntityID();
+        this.armorStandId = entityBridge.nextEntityID();
     }
 
     @Override
@@ -86,8 +88,8 @@ public class GuardianBeam extends BasicBeam {
         PacketContainer spawnGuardianPacket = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
         spawnGuardianPacket.getIntegers()
                 .write(0, guardianId)
-                .write(1, zombiesNMSProxy.getEntityTypeId(EntityType.GUARDIAN));
-        spawnGuardianPacket.getUUIDs().write(0, zombiesNMSProxy.randomUUID());
+                .write(1, entityBridge.getEntityTypeID(EntityType.GUARDIAN));
+        spawnGuardianPacket.getUUIDs().write(0, entityBridge.randomUUID());
         spawnGuardianPacket.getDoubles()
                 .write(0, location.getX())
                 .write(1, location.getY())
@@ -105,8 +107,8 @@ public class GuardianBeam extends BasicBeam {
         PacketContainer spawnArmorStandPacket = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
         spawnArmorStandPacket.getIntegers()
                 .write(0, armorStandId)
-                .write(1, zombiesNMSProxy.getEntityTypeId(EntityType.ARMOR_STAND));
-        spawnArmorStandPacket.getUUIDs().write(0, zombiesNMSProxy.randomUUID());
+                .write(1, entityBridge.getEntityTypeID(EntityType.ARMOR_STAND));
+        spawnArmorStandPacket.getUUIDs().write(0, entityBridge.randomUUID());
         spawnArmorStandPacket.getDoubles()
                 .write(0, location.getX())
                 .write(1, location.getY())

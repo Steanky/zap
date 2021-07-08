@@ -9,6 +9,8 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.shadow.io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.arenaapi.shadow.io.github.zap.nms.common.player.PlayerBridge;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -29,6 +31,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -39,7 +42,7 @@ import java.util.UUID;
  */
 public class Corpse {
 
-    private final ZombiesNMSProxy nmsProxy;
+    private final PlayerBridge playerBridge;
 
     @Getter
     private final ZombiesPlayer zombiesPlayer;
@@ -66,16 +69,18 @@ public class Corpse {
 
     private int reviveTime;
 
-    public Corpse(ZombiesPlayer zombiesPlayer) {
-        this.nmsProxy = Zombies.getInstance().getNmsProxy();
-        this.zombiesPlayer = zombiesPlayer;
+    public Corpse(@NotNull ZombiesPlayer player) {
+        this.playerBridge = ArenaApi.getInstance().getNmsBridge().playerBridge();
+        this.zombiesPlayer = player;
 
-        if(zombiesPlayer.getPlayer() != null) {
-            this.location = zombiesPlayer.getPlayer().getLocation();
-            this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
+        if (player.getPlayer() != null) {
+            EntityBridge entityBridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
+
+            this.location = player.getPlayer().getLocation();
+            this.defaultDeathTime = player.getArena().getMap().getCorpseDeathTime();
             this.hologram = new Hologram(location.clone().add(0, 1, 0));
             this.deathTime = defaultDeathTime;
-            this.id = this.nmsProxy.nextEntityId();
+            this.id = entityBridge.nextEntityID();
 
             hologram.addLine(ChatColor.YELLOW + "----------------------------------");
             hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
@@ -84,7 +89,7 @@ public class Corpse {
                     TimeUtil.convertTicksToSecondsString(defaultDeathTime)));
             hologram.addLine(ChatColor.YELLOW + "----------------------------------");
 
-            ZombiesArena zombiesArena = zombiesPlayer.getArena();
+            ZombiesArena zombiesArena = player.getArena();
             zombiesArena.getCorpses().add(this);
             zombiesArena.getAvailableCorpses().add(this);
             zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
@@ -339,9 +344,9 @@ public class Corpse {
 
         Player player = zombiesPlayer.getPlayer();
         if (player != null) {
-            WrappedSignedProperty skin = nmsProxy.getSkin(zombiesPlayer.getPlayer());
+            WrappedSignedProperty skin = playerBridge.getSkin(zombiesPlayer.getPlayer());
             if (skin != null) {
-                wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+                wrappedGameProfile.getProperties().put("textures", skin);
             }
         }
 

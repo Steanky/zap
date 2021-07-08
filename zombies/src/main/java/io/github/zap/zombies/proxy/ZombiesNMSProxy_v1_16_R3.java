@@ -1,72 +1,12 @@
 package io.github.zap.zombies.proxy;
 
-import com.comphenix.protocol.wrappers.WrappedSignedProperty;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.github.zap.arenaapi.proxy.NMSProxy_v1_16_R3;
-import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.util.ItemStackDescription;
-import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.function.Predicate;
-
-public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements ZombiesNMSProxy {
-
-    @Override
-    public @Nullable WrappedSignedProperty getSkin(@NotNull Player player) {
-        CraftPlayer craftPlayer = (CraftPlayer) player;
-        GameProfile gameProfile = craftPlayer.getProfile();
-        if (gameProfile != null) {
-            Collection<Property> texture = gameProfile.getProperties().get("textures");
-
-            if (texture.size() > 0) {
-                return WrappedSignedProperty.fromHandle(texture.iterator().next());
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public ZombiesPlayer findClosest(EntityInsentient entity, ZombiesArena arena, int deviation, Predicate<ZombiesPlayer> filter) {
-        Pair<Double, ZombiesPlayer> bestCandidate = Pair.of(Double.MAX_VALUE, null);
-
-        for(ZombiesPlayer player : arena.getPlayerMap().values()) {
-            if(filter.test(player)) {
-                Player bukkitPlayer = player.getPlayer();
-
-                if(bukkitPlayer != null) {
-                    Location location = bukkitPlayer.getLocation();
-                    double dist = entity.h(location.getX(), location.getY(), location.getZ());
-
-                    if(dist < bestCandidate.getLeft()) {
-                        bestCandidate = Pair.of(dist, player);
-                    }
-                }
-            }
-        }
-
-        return bestCandidate.getRight();
-    }
-
-    @Override
-    public void navigateToLocation(EntityInsentient entity, double x, double y, double z, double speed) {
-        if(entity.isAlive()) {
-            NavigationAbstract navigationAbstract = entity.getNavigation();
-            entity.getNavigation().a(navigationAbstract.a(x, y, z, 0), speed);
-        }
-    }
+public class ZombiesNMSProxy_v1_16_R3 implements ZombiesNMSProxy {
 
     @Override
     public double getDistanceToSquared(Entity entity, double x, double y, double z) {
@@ -106,11 +46,6 @@ public class ZombiesNMSProxy_v1_16_R3 extends NMSProxy_v1_16_R3 implements Zombi
             return itemStack;
         }
 
-    }
-
-    @Override
-    public PathEntity calculatePathTo(EntityInsentient entity, Entity target, int deviation) {
-        return entity.getNavigation().calculateDestination(target);
     }
 
     @Override
