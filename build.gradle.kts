@@ -1,4 +1,5 @@
 plugins {
+    java
     base
 }
 
@@ -10,4 +11,13 @@ tasks.clean {
     }, fileTree(outputDir).matching {
         include("slimeworldmanager-classmodifier*.jar")
     })
+}
+
+subprojects {
+    afterEvaluate {
+        tasks.withType<JavaCompile>() {
+            options.compilerArgs.add("-Xlint:unchecked")
+            options.compilerArgs.add("-Xlint:deprecation")
+        }
+    }
 }

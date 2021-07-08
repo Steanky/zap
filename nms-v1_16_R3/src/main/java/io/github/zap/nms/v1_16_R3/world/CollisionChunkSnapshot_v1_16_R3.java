@@ -273,6 +273,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
+    @Deprecated
     public int getData(int i, int i1, int i2) {
         throw new NotImplementedException("getData not implemented for CollisionChunkSnapshot!");
     }
@@ -293,6 +294,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
+    @Deprecated
     public @NotNull Biome getBiome(int i, int i1) {
         throw new NotImplementedException("getBiome not implemented for CollisionChunkSnapshot!");
     }
@@ -303,6 +305,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
+    @Deprecated
     public double getRawBiomeTemperature(int i, int i1) {
         throw new NotImplementedException("getRawBiomeTemperature not implemented for CollisionChunkSnapshot!");
     }
