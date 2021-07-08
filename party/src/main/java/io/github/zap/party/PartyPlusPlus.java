@@ -4,7 +4,7 @@ import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.party.command.PartyCommand;
 import io.github.zap.party.party.PartyManager;
 import lombok.Getter;
-import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;

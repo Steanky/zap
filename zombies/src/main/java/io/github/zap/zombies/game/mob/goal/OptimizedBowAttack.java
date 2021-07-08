@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
-import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
+import io.github.zap.arenaapi.shadow.io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;

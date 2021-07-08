@@ -22,7 +22,7 @@ import io.github.zap.zombies.game.equipment.skill.SkillObjectGroup;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -12,7 +12,7 @@ import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.*;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.arenaapi.shadow.io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.powerups.EarnedGoldMultiplierPowerUpData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;

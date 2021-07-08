@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -12,7 +13,6 @@ import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;

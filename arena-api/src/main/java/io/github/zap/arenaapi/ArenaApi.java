@@ -128,6 +128,12 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         module.addDeserializer(Color.class, new ColorDeserializer());
         module.addDeserializer(Particle.DustOptions.class, new DustOptionsDeserializer());
 
+        module.addSerializer(Pair.class, new PairSerializer());
+        module.addDeserializer(Pair.class, new PairDeserializer());
+
+        module.addAbstractTypeMapping(Pair.class, ImmutablePair.class);
+        module.addAbstractTypeMapping(Pair.class, MutablePair.class);
+
         mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         mapper.registerModule(module);

@@ -10,7 +10,7 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.arena.Arena;
-import org.apache.commons.lang3.tuple.Pair;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.entity.Player;
 
 import java.util.Iterator;
