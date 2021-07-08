@@ -13,6 +13,7 @@ java {
 }
 
 repositories {
+    mavenCentral()
     mavenLocal()
     maven("https://jitpack.io")
     maven("https://libraries.minecraft.net")
@@ -20,9 +21,6 @@ repositories {
 }
 
 val shade: Configuration by configurations.creating
-val shadeProject: Configuration by configurations.creating {
-    isCanBeConsumed = false
-}
 val dependencyApi: Configuration by configurations.creating
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
@@ -31,7 +29,6 @@ val bukkitPlugin: Configuration by configurations.creating {
 configurations.api.get().extendsFrom(dependencyApi)
 configurations.implementation.get().extendsFrom(shade)
 dependencyApi.extendsFrom(bukkitPlugin)
-shade.extendsFrom(shadeProject)
 
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
@@ -39,8 +36,8 @@ dependencies {
     dependencyApi(project(":party", "dependencyApi"))
     dependencyApi(project(":party", "shadow"))
 
-    shadeProject(project(":nms-common", "outputJar"))
-    shade(project(":nms-v1_16_R3", "outputJar"))
+    shade(project(":nms-common", "outputJar"))
+    shade(project(":nms-v1_16_R3", "shadow"))
     shade(project(":vector", "outputJar"))
     shade("com.fasterxml.jackson.core:jackson-core:2.12.3")
     shade("com.fasterxml.jackson.core:jackson-databind:2.12.3")

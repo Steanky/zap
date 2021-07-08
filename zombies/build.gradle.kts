@@ -76,7 +76,7 @@ tasks.processResources {
 
 val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
     target = tasks.shadowJar.get()
-    prefix = "io.github.zap.arenaapi.shadow"
+    prefix = "io.github.zap.zombies.shadow"
 }
 
 tasks.shadowJar {

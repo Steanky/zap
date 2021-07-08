@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.powerups;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.mutable.MutableBoolean;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayerState;
@@ -8,7 +9,6 @@ import io.github.zap.zombies.game.data.powerups.PowerUpData;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import lombok.Getter;
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;

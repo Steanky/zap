@@ -19,8 +19,8 @@ import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
 import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.time.StopWatch;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -71,8 +71,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-        StopWatch timer = new StopWatch();
-        timer.start();
+        StopWatch timer = StopWatch.createStarted();
 
         try {
             AsyncPathfinderEngine.instance().registerEvents();
