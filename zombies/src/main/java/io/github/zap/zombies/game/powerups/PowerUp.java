@@ -1,14 +1,16 @@
 package io.github.zap.zombies.game.powerups;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.mutable.MutableBoolean;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayerState;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
+import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import lombok.Getter;
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -77,13 +79,20 @@ public abstract class PowerUp {
         removePowerUpItem();
         dropLocation = location;
         itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
-        try {
-            itemEntity.setItemStack(Zombies.getInstance().getNmsProxy().getItemStackFromDescription(getData().getItemRepresentation()));
-        } catch (CommandSyntaxException e) {
+
+        ItemStackDescription info = getData().getItemRepresentation();
+        ItemStack itemStack = new ItemStack(info.getMaterial(), info.getCount());
+        if (info.getNbt() != null && !info.getNbt().isEmpty()) {
+            itemStack = ArenaApi.getInstance().getNmsBridge().itemStackBridge().addNBT(itemStack, info.getNbt());
+        }
+
+        if (itemStack != null) {
+            itemEntity.setItemStack(itemStack);
+        } else {
             itemEntity.setItemStack(new ItemStack(Material.REDSTONE_BLOCK));
             Zombies.log(Level.WARNING, "Invalid item representation! Fallback to REDSTONE_BLOCK!");
-            e.printStackTrace();
         }
+
         itemEntity.setCustomName(getData().getDisplayName());
         itemEntity.setCustomNameVisible(true);
         itemEntity.setWillAge(false);

@@ -1,30 +1,31 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import java.io.File
+
 plugins {
-    id("java")
+    java
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 java {
-    @Suppress("UnstableApiUsage")
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(16))
     }
 }
 
-
 repositories {
-    maven(url = "https://jitpack.io")
-    maven(url = "https://repo.rapture.pw/repository/maven-snapshots")
-    maven(url = "https://repo.glaremasters.me/repository/concuncan/")
-    maven(url = "https://mvn.lumine.io/repository/maven-public/")
+    mavenLocal()
+    maven("https://jitpack.io")
+    maven("https://repo.rapture.pw/repository/maven-snapshots")
+    maven("https://repo.glaremasters.me/repository/concuncan/")
+    maven("https://mvn.lumine.io/repository/maven-public/")
+    maven("https://libraries.minecraft.net")
+    maven("https://repo.aikar.co/content/groups/aikar/")
 }
 
-val shade: Configuration by configurations.creating {
-    isTransitive = false
-}
-
+val shade: Configuration by configurations.creating
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
-
 val classModifier: Configuration by configurations.creating {
     isTransitive = false
 }
@@ -35,13 +36,15 @@ val outputDir = System.getProperty("outputDir") ?: "../run/server-1"
 val pluginDir = "$outputDir/plugins"
 
 dependencies {
-    implementation(project(":arena-api"))
+    implementation("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
+        exclude("io.papermc", "minecraft-server")
+    }
+    implementation(project(":arena-api", "dependencyApi"))
+    implementation(project(":arena-api", "shadow"))
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
-    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0") {
-        exclude("org.apache.commons", "lang3")
-    }
 
+    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0")
     bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.1-SNAPSHOT")
 
     classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.6.1-SNAPSHOT")
@@ -50,11 +53,11 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.20")
 }
 
-tasks.register<Copy>("copyPlugins") {
+val copyPlugins = tasks.register<Copy>("copyPlugins") {
     from(bukkitPlugin).into(pluginDir)
 }
 
-tasks.register<Copy>("copyClassModifier") {
+val copyClassModifier = tasks.register<Copy>("copyClassModifier") {
     from(classModifier).into(outputDir)
 
     System.getProperty("useClassModifierVersion")?.let {
@@ -65,20 +68,28 @@ tasks.register<Copy>("copyClassModifier") {
 }
 
 tasks.compileJava {
-    dependsOn("copyPlugins", "copyClassModifier")
+    dependsOn(copyPlugins.get(), copyClassModifier.get())
 }
 
 tasks.processResources {
     expand("version" to version)
 }
 
-tasks.jar {
+val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
+    target = tasks.shadowJar.get()
+    prefix = "io.github.zap.zombies.shadow"
+}
+
+tasks.shadowJar {
+    dependsOn(relocate.get())
+
+    configurations = listOf(shade)
+    archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
-    from (shade.map {
-        if (it.isDirectory) it else zipTree(it)
-    }) {
-        exclude("META-INF", "META-INF/**")
-    }
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar.get())
 }
 
 description = "zombies"

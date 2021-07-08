@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game.powerups.spawnrules;
 
 import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.mutable.MutableInt;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -8,7 +9,6 @@ import io.github.zap.zombies.game.data.map.SpawnEntryData;
 import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityDeathEvent;

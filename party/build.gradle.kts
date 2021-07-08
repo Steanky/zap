@@ -1,10 +1,12 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import java.io.File
+
 plugins {
-    id("java")
-    id("java-library")
+    `java-library`
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 java {
-    @Suppress("UnstableApiUsage")
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(16))
     }
@@ -12,49 +14,46 @@ java {
 
 repositories {
     mavenCentral()
-    mavenLocal()
-    maven(url = "https://jitpack.io")
+    maven("https://jitpack.io")
+    maven("https://papermc.io/repo/repository/maven-public/")
 }
 
-val shade: Configuration by configurations.creating {
-    isTransitive = false
-}
-val bukkitPlugin: Configuration by configurations.creating {
-    isTransitive = false
-}
-configurations.api.get().extendsFrom(shade, bukkitPlugin)
+val shade: Configuration by configurations.creating
+val dependencyApi: Configuration by configurations.creating
+
+configurations.implementation.get().extendsFrom(shade)
+configurations.api.get().extendsFrom(dependencyApi)
 
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
 
 dependencies {
-    api("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
-        exclude("io.papermc", "minecraft-server")
-    }
+    dependencyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
+    shade("org.apache.commons:commons-lang3:3.12.0")
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
-}
-
-tasks.register<Copy>("copyPlugins") {
-    from(bukkitPlugin).into(pluginDir)
-}
-
-tasks.compileJava {
-    dependsOn("copyPlugins")
 }
 
 tasks.processResources {
     expand("version" to version)
 }
 
-tasks.jar {
+val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
+    target = tasks.shadowJar.get()
+    prefix = "io.github.zap.party.shadow"
+}
+
+tasks.shadowJar {
+    dependsOn(relocate.get())
+
+    configurations = listOf(shade)
+    archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
-    from (shade.map {
-        if (it.isDirectory) it else zipTree(it)
-    }) {
-        exclude("META-INF", "META-INF/**")
-    }
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar.get())
 }
 
 description = "party-plus-plus"

@@ -4,7 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.arenaapi.shadow.io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;

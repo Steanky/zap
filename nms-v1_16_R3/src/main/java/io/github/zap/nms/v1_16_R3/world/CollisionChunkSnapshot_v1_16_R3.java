@@ -7,11 +7,11 @@ import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.VectorAccess;
 import io.github.zap.vector.util.VectorHelper;
 import net.minecraft.server.v1_16_R3.*;
+import org.apache.commons.lang3.NotImplementedException;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.block.Biome;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.NotImplementedException;
 import org.bukkit.craftbukkit.v1_16_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.bukkit.util.BoundingBox;
@@ -164,7 +164,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                     if(y < 0 || y > 255) {
                         continue;
                     }
-                    
+
                     for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         int chunkX = x & 15;
                         int chunkZ = z & 15;

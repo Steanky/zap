@@ -1,6 +1,8 @@
 package io.github.zap.nms.common;
 
 import io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.nms.common.itemstack.ItemStackBridge;
+import io.github.zap.nms.common.player.PlayerBridge;
 import io.github.zap.nms.common.world.WorldBridge;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +34,18 @@ public interface NMSBridge {
      * @return An EntityBridge instance
      */
     @NotNull EntityBridge entityBridge();
+
+    /**
+     * Returns a bridge used to proxy methods relating to item stacks.
+     * @return A PlayerBridge instance
+     */
+    @NotNull ItemStackBridge itemStackBridge();
+
+    /**
+     * Returns a bridge used to proxy methods relating to players.
+     * @return A PlayerBridge instance
+     */
+    @NotNull PlayerBridge playerBridge();
 
     /**
      * Returns a bridge used to proxy methods relating to the NMS World object, as well as closely related functions.

@@ -2,12 +2,12 @@ package io.github.zap.zombies.game.scoreboards;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

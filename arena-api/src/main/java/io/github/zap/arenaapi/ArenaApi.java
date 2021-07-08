@@ -3,6 +3,7 @@ package io.github.zap.arenaapi;
 import com.comphenix.protocol.ProtocolLib;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -19,8 +20,8 @@ import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
 import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.time.StopWatch;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,6 +35,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -71,8 +73,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-        StopWatch timer = new StopWatch();
-        timer.start();
+        StopWatch timer = StopWatch.createStarted();
 
         try {
             AsyncPathfinderEngine.instance().registerEvents();
@@ -93,6 +94,13 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         getLogger().info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
     }
 
+
+    @EventHandler
+    public void onPlayerIdk(PlayerToggleSneakEvent event) {
+        for (ProfileProperty property : event.getPlayer().getPlayerProfile().getProperties()) {
+            System.out.println(property.getName() + " " + property.getSignature() + " " + property.getValue());
+        }
+    }
     @Override
     public void onDisable() {
         for(ArenaManager<?> manager : arenaManagers.values()) {
@@ -127,6 +135,12 @@ public final class ArenaApi extends JavaPlugin implements Listener {
 
         module.addDeserializer(Color.class, new ColorDeserializer());
         module.addDeserializer(Particle.DustOptions.class, new DustOptionsDeserializer());
+
+        module.addSerializer(Pair.class, new PairSerializer());
+        module.addDeserializer(Pair.class, new PairDeserializer());
+
+        module.addAbstractTypeMapping(Pair.class, ImmutablePair.class);
+        module.addAbstractTypeMapping(Pair.class, MutablePair.class);
 
         mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);

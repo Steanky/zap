@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.scoreboards;
 
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.RandomStringUtils;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;

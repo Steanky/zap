@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.Bukkit;
+import org.apache.commons.lang3.NotImplementedException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
