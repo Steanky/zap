@@ -48,8 +48,8 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (super.purchase(args)) {
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.interact(args)) {
             ZombiesPlayer player = args.getManagedPlayer();
 
             if (player != null) {
@@ -68,7 +68,8 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                                     && player.getHotbarManager().getSelectedHotbarObjectGroup()
                                     instanceof UpgradeableEquipmentObjectGroup upgradeableEquipmentObjectGroup
                                     && upgradeableEquipmentObjectGroup.isUltimateable()) {
-                                return attemptToUltimate(upgradeableEquipment, player, cost);
+                                attemptToUltimate(upgradeableEquipment, player, cost);
+                                return true;
                             } else {
                                 bukkitPlayer.sendMessage(Component
                                         .text("Choose a slot to receive the upgrade for!", NamedTextColor.RED));
@@ -81,10 +82,9 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
                     bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
                             Sound.Source.MASTER, 1.0F, 0.5F));
+                    return true;
                 }
             }
-
-            return true;
         }
 
         return false;
@@ -95,12 +95,12 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
         return ShopType.ULTIMATE_MACHINE.name();
     }
 
-    private boolean attemptToUltimate(@NotNull UpgradeableEquipment<?, ?> equipment, @NotNull ZombiesPlayer player,
+    private void attemptToUltimate(@NotNull UpgradeableEquipment<?, ?> equipment, @NotNull ZombiesPlayer player,
                                       int cost) {
         Player bukkitPlayer = player.getPlayer();
 
         if (bukkitPlayer != null) {
-            if (equipment.getLevel() + 1 < equipment.getEquipmentData().getLevels().size()) {
+            if (equipment.getLevel() < equipment.getEquipmentData().getLevels().size() - 1) {
                 equipment.upgrade();
 
                 bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.player.levelup"),
@@ -108,15 +108,12 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
                 player.subtractCoins(cost);
                 onPurchaseSuccess(player);
-
-                return true;
+                return;
             }
 
             bukkitPlayer.sendMessage(Component.text("You have already maxed out this item!",
                     NamedTextColor.RED));
         }
-
-        return false;
     }
 
 }

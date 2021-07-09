@@ -1,6 +1,7 @@
 package io.github.zap.zombies.world;
 
 import com.google.common.io.Files;
+import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
 import com.grinderwolf.swm.api.exceptions.NewerFormatException;
 import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
@@ -8,9 +9,6 @@ import com.grinderwolf.swm.api.exceptions.WorldInUseException;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
-import com.grinderwolf.swm.plugin.SWMPlugin;
-import com.grinderwolf.swm.plugin.config.ConfigManager;
-import com.grinderwolf.swm.plugin.config.WorldData;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.Zombies;
 import org.bukkit.Bukkit;
@@ -42,37 +40,24 @@ public class SlimeWorldLoader implements WorldLoader {
     @Override
     public void preload() {
         Zombies zombies = Zombies.getInstance();
-        SWMPlugin slime = zombies.getSWM();
+        SlimePlugin slime = zombies.getSWM();
         File[] files = zombies.getSlimeWorldDirectory().listFiles();
 
-        if(files != null) {
-            for(File worldFile : files) {
+        if (files != null) {
+            for (File worldFile : files) {
                 String worldFileName = worldFile.getName();
 
-                if(worldFileName.endsWith(zombies.getSlimeExtension())) {
+                if (worldFileName.endsWith(zombies.getSlimeExtension())) {
                     String worldName = Files.getNameWithoutExtension(worldFileName);
-
                     try {
-                        WorldData swmData = ConfigManager.getWorldConfig().getWorlds().get(worldName);
-
-                        if(swmData != null) {
-                            preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
-                                    swmData.toPropertyMap()));
-                        }
-                        else {
-                            Zombies.warning("Could not find configuration file for world " + worldName + "; using " +
-                                    "default SlimePropertyMap.");
-                            preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
-                                    new SlimePropertyMap()));
-                        }
-                    }
-                    catch(IOException | CorruptedWorldException | WorldInUseException | NewerFormatException |
-                            UnknownWorldException e) {
+                        preloadedWorlds.put(worldName, slime.loadWorld(slimeLoader, worldName, true,
+                                new SlimePropertyMap()));
+                    } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException
+                            | WorldInUseException e) {
                         Zombies.warning(String.format("Exception when attempting to preload world '%s': %s.", worldName,
                                 e.getMessage()));
                     }
-                }
-                else {
+                } else {
                     Zombies.info(String.format("Ignoring non-SWF file '%s'.", worldFileName));
                 }
             }

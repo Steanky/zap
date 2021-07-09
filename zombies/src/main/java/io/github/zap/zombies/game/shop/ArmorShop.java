@@ -131,8 +131,8 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (super.purchase(args)) {
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.interact(args)) {
             ZombiesPlayer player = args.getManagedPlayer();
 
             if (player != null) {
@@ -171,10 +171,9 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
                     bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
                             Sound.Source.MASTER, 1.0F, 0.5F));
+                    return true;
                 }
             }
-
-            return true;
         }
 
         return false;

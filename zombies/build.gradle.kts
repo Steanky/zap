@@ -13,6 +13,7 @@ java {
 }
 
 repositories {
+    mavenCentral()
     mavenLocal()
     maven("https://jitpack.io")
     maven("https://repo.rapture.pw/repository/maven-snapshots")
@@ -30,17 +31,18 @@ val classModifier: Configuration by configurations.creating {
     isTransitive = false
 }
 
-configurations.implementation.get().extendsFrom(shade, bukkitPlugin, classModifier)
+configurations.implementation.get().extendsFrom(shade, bukkitPlugin)
 
 val outputDir = System.getProperty("outputDir") ?: "../run/server-1"
 val pluginDir = "$outputDir/plugins"
 
 dependencies {
+    implementation(project(":arena-api", "dependencyApi"))
+    implementation(project(":arena-api", "shadow"))
     implementation("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
         exclude("io.papermc", "minecraft-server")
     }
-    implementation(project(":arena-api", "dependencyApi"))
-    implementation(project(":arena-api", "shadow"))
+    implementation("com.grinderwolf:slimeworldmanager-api:2.6.1-SNAPSHOT")
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 

@@ -113,6 +113,8 @@ buildNumber.properties
 run/
 run-configurations/
 
+build/
+
 # Gradle
 .gradle/
 

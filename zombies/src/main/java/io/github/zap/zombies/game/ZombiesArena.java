@@ -551,7 +551,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
         getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
         getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
-        getProxyFor(PlayerAnimationEvent.class).registerHandler(this::onPlayerAnimation);
         getProxyFor(PlayerItemHeldEvent.class).registerHandler(this::onPlayerItemHeld);
         getProxyFor(PlayerItemConsumeEvent.class).registerHandler(this::onPlayerItemConsume);
         getProxyFor(PlayerItemDamageEvent.class).registerHandler(this::onPlayerItemDamage);
@@ -903,30 +902,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         ZombiesPlayer player = args.getManagedPlayer();
         Action action = args.getEvent().getAction();
 
-        if(player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive() &&
-                (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
-            boolean noPurchases = true;
-            for (Shop<?> shop : shops) {
-                if (shop.purchase(args)) {
-                    noPurchases = false;
-                    break;
+        if(player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+            boolean noInteractions = true;
+            if (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR) {
+                for (Shop<?> shop : shops) {
+                    if (shop.interact(args)) {
+                        noInteractions = false;
+                        break;
+                    }
                 }
             }
-
-            if (noPurchases) {
+            if (noInteractions) {
                 player.getHotbarManager().click(event.getAction());
             }
         }
 
         event.setCancelled(true);
-    }
-
-    private void onPlayerAnimation(ProxyArgs<PlayerAnimationEvent> args) {
-        ZombiesPlayer managedPlayer = args.getManagedPlayer();
-
-        if (managedPlayer != null) {
-            managedPlayer.getHotbarManager().click(Action.LEFT_CLICK_AIR);
-        }
     }
 
     @org.bukkit.event.EventHandler
@@ -943,14 +934,14 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         ZombiesPlayer player = args.getManagedPlayer();
 
         if (player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
-            boolean noPurchases = true;
+            boolean noInteractions = true;
             for (Shop<?> shop : shops) {
-                if (shop.purchase(args)) {
-                    noPurchases = false;
+                if (shop.interact(args)) {
+                    noInteractions = false;
                     break;
                 }
             }
-            if (noPurchases) {
+            if (noInteractions) {
                 player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
             }
         }
