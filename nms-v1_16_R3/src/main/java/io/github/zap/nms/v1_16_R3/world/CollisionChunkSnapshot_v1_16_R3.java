@@ -45,8 +45,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] palette;
-    private final ChunkGraph<BlockSnapshot> snapshotChunkGraph = new ArrayChunkGraph<>(0, 0, 1, 1);
-    private final Map<Long, BlockSnapshot> nonSolidOrPartial = new HashMap<>();
+    private final ChunkGraph<BlockSnapshot> nonSolidOrPartial = new ArrayChunkGraph<>(0, 0, 1, 1);
     private final BoundingBox chunkBounds;
     private final int captureTick;
 
@@ -114,10 +113,9 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
                             VoxelShape shape = blockData.getCollisionShape(chunk, examine);
                             if(!blockData.getMaterial().isSolid() || (shape != VoxelShapes.empty() && shape != VoxelShapes.fullCube())) {
-                                nonSolidOrPartial.put(org.bukkit.block.Block.getBlockKey(x, y, z),
-                                        BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(x, y, z) ,
-                                                chunkX, chunkZ), blockData.createCraftBlockData(),
-                                                new VoxelShapeWrapper_v1_16_R3(shape)));
+                                nonSolidOrPartial.putElement(x, y, z, BlockSnapshot.from(
+                                        VectorHelper.toWorldRelative(VectorAccess.immutable(x, y, z), chunkX, chunkZ),
+                                        blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shape)));
                             }
                         }
                     });
@@ -135,8 +133,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     @Override
     public @NotNull BlockSnapshot collisionSnapshot(int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ) {
         if(bridge.isValidChunkCoordinate(chunkRelativeX, chunkRelativeY, chunkRelativeZ)) {
-            BlockSnapshot block = nonSolidOrPartial.get(org.bukkit.block.Block.getBlockKey(chunkRelativeX,
-                    chunkRelativeY, chunkRelativeZ));
+            BlockSnapshot block = nonSolidOrPartial.elementAt(chunkRelativeX, chunkRelativeY, chunkRelativeZ);
 
             if(block != null) {
                 return block;
@@ -361,57 +358,17 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             }
 
             ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(VectorAccess.immutable(x, y, z));
-            int chunkRelX = chunkRelative.chunkX();
-            int chunkRelZ = chunkRelative.chunkZ();
-
-            BlockSnapshot snapshot = nonSolidOrPartial.get(org.bukkit.block.Block.getBlockKey(chunkRelX, y, chunkRelZ));
+            BlockSnapshot snapshot = nonSolidOrPartial.elementAt(chunkRelative.blockX(), chunkRelative.blockY(),
+                    chunkRelative.blockZ());
 
             if(snapshot == null) {
-                IBlockData data = palette[y >> 4].a(chunkRelX,y & 15, chunkRelZ);
+                IBlockData data = palette[y >> 4].a(chunkRelative.chunkX(),y & 15, chunkRelative.chunkZ());
 
                 snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), data.createCraftBlockData(),
                         new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
             }
 
             return snapshot;
-        }
-    }
-
-    interface ZZLowIQSBScoreboardWeMade {
-        String succ();
-    }
-
-    interface AmazingWellProgrammedStephyboard extends ZZLowIQSBScoreboardWeMade {
-        String succButBetter();
-    }
-
-    public class OurStupidZombiesArena {
-        @NotNull ZZLowIQSBScoreboardWeMade getScoreboard() {
-            return () -> "succ";
-        }
-    }
-
-    public class AmazingStephyZombiesArena extends OurStupidZombiesArena {
-        @Override
-        @NotNull AmazingWellProgrammedStephyboard getScoreboard() {
-            return new AmazingWellProgrammedStephyboard() {
-                @Override
-                public String succButBetter() {
-                    return "S U C C";
-                }
-
-                @Override
-                public String succ() {
-                    return "hecking babby sipp";
-                }
-            };
-        }
-    }
-
-    public class Test {
-        void test() {
-            AmazingStephyZombiesArena amazingArena = new AmazingStephyZombiesArena();
-            AmazingWellProgrammedStephyboard thisWorks = amazingArena.getScoreboard();
         }
     }
 }

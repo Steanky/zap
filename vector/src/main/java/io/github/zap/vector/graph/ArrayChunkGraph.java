@@ -16,8 +16,8 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
     /**
      * Creates a new ArrayChunkGraph over the specified bounds. This will determine the ChunkGraph's initial capacity.
      * The maximum amount of storable elements is 65536 * width * height, although the effective size of the stored
-     * array will increase as more components are allocated. The initial size of the array will simply be equal to
-     * width * height.
+     * array will increase as more components are allocated. The initial size of the internal array will simply be equal
+     * to width * height.
      *
      * The region of values over which this array may be used is determined by the minX, minZ, maxX and maxZ parameters.
      * Specifically, one cannot store elements whose key would be outside of the specified bounds. More specifically,
