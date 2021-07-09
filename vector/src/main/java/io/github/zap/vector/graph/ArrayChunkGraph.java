@@ -36,7 +36,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
         int indexX = (x >> 4) - minX;
         int indexZ = (z >> 4) - minZ;
 
-        if(inRange(indexX, indexZ)) {
+        if(inRange(indexX, y, indexZ)) {
             NodeChunk nodeChunk = chunkArray[indexX][indexZ];
 
             if(nodeChunk != null) {
@@ -79,7 +79,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
         int indexX = (x >> 4) - minX;
         int indexZ = (x >> 4) - minZ;
 
-        if(inRange(indexX, indexZ)) {
+        if(inRange(indexX, y, indexZ)) {
             NodeChunk nodeChunk = chunkArray[indexX][indexZ];
             nodeChunk = nodeChunk == null ? (chunkArray[indexX][indexZ] =
                     new NodeChunk(indexX, indexZ, (a, b) -> chunkArray[a][b] = null)) : nodeChunk;
@@ -119,7 +119,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
         }
     }
 
-    private boolean inRange(int indexX, int indexZ) {
-        return indexX >= 0 && indexX < width && indexZ >= 0 && indexZ < height;
+    private boolean inRange(int indexX, int y, int indexZ) {
+        return indexX >= 0 && indexX < width && y >= 0 && y < 256 && indexZ >= 0 && indexZ < height;
     }
 }
