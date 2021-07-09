@@ -40,7 +40,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
             NodeChunk nodeChunk = chunkArray[indexX][indexZ];
 
             if(nodeChunk != null) {
-                NodeSegment segment = nodeChunk.get((y >> 4) & 15);
+                NodeSegment segment = nodeChunk.get(y >> 4);
 
                 if(segment != null) {
                     NodeLayer layer = segment.get(y & 15);
@@ -65,8 +65,35 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
     }
 
     @Override
-    public void removeElement(int x, int y, int z) {
-        putElement(x, y, z, null);
+    public boolean removeElement(int x, int y, int z) {
+        int indexX = (x >> 4) - minX;
+        int indexZ = (z >> 4) - minZ;
+
+        if(inRange(indexX, y, indexZ)) {
+            NodeChunk nodeChunk = chunkArray[indexX][indexZ];
+
+            if(nodeChunk != null) {
+                NodeSegment segment = nodeChunk.get(y >> 4);
+
+                if(segment != null) {
+                    NodeLayer layer = segment.get(y & 15);
+
+                    if(layer != null) {
+                        NodeRow row = layer.get(x & 15);
+
+                        if(row != null) {
+                            row.set(z & 15, null);
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        return false;
     }
 
     @Override
@@ -77,14 +104,14 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
     @Override
     public void putElement(int x, int y, int z, @Nullable T node) {
         int indexX = (x >> 4) - minX;
-        int indexZ = (x >> 4) - minZ;
+        int indexZ = (z >> 4) - minZ;
 
         if(inRange(indexX, y, indexZ)) {
             NodeChunk nodeChunk = chunkArray[indexX][indexZ];
             nodeChunk = nodeChunk == null ? (chunkArray[indexX][indexZ] =
                     new NodeChunk(indexX, indexZ, (a, b) -> chunkArray[a][b] = null)) : nodeChunk;
 
-            int segmentIndex = (y >> 4) & 15;
+            int segmentIndex = y >> 4;
             int layerIndex = y & 15;
             int rowIndex = x & 15;
             int nodeIndex = z & 15;

@@ -10,7 +10,7 @@ public interface ChunkGraph<T> {
 
     void putElement(int x, int y, int z, @Nullable T element);
 
-    void removeElement(int x, int y, int z);
+    boolean removeElement(int x, int y, int z);
 
     boolean hasElement(int x, int y, int z);
 }

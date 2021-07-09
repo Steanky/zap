@@ -14,17 +14,17 @@ import java.util.Map;
 public class ArrayChunkGraphTest {
     private ChunkGraph<PathNode> chunkGraph;
     private final Map<PathNode, PathNode> mapGraph = new HashMap<>();
-    private static final int iters = 50;
+    private static final int iters = 60;
 
     @Before
     public void setUp() {
         chunkGraph = new ArrayChunkGraph<>(-iters, -iters, iters, iters);
 
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
-                    chunkGraph.putElement(i, j, k, new PathNode(i, j, k));
                     PathNode node = new PathNode(i, j, k);
+                    chunkGraph.putElement(i, j, k, new PathNode(i, j, k));
                     mapGraph.put(node, node);
                 }
             }
@@ -39,7 +39,7 @@ public class ArrayChunkGraphTest {
     @Test
     public void containsNode() {
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
                     Assert.assertTrue(chunkGraph.hasElement(i, j, k));
                 }
@@ -50,7 +50,7 @@ public class ArrayChunkGraphTest {
     @Test
     public void removeNode() {
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
                     chunkGraph.removeElement(i, j, k);
                 }
@@ -58,7 +58,7 @@ public class ArrayChunkGraphTest {
         }
 
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
                     Assert.assertFalse(chunkGraph.hasElement(i, j, k));
                 }
@@ -71,7 +71,7 @@ public class ArrayChunkGraphTest {
         int zzz = 0;
         long timeBeforeGraphContains = System.currentTimeMillis();
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
                     if(chunkGraph.hasElement(i, j, k)) {
                         zzz++;
@@ -85,7 +85,7 @@ public class ArrayChunkGraphTest {
 
         long timeBeforeMapContains = System.currentTimeMillis();
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
                     if(mapGraph.containsKey(new PathNode(i, j, k))) {
                         zzz++;
@@ -99,7 +99,7 @@ public class ArrayChunkGraphTest {
 
         long timeBeforeGraphRemove = System.currentTimeMillis();
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
                     chunkGraph.removeElement(i, j, k);
                 }
@@ -111,7 +111,7 @@ public class ArrayChunkGraphTest {
 
         long timeBeforeMapRemove = System.currentTimeMillis();
         for(int i = -iters; i < iters; i++) {
-            for(int j = 0; j < 256; j++) {
+            for(int j = 0; j < iters; j++) {
                 for(int k = -iters; k < iters; k++) {
                     mapGraph.remove(new PathNode(i, j, k));
                 }
