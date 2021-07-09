@@ -34,7 +34,12 @@ class BlockSnapshotImpl implements BlockSnapshot {
 
     @Override
     public boolean overlaps(@NotNull BoundingBox worldBounds) {
-        return collision.collidesWith(worldBounds.getMinX(), worldBounds.getMinY(), worldBounds.getMinZ(),
-                worldBounds.getMaxX(), worldBounds.getMaxY(), worldBounds.getMaxZ());
+        int x = worldVector.blockX();
+        int y = worldVector.blockY();
+        int z = worldVector.blockZ();
+
+        return collision.collidesWith(worldBounds.getMinX() - x, worldBounds.getMinY() - y,
+                worldBounds.getMinZ() - z, worldBounds.getMaxX() - x, worldBounds.getMaxY() - y,
+                worldBounds.getMaxZ() - z);
     }
 }

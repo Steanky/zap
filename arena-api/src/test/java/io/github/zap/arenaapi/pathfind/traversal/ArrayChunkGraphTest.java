@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.pathfind.traversal;
 
 import io.github.zap.arenaapi.pathfind.*;
+import io.github.zap.vector.graph.ArrayChunkGraph;
+import io.github.zap.vector.graph.ChunkGraph;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

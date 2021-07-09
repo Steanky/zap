@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.ChunkGraph;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
+import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

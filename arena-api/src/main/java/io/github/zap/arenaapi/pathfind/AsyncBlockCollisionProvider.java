@@ -2,9 +2,9 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new ConcurrentHashMap<>();
@@ -95,22 +96,12 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds) {
-        Vector min = worldRelativeBounds.getMin();
-        Vector max = worldRelativeBounds.getMax();
+        ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
+        while(iterator.hasNext()) {
+            CollisionChunkSnapshot chunk = iterator.next();
 
-        int minChunkX = min.getBlockX() >> 4;
-        int minChunkZ = min.getBlockZ() >> 4;
-
-        int maxChunkX = max.getBlockX() >> 4;
-        int maxChunkZ = max.getBlockZ() >> 4;
-
-        for(int x = minChunkX; x <= maxChunkX; x++) {
-            for(int z = minChunkZ; z <= maxChunkZ; z++) {
-                CollisionChunkSnapshot chunk = chunkAt(x, z);
-
-                if(chunk != null && chunk.collidesWithAny(worldRelativeBounds)) {
-                    return true;
-                }
+            if(chunk != null && chunk.collidesWithAny(worldRelativeBounds)) {
+                return true;
             }
         }
 
@@ -118,28 +109,68 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
+    public boolean collisionMatches(@NotNull BoundingBox search, @NotNull BoxPredicate predicate) {
+        return false;
+    }
+
+    @Override
     public @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
-        Vector min = worldRelativeBounds.getMin();
-        Vector max = worldRelativeBounds.getMax();
-
-        int minChunkX = min.getBlockX() >> 4;
-        int minChunkZ = min.getBlockZ() >> 4;
-
-        int maxChunkX = max.getBlockX() >> 4;
-        int maxChunkZ = max.getBlockZ() >> 4;
-
         List<BlockSnapshot> shapes = new ArrayList<>();
+        ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
+        while(iterator.hasNext()) {
+            CollisionChunkSnapshot chunk = iterator.next();
 
-        for(int x = minChunkX; x <= maxChunkX; x++) {
-            for(int z = minChunkZ; z <= maxChunkZ; z++) {
-                CollisionChunkSnapshot chunk = chunkAt(x, z);
-
-                if(chunk != null) {
-                    shapes.addAll(chunk.collisionsWith(worldRelativeBounds));
-                }
+            if(chunk != null) {
+                shapes.addAll(chunk.collisionsWith(worldRelativeBounds));
             }
         }
 
         return shapes;
+    }
+
+    private class ChunkBoundsIterator implements Iterator<CollisionChunkSnapshot> {
+        private final int minChunkX;
+        private final int maxChunkX;
+        private final int maxChunkZ;
+
+        int x;
+        int z;
+
+        private ChunkBoundsIterator(@NotNull BoundingBox worldRelativeBounds) {
+            Vector min = worldRelativeBounds.getMin();
+            Vector max = worldRelativeBounds.getMax();
+
+            x = minChunkX = ((min.getBlockX() >> 4) - 1);
+            z = (min.getBlockZ() >> 4) - 1;
+
+            maxChunkX = max.getBlockX() >> 4;
+            maxChunkZ = max.getBlockZ() >> 4;
+        }
+
+        @Override
+        public boolean hasNext() {
+            int nextX = x + 1;
+            int nextZ = z;
+
+            if(nextX > maxChunkX) {
+                nextZ++;
+            }
+
+            return nextZ <= maxChunkZ;
+        }
+
+        @Override
+        public CollisionChunkSnapshot next() {
+            if(++x > maxChunkX) {
+                x = minChunkX;
+                z++;
+            }
+
+            if(z > maxChunkZ || x > maxChunkX) {
+                throw new IllegalStateException();
+            }
+
+            return chunkAt(x, z);
+        }
     }
 }

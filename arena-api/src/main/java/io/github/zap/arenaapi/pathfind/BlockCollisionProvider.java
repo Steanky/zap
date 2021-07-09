@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
@@ -47,6 +48,8 @@ public interface BlockCollisionProvider {
     @Nullable BlockSnapshot getBlock(int x, int y, int z);
 
     boolean collidesWithAny(@NotNull BoundingBox bounds);
+
+    boolean collisionMatches(@NotNull BoundingBox search, @NotNull BoxPredicate predicate);
 
     @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox bounds);
 

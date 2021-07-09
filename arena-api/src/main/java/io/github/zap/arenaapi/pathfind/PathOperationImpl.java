@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.pathfind.traversal.ChunkGraph;
-import io.github.zap.arenaapi.pathfind.traversal.ArrayChunkGraph;
+import io.github.zap.vector.graph.ArrayChunkGraph;
+import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -16,7 +16,7 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
-    private final ChunkGraph<PathNode> visited = new ArrayChunkGraph<>();
+    private final ChunkGraph<PathNode> visited = new ArrayChunkGraph<>(0, 0, 1, 1);
     private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
     private final PathNode[] sampleBuffer = new PathNode[8];
 

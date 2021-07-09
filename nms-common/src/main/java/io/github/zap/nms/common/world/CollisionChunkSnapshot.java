@@ -10,7 +10,9 @@ import java.util.List;
 public interface CollisionChunkSnapshot extends ChunkSnapshot {
     @NotNull BlockSnapshot collisionSnapshot(int chunkX, int chunkY, int chunkZ);
 
-    boolean collidesWithAny(@NotNull BoundingBox chunkRelativeBounds);
+    boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds);
+
+    boolean collisionMatches(@NotNull BoundingBox worldRelativeBounds);
 
     @NotNull List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldRelativeBounds);
 

@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.pathfind.traversal;
+package io.github.zap.vector.graph;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

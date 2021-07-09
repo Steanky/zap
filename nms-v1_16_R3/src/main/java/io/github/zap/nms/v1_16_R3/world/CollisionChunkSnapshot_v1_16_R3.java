@@ -5,6 +5,8 @@ import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.nms.common.world.WorldBridge;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.graph.ArrayChunkGraph;
+import io.github.zap.vector.graph.ChunkGraph;
 import io.github.zap.vector.util.VectorHelper;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang3.NotImplementedException;
@@ -43,6 +45,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private final int chunkZ;
     private final long captureFullTime;
     private final DataPaletteBlock<IBlockData>[] palette;
+    private final ChunkGraph<BlockSnapshot> snapshotChunkGraph = new ArrayChunkGraph<>(0, 0, 1, 1);
     private final Map<Long, BlockSnapshot> nonSolidOrPartial = new HashMap<>();
     private final BoundingBox chunkBounds;
     private final int captureTick;
@@ -155,36 +158,22 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     public boolean collidesWithAny(@NotNull BoundingBox worldBounds) {
         if(worldBounds.overlaps(chunkBounds)) {
             BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
+            SnapshotIterator iterator = new SnapshotIterator(overlap);
 
-            Vector min = overlap.getMin();
-            Vector max = overlap.getMax();
+            while(iterator.hasNext()) {
+                BlockSnapshot snapshot = iterator.next();
 
-            for(int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-                for(int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                    if(y < 0 || y > 255) {
-                        continue;
-                    }
-
-                    for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                        int chunkX = x & 15;
-                        int chunkZ = z & 15;
-
-                        BlockSnapshot snapshot = nonSolidOrPartial.get(org.bukkit.block.Block.getBlockKey(chunkX, y, chunkZ));
-
-                        if(snapshot == null) {
-                            IBlockData data = palette[y >> 4].a(chunkX, y & 15, chunkZ);
-                            snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), data.createCraftBlockData(),
-                                    new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
-                        }
-
-                        if(snapshot.overlaps(worldBounds)) {
-                            return true;
-                        }
-                    }
+                if(snapshot.overlaps(overlap)) {
+                    return true;
                 }
             }
         }
 
+        return false;
+    }
+
+    @Override
+    public boolean collisionMatches(@NotNull BoundingBox worldRelativeBounds) {
         return false;
     }
 
@@ -194,34 +183,12 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
         if(worldBounds.overlaps(chunkBounds)) {
             BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
+            SnapshotIterator iterator = new SnapshotIterator(overlap);
+            while(iterator.hasNext()) {
+                BlockSnapshot snapshot = iterator.next();
 
-            Vector min = overlap.getMin();
-            Vector max = overlap.getMax();
-
-            for(int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-                for(int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                    if(y < 0 || y > 255) {
-                        continue;
-                    }
-
-                    for(int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                        ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(VectorAccess.immutable(x, y, z));
-
-                        BlockSnapshot snapshot = nonSolidOrPartial.get(org.bukkit.block.Block
-                                .getBlockKey(chunkRelative.blockX(), chunkRelative.blockY(), chunkRelative.blockZ()));
-
-                        if(snapshot == null) {
-                            IBlockData data = palette[y >> 4].a(chunkRelative.blockX(),chunkRelative.blockY() & 15,
-                                    chunkRelative.blockZ());
-
-                            snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), data.createCraftBlockData(),
-                                    new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
-                        }
-
-                        if(snapshot.overlaps(overlap)) {
-                            shapes.add(snapshot);
-                        }
-                    }
+                if(snapshot.overlaps(overlap)) {
+                    shapes.add(snapshot);
                 }
             }
         }
@@ -336,5 +303,115 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         }
 
         return false;
+    }
+
+    private class SnapshotIterator implements Iterator<BlockSnapshot> {
+        private final int startX;
+        private final int startY;
+
+        private final int endX;
+        private final int endY;
+        private final int endZ;
+
+        private int x;
+        private int y;
+        private int z;
+
+        private SnapshotIterator(BoundingBox worldBounds) {
+            BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
+
+            Vector min = overlap.getMin();
+            Vector max = overlap.getMax();
+
+            x = startX = min.getBlockX() - 1;
+            y = startY = min.getBlockY() - 1;
+            z = min.getBlockZ() - 1;
+
+            endX = max.getBlockX();
+            endY = max.getBlockY();
+            endZ = max.getBlockZ();
+        }
+
+        @Override
+        public boolean hasNext() {
+            int nextX = x + 1;
+            int nextY = y;
+            int nextZ = z;
+
+            if(nextX > endX) {
+                nextY++;
+            }
+
+            if(nextY > endY) {
+                nextZ++;
+            }
+
+            return nextZ <= endZ;
+        }
+
+        @Override
+        public BlockSnapshot next() {
+            if(++x > endX) {
+                if(++y > endY) {
+                    z++;
+                    y = startY;
+                }
+
+                x = startX;
+            }
+
+            ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(VectorAccess.immutable(x, y, z));
+            int chunkRelX = chunkRelative.chunkX();
+            int chunkRelZ = chunkRelative.chunkZ();
+
+            BlockSnapshot snapshot = nonSolidOrPartial.get(org.bukkit.block.Block.getBlockKey(chunkRelX, y, chunkRelZ));
+
+            if(snapshot == null) {
+                IBlockData data = palette[y >> 4].a(chunkRelX,y & 15, chunkRelZ);
+
+                snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), data.createCraftBlockData(),
+                        new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
+            }
+
+            return snapshot;
+        }
+    }
+
+    interface ZZLowIQSBScoreboardWeMade {
+        String succ();
+    }
+
+    interface AmazingWellProgrammedStephyboard extends ZZLowIQSBScoreboardWeMade {
+        String succButBetter();
+    }
+
+    public class OurStupidZombiesArena {
+        @NotNull ZZLowIQSBScoreboardWeMade getScoreboard() {
+            return () -> "succ";
+        }
+    }
+
+    public class AmazingStephyZombiesArena extends OurStupidZombiesArena {
+        @Override
+        @NotNull AmazingWellProgrammedStephyboard getScoreboard() {
+            return new AmazingWellProgrammedStephyboard() {
+                @Override
+                public String succButBetter() {
+                    return "S U C C";
+                }
+
+                @Override
+                public String succ() {
+                    return "hecking babby sipp";
+                }
+            };
+        }
+    }
+
+    public class Test {
+        void test() {
+            AmazingStephyZombiesArena amazingArena = new AmazingStephyZombiesArena();
+            AmazingWellProgrammedStephyboard thisWorks = amazingArena.getScoreboard();
+        }
     }
 }

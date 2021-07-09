@@ -74,7 +74,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         if(block != null) {
             double height = block.collision().maxY();
 
-            if(Double.isFinite(height) && height != 1) {
+            if(Double.isFinite(height) && !DoubleMath.fuzzyEquals(height, 1, Vector.getEpsilon())) {
                 double offset = 1 - height;
                 agentBoundsAtNode.shift(0, offset, 0);
                 currentPos = currentPos.add(0, offset, 0);
@@ -112,7 +112,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                 if(highestSnapshot != null) {
                     double newY = highestSnapshot.position().blockY() + highestSnapshot.collision().maxY();
 
-                    if(newY == target.y()) {
+                    if(DoubleMath.fuzzyEquals(newY, target.y(), Vector.getEpsilon())) {
                         return JunctionType.NO_CHANGE;
                     }
 
@@ -268,8 +268,9 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
             int dirFactor = direction.blockX() * direction.blockZ();
 
             return processCollisions(candidates, dirFactor < 0 ? (x, y, z, x2, y2, z2) ->
-                    fastDiagonalCollisionCheck(width, negativeWidth, dirFactor, x, z, x2, z2) :
-                    (x, y, z, x2, y2, z2) -> fastDiagonalCollisionCheck(width, negativeWidth,
+                            fastDiagonalCollisionCheck(width, negativeWidth, dirFactor, x, z, x2, z2) :
+                    (x, y, z, x2, y2, z2) ->
+                            fastDiagonalCollisionCheck(width, negativeWidth,
                             dirFactor, x2, z, x, z2), currentNode.blockX() + 0.5,
                     currentNode.blockZ() + 0.5);
         }
