@@ -26,39 +26,33 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
             PathPoint entityPoint = new PathPoint(NumberConversions.floor(currentPos.x),
                     NumberConversions.floor(currentPos.y), NumberConversions.floor(currentPos.z));
-            float closestPointDistance = Float.MAX_VALUE;
-            int closestPointIndex = 0;
-            int currentIndex = 0;
-            for(PathPoint sample : newPath.getPoints()) {
-                float distanceSquared = sample.a(entityPoint);
 
-                if(DoubleMath.fuzzyEquals(distanceSquared, 0D, Vector.getEpsilon())) {
-                    newPath.c(currentIndex);
+            for(int i = 0; i < newPath.e(); i++) {
+                PathPoint sample = newPath.a(i); //(pr)
+
+                if(sample.equals(entityPoint)) {
+                    newPath.c(i);
                     a(newPath, speed);
                     return;
                 }
 
-                if(distanceSquared < closestPointDistance) {
-                    closestPointDistance = distanceSquared;
-                    closestPointIndex = currentIndex;
-                }
+                float distanceSquared = sample.a(entityPoint);
+                if(DoubleMath.fuzzyCompare(distanceSquared, 2, Vector.getEpsilon()) <= 0) {
+                    int nextIndex = i + 1;
+                    if(nextIndex < newPath.e()) {
+                        PathPoint nextPoint = newPath.a(nextIndex);
+                        float distanceSquaredToNext = nextPoint.a(entityPoint);
 
-                int next = newPath.f() + 1;
-                if(next < newPath.e()) {
-                    PathPoint nextPoint = newPath.getPoints().get(next);
-                    float nextPointDistance = nextPoint.a(entityPoint);
-
-                    if(nextPointDistance <= 2 && nextPointDistance < distanceSquared) {
-                        newPath.c(++closestPointIndex);
-                        a(newPath, speed);
-                        return;
+                        if(DoubleMath.fuzzyCompare(distanceSquaredToNext, distanceSquared, Vector.getEpsilon()) <= 0) {
+                            i = nextIndex;
+                        }
                     }
+
+                    newPath.c(i);
+                    a(newPath, speed);
+                    return;
                 }
-
-                currentIndex++;
             }
-
-            newPath.c(closestPointIndex);
         }
 
         a(newPath, speed);
