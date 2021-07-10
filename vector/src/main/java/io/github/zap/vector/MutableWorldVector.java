@@ -67,4 +67,9 @@ public class MutableWorldVector extends WorldVector<MutableWorldVector> {
     public String toString() {
         return "MutableWorldVector{x=" + x + ", y=" + y + ", z=" + z + "}";
     }
+
+    @Override
+    public MutableWorldVector asMutable() {
+        return this;
+    }
 }

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.vector.graph.ArrayChunkGraph;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +107,13 @@ class PathOperationImpl implements PathOperation {
                     break;
                 }
 
-                if(visited.hasElement(candidateNode.nodeX(), candidateNode.nodeY(), candidateNode.nodeZ())) {
+                try {
+                    if(visited.hasElement(candidateNode.nodeX(), candidateNode.nodeY(), candidateNode.nodeZ())) {
+                        continue;
+                    }
+                }
+                catch (IndexOutOfBoundsException e) {
+                    ArenaApi.warning("Tried to access out-of-bounds node");
                     continue;
                 }
 

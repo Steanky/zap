@@ -46,4 +46,9 @@ public class ImmutableWorldVector extends WorldVector<ImmutableWorldVector> {
     public String toString() {
         return "ImmutableWorldVector{x=" + x + ", y=" + y + ", z=" + z + "}";
     }
+
+    @Override
+    public ImmutableWorldVector asImmutable() {
+        return this;
+    }
 }

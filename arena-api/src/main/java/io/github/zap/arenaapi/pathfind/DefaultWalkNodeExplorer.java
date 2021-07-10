@@ -7,6 +7,7 @@ import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.MutableWorldVector;
+import io.github.zap.vector.VectorAccess;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
     private PathfinderContext context;
     private PathAgent agent;
+    private ImmutableWorldVector agentStartPosition;
 
     private double blockHorizontalOffset;
 
@@ -40,6 +42,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
     public void init(@NotNull PathfinderContext context, @NotNull PathAgent agent) {
         this.context = context;
         this.agent = agent;
+        this.agentStartPosition = agent.position().asImmutable();
 
         width = agent.characteristics().width();
         negativeWidth = -width;
@@ -67,7 +70,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
     private PathNode walkDirectional(PathfinderContext context, PathNode node, Direction direction) {
         ImmutableWorldVector currentPos = node.position().asImmutable();
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
-        BoundingBox agentBoundsAtNode = agent.characteristics().getBounds().shift(node.add(blockHorizontalOffset,
+        BoundingBox agentBoundsAtCurrentNode = agent.characteristics().getBounds().shift(node.add(blockHorizontalOffset,
                 0, blockHorizontalOffset).asBukkit()).shift(direction.asBukkit().multiply(Vector.getEpsilon()));
 
         BlockSnapshot block = context.blockProvider().getBlock(node);
@@ -76,17 +79,17 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
             if(Double.isFinite(height) && !DoubleMath.fuzzyEquals(height, 1, Vector.getEpsilon())) {
                 double offset = 1 - height;
-                agentBoundsAtNode.shift(0, offset, 0);
+                agentBoundsAtCurrentNode.shift(0, offset, 0);
                 currentPos = currentPos.add(0, offset, 0);
             }
         }
 
-        switch (determineType(context, agentBoundsAtNode, direction, walkingTo, currentPos)) {
+        switch (determineType(context, agentBoundsAtCurrentNode, direction, walkingTo, currentPos)) {
             case FALL:
-                ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo, agentBoundsAtNode, direction);
+                ImmutableWorldVector fallVec = fallTest(context.blockProvider(), walkingTo, agentBoundsAtCurrentNode, direction);
                 return fallVec == null ? null : node.chain(fallVec);
             case INCREASE:
-                ImmutableWorldVector jumpVec = jumpTest(agentBoundsAtNode, context.blockProvider(), walkingTo,
+                ImmutableWorldVector jumpVec = jumpTest(agentBoundsAtCurrentNode, context.blockProvider(), walkingTo,
                         currentPos, direction);
                 return jumpVec == null ? null : node.chain(jumpVec);
             case NO_CHANGE:
@@ -98,13 +101,15 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, Direction direction,
                                        ImmutableWorldVector target, ImmutableWorldVector current) {
-        if(!direction.isIntercardinal() && collidesMovingAlong(agentBounds, context.blockProvider(), direction, current)) {
-            return JunctionType.INCREASE;
+        if(collidesMovingAlong(agentBounds, context.blockProvider(), direction, current)) {
+            //mobs are not really capable of jumping diagonally correctly
+            return direction.isIntercardinal() ? JunctionType.IGNORE : JunctionType.INCREASE;
         }
         else {
-            BoundingBox shiftedBounds = agentBounds.clone().shift(direction.asBukkit()).expandDirectional(Direction.DOWN.asBukkit());
-            shiftedBounds.resize(agentBounds.getMinX(), agentBounds.getMinY(), agentBounds.getMinZ(),
-                    agentBounds.getMaxX(), agentBounds.getMinY() + 1, agentBounds.getMaxZ());
+            BoundingBox shiftedBounds = agentBounds.clone().shift(direction.asBukkit())
+                    .expandDirectional(Direction.DOWN.asBukkit())
+                    .resize(agentBounds.getMinX(), agentBounds.getMinY(), agentBounds.getMinZ(), agentBounds.getMaxX(),
+                            agentBounds.getMinY() + 1 - Vector.getEpsilon(), agentBounds.getMaxZ());
 
             List<BlockSnapshot> collidingSnapshots = context.blockProvider().collidingSolids(shiftedBounds);
 
