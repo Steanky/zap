@@ -103,6 +103,9 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         }
         else {
             BoundingBox shiftedBounds = agentBounds.clone().shift(direction.asBukkit()).expandDirectional(Direction.DOWN.asBukkit());
+            shiftedBounds.resize(agentBounds.getMinX(), agentBounds.getMinY(), agentBounds.getMinZ(),
+                    agentBounds.getMaxX(), agentBounds.getMinY() + 1, agentBounds.getMaxZ());
+
             List<BlockSnapshot> collidingSnapshots = context.blockProvider().collidingSolids(shiftedBounds);
 
             if(!collidingSnapshots.isEmpty()) {

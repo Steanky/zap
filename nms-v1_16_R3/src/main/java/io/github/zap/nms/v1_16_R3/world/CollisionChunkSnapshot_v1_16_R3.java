@@ -320,8 +320,11 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             Vector min = overlap.getMin();
             Vector max = overlap.getMax();
 
-            x = startX = min.getBlockX() - 1;
-            y = startY = min.getBlockY();
+            startX = min.getBlockX();
+            startY = y;
+
+            x = startX - 1;
+            y = startY;
             z = min.getBlockZ();
 
             endX = max.getBlockX() + 1;

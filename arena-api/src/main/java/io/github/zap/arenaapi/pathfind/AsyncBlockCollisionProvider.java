@@ -111,6 +111,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     @Override
     public @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
         List<BlockSnapshot> shapes = new ArrayList<>();
+
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
         while(iterator.hasNext()) {
             CollisionChunkSnapshot chunk = iterator.next();
@@ -135,11 +136,12 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
             Vector min = worldRelativeBounds.getMin();
             Vector max = worldRelativeBounds.getMax();
 
-            x = minChunkX = (min.getBlockX() >> 4) - 1;
-            z = min.getBlockZ() >> 4;
-
+            minChunkX = min.getBlockX() >> 4;
             maxChunkX = (max.getBlockX() >> 4) + 1;
             maxChunkZ = (max.getBlockZ() >> 4) + 1;
+
+            x = minChunkX - 1;
+            z = min.getBlockZ() >> 4;
         }
 
         @Override
