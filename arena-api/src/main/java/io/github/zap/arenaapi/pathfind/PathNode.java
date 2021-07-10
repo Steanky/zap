@@ -24,6 +24,7 @@ public class PathNode implements Positional {
     int heapIndex = -1;
     final Score score;
     PathNode parent;
+    boolean isFirst;
 
     private PathNode(Score score, PathNode parent, int x, int y, int z, int hash) {
         this.score = score;
@@ -85,10 +86,6 @@ public class PathNode implements Positional {
     @Override
     public @NotNull VectorAccess position() {
         return position;
-    }
-
-    public @NotNull PathNode copy() {
-        return new PathNode(score, parent, x, y, z, hash);
     }
 
     public @NotNull PathNode reverse() {

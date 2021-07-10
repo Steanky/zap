@@ -72,9 +72,10 @@ class PathOperationImpl implements PathOperation {
             }
             else {
                 currentNode = new PathNode(null, agent);
+                currentNode.isFirst = true;
                 bestDestination = destinationSelector.selectDestination(this, currentNode);
                 currentNode.score.set(0, heuristicCalculator.compute(context, currentNode, bestDestination));
-                bestFound = currentNode.copy();
+                bestFound = currentNode;
             }
 
             PathDestination best = null;
