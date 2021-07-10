@@ -24,36 +24,38 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
         if(c != null) {
             Vec3D currentPos = getEntity().getPositionVector();
 
-            PathPoint entityPoint = new PathPoint(NumberConversions.floor(currentPos.x), NumberConversions.floor(currentPos.y), NumberConversions.floor(currentPos.z));
+            PathPoint entityPoint = new PathPoint(NumberConversions.floor(currentPos.x),
+                    NumberConversions.floor(currentPos.y), NumberConversions.floor(currentPos.z));
             float closestPointDistance = Float.MAX_VALUE;
             int closestPointIndex = 0;
             int currentIndex = 0;
             for(PathPoint sample : newPath.getPoints()) {
-                if(sample.equals(entityPoint)) {
+                float distanceSquared = sample.a(entityPoint);
+
+                if(DoubleMath.fuzzyEquals(distanceSquared, 0D, Vector.getEpsilon())) {
                     newPath.c(currentIndex);
-                    super.a(newPath, speed);
+                    a(newPath, speed);
                     return;
                 }
-                else  {
-                    float distance = sample.a(entityPoint);
-                    if(distance < closestPointDistance) {
-                        closestPointDistance = distance;
-                        closestPointIndex = currentIndex;
+
+                if(distanceSquared < closestPointDistance) {
+                    closestPointDistance = distanceSquared;
+                    closestPointIndex = currentIndex;
+                }
+
+                int next = newPath.f() + 1;
+                if(next < newPath.e()) {
+                    PathPoint nextPoint = newPath.getPoints().get(next);
+                    float nextPointDistance = nextPoint.a(entityPoint);
+
+                    if(nextPointDistance <= 2 && nextPointDistance < distanceSquared) {
+                        newPath.c(++closestPointIndex);
+                        a(newPath, speed);
+                        return;
                     }
                 }
 
                 currentIndex++;
-            }
-
-            //anti spin code
-            int next = newPath.f() + 1;
-            if(next < newPath.e()) {
-                PathPoint nextPoint = newPath.getPoints().get(next);
-
-                if(nextPoint.a(entityPoint) <= 2 &&
-                        DoubleMath.fuzzyEquals(entityPoint.getY(), nextPoint.getY(), Vector.getEpsilon())) {
-                    closestPointIndex++;
-                }
             }
 
             newPath.c(closestPointIndex);
