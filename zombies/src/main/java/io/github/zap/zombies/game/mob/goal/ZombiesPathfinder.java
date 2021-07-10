@@ -84,7 +84,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
         }
 
         for(AttributeValue value : values) {
-            getProxy().setDoubleFor(handle, value.getAttribute(), value.getValue());
+            getProxy().setDoubleFor(handle, value.attribute(), value.value());
         }
     }
 
@@ -133,7 +133,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
         if(handle.getGoalTarget() == null) {
             return acquireTarget() && canStart();
         }
-        else{
+        else {
             return canStart();
         }
     }

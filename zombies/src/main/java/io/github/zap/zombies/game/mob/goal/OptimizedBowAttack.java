@@ -8,6 +8,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -73,6 +74,7 @@ public class OptimizedBowAttack extends BasicMetadataPathfinder {
         this.drawTimer = 0;
         this.attackTimer = -1;
         this.getHandle().clearActiveItem();
+        this.getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
     }
 
     @Override

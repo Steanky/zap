@@ -21,6 +21,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
     private boolean completed;
 
     private int counter;
+    private int navCounter = 19;
 
     private final int breakTicks;
     private final int breakCount;
@@ -99,11 +100,12 @@ public class BreakWindow extends BasicMetadataPathfinder {
             getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(),
                     destination.getZ(), 30.0F, 30.0F);
 
-            getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
-                    PathDestination.fromVector(VectorAccess.immutable(destination))), 5), arena.getWorld());
+            if(++navCounter == 20) {
+                getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
+                        PathDestination.fromVector(VectorAccess.immutable(destination))), 3), arena.getWorld());
+            }
 
             PathResult result = getHandler().tryTakeResult();
-
             if(result != null) {
                 getNavigator().navigateAlongPath(result.toPathEntity(), 1);
             }

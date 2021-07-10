@@ -22,7 +22,7 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
         ZombiesArena arenaMetadata = getMetadata(Zombies.ARENA_METADATA_NAME);
         if(arenaMetadata != null) {
             getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
-                    new HashSet<>(arenaMetadata.getPlayerMap().values()), 5),
+                    new HashSet<>(arenaMetadata.getPlayerMap().values()), 10),
                     getHandle().getWorld().getWorld());
 
             PathResult result = getHandler().tryTakeResult();

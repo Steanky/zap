@@ -5,6 +5,7 @@ import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.Collections;
 
@@ -51,6 +52,7 @@ public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
     @Override
     public void onEnd() {
         this.getHandle().setAggressive(false);
+        this.getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
     }
 
     @Override
@@ -66,16 +68,16 @@ public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
 
                 getHandler().queueOperation(PathOperation.forEntityWalking(getHandle().getBukkitEntity(),
                         Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), true)),
-                        5), target.getWorld().getWorld());
+                        10), target.getWorld().getWorld());
+            }
 
-                PathResult result = getHandler().tryTakeResult();
-                if(result != null) {
-                    getNavigator().navigateAlongPath(result.toPathEntity(), speed);
+            PathResult result = getHandler().tryTakeResult();
+            if(result != null) {
+                getNavigator().navigateAlongPath(result.toPathEntity(), speed);
 
-                    int nodes = result.pathNodes().size();
-                    if(nodes >= 100) {
-                        navigationCounter += nodes / 5;
-                    }
+                int nodes = result.pathNodes().size();
+                if(nodes >= 100) {
+                    navigationCounter += nodes / 5;
                 }
             }
 
