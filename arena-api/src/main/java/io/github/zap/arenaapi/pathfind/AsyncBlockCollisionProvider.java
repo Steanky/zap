@@ -109,11 +109,6 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public boolean collisionMatches(@NotNull BoundingBox search, @NotNull BoxPredicate predicate) {
-        return false;
-    }
-
-    @Override
     public @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
         List<BlockSnapshot> shapes = new ArrayList<>();
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
@@ -140,11 +135,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
             Vector min = worldRelativeBounds.getMin();
             Vector max = worldRelativeBounds.getMax();
 
-            x = minChunkX = ((min.getBlockX() >> 4) - 1);
-            z = (min.getBlockZ() >> 4) - 1;
+            x = minChunkX = (min.getBlockX() >> 4) - 1;
+            z = min.getBlockZ() >> 4;
 
-            maxChunkX = max.getBlockX() >> 4;
-            maxChunkZ = max.getBlockZ() >> 4;
+            maxChunkX = (max.getBlockX() >> 4) + 1;
+            maxChunkZ = (max.getBlockZ() >> 4) + 1;
         }
 
         @Override
@@ -152,21 +147,21 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
             int nextX = x + 1;
             int nextZ = z;
 
-            if(nextX > maxChunkX) {
+            if(nextX == maxChunkX) {
                 nextZ++;
             }
 
-            return nextZ <= maxChunkZ;
+            return nextZ < maxChunkZ;
         }
 
         @Override
         public CollisionChunkSnapshot next() {
-            if(++x > maxChunkX) {
+            if(++x == maxChunkX) {
                 x = minChunkX;
                 z++;
             }
 
-            if(z > maxChunkZ || x > maxChunkX) {
+            if(z >= maxChunkZ || x >= maxChunkX) {
                 throw new IllegalStateException();
             }
 

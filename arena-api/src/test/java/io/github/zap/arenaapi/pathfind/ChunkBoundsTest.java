@@ -25,7 +25,7 @@ public class ChunkBoundsTest {
     @Test
     public void testChunkCount() {
         Assert.assertEquals(9, radialSquare.chunkCount());
-        Assert.assertEquals(4, by2.chunkCount());
+        Assert.assertEquals(1, by2.chunkCount());
 
         int rCount = 0;
         int by2count = 0;

@@ -49,8 +49,6 @@ public interface BlockCollisionProvider {
 
     boolean collidesWithAny(@NotNull BoundingBox bounds);
 
-    boolean collisionMatches(@NotNull BoundingBox search, @NotNull BoxPredicate predicate);
-
     @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox bounds);
 
     default @Nullable BlockSnapshot getBlock(@NotNull VectorAccess at) {

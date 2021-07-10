@@ -118,6 +118,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         catch (Exception exception) {
             ArenaApi.warning("Exception thrown in PathOperation handler:");
             exception.fillInStackTrace().printStackTrace();
+
+            ArenaApi.warning("Cause: " + exception.getCause());
         }
 
         return null;

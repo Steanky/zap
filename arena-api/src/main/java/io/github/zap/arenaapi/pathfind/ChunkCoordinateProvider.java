@@ -12,6 +12,18 @@ public interface ChunkCoordinateProvider extends Iterable<ChunkVectorAccess> {
 
     int chunkCount();
 
+    int width();
+
+    int height();
+
+    int minX();
+
+    int maxX();
+
+    int minZ();
+
+    int maxZ();
+
     static ChunkCoordinateProvider boundedSquare(@NotNull ChunkVectorAccess from, @NotNull ChunkVectorAccess to) {
         Objects.requireNonNull(from, "from cannot be null!");
         Objects.requireNonNull(to, "to cannot be null!");

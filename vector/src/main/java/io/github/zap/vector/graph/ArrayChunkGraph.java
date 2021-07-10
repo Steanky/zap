@@ -8,13 +8,17 @@ import org.jetbrains.annotations.Nullable;
 public class ArrayChunkGraph<T> implements ChunkGraph<T> {
     private final NodeChunk[][] chunkArray;
 
-    private final int minX;
-    private final int minZ;
     private final int width;
     private final int height;
 
+    private final int minX;
+    private final int minZ;
+
+    private final int maxX;
+    private final int maxZ;
+
     /**
-     * Creates a new ArrayChunkGraph over the specified bounds. This will determine the ChunkGraph's initial capacity.
+     * Creates a new ArrayChunkGraph over the specified chunk bounds. This will determine the ChunkGraph's initial capacity.
      * The maximum amount of storable elements is 65536 * width * height, although the effective size of the stored
      * array will increase as more components are allocated. The initial size of the internal array will simply be equal
      * to width * height.
@@ -28,7 +32,10 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
         this.minX = Math.min(minX, maxX);
         this.minZ = Math.min(minZ, maxZ);
 
-        chunkArray = new NodeChunk[width = Math.abs(maxX - minX)][height = Math.abs(maxZ - minZ)];
+        this.maxX = Math.max(minX, maxX);
+        this.maxZ = Math.max(minZ, maxZ);
+
+        chunkArray = new NodeChunk[(width = this.maxX - this.minX)][(height = this.maxZ - this.minZ)];
     }
 
     @Override
@@ -58,7 +65,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
             }
         }
         else {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds!");
         }
 
         return null;
@@ -90,7 +97,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
             }
         }
         else {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds!");
         }
 
         return false;
@@ -142,7 +149,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
             row.set(nodeIndex, node == null ? null : new NodeLocation(row, node, nodeIndex));
         }
         else {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds!");
         }
     }
 

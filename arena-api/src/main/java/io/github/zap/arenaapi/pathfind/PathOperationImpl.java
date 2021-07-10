@@ -16,7 +16,7 @@ class PathOperationImpl implements PathOperation {
     private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
-    private final ChunkGraph<PathNode> visited = new ArrayChunkGraph<>(0, 0, 1, 1);
+    private final ChunkGraph<PathNode> visited;
     private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
     private final PathNode[] sampleBuffer = new PathNode[8];
 
@@ -37,6 +37,8 @@ class PathOperationImpl implements PathOperation {
         this.nodeExplorer = nodeExplorer;
         this.destinationSelector = destinationSelector;
         this.searchArea = searchArea;
+
+        visited = new ArrayChunkGraph<>(searchArea.minX(), searchArea.minZ(), searchArea.maxX(), searchArea.maxZ());
     }
 
     @Override

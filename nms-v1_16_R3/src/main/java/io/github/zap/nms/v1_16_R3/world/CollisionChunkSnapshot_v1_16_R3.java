@@ -321,12 +321,12 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             Vector max = overlap.getMax();
 
             x = startX = min.getBlockX() - 1;
-            y = startY = min.getBlockY() - 1;
-            z = min.getBlockZ() - 1;
+            y = startY = min.getBlockY();
+            z = min.getBlockZ();
 
-            endX = max.getBlockX();
-            endY = max.getBlockY();
-            endZ = max.getBlockZ();
+            endX = max.getBlockX() + 1;
+            endY = max.getBlockY() + 1;
+            endZ = max.getBlockZ() + 1;
         }
 
         @Override
@@ -335,21 +335,21 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             int nextY = y;
             int nextZ = z;
 
-            if(nextX > endX) {
+            if(nextX == endX) {
                 nextY++;
             }
 
-            if(nextY > endY) {
+            if(nextY == endY) {
                 nextZ++;
             }
 
-            return nextZ <= endZ;
+            return nextZ < endZ;
         }
 
         @Override
         public BlockSnapshot next() {
-            if(++x > endX) {
-                if(++y > endY) {
+            if(++x == endX) {
+                if(++y == endY) {
                     z++;
                     y = startY;
                 }
@@ -357,15 +357,14 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                 x = startX;
             }
 
-            ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(VectorAccess.immutable(x, y, z));
+            ImmutableWorldVector worldVec = VectorAccess.immutable(x, y, z);
+            ImmutableWorldVector chunkRelative = VectorHelper.toChunkRelative(worldVec);
             BlockSnapshot snapshot = nonSolidOrPartial.elementAt(chunkRelative.blockX(), chunkRelative.blockY(),
                     chunkRelative.blockZ());
 
             if(snapshot == null) {
-                IBlockData data = palette[y >> 4].a(chunkRelative.chunkX(),y & 15, chunkRelative.chunkZ());
-
-                snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), data.createCraftBlockData(),
-                        new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
+                IBlockData data = palette[y >> 4].a(chunkRelative.blockX(),y & 15, chunkRelative.blockY());
+                snapshot = BlockSnapshot.from(worldVec, data.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
             }
 
             return snapshot;
