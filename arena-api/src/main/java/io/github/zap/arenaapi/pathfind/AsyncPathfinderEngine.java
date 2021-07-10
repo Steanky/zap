@@ -17,8 +17,9 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
     private static final int MIN_CHUNK_SYNC_AGE = 40;
     private static final int PATH_CAPACITY = 32;
-    private static final int MAX_SCHEDULED_SYNC_TASKS = 16;
+    private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
     private static final double URGENT_SYNC_THRESHOLD = 0.50;
+    private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
     private final ExecutorCompletionService<PathResult> completionService =
             new ExecutorCompletionService<>(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
@@ -166,7 +167,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
         /*
         defer to threads that have already scheduled synchronization on this context, up to a maximum of
-        MAX_CONCURRENT_SYNC_TASKS. this is to avoid overloading the fragile BukkitScheduler (and the main thread), as
+        MAX_SCHEDULED_SYNC_TASKS. this is to avoid overloading the fragile BukkitScheduler (and the main thread), as
         well as avoiding potentially redundant sync attempts
 
         or, if we're forcing, schedule the sync no matter what. this is generally used in cases where the context
@@ -182,21 +183,37 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 context.syncSemaphore.acquireUninterruptibly();
             }
 
-            Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
+            CountDownLatch latch = new CountDownLatch(1);
+            int taskId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                 boolean noErr = true;
                 try {
                     context.blockCollisionProvider.updateRegion(coordinateProvider);
                 }
                 catch (Exception exception) {
-                    ArenaApi.warning("An exception occurred when synchronizing chunks:");
+                    ArenaApi.warning("An exception occurred while synchronizing chunks:");
                     exception.printStackTrace();
                     noErr = false;
                 }
                 finally {
                     context.syncSemaphore.release();
                     result.complete(noErr);
+                    latch.countDown();
                 }
-            });
+            }).getTaskId();
+
+            //wait for the sync to complete
+            try {
+                if(force) {
+                    latch.await(); //await forever if forced, to ensure pathing in urgent cases is not premature
+                } else if(!latch.await(CHUNK_SYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                    ArenaApi.warning("Chunk synchronizing took more than " + CHUNK_SYNC_TIMEOUT_MS + "ms! Is the server lagging?");
+                    Bukkit.getScheduler().cancelTask(taskId);
+                }
+            } catch (InterruptedException interruptedException) {
+                ArenaApi.warning("Interrupted while waiting for chunks to sync: ");
+                interruptedException.printStackTrace();
+                Bukkit.getScheduler().cancelTask(taskId);
+            }
 
             synchronized (context.contextSyncHandle) {
                 context.lastSyncTick = currentTick;

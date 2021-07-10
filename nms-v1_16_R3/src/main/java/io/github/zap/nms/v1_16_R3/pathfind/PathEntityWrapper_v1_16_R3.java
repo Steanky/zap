@@ -11,7 +11,7 @@ public class PathEntityWrapper_v1_16_R3 implements PathEntityWrapper {
         this.pathEntity = pathEntity;
     }
 
-    public PathEntity pathEntity() {
+    public @NotNull PathEntity pathEntity() {
         return pathEntity;
     }
 

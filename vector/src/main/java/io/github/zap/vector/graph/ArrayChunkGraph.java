@@ -14,9 +14,6 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
     private final int minX;
     private final int minZ;
 
-    private final int maxX;
-    private final int maxZ;
-
     /**
      * Creates a new ArrayChunkGraph over the specified chunk bounds. This will determine the ChunkGraph's initial capacity.
      * The maximum amount of storable elements is 65536 * width * height, although the effective size of the stored
@@ -32,10 +29,10 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
         this.minX = Math.min(minX, maxX);
         this.minZ = Math.min(minZ, maxZ);
 
-        this.maxX = Math.max(minX, maxX);
-        this.maxZ = Math.max(minZ, maxZ);
+        int maxX1 = Math.max(minX, maxX);
+        int maxZ1 = Math.max(minZ, maxZ);
 
-        chunkArray = new NodeChunk[(width = this.maxX - this.minX)][(height = this.maxZ - this.minZ)];
+        chunkArray = new NodeChunk[(width = maxX1 - this.minX)][(height = maxZ1 - this.minZ)];
     }
 
     @Override
@@ -65,7 +62,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
             }
         }
         else {
-            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds!");
+            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds for elementAt");
         }
 
         return null;
@@ -97,7 +94,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
             }
         }
         else {
-            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds!");
+            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds for removeElement");
         }
 
         return false;
@@ -149,7 +146,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
             row.set(nodeIndex, node == null ? null : new NodeLocation(row, node, nodeIndex));
         }
         else {
-            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds!");
+            throw new ArrayIndexOutOfBoundsException("Key at x=" + x + ", y=" + y + ", z=" + z + " out of bounds for putElement");
         }
     }
 

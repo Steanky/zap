@@ -1,10 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.Disposable;
 import io.github.zap.nms.common.world.BlockSnapshot;
-import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
-import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.VectorAccess;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -12,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * This interface provides a general template for a class which provides block state information over a limited

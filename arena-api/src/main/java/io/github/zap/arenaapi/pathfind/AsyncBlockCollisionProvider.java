@@ -97,6 +97,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     @Override
     public boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds) {
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
+
         while(iterator.hasNext()) {
             CollisionChunkSnapshot chunk = iterator.next();
 
@@ -111,8 +112,8 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     @Override
     public @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
         List<BlockSnapshot> shapes = new ArrayList<>();
-
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
+
         while(iterator.hasNext()) {
             CollisionChunkSnapshot chunk = iterator.next();
 

@@ -68,7 +68,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         ImmutableWorldVector currentPos = node.position().asImmutable();
         ImmutableWorldVector walkingTo = node.add(direction).asImmutable();
         BoundingBox agentBoundsAtNode = agent.characteristics().getBounds().shift(node.add(blockHorizontalOffset,
-                0, blockHorizontalOffset).asBukkit());
+                0, blockHorizontalOffset).asBukkit()).shift(direction.asBukkit().multiply(Vector.getEpsilon()));
 
         BlockSnapshot block = context.blockProvider().getBlock(node);
         if(block != null) {
@@ -98,7 +98,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
     private JunctionType determineType(PathfinderContext context, BoundingBox agentBounds, Direction direction,
                                        ImmutableWorldVector target, ImmutableWorldVector current) {
-        if(collidesMovingAlong(agentBounds, context.blockProvider(), direction, current)) {
+        if(!direction.isIntercardinal() && collidesMovingAlong(agentBounds, context.blockProvider(), direction, current)) {
             return JunctionType.INCREASE;
         }
         else {
