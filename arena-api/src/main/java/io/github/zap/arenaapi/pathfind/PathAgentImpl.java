@@ -8,7 +8,7 @@ class PathAgentImpl extends PathAgent {
     private final Characteristics characteristics;
 
     PathAgentImpl(@NotNull Characteristics characteristics, @NotNull ImmutableWorldVector vector) {
-        super(VectorAccess.immutable(vector.blockX(), vector.y(), vector.blockZ()));
+        super(vector);
         this.characteristics = characteristics;
     }
 

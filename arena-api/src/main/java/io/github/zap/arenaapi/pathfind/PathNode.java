@@ -40,6 +40,10 @@ public class PathNode implements Positional {
         this(new Score(), null, x, y, z, Objects.hash(x, y, z));
     }
 
+    public PathNode(@NotNull VectorAccess vectorAccess) {
+        this(vectorAccess.blockX(), vectorAccess.blockY(), vectorAccess.blockZ());
+    }
+
     public PathNode(@NotNull Score score, @Nullable PathNode parent, int x, int y, int z) {
         this(score, parent, x, y, z, Objects.hash(x, y, z));
     }
@@ -81,6 +85,10 @@ public class PathNode implements Positional {
 
     public @NotNull PathNode chain(int x, int y, int z) {
         return new PathNode(new Score(), this, x, y, z);
+    }
+
+    public void setParent(@Nullable PathNode parent) {
+        this.parent = parent;
     }
 
     @Override

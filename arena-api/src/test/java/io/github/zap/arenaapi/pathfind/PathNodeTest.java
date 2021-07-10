@@ -40,14 +40,6 @@ public class PathNodeTest {
     }
 
     @Test
-    public void copy() {
-        for(PathNode node : testNodes) {
-            PathNode copy = node.copy();
-            Assert.assertEquals(copy, node);
-        }
-    }
-
-    @Test
     public void reverse() {
         PathNode reversed = testNodes.get(testNodes.size() - 1).reverse();
 

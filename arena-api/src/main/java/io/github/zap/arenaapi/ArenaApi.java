@@ -29,13 +29,16 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -340,5 +343,13 @@ public final class ArenaApi extends JavaPlugin implements Listener {
      */
     public static void callEvent(Event event) {
         instance.getServer().getPluginManager().callEvent(event);
+    }
+
+    @EventHandler
+    private void interact(PlayerInteractEvent event) {
+        if(event.hasItem() && event.getHand() == EquipmentSlot.HAND) {
+            World world = event.getPlayer().getWorld();
+            world.spawnEntity(new Location(world, 0, 0, 0), EntityType.ARMOR_STAND);
+        }
     }
 }
