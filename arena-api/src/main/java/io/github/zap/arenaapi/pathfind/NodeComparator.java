@@ -17,9 +17,6 @@ public class NodeComparator implements Comparator<PathNode> {
 
     @Override
     public int compare(@NotNull PathNode first, @NotNull PathNode second) {
-        if(first == null || second == null) {
-            ArenaApi.warning("t");
-        }
         return SCORE_COMPARATOR.compare(first.score, second.score);
     }
 }
