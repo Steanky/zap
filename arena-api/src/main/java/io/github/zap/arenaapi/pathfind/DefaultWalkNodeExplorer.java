@@ -71,7 +71,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
             currentAgentBounds = agent.characteristics().getBounds().shift(current.add(blockOffset,
                     0, blockOffset).asBukkit());
 
-            double height = blockAtCurrent.collision().maxY();
+            double height = blockAtCurrent.collision().maxY(); //block relative height
             if(Double.isFinite(height) && !DoubleMath.fuzzyEquals(height, 1, Vector.getEpsilon())) {
                 blockMaxY = height;
                 currentAgentBounds.shift(0, 1 - height, 0);
@@ -87,7 +87,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
             ImmutableWorldVector translation = VectorAccess.immutable(blockWalkingTo.x() -
                     correctedBounds.getCenterX() + 0.5, 0, blockWalkingTo.z() - correctedBounds.getCenterZ() + 0.5);
 
-            PathNode node = validNodeAtTarget(context.blockProvider(), correctedBounds, translation, blockWalkingTo,
+            PathNode node = validNodeDirectional(context.blockProvider(), correctedBounds, translation, blockWalkingTo,
                     direction, blockMaxY);
 
             if(node != null) {
@@ -102,16 +102,16 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         }
     }
 
-    private PathNode validNodeAtTarget(BlockCollisionProvider provider, BoundingBox currentAgentBounds,
-                                       ImmutableWorldVector translation, ImmutableWorldVector blockWalkingTo,
-                                       Direction direction, double blockMaxY) {
+    private PathNode validNodeDirectional(BlockCollisionProvider provider, BoundingBox currentAgentBounds,
+                                          ImmutableWorldVector translation, ImmutableWorldVector blockWalkingTo,
+                                          Direction direction, double currentBlockMaxY) {
         switch (determineType(provider, currentAgentBounds, translation, direction)) {
             case FALL:
-                ImmutableWorldVector fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation, blockMaxY);
+                ImmutableWorldVector fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation, currentBlockMaxY);
                 return fallVec == null ? null : new PathNode(fallVec);
             case INCREASE:
                 ImmutableWorldVector jumpVec = jumpTest(provider, currentAgentBounds, blockWalkingTo, direction,
-                        translation, blockMaxY);
+                        translation, currentBlockMaxY);
                 return jumpVec == null ? null : new PathNode(jumpVec);
             case NO_CHANGE:
                 return new PathNode(blockWalkingTo);
@@ -120,17 +120,18 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         return null;
     }
 
-    private JunctionType determineType(BlockCollisionProvider provider, BoundingBox agentBounds,
-                                       ImmutableWorldVector translateBy, Direction direction) {
-        if(collidesMovingAlong(provider, agentBounds, translateBy, direction)) {
+    private JunctionType determineType(BlockCollisionProvider provider, BoundingBox currentAgentBounds,
+                                       ImmutableWorldVector translation, Direction direction) {
+        if(collidesMovingAlong(provider, currentAgentBounds, translation, direction)) {
             //mobs are not really capable of jumping diagonally correctly, so don't try to pathfind like this
             return direction.isIntercardinal() ? JunctionType.IGNORE : JunctionType.INCREASE;
         }
         else {
-            BoundingBox shiftedBounds = agentBounds.clone().shift(translateBy.asBukkit())
+            BoundingBox shiftedBounds = currentAgentBounds.clone().shift(translation.asBukkit())
                     .expandDirectional(Direction.DOWN.asBukkit())
-                    .resize(agentBounds.getMinX(), agentBounds.getMinY(), agentBounds.getMinZ(), agentBounds.getMaxX(),
-                            agentBounds.getMinY() + 1 - Vector.getEpsilon(), agentBounds.getMaxZ());
+                    .resize(currentAgentBounds.getMinX(), currentAgentBounds.getMinY(), currentAgentBounds.getMinZ(),
+                            currentAgentBounds.getMaxX(), currentAgentBounds.getMinY() + 1 - Vector.getEpsilon(),
+                            currentAgentBounds.getMaxZ());
 
             List<BlockSnapshot> collidingSnapshots = provider.collidingSolids(shiftedBounds);
 
@@ -141,7 +142,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                 if(highestSnapshot != null) {
                     double newY = highestSnapshot.position().blockY() + highestSnapshot.collision().maxY();
 
-                    if(DoubleMath.fuzzyEquals(newY, agentBounds.getMinY(), Vector.getEpsilon())) {
+                    if(DoubleMath.fuzzyEquals(newY, currentAgentBounds.getMinY(), Vector.getEpsilon())) {
                         return JunctionType.NO_CHANGE;
                     }
 
@@ -228,7 +229,8 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                 }
             }
 
-            if(jumpHeight >= jumpHeightRequired && height <= headroom) { //entity can make the jump
+            if(DoubleMath.fuzzyCompare(jumpHeight, jumpHeightRequired, Vector.getEpsilon()) >= 0 &&
+                    DoubleMath.fuzzyCompare(height, headroom, Vector.getEpsilon()) <= 0) { //entity can make the jump
                 BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
                 if(provider.collidesWithAny(verticalTest)) { //check if mob will collide with something on its way up
