@@ -11,6 +11,7 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.pathfind.ChunkBounds;
 import io.github.zap.arenaapi.shadow.com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.arenaapi.stats.StatsManager;
@@ -67,6 +68,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -444,8 +446,10 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private final GameScoreboard gameScoreboard;
 
     @Getter
-    private final Set<Player> hiddenPlayers = new HashSet<>() {
+    private final ChunkBounds mapBounds;
 
+    @Getter
+    private final Set<Player> hiddenPlayers = new HashSet<>() {
         @Override
         public boolean add(Player player) {
             if (super.add(player)) {
@@ -532,6 +536,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
         getMap().getPowerUpSpawnRules().forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager()
                 .createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
+
+        BoundingBox bounds = map.getMapBounds();
+        Vector min = bounds.getMin();
+        Vector max = bounds.getMax();
+
+        mapBounds = new ChunkBounds(min.getBlockX() >> 4, min.getBlockZ() >> 4,
+                (max.getBlockX() >> 4) + 1, (max.getBlockZ() >> 4) + 1);
     }
 
     private void registerArenaEvents() {

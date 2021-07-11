@@ -15,10 +15,10 @@ import java.util.concurrent.*;
 
 public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
-    private static final int MIN_CHUNK_SYNC_AGE = 40;
+    private static final int MIN_CHUNK_SYNC_AGE = 15;
     private static final int PATH_CAPACITY = 32;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
-    private static final double URGENT_SYNC_THRESHOLD = 0.50;
+    private static final double URGENT_SYNC_THRESHOLD = 0.8;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
     private final ExecutorCompletionService<PathResult> completionService =
