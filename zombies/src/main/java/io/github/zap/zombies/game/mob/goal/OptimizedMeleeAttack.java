@@ -1,13 +1,9 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.event.entity.EntityTargetEvent;
-
-import java.util.Collections;
 
 public class OptimizedMeleeAttack extends RetargetingPathfinder {
     private final int attackInterval;
@@ -25,7 +21,7 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
     @Override
     public void onStart() {
         this.getHandle().setAggressive(true);
-        this.navigationCounter = 0;
+        this.navigationCounter = getHandle().getRandom().nextInt(10);
         this.attackTimer = 0;
     }
 
@@ -45,7 +41,7 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
             PathResult result = null;
             if (this.navigationCounter <= 0) {
                 //randomly offset the navigation so we don't flood the pathfinder
-                this.navigationCounter = 4 + this.getHandle().getRandom().nextInt(18);
+                this.navigationCounter = 4 + getHandle().getRandom().nextInt(18);
                 result = retarget();
             }
 

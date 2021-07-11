@@ -17,6 +17,7 @@ import org.bukkit.metadata.MetadataValue;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * General pathfinding class for Zombies. Supports lazy loading of entity metadata from MythicMobs; subclass pathfinding

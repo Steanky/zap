@@ -84,8 +84,8 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
             ImmutableWorldVector blockWalkingTo = current.add(direction).asImmutable();
             BoundingBox correctedBounds = currentAgentBounds.clone().shift(direction.multiply(Vector.getEpsilon()).asBukkit());
 
-            ImmutableWorldVector translation = VectorAccess.immutable(blockWalkingTo.x() -
-                    correctedBounds.getCenterX() + 0.5, 0, blockWalkingTo.z() - correctedBounds.getCenterZ() + 0.5);
+            ImmutableWorldVector translation = VectorAccess.immutable(blockWalkingTo.x() - correctedBounds.getCenterX()
+                    + 0.5, 0, blockWalkingTo.z() - correctedBounds.getCenterZ() + 0.5);
 
             PathNode node = validNodeDirectional(context.blockProvider(), correctedBounds, translation, blockWalkingTo,
                     direction, blockMaxY);
@@ -107,7 +107,8 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                                           Direction direction, double currentBlockMaxY) {
         switch (determineType(provider, currentAgentBounds, translation, direction)) {
             case FALL:
-                ImmutableWorldVector fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation, currentBlockMaxY);
+                ImmutableWorldVector fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation,
+                        currentBlockMaxY);
                 return fallVec == null ? null : new PathNode(fallVec);
             case INCREASE:
                 ImmutableWorldVector jumpVec = jumpTest(provider, currentAgentBounds, blockWalkingTo, direction,
@@ -374,9 +375,11 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         BlockSnapshot highestSnapshot = null;
         for(BlockSnapshot snapshot : collidingSnapshots) {
             VoxelShapeWrapper voxelShape = snapshot.collision();
+            double sampleY = voxelShape.maxY();
 
-            if(voxelShape.maxY() > highestY) {
-                highestY = voxelShape.maxY();
+
+            if(Double.isFinite(sampleY) && sampleY > highestY) {
+                highestY = sampleY;
                 highestSnapshot = snapshot;
             }
         }

@@ -21,7 +21,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
     private boolean completed;
 
     private int counter;
-    private int navCounter = 19;
+    private int navCounter;
 
     private final int breakTicks;
     private final int breakCount;
@@ -33,6 +33,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
+        navCounter = getHandle().getRandom().nextInt(20) * 2;
     }
 
     @Override
@@ -96,12 +97,14 @@ public class BreakWindow extends BasicMetadataPathfinder {
             completed = true;
         }
         else {
-            getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(),
-                    destination.getZ(), 30.0F, 30.0F);
+            if(++navCounter == 40) {
+                getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(),
+                        destination.getZ(), 30.0F, 30.0F);
 
-            if(++navCounter == 20) {
                 getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
                         PathDestination.fromVector(VectorAccess.immutable(destination))), 3), arena.getWorld());
+
+                navCounter = getHandle().getRandom().nextInt(20);
             }
 
             PathResult result = getHandler().tryTakeResult();
