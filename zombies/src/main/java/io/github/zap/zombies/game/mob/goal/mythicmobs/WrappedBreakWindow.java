@@ -13,12 +13,14 @@ import net.minecraft.server.v1_16_R3.PathfinderGoal;
         name = "breakWindow"
 )
 public class WrappedBreakWindow extends WrappedPathfindingGoal implements PathfinderHolder {
+    private final double speed;
     private final int breakTicks;
     private final int breakCount;
     private final double breakReachSquared;
 
     public WrappedBreakWindow(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
+        speed = mlc.getDouble("speed", 1);
         breakTicks = mlc.getInteger("breakTicks", 20);
         breakCount = mlc.getInteger("breakCount", 1);
         breakReachSquared = mlc.getDouble("breakReachSquared", 9D);
@@ -26,7 +28,7 @@ public class WrappedBreakWindow extends WrappedPathfindingGoal implements Pathfi
 
     @Override
     public PathfinderGoal create() {
-        return new BreakWindow(entity, new AttributeValue[0], breakTicks, breakCount, breakReachSquared);
+        return new BreakWindow(entity, new AttributeValue[0], speed, breakTicks, breakCount, breakReachSquared);
     }
 
     @Override

@@ -9,33 +9,51 @@ import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
-    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values) {
+    protected ZombiesPlayer zombiesPlayer;
+    private ZombiesArena arena;
+    private final double speed;
+
+    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, double speed) {
         super(entity, values, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
+        this.speed = speed;
     }
 
-    @Override
-    public boolean acquireTarget() {
-        ZombiesArena arenaMetadata = getMetadata(Zombies.ARENA_METADATA_NAME);
-        if(arenaMetadata != null) {
+    protected @Nullable PathResult retarget() {
+        if(arena == null) {
+            arena = getMetadata(Zombies.ARENA_METADATA_NAME);
+        }
+
+        if(arena != null) {
             getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
-                    new HashSet<>(arenaMetadata.getPlayerMap().values()), 10),
-                    getHandle().getWorld().getWorld());
+                    new HashSet<>(arena.getPlayerMap().values().stream().filter(ZombiesPlayer::isAlive)
+                            .collect(Collectors.toSet())), 10), getHandle().getWorld().getWorld());
 
             PathResult result = getHandler().tryTakeResult();
             if(result != null) {
-                ZombiesPlayer target = (ZombiesPlayer)result.destination();
-                Player player = target.getPlayer();
+                ZombiesPlayer zombiesPlayer = (ZombiesPlayer)result.destination();
+                Player player = zombiesPlayer.getPlayer();
 
                 if(player != null) {
                     getHandle().setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
-                    return true;
+                    this.zombiesPlayer = zombiesPlayer;
+                    return result;
                 }
+
+                this.zombiesPlayer = null;
             }
         }
-        return false;
+
+        return null;
+    }
+
+    protected void setPath(@NotNull PathResult result) {
+        getNavigator().navigateAlongPath(result.toPathEntity(), speed);
     }
 }

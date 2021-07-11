@@ -9,8 +9,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.Collections;
 
-public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
-    private final double speed;
+public class OptimizedMeleeAttack extends RetargetingPathfinder {
     private final int attackInterval;
     private final float attackReach;
     private int navigationCounter;
@@ -18,28 +17,9 @@ public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
 
     public OptimizedMeleeAttack(AbstractEntity entity, AttributeValue[] attributes, double speed, int attackInterval,
                                 float attackReach) {
-        super(entity, attributes);
-        this.speed = speed;
+        super(entity, attributes, speed);
         this.attackInterval = attackInterval;
         this.attackReach = attackReach;
-    }
-
-    @Override
-    public boolean canStart() {
-        Entity target = getHandle().getGoalTarget();
-        return target != null && !target.isSpectator() && !((EntityHuman)target).isCreative();
-    }
-
-    @Override
-    public boolean stayActive() {
-        Entity target = getHandle().getGoalTarget();
-
-        if(target == null) {
-            return false;
-        }
-        else {
-            return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
-        }
     }
 
     @Override
@@ -62,18 +42,15 @@ public class OptimizedMeleeAttack extends BasicMetadataPathfinder {
             this.getHandle().getControllerLook().a(target, 30.0F, 30.0F);
             this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
 
+            PathResult result = null;
             if (this.navigationCounter <= 0) {
                 //randomly offset the navigation so we don't flood the pathfinder
-                this.navigationCounter = 4 + this.getHandle().getRandom().nextInt(10);
-
-                getHandler().queueOperation(PathOperation.forEntityWalking(getHandle().getBukkitEntity(),
-                        Collections.singleton(PathDestination.fromEntity(target.getBukkitEntity(), true)),
-                        10), target.getWorld().getWorld());
+                this.navigationCounter = 4 + this.getHandle().getRandom().nextInt(18);
+                result = retarget();
             }
 
-            PathResult result = getHandler().tryTakeResult();
             if(result != null) {
-                getNavigator().navigateAlongPath(result.toPathEntity(), speed);
+                setPath(result);
 
                 int nodes = result.pathNodes().size();
                 if(nodes >= 100) {

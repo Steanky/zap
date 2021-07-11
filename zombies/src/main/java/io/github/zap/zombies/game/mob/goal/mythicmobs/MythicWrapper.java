@@ -12,9 +12,6 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 
 public abstract class MythicWrapper extends WrappedPathfindingGoal implements PathfinderHolder {
     @Getter
-    private final int retargetInterval;
-
-    @Getter
     private final Entity handle;
 
     @Getter
@@ -22,7 +19,6 @@ public abstract class MythicWrapper extends WrappedPathfindingGoal implements Pa
 
     public MythicWrapper(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
-        retargetInterval = mlc.getInteger("retargetInterval", -1);
         handle = ((CraftEntity) entity.getBukkitEntity()).getHandle();
         proxy = Zombies.getInstance().getNmsProxy();
     }

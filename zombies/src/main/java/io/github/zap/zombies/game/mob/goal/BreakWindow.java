@@ -27,8 +27,9 @@ public class BreakWindow extends BasicMetadataPathfinder {
     private final int breakCount;
     private final double breakReachSquared;
 
-    public BreakWindow(AbstractEntity entity, AttributeValue[] values, int breakTicks, int breakCount, double breakReachSquared) {
-        super(entity, values);
+    public BreakWindow(AbstractEntity entity, AttributeValue[] values, double speed, int breakTicks, int breakCount,
+                       double breakReachSquared) {
+        super(entity, values, speed);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
@@ -43,8 +44,6 @@ public class BreakWindow extends BasicMetadataPathfinder {
 
                 if(window != null) {
                     destination = window.getTarget();
-                    double t = getEntity().getBukkitEntity().getWidth();
-                    ArenaApi.info(Double.toString(t));
 
                     if(destination == null) {
                         Zombies.warning("Entity " + getEntity().getUniqueId() + " spawned in a window that does not" +
