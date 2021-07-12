@@ -33,7 +33,7 @@ public class GotoRoundForm extends CommandForm<Pair<Player, Arena<?>>> {
                         if(next instanceof ZombiesArena zombiesArena) {
                             int roundIndex = (int)objects[1];
                             if(roundIndex <= zombiesArena.getMap().getRounds().size() && roundIndex > 0) {
-                                if(zombiesArena.getMap().getCurrentRoundProperty().getValue(zombiesArena) == roundIndex) {
+                                if(zombiesArena.getMap().getCurrentRoundProperty().getValue(zombiesArena) == roundIndex - 1) {
                                     return ValidationResult.of(false, "It is already round " + roundIndex + "!", null);
                                 }
 
@@ -44,7 +44,7 @@ public class GotoRoundForm extends CommandForm<Pair<Player, Arena<?>>> {
                                     null);
                         }
 
-                        return ValidationResult.of(false, "You cannot skip rounds in this arena", null);
+                        return ValidationResult.of(false, "You cannot skip rounds in this arena!", null);
                     }
                 }
 
