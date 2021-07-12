@@ -29,7 +29,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
 
     public BreakWindow(AbstractEntity entity, AttributeValue[] values, double speed, int breakTicks, int breakCount,
                        double breakReachSquared) {
-        super(entity, values, speed);
+        super(entity, values, speed, 1);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;

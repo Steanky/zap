@@ -21,7 +21,7 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
 
     public OptimizedBowAttack(AbstractEntity entity, AttributeValue[] attributes, double speed, int attackInterval,
                               float shootDistance, int targetDeviation) {
-        super(entity, attributes, speed);
+        super(entity, attributes, speed, targetDeviation);
         this.attackInterval = attackInterval;
         this.shootDistanceSquared = shootDistance * shootDistance;
         this.targetDeviation = targetDeviation;

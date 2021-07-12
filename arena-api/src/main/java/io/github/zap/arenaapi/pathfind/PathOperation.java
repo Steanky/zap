@@ -117,6 +117,13 @@ public interface PathOperation {
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
+                                          ChunkCoordinateProvider searchArea, int targetDeviation) {
+        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
+                SuccessCondition.whenWithin(targetDeviation * targetDeviation),
+                new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST, searchArea);
+    }
+
+    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
                                           int loadRadius, int targetDeviation) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
                 SuccessCondition.whenWithin(targetDeviation * targetDeviation),

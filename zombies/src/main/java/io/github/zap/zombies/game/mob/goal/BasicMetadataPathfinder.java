@@ -20,10 +20,12 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
     protected ZombiesPlayer zombiesPlayer;
     private ZombiesArena arena;
     private final double speed;
+    private final int targetDeviation;
 
-    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, double speed) {
+    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, double speed, int targetDeviation) {
         super(entity, values, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
         this.speed = speed;
+        this.targetDeviation = targetDeviation;
     }
 
     protected @Nullable PathResult retarget() {
@@ -37,7 +39,7 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
 
             if(!validTargets.isEmpty()) {
                 getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
-                        validTargets, arena.getMapBounds()), self.getWorld().getWorld());
+                        validTargets, arena.getMapBounds(), targetDeviation), self.getWorld().getWorld());
 
                 PathResult result = getHandler().tryTakeResult();
 
