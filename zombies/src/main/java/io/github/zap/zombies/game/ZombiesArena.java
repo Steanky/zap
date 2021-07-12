@@ -45,7 +45,6 @@ import io.github.zap.zombies.stats.map.MapStats;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
 import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
@@ -1155,7 +1154,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             }
         }
 
-        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>());
+        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         List<RoundData> rounds = map.getRounds();
         if(targetRound < rounds.size()) {
             RoundData currentRound = rounds.get(targetRound - 1);
@@ -1166,16 +1165,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 cumulativeDelay += wave.getWaveLength();
 
                 BukkitTask waveSpawnTask = runTaskLater(cumulativeDelay, () -> {
-                    List<ActiveMob> spawnedMobs = spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
-                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false);
+                    context.spawnedMobs().addAll(spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
+                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false));
 
-                    for(ActiveMob activeMob : spawnedMobs) {
+                    for(ActiveMob activeMob : context.spawnedMobs()) {
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
                     }
 
                     BukkitTask removeMobTask = runTaskLater(6000, () -> {
-                        for(ActiveMob mob : spawnedMobs) {
+                        for(ActiveMob mob : context.spawnedMobs()) {
                             Entity entity = mob.getEntity().getBukkitEntity();
 
                             if(entity != null) {
@@ -1225,7 +1224,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         }
 
         if(currentRound != null) {
-            currentRound.cancelTasks();
+            currentRound.cancelRound();
             currentRound = context;
         }
     }
