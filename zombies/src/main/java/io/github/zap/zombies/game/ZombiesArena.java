@@ -1108,17 +1108,22 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 }
             }
 
-            doRound(1);
+            doRound(0);
         }
     }
 
     public void doRound(int targetRound) {
+        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        if(currentRound != null) {
+            currentRound.cancelRound();
+        }
+
+        currentRound = context;
+
         Property<Integer> roundIndexProperty = map.getCurrentRoundProperty();
 
         int lastRoundIndex = targetRound - 1;
-
         int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
-
         for (ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
             if (!zombiesPlayer.isAlive()) {
                 zombiesPlayer.respawn();
@@ -1154,10 +1159,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             }
         }
 
-        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         List<RoundData> rounds = map.getRounds();
         if(targetRound < rounds.size()) {
-            RoundData currentRound = rounds.get(targetRound - 1);
+            RoundData currentRound = rounds.get(targetRound);
 
             long cumulativeDelay = 0;
             zombiesLeft = 0;
@@ -1221,11 +1225,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             //game just finished, do win condition
             state = ZombiesArenaState.ENDED;
             doVictory();
-        }
-
-        if(currentRound != null) {
-            currentRound.cancelRound();
-            currentRound = context;
         }
     }
 

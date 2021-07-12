@@ -151,7 +151,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
             round.setValue("Game Over!");
             time.setValue(formatTime(gameScoreboard.getZombiesArena().getEndTimeStamp() - gameScoreboard.getZombiesArena().getStartTimeStamp()));
         } else {
-            round.setValue("Round " + gameScoreboard.getZombiesArena().getMap().getCurrentRoundProperty().getValue(gameScoreboard.getZombiesArena()).toString());
+            round.setValue("Round " + (gameScoreboard.getZombiesArena().getMap().getCurrentRoundProperty().getValue(gameScoreboard.getZombiesArena()) + 1));
             time.setValue(formatTime(System.currentTimeMillis() - gameScoreboard.getZombiesArena().getStartTimeStamp()));
         }
 

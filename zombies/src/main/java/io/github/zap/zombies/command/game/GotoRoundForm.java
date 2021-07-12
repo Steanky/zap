@@ -41,7 +41,7 @@ public class GotoRoundForm extends CommandForm<Pair<Player, Arena<?>>> {
                             }
 
                             return ValidationResult.of(false, "Rounds index out of bounds for this map!",
-                                    Pair.of(player, next));
+                                    null);
                         }
 
                         return ValidationResult.of(false, "You cannot skip rounds in this arena", null);
@@ -62,9 +62,9 @@ public class GotoRoundForm extends CommandForm<Pair<Player, Arena<?>>> {
 
     @Override
     public String execute(Context context, Object[] objects, Pair<Player, Arena<?>> data) {
-        int roundIndex = (int)objects[1];
+        int roundIndex = (int)objects[1] - 1;
         ZombiesArena zombiesArena = (ZombiesArena) data.getRight();
         zombiesArena.doRound(roundIndex);
-        return "Skipping to round " + roundIndex;
+        return "Going to round " + (roundIndex + 1);
     }
 }
