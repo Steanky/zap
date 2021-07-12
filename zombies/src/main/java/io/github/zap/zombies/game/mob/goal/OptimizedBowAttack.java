@@ -11,7 +11,6 @@ import java.util.EnumSet;
 public class OptimizedBowAttack extends RetargetingPathfinder {
     private final int attackInterval;
     private final float shootDistanceSquared;
-    private final int targetDeviation;
     private int attackTimer = -1;
     private int drawTimer;
     private boolean strafeB;
@@ -24,7 +23,6 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
         super(entity, attributes, speed, targetDeviation);
         this.attackInterval = attackInterval;
         this.shootDistanceSquared = shootDistance * shootDistance;
-        this.targetDeviation = targetDeviation;
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
         navigationCounter = self.getRandom().nextInt(5);

@@ -4,7 +4,7 @@ import io.github.zap.arenaapi.pathfind.PathResult;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 
 public abstract class RetargetingPathfinder extends BasicMetadataPathfinder {
-    public RetargetingPathfinder(AbstractEntity entity, AttributeValue[] values, double speed, int targetDeviation) {
+    public RetargetingPathfinder(AbstractEntity entity, AttributeValue[] values, double speed, double targetDeviation) {
         super(entity, values, speed, targetDeviation);
     }
 

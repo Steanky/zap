@@ -6,7 +6,9 @@ import io.github.zap.vector.ChunkVectorAccess;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -14,10 +16,11 @@ import java.util.concurrent.*;
 
 public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
+
     private static final int MIN_CHUNK_SYNC_AGE = 20;
     private static final int PATH_CAPACITY = 128;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
-    private static final double URGENT_SYNC_THRESHOLD = 1;
+    private static final double URGENT_SYNC_THRESHOLD = 0.9;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
     private final ExecutorCompletionService<PathResult> completionService =
@@ -71,7 +74,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     }
 
     private AsyncPathfinderEngine() { //singleton
-
+        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
     private PathResult processOperation(Context context, PathOperation operation) {
@@ -200,7 +203,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             }
         }
 
-        return (double)presentAndFresh / (double)chunks.chunkCount() >= URGENT_SYNC_THRESHOLD;
+        return (double)presentAndFresh / (double)chunks.chunkCount() <= URGENT_SYNC_THRESHOLD;
     }
 
     /**
@@ -228,7 +231,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         really, really needs fresh chunks, such as for a new PathOperation or one that's going on in a really outdated
         area
         */
-        if(((currentTick - context.lastSyncTick) >= MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire())) {
+        if((currentTick - context.lastSyncTick) >= MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire()) {
             if(force) {
                 /*
                  * respect the hard limit of bukkit tasks, but we really need this operation to complete, so wait
@@ -306,5 +309,16 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     public static AsyncPathfinderEngine instance() {
         return INSTANCE;
+    }
+
+    @EventHandler
+    private void onWorldUnload(WorldUnloadEvent event) {
+        synchronized (contexts) {
+            Context context = contexts.get(event.getWorld().getUID());
+
+            if(context != null) {
+                context.blockProvider().clearForWorld();
+            }
+        }
     }
 }

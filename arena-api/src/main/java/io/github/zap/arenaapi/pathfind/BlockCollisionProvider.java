@@ -35,7 +35,7 @@ public interface BlockCollisionProvider {
 
     void clearRegion(@NotNull ChunkCoordinateProvider coordinates);
 
-    void clearOwned();
+    void clearForWorld();
 
     boolean hasChunk(int x, int z);
 

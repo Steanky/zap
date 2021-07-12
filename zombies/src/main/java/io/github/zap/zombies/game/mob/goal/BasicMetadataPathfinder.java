@@ -20,9 +20,9 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
     protected ZombiesPlayer zombiesPlayer;
     private ZombiesArena arena;
     private final double speed;
-    private final int targetDeviation;
+    private final double targetDeviation;
 
-    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, double speed, int targetDeviation) {
+    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, double speed, double targetDeviation) {
         super(entity, values, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
         this.speed = speed;
         this.targetDeviation = targetDeviation;

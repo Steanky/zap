@@ -17,7 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new ConcurrentHashMap<>();
+    private static final Object putSync = new Object();
+    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new WeakHashMap<>();
 
     private final World world;
     private final int maxCaptureAge;
@@ -64,7 +65,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public void clearOwned() {
+    public void clearForWorld() {
         chunks.keySet().removeIf(id -> id.worldID.equals(world.getUID()));
     }
 
