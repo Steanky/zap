@@ -109,7 +109,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 }
 
                 if(Thread.interrupted()) {
-                    throw new InterruptedException();
+                    ArenaApi.warning("processOperation interrupted for PathOperation. Returning null PathResult.");
+                    return null;
                 }
 
                 //perform optimizations here in the future, such as somehow trying to merge PathOperations
@@ -179,7 +180,9 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     context.syncSemaphore.acquire();
                 }
                 catch (InterruptedException e) {
-                    ArenaApi.warning("Interrupted while attemping to acquire sychronization semaphore.");
+                    ArenaApi.warning("Interrupted while attemping to force acquire sychronization semaphore.");
+                    result.complete(false);
+                    return result;
                 }
             }
 

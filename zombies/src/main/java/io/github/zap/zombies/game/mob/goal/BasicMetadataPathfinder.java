@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
@@ -31,23 +32,27 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
         }
 
         if(arena != null) {
-            getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
-                    new HashSet<>(arena.getPlayerMap().values().stream().filter(ZombiesPlayer::isAlive)
-                            .collect(Collectors.toSet())), arena.getMapBounds()), self.getWorld().getWorld());
+            Set<ZombiesPlayer> validTargets = arena.getPlayerMap().values().stream().filter(ZombiesPlayer::isAlive)
+                    .collect(Collectors.toSet());
 
-            PathResult result = getHandler().tryTakeResult();
+            if(!validTargets.isEmpty()) {
+                getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
+                        validTargets, arena.getMapBounds()), self.getWorld().getWorld());
 
-            if(result != null) {
-                ZombiesPlayer zombiesPlayer = (ZombiesPlayer)result.destination();
-                Player player = zombiesPlayer.getPlayer();
+                PathResult result = getHandler().tryTakeResult();
 
-                if(player != null) {
-                    self.setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
-                    this.zombiesPlayer = zombiesPlayer;
-                    return result;
+                if(result != null) {
+                    ZombiesPlayer zombiesPlayer = (ZombiesPlayer)result.destination();
+                    Player player = zombiesPlayer.getPlayer();
+
+                    if(player != null) {
+                        self.setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
+                        this.zombiesPlayer = zombiesPlayer;
+                        return result;
+                    }
+
+                    this.zombiesPlayer = null;
                 }
-
-                this.zombiesPlayer = null;
             }
         }
 
