@@ -33,7 +33,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
-        navCounter = getHandle().getRandom().nextInt(20) * 2;
+        navCounter = self.getRandom().nextInt(20) * 2;
     }
 
     @Override
@@ -80,15 +80,15 @@ public class BreakWindow extends BasicMetadataPathfinder {
     public void doTick() {
         if(++counter == breakTicks) {
             Vector center = window.getCenter();
-            if(getProxy().getDistanceToSquared(getHandle(), center.getX(), center.getY(), center.getZ()) < breakReachSquared) {
-                arena.tryBreakWindow(getHandle().getBukkitEntity(), window, breakCount);
+            if(getProxy().getDistanceToSquared(self, center.getX(), center.getY(), center.getZ()) < breakReachSquared) {
+                arena.tryBreakWindow(self.getBukkitEntity(), window, breakCount);
             }
 
             counter = 0;
         }
 
-        if(!(window.getFaceBounds().contains(getHandle().locX(), getHandle().locY(), getHandle().locZ()) ||
-                window.getInteriorBounds().contains(getHandle().locX(), getHandle().locY(), getHandle().locZ()))) {
+        if(!(window.getFaceBounds().contains(self.locX(), self.locY(), self.locZ()) ||
+                window.getInteriorBounds().contains(self.locX(), self.locY(), self.locZ()))) {
             Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
             if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
                 window.getAttackingEntityProperty().setValue(arena, null);
@@ -98,13 +98,13 @@ public class BreakWindow extends BasicMetadataPathfinder {
         }
         else {
             if(++navCounter == 40) {
-                getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(),
+                getProxy().lookAtPosition(self.getControllerLook(), destination.getX(), destination.getY(),
                         destination.getZ(), 30.0F, 30.0F);
 
                 getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
                         PathDestination.fromVector(VectorAccess.immutable(destination))), 3), arena.getWorld());
 
-                navCounter = getHandle().getRandom().nextInt(20);
+                navCounter = self.getRandom().nextInt(20);
             }
 
             PathResult result = getHandler().tryTakeResult();

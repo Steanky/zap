@@ -8,6 +8,7 @@ import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.vector.MutableWorldVector;
 import io.github.zap.vector.VectorAccess;
+import org.bukkit.entity.Zombie;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
     private PathfinderContext context;
     private PathAgent agent;
     private ImmutableWorldVector agentStartPosition;
+
     private double width;
     private double halfWidth;
     private double negativeWidth;
@@ -68,13 +70,25 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                     .subtract(halfWidth, 0, halfWidth).asBukkit());
         }
         else { //otherwise make the assumption it's trying to pathfind from the exact center of the block
+            VoxelShapeWrapper collision = blockAtCurrent.collision();
+
             currentAgentBounds = agent.characteristics().getBounds().shift(current.add(blockOffset,
                     0, blockOffset).asBukkit());
 
-            double height = blockAtCurrent.collision().maxY(); //block relative height
-            if(Double.isFinite(height) && !DoubleMath.fuzzyEquals(height, 1, Vector.getEpsilon())) {
+            if(collision.isFull()) {
+                ArenaApi.warning("Attempting to pathfind from a non-initial block with full collision bounds.");
+                ArenaApi.warning("This should not be happening. Send this message to Steank:");
+                ArenaApi.warning("World: " + context.blockProvider().world().getName());
+                ArenaApi.warning("Node: " + current);
+                ArenaApi.warning("Agent bounds (after offset): " + currentAgentBounds);
+                ArenaApi.warning("BlockData: " + blockAtCurrent.data());
+                ArenaApi.warning("In addition to this information, also include which map this error occurred in.");
+            }
+
+            double height = collision.maxY(); //block relative height
+            if(Double.isFinite(height) && DoubleMath.fuzzyCompare(height, 1, Vector.getEpsilon()) < 0) {
                 blockMaxY = height;
-                currentAgentBounds.shift(0, 1 - height, 0);
+                currentAgentBounds.shift(0, height, 0);
             }
         }
 
@@ -82,12 +96,11 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         for(int i = 0; i < buffer.length; i++) { //try to go all 8 cardinal + intercardinal directions
             Direction direction = Direction.valueAtIndex(i);
             ImmutableWorldVector blockWalkingTo = current.add(direction).asImmutable();
-            BoundingBox correctedBounds = currentAgentBounds.clone().shift(direction.multiply(Vector.getEpsilon()).asBukkit());
 
-            ImmutableWorldVector translation = VectorAccess.immutable(blockWalkingTo.x() - correctedBounds.getCenterX()
-                    + 0.5, 0, blockWalkingTo.z() - correctedBounds.getCenterZ() + 0.5);
+            ImmutableWorldVector translation = VectorAccess.immutable(blockWalkingTo.x() - currentAgentBounds.getCenterX()
+                    + 0.5, 0, blockWalkingTo.z() - currentAgentBounds.getCenterZ() + 0.5);
 
-            PathNode node = validNodeDirectional(context.blockProvider(), correctedBounds, translation, blockWalkingTo,
+            PathNode node = validNodeDirectional(context.blockProvider(), currentAgentBounds, translation, blockWalkingTo,
                     direction, blockMaxY);
 
             if(node != null) {
@@ -131,8 +144,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
             BoundingBox shiftedBounds = currentAgentBounds.clone().shift(translation.asBukkit())
                     .expandDirectional(Direction.DOWN.asBukkit())
                     .resize(currentAgentBounds.getMinX(), currentAgentBounds.getMinY(), currentAgentBounds.getMinZ(),
-                            currentAgentBounds.getMaxX(), currentAgentBounds.getMinY() + 1 - Vector.getEpsilon(),
-                            currentAgentBounds.getMaxZ());
+                            currentAgentBounds.getMaxX(), currentAgentBounds.getMinY() + 1, currentAgentBounds.getMaxZ());
 
             List<BlockSnapshot> collidingSnapshots = provider.collidingSolids(shiftedBounds);
 
@@ -161,8 +173,8 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
     private ImmutableWorldVector jumpTest(BlockCollisionProvider provider, BoundingBox agentBounds,
                                           ImmutableWorldVector walkingTo, Direction direction,
-                                          ImmutableWorldVector translateBy, double blockMaxY) {
-        double jumpHeightRequired = -blockMaxY;
+                                          ImmutableWorldVector translateBy, double currentBlockMaxY) {
+        double jumpHeightRequired = -currentBlockMaxY;
 
         double headroom = 0;
         double spillover = 0; //this helps us account for blocks with collision height larger than 1
@@ -232,14 +244,14 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
             if(DoubleMath.fuzzyCompare(jumpHeight, jumpHeightRequired, Vector.getEpsilon()) >= 0 &&
                     DoubleMath.fuzzyCompare(height, headroom, Vector.getEpsilon()) <= 0) { //entity can make the jump
+                BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
+                ImmutableWorldVector jumpedVector = walkingTo.add(0, jumpHeightRequired + currentBlockMaxY, 0);
+
                 BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
                 if(provider.collidesWithAny(verticalTest)) { //check if mob will collide with something on its way up
                     return null;
                 }
-
-                BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-                ImmutableWorldVector jumpedVector = walkingTo.add(0, jumpHeightRequired, 0);
 
                 if(!collidesMovingAlong(provider, jumpedAgent, translateBy, direction)) {
                     return jumpedVector.asImmutable();
@@ -262,15 +274,15 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
     private ImmutableWorldVector fallTest(BlockCollisionProvider provider, BoundingBox agentBounds,
                                           ImmutableWorldVector walkingTo, ImmutableWorldVector translateBy,
                                           double blockMaxY) {
-        BoundingBox boundsAtNew = agentBounds.clone().shift(translateBy.asBukkit());
-        boundsAtNew.resize(boundsAtNew.getMinX(), boundsAtNew.getMinY(), boundsAtNew.getMinZ(), boundsAtNew.getMaxX(),
-                boundsAtNew.getMinY() + 1, boundsAtNew.getMaxZ());
+        BoundingBox boundsAtTranslate = agentBounds.clone().shift(translateBy.asBukkit());
+        boundsAtTranslate.resize(boundsAtTranslate.getMinX(), boundsAtTranslate.getMinY(), boundsAtTranslate.getMinZ(),
+                boundsAtTranslate.getMaxX(), boundsAtTranslate.getMinY() + 1, boundsAtTranslate.getMaxZ());
 
         int iters = 0;
-        while(boundsAtNew.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
-            boundsAtNew.shift(0, -1, 0);
+        while(boundsAtTranslate.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
+            boundsAtTranslate.shift(0, -1, 0);
 
-            List<BlockSnapshot> snapshots = provider.collidingSolids(boundsAtNew);
+            List<BlockSnapshot> snapshots = provider.collidingSolids(boundsAtTranslate);
             if(!snapshots.isEmpty()) {
                 BlockSnapshot highest = highestSnapshot(snapshots);
 
@@ -279,7 +291,8 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
                     if(Double.isFinite(maxY)) {
                         double fallHeight = (walkingTo.blockY() + blockMaxY) - (highest.position().blockY() + maxY);
-                        return walkingTo.add(0, -fallHeight, 0);
+                        ImmutableWorldVector newWalkingTo = walkingTo.add(0, -(int)fallHeight, 0);
+                        return newWalkingTo;
                     }
                     else {
                         ArenaApi.warning("Non-finite value for maxY in fallTest");
@@ -297,7 +310,8 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
     private boolean collidesMovingAlong(BlockCollisionProvider provider, BoundingBox agentBounds,
                                         ImmutableWorldVector translateBy, Direction direction) {
-        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(translateBy.asBukkit());
+        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(translateBy.asBukkit())
+                .shift(direction.multiply(Vector.getEpsilon()).asBukkit());
 
         if(!direction.isIntercardinal()) {
             return provider.collidesWithAny(expandedBounds);
@@ -307,7 +321,8 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         if(!candidates.isEmpty()) {
             int dirFactor = direction.blockX() * direction.blockZ();
 
-            return processCollisions(candidates, dirFactor < 0 ? (x, y, z, x2, y2, z2) ->
+            return processCollisions(candidates, dirFactor < 0 ?
+                    (x, y, z, x2, y2, z2) ->
                             fastDiagonalCollisionCheck(width, negativeWidth, dirFactor, x, z, x2, z2) :
                     (x, y, z, x2, y2, z2) ->
                             fastDiagonalCollisionCheck(width, negativeWidth,

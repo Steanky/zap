@@ -30,12 +30,6 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
             for(int i = 0; i < newPath.e(); i++) {
                 PathPoint sample = newPath.a(i); //(pr)
 
-                if(sample.equals(entityPoint)) {
-                    newPath.c(i);
-                    a(newPath, speed);
-                    return;
-                }
-
                 float distanceSquared = sample.a(entityPoint);
                 if(DoubleMath.fuzzyCompare(distanceSquared, 2, Vector.getEpsilon()) <= 0) {
                     int nextIndex = i + 1;

@@ -33,15 +33,16 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
         if(arena != null) {
             getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
                     new HashSet<>(arena.getPlayerMap().values().stream().filter(ZombiesPlayer::isAlive)
-                            .collect(Collectors.toSet())), arena.getMapBounds()), getHandle().getWorld().getWorld());
+                            .collect(Collectors.toSet())), arena.getMapBounds()), self.getWorld().getWorld());
 
             PathResult result = getHandler().tryTakeResult();
+
             if(result != null) {
                 ZombiesPlayer zombiesPlayer = (ZombiesPlayer)result.destination();
                 Player player = zombiesPlayer.getPlayer();
 
                 if(player != null) {
-                    getHandle().setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
+                    self.setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
                     this.zombiesPlayer = zombiesPlayer;
                     return result;
                 }

@@ -20,28 +20,28 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
 
     @Override
     public void onStart() {
-        this.getHandle().setAggressive(true);
-        this.navigationCounter = getHandle().getRandom().nextInt(10);
+        self.setAggressive(true);
+        this.navigationCounter = self.getRandom().nextInt(10);
         this.attackTimer = 0;
     }
 
     @Override
     public void onEnd() {
-        this.getHandle().setAggressive(false);
-        this.getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
+        self.setAggressive(false);
+        self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
     }
 
     @Override
     public void doTick() {
-        EntityLiving target = this.getHandle().getGoalTarget();
+        EntityLiving target = self.getGoalTarget();
         if(target != null) {
-            this.getHandle().getControllerLook().a(target, 30.0F, 30.0F);
+            self.getControllerLook().a(target, 30.0F, 30.0F);
             this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
 
             PathResult result = null;
             if (this.navigationCounter <= 0) {
                 //randomly offset the navigation so we don't flood the pathfinder
-                this.navigationCounter = 4 + getHandle().getRandom().nextInt(18);
+                this.navigationCounter = 4 + self.getRandom().nextInt(18);
                 result = retarget();
             }
 
@@ -61,10 +61,10 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
 
     private void tryAttack(EntityLiving target) {
         if(this.attackTimer <= 0) {
-            if(this.getHandle().h(target.locX(), target.locY(), target.locZ()) <= this.checkDistance(target)) {
+            if(self.h(target.locX(), target.locY(), target.locZ()) <= this.checkDistance(target)) {
                 this.resetAttackTimer();
-                this.getHandle().swingHand(EnumHand.MAIN_HAND);
-                this.getHandle().attackEntity(target);
+                self.swingHand(EnumHand.MAIN_HAND);
+                self.attackEntity(target);
             }
         }
     }
@@ -74,6 +74,6 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
     }
 
     private double checkDistance(EntityLiving target) {
-        return (this.getHandle().getWidth() * attackReach * this.getHandle().getWidth() * attackReach + target.getWidth());
+        return (self.getWidth() * attackReach * self.getWidth() * attackReach + target.getWidth());
     }
 }

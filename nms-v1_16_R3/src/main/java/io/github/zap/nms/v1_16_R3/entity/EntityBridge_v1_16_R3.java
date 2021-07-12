@@ -9,13 +9,10 @@ import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
 import io.github.zap.nms.v1_16_R3.pathfind.PathPointWrapper_v1_16_R3;
 import io.github.zap.vector.VectorAccess;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMob;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -24,8 +21,22 @@ import java.util.UUID;
 
 public class EntityBridge_v1_16_R3 implements EntityBridge {
     public static final EntityBridge_v1_16_R3 INSTANCE = new EntityBridge_v1_16_R3();
+    private static final Field navigator;
 
-    private EntityBridge_v1_16_R3() {}
+    static {
+        Field nav;
+        try {
+            nav = EntityInsentient.class.getDeclaredField("navigation");
+            nav.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+            nav = null;
+        }
+
+        navigator = nav;
+    }
+
+    private EntityBridge_v1_16_R3() { }
 
     @Override
     public int nextEntityID() {
@@ -64,10 +75,7 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
     }
 
     @Override
-    public @NotNull MobNavigator overrideNavigatorFor(@NotNull Mob mob) throws NoSuchFieldException, IllegalAccessException {
-        Field navigator = EntityInsentient.class.getDeclaredField("navigation");
-        navigator.setAccessible(true);
-
+    public @NotNull MobNavigator overrideNavigatorFor(@NotNull Mob mob) throws IllegalAccessException {
         EntityInsentient entityInsentient = ((CraftMob)mob).getHandle();
         Navigation navigation = (Navigation) navigator.get(entityInsentient);
 

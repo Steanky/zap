@@ -1,21 +1,14 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathResult;
-import io.github.zap.arenaapi.shadow.io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
-import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.EnumSet;
-import java.util.Set;
 
 public class OptimizedBowAttack extends RetargetingPathfinder {
-    private final ZombiesNMSProxy proxy;
-
     private final int attackInterval;
     private final float shootDistanceSquared;
     private final int targetDeviation;
@@ -26,9 +19,6 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
     private int strafeTimer = -1;
     private int navigationCounter;
 
-    private double distanceToTargetSquared;
-    private boolean hasSight;
-
     public OptimizedBowAttack(AbstractEntity entity, AttributeValue[] attributes, double speed, int attackInterval,
                               float shootDistance, int targetDeviation) {
         super(entity, attributes, speed);
@@ -37,49 +27,30 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
         this.targetDeviation = targetDeviation;
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
 
-        proxy = Zombies.getInstance().getNmsProxy();
-        navigationCounter = getHandle().getRandom().nextInt(5);
-    }
-
-    @Override
-    public boolean canStart() {
-        Entity target = getHandle().getGoalTarget();
-        return target != null && !target.isSpectator() && !((EntityHuman)target).isCreative();
-    }
-
-    @Override
-    public boolean stayActive() {
-        Entity target = getHandle().getGoalTarget();
-
-        if(target == null) {
-            return false;
-        }
-        else {
-            return !(target instanceof EntityHuman) || !target.isSpectator() && !((EntityHuman)target).isCreative();
-        }
+        navigationCounter = self.getRandom().nextInt(5);
     }
 
     @Override
     public void onStart() {
-        this.getHandle().setAggressive(true);
+        self.setAggressive(true);
     }
 
     @Override
     public void onEnd() {
-        this.getHandle().setAggressive(false);
         this.drawTimer = 0;
         this.attackTimer = -1;
-        this.getHandle().clearActiveItem();
-        this.getHandle().setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
+        self.clearActiveItem();
+        self.setAggressive(false);
+        self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
     }
 
     @Override
     public void doTick() {
-        EntityInsentient self = getHandle();
         EntityLiving target = self.getGoalTarget();
 
         if (target != null) {
             this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
+
             if (this.navigationCounter <= 0) {
                 this.navigationCounter = 4 + self.getRandom().nextInt(17);
 
@@ -94,11 +65,12 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
                 }
                 else {
                     navigationCounter += 25;
+                    return;
                 }
-
-                distanceToTargetSquared = self.h(target.locX(), target.locY(), target.locZ());
-                hasSight = self.getEntitySenses().a(target);
             }
+
+            double distanceToTargetSquared = self.h(target.locX(), target.locY(), target.locZ());
+            boolean hasSight = self.getEntitySenses().a(target);
 
             boolean bowPartiallyDrawn = this.drawTimer > 0;
             if (hasSight != bowPartiallyDrawn) {
@@ -118,11 +90,11 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
             }
 
             if (this.strafeTimer >= 20) {
-                if ((double)self.getRandom().nextFloat() < 0.3D) {
+                if ((double) self.getRandom().nextFloat() < 0.3D) {
                     this.strafeB = !this.strafeB;
                 }
 
-                if ((double)self.getRandom().nextFloat() < 0.3D) {
+                if ((double) self.getRandom().nextFloat() < 0.3D) {
                     this.strafeA = !this.strafeA;
                 }
 
@@ -149,7 +121,7 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
                     int itemStage = self.ea();
                     if (itemStage >= 20) {
                         self.clearActiveItem();
-                        self.a(target, ItemBow.a(itemStage));
+                        ((IRangedEntity)self).a(target, ItemBow.a(itemStage));
                         this.attackTimer = this.attackInterval;
                     }
                 }
