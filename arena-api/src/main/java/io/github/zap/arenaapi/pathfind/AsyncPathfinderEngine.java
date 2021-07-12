@@ -30,8 +30,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         private final Object contextSyncHandle = new Object();
 
         private final Queue<PathResult> successfulPaths = new ArrayDeque<>();
-        private final Queue<PathResult> failedPaths = new ArrayDeque<>();
-
         private final BlockCollisionProvider blockCollisionProvider;
 
         private int lastSyncTick = -1;
@@ -55,8 +53,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
             switch (state) {
                 case SUCCEEDED -> handleAddition(path, successfulPaths);
-                case FAILED -> handleAddition(path, failedPaths);
-                default -> throw new IllegalStateException("path.state() must be either SUCCEEDED or FAILED");
             }
         }
 
@@ -232,7 +228,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         really, really needs fresh chunks, such as for a new PathOperation or one that's going on in a really outdated
         area
         */
-        if(force || ((currentTick - context.lastSyncTick) >= MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire())) {
+        if(((currentTick - context.lastSyncTick) >= MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire())) {
             if(force) {
                 /*
                  * respect the hard limit of bukkit tasks, but we really need this operation to complete, so wait
