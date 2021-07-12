@@ -5,6 +5,7 @@ import io.github.zap.vector.graph.ChunkGraph;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Set;
@@ -85,6 +86,14 @@ public interface PathOperation {
      * pathfinding algorithm.
      */
     @NotNull NodeExplorer nodeProvider();
+
+    @Nullable PathDestination bestDestination();
+
+    @Nullable PathNode currentNode();
+
+    boolean mergeValid(@NotNull PathOperation other);
+
+    boolean allowMerges();
 
     static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                                   @NotNull HeuristicCalculator calculator, @NotNull SuccessCondition successCondition,

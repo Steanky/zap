@@ -9,8 +9,6 @@ import java.util.List;
 public interface PathResult extends Iterable<PathNode> {
     @NotNull PathNode start();
 
-    @NotNull PathNode end();
-
     @NotNull PathOperation operation();
 
     @NotNull PathDestination destination();

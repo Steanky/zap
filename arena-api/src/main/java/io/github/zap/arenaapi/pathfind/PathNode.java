@@ -24,6 +24,7 @@ public class PathNode implements Positional {
     int heapIndex = -1;
     final Score score;
     PathNode parent;
+    PathNode child;
     boolean isFirst;
 
     private PathNode(Score score, PathNode parent, int x, int y, int z, int hash) {
@@ -84,11 +85,12 @@ public class PathNode implements Positional {
     }
 
     public @NotNull PathNode chain(int x, int y, int z) {
-        return new PathNode(new Score(), this, x, y, z);
+        return (child = new PathNode(new Score(), this, x, y, z));
     }
 
     public void setParent(@Nullable PathNode parent) {
         this.parent = parent;
+        parent.child = this;
     }
 
     @Override
@@ -96,6 +98,10 @@ public class PathNode implements Positional {
         return position;
     }
 
+    /**
+     * Reverses the order of the linked PathNode objects. The returned PathNode will be the previously-parentless
+     * node at the end of the chain.
+     */
     public @NotNull PathNode reverse() {
         PathNode current = this;
         PathNode previous = null;
@@ -103,6 +109,8 @@ public class PathNode implements Positional {
         while(current != null) {
             PathNode next = current.parent;
             current.parent = previous;
+            previous.child = current;
+
             previous = current;
             current = next;
         }

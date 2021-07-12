@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.vector.graph.ArrayChunkGraph;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -167,7 +168,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public int iterations() {
-        return 100;
+        return 200;
     }
 
     @Override
@@ -196,6 +197,32 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
+    public @Nullable PathDestination bestDestination() {
+        return bestDestination;
+    }
+
+    @Override
+    public @Nullable PathNode currentNode() {
+        return currentNode;
+    }
+
+    @Override
+    public boolean mergeValid(@NotNull PathOperation mergeInto) {
+        PathAgent.Characteristics mergeIntoCharacteristics = mergeInto.agent().characteristics();
+
+        return this == mergeInto || (nodeExplorer.equals(mergeInto.nodeProvider()) &&
+                mergeIntoCharacteristics.width() >= agent.characteristics().width() &&
+                mergeIntoCharacteristics.jumpHeight() <= agent.characteristics().jumpHeight() &&
+                mergeIntoCharacteristics.height() >= agent.characteristics().height() &&
+                checkDestinationComparability(mergeInto.bestDestination()));
+    }
+
+    @Override
+    public boolean allowMerges() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
@@ -203,5 +230,13 @@ class PathOperationImpl implements PathOperation {
     private void complete(boolean success) {
         state = success ? State.SUCCEEDED : State.FAILED;
         result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
+    }
+
+    private boolean checkDestinationComparability(PathDestination other) {
+        if(other == null) {
+            return bestDestination == null;
+        }
+
+        return other.equals(bestDestination);
     }
 }

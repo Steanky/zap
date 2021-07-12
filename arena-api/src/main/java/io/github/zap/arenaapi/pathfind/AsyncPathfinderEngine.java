@@ -3,11 +3,10 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
+import io.github.zap.vector.graph.ChunkGraph;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -24,13 +23,14 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final ExecutorCompletionService<PathResult> completionService =
             new ExecutorCompletionService<>(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
 
-    private final Map<UUID, Context> contextMap = new ConcurrentHashMap<>();
+    private final Map<UUID, Context> contexts = new HashMap<>();
 
     private class Context implements PathfinderContext {
         private final Semaphore syncSemaphore = new Semaphore(MAX_SCHEDULED_SYNC_TASKS);
         private final Object contextSyncHandle = new Object();
 
-        private final Object queueLock = new Object();
+        private final List<PathOperation> runningOperations = new ArrayList<>();
+
         private final Queue<PathResult> successfulPaths = new ArrayDeque<>();
         private final Queue<PathResult> failedPaths = new ArrayDeque<>();
 
@@ -63,7 +63,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
 
         private void handleAddition(PathResult result, Queue<PathResult> target) {
-            synchronized (queueLock) {
+            synchronized (target) {
                 int oldCount = target.size();
                 int newCount = oldCount + 1;
 
@@ -113,7 +113,12 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     return null;
                 }
 
-                //perform optimizations here in the future, such as somehow trying to merge PathOperations
+                if(operation.allowMerges()) {
+                    PathResult result = attemptMergeFor(context, operation);
+                    if(result != null) {
+                        return result;
+                    }
+                }
             }
 
             return operation.result();
@@ -123,6 +128,65 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             exception.fillInStackTrace().printStackTrace();
 
             ArenaApi.warning("Cause: " + exception.getCause());
+        }
+
+        return null;
+    }
+
+    private PathResult attemptMergeFor(Context context, PathOperation operation) {
+        synchronized (context.successfulPaths) { //try to merge paths if possible
+            PathNode currentNode = operation.currentNode();
+
+            for(PathResult successful : context.successfulPaths) {
+                ChunkGraph<PathNode> resultVisited = successful.visitedNodes();
+
+                int x = currentNode.nodeX();
+                int y = currentNode.nodeY();
+                int z = currentNode.nodeZ();
+
+                if(operation.mergeValid(successful.operation()) && resultVisited.hasElement(x, y, z)) {
+                    PathNode intersection = resultVisited.elementAt(x, y, z);
+
+                    PathNode current = intersection;
+                    PathNode lastNode = null;
+
+                    while(current != null) {
+                        PathNode parent = current.parent;
+
+                        if(parent != null) {
+                            if(lastNode != parent) { //we found a break; indicative of the previous path
+                                intersection.parent = currentNode.parent; //make sure intersection fits in with our explored nodes
+                                if(currentNode.parent != null) {
+                                    currentNode.parent.child = intersection;
+                                }
+
+                                PathNode tail = current;
+                                while(tail.child != null) { //find tail (should be previous origin)
+                                    tail = tail.child;
+                                }
+
+                                current.parent = null; //set parent to null so we don't reverse the whole path
+                                tail.reverse(); //reverse our old path to maintain data integrity
+                                current.parent = lastNode; //set parent going the other way, towards our origin
+
+                                PathNode start = current.reverse(); //set current node going towards the shared destination
+                                current.parent = parent; //set our old parent again
+
+                                return new PathResultImpl(start, successful.operation(), successful.visitedNodes(),
+                                        successful.destination(), PathOperation.State.SUCCEEDED);
+                            }
+                        }
+
+                        lastNode = current; //keep track of previous node explored
+                        current = current.child; //iterate through children
+                    }
+
+                    //if we reach this point, it means we started directly on an existing path
+
+                    return new PathResultImpl(intersection, successful.operation(), successful.visitedNodes(),
+                            successful.destination(), PathOperation.State.SUCCEEDED);
+                }
+            }
         }
 
         return null;
@@ -232,15 +296,32 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      */
     @Override
     public @NotNull Future<PathResult> giveOperation(@NotNull PathOperation operation, @NotNull World world) {
-        UUID worldID = world.getUID();
-        Context context = contextMap.get(worldID);
-        if(context == null) {
-            context = new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE));
-            contextMap.put(worldID, context);
+        Context context;
+        synchronized (contexts) {
+            context = contexts.computeIfAbsent(world.getUID(), (key) ->
+                    new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
         }
 
-        Context finalContext = context;
-        return completionService.submit(() -> processOperation(finalContext, operation));
+        synchronized (context.runningOperations) {
+            context.runningOperations.add(operation);
+        }
+
+        return completionService.submit(() -> {
+            PathResult result = processOperation(context, operation);
+            context.blockCollisionProvider.clearRegion(operation.searchArea());
+
+            synchronized (context.runningOperations) {
+                if(context.runningOperations.remove(operation)) {
+                    synchronized (contexts) {
+                        if(context.runningOperations.isEmpty())  {
+                            contexts.remove(world.getUID());
+                        }
+                    }
+                }
+            }
+
+            return result;
+        });
     }
 
     @Override
@@ -248,22 +329,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         return true;
     }
 
-    @EventHandler
-    private void onWorldUnload(WorldUnloadEvent event) {
-        Context context = contextMap.remove(event.getWorld().getUID());
-        if(context != null) {
-            context.blockProvider().clearOwned();
-        }
-    }
-
     public static AsyncPathfinderEngine instance() {
         return INSTANCE;
-    }
-
-    /**
-     * Re-register events on plugin reload or instantiation
-     */
-    public void registerEvents() {
-        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 }

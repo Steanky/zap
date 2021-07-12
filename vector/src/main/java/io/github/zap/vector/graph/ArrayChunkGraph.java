@@ -102,7 +102,7 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
 
     @Override
     public boolean hasElement(int x, int y, int z) {
-        return elementAt(x, y, z) != null;
+        return inRange((x >> 4) - minX, y, (z >> 4) - minZ) && elementAt(x, y, z) != null;
     }
 
     @Override

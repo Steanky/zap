@@ -11,7 +11,6 @@ import java.util.*;
 
 class PathResultImpl implements PathResult {
     private final PathNode start;
-    private final PathNode end;
     private final PathOperation operation;
     private final PathDestination destination;
     private final ChunkGraph<PathNode> visitedNodes;
@@ -27,24 +26,15 @@ class PathResultImpl implements PathResult {
         this.destination = destination;
         this.state = state;
 
-        PathNode end = null;
         while(start != null) {
             pathNodes.add(start);
-            end = start;
             start = start.parent;
         }
-
-        this.end = end;
     }
 
     @Override
     public @NotNull PathNode start() {
         return start;
-    }
-
-    @Override
-    public @NotNull PathNode end() {
-        return end;
     }
 
     @Override
