@@ -45,6 +45,7 @@ import io.github.zap.zombies.stats.map.MapStats;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
 import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
@@ -68,6 +69,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -508,6 +510,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     @Getter
     private int zombiesLeft;
 
+    private RoundContext currentRound = null;
+
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
      *
@@ -735,8 +739,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     }
 
     private void checkNextRound() {
-        if(zombiesLeft == 0 && state == ZombiesArenaState.STARTED){
-            doRound();
+        if(zombiesLeft == 0 && state == ZombiesArenaState.STARTED) {
+            Property<Integer> currentRound = map.getCurrentRoundProperty();
+            doRound(currentRound.getValue(this) + 1);
         }
     }
 
@@ -1104,13 +1109,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 }
             }
 
-            doRound();
+            doRound(0);
         }
     }
 
-    private void doRound() {
-        Property<Integer> currentRoundProperty = map.getCurrentRoundProperty();
-        int currentRoundIndex = currentRoundProperty.getValue(this), lastRoundIndex = currentRoundIndex - 1;
+    public void doRound(int targetRound) {
+        Property<Integer> roundIndexProperty = map.getCurrentRoundProperty();
+
+        int lastRoundIndex = targetRound - 1;
+
         int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
 
         for (ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
@@ -1148,18 +1155,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             }
         }
 
-
-
+        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>());
         List<RoundData> rounds = map.getRounds();
-        if(currentRoundIndex < rounds.size()) {
-            RoundData currentRound = rounds.get(currentRoundIndex);
+        if(targetRound < rounds.size()) {
+            RoundData currentRound = rounds.get(targetRound);
 
             long cumulativeDelay = 0;
             zombiesLeft = 0;
             for (WaveData wave : currentRound.getWaves()) {
                 cumulativeDelay += wave.getWaveLength();
 
-                runTaskLater(cumulativeDelay, () -> {
+                BukkitTask waveSpawnTask = runTaskLater(cumulativeDelay, () -> {
                     List<ActiveMob> spawnedMobs = spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
                             wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false);
 
@@ -1168,24 +1174,33 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
                     }
 
-                    runTaskLater(6000, () -> {
+                    BukkitTask removeMobTask = runTaskLater(6000, () -> {
                         for(ActiveMob mob : spawnedMobs) {
-                            mob.getEntity().getBukkitEntity().remove();
+                            Entity entity = mob.getEntity().getBukkitEntity();
+
+                            if(entity != null) {
+                                entity.remove();
+                            }
                         }
                     });
+
+                    context.removeTasks().add(removeMobTask);
                 });
+
+                context.spawnTasks().add(waveSpawnTask);
 
                 for(SpawnEntryData spawnEntryData : wave.getSpawnEntries()) {
                     zombiesLeft += spawnEntryData.getMobCount();
                 }
             }
 
-            currentRoundProperty.setValue(this, currentRoundIndex + 1);
+            roundIndexProperty.setValue(this, targetRound);
+
             getPlayerMap().forEach((l,r) -> {
                 Player bukkitPlayer = r.getPlayer();
                 if(bukkitPlayer != null) {
                     var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
-                            currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (currentRoundIndex + 1);
+                            currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (targetRound + 1);
                     bukkitPlayer.sendTitle(messageTitle, "");
                     bukkitPlayer.playSound(Sound.sound(
                             Key.key("minecraft:entity.wither.spawn"),
@@ -1196,7 +1211,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 }
             });
 
-            if(getMap().getDisablePowerUpRound().contains(currentRoundIndex + 1)) {
+            if(getMap().getDisablePowerUpRound().contains(targetRound + 1)) {
                 var items =getPowerUps().stream()
                         .filter(x -> x.getState() == PowerUpState.NONE || x.getState() == PowerUpState.DROPPED)
                         .collect(Collectors.toSet());
@@ -1207,6 +1222,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             //game just finished, do win condition
             state = ZombiesArenaState.ENDED;
             doVictory();
+        }
+
+        if(currentRound != null) {
+            currentRound.cancelTasks();
+            currentRound = context;
         }
     }
 
