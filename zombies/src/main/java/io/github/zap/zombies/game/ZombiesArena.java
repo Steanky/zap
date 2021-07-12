@@ -1158,7 +1158,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>());
         List<RoundData> rounds = map.getRounds();
         if(targetRound < rounds.size()) {
-            RoundData currentRound = rounds.get(targetRound);
+            RoundData currentRound = rounds.get(targetRound - 1);
 
             long cumulativeDelay = 0;
             zombiesLeft = 0;
