@@ -1109,7 +1109,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 }
             }
 
-            doRound(0);
+            doRound(1);
         }
     }
 

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;
+import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
@@ -20,7 +21,7 @@ import java.util.Iterator;
 public class GotoRoundForm extends CommandForm<Pair<Player, Arena<?>>> {
     private static final Parameter[] parameters = new Parameter[] {
             new Parameter("gotoRound"),
-            new Parameter(Regexes.NON_NEGATIVE_INTEGER)
+            new Parameter(Regexes.NON_NEGATIVE_INTEGER, "[round-index]", Converters.INTEGER_CONVERTER)
     };
 
     private static final CommandValidator<Pair<Player, Arena<?>>, Player> validator =
@@ -31,7 +32,11 @@ public class GotoRoundForm extends CommandForm<Pair<Player, Arena<?>>> {
                     if(next.hasPlayer(player.getUniqueId())) {
                         if(next instanceof ZombiesArena zombiesArena) {
                             int roundIndex = (int)objects[1];
-                            if(roundIndex < zombiesArena.getMap().getRounds().size() && roundIndex >= 0) {
+                            if(roundIndex <= zombiesArena.getMap().getRounds().size() && roundIndex > 0) {
+                                if(zombiesArena.getMap().getCurrentRoundProperty().getValue(zombiesArena) == roundIndex) {
+                                    return ValidationResult.of(false, "It is already round " + roundIndex + "!", null);
+                                }
+
                                 return ValidationResult.of(true, null, Pair.of(player, next));
                             }
 
