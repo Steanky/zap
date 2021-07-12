@@ -29,10 +29,11 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private class Context implements PathfinderContext {
         private final Semaphore syncSemaphore = new Semaphore(MAX_SCHEDULED_SYNC_TASKS);
         private final Object contextSyncHandle = new Object();
-        private final Object queueLock = new Object();
 
+        private final Object queueLock = new Object();
         private final Queue<PathResult> successfulPaths = new ArrayDeque<>();
         private final Queue<PathResult> failedPaths = new ArrayDeque<>();
+
         private final BlockCollisionProvider blockCollisionProvider;
 
         private int lastSyncTick = -1;
@@ -151,19 +152,13 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      * during synchronization (in which case it may have partially completed) the value returned will be false.
      *
      * Synchronization can be forced by setting the force parameter to true. Note that the maximum number of sync tasks
-     * queued at once will never be bypassed; if force is set to true, the future will wait indefinitely.
+     * queued at once will never be bypassed; if force is set to true, the future will wait indefinitely for sync to
+     * complete (unless it is interrupted).
      */
     private Future<Boolean> trySyncChunks(Context context, ChunkCoordinateProvider coordinateProvider, boolean force) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
 
         int currentTick = Bukkit.getCurrentTick();
-        int age;
-        boolean canUpdate;
-
-        synchronized (context.contextSyncHandle) {
-            age = currentTick - context.lastSyncTick;
-            canUpdate = age >= MIN_CHUNK_SYNC_AGE;
-        }
 
         /*
         defer to threads that have already scheduled synchronization on this context, up to a maximum of
@@ -174,13 +169,18 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         really, really needs fresh chunks, such as for a new PathOperation or one that's going on in a really outdated
         area
         */
-        if(force || (canUpdate && context.syncSemaphore.tryAcquire())) {
+        if(force || ((currentTick - context.lastSyncTick) >= MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire())) {
             if(force) {
                 /*
                  * respect the hard limit of bukkit tasks, but we really need this operation to complete, so wait
                  * to acquire it
                  */
-                context.syncSemaphore.acquireUninterruptibly();
+                try {
+                    context.syncSemaphore.acquire();
+                }
+                catch (InterruptedException e) {
+                    ArenaApi.warning("Interrupted while attemping to acquire sychronization semaphore.");
+                }
             }
 
             CountDownLatch latch = new CountDownLatch(1);
@@ -188,6 +188,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 boolean noErr = true;
                 try {
                     context.blockCollisionProvider.updateRegion(coordinateProvider);
+                    context.lastSyncTick = currentTick;
                 }
                 catch (Exception exception) {
                     ArenaApi.warning("An exception occurred while synchronizing chunks:");
@@ -207,16 +208,11 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     latch.await(); //await forever if forced, to ensure pathing in urgent cases is not premature
                 } else if(!latch.await(CHUNK_SYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
                     ArenaApi.warning("Chunk synchronizing took more than " + CHUNK_SYNC_TIMEOUT_MS + "ms! Is the server lagging?");
-                    Bukkit.getScheduler().cancelTask(taskId);
+                    Bukkit.getScheduler().cancelTask(taskId); //don't bother to finish sync on a laggy server
                 }
-            } catch (InterruptedException interruptedException) {
+            } catch (InterruptedException ignored) {
                 ArenaApi.warning("Interrupted while waiting for chunks to sync: ");
-                interruptedException.printStackTrace();
                 Bukkit.getScheduler().cancelTask(taskId);
-            }
-
-            synchronized (context.contextSyncHandle) {
-                context.lastSyncTick = currentTick;
             }
 
             return result;
