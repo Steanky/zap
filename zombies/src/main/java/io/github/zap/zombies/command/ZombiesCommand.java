@@ -1,6 +1,7 @@
 package io.github.zap.zombies.command;
 
 import io.github.regularcommands.commands.RegularCommand;
+import io.github.zap.zombies.command.game.GotoRoundForm;
 import io.github.zap.zombies.command.game.QuitGameForm;
 
 /**
@@ -14,5 +15,6 @@ public class ZombiesCommand extends RegularCommand {
         addForm(new JoinZombiesGameForm());
         addForm(new RejoinZombiesGameForm());
         addForm(new QuitGameForm());
+        addForm(new GotoRoundForm());
     }
 }
