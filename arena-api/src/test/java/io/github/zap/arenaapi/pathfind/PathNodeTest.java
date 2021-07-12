@@ -10,8 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
-
 public class PathNodeTest {
     private List<PathNode> testNodes = new ArrayList<>();
 
@@ -44,7 +42,8 @@ public class PathNodeTest {
         PathNode reversed = testNodes.get(testNodes.size() - 1).reverse();
 
         Assert.assertTrue(deepEquals(reversed, testNodes.get(0)));
-        Assert.assertTrue(ensureOneWay(reversed));
+        Assert.assertTrue(ensureNonLoopingParentTraversal(reversed));
+        Assert.assertTrue(ensureNonLoopingChildTraversal(testNodes.get(testNodes.size() - 1)));
 
         int parentCount = 0;
         while(reversed.parent != null) {
@@ -57,6 +56,16 @@ public class PathNodeTest {
 
     private boolean deepEquals(PathNode one, PathNode two) {
         while(one != null) {
+            PathNode oneChild = one.child;
+            PathNode twoChild = two == null ? null : two.child;
+
+            if(oneChild != null && twoChild != null) {
+                if(!oneChild.equals(twoChild))  {
+                    return false;
+                }
+            }
+            else return oneChild == twoChild;
+
             if(!one.equals(two)) {
                 return false;
             }
@@ -68,12 +77,28 @@ public class PathNodeTest {
         return two == null;
     }
 
-    private boolean ensureOneWay(PathNode node) {
+    private boolean ensureNonLoopingParentTraversal(PathNode node) {
         Set<PathNode> previousNodes = new HashSet<>();
         previousNodes.add(node);
 
         while(node.parent != null) {
             node = node.parent;
+            if(previousNodes.contains(node)) {
+                return false;
+            }
+
+            previousNodes.add(node);
+        }
+
+        return true;
+    }
+
+    private boolean ensureNonLoopingChildTraversal(PathNode node) {
+        Set<PathNode> previousNodes = new HashSet<>();
+        previousNodes.add(node);
+
+        while(node.child != null) {
+            node = node.child;
             if(previousNodes.contains(node)) {
                 return false;
             }

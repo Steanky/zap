@@ -168,7 +168,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public int iterations() {
-        return 200;
+        return 50;
     }
 
     @Override

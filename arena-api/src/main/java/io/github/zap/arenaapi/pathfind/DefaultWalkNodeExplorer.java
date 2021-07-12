@@ -104,7 +104,9 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                     direction, blockMaxY);
 
             if(node != null) {
-                node.setParent(current);
+                node.parent = current;
+                current.child = node;
+
                 calculateAversion(node, context.blockProvider());
                 buffer[j++] = node;
             }

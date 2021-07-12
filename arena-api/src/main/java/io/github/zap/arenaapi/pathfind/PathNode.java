@@ -88,11 +88,6 @@ public class PathNode implements Positional {
         return (child = new PathNode(new Score(), this, x, y, z));
     }
 
-    public void setParent(@Nullable PathNode parent) {
-        this.parent = parent;
-        parent.child = this;
-    }
-
     @Override
     public @NotNull VectorAccess position() {
         return position;
@@ -109,12 +104,16 @@ public class PathNode implements Positional {
         while(current != null) {
             PathNode next = current.parent;
             current.parent = previous;
-            previous.child = current;
+
+            if(previous != null) {
+                previous.child = current;
+            }
 
             previous = current;
             current = next;
         }
 
+        previous.child = null;
         return previous;
     }
 

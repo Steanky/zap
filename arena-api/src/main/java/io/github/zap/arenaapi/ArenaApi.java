@@ -79,7 +79,6 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         StopWatch timer = StopWatch.createStarted();
 
         try {
-            AsyncPathfinderEngine.instance().registerEvents();
             initBridge();
             initDependencies();
             initMapper();

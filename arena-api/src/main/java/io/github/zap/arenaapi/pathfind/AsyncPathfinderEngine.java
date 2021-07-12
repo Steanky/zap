@@ -14,10 +14,10 @@ import java.util.concurrent.*;
 
 public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
-    private static final int MIN_CHUNK_SYNC_AGE = 15;
-    private static final int PATH_CAPACITY = 32;
+    private static final int MIN_CHUNK_SYNC_AGE = 20;
+    private static final int PATH_CAPACITY = 128;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
-    private static final double URGENT_SYNC_THRESHOLD = 0.8;
+    private static final double URGENT_SYNC_THRESHOLD = 1;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
     private final ExecutorCompletionService<PathResult> completionService =
@@ -28,8 +28,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private class Context implements PathfinderContext {
         private final Semaphore syncSemaphore = new Semaphore(MAX_SCHEDULED_SYNC_TASKS);
         private final Object contextSyncHandle = new Object();
-
-        private final List<PathOperation> runningOperations = new ArrayList<>();
 
         private final Queue<PathResult> successfulPaths = new ArrayDeque<>();
         private final Queue<PathResult> failedPaths = new ArrayDeque<>();
@@ -115,6 +113,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                 if(operation.allowMerges()) {
                     PathResult result = attemptMergeFor(context, operation);
+
                     if(result != null) {
                         return result;
                     }
@@ -182,7 +181,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     }
 
                     //if we reach this point, it means we started directly on an existing path
-
                     return new PathResultImpl(intersection, successful.operation(), successful.visitedNodes(),
                             successful.destination(), PathOperation.State.SUCCEEDED);
                 }
@@ -206,7 +204,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             }
         }
 
-        return (double)presentAndFresh / (double)chunks.chunkCount() < URGENT_SYNC_THRESHOLD;
+        return (double)presentAndFresh / (double)chunks.chunkCount() >= URGENT_SYNC_THRESHOLD;
     }
 
     /**
@@ -255,7 +253,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 boolean noErr = true;
                 try {
                     context.blockCollisionProvider.updateRegion(coordinateProvider);
-                    context.lastSyncTick = currentTick;
+                    context.lastSyncTick = Bukkit.getCurrentTick();
                 }
                 catch (Exception exception) {
                     ArenaApi.warning("An exception occurred while synchronizing chunks:");
@@ -302,26 +300,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
         }
 
-        synchronized (context.runningOperations) {
-            context.runningOperations.add(operation);
-        }
-
-        return completionService.submit(() -> {
-            PathResult result = processOperation(context, operation);
-            context.blockCollisionProvider.clearRegion(operation.searchArea());
-
-            synchronized (context.runningOperations) {
-                if(context.runningOperations.remove(operation)) {
-                    synchronized (contexts) {
-                        if(context.runningOperations.isEmpty())  {
-                            contexts.remove(world.getUID());
-                        }
-                    }
-                }
-            }
-
-            return result;
-        });
+        return completionService.submit(() -> processOperation(context, operation));
     }
 
     @Override

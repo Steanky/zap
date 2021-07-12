@@ -44,12 +44,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
             if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
                 CollisionChunkSnapshot oldSnapshot = chunks.get(targetChunk);
-                if(oldSnapshot != null && Bukkit.getCurrentTick() - oldSnapshot.captureTick() < maxCaptureAge) {
-                    return;
-                }
 
-                chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
-                        .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
+                if(oldSnapshot == null || Bukkit.getCurrentTick() - oldSnapshot.captureTick() > maxCaptureAge) {
+                    chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
+                            .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
+                }
             }
             else {
                 chunks.remove(targetChunk);
