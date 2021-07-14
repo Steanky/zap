@@ -18,9 +18,9 @@ public class PiglinShopData extends ShopData {
 
     private Vector piglinLocation;
 
-    private List<Jingle.Note> jingle;
-
     private List<String> equipments;
+
+    private float direction = 0.0F;
 
     private long sittingTime = 200;
 

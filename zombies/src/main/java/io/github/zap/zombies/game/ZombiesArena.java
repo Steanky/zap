@@ -565,7 +565,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         getProxyFor(PlayerDeathEvent.class).registerHandler(this::onPlayerDeath);
         getProxyFor(EntityRemoveFromWorldEvent.class).registerHandler(this::onEntityRemoveFromWorldEvent);
         getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
-        getProxyFor(PlayerInteractEntityEvent.class).registerHandler(this::onPlayerInteractEntity);
         getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
         getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
         getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
@@ -945,24 +944,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
         if (entity.getWorld().equals(world) && entity instanceof ItemFrame) {
             event.setCancelled(true);
-        }
-    }
-
-    private void onPlayerInteractEntity(ProxyArgs<PlayerInteractEntityEvent> args) {
-        PlayerInteractEntityEvent event = args.getEvent();
-        ZombiesPlayer player = args.getManagedPlayer();
-
-        if (player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
-            boolean noInteractions = true;
-            for (Shop<?> shop : shops) {
-                if (shop.interact(args)) {
-                    noInteractions = false;
-                    break;
-                }
-            }
-            if (noInteractions) {
-                player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
-            }
         }
     }
 
@@ -1376,7 +1357,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 {
                     List<Shop<?>> chests = new ArrayList<>(shopMapChests);
 
-                    if (map.isChestCanStartInSpawnRoom()) {
+                    if (!map.isChestCanStartInSpawnRoom()) {
                         RoomData spawnRoom = map.roomAt(map.getSpawn());
                         chests.removeIf(chest -> {
                             LuckyChest luckyChest = (LuckyChest) chest;
@@ -1410,8 +1391,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 }
             });
         }
-        Event<ShopEventArgs> piglinShopEvent = getShopEvent(ShopType.LUCKY_CHEST.name());
-        List<Shop<?>> shopMapPiglins = shopMap.get(ShopType.LUCKY_CHEST.name());
+        Event<ShopEventArgs> piglinShopEvent = getShopEvent(ShopType.PIGLIN_SHOP.name());
+        List<Shop<?>> shopMapPiglins = shopMap.get(ShopType.PIGLIN_SHOP.name());
         if (piglinShopEvent != null && shopMapPiglins != null) {
             piglinShopEvent.registerHandler(new EventHandler<>() {
 
@@ -1420,7 +1401,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 {
                     List<Shop<?>> piglins = new ArrayList<>(shopMapPiglins);
 
-                    if (map.isChestCanStartInSpawnRoom()) {
+                    if (!map.isChestCanStartInSpawnRoom()) {
                         RoomData spawnRoom = map.roomAt(map.getSpawn());
                         piglins.removeIf(piglin -> {
                             PiglinShop piglinShop = (PiglinShop) piglin;
@@ -1428,11 +1409,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                         });
                     }
 
-                    PiglinShop luckyChest
+                    PiglinShop piglinShop
                             = (PiglinShop) piglins.get(random.nextInt(piglins.size()));
-                    luckyChest.setActive(true);
+                    piglinShop.setActive(true);
 
-                    RoomData room = map.roomAt(luckyChest.getShopData().getPiglinLocation());
+                    RoomData room = map.roomAt(piglinShop.getShopData().getPiglinLocation());
                     piglinRoom = room != null ? room.getRoomDisplayName() : null;
                 }
 

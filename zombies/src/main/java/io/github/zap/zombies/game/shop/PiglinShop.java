@@ -45,6 +45,8 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
     private Sitter sitter;
 
+    private boolean init = false;
+
     private boolean active = false;
 
     private boolean doneThinking = false;
@@ -93,7 +95,6 @@ public class PiglinShop extends Shop<PiglinShopData> {
         dream.setInvulnerable(true);
         dream.setPersistent();
         dream.setNoAI(true);
-        dream.f(shopData.getPiglinLocation().getX(), shopData.getPiglinLocation().getY(), shopData.getPiglinLocation().getZ());
 
         hologram = new Hologram(shopData.getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(arena.getWorld()));
         for (String equipmentName : shopData.getEquipments()) {
@@ -128,8 +129,10 @@ public class PiglinShop extends Shop<PiglinShopData> {
                             : String.format("%s%s%d Gold", ChatColor.YELLOW, ChatColor.BOLD, getShopData().getCost()));
 
         }
-        if (dream.getWorld() == null) {
+        if (!init) {
             ((CraftWorld) getArena().getWorld()).addEntity(dream, CreatureSpawnEvent.SpawnReason.CUSTOM);
+            dream.setPositionRotation(getShopData().getPiglinLocation().getX(), getShopData().getPiglinLocation().getY(), getShopData().getPiglinLocation().getZ(), getShopData().getDirection(), 0.0F);
+            init = true;
         }
 
         super.display();
@@ -192,7 +195,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
                                 dream.setSlot(EnumItemSlot.OFFHAND, ItemStack.NULL_ITEM);
                                 dream.setSlot(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(equipmentData.getMaterial())));
 
-                                getArena().runTaskTimer(0L, 2L, sitter);
+                                getArena().runTaskTimer(0L, 2L, sitter = new Sitter(player));
                             });
 
                             return true;
@@ -304,7 +307,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
             doneThinking = true;
             endHologram.addLine(ChatColor.RED + "Right Click to Claim!");
             endHologram.addLine(ChatColor.RED + equipmentData.getDisplayName());
-            endHologram.addLine("");
+            endHologram.addLine(ChatColor.YELLOW + equipmentData.getDisplayName());
 
             if (roller.isOnline()) {
                 roller.sendMessage(Component.text("You got a ", NamedTextColor.RED)
@@ -329,6 +332,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
             endHologram.destroy();
             equipmentData = null;
             roller = null;
+            dream.setSlot(EnumItemSlot.MAINHAND, ItemStack.NULL_ITEM);
 
             display();
             onPurchaseSuccess(player);
