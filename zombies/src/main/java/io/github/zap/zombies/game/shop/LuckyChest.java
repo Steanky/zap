@@ -357,7 +357,9 @@ public class LuckyChest extends Shop<LuckyChestData> {
                     .text("You found ", NamedTextColor.RED)
                     .append(Component.text(currentEquipment.getDisplayName(), NamedTextColor.YELLOW))
                     .append(Component.text(" in the Lucky Chest!", NamedTextColor.RED));
-            roller.sendMessage(message);
+            if (roller.isOnline()) {
+                roller.sendMessage(message);
+            }
 
             sittingTaskId = getArena().runTaskTimer(0L, 2L, new Runnable() {
 

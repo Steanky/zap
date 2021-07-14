@@ -429,6 +429,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private String luckyChestRoom;
 
     @Getter
+    private String piglinRoom;
+
+    @Getter
     private final String corpseTeamName = UUID.randomUUID().toString().substring(0, 16);
 
     @Getter
@@ -1354,7 +1357,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 {
                     List<Shop<?>> chests = new ArrayList<>(shopMapChests);
 
-                    if (map.isChestCanStartInSpawnRoom()) {
+                    if (!map.isChestCanStartInSpawnRoom()) {
                         RoomData spawnRoom = map.roomAt(map.getSpawn());
                         chests.removeIf(chest -> {
                             LuckyChest luckyChest = (LuckyChest) chest;
@@ -1382,6 +1385,50 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                         nextLuckyChest.setActive(true);
                         RoomData room = map.roomAt(nextLuckyChest.getShopData().getChestLocation());
                         luckyChestRoom = room != null ? room.getRoomDisplayName() : null;
+
+                        rolls = 0;
+                    }
+                }
+            });
+        }
+        Event<ShopEventArgs> piglinShopEvent = getShopEvent(ShopType.PIGLIN_SHOP.name());
+        List<Shop<?>> shopMapPiglins = shopMap.get(ShopType.PIGLIN_SHOP.name());
+        if (piglinShopEvent != null && shopMapPiglins != null) {
+            piglinShopEvent.registerHandler(new EventHandler<>() {
+
+                private final Random random = new Random();
+                int rolls = 0;
+                {
+                    List<Shop<?>> piglins = new ArrayList<>(shopMapPiglins);
+
+                    if (!map.isChestCanStartInSpawnRoom()) {
+                        RoomData spawnRoom = map.roomAt(map.getSpawn());
+                        piglins.removeIf(piglin -> {
+                            PiglinShop piglinShop = (PiglinShop) piglin;
+                            return spawnRoom.getBounds().contains(piglinShop.getShopData().getPiglinLocation());
+                        });
+                    }
+
+                    PiglinShop piglinShop
+                            = (PiglinShop) piglins.get(random.nextInt(piglins.size()));
+                    piglinShop.setActive(true);
+
+                    RoomData room = map.roomAt(piglinShop.getShopData().getPiglinLocation());
+                    piglinRoom = room != null ? room.getRoomDisplayName() : null;
+                }
+
+                @Override
+                public void handleEvent(ShopEventArgs args) {
+                    if (++rolls == map.getRollsPerChest()) {
+                        PiglinShop piglinShop = (PiglinShop) args.getShop();
+                        piglinShop.setActive(false);
+                        List<Shop<?>> piglins = new ArrayList<>(shopMap.get(piglinShop.getShopType()));
+                        piglins.remove(piglinShop);
+
+                        PiglinShop nextPiglinShop = ((PiglinShop) piglins.get(random.nextInt(piglins.size())));
+                        nextPiglinShop.setActive(true);
+                        RoomData room = map.roomAt(nextPiglinShop.getShopData().getPiglinLocation());
+                        piglinRoom = room != null ? room.getRoomDisplayName() : null;
 
                         rolls = 0;
                     }

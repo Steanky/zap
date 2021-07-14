@@ -52,6 +52,12 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 displayToPlayer(player);
             }
         });
+        getArena().getShopEvent(ShopType.PIGLIN_SHOP.name()).registerHandler(args -> {
+            Player player = args.getZombiesPlayer().getPlayer();
+            if (player != null) {
+                displayToPlayer(player);
+            }
+        });
     }
 
     @Override

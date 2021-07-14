@@ -30,6 +30,7 @@ public class JacksonShopManager implements ShopManager {
         addShop(ShopType.DOOR.name(), DoorData.class, Door::new);
         addShop(ShopType.GUN_SHOP.name(), GunShopData.class, GunShop::new);
         addShop(ShopType.LUCKY_CHEST.name(), LuckyChestData.class, LuckyChest::new);
+        addShop(ShopType.PIGLIN_SHOP.name(), PiglinShopData.class, PiglinShop::new);
         addShop(ShopType.PERK_MACHINE.name(), PerkMachineData.class, PerkMachine::new);
         addShop(ShopType.POWER_SWITCH.name(), PowerSwitchData.class, PowerSwitch::new);
         addShop(ShopType.TEAM_MACHINE.name(), TeamMachineData.class, TeamMachine::new);
