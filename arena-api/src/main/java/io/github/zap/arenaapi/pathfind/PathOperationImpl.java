@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.vector.VectorAccess;
 import io.github.zap.vector.graph.ArrayChunkGraph;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 class PathOperationImpl implements PathOperation {
+    private static final double MERGE_TOLERANCE_SQUARED = 1;
+
     private final PathAgent agent;
     private final Set<? extends PathDestination> destinations;
     private State state;
@@ -210,7 +213,7 @@ class PathOperationImpl implements PathOperation {
     public boolean mergeValid(@NotNull PathOperation mergeInto) {
         PathAgent.Characteristics mergeIntoCharacteristics = mergeInto.agent().characteristics();
 
-        return this == mergeInto || (nodeExplorer.equals(mergeInto.nodeProvider()) &&
+        return this != mergeInto && (nodeExplorer.equals(mergeInto.nodeProvider()) &&
                 mergeIntoCharacteristics.width() >= agent.characteristics().width() &&
                 mergeIntoCharacteristics.jumpHeight() <= agent.characteristics().jumpHeight() &&
                 mergeIntoCharacteristics.height() >= agent.characteristics().height() &&
@@ -232,7 +235,7 @@ class PathOperationImpl implements PathOperation {
         result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
     }
 
-    private boolean checkDestinationComparability(PathDestination other) {
+    private boolean checkDestinationComparability(VectorAccess other) {
         if(other == null) {
             return bestDestination == null;
         }

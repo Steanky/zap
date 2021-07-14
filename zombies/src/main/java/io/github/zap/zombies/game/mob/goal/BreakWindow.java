@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
+import io.github.zap.arenaapi.pathfind.PathTarget;
 import io.github.zap.arenaapi.shadow.io.github.zap.vector.VectorAccess;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -97,14 +98,15 @@ public class BreakWindow extends BasicMetadataPathfinder {
             completed = true;
         }
         else {
-            if(++navCounter >= 20) {
+            if(++navCounter >= 10) {
                 getProxy().lookAtPosition(self.getControllerLook(), destination.getX(), destination.getY(),
                         destination.getZ(), 30.0F, 30.0F);
 
                 getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
-                        PathDestination.fromVector(VectorAccess.immutable(destination))), 3), arena.getWorld());
+                        PathDestination.fromVector(VectorAccess.immutable(destination),  new PathTarget() {})),
+                        3), arena.getWorld());
 
-                navCounter = self.getRandom().nextInt(20);
+                navCounter = self.getRandom().nextInt(10);
             }
 
             PathResult result = getHandler().tryTakeResult();

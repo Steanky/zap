@@ -6,9 +6,11 @@ import org.jetbrains.annotations.NotNull;
 
 class PathDestinationImpl implements PathDestination {
     private final ImmutableWorldVector position;
+    private final PathTarget target;
 
-    PathDestinationImpl(@NotNull ImmutableWorldVector position) {
+    PathDestinationImpl(@NotNull ImmutableWorldVector position, @NotNull PathTarget target) {
         this.position = VectorAccess.immutable(position.blockX(), position.blockY(), position.blockZ());
+        this.target = target;
     }
 
     @Override
@@ -28,5 +30,10 @@ class PathDestinationImpl implements PathDestination {
     @Override
     public @NotNull VectorAccess position() {
         return position;
+    }
+
+    @Override
+    public @NotNull PathTarget target() {
+        return target;
     }
 }

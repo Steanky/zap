@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.ChunkVectorAccess;
+import io.github.zap.vector.VectorAccess;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -110,7 +111,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
         catch (Exception exception) {
             ArenaApi.warning("Exception thrown in PathOperation handler:");
-            exception.fillInStackTrace().printStackTrace();
+            exception.printStackTrace();
 
             ArenaApi.warning("Cause: " + exception.getCause());
         }
@@ -139,34 +140,43 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     while(current != null) {
                         PathNode parent = current.parent;
 
-                        if(parent != null) {
-                            if(lastNode != parent) { //we found a break; indicative of the previous path
-                                intersection.parent = currentNode.parent; //make sure intersection fits in with our explored nodes
-                                if(currentNode.parent != null) {
-                                    currentNode.parent.child = intersection;
-                                }
-
-                                PathNode tail = current;
-                                while(tail.child != null) { //find tail (should be previous origin)
-                                    tail = tail.child;
-                                }
-
-                                current.parent = null; //set parent to null so we don't reverse the whole path
-                                tail.reverse(); //reverse our old path to maintain data integrity
-                                current.parent = lastNode; //set parent going the other way, towards our origin
-
-                                PathNode start = current.reverse(); //set current node going towards the shared destination
-                                current.parent = parent; //set our old parent again
-
-                                return new PathResultImpl(start, successful.operation(), successful.visitedNodes(),
-                                        successful.destination(), PathOperation.State.SUCCEEDED);
+                        if(lastNode != null && lastNode != parent) { //we found a break; indicative of the previous path
+                            intersection.parent = currentNode.parent; //make sure intersection fits in with our explored nodes
+                            if(currentNode.parent != null) {
+                                currentNode.parent.child = intersection;
                             }
+
+                            PathNode tail = current;
+                            while(tail.child != null) { //find tail (should be previous origin)
+                                tail = tail.child;
+                            }
+
+                            VectorAccess destPos = successful.destination();
+                            if(!tail.positionEquals(destPos.blockX(), destPos.blockY(), destPos.blockZ())) {
+                                ArenaApi.warning("Did not successfully find dest tail by backtrack");
+                            }
+
+                            current.parent = null; //set parent to null so we don't reverse the whole path
+                            PathNode test = tail.reverse(); //reverse our old path to maintain data integrity
+                            current.parent = lastNode; //set parent going the other way, towards our origin
+
+                            if(test != currentNode) {
+                                ArenaApi.warning("Result of reversing tail was not parent");
+                            }
+
+                            PathNode start = current.reverse(); //set current node going towards the shared destination
+                            current.parent = parent; //set our old parent again
+
+                            ArenaApi.info("Merged path (by finding common explored node)");
+                            return new PathResultImpl(start, successful.operation(), resultVisited,
+                                    successful.destination(), PathOperation.State.SUCCEEDED);
                         }
 
                         lastNode = current; //keep track of previous node explored
                         current = current.child; //iterate through children
                     }
 
+                    ArenaApi.info("Merged path (because we're standing on a path node)");
                     //if we reach this point, it means we started directly on an existing path
                     return new PathResultImpl(intersection, successful.operation(), successful.visitedNodes(),
                             successful.destination(), PathOperation.State.SUCCEEDED);

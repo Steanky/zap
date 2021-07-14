@@ -13,32 +13,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public interface PathDestination extends Positional {
-    static @NotNull PathDestination fromEntity(@NotNull Entity entity, boolean findBlock) {
+    @NotNull PathTarget target();
+
+    static @NotNull PathDestination fromEntity(@NotNull Entity entity, @NotNull PathTarget target, boolean findBlock) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) : VectorAccess.immutable(entity.getLocation().toVector()));
+        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) :
+                VectorAccess.immutable(entity.getLocation().toVector()), target);
     }
 
-    static @NotNull PathDestination fromCoordinates(double x, double y, double z) {
-        return new PathDestinationImpl(VectorAccess.immutable(x, y, z));
+    static @NotNull PathDestination fromCoordinates(@NotNull PathTarget target,double x, double y, double z) {
+        return new PathDestinationImpl(VectorAccess.immutable(x, y, z), target);
     }
 
-    static @NotNull PathDestination fromVector(@NotNull ImmutableWorldVector source) {
+    static @NotNull PathDestination fromVector(@NotNull ImmutableWorldVector source, @NotNull PathTarget target) {
         Objects.requireNonNull(source, "source cannot be null!");
-        return new PathDestinationImpl(source);
-    }
-
-    static @NotNull Set<PathDestination> fromEntities(@NotNull Collection<? extends Entity> entities, boolean findBlocks) {
-        Objects.requireNonNull(entities, "entities cannot be null!");
-        Validate.isTrue(!entities.isEmpty(), "entities collection cannot be empty");
-
-        Set<PathDestination> destinations = new HashSet<>();
-
-        for(Entity entity : entities) {
-            destinations.add(new PathDestinationImpl(findBlocks ? vectorOnGround(entity) :
-                    VectorAccess.immutable(entity.getLocation().toVector())));
-        }
-
-        return destinations;
+        return new PathDestinationImpl(source, target);
     }
 
     private static ImmutableWorldVector vectorOnGround(Entity entity) {
