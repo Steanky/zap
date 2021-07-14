@@ -15,7 +15,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -45,6 +44,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     private int fireDelayTask = -1;
 
+    private int shootingTask = -1;
+
     public Gun(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
         super(zombiesArena, zombiesPlayer, slot, equipmentData);
 
@@ -59,22 +60,21 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         setAmmo(gunLevel.getAmmo());
         setClipAmmo(gunLevel.getClipAmmo());
 
-        cancelReloadShootingDelay();
+        cancelReloadDelay();
     }
 
     /**
      * Stops any delays relating to reloading and shooting
      */
-    public void cancelReloadShootingDelay() {
+    public void cancelReloadDelay() {
         BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
         if (reloadTask != -1) {
             bukkitScheduler.cancelTask(reloadTask);
         }
-        if (fireDelayTask != -1) {
-            bukkitScheduler.cancelTask(fireDelayTask);
-        }
 
-        canReload = canShoot = true;
+        if (shootingTask == -1) {
+            canReload = true;
+        }
     }
 
     /**
@@ -90,16 +90,10 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 canShoot = false;
 
                 Player player = getPlayer();
-                player.playSound(
-                        Sound.sound(
-                                Key.key("minecraft:entity.horse.gallop"),
-                                Sound.Source.MASTER,
-                                1F,
-                                0.5F
-                        )
-                );
+                player.playSound(Sound.sound(Key.key("minecraft:entity.horse.gallop"), Sound.Source.MASTER, 1F,
+                        0.5F));
 
-                reloadTask = getZombiesArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
+                reloadTask = getArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
                     private final Component reloadingComponent = Component
                             .text("RELOADING")
@@ -120,16 +114,14 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                             }
                         } else {
                             setItemDamage(0);
-
-                            int newClip = Math.min(clipAmmo, currentAmmo);
-                            setClipAmmo(newClip);
+                            setClipAmmo(Math.min(clipAmmo, currentAmmo));
 
                             if (isSelected()) {
                                 getPlayer().sendActionBar(Component.text());
                             }
 
                             canReload = true;
-                            if (fireDelayTask == -1 && currentAmmo > 0) {
+                            if (shootingTask == -1 && fireDelayTask == -1 && currentAmmo > 0) {
                                 canShoot = true;
                             }
                             reloadTask = -1;
@@ -147,29 +139,29 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      * (you win the award for the longest method name in the plugin, congratulations) --Steank
      * March 7, 2021: Award revoked due to method doing more than previously written
      * R.I.P. updateRepresentingItemStackAfterShooting
+     *
+     * @param shots The number of shots the player made
      */
-    protected void updateAfterShooting() {
-        canShoot = false;
-
-        setAmmo(currentAmmo - 1);
-        setClipAmmo(currentClipAmmo - 1);
+    protected void updateAfterShooting(int shots) {
+        setAmmo(currentAmmo - shots);
+        setClipAmmo(currentClipAmmo - shots);
 
         Player player = getPlayer();
 
         // Animate xp bar
-        fireDelayTask = getZombiesArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
+        fireDelayTask = getArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
             @SuppressWarnings("ConstantConditions")
-            private final int goal =
-                    (int) Math.round(getCurrentLevel().getFireRate()
-                            * getZombiesPlayer().getFireRateMultiplier().getValue());
+            private final int goal = (int) Math.round(getCurrentLevel().getFireRate()
+                    * getZombiesPlayer().getFireRateMultiplier().getValue());
+
             private final float stepVal = 1F / goal;
+
             private int step = 0;
 
             @Override
             public void run() {
-                if (step < goal) {
-                    step++;
+                if (step++ < goal) {
                     if (isSelected()) {
                         player.setExp(step * stepVal);
                     }
@@ -178,8 +170,16 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         player.setExp(1);
                     }
 
-                    if (canReload && currentAmmo > 0) {
+                    canReload = true;
+                    if (currentAmmo > 0) {
                         canShoot = true;
+                    }
+                    if (currentClipAmmo == 0) {
+                        if (currentAmmo > 0) {
+                            reload();
+                        } else {
+                            player.sendMessage(Component.text("You don't have any ammo!", NamedTextColor.RED));
+                        }
                     }
                     fireDelayTask = -1;
                     cancel();
@@ -187,13 +187,6 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
             }
 
         }).getTaskId();
-        if (currentClipAmmo == 0) {
-            if (currentAmmo > 0) {
-                reload();
-            } else {
-                player.sendMessage(ChatColor.RED + "no ammo, bro.");
-            }
-        }
 
         Sound sound = getEquipmentData().getSound();
 
@@ -299,12 +292,36 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         super.onRightClick(action);
 
         if (canShoot) {
-            getZombiesArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                    getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1),
-                    PlayerGeneralStats::new);
+            canReload = canShoot = false;
+            shoot(); // Shoot your first shot on the same tick
 
-            shoot();
-            updateAfterShooting();
+            if (getCurrentLevel().getShotsPerClick() > 1) { // Don't schedule if unnecessary
+                shootingTask = getArena().runTaskTimer(1L, 1L, new DisposableBukkitRunnable() {
+
+                    private int firedShots = 1;
+
+                    @Override
+                    public void run() {
+                        if (firedShots++ == Math.min(getCurrentLevel().getShotsPerClick(), currentAmmo)) { // Reload while shooting possible
+                            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                                    getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + firedShots),
+                                    PlayerGeneralStats::new);
+                            updateAfterShooting(firedShots);
+
+                            shootingTask = -1;
+                            cancel();
+                        }
+
+                        shoot();
+                    }
+
+                }).getTaskId();
+            } else {
+                getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                        getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1),
+                        PlayerGeneralStats::new);
+                updateAfterShooting(1);
+            }
         }
     }
 

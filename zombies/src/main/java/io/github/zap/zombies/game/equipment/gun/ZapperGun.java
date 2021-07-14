@@ -21,7 +21,7 @@ public class ZapperGun extends Gun<ZapperGunData, ZapperGunLevel> {
         ZapperGunLevel currentLevel = zapperGunData.getLevels().get(getLevel());
 
         new ZapperBeam(
-                getZombiesArena().getMap(),
+                getArena().getMap(),
                 getZombiesPlayer(),
                 getPlayer().getEyeLocation(),
                 currentLevel,

@@ -31,6 +31,8 @@ public class GunLevel  {
 
     int goldPerHeadshot;
 
+    int shotsPerClick = 1;
+
     protected GunLevel() {
 
     }

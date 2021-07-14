@@ -414,6 +414,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     protected ZombiesArenaState state = ZombiesArenaState.PREGAME;
 
     @Getter
+    private final Random random = new Random(); // TODO: static?
+
+    @Getter
     private final long emptyTimeout;
 
     @Getter
@@ -678,7 +681,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             for (Player player : args.getPlayers()) {
                 player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
 
-                player.sendTitle(ChatColor.YELLOW + "ZOMBIES", "Test version!", 0, 60, 20);
+                player.sendTitle(ChatColor.YELLOW + "ZOMBIES", map.getSplashScreenSubtitles().isEmpty() ? "" : map.getSplashScreenSubtitles().get(random.nextInt(map.getSplashScreenSubtitles().size())), 0, 60, 20);
             }
             Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                 if (startTimeStamp != -1) {
@@ -1245,7 +1248,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
             if(bukkitPlayer != null) {
                 r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
-                r.getPlayer().sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
                 statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
                         (playerStats) -> {
                     PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
@@ -1275,7 +1277,6 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             Player bukkitPlayer = r.getPlayer();
             if(bukkitPlayer != null) {
                 bukkitPlayer.sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
-                bukkitPlayer.sendMessage(ChatColor.YELLOW + "Zombies" + ChatColor.GRAY + " - " + ChatColor.RED + "You probably wanna change this after next beta");
                 bukkitPlayer.sendActionBar(Component.text());
             }
         });

@@ -98,7 +98,7 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
 
             if (usable) {
                 usable = false;
-                getZombiesArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
+                getArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
             }
         }
     }

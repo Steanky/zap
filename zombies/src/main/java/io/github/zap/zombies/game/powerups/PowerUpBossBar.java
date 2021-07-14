@@ -80,7 +80,7 @@ public class PowerUpBossBar implements Disposable, Runnable {
             sb.append(ChatColor.DARK_GRAY).append("...");
         }
         var millis = (longest.getEstimatedEndTimeStamp() - System.currentTimeMillis());
-        sb.append(ChatColor.GRAY).append(" - ").append(formatter.format(millis / 1000f)).append("seconds");
+        sb.append(ChatColor.GRAY).append(" - ").append(formatter.format(millis / 1000f)).append(" seconds");
 
         if(!bukkitBossBar.isVisible()) bukkitBossBar.setVisible(true);
         bukkitBossBar.setTitle(sb.toString());

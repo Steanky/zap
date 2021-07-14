@@ -66,6 +66,11 @@ public class MapData {
     BoundingBox mapBounds = new BoundingBox();
 
     /**
+     * Subtitles to display when the player joins a Zombies game and a title is sent to them
+     */
+    List<String> splashScreenSubtitles = new ArrayList<>();
+
+    /**
      * The spawn vector of this map.
      */
     Vector spawn = new Vector();
