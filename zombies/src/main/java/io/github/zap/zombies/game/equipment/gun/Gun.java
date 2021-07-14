@@ -60,18 +60,20 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         setAmmo(gunLevel.getAmmo());
         setClipAmmo(gunLevel.getClipAmmo());
 
-        cancelReloadDelay();
+        resetStates();
     }
 
     /**
-     * Stops any delays relating to reloading and shooting
+     * Resets shooting or reloading states if applicable
      */
-    public void cancelReloadDelay() {
+    public void resetStates() {
         BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
         if (reloadTask != -1) {
             bukkitScheduler.cancelTask(reloadTask);
         }
-
+        if (fireDelayTask == -1) {
+            canShoot = true;
+        }
         if (shootingTask == -1) {
             canReload = true;
         }
