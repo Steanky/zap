@@ -11,5 +11,6 @@ public enum ShopType {
     ULTIMATE_MACHINE,
     TEAM_MACHINE,
     POWER_SWITCH,
-    LUCKY_CHEST
+    LUCKY_CHEST,
+    PIGLIN_SHOP
 }

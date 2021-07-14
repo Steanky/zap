@@ -429,6 +429,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private String luckyChestRoom;
 
     @Getter
+    private String piglinRoom;
+
+    @Getter
     private final String corpseTeamName = UUID.randomUUID().toString().substring(0, 16);
 
     @Getter
@@ -562,6 +565,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         getProxyFor(PlayerDeathEvent.class).registerHandler(this::onPlayerDeath);
         getProxyFor(EntityRemoveFromWorldEvent.class).registerHandler(this::onEntityRemoveFromWorldEvent);
         getProxyFor(PlayerInteractEvent.class).registerHandler(this::onPlayerInteract);
+        getProxyFor(PlayerInteractEntityEvent.class).registerHandler(this::onPlayerInteractEntity);
         getProxyFor(PlayerInteractAtEntityEvent.class).registerHandler(this::onPlayerInteractAtEntity);
         getProxyFor(BlockPlaceEvent.class).registerHandler(this::onPlaceBlock);
         getProxyFor(BlockBreakEvent.class).registerHandler(this::onBlockBreak);
@@ -941,6 +945,24 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
         if (entity.getWorld().equals(world) && entity instanceof ItemFrame) {
             event.setCancelled(true);
+        }
+    }
+
+    private void onPlayerInteractEntity(ProxyArgs<PlayerInteractEntityEvent> args) {
+        PlayerInteractEntityEvent event = args.getEvent();
+        ZombiesPlayer player = args.getManagedPlayer();
+
+        if (player != null && event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
+            boolean noInteractions = true;
+            for (Shop<?> shop : shops) {
+                if (shop.interact(args)) {
+                    noInteractions = false;
+                    break;
+                }
+            }
+            if (noInteractions) {
+                player.getHotbarManager().click(Action.RIGHT_CLICK_BLOCK);
+            }
         }
     }
 
@@ -1382,6 +1404,50 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                         nextLuckyChest.setActive(true);
                         RoomData room = map.roomAt(nextLuckyChest.getShopData().getChestLocation());
                         luckyChestRoom = room != null ? room.getRoomDisplayName() : null;
+
+                        rolls = 0;
+                    }
+                }
+            });
+        }
+        Event<ShopEventArgs> piglinShopEvent = getShopEvent(ShopType.LUCKY_CHEST.name());
+        List<Shop<?>> shopMapPiglins = shopMap.get(ShopType.LUCKY_CHEST.name());
+        if (piglinShopEvent != null && shopMapPiglins != null) {
+            piglinShopEvent.registerHandler(new EventHandler<>() {
+
+                private final Random random = new Random();
+                int rolls = 0;
+                {
+                    List<Shop<?>> piglins = new ArrayList<>(shopMapPiglins);
+
+                    if (map.isChestCanStartInSpawnRoom()) {
+                        RoomData spawnRoom = map.roomAt(map.getSpawn());
+                        piglins.removeIf(piglin -> {
+                            PiglinShop piglinShop = (PiglinShop) piglin;
+                            return spawnRoom.getBounds().contains(piglinShop.getShopData().getPiglinLocation());
+                        });
+                    }
+
+                    PiglinShop luckyChest
+                            = (PiglinShop) piglins.get(random.nextInt(piglins.size()));
+                    luckyChest.setActive(true);
+
+                    RoomData room = map.roomAt(luckyChest.getShopData().getPiglinLocation());
+                    piglinRoom = room != null ? room.getRoomDisplayName() : null;
+                }
+
+                @Override
+                public void handleEvent(ShopEventArgs args) {
+                    if (++rolls == map.getRollsPerChest()) {
+                        PiglinShop piglinShop = (PiglinShop) args.getShop();
+                        piglinShop.setActive(false);
+                        List<Shop<?>> piglins = new ArrayList<>(shopMap.get(piglinShop.getShopType()));
+                        piglins.remove(piglinShop);
+
+                        PiglinShop nextPiglinShop = ((PiglinShop) piglins.get(random.nextInt(piglins.size())));
+                        nextPiglinShop.setActive(true);
+                        RoomData room = map.roomAt(nextPiglinShop.getShopData().getPiglinLocation());
+                        piglinRoom = room != null ? room.getRoomDisplayName() : null;
 
                         rolls = 0;
                     }
