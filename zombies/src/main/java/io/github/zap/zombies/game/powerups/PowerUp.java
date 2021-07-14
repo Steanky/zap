@@ -139,7 +139,7 @@ public abstract class PowerUp {
                         getArena().getPlayerMap().forEach((id, player) -> {
                             if (player != null) {
                                 player.getPlayer().sendTitle(getData().getDisplayName(), "");
-                                player.getPlayer().sendMessage(ChatColor.YELLOW + r.getPlayer().getName() + " activated " + getData().getDisplayName());
+                                player.getPlayer().sendMessage(ChatColor.YELLOW + r.getPlayer().getName() + " activated " + getData().getDisplayName() + ChatColor.RESET + ChatColor.YELLOW + "!");
                                 player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
                             }
                         });

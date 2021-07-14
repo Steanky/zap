@@ -18,6 +18,6 @@ public class BasicMeleeWeapon extends MeleeWeapon<BasicMeleeData, BasicMeleeLeve
 
     @Override
     public void attack(Mob mob) {
-        getZombiesArena().getDamageHandler().damageEntity(getZombiesPlayer(), new MeleeDamageAttempt(), mob);
+        getArena().getDamageHandler().damageEntity(getZombiesPlayer(), new MeleeDamageAttempt(), mob);
     }
 }

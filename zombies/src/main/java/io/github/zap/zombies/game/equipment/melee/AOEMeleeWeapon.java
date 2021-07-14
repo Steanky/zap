@@ -37,7 +37,7 @@ public class AOEMeleeWeapon extends MeleeWeapon<AOEMeleeData, AOEMeleeLevel> {
 
     @Override
     public void attack(Mob mob) {
-        ZombiesArena zombiesArena = getZombiesArena();
+        ZombiesArena zombiesArena = getArena();
         ZombiesArena.DamageHandler damageHandler = zombiesArena.getDamageHandler();
 
         World world = mob.getWorld();

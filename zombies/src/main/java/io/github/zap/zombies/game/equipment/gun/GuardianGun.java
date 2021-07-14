@@ -17,7 +17,7 @@ public class GuardianGun extends Gun<GuardianGunData, GuardianGunLevel> {
         GuardianGunLevel currentLevel = getCurrentLevel();
 
         new GuardianBeam(
-                getZombiesArena().getMap(),
+                getArena().getMap(),
                 getZombiesPlayer(),
                 getPlayer().getEyeLocation(),
                 currentLevel

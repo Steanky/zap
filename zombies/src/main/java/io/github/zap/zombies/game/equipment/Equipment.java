@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
 
-    private final ZombiesArena zombiesArena;
+    private final ZombiesArena arena;
 
     private final ZombiesPlayer zombiesPlayer;
 
@@ -25,7 +25,7 @@ public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
 
     private final D equipmentData;
 
-    public Equipment(ZombiesArena zombiesArena, ZombiesPlayer player, int slot, D equipmentData) {
+    public Equipment(ZombiesArena arena, ZombiesPlayer player, int slot, D equipmentData) {
         super(player.getPlayer(), slot);
 
         if (player.getPlayer() == null) {
@@ -33,7 +33,7 @@ public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
                     + player.getOfflinePlayer().getName() + " !");
         }
 
-        this.zombiesArena = zombiesArena;
+        this.arena = arena;
         this.zombiesPlayer = player;
         this.localizationManager = Zombies.getInstance().getLocalizationManager();
         this.equipmentData = equipmentData;

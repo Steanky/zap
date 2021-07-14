@@ -45,7 +45,7 @@ public abstract class SkillEquipment<D extends SkillData<L>, L extends SkillLeve
 
             execute();
 
-            getZombiesArena().runTaskTimer(20L, 20L, () -> {
+            getArena().runTaskTimer(20L, 20L, () -> {
                 if (--timeRemaining[0] == 0) {
                     setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), getLevel()));
                     usable = true;

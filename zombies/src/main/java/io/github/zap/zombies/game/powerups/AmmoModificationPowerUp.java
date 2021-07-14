@@ -36,7 +36,7 @@ public class AmmoModificationPowerUp extends PowerUp {
                         var reference = cData.getModifierMode() == ModifierMode.ABSOLUTE ? gun.getCurrentLevel().getAmmo() : gun.getCurrentAmmo();
                         gun.setAmmo((int) MathUtils.normalizeMultiplier(reference * cData.getMultiplier() + cData.getAmount(), reference));
                         gun.setClipAmmo(MathUtils.clamp(gun.getCurrentAmmo(), 0, gun.getCurrentLevel().getClipAmmo()));
-                        gun.cancelReloadShootingDelay();
+                        gun.cancelReloadDelay();
                     }
                 });
             }
