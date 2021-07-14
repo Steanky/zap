@@ -20,7 +20,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final int MIN_CHUNK_SYNC_AGE = 20;
     private static final int PATH_CAPACITY = 128;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
-    private static final double URGENT_SYNC_THRESHOLD = 0.9;
+    private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.7;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
     private final ExecutorCompletionService<PathResult> completionService =
@@ -79,20 +79,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     private PathResult processOperation(Context context, PathOperation operation) {
         try {
-            boolean urgent = isUrgent(operation.searchArea(), context.blockProvider());
-            Future<Boolean> syncResult = trySyncChunks(context, operation.searchArea(), urgent);
-
-            /*
-            for sync operations where the pathfinding operation would have very few chunks to work with, wait until
-            synchronization is complete. this may happen when a PathOperation is first queued in an empty region
-            where no chunks have been cached, or if it's in a region where there are cached chunks but they are very
-            old
-
-            if it isn't urgent, though, no need to wait on the sync
-             */
-            if(urgent) {
-                syncResult.get();
-            }
+            trySyncChunks(context, operation.searchArea(), isUrgent(operation.searchArea(), context.blockProvider()));
 
             operation.init(context);
 
@@ -131,6 +118,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         return null;
     }
 
+    //fancy path merging optimizations; this code alone results in extremely significant speedups
     private PathResult attemptMergeFor(Context context, PathOperation operation) {
         synchronized (context.successfulPaths) { //try to merge paths if possible
             PathNode currentNode = operation.currentNode();
@@ -194,32 +182,20 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      * not present is high enough to warrant forcing a chunk sync
      */
     private boolean isUrgent(ChunkCoordinateProvider chunks, BlockCollisionProvider provider) {
-        int presentAndFresh = 0;
+        int stale = 0;
 
         for(ChunkVectorAccess chunkVectorAccess : chunks) {
             CollisionChunkSnapshot chunk = provider.chunkAt(chunkVectorAccess.chunkX(), chunkVectorAccess.chunkZ());
-            if(chunk != null && Bukkit.getCurrentTick() - chunk.captureTick() < MIN_CHUNK_SYNC_AGE) {
-                presentAndFresh++;
+
+            if(chunk == null || (Bukkit.getCurrentTick() - chunk.captureTick()) > MIN_CHUNK_SYNC_AGE) {
+                stale++;
             }
         }
 
-        return (double)presentAndFresh / (double)chunks.chunkCount() <= URGENT_SYNC_THRESHOLD;
+        return (double)stale / (double)chunks.chunkCount() >= PERCENTAGE_STALE_REQUIRED_TO_FORCE;
     }
 
-    /**
-     * Attempts to perform a chunk sync operation for the given ChunkCoordinateProvider and Context. This operation
-     * will be completed on the main server thread (necessary) and the returned result may be waited upon depending on
-     * the desired behavior. A sync may or may not occur if force is set to false. If it occurs, the value of the
-     * future (upon completion) will be set to true. If a sync doesn't occur for any reason, or an exception is thrown
-     * during synchronization (in which case it may have partially completed) the value returned will be false.
-     *
-     * Synchronization can be forced by setting the force parameter to true. Note that the maximum number of sync tasks
-     * queued at once will never be bypassed; if force is set to true, the future will wait indefinitely for sync to
-     * complete (unless it is interrupted).
-     */
-    private Future<Boolean> trySyncChunks(Context context, ChunkCoordinateProvider coordinateProvider, boolean force) {
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-
+    private void trySyncChunks(Context context, ChunkCoordinateProvider coordinateProvider, boolean force) {
         int currentTick = Bukkit.getCurrentTick();
 
         /*
@@ -231,7 +207,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         really, really needs fresh chunks, such as for a new PathOperation or one that's going on in a really outdated
         area
         */
-        if((currentTick - context.lastSyncTick) >= MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire()) {
+        if(force || (currentTick - context.lastSyncTick) > MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire()) {
             if(force) {
                 /*
                  * respect the hard limit of bukkit tasks, but we really need this operation to complete, so wait
@@ -242,8 +218,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 }
                 catch (InterruptedException e) {
                     ArenaApi.warning("Interrupted while attemping to force acquire sychronization semaphore.");
-                    result.complete(false);
-                    return result;
+                    return;
                 }
             }
 
@@ -252,7 +227,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 boolean noErr = true;
                 try {
                     context.blockCollisionProvider.updateRegion(coordinateProvider);
-                    context.lastSyncTick = Bukkit.getCurrentTick();
+                    context.lastSyncTick = currentTick;
                 }
                 catch (Exception exception) {
                     ArenaApi.warning("An exception occurred while synchronizing chunks:");
@@ -261,7 +236,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 }
                 finally {
                     context.syncSemaphore.release();
-                    result.complete(noErr);
                     latch.countDown();
                 }
             }).getTaskId();
@@ -275,15 +249,12 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     Bukkit.getScheduler().cancelTask(taskId); //don't bother to finish sync on a laggy server
                 }
             } catch (InterruptedException ignored) {
-                ArenaApi.warning("Interrupted while waiting for chunks to sync: ");
+                ArenaApi.warning("Interrupted while waiting for chunks to sync.");
                 Bukkit.getScheduler().cancelTask(taskId);
             }
-
-            return result;
         }
 
-        result.complete(false);
-        return result;
+        return;
     }
 
     /**

@@ -33,7 +33,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
-        navCounter = self.getRandom().nextInt(20) * 2;
+        navCounter = self.getRandom().nextInt(5) + 15;
     }
 
     @Override
@@ -97,7 +97,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
             completed = true;
         }
         else {
-            if(++navCounter == 40) {
+            if(++navCounter >= 20) {
                 getProxy().lookAtPosition(self.getControllerLook(), destination.getX(), destination.getY(),
                         destination.getZ(), 30.0F, 30.0F);
 

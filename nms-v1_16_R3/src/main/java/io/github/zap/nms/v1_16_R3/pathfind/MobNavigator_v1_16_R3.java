@@ -22,6 +22,8 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
         PathEntity newPath = ((PathEntityWrapper_v1_16_R3)pathEntityWrapper).pathEntity();
 
         if(c != null) {
+            this.c = null;
+
             Vec3D currentPos = getEntity().getPositionVector();
 
             PathPoint entityPoint = new PathPoint(NumberConversions.floor(currentPos.x),
@@ -42,7 +44,7 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
                         }
                     }
 
-                    newPath.c(i);
+                    newPath.c(i + 1);
                     a(newPath, speed);
                     return;
                 }

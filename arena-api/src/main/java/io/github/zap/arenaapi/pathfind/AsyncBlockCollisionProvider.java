@@ -17,8 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private static final Object putSync = new Object();
-    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new WeakHashMap<>();
+    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new ConcurrentHashMap<>();
 
     private final World world;
     private final int maxCaptureAge;
@@ -46,7 +45,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
             if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
                 CollisionChunkSnapshot oldSnapshot = chunks.get(targetChunk);
 
-                if(oldSnapshot == null || Bukkit.getCurrentTick() - oldSnapshot.captureTick() > maxCaptureAge) {
+                if(oldSnapshot == null || (Bukkit.getCurrentTick() - oldSnapshot.captureTick()) > maxCaptureAge) {
                     chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
                             .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
                 }

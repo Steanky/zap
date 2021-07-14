@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathResult;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
@@ -16,7 +15,6 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
     private boolean strafeB;
     private boolean strafeA;
     private int strafeTimer = -1;
-    private int navigationCounter;
 
     public OptimizedBowAttack(AbstractEntity entity, AttributeValue[] attributes, double speed, int attackInterval,
                               float shootDistance, int targetDeviation) {
@@ -24,8 +22,6 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
         this.attackInterval = attackInterval;
         this.shootDistanceSquared = shootDistance * shootDistance;
         this.a(EnumSet.of(Type.MOVE, Type.LOOK));
-
-        navigationCounter = self.getRandom().nextInt(5);
     }
 
     @Override
@@ -47,26 +43,6 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
         EntityLiving target = self.getGoalTarget();
 
         if (target != null) {
-            this.navigationCounter = Math.max(this.navigationCounter - 1, 0);
-
-            if (this.navigationCounter <= 0) {
-                this.navigationCounter = 4 + self.getRandom().nextInt(17);
-
-                PathResult result = retarget();
-                if(result != null) {
-                    setPath(result);
-
-                    int nodes = result.pathNodes().size();
-                    if(nodes >= 100) {
-                        navigationCounter += nodes / 5;
-                    }
-                }
-                else {
-                    navigationCounter += 25;
-                    return;
-                }
-            }
-
             double distanceToTargetSquared = self.h(target.locX(), target.locY(), target.locZ());
             boolean hasSight = self.getEntitySenses().a(target);
 
