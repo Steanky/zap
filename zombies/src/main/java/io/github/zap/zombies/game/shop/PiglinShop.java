@@ -121,7 +121,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
                 hologram.addLine("");
             }
 
-            hologram.updateLineForEveryone(0, String.format("%s%sLucky Chest", ChatColor.GOLD, ChatColor.BOLD));
+            hologram.updateLineForEveryone(0, String.format("%s%sDream Piglin", ChatColor.GOLD, ChatColor.BOLD));
             hologram.updateLineForEveryone(1,
                     getShopData().isRequiresPower() && !isPowered()
                             ? String.format("%sRequires Power!", ChatColor.GRAY)
@@ -155,9 +155,9 @@ public class PiglinShop extends Shop<PiglinShopData> {
                                 NamedTextColor.RED));
                     } else if (!active) {
                         String notActive = "Shop's not open right now.";
-                        String luckyChestRoom = getArena().getPiglinRoom();
-                        if (luckyChestRoom != null) {
-                            notActive += " Go to " + luckyChestRoom + ", will ya?";
+                        String piglinRoom = getArena().getPiglinRoom();
+                        if (piglinRoom != null) {
+                            notActive += " Go to " + piglinRoom + ", will ya?";
                         }
 
                         bukkitPlayer.sendMessage(Component.text(notActive, NamedTextColor.RED));
