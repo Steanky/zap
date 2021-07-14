@@ -132,6 +132,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
         if (!init) {
             ((CraftWorld) getArena().getWorld()).addEntity(dream, CreatureSpawnEvent.SpawnReason.CUSTOM);
             dream.setPositionRotation(getShopData().getPiglinLocation().getX(), getShopData().getPiglinLocation().getY(), getShopData().getPiglinLocation().getZ(), getShopData().getDirection(), 0.0F);
+            dream.setHeadRotation(getShopData().getDirection());
             init = true;
         }
 
