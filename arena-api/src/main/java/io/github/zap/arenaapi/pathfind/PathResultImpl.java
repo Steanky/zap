@@ -14,7 +14,6 @@ class PathResultImpl implements PathResult {
     private final PathNode start;
     private final PathOperation operation;
     private final PathDestination destination;
-    private final VectorAccess lastDestination;
     private final ChunkGraph<PathNode> visitedNodes;
     private final List<PathNode> pathNodes = new ArrayList<>();
     private final PathOperation.State state;
@@ -26,7 +25,6 @@ class PathResultImpl implements PathResult {
         this.operation = operation;
         this.visitedNodes = visitedNodes;
         this.destination = destination;
-        this.lastDestination = destination().copyVector().asImmutable();
         this.state = state;
 
         while(start != null) {
@@ -48,11 +46,6 @@ class PathResultImpl implements PathResult {
     @Override
     public @NotNull PathDestination destination() {
         return destination;
-    }
-
-    @Override
-    public @NotNull VectorAccess lastDestination() {
-        return lastDestination;
     }
 
     @Override

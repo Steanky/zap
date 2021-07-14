@@ -19,9 +19,9 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
 
     private static final int MIN_CHUNK_SYNC_AGE = 20;
-    private static final int PATH_CAPACITY = 128;
+    private static final int PATH_CAPACITY = 64;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
-    private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.7;
+    private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.8;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
     private final ExecutorCompletionService<PathResult> completionService =
@@ -134,52 +134,33 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 if(operation.mergeValid(successful.operation()) && resultVisited.hasElement(x, y, z)) {
                     PathNode intersection = resultVisited.elementAt(x, y, z);
 
-                    PathNode current = intersection;
-                    PathNode lastNode = null;
+                    PathNode sample = intersection;
+                    while(sample != null) {
+                        PathNode parent = sample.parent;
 
-                    while(current != null) {
-                        PathNode parent = current.parent;
-
-                        if(lastNode != null && lastNode != parent) { //we found a break; indicative of the previous path
-                            intersection.parent = currentNode.parent; //make sure intersection fits in with our explored nodes
-                            if(currentNode.parent != null) {
-                                currentNode.parent.child = intersection;
+                        if(parent != null && parent.child != sample) {
+                            intersection.child = currentNode.child; //link paths
+                            if(currentNode.child != null) {
+                                currentNode.child.parent = intersection;
                             }
 
-                            PathNode tail = current;
-                            while(tail.child != null) { //find tail (should be previous origin)
-                                tail = tail.child;
+                            parent.child = sample; //point path back towards origin
+
+                            PathNode first = intersection; //get origin node
+                            while(first != null) {
+                                first = first.child;
                             }
 
-                            VectorAccess destPos = successful.destination();
-                            if(!tail.positionEquals(destPos.blockX(), destPos.blockY(), destPos.blockZ())) {
-                                ArenaApi.warning("Did not successfully find dest tail by backtrack");
-                            }
-
-                            current.parent = null; //set parent to null so we don't reverse the whole path
-                            PathNode test = tail.reverse(); //reverse our old path to maintain data integrity
-                            current.parent = lastNode; //set parent going the other way, towards our origin
-
-                            if(test != currentNode) {
-                                ArenaApi.warning("Result of reversing tail was not parent");
-                            }
-
-                            PathNode start = current.reverse(); //set current node going towards the shared destination
-                            current.parent = parent; //set our old parent again
-
-                            ArenaApi.info("Merged path (by finding common explored node)");
-                            return new PathResultImpl(start, successful.operation(), resultVisited,
-                                    successful.destination(), PathOperation.State.SUCCEEDED);
+                            return new PathResultImpl(first, operation, resultVisited, operation.bestDestination(),
+                                    PathOperation.State.SUCCEEDED);
                         }
 
-                        lastNode = current; //keep track of previous node explored
-                        current = current.child; //iterate through children
+                        sample = sample.parent;
                     }
 
-                    ArenaApi.info("Merged path (because we're standing on a path node)");
                     //if we reach this point, it means we started directly on an existing path
-                    return new PathResultImpl(intersection, successful.operation(), successful.visitedNodes(),
-                            successful.destination(), PathOperation.State.SUCCEEDED);
+                    return new PathResultImpl(intersection, operation, resultVisited, operation.bestDestination(),
+                            PathOperation.State.SUCCEEDED);
                 }
             }
         }

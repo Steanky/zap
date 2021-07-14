@@ -15,8 +15,6 @@ public interface PathResult extends Iterable<PathNode> {
 
     @NotNull PathDestination destination();
 
-    @NotNull VectorAccess lastDestination();
-
     @NotNull ChunkGraph<PathNode> visitedNodes();
 
     @NotNull List<PathNode> pathNodes();
