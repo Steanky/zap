@@ -155,7 +155,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                 BlockSnapshot highestSnapshot = highestSnapshot(collidingSnapshots);
 
                 if(highestSnapshot != null) {
-                    double newY = highestSnapshot.position().blockY() + highestSnapshot.collision().maxY();
+                    double newY = highestSnapshot.blockY() + highestSnapshot.collision().maxY();
 
                     if(DoubleMath.fuzzyEquals(newY, currentAgentBounds.getMinY(), Vector.getEpsilon())) {
                         return JunctionType.NO_CHANGE;
@@ -292,7 +292,7 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                     double maxY = highest.collision().maxY();
 
                     if(Double.isFinite(maxY)) {
-                        double fallHeight = (walkingTo.blockY() + blockMaxY) - (highest.position().blockY() + maxY);
+                        double fallHeight = (walkingTo.blockY() + blockMaxY) - (highest.blockY() + maxY);
                         ImmutableWorldVector newWalkingTo = walkingTo.add(0, -(int)fallHeight, 0);
                         return newWalkingTo;
                     }
@@ -365,9 +365,9 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
     private boolean processCollisions(List<BlockSnapshot> candidates, BoxPredicate collisionChecker,
                                       double agentCenterX, double agentCenterZ) {
         for(BlockSnapshot snapshot : candidates) {
-            double x = snapshot.position().blockX() - agentCenterX;
-            double y = snapshot.position().blockY();
-            double z = snapshot.position().blockZ() - agentCenterZ;
+            double x = snapshot.blockX() - agentCenterX;
+            double y = snapshot.blockY();
+            double z = snapshot.blockZ() - agentCenterZ;
 
             if(snapshot.collision().anyBoundsMatches((minX, minY, minZ, maxX, maxY, maxZ) -> {
                 minX += x;

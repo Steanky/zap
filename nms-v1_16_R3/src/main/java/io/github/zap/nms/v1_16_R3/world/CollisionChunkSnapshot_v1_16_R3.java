@@ -113,9 +113,8 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
                             VoxelShape shape = blockData.getCollisionShape(chunk, examine);
                             if(!blockData.getMaterial().isSolid() || (shape != VoxelShapes.empty() && shape != VoxelShapes.fullCube())) {
-                                nonSolidOrPartial.putElement(x, y, z, BlockSnapshot.from(
-                                        VectorHelper.toWorldRelative(VectorAccess.immutable(x, y, z), chunkX, chunkZ),
-                                        blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shape)));
+                                nonSolidOrPartial.putElement(x, y, z, BlockSnapshot.from((chunkX << 4) + x, y,
+                                        (chunkZ << 4) + z, blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shape)));
                             }
                         }
                     });
@@ -141,9 +140,8 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
             else {
                 IBlockData data = palette[chunkRelativeY >> 4].a(chunkRelativeX, chunkRelativeY & 15, chunkRelativeZ);
 
-                return BlockSnapshot.from(VectorHelper.toWorldRelative(VectorAccess.immutable(chunkRelativeX,
-                        chunkRelativeY, chunkRelativeZ), chunkX, chunkZ), data.createCraftBlockData(),
-                        new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
+                return BlockSnapshot.from((chunkX << 4) + chunkRelativeX, chunkRelativeY, (chunkZ << 4) +
+                                chunkRelativeZ, data.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
             }
         }
 
@@ -366,7 +364,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
             if(snapshot == null) {
                 IBlockData data = palette[y >> 4].a(chunkRelX,y & 15, chunkRelZ);
-                snapshot = BlockSnapshot.from(VectorAccess.immutable(x, y, z), data.createCraftBlockData(),
+                snapshot = BlockSnapshot.from(x, y, z, data.createCraftBlockData(),
                         new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
             }
 

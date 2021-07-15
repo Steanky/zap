@@ -7,7 +7,11 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 public interface BlockSnapshot {
-    @NotNull VectorAccess position();
+    int blockX();
+
+    int blockY();
+
+    int blockZ();
 
     @NotNull BlockData data();
 
@@ -15,8 +19,8 @@ public interface BlockSnapshot {
 
     boolean overlaps(@NotNull BoundingBox worldBounds);
 
-    static BlockSnapshot from(@NotNull ImmutableWorldVector worldRelative, @NotNull BlockData data,
+    static BlockSnapshot from(int x, int y, int z, @NotNull BlockData data,
                               @NotNull VoxelShapeWrapper shape) {
-        return new BlockSnapshotImpl(worldRelative, data, shape);
+        return new BlockSnapshotImpl(x, y, z, data, shape);
     }
 }
