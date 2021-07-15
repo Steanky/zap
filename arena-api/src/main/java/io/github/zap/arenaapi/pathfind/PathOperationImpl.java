@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ArrayChunkGraph;
@@ -17,6 +18,7 @@ class PathOperationImpl implements PathOperation {
     private final Set<? extends PathDestination> destinations;
     private State state;
     private final HeuristicCalculator heuristicCalculator;
+    private final AversionCalculator aversionCalculator;
     private final SuccessCondition condition;
     private final NodeExplorer nodeExplorer;
     private final DestinationSelector destinationSelector;
@@ -32,13 +34,14 @@ class PathOperationImpl implements PathOperation {
     private PathResult result;
 
     PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
-                      @NotNull HeuristicCalculator heuristicCalculator, @NotNull SuccessCondition condition,
-                      @NotNull NodeExplorer nodeExplorer, @NotNull DestinationSelector destinationSelector,
-                      @NotNull ChunkCoordinateProvider searchArea) {
+                      @NotNull HeuristicCalculator heuristicCalculator, @NotNull AversionCalculator aversionCalculator,
+                      @NotNull SuccessCondition condition, @NotNull NodeExplorer nodeExplorer,
+                      @NotNull DestinationSelector destinationSelector, @NotNull ChunkCoordinateProvider searchArea) {
         this.agent = agent;
         this.destinations = destinations;
         this.state = State.NOT_STARTED;
         this.heuristicCalculator = heuristicCalculator;
+        this.aversionCalculator = aversionCalculator;
         this.condition = condition;
         this.nodeExplorer = nodeExplorer;
         this.destinationSelector = destinationSelector;
@@ -123,6 +126,11 @@ class PathOperationImpl implements PathOperation {
                     ArenaApi.warning("Tried to access out-of-bounds node");
                     continue;
                 }
+
+                candidateNode.parent = currentNode;
+                currentNode.child = candidateNode;
+
+                calculateAversion(candidateNode, context.blockProvider());
 
                 PathNode existingNode = openHeap.nodeAt(candidateNode.x(), candidateNode.y(), candidateNode.z());
                 if(existingNode == null) {
@@ -230,6 +238,16 @@ class PathOperationImpl implements PathOperation {
     @Override
     public String toString() {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
+    }
+
+    private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
+        BlockSnapshot standingOn = provider.getBlock(node.x(), node.y() - 1, node.z());
+
+        if(standingOn != null) {
+            double materialAversion = aversionCalculator.aversionForMaterial(standingOn.data().getMaterial());
+            double factor = aversionCalculator.aversionFactor(node);
+            node.score.setG(node.parent.score.getG() + materialAversion + (factor * Vectors.distanceSquared(node, node.parent)));
+        }
     }
 
     private void complete(boolean success) {

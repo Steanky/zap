@@ -96,47 +96,49 @@ public interface PathOperation {
     boolean allowMerges();
 
     static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
-                                  @NotNull HeuristicCalculator calculator, @NotNull SuccessCondition successCondition,
-                                  @NotNull NodeExplorer provider, @NotNull DestinationSelector destinationSelector,
+                                  @NotNull HeuristicCalculator heuristicCalculator, @NotNull AversionCalculator aversionCalculator,
+                                  @NotNull SuccessCondition successCondition, @NotNull NodeExplorer provider,
+                                  @NotNull DestinationSelector destinationSelector,
                                   @NotNull ChunkCoordinateProvider coordinateProvider) {
         Objects.requireNonNull(agent, "agent cannot be null!");
         Objects.requireNonNull(destinations, "destinations cannot be null!");
         Validate.isTrue(!destinations.isEmpty(), "destinations cannot be empty!");
-        Objects.requireNonNull(calculator, "calculator cannot be null!");
-        Objects.requireNonNull(successCondition,"terminationCondition cannot be null!");
+        Objects.requireNonNull(heuristicCalculator, "heuristicCalculator cannot be null!");
+        Objects.requireNonNull(successCondition,"successCondition cannot be null!");
         Objects.requireNonNull(provider, "provider cannot be null!");
         Objects.requireNonNull(destinationSelector, "destinationSelector cannot be null!");
         Objects.requireNonNull(coordinateProvider, "coordinateProvider cannot be null!");
 
-        return new PathOperationImpl(agent, destinations, calculator, successCondition, provider,
+        return new PathOperationImpl(agent, destinations, heuristicCalculator, aversionCalculator, successCondition, provider,
                 destinationSelector, coordinateProvider);
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int loadRadius) {
-        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY, SuccessCondition.WITHIN_BLOCK,
-                new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
+        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
+                AversionCalculator.DEFAULT_WALK, SuccessCondition.WITHIN_BLOCK,
+                new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST,
                 ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
                                           ChunkCoordinateProvider searchArea) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK),
+                AversionCalculator.DEFAULT_WALK, SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeExplorer(),
                 DestinationSelector.CLOSEST, searchArea);
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
                                           ChunkCoordinateProvider searchArea, double targetDeviation) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                SuccessCondition.whenWithin(targetDeviation * targetDeviation),
-                new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST, searchArea);
+                AversionCalculator.DEFAULT_WALK, SuccessCondition.whenWithin(targetDeviation * targetDeviation),
+                new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST, searchArea);
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
                                           int loadRadius, double targetDeviation) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                SuccessCondition.whenWithin(targetDeviation * targetDeviation),
-                new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
+                AversionCalculator.DEFAULT_WALK, SuccessCondition.whenWithin(targetDeviation * targetDeviation),
+                new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST,
                 ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
     }
 }

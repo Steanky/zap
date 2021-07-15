@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class DefaultWalkNodeExplorer extends NodeExplorer {
+public class DefaultWalkNodeExplorer implements NodeExplorer {
     private enum JunctionType {
         FALL,
         INCREASE,
@@ -37,10 +37,6 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
 
     private double negativeWidth;
     private double blockOffset;
-
-    public DefaultWalkNodeExplorer(@NotNull AversionCalculator aversionCalculator) {
-        super(aversionCalculator);
-    }
 
     @Override
     public void init(@NotNull PathfinderContext context, @NotNull PathAgent agent) {
@@ -108,7 +104,6 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
                     direction, blockMaxY);
 
             if(node != null) {
-                calculateAversion(node, context.blockProvider());
                 buffer[j++] = node;
             }
         }
@@ -331,16 +326,6 @@ public class DefaultWalkNodeExplorer extends NodeExplorer {
         }
 
         return false;
-    }
-
-    private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
-        BlockSnapshot standingOn = provider.getBlock(node.x(), node.y() - 1, node.z());
-
-        if(standingOn != null) {
-            double materialAversion = getAversionCalculator().aversionForMaterial(standingOn.data().getMaterial());
-            double factor = getAversionCalculator().aversionFactor(node);
-            node.score.setG(node.parent.score.getG() + materialAversion + (factor * Vectors.distanceSquared(node, node.parent)));
-        }
     }
 
     /**
