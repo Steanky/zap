@@ -698,6 +698,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 for (Player hiddenPlayer : hiddenPlayers) {
                     player.hidePlayer(Zombies.getInstance(), hiddenPlayer);
                 }
+                if (hiddenPlayers.contains(player)) {
+                    for (Player otherPlayer : world.getPlayers()) {
+                        otherPlayer.hidePlayer(Zombies.getInstance(), player);
+                    }
+                }
             }
         }
     }
@@ -712,6 +717,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 for (Player hiddenPlayer : hiddenPlayers) {
                     bukkitPlayer.hidePlayer(Zombies.getInstance(), hiddenPlayer);
                 }
+                if (hiddenPlayers.contains(bukkitPlayer)) {
+                    for (Player otherPlayer : world.getPlayers()) {
+                        otherPlayer.hidePlayer(Zombies.getInstance(), bukkitPlayer);
+                    }
+                }
             }
         }
     }
@@ -721,8 +731,21 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             if(!map.isAllowRejoin()) {
                 super.removePlayer(player);
             }
+
+            Player bukkitPlayer = player.getPlayer();
+            if (bukkitPlayer != null) {
+                for (Player hiddenPlayer : hiddenPlayers) {
+                    bukkitPlayer.showPlayer(Zombies.getInstance(), hiddenPlayer);
+                }
+                if (hiddenPlayers.contains(bukkitPlayer)) {
+                    for (Player otherPlayer : world.getPlayers()) {
+                        otherPlayer.showPlayer(Zombies.getInstance(), bukkitPlayer);
+                    }
+                }
+            }
         }
 
+        stateLabel:
         switch (state) {
             case PREGAME:
                 removePlayers(args.getPlayers());
@@ -738,6 +761,18 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 if (getOnlineCount() == 0) {
                     state = ZombiesArenaState.ENDED;
                     dispose(); //shut everything down immediately if everyone leaves mid-game
+                } else {
+                    for (ZombiesPlayer player : getPlayerMap().values()) {
+                        if (!args.getPlayers().contains(player) && player.isAlive()) {
+                            break stateLabel;
+                        }
+                    }
+
+                    // There are no players alive, so end the game
+                    for (ZombiesPlayer player : getPlayerMap().values()) {
+                        player.kill();
+                    }
+                    doLoss();
                 }
                 break;
         }
@@ -903,16 +938,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                         }
                     }
 
-                    doLoss(); //there are no players alive, so end the game
-
-                    // Bit hacky way to make sure corpses are registered to a team before their holograms are destroyed
+                    // There are no players alive, so end the game
                     for (ZombiesPlayer player : getPlayerMap().values()) {
                         player.kill();
-                        Corpse corpse = player.getCorpse();
-                        if (corpse != null) {
-                            corpse.terminate();
-                        }
                     }
+                    doLoss();
                 }
             }
         }

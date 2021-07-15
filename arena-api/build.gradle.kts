@@ -43,7 +43,7 @@ dependencies {
     shade("com.fasterxml.jackson.core:jackson-annotations:2.12.3")
     shade("org.apache.commons:commons-lang3:3.12.0")
 
-    bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.6.0")
+    bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.7.0")
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")

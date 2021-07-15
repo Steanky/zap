@@ -26,7 +26,7 @@ dependencies {
     api("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     api(project(":vector"))
 
-    bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.6.0")
+    bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.7.0")
 }
 
 artifacts {
