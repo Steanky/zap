@@ -698,6 +698,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 for (Player hiddenPlayer : hiddenPlayers) {
                     player.hidePlayer(Zombies.getInstance(), hiddenPlayer);
                 }
+                if (hiddenPlayers.contains(player)) {
+                    for (Player otherPlayer : world.getPlayers()) {
+                        otherPlayer.hidePlayer(Zombies.getInstance(), player);
+                    }
+                }
             }
         }
     }
@@ -712,6 +717,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 for (Player hiddenPlayer : hiddenPlayers) {
                     bukkitPlayer.hidePlayer(Zombies.getInstance(), hiddenPlayer);
                 }
+                if (hiddenPlayers.contains(bukkitPlayer)) {
+                    for (Player otherPlayer : world.getPlayers()) {
+                        otherPlayer.hidePlayer(Zombies.getInstance(), bukkitPlayer);
+                    }
+                }
             }
         }
     }
@@ -720,6 +730,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         for(ZombiesPlayer player : args.getPlayers()) { //quit has already been called for these players
             if(!map.isAllowRejoin()) {
                 super.removePlayer(player);
+            }
+
+            Player bukkitPlayer = player.getPlayer();
+            if (bukkitPlayer != null && hiddenPlayers.contains(bukkitPlayer)) {
+                for (Player otherPlayer : world.getPlayers()) {
+                    otherPlayer.showPlayer(Zombies.getInstance(), bukkitPlayer);
+                }
             }
         }
 

@@ -121,15 +121,13 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     }
 
     public void quit() {
-        super.quit();
-
-        if(super.isInGame()) {
-            state = ZombiesPlayerState.DEAD;
-
+        if (isInGame()) {
+            kill();
             disablePerks(arena.getMap().isPerksLostOnQuit());
-
             endTasks();
         }
+
+        super.quit();
     }
 
     @Override
@@ -318,6 +316,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                         1.0F
                 ), corpseLocation.getX(), corpseLocation.getY(), corpseLocation.getZ());
             }
+            corpse.terminate();
 
             getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
                     getOfflinePlayer().getUniqueId(), (stats) -> {
