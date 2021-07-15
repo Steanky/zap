@@ -64,7 +64,7 @@ public interface PathOperation {
     /**
      * Returns a set of PathDestination objects corresponding to the possible destinations for this PathOperation.
      */
-    @NotNull Set<? extends PathDestination> getDestinations();
+    @NotNull Set<? extends PathDestination> destinations();
 
     /**
      * Returns a map of all of the nodes visited by this PathOperation so far.

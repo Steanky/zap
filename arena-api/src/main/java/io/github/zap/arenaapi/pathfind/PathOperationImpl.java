@@ -185,7 +185,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull Set<? extends PathDestination> getDestinations() {
+    public @NotNull Set<? extends PathDestination> destinations() {
         return destinations;
     }
 

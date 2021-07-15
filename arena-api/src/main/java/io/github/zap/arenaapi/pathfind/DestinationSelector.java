@@ -16,7 +16,7 @@ public interface DestinationSelector {
         double bestDistance = Double.MAX_VALUE;
         PathDestination bestDestination = null;
 
-        for(PathDestination destination : operation.getDestinations()) {
+        for(PathDestination destination : operation.destinations()) {
             double sample = Vectors.distanceSquared(node, destination);
 
             if(sample < bestDistance) {
