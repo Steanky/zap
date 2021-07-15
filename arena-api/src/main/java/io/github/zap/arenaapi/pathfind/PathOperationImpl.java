@@ -240,6 +240,6 @@ class PathOperationImpl implements PathOperation {
             return bestDestination == null;
         }
 
-        return other.equals(bestDestination);
+        return other.distanceSquared(bestDestination) <= MERGE_TOLERANCE_SQUARED;
     }
 }

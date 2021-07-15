@@ -19,7 +19,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
 
     private static final int MIN_CHUNK_SYNC_AGE = 20;
-    private static final int PATH_CAPACITY = 64;
+    private static final int PATH_CAPACITY = 128;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
     private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.8;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;

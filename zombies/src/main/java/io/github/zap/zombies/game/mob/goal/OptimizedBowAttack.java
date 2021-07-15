@@ -40,6 +40,8 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
 
     @Override
     public void doTick() {
+        super.doTick();
+
         EntityLiving target = self.getGoalTarget();
 
         if (target != null) {
