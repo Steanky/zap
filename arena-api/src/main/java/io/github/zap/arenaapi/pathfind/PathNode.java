@@ -13,13 +13,12 @@ import java.util.Objects;
  * Represents a single node in the graph, which may be linked to another node. Its coordinates generally represent
  * block coordinates.
  */
-public class PathNode implements Positional {
+public class PathNode {
     private final int x;
     private final int y;
     private final int z;
 
     private final int hash;
-    private final ImmutableWorldVector position;
 
     int heapIndex = -1;
     final Score score;
@@ -34,7 +33,6 @@ public class PathNode implements Positional {
         this.y = y;
         this.z = z;
         this.hash = hash;
-        position = VectorAccess.immutable(x, y, z);
     }
 
     public PathNode(int x, int y, int z) {
@@ -86,11 +84,6 @@ public class PathNode implements Positional {
 
     public @NotNull PathNode chain(int x, int y, int z) {
         return (child = new PathNode(new Score(), this, x, y, z));
-    }
-
-    @Override
-    public @NotNull VectorAccess position() {
-        return position;
     }
 
     /**
