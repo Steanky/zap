@@ -113,6 +113,11 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         }
     }
 
+    @Override
+    public boolean comparesWith(@NotNull NodeExplorer other) {
+        return other instanceof DefaultWalkNodeExplorer;
+    }
+
     private PathNode validNodeDirectional(BlockCollisionProvider provider, BoundingBox currentAgentBounds,
                                           Vector3D translation, Vector3I blockWalkingTo,
                                           Direction direction, double currentBlockMaxY) {

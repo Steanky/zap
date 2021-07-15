@@ -85,7 +85,7 @@ public interface PathOperation {
      * Returns the NodeProvider instance used by this object. This is used to create explorable nodes for the
      * pathfinding algorithm.
      */
-    @NotNull NodeExplorer nodeProvider();
+    @NotNull NodeExplorer nodeExplorer();
 
     @Nullable PathDestination bestDestination();
 

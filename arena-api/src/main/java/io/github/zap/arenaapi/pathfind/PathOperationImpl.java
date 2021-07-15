@@ -63,7 +63,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean comparableTo(@NotNull PathOperation other) {
-        return other != this && nodeExplorer.equals(other.nodeProvider()) && agent.equals(other.agent());
+        return other != this && nodeExplorer.equals(other.nodeExplorer()) && agent.equals(other.agent());
     }
 
     @Override
@@ -205,7 +205,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull NodeExplorer nodeProvider() {
+    public @NotNull NodeExplorer nodeExplorer() {
         return nodeExplorer;
     }
 
@@ -223,7 +223,7 @@ class PathOperationImpl implements PathOperation {
     public boolean mergeValid(@NotNull PathOperation mergeInto) {
         AgentCharacteristics mergeIntoCharacteristics = mergeInto.agent().characteristics();
 
-        return this != mergeInto && (nodeExplorer.equals(mergeInto.nodeProvider()) &&
+        return this != mergeInto && (nodeExplorer.comparesWith(mergeInto.nodeExplorer()) &&
                 mergeIntoCharacteristics.width() >= agent.characteristics().width() &&
                 mergeIntoCharacteristics.jumpHeight() <= agent.characteristics().jumpHeight() &&
                 mergeIntoCharacteristics.height() >= agent.characteristics().height() &&
