@@ -17,7 +17,7 @@ public class BinaryMinNodeHeapTest {
         heap = new BinaryMinNodeHeap(128);
         for(int i = 0; i < 100; i++) {
             for(int j = 0; j < 100; j++) {
-                PathNode node = new PathNode(null, new Vector(i, j, i+j));
+                PathNode node = new PathNode(i, j, i+j);
                 node.score.set(i, j);
                 heap.addNode(node);
             }
@@ -60,7 +60,7 @@ public class BinaryMinNodeHeapTest {
         int size = heap.size();
         Assert.assertFalse(heap.isEmpty());
 
-        PathNode node = new PathNode(null, new Vector(0, 0, 0));
+        PathNode node = new PathNode(0, 0, 0);
         node.score.set(1000, 1000);
 
         heap.addNode(node);

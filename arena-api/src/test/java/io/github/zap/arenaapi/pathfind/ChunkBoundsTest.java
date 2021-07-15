@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.ChunkVectorAccess;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vectors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,7 +13,7 @@ public class ChunkBoundsTest {
 
     @Before
     public void setUp() {
-        radialSquare = (ChunkBounds)ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(0, 0, 0), 1);
+        radialSquare = (ChunkBounds)ChunkCoordinateProvider.squareFromCenter(Vectors.of(0, 0), 1);
         by2 = new ChunkBounds(0, 0, 1, 1);
     }
 
@@ -30,11 +30,11 @@ public class ChunkBoundsTest {
         int rCount = 0;
         int by2count = 0;
 
-        for(ChunkVectorAccess cv : radialSquare) {
+        for(Vector2I cv : radialSquare) {
             rCount++;
         }
 
-        for(ChunkVectorAccess cv : by2) {
+        for(Vector2I cv : by2) {
             by2count++;
         }
 

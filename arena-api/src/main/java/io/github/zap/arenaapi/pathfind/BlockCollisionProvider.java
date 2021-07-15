@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vector3I;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +47,7 @@ public interface BlockCollisionProvider {
 
     @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox bounds);
 
-    default @Nullable BlockSnapshot getBlock(@NotNull VectorAccess at) {
-        return getBlock(at.blockX(), at.blockY(), at.blockZ());
+    default @Nullable BlockSnapshot getBlock(@NotNull Vector3I at) {
+        return getBlock(at.x(), at.y(), at.z());
     }
 }

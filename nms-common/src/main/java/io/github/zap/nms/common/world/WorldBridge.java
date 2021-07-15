@@ -1,6 +1,7 @@
 package io.github.zap.nms.common.world;
 
 import org.bukkit.Chunk;
+import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,6 +15,8 @@ public interface WorldBridge {
     @NotNull String getDefaultWorldName();
 
     @NotNull CollisionChunkSnapshot takeSnapshot(@NotNull Chunk chunk);
+
+    boolean blockHasCollision(@NotNull Block block);
 
     boolean isValidChunkCoordinate(int x, int y, int z);
 

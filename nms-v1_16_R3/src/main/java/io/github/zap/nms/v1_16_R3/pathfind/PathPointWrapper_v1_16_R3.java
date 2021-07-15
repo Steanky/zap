@@ -1,7 +1,6 @@
 package io.github.zap.nms.v1_16_R3.pathfind;
 
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
-import io.github.zap.vector.VectorAccess;
 import net.minecraft.server.v1_16_R3.PathPoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,17 +15,17 @@ public class PathPointWrapper_v1_16_R3 implements PathPointWrapper {
     }
 
     @Override
-    public int getX() {
+    public int x() {
         return pathPoint.getX();
     }
 
     @Override
-    public int getY() {
+    public int y() {
         return pathPoint.getY();
     }
 
     @Override
-    public int getZ() {
+    public int z() {
         return pathPoint.getZ();
     }
 

@@ -16,7 +16,6 @@ public class Score {
     private double g;
     private double h;
     private double f;
-    private int hash;
 
     /**
      * Creates a Score object with initial g and h values
@@ -25,7 +24,6 @@ public class Score {
         this.g = g;
         this.h = h;
         this.f = g + h;
-        hash = Objects.hash(g, h, f);
     }
 
     /**
@@ -35,7 +33,6 @@ public class Score {
         g = Double.POSITIVE_INFINITY;
         h = Double.POSITIVE_INFINITY;
         f = Double.POSITIVE_INFINITY;
-        hash = Objects.hash(g, h, f);
     }
 
     @Override
@@ -45,7 +42,7 @@ public class Score {
 
     @Override
     public int hashCode() {
-        return hash;
+        return Objects.hash(g, h, f);
     }
 
     @Override
@@ -72,19 +69,16 @@ public class Score {
     void setG(double g) {
         this.g = g;
         this.f = g + h;
-        hash = Objects.hash(g, h, f);
     }
 
     void setH(double h) {
         this.h = h;
         this.f = g + h;
-        hash = Objects.hash(g, h, f);
     }
 
     void set(double g, double h) {
         this.g = g;
         this.h = h;
         this.f = g + h;
-        hash = Objects.hash(g, h, f);
     }
 }

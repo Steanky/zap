@@ -1,19 +1,39 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.ImmutableWorldVector;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vector3D;
 import org.jetbrains.annotations.NotNull;
 
-class PathAgentImpl extends PathAgent {
-    private final Characteristics characteristics;
+class PathAgentImpl implements PathAgent {
+    private final AgentCharacteristics characteristics;
 
-    PathAgentImpl(@NotNull Characteristics characteristics, @NotNull ImmutableWorldVector vector) {
-        super(vector);
+    private final double x;
+    private final double y;
+    private final double z;
+
+    PathAgentImpl(@NotNull AgentCharacteristics characteristics, double x, double y, double z) {
         this.characteristics = characteristics;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     @Override
-    public @NotNull Characteristics characteristics() {
+    public @NotNull AgentCharacteristics characteristics() {
         return characteristics;
+    }
+
+    @Override
+    public double x() {
+        return x;
+    }
+
+    @Override
+    public double y() {
+        return y;
+    }
+
+    @Override
+    public double z() {
+        return z;
     }
 }

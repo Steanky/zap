@@ -7,7 +7,7 @@ import io.github.zap.nms.common.pathfind.PathPointWrapper;
 import io.github.zap.nms.v1_16_R3.pathfind.MobNavigator_v1_16_R3;
 import io.github.zap.nms.v1_16_R3.pathfind.PathEntityWrapper_v1_16_R3;
 import io.github.zap.nms.v1_16_R3.pathfind.PathPointWrapper_v1_16_R3;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vector3I;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMob;
 import org.bukkit.entity.EntityType;
@@ -55,7 +55,7 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
 
     @Override
     public @NotNull PathEntityWrapper makePathEntity(@NotNull List<PathPointWrapper> pointWrappers,
-                                                     @NotNull VectorAccess destination, boolean reachesDestination) {
+                                                     @NotNull Vector3I destination, boolean reachesDestination) {
         List<PathPoint> points = new ArrayList<>();
 
         for(PathPointWrapper wrapper : pointWrappers) {
@@ -63,13 +63,13 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
             points.add(specific.pathPoint());
         }
 
-        return new PathEntityWrapper_v1_16_R3(new PathEntity(points, new BlockPosition(destination.blockX(), destination.blockY(),
-                destination.blockZ()), reachesDestination));
+        return new PathEntityWrapper_v1_16_R3(new PathEntity(points, new BlockPosition(destination.x(), destination.y(),
+                destination.z()), reachesDestination));
     }
 
     @Override
-    public @NotNull PathPointWrapper makePathPoint(@NotNull VectorAccess blockLocation) {
-        PathPoint pathPoint = new PathPoint(blockLocation.blockX(), blockLocation.blockY(), blockLocation.blockZ());
+    public @NotNull PathPointWrapper makePathPoint(@NotNull Vector3I blockLocation) {
+        PathPoint pathPoint = new PathPoint(blockLocation.x(), blockLocation.y(), blockLocation.z());
         pathPoint.l = PathType.WALKABLE;
         return new PathPointWrapper_v1_16_R3(pathPoint);
     }

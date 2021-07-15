@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.vector.Vectors;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,14 +12,14 @@ public interface SuccessCondition {
     /**
      * Simple termination condition: the path is complete when the agent occupies the same block as the destination.
      */
-    SuccessCondition WITHIN_BLOCK = (context, node, destination) -> node.manhattanDistance(destination) == 0;
+    SuccessCondition WITHIN_BLOCK = (context, node, destination) -> Vectors.distanceSquared(node, destination) <= 1;
 
     boolean hasCompleted(@NotNull PathfinderContext context, @NotNull PathNode node, @NotNull PathDestination destination);
 
     static @NotNull SuccessCondition whenWithin(double distanceSquared) {
         Validate.isTrue(distanceSquared >= 0, "distanceSquared must be greater than or equal to 0!");
         Validate.isTrue(Double.isFinite(distanceSquared), "distanceSquared must be finite!");
-        return (context, node, destination) -> destination.position().distanceSquared(node) <= distanceSquared;
+        return (context, node, destination) -> Vectors.distanceSquared(node, destination) <= distanceSquared;
     }
 
     static @NotNull SuccessCondition when(@NotNull Predicate<PathNode> nodePredicate) {

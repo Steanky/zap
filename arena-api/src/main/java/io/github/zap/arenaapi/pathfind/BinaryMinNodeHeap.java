@@ -114,7 +114,8 @@ class BinaryMinNodeHeap implements NodeHeap {
     public @Nullable PathNode nodeAt(int x, int y, int z) {
         for(int i = 0; i < size; i++) {
             PathNode node = nodes[i];
-            if(node.positionEquals(x, y, z)) {
+
+            if(node.x() == x && node.y() == y && node.z() == z) {
                 return node;
             }
         }

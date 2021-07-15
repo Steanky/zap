@@ -2,9 +2,9 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
-import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
-import io.github.zap.vector.ChunkVectorAccess;
+import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vectors;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -14,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new ConcurrentHashMap<>();
@@ -39,15 +38,15 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public void updateRegion(@NotNull ChunkCoordinateProvider coordinates) {
-        for(ChunkVectorAccess coordinate : coordinates) {
+        for(Vector2I coordinate : coordinates) {
             ChunkIdentifier targetChunk = new ChunkIdentifier(world.getUID(), coordinate);
 
-            if(world.isChunkLoaded(coordinate.chunkX(), coordinate.chunkZ())) {
+            if(world.isChunkLoaded(coordinate.x(), coordinate.z())) {
                 CollisionChunkSnapshot oldSnapshot = chunks.get(targetChunk);
 
                 if(oldSnapshot == null || (Bukkit.getCurrentTick() - oldSnapshot.captureTick()) > maxCaptureAge) {
                     chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
-                            .takeSnapshot(world.getChunkAt(coordinate.chunkX(), coordinate.chunkZ())));
+                            .takeSnapshot(world.getChunkAt(coordinate.x(), coordinate.z())));
                 }
             }
             else {
@@ -58,7 +57,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public void clearRegion(@NotNull ChunkCoordinateProvider coordinates) {
-        for(ChunkVectorAccess coordinate : coordinates) {
+        for(Vector2I coordinate : coordinates) {
             chunks.remove(new ChunkIdentifier(world.getUID(), coordinate));
         }
     }
@@ -70,12 +69,12 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public boolean hasChunk(int x, int z) {
-        return chunks.containsKey(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+        return chunks.containsKey(new ChunkIdentifier(world.getUID(), Vectors.of(x, z)));
     }
 
     @Override
     public CollisionChunkSnapshot chunkAt(int x, int z) {
-        return chunks.get(new ChunkIdentifier(world.getUID(), ChunkVectorAccess.immutable(x, z)));
+        return chunks.get(new ChunkIdentifier(world.getUID(), Vectors.of(x, z)));
     }
 
     @Override

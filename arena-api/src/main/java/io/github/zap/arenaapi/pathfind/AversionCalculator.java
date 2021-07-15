@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Calculates the "aversion" mobs have towards certain blocks.
@@ -8,7 +9,7 @@ import org.bukkit.Material;
 public interface AversionCalculator {
     AversionCalculator DEFAULT_WALK = new AversionCalculator() {
         @Override
-        public double aversionForMaterial(Material material) {
+        public double aversionForMaterial(@NotNull Material material) {
             return switch (material) {
                 case SOUL_SAND, SLIME_BLOCK, HONEY_BLOCK -> 4;
                 case FIRE -> 8;
@@ -21,7 +22,7 @@ public interface AversionCalculator {
         }
 
         @Override
-        public double aversionFactor(PathNode linkedNode) {
+        public double aversionFactor(@NotNull PathNode linkedNode) {
             return linkedNode.parent.y() - linkedNode.y() <= 3 ? 1 : 2;
         }
     };
@@ -35,12 +36,12 @@ public interface AversionCalculator {
      * bias. To bias mobs away from travelling to this block, increase the value. To completely stop mobs from travelling
      * here, return Double.POSITIVE_INFINITY. To bias mobs towards travelling here, return a negative number.
      */
-    double aversionForMaterial(Material material);
+    double aversionForMaterial(@NotNull Material material);
 
     /**
      * Calculates the distance for the given PathNode. This is additive with the result returned from aversionFor.
      * @param linkedNode The node to calculate the distance for
      * @return The distance, which will be added to the result returned by aversionFor
      */
-    double aversionFactor(PathNode linkedNode);
+    double aversionFactor(@NotNull PathNode linkedNode);
 }

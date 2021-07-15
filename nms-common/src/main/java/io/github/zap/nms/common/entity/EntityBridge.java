@@ -3,8 +3,7 @@ package io.github.zap.nms.common.entity;
 import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
-import io.github.zap.vector.VectorAccess;
-import org.bukkit.entity.Entity;
+import io.github.zap.vector.Vector3I;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
@@ -36,9 +35,9 @@ public interface EntityBridge {
     int getEntityTypeID(@NotNull EntityType type);
 
     @NotNull PathEntityWrapper makePathEntity(@NotNull List<PathPointWrapper> pointWrappers,
-                                              @NotNull VectorAccess destination, boolean reachesDestination);
+                                              @NotNull Vector3I destination, boolean reachesDestination);
 
-    @NotNull PathPointWrapper makePathPoint(@NotNull VectorAccess blockLocation);
+    @NotNull PathPointWrapper makePathPoint(@NotNull Vector3I blockLocation);
 
     @NotNull MobNavigator overrideNavigatorFor(Mob mob) throws NoSuchFieldException, IllegalAccessException;
 }

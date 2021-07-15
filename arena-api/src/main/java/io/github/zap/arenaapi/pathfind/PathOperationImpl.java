@@ -1,7 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vector3I;
+import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ArrayChunkGraph;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
@@ -75,8 +76,9 @@ class PathOperationImpl implements PathOperation {
                 }
             }
             else {
-                currentNode = new PathNode(null, agent);
-                currentNode.isFirst = true;
+                Vector3I agentBlockPos = Vectors.asIntFloor(agent);
+
+                currentNode = new PathNode(agentBlockPos.x(), agentBlockPos.y(), agentBlockPos.z());
                 bestDestination = destinationSelector.selectDestination(this, currentNode);
                 currentNode.score.set(0, heuristicCalculator.compute(context, currentNode, bestDestination));
                 bestFound = currentNode;
@@ -104,7 +106,7 @@ class PathOperationImpl implements PathOperation {
                 return true;
             }
 
-            visited.putElement(currentNode.nodeX(), currentNode.nodeY(), currentNode.nodeZ(), currentNode);
+            visited.putElement(currentNode.x(), currentNode.y(), currentNode.z(), currentNode);
             nodeExplorer.exploreNodes(sampleBuffer, currentNode);
 
             for(PathNode candidateNode : sampleBuffer) {
@@ -113,7 +115,7 @@ class PathOperationImpl implements PathOperation {
                 }
 
                 try {
-                    if(visited.hasElement(candidateNode.nodeX(), candidateNode.nodeY(), candidateNode.nodeZ())) {
+                    if(visited.hasElement(candidateNode.x(), candidateNode.y(), candidateNode.z())) {
                         continue;
                     }
                 }
@@ -122,7 +124,7 @@ class PathOperationImpl implements PathOperation {
                     continue;
                 }
 
-                PathNode existingNode = openHeap.nodeAt(candidateNode.nodeX(), candidateNode.nodeY(), candidateNode.nodeZ());
+                PathNode existingNode = openHeap.nodeAt(candidateNode.x(), candidateNode.y(), candidateNode.z());
                 if(existingNode == null) {
                     bestDestination = destinationSelector.selectDestination(this, candidateNode);
                     candidateNode.score.setH(heuristicCalculator.compute(context, candidateNode, bestDestination));
@@ -211,7 +213,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean mergeValid(@NotNull PathOperation mergeInto) {
-        PathAgent.Characteristics mergeIntoCharacteristics = mergeInto.agent().characteristics();
+        AgentCharacteristics mergeIntoCharacteristics = mergeInto.agent().characteristics();
 
         return this != mergeInto && (nodeExplorer.equals(mergeInto.nodeProvider()) &&
                 mergeIntoCharacteristics.width() >= agent.characteristics().width() &&
@@ -235,11 +237,11 @@ class PathOperationImpl implements PathOperation {
         result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
     }
 
-    private boolean checkDestinationComparability(VectorAccess other) {
+    private boolean checkDestinationComparability(Vector3I other) {
         if(other == null) {
             return bestDestination == null;
         }
 
-        return other.distanceSquared(bestDestination) <= MERGE_TOLERANCE_SQUARED;
+        return Vectors.distanceSquared(bestDestination, other) <= MERGE_TOLERANCE_SQUARED;
     }
 }

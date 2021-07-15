@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
-import io.github.zap.vector.VectorAccess;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
 

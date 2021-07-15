@@ -2,9 +2,15 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.WorldBridge;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
+import net.minecraft.server.v1_16_R3.BlockPosition;
+import net.minecraft.server.v1_16_R3.VoxelShape;
+import net.minecraft.server.v1_16_R3.VoxelShapes;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_16_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.jetbrains.annotations.NotNull;
 
 public class WorldBridge_v1_16_R3 implements WorldBridge {
@@ -20,6 +26,12 @@ public class WorldBridge_v1_16_R3 implements WorldBridge {
     @Override
     public @NotNull CollisionChunkSnapshot takeSnapshot(@NotNull Chunk chunk) {
         return new CollisionChunkSnapshot_v1_16_R3(chunk);
+    }
+
+    @Override
+    public boolean blockHasCollision(@NotNull Block block) {
+        return !((CraftBlockData) block).getState().getCollisionShape(((CraftChunk)block.getChunk()).getHandle(),
+                new BlockPosition(block.getX(), block.getY(), block.getZ())).isEmpty();
     }
 
     @Override

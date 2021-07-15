@@ -2,8 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
-import io.github.zap.vector.ChunkVectorAccess;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -127,9 +126,9 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
             for(PathResult successful : context.successfulPaths) {
                 ChunkGraph<PathNode> resultVisited = successful.visitedNodes();
 
-                int x = currentNode.nodeX();
-                int y = currentNode.nodeY();
-                int z = currentNode.nodeZ();
+                int x = currentNode.x();
+                int y = currentNode.y();
+                int z = currentNode.z();
 
                 if(operation.mergeValid(successful.operation()) && resultVisited.hasElement(x, y, z)) {
                     PathNode intersection = resultVisited.elementAt(x, y, z);
@@ -175,8 +174,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private boolean isUrgent(ChunkCoordinateProvider chunks, BlockCollisionProvider provider) {
         int stale = 0;
 
-        for(ChunkVectorAccess chunkVectorAccess : chunks) {
-            CollisionChunkSnapshot chunk = provider.chunkAt(chunkVectorAccess.chunkX(), chunkVectorAccess.chunkZ());
+        for(Vector2I chunkVectorAccess : chunks) {
+            CollisionChunkSnapshot chunk = provider.chunkAt(chunkVectorAccess.x(), chunkVectorAccess.z());
 
             if(chunk == null || (Bukkit.getCurrentTick() - chunk.captureTick()) > MIN_CHUNK_SYNC_AGE) {
                 stale++;

@@ -1,20 +1,21 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.ChunkVectorAccess;
+import io.github.zap.vector.MutableVector2I;
+import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vectors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Objects;
 
 public class ChunkBounds implements ChunkCoordinateProvider {
-    private final class ChunkRangeIterator implements Iterator<ChunkVectorAccess> {
-        private int x = minX - 1;
-        private int z = minZ;
+    private final class ChunkRangeIterator implements Iterator<Vector2I> {
+        private MutableVector2I current = Vectors.mutableOf(minX - 1, minZ);
 
         @Override
         public boolean hasNext() {
-            int nextX = x + 1;
-            int nextZ = z;
+            int nextX = current.x() + 1;
+            int nextZ = current.z();
 
             if(nextX == maxX) {
                 nextZ++;
@@ -24,13 +25,15 @@ public class ChunkBounds implements ChunkCoordinateProvider {
         }
 
         @Override
-        public ChunkVectorAccess next() {
-            if(++x == maxX) {
-                x = minX;
-                z++;
+        public Vector2I next() {
+            current.setX(current.x() + 1);
+
+            if(current.x() == maxX) {
+                current.setX(minX);
+                current.setZ(current.z() + 1);
             }
 
-            return ChunkVectorAccess.immutable(x, z);
+            return current;
         }
     }
 
@@ -58,12 +61,12 @@ public class ChunkBounds implements ChunkCoordinateProvider {
         hash = Objects.hash(minX, maxX, minZ, maxZ);
     }
 
-    public ChunkBounds(@NotNull ChunkVectorAccess first, @NotNull ChunkVectorAccess second) {
-        this(first.chunkX(), first.chunkZ(), second.chunkX(), second.chunkZ());
+    public ChunkBounds(@NotNull Vector2I first, @NotNull Vector2I second) {
+        this(first.x(), first.z(), second.x(), second.z());
     }
 
-    public ChunkBounds(@NotNull ChunkVectorAccess center, int radius) {
-        this(center.chunkX() - radius - 1, center.chunkZ() - radius - 1, center.chunkX() + radius, center.chunkZ() + radius);
+    public ChunkBounds(@NotNull Vector2I center, int radius) {
+        this(center.x() - radius - 1, center.z() - radius - 1, center.x() + radius, center.z() + radius);
     }
 
     public boolean hasChunk(int x, int z) {
@@ -121,7 +124,7 @@ public class ChunkBounds implements ChunkCoordinateProvider {
 
     @NotNull
     @Override
-    public Iterator<ChunkVectorAccess> iterator() {
+    public Iterator<Vector2I> iterator() {
         return new ChunkRangeIterator();
     }
 }

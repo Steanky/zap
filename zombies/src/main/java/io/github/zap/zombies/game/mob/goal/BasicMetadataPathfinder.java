@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.arenaapi.pathfind.PathDestination;
 import io.github.zap.arenaapi.pathfind.PathOperation;
 import io.github.zap.arenaapi.pathfind.PathResult;
-import io.github.zap.arenaapi.shadow.io.github.zap.vector.ImmutableWorldVector;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
@@ -14,7 +13,6 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.vector.Vectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,7 +17,7 @@ public interface DestinationSelector {
         PathDestination bestDestination = null;
 
         for(PathDestination destination : operation.getDestinations()) {
-            double sample = node.distanceSquared(destination.position());
+            double sample = Vectors.distanceSquared(node, destination);
 
             if(sample < bestDistance) {
                 bestDistance = sample;

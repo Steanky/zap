@@ -1,18 +1,11 @@
 package io.github.zap.nms.common.world;
 
-import io.github.zap.vector.ImmutableWorldVector;
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vector3I;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
-public interface BlockSnapshot {
-    int blockX();
-
-    int blockY();
-
-    int blockZ();
-
+public interface BlockSnapshot extends Vector3I {
     @NotNull BlockData data();
 
     @NotNull VoxelShapeWrapper collision();

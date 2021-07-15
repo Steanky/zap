@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.VectorAccess;
+import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.entity.Entity;
@@ -115,7 +115,7 @@ public interface PathOperation {
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int loadRadius) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY, SuccessCondition.WITHIN_BLOCK,
                 new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
-                ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), loadRadius));
+                ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
@@ -137,6 +137,6 @@ public interface PathOperation {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
                 SuccessCondition.whenWithin(targetDeviation * targetDeviation),
                 new DefaultWalkNodeExplorer(AversionCalculator.DEFAULT_WALK), DestinationSelector.CLOSEST,
-                ChunkCoordinateProvider.squareFromCenter(VectorAccess.immutable(entity.getLocation().toVector()), loadRadius));
+                ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
     }
 }

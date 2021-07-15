@@ -1,36 +1,42 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.ImmutableWorldVector;
-import io.github.zap.vector.Positional;
-import io.github.zap.vector.VectorAccess;
-import org.apache.commons.lang3.Validate;
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.vector.Vector3I;
+import io.github.zap.vector.Vectors;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Objects;
 
-public interface PathDestination extends Positional {
+public interface PathDestination extends Vector3I {
     @NotNull PathTarget target();
 
     static @NotNull PathDestination fromEntity(@NotNull Entity entity, @NotNull PathTarget target, boolean findBlock) {
         Objects.requireNonNull(entity, "entity cannot be null!");
-        return new PathDestinationImpl(findBlock ? vectorOnGround(entity) :
-                VectorAccess.immutable(entity.getLocation().toVector()), target);
+
+        if(findBlock) {
+            Vector3I vector = vectorOnGround(entity);
+            return new PathDestinationImpl(target, vector.x(), vector.y(), vector.z());
+        }
+
+        Vector vector = entity.getLocation().toVector();
+        return new PathDestinationImpl(target, vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
-    static @NotNull PathDestination fromCoordinates(@NotNull PathTarget target,double x, double y, double z) {
-        return new PathDestinationImpl(VectorAccess.immutable(x, y, z), target);
+    static @NotNull PathDestination fromCoordinates(@NotNull PathTarget target, double x, double y, double z) {
+        return new PathDestinationImpl(target, (int)Math.floor(x), (int)Math.floor(y), (int)Math.floor(z));
     }
 
-    static @NotNull PathDestination fromVector(@NotNull ImmutableWorldVector source, @NotNull PathTarget target) {
+    static @NotNull PathDestination fromVector(@NotNull Vector source, @NotNull PathTarget target) {
         Objects.requireNonNull(source, "source cannot be null!");
-        return new PathDestinationImpl(source, target);
+        return new PathDestinationImpl(target, source.getBlockX(), source.getBlockY(), source.getBlockZ());
     }
 
-    private static ImmutableWorldVector vectorOnGround(Entity entity) {
+    private static Vector3I vectorOnGround(Entity entity) {
         Location targetLocation = entity.getLocation();
 
         int x = targetLocation.getBlockX();
@@ -43,8 +49,8 @@ public interface PathDestination extends Positional {
         do {
             block = world.getBlockAt(x, y, z);
         }
-        while(block.getType().isEmpty() && --y > -1);
+        while(--y > -1 && ArenaApi.getInstance().getNmsBridge().worldBridge().blockHasCollision(block));
 
-        return VectorAccess.immutable(x, y + 1, z);
+        return Vectors.of(x, y + 1, z);
     }
 }
