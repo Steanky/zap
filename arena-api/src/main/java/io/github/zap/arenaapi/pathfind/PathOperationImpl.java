@@ -79,9 +79,7 @@ class PathOperationImpl implements PathOperation {
                 }
             }
             else {
-                Vector3I agentBlockPos = Vectors.asIntFloor(agent);
-
-                currentNode = new PathNode(agentBlockPos.x(), agentBlockPos.y(), agentBlockPos.z());
+                currentNode = new PathNode(Vectors.asIntFloor(agent));
                 bestDestination = destinationSelector.selectDestination(this, currentNode);
                 currentNode.score.set(0, heuristicCalculator.compute(context, currentNode, bestDestination));
                 bestFound = currentNode;

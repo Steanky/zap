@@ -3,6 +3,7 @@ package io.github.zap.vector.graph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.function.BiConsumer;
 
 class NodeChunk {
@@ -21,7 +22,8 @@ class NodeChunk {
     }
 
     void set(int y, @Nullable NodeSegment segment) {
-        emptyCount = NodeUtils.setterHelper(segment, segments, y, emptyCount, (a, b) -> chunkRemover.accept(chunkX, chunkZ), -1);
+        emptyCount = NodeUtils.setterHelper(segment, segments, y, emptyCount, (a, b) ->
+                chunkRemover.accept(chunkX, chunkZ), -1);
     }
 
     @Nullable NodeSegment get(int y) {

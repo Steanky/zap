@@ -29,10 +29,10 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
         this.minX = Math.min(minX, maxX);
         this.minZ = Math.min(minZ, maxZ);
 
-        int maxX1 = Math.max(minX, maxX);
-        int maxZ1 = Math.max(minZ, maxZ);
+        maxX = Math.max(minX, maxX);
+        maxZ = Math.max(minZ, maxZ);
 
-        chunkArray = new NodeChunk[(width = maxX1 - this.minX)][(height = maxZ1 - this.minZ)];
+        chunkArray = new NodeChunk[(width = maxX - this.minX)][(height = maxZ - this.minZ)];
     }
 
     @Override

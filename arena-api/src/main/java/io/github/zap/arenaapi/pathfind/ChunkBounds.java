@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.MutableVector2I;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
 import org.jetbrains.annotations.NotNull;
@@ -9,13 +8,14 @@ import java.util.Iterator;
 import java.util.Objects;
 
 public class ChunkBounds implements ChunkCoordinateProvider {
-    private final class ChunkRangeIterator implements Iterator<Vector2I> {
-        private MutableVector2I current = Vectors.mutableOf(minX - 1, minZ);
+    private class ChunkBoundsIterator implements Iterator<Vector2I> {
+        private int x = minX - 1;
+        private int z = minZ;
 
         @Override
         public boolean hasNext() {
-            int nextX = current.x() + 1;
-            int nextZ = current.z();
+            int nextX = x + 1;
+            int nextZ = z;
 
             if(nextX == maxX) {
                 nextZ++;
@@ -26,14 +26,12 @@ public class ChunkBounds implements ChunkCoordinateProvider {
 
         @Override
         public Vector2I next() {
-            current.setX(current.x() + 1);
-
-            if(current.x() == maxX) {
-                current.setX(minX);
-                current.setZ(current.z() + 1);
+            if(++x == maxX) {
+                x = minX;
+                z++;
             }
 
-            return current;
+            return Vectors.of(x, z);
         }
     }
 
@@ -46,8 +44,6 @@ public class ChunkBounds implements ChunkCoordinateProvider {
     private final int width;
     private final int height;
 
-    private final int hash;
-
     public ChunkBounds(int x1, int z1, int x2, int z2) {
         minX = Math.min(x1, x2);
         minZ = Math.min(z1, z2);
@@ -57,8 +53,6 @@ public class ChunkBounds implements ChunkCoordinateProvider {
 
         width = maxX - minX;
         height = maxZ - minZ;
-
-        hash = Objects.hash(minX, maxX, minZ, maxZ);
     }
 
     public ChunkBounds(@NotNull Vector2I first, @NotNull Vector2I second) {
@@ -110,7 +104,7 @@ public class ChunkBounds implements ChunkCoordinateProvider {
 
     @Override
     public int hashCode() {
-        return hash;
+        return Objects.hash(minX, maxX, minZ, maxZ);
     }
 
     @Override
@@ -125,6 +119,6 @@ public class ChunkBounds implements ChunkCoordinateProvider {
     @NotNull
     @Override
     public Iterator<Vector2I> iterator() {
-        return new ChunkRangeIterator();
+        return new ChunkBoundsIterator();
     }
 }

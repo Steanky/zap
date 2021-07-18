@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector3I;
+import io.github.zap.vector.Vectors;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,9 +13,7 @@ import java.util.Objects;
  * block coordinates.
  */
 public class PathNode implements Vector3I {
-    private final int x;
-    private final int y;
-    private final int z;
+    private final Vector3I position;
 
     int heapIndex = -1;
     final Score score;
@@ -23,11 +22,9 @@ public class PathNode implements Vector3I {
 
     private final int hash;
 
-    public PathNode(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        hash = Objects.hash(x, y, z);
+    public PathNode(@NotNull Vector3I vector) {
+        position = vector;
+        hash = Objects.hash(position);
         score = new Score();
     }
 
@@ -39,7 +36,7 @@ public class PathNode implements Vector3I {
     @Override
     public boolean equals(Object other) {
         if(other instanceof PathNode otherNode) {
-            return otherNode.x == x && otherNode.y == y && otherNode.z == z;
+            return otherNode.position.equals(position);
         }
 
         return false;
@@ -47,7 +44,7 @@ public class PathNode implements Vector3I {
 
     @Override
     public String toString() {
-        return "PathNode{x=" + x + ", y=" + y + ", z=" + z + ", score=" + score + "}";
+        return "PathNode{x=" + position.x() + ", y=" + position.y() + ", z=" + position.z() + ", score=" + score + "}";
     }
 
     /**
@@ -75,7 +72,7 @@ public class PathNode implements Vector3I {
     }
 
     public @NotNull PathNode chain(int x, int y, int z) {
-        PathNode node = new PathNode(x, y, z);
+        PathNode node = new PathNode(Vectors.of(x, y, z));
         node.parent = this;
         child = node;
         return node;
@@ -83,16 +80,16 @@ public class PathNode implements Vector3I {
 
     @Override
     public int x() {
-        return x;
+        return position.x();
     }
 
     @Override
     public int y() {
-        return y;
+        return position.y();
     }
 
     @Override
     public int z() {
-        return z;
+        return position.z();
     }
 }

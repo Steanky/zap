@@ -16,13 +16,15 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> chunks = new ConcurrentHashMap<>();
+    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> globalChunks = new ConcurrentHashMap<>();
 
     private final World world;
+    private final UUID worldUUID;
     private final int maxCaptureAge;
 
     AsyncBlockCollisionProvider(@NotNull World world, int maxCaptureAge) {
         this.world = world;
+        worldUUID = world.getUID();
         this.maxCaptureAge = maxCaptureAge;
     }
 
@@ -39,18 +41,18 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     @Override
     public void updateRegion(@NotNull ChunkCoordinateProvider coordinates) {
         for(Vector2I coordinate : coordinates) {
-            ChunkIdentifier targetChunk = new ChunkIdentifier(world.getUID(), coordinate);
+            ChunkIdentifier targetChunk = new ChunkIdentifier(worldUUID, coordinate);
 
             if(world.isChunkLoaded(coordinate.x(), coordinate.z())) {
-                CollisionChunkSnapshot oldSnapshot = chunks.get(targetChunk);
+                CollisionChunkSnapshot oldSnapshot = chunkAtInternal(targetChunk);
 
                 if(oldSnapshot == null || (Bukkit.getCurrentTick() - oldSnapshot.captureTick()) > maxCaptureAge) {
-                    chunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
+                    globalChunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
                             .takeSnapshot(world.getChunkAt(coordinate.x(), coordinate.z())));
                 }
             }
             else {
-                chunks.remove(targetChunk);
+                globalChunks.remove(targetChunk);
             }
         }
     }
@@ -58,23 +60,27 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     @Override
     public void clearRegion(@NotNull ChunkCoordinateProvider coordinates) {
         for(Vector2I coordinate : coordinates) {
-            chunks.remove(new ChunkIdentifier(world.getUID(), coordinate));
+            globalChunks.remove(new ChunkIdentifier(worldUUID, coordinate));
         }
     }
 
     @Override
     public void clearForWorld() {
-        chunks.keySet().removeIf(id -> id.worldID.equals(world.getUID()));
+        globalChunks.keySet().removeIf(id -> id.worldID.equals(worldUUID));
     }
 
     @Override
     public boolean hasChunk(int x, int z) {
-        return chunks.containsKey(new ChunkIdentifier(world.getUID(), Vectors.of(x, z)));
+        return globalChunks.containsKey(new ChunkIdentifier(worldUUID, Vectors.of(x, z)));
     }
 
     @Override
     public CollisionChunkSnapshot chunkAt(int x, int z) {
-        return chunks.get(new ChunkIdentifier(world.getUID(), Vectors.of(x, z)));
+        return chunkAtInternal(new ChunkIdentifier(worldUUID, Vectors.of(x, z)));
+    }
+
+    private CollisionChunkSnapshot chunkAtInternal(ChunkIdentifier identifier) {
+        return globalChunks.get(identifier);
     }
 
     @Override

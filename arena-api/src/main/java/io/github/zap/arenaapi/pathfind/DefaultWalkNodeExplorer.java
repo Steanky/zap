@@ -5,7 +5,6 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
-import io.github.zap.vector.MutableVector3I;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
@@ -123,15 +122,13 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                                           Direction direction, double currentBlockMaxY) {
         switch (determineType(provider, currentAgentBounds, translation, direction)) {
             case FALL:
-                Vector3I fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation,
-                        currentBlockMaxY);
-                return fallVec == null ? null : new PathNode(fallVec.x(), fallVec.y(), fallVec.z());
+                Vector3I fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation, currentBlockMaxY);
+                return fallVec == null ? null : new PathNode(fallVec);
             case INCREASE:
-                Vector3I jumpVec = jumpTest(provider, currentAgentBounds, blockWalkingTo, direction,
-                        translation, currentBlockMaxY);
-                return jumpVec == null ? null : new PathNode(jumpVec.x(), jumpVec.y(), jumpVec.z());
+                Vector3I jumpVec = jumpTest(provider, currentAgentBounds, blockWalkingTo, direction, translation, currentBlockMaxY);
+                return jumpVec == null ? null : new PathNode(jumpVec);
             case NO_CHANGE:
-                return new PathNode(blockWalkingTo.x(), blockWalkingTo.y(), blockWalkingTo.z());
+                return new PathNode(blockWalkingTo);
         }
 
         return null;
@@ -185,11 +182,13 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         double jumpHeight = agent.characteristics().jumpHeight();
         double height = agent.characteristics().height();
 
-        MutableVector3I seek = Vectors.mutableOf(walkingTo);
+        int x = walkingTo.x();
+        int y = walkingTo.y();
+        int z = walkingTo.z();
 
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
-            BlockSnapshot snapshot = provider.getBlock(seek);
+            BlockSnapshot snapshot = provider.getBlock(x, y, z);
             if(snapshot == null) {
                 return null;
             }
@@ -264,9 +263,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                 }
             }
 
-            seek.setY(seek.y() + 1);
-
-            if(seek.y() >= 256) {
+            if(++y >= 256) {
                 return null;
             }
         }

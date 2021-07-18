@@ -26,7 +26,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private final ExecutorCompletionService<PathResult> completionService =
             new ExecutorCompletionService<>(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
 
-    private final Map<UUID, Context> contexts = new HashMap<>();
+    private final Map<UUID, Context> contexts = new ConcurrentHashMap<>();
 
     private class Context implements PathfinderContext {
         private final Semaphore syncSemaphore = new Semaphore(MAX_SCHEDULED_SYNC_TASKS);
@@ -217,7 +217,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 boolean noErr = true;
                 try {
                     context.blockCollisionProvider.updateRegion(coordinateProvider);
-                    context.lastSyncTick = currentTick;
                 }
                 catch (Exception exception) {
                     ArenaApi.warning("An exception occurred while synchronizing chunks:");
@@ -225,6 +224,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     noErr = false;
                 }
                 finally {
+                    context.lastSyncTick = Bukkit.getCurrentTick();
                     context.syncSemaphore.release();
                     latch.countDown();
                 }
@@ -254,11 +254,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
      */
     @Override
     public @NotNull Future<PathResult> giveOperation(@NotNull PathOperation operation, @NotNull World world) {
-        Context context;
-        synchronized (contexts) {
-            context = contexts.computeIfAbsent(world.getUID(), (key) ->
-                    new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
-        }
+        Context context = contexts.computeIfAbsent(world.getUID(), (key) ->
+                new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
 
         return completionService.submit(() -> processOperation(context, operation));
     }
@@ -274,12 +271,10 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     @EventHandler
     private void onWorldUnload(WorldUnloadEvent event) {
-        synchronized (contexts) {
-            Context context = contexts.get(event.getWorld().getUID());
+        Context context = contexts.get(event.getWorld().getUID());
 
-            if(context != null) {
-                context.blockProvider().clearForWorld();
-            }
+        if(context != null) {
+            context.blockProvider().clearForWorld();
         }
     }
 }

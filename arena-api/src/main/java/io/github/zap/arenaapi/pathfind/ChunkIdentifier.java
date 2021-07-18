@@ -10,17 +10,15 @@ import java.util.UUID;
 class ChunkIdentifier {
     public final UUID worldID;
     public final Vector2I position;
-    private final int hash;
 
     ChunkIdentifier(@NotNull UUID worldID, @NotNull Vector2I position) {
         this.worldID = worldID;
         this.position = position;
-        hash = Objects.hash(worldID, position);
     }
 
     @Override
     public int hashCode() {
-        return hash;
+        return Objects.hash(worldID, position);
     }
 
     @Override

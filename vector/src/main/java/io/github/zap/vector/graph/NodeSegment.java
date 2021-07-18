@@ -3,6 +3,8 @@ package io.github.zap.vector.graph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
+
 class NodeSegment {
     private final NodeChunk parent;
     private final NodeLayer[] layers = new NodeLayer[16];

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.vector.Vectors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,7 +24,7 @@ public class PathNodeTest {
                         testNodes.add((node = node.chain(i, j, k)));
                     }
                     else {
-                        PathNode first = new PathNode(i, j, k);
+                        PathNode first = new PathNode(Vectors.of(i, j, k));
                         node = first;
                         testNodes.add(first);
                     }
