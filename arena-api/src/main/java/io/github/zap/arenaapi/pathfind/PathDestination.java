@@ -7,50 +7,81 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
 public interface PathDestination extends Vector3I {
     @NotNull PathTarget target();
 
-    static @NotNull PathDestination fromEntity(@NotNull Entity entity, @NotNull PathTarget target, boolean findBlock) {
+    static @Nullable PathDestination fromEntity(@NotNull Entity entity, @NotNull PathTarget target, boolean findBlock) {
         Objects.requireNonNull(entity, "entity cannot be null!");
 
         if(findBlock) {
             Vector3I vector = vectorOnGround(entity);
+
+            if(vector == null) {
+                return null;
+            }
+
             return new PathDestinationImpl(target, vector.x(), vector.y(), vector.z());
         }
 
-        Vector vector = entity.getLocation().toVector();
-        return new PathDestinationImpl(target, vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
+        if(validLocation(entity.getLocation())) {
+            Vector vector = entity.getLocation().toVector();
+            return new PathDestinationImpl(target, vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
+        }
+
+        return null;
     }
 
-    static @NotNull PathDestination fromCoordinates(@NotNull PathTarget target, double x, double y, double z) {
-        return new PathDestinationImpl(target, (int)Math.floor(x), (int)Math.floor(y), (int)Math.floor(z));
+    static @Nullable PathDestination fromCoordinates(@NotNull PathTarget target, @NotNull World world, double x, double y, double z) {
+        if(validLocation(new Location(world, x, y, z))) {
+            return new PathDestinationImpl(target, NumberConversions.floor(x), NumberConversions.floor(y), NumberConversions.floor(z));
+        }
+
+        return null;
     }
 
-    static @NotNull PathDestination fromVector(@NotNull Vector source, @NotNull PathTarget target) {
+    static @Nullable PathDestination fromLocation(@NotNull Location source, @NotNull PathTarget target) {
         Objects.requireNonNull(source, "source cannot be null!");
-        return new PathDestinationImpl(target, source.getBlockX(), source.getBlockY(), source.getBlockZ());
+        if(validLocation(source)) {
+            return new PathDestinationImpl(target, source.getBlockX(), source.getBlockY(), source.getBlockZ());
+        }
+
+        return null;
     }
 
     private static Vector3I vectorOnGround(Entity entity) {
         Location targetLocation = entity.getLocation();
+
+        if(!validLocation(targetLocation)) {
+            return null;
+        }
 
         int x = targetLocation.getBlockX();
         int y = targetLocation.getBlockY();
         int z = targetLocation.getBlockZ();
 
         World world = targetLocation.getWorld();
-        Block block;
+        Block block = world.getBlockAt(x, y, z);
 
-        do {
-            block = world.getBlockAt(x, y, z);
+        while(!ArenaApi.getInstance().getNmsBridge().worldBridge().blockHasCollision(block)) {
+            if(--y >= 0) {
+                block = world.getBlockAt(x, y, z);
+            }
+            else {
+                return null;
+            }
         }
-        while(--y > -1 && ArenaApi.getInstance().getNmsBridge().worldBridge().blockHasCollision(block));
 
         return Vectors.of(x, y + 1, z);
+    }
+
+    private static boolean validLocation(Location location) {
+        return location.getWorld().getWorldBorder().isInside(location) && location.getBlockY() >= 0 && location.getBlockY() < 256;
     }
 }

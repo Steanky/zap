@@ -5,6 +5,8 @@ package io.github.zap.vector;
  * be effectively immutable; ex. the returned value of x(), y(), and z() cannot change for the lifetime of the object.
  */
 public interface Vector3D {
+    Vector3D ZERO = Vectors.of(0D, 0D, 0D);
+
     double x();
 
     double y();

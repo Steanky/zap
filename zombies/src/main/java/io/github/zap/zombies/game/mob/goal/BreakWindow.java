@@ -8,6 +8,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -101,8 +102,8 @@ public class BreakWindow extends BasicMetadataPathfinder {
                         destination.getZ(), 30.0F, 30.0F);
 
                 getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
-                        PathDestination.fromVector(destination,  new PathTarget() {})),
-                        3), arena.getWorld());
+                        PathDestination.fromLocation(new Location(arena.getWorld(), destination.getX(),
+                                destination.getY(), destination.getZ()),  new PathTarget() {})), 3), arena.getWorld());
 
                 navCounter = self.getRandom().nextInt(10);
             }

@@ -31,8 +31,8 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
     private double width;
     private double halfWidth;
 
-    private Vector halfWidthVector = new Vector();
-    private Vector blockOffsetVector = new Vector();
+    private Vector3D halfWidthVector;
+    private Vector3D blockOffsetVector;
 
     private double negativeWidth;
     private double blockOffset;
@@ -46,12 +46,10 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         negativeWidth = -width;
 
         halfWidth = width / 2D;
-        halfWidthVector.setX(halfWidth);
-        halfWidthVector.setZ(halfWidth);
+        halfWidthVector = Vectors.of(halfWidth, 0, halfWidth);
 
         blockOffset = 0.5D - (halfWidth);
-        blockOffsetVector.setX(blockOffset);
-        blockOffsetVector.setZ(blockOffset);
+        blockOffsetVector = Vectors.of(blockOffset, 0, blockOffset);
     }
 
     @Override
@@ -68,11 +66,11 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         BoundingBox currentAgentBounds;
         double blockMaxY = 0;
         if(Vectors.equals(Vectors.asIntFloor(agent), current)) { //use precise agent position for the node it's currently standing at
-            currentAgentBounds = agent.characteristics().getBounds().shift(Vectors.asBukkit(agent).subtract(halfWidthVector));
+            currentAgentBounds = agent.characteristics().getBounds().shift(Vectors.asBukkit(Vectors.subtract(agent, halfWidthVector)));
         }
         else { //otherwise make the assumption it's trying to pathfind from the exact center of the block
             VoxelShapeWrapper collision = blockAtCurrent.collision();
-            currentAgentBounds = agent.characteristics().getBounds().shift(Vectors.asBukkit(current).add(blockOffsetVector));
+            currentAgentBounds = agent.characteristics().getBounds().shift(Vectors.asBukkit(Vectors.add(current, blockOffsetVector)));
 
             if(collision.isFull()) {
                 ArenaApi.warning("Attempting to pathfind from a non-initial block with full collision bounds.");
@@ -246,15 +244,14 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
 
             if(DoubleMath.fuzzyCompare(jumpHeight, jumpHeightRequired, Vector.getEpsilon()) >= 0 &&
                     DoubleMath.fuzzyCompare(height, headroom, Vector.getEpsilon()) <= 0) { //entity can make the jump
-                BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
-                Vector3D jumpedVector = Vectors.add(walkingTo, Vectors.of(0, jumpHeightRequired + currentBlockMaxY, 0));
-
                 BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
                 if(provider.collidesWithAny(verticalTest)) { //check if mob will collide with something on its way up
                     return null;
                 }
 
+                BoundingBox jumpedAgent = agentBounds.clone().shift(0, jumpHeightRequired, 0);
+                Vector3D jumpedVector = Vectors.add(walkingTo, Vectors.of(0, jumpHeightRequired + currentBlockMaxY, 0));
                 if(!collidesMovingAlong(provider, jumpedAgent, translateBy, direction)) {
                     return Vectors.asIntFloor(jumpedVector);
                 }
@@ -323,8 +320,8 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                     (x, y, z, x2, y2, z2) ->
                             fastDiagonalCollisionCheck(width, negativeWidth, dirFactor, x, z, x2, z2) :
                     (x, y, z, x2, y2, z2) ->
-                            fastDiagonalCollisionCheck(width, negativeWidth,
-                            dirFactor, x2, z, x, z2), agentBounds.getCenterX(), agentBounds.getCenterZ());
+                            fastDiagonalCollisionCheck(width, negativeWidth, dirFactor, x2, z, x, z2),
+                    agentBounds.getCenterX(), agentBounds.getCenterZ());
         }
 
         return false;
@@ -379,7 +376,6 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         for(BlockSnapshot snapshot : collidingSnapshots) {
             VoxelShapeWrapper voxelShape = snapshot.collision();
             double sampleY = voxelShape.maxY();
-
 
             if(Double.isFinite(sampleY) && sampleY > highestY) {
                 highestY = sampleY;

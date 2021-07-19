@@ -21,6 +21,77 @@ import java.util.*;
 import java.util.function.Predicate;
 
 class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
+    private class SnapshotIterator implements Iterator<BlockSnapshot> {
+        private final int startX;
+        private final int startY;
+
+        private final int endX;
+        private final int endY;
+        private final int endZ;
+
+        private int x;
+        private int y;
+        private int z;
+
+        private SnapshotIterator(BoundingBox overlap) {
+            Vector min = overlap.getMin();
+            Vector max = overlap.getMax();
+
+            startX = min.getBlockX();
+            startY = min.getBlockY();
+
+            x = startX - 1;
+            y = startY;
+            z = min.getBlockZ();
+
+            endX = max.getBlockX() + 1;
+            endY = max.getBlockY() + 1;
+            endZ = max.getBlockZ() + 1;
+        }
+
+        @Override
+        public boolean hasNext() {
+            int nextX = x + 1;
+            int nextY = y;
+            int nextZ = z;
+
+            if(nextX == endX) {
+                nextY++;
+            }
+
+            if(nextY == endY) {
+                nextZ++;
+            }
+
+            return nextZ < endZ;
+        }
+
+        @Override
+        public BlockSnapshot next() {
+            if(++x == endX) {
+                if(++y == endY) {
+                    z++;
+                    y = startY;
+                }
+
+                x = startX;
+            }
+
+            int chunkRelX = x & 15;
+            int chunkRelZ = z & 15;
+
+            BlockSnapshot snapshot = nonSolidOrPartial.elementAt(chunkRelX, y, chunkRelZ);
+
+            if(snapshot == null) {
+                IBlockData data = palette[y >> 4].a(chunkRelX,y & 15, chunkRelZ);
+                snapshot = BlockSnapshot.from(x, y, z, data.createCraftBlockData(),
+                        new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
+            }
+
+            return snapshot;
+        }
+    }
+
     private static final DataPaletteBlock<IBlockData> EMPTY_BLOCK_IDS =
             new ChunkSection(0, null, null, true).getBlocks();
 
@@ -128,7 +199,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
     @Override
     public @NotNull BlockSnapshot collisionSnapshot(int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ) {
-        if(bridge.isValidChunkCoordinate(chunkRelativeX, chunkRelativeY, chunkRelativeZ)) {
+        if(validChunkCoordinate(chunkRelativeX, chunkRelativeY, chunkRelativeZ)) {
             BlockSnapshot block = nonSolidOrPartial.elementAt(chunkRelativeX, chunkRelativeY, chunkRelativeZ);
 
             if(block != null) {
@@ -216,7 +287,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
     @Override
     public @NotNull org.bukkit.Material getBlockType(int x, int y, int z) {
-        if(bridge.isValidChunkCoordinate(x, y, z)) {
+        if(validChunkCoordinate(x, y, z)) {
             return (this.palette[y >> 4].a(x, y & 15, z)).getBukkitMaterial();
         }
 
@@ -225,7 +296,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
 
     @Override
     public @NotNull BlockData getBlockData(int x, int y, int z) {
-        if(bridge.isValidChunkCoordinate(x, y, z)) {
+        if(validChunkCoordinate(x, y, z)) {
             return CraftBlockData.fromData(this.palette[y >> 4].a(x, y & 15, z));
         }
 
@@ -298,74 +369,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
         return false;
     }
 
-    private class SnapshotIterator implements Iterator<BlockSnapshot> {
-        private final int startX;
-        private final int startY;
-
-        private final int endX;
-        private final int endY;
-        private final int endZ;
-
-        private int x;
-        private int y;
-        private int z;
-
-        private SnapshotIterator(BoundingBox overlap) {
-            Vector min = overlap.getMin();
-            Vector max = overlap.getMax();
-
-            startX = min.getBlockX();
-            startY = min.getBlockY();
-
-            x = startX - 1;
-            y = startY;
-            z = min.getBlockZ();
-
-            endX = max.getBlockX() + 1;
-            endY = max.getBlockY() + 1;
-            endZ = max.getBlockZ() + 1;
-        }
-
-        @Override
-        public boolean hasNext() {
-            int nextX = x + 1;
-            int nextY = y;
-            int nextZ = z;
-
-            if(nextX == endX) {
-                nextY++;
-            }
-
-            if(nextY == endY) {
-                nextZ++;
-            }
-
-            return nextZ < endZ;
-        }
-
-        @Override
-        public BlockSnapshot next() {
-            if(++x == endX) {
-                if(++y == endY) {
-                    z++;
-                    y = startY;
-                }
-
-                x = startX;
-            }
-
-            int chunkRelX = x & 15;
-            int chunkRelZ = z & 15;
-
-            BlockSnapshot snapshot = nonSolidOrPartial.elementAt(chunkRelX, y, chunkRelZ);
-
-            if(snapshot == null) {
-                IBlockData data = palette[y >> 4].a(chunkRelX,y & 15, chunkRelZ);
-                snapshot = BlockSnapshot.from(x, y, z, data.createCraftBlockData(),
-                        new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
-            }
-
-            return snapshot;
-        }
+    private boolean validChunkCoordinate(int x, int y, int z) {
+        return x >= 0 && x < 16 && y >= 0 && y < 256 && z >= 0 && z < 16;
     }
 }

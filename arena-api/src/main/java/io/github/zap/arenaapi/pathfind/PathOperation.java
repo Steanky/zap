@@ -100,15 +100,6 @@ public interface PathOperation {
                                   @NotNull SuccessCondition successCondition, @NotNull NodeExplorer provider,
                                   @NotNull DestinationSelector destinationSelector,
                                   @NotNull ChunkCoordinateProvider coordinateProvider) {
-        Objects.requireNonNull(agent, "agent cannot be null!");
-        Objects.requireNonNull(destinations, "destinations cannot be null!");
-        Validate.isTrue(!destinations.isEmpty(), "destinations cannot be empty!");
-        Objects.requireNonNull(heuristicCalculator, "heuristicCalculator cannot be null!");
-        Objects.requireNonNull(successCondition,"successCondition cannot be null!");
-        Objects.requireNonNull(provider, "provider cannot be null!");
-        Objects.requireNonNull(destinationSelector, "destinationSelector cannot be null!");
-        Objects.requireNonNull(coordinateProvider, "coordinateProvider cannot be null!");
-
         return new PathOperationImpl(agent, destinations, heuristicCalculator, aversionCalculator, successCondition, provider,
                 destinationSelector, coordinateProvider);
     }

@@ -2,6 +2,7 @@ package io.github.zap.vector;
 
 import com.google.common.math.DoubleMath;
 import org.bukkit.Location;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -95,7 +96,7 @@ public class Vectors {
     }
 
     public static Vector3I blockVector(double x, double y, double z) {
-        return new Vector3IImpl((int)Math.floor(x), (int)Math.floor(y), (int)Math.floor(z));
+        return new Vector3IImpl(NumberConversions.floor(x), NumberConversions.floor(y), NumberConversions.floor(z));
     }
 
     public static @NotNull Vector3D copy(@NotNull Vector3D other) {
@@ -123,7 +124,8 @@ public class Vectors {
     }
 
     public static @NotNull Vector3I asIntFloor(@NotNull Vector3D other) {
-        return new Vector3IImpl((int)Math.floor(other.x()), (int)Math.floor(other.y()), (int)Math.floor(other.z()));
+        return new Vector3IImpl(NumberConversions.floor(other.x()), NumberConversions.floor(other.y()),
+                NumberConversions.floor(other.z()));
     }
 
     public static @NotNull Vector3I asChunkRelative(@NotNull Vector3I worldRelative) {
