@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathfinderEngine;
-import io.github.zap.arenaapi.shadow.io.github.zap.nms.common.pathfind.MobNavigator;
+import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;

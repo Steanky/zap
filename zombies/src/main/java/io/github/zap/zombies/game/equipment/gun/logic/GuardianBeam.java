@@ -4,7 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.shadow.io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;

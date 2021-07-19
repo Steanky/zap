@@ -20,13 +20,14 @@ repositories {
 }
 
 val shade: Configuration by configurations.creating
+val shadeProject: Configuration by configurations.creating
 val dependencyApi: Configuration by configurations.creating
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
 
 configurations.api.get().extendsFrom(dependencyApi)
-configurations.implementation.get().extendsFrom(shade)
+configurations.implementation.get().extendsFrom(shade, shadeProject)
 dependencyApi.extendsFrom(bukkitPlugin)
 
 val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
@@ -35,11 +36,11 @@ dependencies {
     dependencyApi(project(":party", "dependencyApi"))
     dependencyApi(project(":party", "shadow"))
 
-    shade(project(":nms-common")) {
+    shadeProject(project(":nms-common")) {
         isTransitive = false
     }
-    shade(project(":nms-v1_16_R3", "shadow"))
-    shade(project(":vector")) {
+    shadeProject(project(":nms-v1_16_R3", "shadow"))
+    shadeProject(project(":vector")) {
         isTransitive = false
     }
     shade("com.fasterxml.jackson.core:jackson-core:2.12.3")
@@ -71,11 +72,15 @@ val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
 }
 
 tasks.shadowJar {
-    dependsOn(relocate.get())
+    dependsOn(relocate.get(), shadeProject)
 
     configurations = listOf(shade)
     archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
+
+    from(shadeProject.map {
+        if (it.isDirectory) it else zipTree(it)
+    })
 }
 
 tasks.build {
