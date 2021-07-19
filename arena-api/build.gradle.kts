@@ -35,9 +35,13 @@ dependencies {
     dependencyApi(project(":party", "dependencyApi"))
     dependencyApi(project(":party", "shadow"))
 
-    shade(project(":nms-common", "outputJar"))
+    shade(project(":nms-common")) {
+        isTransitive = false
+    }
     shade(project(":nms-v1_16_R3", "shadow"))
-    shade(project(":vector", "outputJar"))
+    shade(project(":vector")) {
+        isTransitive = false
+    }
     shade("com.fasterxml.jackson.core:jackson-core:2.12.3")
     shade("com.fasterxml.jackson.core:jackson-databind:2.12.3")
     shade("com.fasterxml.jackson.core:jackson-annotations:2.12.3")

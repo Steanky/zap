@@ -16,9 +16,6 @@ repositories {
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
-val outputJar: Configuration by configurations.creating {
-    isCanBeResolved = false
-}
 
 configurations.api.get().extendsFrom(bukkitPlugin)
 
@@ -27,10 +24,6 @@ dependencies {
     api(project(":vector"))
 
     bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.7.0")
-}
-
-artifacts {
-    add("outputJar", tasks.jar.get())
 }
 
 description = "nms-common"
