@@ -105,9 +105,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     };
 
     private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
-    private static final WorldBridge bridge = WorldBridge_v1_16_R3.INSTANCE;
 
-    private final Chunk chunk;
     private final String worldName;
     private final int chunkX;
     private final int chunkZ;
@@ -118,8 +116,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     private final int captureTick;
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
-        this.chunk = chunk;
-
         worldName = chunk.getWorld().getName();
         chunkX = chunk.getX();
         chunkZ = chunk.getZ();
@@ -161,7 +157,7 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
                 if(blocks.contains(NON_SOLID_OR_PARTIAL)) {
                     blocks.forEachLocation((blockData, position) -> {
                         if(!blockData.isAir()) {
-                             /*
+                            /*
                             bit operator magic:
                             x & (2^n - 1) == x % (2^n) for all positive integer values of n
                             x >> n == x / 2^n for all positive integer n
@@ -236,11 +232,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     }
 
     @Override
-    public boolean collisionMatches(@NotNull BoundingBox worldRelativeBounds) {
-        return false;
-    }
-
-    @Override
     public @NotNull List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldBounds) {
         List<BlockSnapshot> shapes = new ArrayList<>();
 
@@ -263,11 +254,6 @@ class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {
     @Override
     public int captureTick() {
         return captureTick;
-    }
-
-    @Override
-    public @NotNull Chunk chunk() {
-        return chunk;
     }
 
     @Override

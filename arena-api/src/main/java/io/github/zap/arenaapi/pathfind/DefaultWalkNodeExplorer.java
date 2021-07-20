@@ -120,7 +120,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                                           Direction direction, double currentBlockMaxY) {
         switch (determineType(provider, currentAgentBounds, translation, direction)) {
             case FALL:
-                Vector3I fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation, currentBlockMaxY);
+                Vector3I fallVec = fallTest(provider, currentAgentBounds, blockWalkingTo, translation);
                 return fallVec == null ? null : new PathNode(fallVec);
             case INCREASE:
                 Vector3I jumpVec = jumpTest(provider, currentAgentBounds, blockWalkingTo, direction, translation, currentBlockMaxY);
@@ -269,7 +269,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
     }
 
     private Vector3I fallTest(BlockCollisionProvider provider, BoundingBox agentBounds, Vector3I walkingTo,
-                              Vector3D translateBy, double blockMaxY) {
+                              Vector3D translateBy) {
         BoundingBox boundsAtTranslate = agentBounds.clone().shift(Vectors.asBukkit(translateBy));
         boundsAtTranslate.resize(boundsAtTranslate.getMinX(), boundsAtTranslate.getMinY(), boundsAtTranslate.getMinZ(),
                 boundsAtTranslate.getMaxX(), boundsAtTranslate.getMinY() + 1, boundsAtTranslate.getMaxZ());
@@ -286,7 +286,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                     double maxY = highest.collision().maxY();
 
                     if(Double.isFinite(maxY)) {
-                        double fallHeight = (walkingTo.y() + blockMaxY) - (highest.y() + maxY);
+                        double fallHeight = (walkingTo.y()) - (highest.y() + maxY);
                         return Vectors.asIntFloor(Vectors.subtract(walkingTo, Vectors.of(0, fallHeight, 0)));
                     }
                     else {

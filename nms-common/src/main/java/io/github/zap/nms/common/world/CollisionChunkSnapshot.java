@@ -12,11 +12,7 @@ public interface CollisionChunkSnapshot extends ChunkSnapshot {
 
     boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds);
 
-    boolean collisionMatches(@NotNull BoundingBox worldRelativeBounds);
-
     @NotNull List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldRelativeBounds);
 
     int captureTick();
-
-    @NotNull Chunk chunk();
 }
