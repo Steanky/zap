@@ -2,7 +2,6 @@ package io.github.zap.nms.v1_16_R3.pathfind;
 
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import net.minecraft.server.v1_16_R3.PathEntity;
-import org.jetbrains.annotations.NotNull;
 
 public record PathEntityWrapper_v1_16_R3(PathEntity pathEntity) implements PathEntityWrapper {
     @Override

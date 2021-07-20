@@ -2,9 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 

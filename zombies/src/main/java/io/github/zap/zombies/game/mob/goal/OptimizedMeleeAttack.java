@@ -1,9 +1,8 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathResult;
-import io.github.zap.zombies.Zombies;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.server.v1_16_R3.EntityLiving;
+import net.minecraft.server.v1_16_R3.EnumHand;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 public class OptimizedMeleeAttack extends RetargetingPathfinder {

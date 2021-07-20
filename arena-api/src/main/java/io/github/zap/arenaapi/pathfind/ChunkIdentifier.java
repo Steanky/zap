@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector2I;
-import io.github.zap.vector.Vectors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;

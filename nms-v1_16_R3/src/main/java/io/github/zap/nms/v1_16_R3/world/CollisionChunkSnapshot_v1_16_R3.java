@@ -2,7 +2,6 @@ package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
-import io.github.zap.nms.common.world.WorldBridge;
 import io.github.zap.vector.graph.ArrayChunkGraph;
 import io.github.zap.vector.graph.ChunkGraph;
 import net.minecraft.server.v1_16_R3.*;
@@ -17,7 +16,10 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 class CollisionChunkSnapshot_v1_16_R3 implements CollisionChunkSnapshot {

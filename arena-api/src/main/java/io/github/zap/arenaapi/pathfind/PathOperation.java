@@ -2,12 +2,10 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ChunkGraph;
-import org.apache.commons.lang3.Validate;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.Set;
 
 /**

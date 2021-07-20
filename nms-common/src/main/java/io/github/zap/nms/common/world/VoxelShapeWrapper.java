@@ -4,7 +4,6 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 public interface VoxelShapeWrapper {
     double maxY();

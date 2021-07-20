@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.Vector3I;
 import org.jetbrains.annotations.NotNull;
 
 class PathDestinationImpl implements PathDestination {

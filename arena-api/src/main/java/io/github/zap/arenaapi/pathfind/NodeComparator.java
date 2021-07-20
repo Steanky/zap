@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;

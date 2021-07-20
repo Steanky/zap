@@ -4,7 +4,6 @@ import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import io.github.zap.nms.common.player.PlayerBridge;
-import io.github.zap.nms.v1_16_R3.entity.EntityBridge_v1_16_R3;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

@@ -9,7 +9,6 @@ import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -153,7 +152,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                 if(highestSnapshot != null) {
                     double newY = highestSnapshot.y() + highestSnapshot.collision().maxY();
 
-                    if(DoubleMath.fuzzyEquals(newY, currentAgentBounds.getMinY(), Vector.getEpsilon())) {
+                    if(DoubleMath.fuzzyEquals(newY, currentAgentBounds.getMinY(), Vectors.EPSILON)) {
                         return JunctionType.NO_CHANGE;
                     }
 
@@ -242,8 +241,8 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                 }
             }
 
-            if(DoubleMath.fuzzyCompare(jumpHeight, jumpHeightRequired, Vector.getEpsilon()) >= 0 &&
-                    DoubleMath.fuzzyCompare(height, headroom, Vector.getEpsilon()) <= 0) { //entity can make the jump
+            if(DoubleMath.fuzzyCompare(jumpHeight, jumpHeightRequired, Vectors.EPSILON) >= 0 &&
+                    DoubleMath.fuzzyCompare(height, headroom, Vectors.EPSILON) <= 0) { //entity can make the jump
                 BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
                 if(provider.collidesWithAny(verticalTest)) { //check if mob will collide with something on its way up
@@ -305,8 +304,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
 
     private boolean collidesMovingAlong(BlockCollisionProvider provider, BoundingBox agentBounds,
                                         Vector3D translateBy, Direction direction) {
-        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translateBy))
-                .shift(Vectors.asBukkit(Vectors.multiply(direction, Vectors.EPSILON)));
+        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translateBy));
 
         if(!direction.isIntercardinal()) {
             return provider.collidesWithAny(expandedBounds);
@@ -334,15 +332,15 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
     private boolean fastDiagonalCollisionCheck(double width, double negativeWidth, int dirFac, double minX, double minZ,
                                                double maxX, double maxZ) {
         double zMinusXMin = minZ - (minX * dirFac);
-        if(!(DoubleMath.fuzzyCompare(zMinusXMin, width, Vector.getEpsilon()) == -1)) {
-            return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), width, Vector.getEpsilon()) == -1;
+        if(!(DoubleMath.fuzzyCompare(zMinusXMin, width, Vectors.EPSILON) == -1)) {
+            return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), width, Vectors.EPSILON) == -1;
         }
 
-        if(DoubleMath.fuzzyCompare(zMinusXMin, negativeWidth, Vector.getEpsilon()) == 1) {
+        if(DoubleMath.fuzzyCompare(zMinusXMin, negativeWidth, Vectors.EPSILON) == 1) {
             return true;
         }
 
-        return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), negativeWidth, Vector.getEpsilon()) == 1;
+        return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), negativeWidth, Vectors.EPSILON) == 1;
     }
 
     private boolean processCollisions(List<BlockSnapshot> candidates, BoxPredicate collisionChecker,

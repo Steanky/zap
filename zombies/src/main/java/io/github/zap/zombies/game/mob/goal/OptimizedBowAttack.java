@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathResult;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.event.entity.EntityTargetEvent;

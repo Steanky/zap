@@ -7,7 +7,9 @@ import io.github.zap.nms.common.pathfind.PathPointWrapper;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 class PathResultImpl implements PathResult {
     private final PathNode start;

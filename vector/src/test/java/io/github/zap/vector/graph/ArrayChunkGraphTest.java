@@ -8,10 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
-
-import static org.junit.Assert.*;
 
 public class ArrayChunkGraphTest {
     private Set<Vector3I> vectorsAdded;

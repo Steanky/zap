@@ -1,18 +1,12 @@
 package io.github.zap.nms.v1_16_R3.world;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.math.DoubleMath;
-import io.github.zap.nms.common.world.BoxConsumer;
 import io.github.zap.nms.common.world.BoxPredicate;
 import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {

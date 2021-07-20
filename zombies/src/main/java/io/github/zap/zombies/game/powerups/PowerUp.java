@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.powerups;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.mutable.MutableBoolean;
 import io.github.zap.zombies.Zombies;

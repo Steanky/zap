@@ -1,7 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 
 /**

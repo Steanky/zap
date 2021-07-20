@@ -17,7 +17,6 @@ import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -47,7 +46,7 @@ import java.util.*;
  */
 public class ZombiesNPC implements Listener {
 
-    private final static String UUID_REGEX = "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}";
+    private final static String UUID_REGEX = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
 
     private final static String PLAY_ZOMBIES = "Play Zombies";
 

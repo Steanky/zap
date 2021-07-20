@@ -7,8 +7,6 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public class MetadataHelper {
     /**
      * Returns the named metadata for the specific entity, belonging to the specific plugin.

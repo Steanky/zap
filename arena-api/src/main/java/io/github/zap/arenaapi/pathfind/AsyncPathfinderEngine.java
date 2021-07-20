@@ -11,14 +11,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Map;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
 
     private static final int MIN_CHUNK_SYNC_AGE = 20;
-    private static final int PATH_CAPACITY = 128;
+    private static final int PATH_CAPACITY = 64;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
     private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.8;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
@@ -30,7 +33,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
     private class Context implements PathfinderContext {
         private final Semaphore syncSemaphore = new Semaphore(MAX_SCHEDULED_SYNC_TASKS);
-        private final Object contextSyncHandle = new Object();
 
         private final Queue<PathResult> successfulPaths = new ArrayDeque<>();
         private final BlockCollisionProvider blockCollisionProvider;
@@ -54,12 +56,13 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         public void recordPath(PathResult path) {
             PathOperation.State state = path.state();
 
-            switch (state) {
-                case SUCCEEDED -> handleAddition(path, successfulPaths);
+            if (state == PathOperation.State.SUCCEEDED) {
+                handleAddition(path, successfulPaths);
             }
         }
 
         private void handleAddition(PathResult result, Queue<PathResult> target) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (target) {
                 int oldCount = target.size();
                 int newCount = oldCount + 1;
@@ -80,7 +83,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private PathResult processOperation(Context context, PathOperation operation) {
         try {
             trySyncChunks(context, operation.searchArea(), isUrgent(operation.searchArea(), context.blockProvider()));
-
             operation.init(context);
 
             while(operation.state() == PathOperation.State.STARTED) {
@@ -123,43 +125,53 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         synchronized (context.successfulPaths) { //try to merge paths if possible
             PathNode currentNode = operation.currentNode();
 
-            for(PathResult successful : context.successfulPaths) {
-                ChunkGraph<PathNode> resultVisited = successful.visitedNodes();
+            if(currentNode != null) {
+                for(PathResult successful : context.successfulPaths) {
+                    ChunkGraph<PathNode> resultVisited = successful.visitedNodes();
 
-                int x = currentNode.x();
-                int y = currentNode.y();
-                int z = currentNode.z();
+                    int x = currentNode.x();
+                    int y = currentNode.y();
+                    int z = currentNode.z();
 
-                if(operation.mergeValid(successful.operation()) && resultVisited.hasElement(x, y, z)) {
-                    PathNode intersection = resultVisited.elementAt(x, y, z);
+                    if(operation.mergeValid(successful.operation()) && resultVisited.hasElement(x, y, z)) {
+                        PathNode intersection = resultVisited.elementAt(x, y, z);
 
-                    PathNode sample = intersection;
-                    while(sample != null) {
-                        PathNode parent = sample.parent;
+                        PathNode sample = intersection;
+                        while(sample != null) {
+                            PathNode parent = sample.parent;
 
-                        if(parent != null && parent.child != sample) {
-                            intersection.child = currentNode.child; //link paths
-                            if(currentNode.child != null) {
-                                currentNode.child.parent = intersection;
+                            if(parent != null && parent.child != sample) {
+                                intersection.child = currentNode.child; //link paths
+                                if(currentNode.child != null) {
+                                    currentNode.child.parent = intersection;
+                                }
+
+                                parent.child = sample; //point path back towards origin
+
+                                PathNode first = intersection; //get origin node
+                                while(first.child != null) {
+                                    first = first.child;
+                                }
+
+                                PathDestination destination = operation.bestDestination();
+                                if(destination != null) {
+                                    return new PathResultImpl(first, operation, resultVisited, destination,
+                                            PathOperation.State.SUCCEEDED);
+                                }
+
+                                return null;
                             }
 
-                            parent.child = sample; //point path back towards origin
-
-                            PathNode first = intersection; //get origin node
-                            while(first != null) {
-                                first = first.child;
-                            }
-
-                            return new PathResultImpl(first, operation, resultVisited, operation.bestDestination(),
-                                    PathOperation.State.SUCCEEDED);
+                            sample = sample.parent;
                         }
 
-                        sample = sample.parent;
+                        PathDestination destination = operation.bestDestination();
+                        if(intersection != null && destination != null) {
+                            //if we reach this point, it means we started directly on an existing path
+                            return new PathResultImpl(intersection, operation, resultVisited, destination,
+                                    PathOperation.State.SUCCEEDED);
+                        }
                     }
-
-                    //if we reach this point, it means we started directly on an existing path
-                    return new PathResultImpl(intersection, operation, resultVisited, operation.bestDestination(),
-                            PathOperation.State.SUCCEEDED);
                 }
             }
         }
@@ -214,14 +226,12 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
             CountDownLatch latch = new CountDownLatch(1);
             int taskId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
-                boolean noErr = true;
                 try {
                     context.blockCollisionProvider.updateRegion(coordinateProvider);
                 }
                 catch (Exception exception) {
                     ArenaApi.warning("An exception occurred while synchronizing chunks:");
                     exception.printStackTrace();
-                    noErr = false;
                 }
                 finally {
                     context.lastSyncTick = Bukkit.getCurrentTick();
@@ -243,8 +253,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 Bukkit.getScheduler().cancelTask(taskId);
             }
         }
-
-        return;
     }
 
     /**

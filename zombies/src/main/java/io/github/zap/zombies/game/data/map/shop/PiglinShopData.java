@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.zombies.game.shop.ShopType;
-import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.util.Vector;

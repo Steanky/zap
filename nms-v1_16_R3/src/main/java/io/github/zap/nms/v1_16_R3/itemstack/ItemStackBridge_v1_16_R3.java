@@ -2,7 +2,6 @@ package io.github.zap.nms.v1_16_R3.itemstack;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.zap.nms.common.itemstack.ItemStackBridge;
-import io.github.zap.nms.v1_16_R3.entity.EntityBridge_v1_16_R3;
 import net.minecraft.server.v1_16_R3.MojangsonParser;
 import net.minecraft.server.v1_16_R3.NBTTagCompound;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
