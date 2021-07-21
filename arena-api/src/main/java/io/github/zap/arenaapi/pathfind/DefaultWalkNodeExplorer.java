@@ -9,6 +9,7 @@ import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,12 +65,17 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
 
         BoundingBox currentAgentBounds;
         double blockMaxY = 0;
+        //BoundingBoxes originate from the minimum vector, but entity position is measured from the center of the entity
         if(Vectors.equals(Vectors.asIntFloor(agent), current)) { //use precise agent position for the node it's currently standing at
-            currentAgentBounds = agent.characteristics().getBounds().shift(Vectors.asBukkit(Vectors.subtract(agent, halfWidthVector)));
+            currentAgentBounds = agent.characteristics().getBounds().shift(Vectors.asBukkit(Vectors.subtract(
+                    agent, halfWidthVector)));
         }
         else { //otherwise make the assumption it's trying to pathfind from the exact center of the block
             VoxelShapeWrapper collision = blockAtCurrent.collision();
-            currentAgentBounds = agent.characteristics().getBounds().shift(Vectors.asBukkit(Vectors.add(current, blockOffsetVector)));
+
+            currentAgentBounds = agent.characteristics().getBounds();
+            double offset = (currentAgentBounds.getMaxX() - 1) / 2;
+            currentAgentBounds.shift(Vectors.asBukkit(current)).shift(-offset, 0, -offset);
 
             if(collision.isFull()) {
                 ArenaApi.warning("Attempting to pathfind from a non-initial block with full collision bounds.");
@@ -93,13 +99,20 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
             Direction direction = Direction.valueAtIndex(i);
             Vector3I blockWalkingTo = Vectors.add(current, direction);
 
-            Vector3D translation = Vectors.of(blockWalkingTo.x() - currentAgentBounds.getCenterX()
-                    + 0.5, 0, blockWalkingTo.z() - currentAgentBounds.getCenterZ() + 0.5);
+            Vector3D translation = Vectors.of((blockWalkingTo.x() - currentAgentBounds.getMinX())
+                    * Math.abs(direction.x()), 0, (blockWalkingTo.z() - currentAgentBounds.getMinZ())
+                    * Math.abs(direction.z()));
 
             PathNode node = validNodeDirectional(context.blockProvider(), currentAgentBounds, translation, blockWalkingTo,
                     direction, blockMaxY);
 
             if(node != null) {
+                BlockSnapshot block = context.blockProvider().getBlock(node);
+
+                if(block != null && DoubleMath.fuzzyCompare(block.collision().maxY(), 0.5, Vectors.EPSILON) > 0) {
+                    node.up = true;
+                }
+
                 buffer[j++] = node;
             }
         }
@@ -139,9 +152,10 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         }
         else {
             BoundingBox shiftedBounds = currentAgentBounds.clone().shift(Vectors.asBukkit(translation))
-                    .expandDirectional(Vectors.asBukkit(Direction.DOWN))
-                    .resize(currentAgentBounds.getMinX(), currentAgentBounds.getMinY(), currentAgentBounds.getMinZ(),
-                            currentAgentBounds.getMaxX(), currentAgentBounds.getMinY() + 1, currentAgentBounds.getMaxZ());
+                    .expandDirectional(Vectors.asBukkit(Direction.DOWN));
+
+            shiftedBounds.resize(shiftedBounds.getMinX(), shiftedBounds.getMinY(), shiftedBounds.getMinZ(),
+                    shiftedBounds.getMaxX(), shiftedBounds.getMinY() + 1, shiftedBounds.getMaxZ());
 
             List<BlockSnapshot> collidingSnapshots = provider.collidingSolids(shiftedBounds);
 

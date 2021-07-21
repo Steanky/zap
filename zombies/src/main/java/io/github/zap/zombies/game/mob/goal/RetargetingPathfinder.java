@@ -8,7 +8,7 @@ public abstract class RetargetingPathfinder extends BasicMetadataPathfinder {
 
     public RetargetingPathfinder(AbstractEntity entity, AttributeValue[] values, int retargetTicks, double speed, double targetDeviation) {
         super(entity, values, retargetTicks, speed, targetDeviation);
-        retargetCounter = self.getRandom().nextInt(10);
+        retargetCounter = self.getRandom().nextInt(retargetTicks);
     }
 
     @Override

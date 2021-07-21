@@ -356,6 +356,8 @@ public class Corpse {
         return packetContainer;
     }
 
+
+
     private PacketContainer createSpawnPlayerPacketContainer() {
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
         packetContainer.getIntegers().write(0, id);

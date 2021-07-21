@@ -230,7 +230,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean allowMerges() {
-        return true;
+        return false;
     }
 
     @Override

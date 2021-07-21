@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;
+import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,7 +72,7 @@ class PathResultImpl implements PathResult {
 
         PathPointWrapper previous = null;
         for(PathNode node : pathNodes) {
-            PathPointWrapper point = bridge.makePathPoint(node);
+            PathPointWrapper point = bridge.makePathPoint(node.up ? Vectors.add(node, Direction.UP) : node);
             point.setParent(previous);
 
             wrapper.add(point);
