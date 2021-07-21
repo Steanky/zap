@@ -2,6 +2,23 @@ package io.github.zap.zombies;
 
 import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.ByteArrayTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.ByteTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.CompoundTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.DoubleTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.EndTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.FloatTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.IntArrayTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.IntTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.ListTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.LongArrayTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.LongTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.ShortArrayTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.ShortTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.StringTag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.Tag;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.TagType;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.stream.NBTOutputStream;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
@@ -215,6 +232,33 @@ public final class Zombies extends JavaPlugin implements Listener {
         arenaApi = ArenaApi.getDependentPlugin(PluginNames.ARENA_API, true, true);
         SWM = ArenaApi.getDependentPlugin(PluginNames.SLIME_WORLD_MANAGER, true, true);
         mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true,false);
+        fixAswm();
+    }
+
+    private void fixAswm() {
+        Class<?> clazz;
+        try {
+            clazz = Class.forName("com.grinderwolf.swm.internal.com.flowpowered.nbt.stream.NBTOutputStream$1");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        clazz = NBTOutputStream.class;
+        clazz = Tag.class;
+        clazz = TagType.class;
+        clazz = EndTag.class;
+        clazz = ByteTag.class;
+        clazz = ShortTag.class;
+        clazz = IntTag.class;
+        clazz = LongTag.class;
+        clazz = FloatTag.class;
+        clazz = DoubleTag.class;
+        clazz = ByteArrayTag.class;
+        clazz = StringTag.class;
+        clazz = ListTag.class;
+        clazz = CompoundTag.class;
+        clazz = IntArrayTag.class;
+        clazz = LongArrayTag.class;
+        clazz = ShortArrayTag.class;
     }
 
     @SafeVarargs
