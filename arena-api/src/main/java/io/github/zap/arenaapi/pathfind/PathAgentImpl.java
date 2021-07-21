@@ -2,13 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
 
-class PathAgentImpl implements PathAgent {
-    private final AgentCharacteristics characteristics;
-
-    private final double x;
-    private final double y;
-    private final double z;
-
+record PathAgentImpl(AgentCharacteristics characteristics, double x, double y, double z) implements PathAgent {
     PathAgentImpl(@NotNull AgentCharacteristics characteristics, double x, double y, double z) {
         this.characteristics = characteristics;
         this.x = x;
@@ -17,22 +11,8 @@ class PathAgentImpl implements PathAgent {
     }
 
     @Override
-    public @NotNull AgentCharacteristics characteristics() {
+    public @NotNull
+    AgentCharacteristics characteristics() {
         return characteristics;
-    }
-
-    @Override
-    public double x() {
-        return x;
-    }
-
-    @Override
-    public double y() {
-        return y;
-    }
-
-    @Override
-    public double z() {
-        return z;
     }
 }

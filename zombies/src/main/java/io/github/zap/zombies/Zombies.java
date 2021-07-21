@@ -113,6 +113,8 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        java.util.Collections.singletonList(null); //this is needed somehow
+
         StopWatch timer = new StopWatch();
         timer.start();
         instance = this;
