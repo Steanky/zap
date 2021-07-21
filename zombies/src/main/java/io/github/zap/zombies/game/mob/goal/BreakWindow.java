@@ -27,13 +27,13 @@ public class BreakWindow extends BasicMetadataPathfinder {
     private final int breakCount;
     private final double breakReachSquared;
 
-    public BreakWindow(AbstractEntity entity, AttributeValue[] values, double speed, int breakTicks, int breakCount,
+    public BreakWindow(AbstractEntity entity, AttributeValue[] values, int retargetTicks, double speed, int breakTicks, int breakCount,
                        double breakReachSquared) {
-        super(entity, values, speed, 0.5);
+        super(entity, values, retargetTicks, speed, 0.5);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
-        navCounter = self.getRandom().nextInt(5) + 15;
+        navCounter = self.getRandom().nextInt(retargetTicks / 2);
     }
 
     @Override
@@ -97,15 +97,16 @@ public class BreakWindow extends BasicMetadataPathfinder {
             completed = true;
         }
         else {
-            if(++navCounter >= 10) {
-                getProxy().lookAtPosition(self.getControllerLook(), destination.getX(), destination.getY(),
-                        destination.getZ(), 30.0F, 30.0F);
+            if(++navCounter == retargetTicks) {
+                PathDestination pathDestination = PathDestination.fromLocation(new Location(arena.getWorld(), destination.getX(),
+                        destination.getY(), destination.getZ()),  new PathTarget() {});
 
-                getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(), Set.of(
-                        PathDestination.fromLocation(new Location(arena.getWorld(), destination.getX(),
-                                destination.getY(), destination.getZ()),  new PathTarget() {})), 3), arena.getWorld());
+                if(pathDestination != null) {
+                    getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
+                            Set.of(pathDestination), 2), arena.getWorld());
+                }
 
-                navCounter = self.getRandom().nextInt(10);
+                navCounter = self.getRandom().nextInt(retargetTicks / 2);
             }
 
             PathResult result = getHandler().tryTakeResult();

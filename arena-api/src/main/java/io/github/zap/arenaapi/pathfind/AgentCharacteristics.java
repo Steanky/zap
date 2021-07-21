@@ -14,12 +14,9 @@ public class AgentCharacteristics {
     private final double width;
     private final double height;
 
-    private final int hash;
-
     public AgentCharacteristics(double width, double height, double jumpHeight) {
         bounds = new BoundingBox(0, 0, 0, width, height, width);
         this.jumpHeight = jumpHeight;
-        this.hash = Objects.hash(width, height, jumpHeight);
 
         this.width  = width;
         this.height = height;

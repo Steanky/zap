@@ -17,9 +17,13 @@ public abstract class MythicWrapper extends WrappedPathfindingGoal implements Pa
     @Getter
     private final ZombiesNMSProxy proxy;
 
+    protected final int retargetTicks;
+
     public MythicWrapper(AbstractEntity entity, String line, MythicLineConfig mlc) {
         super(entity, line, mlc);
         handle = ((CraftEntity) entity.getBukkitEntity()).getHandle();
         proxy = Zombies.getInstance().getNmsProxy();
+
+        retargetTicks = mlc.getInteger("retargetTicks", 20);
     }
 }

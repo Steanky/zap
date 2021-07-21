@@ -67,21 +67,18 @@ public interface PathDestination extends Vector3I {
         int z = targetLocation.getBlockZ();
 
         World world = targetLocation.getWorld();
-        Block block = world.getBlockAt(x, y, z);
+        while(y > -1) {
+            if(ArenaApi.getInstance().getNmsBridge().worldBridge().blockHasCollision(world.getBlockAt(x, y, z))) {
+                return Vectors.of(x, y + 1, z);
+            }
 
-        while(!ArenaApi.getInstance().getNmsBridge().worldBridge().blockHasCollision(block)) {
-            if(--y >= 0) {
-                block = world.getBlockAt(x, y, z);
-            }
-            else {
-                return null;
-            }
+            y--;
         }
 
-        return Vectors.of(x, y + 1, z);
+        return Vectors.asIntFloor(Vectors.of(targetLocation));
     }
 
     private static boolean validLocation(Location location) {
-        return location.getWorld().getWorldBorder().isInside(location) && location.getBlockY() >= 0 && location.getBlockY() < 256;
+        return location.getWorld().getWorldBorder().isInside(location) && location.getY() >= 0 && location.getY() < 256;
     }
 }

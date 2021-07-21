@@ -93,7 +93,7 @@ public interface PathOperation {
 
     boolean allowMerges();
 
-    static PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
+    static @NotNull PathOperation forAgent(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
                                   @NotNull HeuristicCalculator heuristicCalculator, @NotNull AversionCalculator aversionCalculator,
                                   @NotNull SuccessCondition successCondition, @NotNull NodeExplorer provider,
                                   @NotNull DestinationSelector destinationSelector,
@@ -104,9 +104,9 @@ public interface PathOperation {
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int loadRadius) {
         return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                AversionCalculator.DEFAULT_WALK, SuccessCondition.WITHIN_BLOCK,
-                new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST,
-                ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
+                AversionCalculator.DEFAULT_WALK, SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeExplorer(),
+                DestinationSelector.CLOSEST, ChunkCoordinateProvider.squareFromCenter(
+                        Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
     }
 
     static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,

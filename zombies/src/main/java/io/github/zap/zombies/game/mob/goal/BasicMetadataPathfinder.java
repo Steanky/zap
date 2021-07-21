@@ -22,14 +22,16 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
     private ZombiesArena arena;
     private final double speed;
     private final double targetDeviation;
+    protected PathResult result;
 
-    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, double speed, double targetDeviation) {
-        super(entity, values, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
+    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, int retargetTicks,
+                                   double speed, double targetDeviation) {
+        super(entity, values, retargetTicks, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
         this.speed = speed;
         this.targetDeviation = targetDeviation;
     }
 
-    protected @Nullable PathResult retarget() {
+    protected void retarget() {
         if(arena == null) {
             arena = getMetadata(Zombies.ARENA_METADATA_NAME);
         }
@@ -53,7 +55,7 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                         if(player != null) {
                             self.setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
                             this.zombiesPlayer = zombiesPlayer;
-                            return result;
+                            this.result = result;
                         }
 
                         this.zombiesPlayer = null;
@@ -61,8 +63,6 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                 }
             }
         }
-
-        return null;
     }
 
     protected void setPath(@NotNull PathResult result) {

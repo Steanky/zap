@@ -40,10 +40,12 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
     @Getter
     private final PathHandler handler;
 
+    protected final int retargetTicks;
+
     private final Map<String, Object> metadata = new HashMap<>();
     private boolean metadataLoaded;
 
-    public ZombiesPathfinder(AbstractEntity entity, AttributeValue[] values, String... metadataKeys) {
+    public ZombiesPathfinder(AbstractEntity entity, AttributeValue[] values, int retargetTicks, String... metadataKeys) {
         super();
         this.entity = entity;
 
@@ -86,6 +88,8 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
         for(AttributeValue value : values) {
             getProxy().setDoubleFor(self, value.attribute(), value.value());
         }
+
+        this.retargetTicks = retargetTicks;
     }
 
     /**
@@ -135,7 +139,7 @@ public abstract class ZombiesPathfinder extends PathfinderGoal {
 
     @Override
     public final boolean shouldStayActive() {
-        return stayActive() && self.getGoalTarget() != null;
+        return stayActive();
     }
 
     @Override

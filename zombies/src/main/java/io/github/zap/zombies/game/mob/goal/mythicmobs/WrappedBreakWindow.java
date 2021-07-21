@@ -12,7 +12,7 @@ import net.minecraft.server.v1_16_R3.PathfinderGoal;
 @MythicAIGoal(
         name = "breakWindow"
 )
-public class WrappedBreakWindow extends WrappedPathfindingGoal implements PathfinderHolder {
+public class WrappedBreakWindow extends MythicWrapper {
     private final double speed;
     private final int breakTicks;
     private final int breakCount;
@@ -28,7 +28,7 @@ public class WrappedBreakWindow extends WrappedPathfindingGoal implements Pathfi
 
     @Override
     public PathfinderGoal create() {
-        return new BreakWindow(entity, new AttributeValue[0], speed, breakTicks, breakCount, breakReachSquared);
+        return new BreakWindow(entity, new AttributeValue[0], retargetTicks, speed, breakTicks, breakCount, breakReachSquared);
     }
 
     @Override

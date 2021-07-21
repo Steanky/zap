@@ -10,9 +10,9 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
     private final float attackReach;
     private int attackTimer;
 
-    public OptimizedMeleeAttack(AbstractEntity entity, AttributeValue[] attributes, double speed, int attackInterval,
-                                float attackReach, double targetDeviation) {
-        super(entity, attributes, speed, targetDeviation);
+    public OptimizedMeleeAttack(AbstractEntity entity, AttributeValue[] attributes, int retargetTicks, double speed,
+                                int attackInterval, float attackReach, double targetDeviation) {
+        super(entity, attributes, retargetTicks, speed, targetDeviation);
         this.attackInterval = attackInterval;
         this.attackReach = attackReach;
     }

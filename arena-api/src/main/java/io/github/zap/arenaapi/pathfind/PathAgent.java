@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector3D;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -26,15 +27,11 @@ public interface PathAgent extends Vector3D {
      * @return A PathAgent object corresponding to the given Entity
      */
     static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
-        Objects.requireNonNull(entity, "entity cannot be null!");
-        Vector vector = entity.getLocation().toVector();
-        return new PathAgentImpl(new AgentCharacteristics(entity), vector.getX(), vector.getY(), vector.getZ());
+        Location location = entity.getLocation();
+        return new PathAgentImpl(new AgentCharacteristics(entity), location.getX(), location.getY(), location.getZ());
     }
 
     static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull AgentCharacteristics characteristics) {
-        Objects.requireNonNull(vector, "vector cannot be null!");
-        Objects.requireNonNull(characteristics, "characteristics cannot be null!");
-
         return new PathAgentImpl(characteristics, vector.getX(), vector.getY(), vector.getZ());
     }
 
