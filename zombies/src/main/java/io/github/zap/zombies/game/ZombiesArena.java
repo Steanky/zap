@@ -8,6 +8,7 @@ import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.EventHandler;
 import io.github.zap.arenaapi.game.Joinable;
+import io.github.zap.arenaapi.game.Metadata;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.event.EntityArgs;
 import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
@@ -581,10 +582,9 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     }
 
     private void registerArenaEvents() {
-        getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
-        getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
-        getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
-
+        eventManager.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        eventManager.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
+        eventManager.getPlayerLeaveEvent().registerHandler(this::onPlayerLeave);
         eventManager.getZombiesPlayerProxy(PlayerMoveEvent.class).registerHandler(this::onZombiesPlayerMove);
         eventManager.getZombiesPlayerProxy(PlayerInteractEvent.class).registerHandler(this::onZombiesPlayerInteract);
         eventManager.getZombiesPlayerProxy(PlayerInteractAtEntityEvent.class).registerHandler(this::onZombiesPlayerInteractAtEntity);
@@ -673,27 +673,96 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         //cleanup mappings and remove arena from manager
         Property.removeMappingsFor(this);
         manager.unloadArena(this);
-
-        EntityAddToWorldEvent.getHandlerList().unregister(this);
-        EntityDamageEvent.getHandlerList().unregister(this);
-        ItemDespawnEvent.getHandlerList().unregister(this);
-        PlayerInteractEntityEvent.getHandlerList().unregister(this);
     }
 
 
     @Override
     public boolean handleJoin(@NotNull Joinable joinable) {
-        return false;
+        for (Pair<@NotNull List<@NotNull Player>, @NotNull Metadata> group : joinable.groups()) {
+            Optional<?> playerTypeOptional = group.getRight().getMetadata("player_type");
+            if (playerTypeOptional.isEmpty()) {
+                return false;
+            }
+
+            List<@NotNull Player> newPlayers = new ArrayList<>();
+            List<@NotNull ZombiesPlayer> rejoiningPlayers = new ArrayList<>();
+
+            if (playerTypeOptional.get() instanceof String playerType) {
+                switch (playerType) {
+                    case "zombies_player" -> {
+                        for (Player player : group.getLeft()) {
+                            ZombiesPlayer zombiesPlayer = playerList.getPlayer(player.getUniqueId());
+                            if (zombiesPlayer != null) {
+                                if (!zombiesPlayer.isInGame()) {
+                                    rejoiningPlayers.add(zombiesPlayer);
+                                }
+                            } else {
+                                newPlayers.add(player);
+                            }
+                        }
+                    }
+                    // TODO: spectators
+                    default -> {
+                        return false;
+                    }
+                }
+            }
+
+            // perform checks on new/rejoining players
+            if (!newPlayers.isEmpty() && !allowPlayerJoin(newPlayers)) {
+                return false;
+            }
+            if (!rejoiningPlayers.isEmpty() && !allowPlayerRejoin(rejoiningPlayers)) {
+                return false;
+            }
+
+            if (!newPlayers.isEmpty()) { // wrap players, call event
+                for (Player player : newPlayers) {
+                    playerList.addPlayer(player);
+                }
+
+                eventManager.getPlayerJoinEvent().callEvent(Collections.unmodifiableList(newPlayers));
+            }
+
+            if (rejoiningPlayers.size() > 0) { //rejoin players, call event
+                for (ZombiesPlayer rejoiningPlayer : rejoiningPlayers) {
+                    rejoiningPlayer.rejoin();
+                }
+
+                eventManager.getPlayerRejoinEvent().callEvent(Collections.unmodifiableList(rejoiningPlayers));
+            }
+        }
+
+        return true;
     }
 
     @Override
-    public void handleLeave(@NotNull List<@NotNull Player> list) {
-        List<@NotNull Player> hey;
+    public void handleLeave(@NotNull List<@NotNull Player> leaving) {
+        List<@NotNull ZombiesPlayer> leavers = new ArrayList<>();
+        for (Player player : leaving) {
+            ZombiesPlayer managedPlayer = playerList.getPlayer(player);
+
+            if (managedPlayer != null && managedPlayer.isInGame()) {
+                leavers.add(managedPlayer);
+            }
+        }
+
+        if (!leavers.isEmpty()) {
+            eventManager.getPlayerLeaveEvent().callEvent(Collections.unmodifiableList(leavers));
+        }
+
+        if (playerList.getOnlinePlayers().size() == 0) {
+            // startTimeout(timeoutTicks);
+        }
+
+        for(S player : leftPlayers) {
+            player.quit();
+        }
     }
 
     @Override
-    public boolean hasPlayer(@NotNull UUID uuid) {
-        return false;
+    public boolean hasPlayer(@NotNull UUID id) {
+        return playerList.hasPlayer(id);
     }
 
     public boolean allowPlayers() {
@@ -709,13 +778,13 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         return state == ZombiesArenaState.STARTED && map.isAllowRejoin();
     }
 
-    private void onPlayerJoin(PlayerListArgs args) {
+    private void onPlayerJoin(@NotNull List<@NotNull Player> players) {
         if(state == ZombiesArenaState.PREGAME && playerList.getOnlinePlayers().size() >= map.getMinimumCapacity()) {
             state = ZombiesArenaState.COUNTDOWN;
         }
 
         if (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) {
-            for (Player player : args.getPlayers()) {
+            for (Player player : players) {
                 player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
 
                 player.showTitle(Title.title(Component.text("ZOMBIES", NamedTextColor.YELLOW),
@@ -726,7 +795,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             }
             taskManager.runTask(() -> {
                 if (startTimeStamp != -1) {
-                    for (Player player : args.getPlayers()) {
+                    for (Player player : players) {
                         bestTimesHologram.renderToPlayer(player);
                     }
                 }
@@ -735,7 +804,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
 
         if (state == ZombiesArenaState.STARTED || state == ZombiesArenaState.ENDED) {
-            for (Player player : args.getPlayers()) {
+            for (Player player : players) {
                 for (Player hiddenPlayer : hiddenPlayers) {
                     player.hidePlayer(Zombies.getInstance(), hiddenPlayer);
                 }
@@ -748,8 +817,8 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
     }
 
-    private void onPlayerRejoin(ManagedPlayerListArgs args) {
-        for (ZombiesPlayer player : args.getPlayers()) {
+    private void onPlayerRejoin(@NotNull List<@NotNull ZombiesPlayer> players) {
+        for (ZombiesPlayer player : players) {
             player.getPlayer().teleport(WorldUtils.locationFrom(world, map.getSpawn()));
 
             for (Player hiddenPlayer : hiddenPlayers) {
@@ -763,10 +832,10 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
     }
 
-    private void onPlayerLeave(ManagedPlayerListArgs args) {
-        for (ZombiesPlayer player : args.getPlayers()) { //quit has already been called for these players
+    private void onPlayerLeave(@NotNull List<@NotNull ZombiesPlayer> players) {
+        for (ZombiesPlayer player : players) { //quit has already been called for these players
             if (!map.isAllowRejoin()) {
-                super.removePlayer(player);
+                playerList.removePlayer(player);
             }
 
             for (Player hiddenPlayer : hiddenPlayers) {
@@ -782,12 +851,16 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         stateLabel:
         switch (state) {
             case PREGAME:
-                removePlayers(args.getPlayers());
+                for (ZombiesPlayer player : players) {
+                    playerList.removePlayer(player);
+                }
                 break;
             case COUNTDOWN:
-                removePlayers(args.getPlayers());
+                for (ZombiesPlayer player : players) {
+                    playerList.removePlayer(player);
+                }
 
-                if (getOnlineCount() < map.getMinimumCapacity()) {
+                if (playerList.getOnlinePlayers().size() < map.getMinimumCapacity()) {
                     state = ZombiesArenaState.PREGAME;
                 }
                 break;
@@ -797,7 +870,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                     dispose(); //shut everything down immediately if everyone leaves mid-game
                 } else {
                     for (ZombiesPlayer player : playerList.getOnlinePlayers()) {
-                        if (!args.getPlayers().contains(player) && player.isAlive()) {
+                        if (!players.contains(player) && player.isAlive()) {
                             break stateLabel;
                         }
                     }

@@ -12,6 +12,7 @@ import io.github.zap.zombies.game.player.ZombiesPlayer;
 import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityEvent;
@@ -36,14 +37,20 @@ public class ZombiesEventManager implements EventManager {
 
     private final Set<Mob> mobs;
 
-    @SuppressWarnings("rawtypes")
-    private final Map<Class<?>, Event> managedProxies = new HashMap<>();
+    private final Event<@NotNull List<@NotNull Player>> playerJoinEvent = new Event<>();
+
+    private final Event<@NotNull List<@NotNull ZombiesPlayer>> playerRejoinEvent = new Event<>();
+
+    private final Event<@NotNull List<@NotNull ZombiesPlayer>> playerLeaveEvent = new Event<>();
 
     @SuppressWarnings("rawtypes")
-    private final Map<Class<?>, Event> mobProxies = new HashMap<>();
+    private final Map<@NotNull Class<?>, Event> managedProxies = new HashMap<>();
 
     @SuppressWarnings("rawtypes")
-    private final Map<Class<?>, Event> proxies = new HashMap<>();
+    private final Map<@NotNull Class<?>, Event> mobProxies = new HashMap<>();
+
+    @SuppressWarnings("rawtypes")
+    private final Map<@NotNull Class<?>, Event> proxies = new HashMap<>();
 
     public ZombiesEventManager(@NotNull Plugin plugin, @NotNull World world,
                                @NotNull PlayerList<ZombiesPlayer> zombiesPlayerList, @NotNull Set<Mob> mobs) {
@@ -53,8 +60,26 @@ public class ZombiesEventManager implements EventManager {
         this.mobs = mobs;
     }
 
+    public @NotNull Event<@NotNull List<@NotNull Player>> getPlayerJoinEvent() {
+        return playerJoinEvent;
+    }
+
+    public @NotNull Event<@NotNull List<@NotNull ZombiesPlayer>> getPlayerRejoinEvent() {
+        return playerRejoinEvent;
+    }
+
+    public @NotNull Event<@NotNull List<@NotNull ZombiesPlayer>> getPlayerLeaveEvent() {
+        return playerLeaveEvent;
+    }
+
+    /**
+     * Gets the proxy for {@link PlayerEvent}s that are triggered by {@link ZombiesPlayer}s
+     * @param bukkitEventClass The class of the event
+     * @param <E> The type of the event
+     * @return The proxy event
+     */
     @SuppressWarnings("unchecked")
-    public @NotNull <E extends PlayerEvent> Event<ManagedPlayerArgs<ZombiesPlayer, E>> getZombiesPlayerProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends PlayerEvent> Event<@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, @NotNull E>> getZombiesPlayerProxy(@NotNull Class<E> bukkitEventClass) {
         return managedProxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
             ZombiesPlayer player = zombiesPlayerList.getPlayer(event.getPlayer());
             if (player != null && player.isInGame()) {
@@ -65,20 +90,14 @@ public class ZombiesEventManager implements EventManager {
         }));
     }
 
+    /**
+     * Gets the proxy for {@link PlayerDeathEvent}s that are triggered by {@link ZombiesPlayer}s
+     * @param bukkitEventClass The class of the event
+     * @param <E> The type of the event
+     * @return The proxy event
+     */
     @SuppressWarnings("unchecked")
-    public @NotNull <E extends EntityEvent> Event<ManagedPlayerArgs<ZombiesPlayer, E>> getZombiesPlayerEntityProxy(@NotNull Class<E> bukkitEventClass) {
-        return managedProxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
-            ZombiesPlayer player = zombiesPlayerList.getPlayer(event.getEntity().getUniqueId());
-            if (player != null && player.isInGame()) {
-                return Pair.of(true, new ManagedPlayerArgs<>(player, event));
-            }
-
-            return Pair.of(false, null);
-        }));
-    }
-
-    @SuppressWarnings("unchecked")
-    public @NotNull <E extends PlayerDeathEvent> Event<ManagedPlayerArgs<ZombiesPlayer, E>> getZombiesPlayerDeathProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends PlayerDeathEvent> Event<@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, @NotNull E>> getZombiesPlayerDeathProxy(@NotNull Class<E> bukkitEventClass) {
         return managedProxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
             ZombiesPlayer player = zombiesPlayerList.getPlayer(event.getEntity());
             if (player != null && player.isInGame()) {
@@ -89,8 +108,32 @@ public class ZombiesEventManager implements EventManager {
         }));
     }
 
+    /**
+     * Gets the proxy for {@link EntityEvent}s that are triggered by {@link ZombiesPlayer}s
+     * @param bukkitEventClass The class of the event
+     * @param <E> The type of the event
+     * @return The proxy event
+     */
     @SuppressWarnings("unchecked")
-    public @NotNull <E extends InventoryEvent> Event<ManagedPlayerArgs<ZombiesPlayer, E>> getZombiesPlayerInventoryProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends EntityEvent> Event<@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, @NotNull E>> getZombiesPlayerEntityProxy(@NotNull Class<E> bukkitEventClass) {
+        return managedProxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
+            ZombiesPlayer player = zombiesPlayerList.getPlayer(event.getEntity().getUniqueId());
+            if (player != null && player.isInGame()) {
+                return Pair.of(true, new ManagedPlayerArgs<>(player, event));
+            }
+
+            return Pair.of(false, null);
+        }));
+    }
+
+    /**
+     * Gets the proxy for {@link InventoryEvent}s that are triggered by {@link ZombiesPlayer}s
+     * @param bukkitEventClass The class of the event
+     * @param <E> The type of the event
+     * @return The proxy event
+     */
+    @SuppressWarnings("unchecked")
+    public @NotNull <E extends InventoryEvent> Event<@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, @NotNull E>> getZombiesPlayerInventoryProxy(@NotNull Class<E> bukkitEventClass) {
         return managedProxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
             List<ZombiesPlayer> players = new ArrayList<>();
 
@@ -109,8 +152,14 @@ public class ZombiesEventManager implements EventManager {
         }));
     }
 
+    /**
+     * Gets the proxy for {@link EntityEvent}s that are triggered by managed {@link Mob}s
+     * @param bukkitEventClass The class of the event
+     * @param <E> The type of the event
+     * @return The proxy event
+     */
     @SuppressWarnings("unchecked")
-    public @NotNull <E extends EntityEvent> Event<EntityArgs<Mob, E>> getMobProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends EntityEvent> Event<@NotNull EntityArgs<@NotNull Mob, @NotNull E>> getMobProxy(@NotNull Class<E> bukkitEventClass) {
         return mobProxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
             if (event.getEntity() instanceof Mob mob && mobs.contains(mob)) {
                 return Pair.of(true, new EntityArgs<>(mob, event));
@@ -122,7 +171,7 @@ public class ZombiesEventManager implements EventManager {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NotNull <E extends PlayerEvent> Event<E> getPlayerProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends PlayerEvent> Event<@NotNull E> getPlayerProxy(@NotNull Class<E> bukkitEventClass) {
         return proxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
             if (event.getPlayer().getWorld().equals(world)) {
                 return Pair.of(true, event);
@@ -134,7 +183,7 @@ public class ZombiesEventManager implements EventManager {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NotNull <E extends EntityEvent> Event<E> getEntityProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends EntityEvent> Event<@NotNull E> getEntityProxy(@NotNull Class<E> bukkitEventClass) {
         return proxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
             if (event.getEntity().getWorld().equals(world)) {
                 return Pair.of(true, event);
@@ -146,7 +195,7 @@ public class ZombiesEventManager implements EventManager {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NotNull <E extends BlockEvent> Event<E> getBlockProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends BlockEvent> Event<@NotNull E> getBlockProxy(@NotNull Class<E> bukkitEventClass) {
         return proxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> {
             if (event.getBlock().getWorld().equals(world)) {
                 return Pair.of(true, event);
@@ -158,7 +207,7 @@ public class ZombiesEventManager implements EventManager {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NotNull <E extends InventoryEvent> Event<E> getInventoryProxy(@NotNull Class<E> bukkitEventClass) {
+    public @NotNull <E extends InventoryEvent> Event<@NotNull E> getInventoryProxy(@NotNull Class<E> bukkitEventClass) {
         return proxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> Pair.of(true, event)));
     }
 

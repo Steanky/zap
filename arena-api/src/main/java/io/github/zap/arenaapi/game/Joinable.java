@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.game;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -19,5 +20,5 @@ public interface Joinable {
      * Gets the list of groups of players and their respective metadata
      * @return The groups contained in this instance
      */
-    List<Pair<List<Player>, Metadata>> groups();
+    List<@NotNull Pair<@NotNull List<@NotNull Player>, @NotNull Metadata>> groups();
 }

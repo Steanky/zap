@@ -43,7 +43,7 @@ public class BasicPlayerList<S extends ManagedPlayer> implements PlayerList<S> {
 
     @Override
     public boolean removePlayer(@NotNull S player) {
-        if (playerMap.containsValue(player)) {
+        if (playerMap.containsKey(player.getId())) {
             player.dispose();
             if (player.isInGame()) {
                 player.quit();
@@ -55,6 +55,7 @@ public class BasicPlayerList<S extends ManagedPlayer> implements PlayerList<S> {
                 player.getPlayer().kick(Component.text("Couldn't teleport you back to the hub!"));
             }
 
+            playerMap.remove(player.getId());
             return true;
         }
 

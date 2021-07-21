@@ -19,7 +19,7 @@ public interface EventManager {
      * @param <E> The type of the event
      * @return The proxy event
      */
-    @NotNull <E extends PlayerEvent> Event<E> getPlayerProxy(@NotNull Class<E> bukkitEventClass);
+    @NotNull <E extends PlayerEvent> Event<@NotNull E> getPlayerProxy(@NotNull Class<E> bukkitEventClass);
 
     /**
      * Gets the proxy for {@link EntityEvent}s
@@ -27,7 +27,7 @@ public interface EventManager {
      * @param <E> The type of the event
      * @return The proxy event
      */
-    @NotNull <E extends EntityEvent> Event<E> getEntityProxy(@NotNull Class<E> bukkitEventClass);
+    @NotNull <E extends EntityEvent> Event<@NotNull E> getEntityProxy(@NotNull Class<E> bukkitEventClass);
 
     /**
      * Gets the proxy for {@link BlockEvent}s
@@ -35,7 +35,7 @@ public interface EventManager {
      * @param <E> The type of the event
      * @return The proxy event
      */
-    @NotNull <E extends BlockEvent> Event<E> getBlockProxy(@NotNull Class<E> bukkitEventClass);
+    @NotNull <E extends BlockEvent> Event<@NotNull E> getBlockProxy(@NotNull Class<E> bukkitEventClass);
 
     /**
      * Gets the proxy for {@link InventoryEvent}s
@@ -43,6 +43,6 @@ public interface EventManager {
      * @param <E> The type of the event
      * @return The proxy event
      */
-    @NotNull <E extends InventoryEvent> Event<E> getInventoryProxy(@NotNull Class<E> bukkitEventClass);
+    @NotNull <E extends InventoryEvent> Event<@NotNull E> getInventoryProxy(@NotNull Class<E> bukkitEventClass);
 
 }
