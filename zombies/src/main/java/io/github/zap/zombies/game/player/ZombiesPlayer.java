@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
+import io.github.zap.arenaapi.game.arena.player.ManagedPlayer;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
@@ -52,7 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager, PathTarget {
+public class ZombiesPlayer extends ManagedPlayer implements Damager, PathTarget {
 
     private static final String FROZEN_BULLETS_ATTRIBUTE_NAME = "frozen_bullets_slowdown";
 

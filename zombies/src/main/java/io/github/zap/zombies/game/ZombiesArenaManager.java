@@ -90,26 +90,26 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
-        if(!information.getJoinable().validate()) {
+        if (!information.joinable().validate()) {
             onCompletion.accept(Pair.of(false, "Someone is offline and therefore unable to join!"));
             return;
         }
 
-        String mapName = information.getMapName();
-        UUID targetArena = information.getTargetArena();
+        String mapName = information.mapName();
+        UUID targetArena = information.targetArena();
 
-        if(mapName != null) {
+        if (mapName != null) {
             MapData mapData = maps.get(mapName);
 
-            if(mapData != null) {
-                for(ZombiesArena arena : managedArenas.values()) {
-                    if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information.getJoinable().getPlayers())) {
+            if (mapData != null) {
+                for (ZombiesArena arena : managedArenas.values()) {
+                    if (arena.getMap().getName().equals(mapName) && arena.handleJoin(information.joinable())) {
                         onCompletion.accept(Pair.of(true, null));
                         return;
                     }
                 }
 
-                if(managedArenas.size() < arenaCapacity) {
+                if (managedArenas.size() < arenaCapacity) {
                     Zombies.info(String.format("Loading arena for map '%s'.", mapName));
                     Zombies.info(String.format("JoinInformation that triggered this load: '%s'.", information));
 
@@ -132,7 +132,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                         ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                         managedArenas.put(arena.getId(), arena);
                         getArenaCreated().callEvent(arena);
-                        if(arena.handleJoin(information.getJoinable().getPlayers())) {
+                        if (arena.handleJoin(information.joinable())) {
                             onCompletion.accept(Pair.of(true, null));
                         }
                         else {
@@ -141,35 +141,28 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                         }
                     });
 
-                    return;
+                } else {
+                    onCompletion.accept(Pair.of(false, "The maximum arena capacity has been reached!"));
                 }
-                else {
-                    Zombies.info("A JoinAttempt was rejected, as we have reached arena capacity.");
-                }
+            } else {
+                onCompletion.accept(Pair.of(false, String.format("A map named '%s' does not exist.", mapName)));
             }
-            else {
-                Zombies.warning(String.format("A map named '%s' does not exist.", mapName));
-            }
-        }
-        else {
+        } else if (targetArena != null) {
             ZombiesArena arena = managedArenas.get(targetArena);
 
-            if(arena != null) {
-                if(arena.handleJoin(information.getJoinable().getPlayers())) {
+            if (arena != null) {
+                if (arena.handleJoin(information.joinable())) {
                     onCompletion.accept(Pair.of(true, null));
-                }
-                else {
+                } else {
                     onCompletion.accept(Pair.of(false, "The arena rejected the join request."));
                 }
-
-                return;
+            } else {
+                onCompletion.accept(Pair.of(false, String.format("Specific requested arena '%s' does not exist.",
+                        targetArena)));
             }
-            else {
-                Zombies.warning(String.format("Specific requested arena '%s' does not exist.", targetArena));
-            }
+        } else {
+            onCompletion.accept(Pair.of(false, "A mapName or targetArena must be specified!"));
         }
-
-        onCompletion.accept(Pair.of(false, "An unknown error occurred."));
     }
 
     @Override

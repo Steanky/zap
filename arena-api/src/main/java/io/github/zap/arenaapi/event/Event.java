@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.ObjectDisposedException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class Event<T> implements Disposable {
      * handler will be added only after all the handlers have been called once.
      * @param handler The handler to register
      */
-    public void registerHandler(EventHandler<T> handler) {
+    public void registerHandler(@NotNull EventHandler<T> handler) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
@@ -75,7 +76,7 @@ public class Event<T> implements Disposable {
      * handler will be removed only after all the handlers have been called once.
      * @param handler The handler to remove
      */
-    public void removeHandler(EventHandler<T> handler) {
+    public void removeHandler(@NotNull EventHandler<T> handler) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
@@ -129,7 +130,7 @@ public class Event<T> implements Disposable {
      * called. If it is not configured to rethrow exceptions, any remaining handlers will not be called.
      * @param args The arguments
      */
-    public void callEvent(T args) {
+    public void callEvent(@NotNull T args) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
@@ -161,7 +162,7 @@ public class Event<T> implements Disposable {
         }
     }
 
-    private void callWithRethrow(T args) {
+    private void callWithRethrow(@NotNull T args) {
         RuntimeException rethrow = null;
         for(EventHandler<T> handler : handlers) {
             try {
@@ -177,7 +178,7 @@ public class Event<T> implements Disposable {
         }
     }
 
-    private void callWithoutRethrow(T args) {
+    private void callWithoutRethrow(@NotNull T args) {
         for(EventHandler<T> handler : handlers) {
             handler.handleEvent(args);
         }

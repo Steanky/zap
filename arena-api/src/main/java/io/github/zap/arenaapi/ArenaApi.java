@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Lists;
+import io.github.zap.arenaapi.game.Metadata;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
@@ -160,23 +161,22 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     }
 
     public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
-        String gameName = information.getGameName();
+        String gameName = information.gameName();
         ArenaManager<?> arenaManager = arenaManagers.get(gameName);
 
-        if(arenaManager != null) {
-            List<Player> leavingPlayers = information.getJoinable().getPlayers();
+        if (arenaManager != null) {
+            for (Pair<List<Player>, Metadata> group : information.joinable().groups()) {
+                for (Player player : group.getLeft()) {
+                    Arena<?> currentArena = arenaIn(player);
 
-            for(Player player : leavingPlayers) {
-                Arena<?> currentArena = arenaIn(player);
-
-                if(currentArena != null) {
-                    currentArena.handleLeave(Lists.newArrayList(player));
+                    if (currentArena != null) {
+                        currentArena.handleLeave(Collections.singletonList(player));
+                    }
                 }
-            }
 
-            arenaManager.handleJoin(information, onCompletion);
-        }
-        else {
+                arenaManager.handleJoin(information, onCompletion);
+            }
+        } else {
             warning(String.format("Invalid JoinInformation received: '%s' is not a game.", gameName));
         }
     }

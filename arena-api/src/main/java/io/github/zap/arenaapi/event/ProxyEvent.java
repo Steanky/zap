@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -53,7 +54,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
     }
 
     @Override
-    public void registerHandler(EventHandler<T> handler) {
+    public void registerHandler(@NotNull EventHandler<T> handler) {
         super.registerHandler(handler);
 
         /*
@@ -88,7 +89,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
     }
 
     @Override
-    public void removeHandler(EventHandler<T> handler) {
+    public void removeHandler(@NotNull EventHandler<T> handler) {
         super.removeHandler(handler);
     }
 

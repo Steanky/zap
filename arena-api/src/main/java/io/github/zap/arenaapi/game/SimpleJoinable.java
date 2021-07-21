@@ -1,30 +1,27 @@
 package io.github.zap.arenaapi.game;
 
-import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
  * Used for testing purposes; actual Joinable implementations will probably be parties
  */
-@RequiredArgsConstructor
-public class SimpleJoinable implements Joinable {
-    private final List<Player> players;
+public record SimpleJoinable(@NotNull List<Pair<List<Player>, Metadata>> groups) implements Joinable {
 
     @Override
     public boolean validate() {
-        for(Player player : players) {
-            if(!player.isOnline()) {
-                return false;
+        for (Pair<List<Player>, Metadata> group : groups) {
+            for (Player player : group.getLeft()) {
+                if (!player.isOnline()) {
+                    return false;
+                }
             }
         }
 
         return true;
     }
 
-    @Override
-    public List<Player> getPlayers() {
-        return players;
-    }
 }

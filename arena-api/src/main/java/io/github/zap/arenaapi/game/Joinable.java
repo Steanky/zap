@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.game;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -15,8 +16,8 @@ public interface Joinable {
     boolean validate();
 
     /**
-     * Gets the players contained in this instance.
-     * @return The players contained in this instance
+     * Gets the list of groups of players and their respective metadata
+     * @return The groups contained in this instance
      */
-    List<Player> getPlayers();
+    List<Pair<List<Player>, Metadata>> groups();
 }

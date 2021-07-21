@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Metadata {
+
     private final Map<String, Optional<Object>> mappings = new HashMap<>();
 
     public Optional<Object> getMetadata(String name) {

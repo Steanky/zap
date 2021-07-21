@@ -54,6 +54,14 @@ public class ResourceManager implements Disposable {
         }
     }
 
+    /**
+     * Checks whether the resource manager is disposed
+     * @return Whether it is disposed
+     */
+    public boolean isDisposed() {
+        return disposed;
+    }
+
     @Override
     public void dispose() {
         if(disposed) {

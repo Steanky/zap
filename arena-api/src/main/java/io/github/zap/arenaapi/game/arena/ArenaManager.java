@@ -3,8 +3,6 @@ package io.github.zap.arenaapi.game.arena;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.stats.StatsManager;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -17,24 +15,26 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Generic interface for an ArenaManager.
+ * Manager of Arenas of a specific type. Routes players to and from arenas.
  * @param <T> The type of arena this instance manages
  */
-@RequiredArgsConstructor
 public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
-    @Getter
+
     private final String gameName;
 
-    @Getter
     private final Location hubLocation;
 
-    @Getter
     protected final StatsManager statsManager;
 
-    protected Map<UUID, T> managedArenas = new HashMap<>();
+    protected Map<@NotNull UUID, @NotNull T> managedArenas = new HashMap<>();
 
-    @Getter
-    private final Event<Arena<T>> arenaCreated = new Event<>();
+    private final Event<@NotNull Arena<@NotNull T>> arenaCreated = new Event<>();
+
+    public ArenaManager(@NotNull String gameName, @NotNull Location hubLocation, @NotNull StatsManager statsManager) {
+        this.gameName = gameName;
+        this.hubLocation = hubLocation;
+        this.statsManager = statsManager;
+    }
 
     /**
      * Handle the specified JoinInformation. This method should create arenas as necessary to handle join requests.
@@ -50,7 +50,8 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      *                     terms, why the JoinAttempt was rejected. It should only be non-null if the first part of
      *                     the pair is false.
      */
-    public abstract void handleJoin(JoinInformation joinAttempt, Consumer<Pair<Boolean, String>> onCompletion);
+    public abstract void handleJoin(@NotNull JoinInformation joinAttempt,
+                                    @NotNull Consumer<Pair<Boolean, String>> onCompletion);
 
     /**
      * Whether or not this manager accepts players. Can be used to effectively "turn off" an ArenaManager.
@@ -72,7 +73,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      * @param player The player to get the arenas for
      * @return A list of the UUIDs of arenas which manage the player
      */
-    public @NotNull Map<UUID, T> getArenasWithPlayer(@NotNull Player player) {
+    public @NotNull Map<@NotNull UUID, @NotNull T> getArenasWithPlayer(@NotNull Player player) {
         Map<UUID, T> arenaMap = new HashMap<>();
         for (Map.Entry<UUID, T> managedArena : managedArenas.entrySet()) {
             if (managedArena.getValue().hasPlayer(player.getUniqueId())) {
@@ -87,7 +88,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      * Returns a read-only view of the Arena instances managed by this ArenaManager.
      * @return a read-only view of the Arena instances managed by this ArenaManager
      */
-    public Map<UUID, Arena<T>> getArenas() {
+    public Map<@NotNull UUID, @NotNull Arena<@NotNull T>> getArenas() {
         return Collections.unmodifiableMap(managedArenas);
     }
 
@@ -97,6 +98,39 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
         for (T arena : managedArenas.values()) {
             arena.dispose();
         }
+    }
+
+    /**
+     * Gets the name of the game that this ArenaManager manages
+     * @return The game name
+     */
+    public @NotNull String getGameName() {
+        return this.gameName;
+    }
+
+    /**
+     * Gets the location to warp players to after an arena disposes
+     * If the world in the location is unloaded, players should be kicked from the server
+     * @return The location
+     */
+    public @NotNull Location getHubLocation() {
+        return this.hubLocation;
+    }
+
+    /**
+     * Gets the shared {@link StatsManager} for this arena manager
+     * @return The stats manager
+     */
+    public @NotNull StatsManager getStatsManager() {
+        return this.statsManager;
+    }
+
+    /**
+     * Gets the event associated with an arena being created
+     * @return The arena creation event
+     */
+    public @NotNull Event<@NotNull Arena<@NotNull T>> getArenaCreated() {
+        return this.arenaCreated;
     }
 
 }

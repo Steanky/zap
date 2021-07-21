@@ -258,7 +258,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                     DoubleMath.fuzzyCompare(height, headroom, Vectors.EPSILON) <= 0) { //entity can make the jump
                 BoundingBox verticalTest = agentBounds.clone().expandDirectional(0, jumpHeightRequired, 0);
 
-                if(provider.collidesWithAny(verticalTest)) { //check if mob will collide with something on its way up
+                if(provider.collidesWithAny(verticalTest)) { //check if entity will collide with something on its way up
                     return null;
                 }
 
