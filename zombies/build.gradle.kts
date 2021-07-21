@@ -17,7 +17,6 @@ repositories {
     maven("https://jitpack.io")
     maven("https://repo.rapture.pw/repository/maven-snapshots")
     maven("https://repo.glaremasters.me/repository/concuncan/")
-    maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://libraries.minecraft.net")
     maven("https://repo.aikar.co/content/groups/aikar/")
 }
@@ -45,7 +44,7 @@ dependencies {
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
-    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0")
+    bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0-Fixed")
     bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.1-SNAPSHOT")
 
     classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.6.1-SNAPSHOT")
