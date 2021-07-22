@@ -13,7 +13,9 @@ import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 
 public class DefaultWalkNodeExplorer implements NodeExplorer {
     private enum JunctionType {
@@ -398,3 +400,4 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         return highestSnapshot;
     }
 }
+

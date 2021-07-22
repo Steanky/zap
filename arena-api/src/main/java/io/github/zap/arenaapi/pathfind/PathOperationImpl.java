@@ -115,13 +115,7 @@ class PathOperationImpl implements PathOperation {
                     break;
                 }
 
-                try {
-                    if(visited.hasElement(candidateNode.x(), candidateNode.y(), candidateNode.z())) {
-                        continue;
-                    }
-                }
-                catch (IndexOutOfBoundsException e) {
-                    ArenaApi.warning("Tried to access out-of-bounds node");
+                if(visited.hasElement(candidateNode.x(), candidateNode.y(), candidateNode.z())) {
                     continue;
                 }
 
@@ -139,11 +133,6 @@ class PathOperationImpl implements PathOperation {
                 else if(candidateNode.score.getG() < existingNode.score.getG()) {
                     candidateNode.score.setH(existingNode.score.getH());
                     openHeap.replaceNode(existingNode.heapIndex, candidateNode);
-
-                    if(bestFound == existingNode) {
-                        bestFound = candidateNode;
-                        continue;
-                    }
                 }
 
                 //comparison for best path in case of inaccessible target
@@ -242,9 +231,9 @@ class PathOperationImpl implements PathOperation {
         BlockSnapshot standingOn = provider.getBlock(node.x(), node.y() - 1, node.z());
 
         if(standingOn != null) {
-            double materialAversion = aversionCalculator.aversionForMaterial(standingOn.data().getMaterial());
-            double factor = aversionCalculator.aversionFactor(node);
-            node.score.setG(node.parent.score.getG() + materialAversion + (factor * Vectors.distanceSquared(node, node.parent)));
+            node.score.setG(node.parent.score.getG() + aversionCalculator.aversionForMaterial(
+                    standingOn.data().getMaterial()) + (aversionCalculator.aversionFactor(node) *
+                    Vectors.distance(node, node.parent)));
         }
     }
 
