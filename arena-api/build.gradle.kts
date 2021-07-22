@@ -38,6 +38,7 @@ dependencies {
         isTransitive = false
     }
     shadeProject(project(":arena-api:nms-v1_16_R3", "shadow"))
+    shadeProject(project(":arena-api:nms-v1_17_R1", "reobf"))
     shadeProject(project(":vector")) {
         isTransitive = false
     }
@@ -51,12 +52,14 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
 
+
     testRuntimeOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
     }
 
     testImplementation("org.mockito:mockito-core:3.11.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.0-M1")
+
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.0-M1")
 }
 
@@ -69,7 +72,7 @@ val copyPlugins = tasks.register<Copy>("copyPlugins") {
 }
 
 tasks.compileJava {
-    dependsOn(copyPlugins.get())
+    dependsOn(copyPlugins)
 }
 
 tasks.processResources {
@@ -82,7 +85,7 @@ val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
 }
 
 tasks.shadowJar {
-    dependsOn(relocate.get(), shadeProject)
+    dependsOn(relocate, shadeProject)
 
     configurations = listOf(shade)
     archiveClassifier.set("")
@@ -94,7 +97,7 @@ tasks.shadowJar {
 }
 
 tasks.build {
-    dependsOn(tasks.shadowJar.get())
+    dependsOn(tasks.shadowJar)
 }
 
 description = "arena-api"

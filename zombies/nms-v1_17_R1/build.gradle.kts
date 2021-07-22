@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocatio
 plugins {
     `java-library`
     id("com.github.johnrengelman.shadow")
+    id("io.papermc.paperweight.userdev") version "1.1.11"
 }
 
 java {
@@ -13,34 +14,33 @@ java {
 
 repositories {
     mavenCentral()
-    mavenLocal()
-    maven("https://libraries.minecraft.net")
-    maven("https://repo.aikar.co/content/groups/aikar/")
+    maven("https://repo.dmulloy2.net/repository/public/")
+    maven("https://papermc.io/repo/repository/maven-public/")
 }
 
 dependencies {
-    compileOnlyApi(project(":arena-api:nms-common"))
+    compileOnlyApi(project(":zombies:nms-common"))
 
-    compileOnly("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
-        exclude("io.papermc", "minecraft-server")
-    }
+    paperDevBundle("1.17.1-R0.1-SNAPSHOT")
 
     implementation("org.apache.commons:commons-lang3:3.12.0")
 }
 
 val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
     target = tasks.shadowJar.get()
-    prefix = "io.github.zap.arenaapi.nms.v1_16_R3.shadow"
+    prefix = "io.github.zap.zombies.nms.v1_17_R1.shadow"
 }
 
 tasks.shadowJar {
     dependsOn(relocate)
 
     archiveClassifier.set("")
+
+    finalizedBy(tasks.reobfJar.get())
 }
 
 tasks.build {
     dependsOn(tasks.shadowJar.get())
 }
 
-description = "arena-nms_v1_16_R3"
+description = "arena-nms_v1_17_R1"

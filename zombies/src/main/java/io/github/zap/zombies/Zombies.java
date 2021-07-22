@@ -11,6 +11,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
+import io.github.zap.arenaapi.nms.v1_17_R1.ZombiesNMSBridge_v1_17_R1;
 import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.DataLoader;
@@ -187,10 +188,12 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initBridge() throws LoadFailureException {
-        nmsBridge = ZombiesNMSBridge.selectBridge(ZombiesNMSBridge_v1_16_R3.INSTANCE);
+        nmsBridge = ZombiesNMSBridge.selectBridge(ZombiesNMSBridge_v1_16_R3.INSTANCE,
+                ZombiesNMSBridge_v1_17_R1.INSTANCE);
 
         if(nmsBridge == null) {
-            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", ArenaNMSBridge.CURRENT_NMS_VERSION));
+            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.",
+                    ArenaNMSBridge.CURRENT_NMS_VERSION));
         }
     }
 

@@ -27,6 +27,7 @@ dependencies {
     dependencyCompileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
     }
+
     implementation("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT") {
         exclude("net.kyori", "adventure-api")
     }
@@ -35,6 +36,7 @@ dependencies {
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
+
 
     testRuntimeOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
@@ -59,14 +61,14 @@ val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
 }
 
 tasks.shadowJar {
-    dependsOn(relocate.get())
+    dependsOn(relocate)
 
     archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
 }
 
 tasks.build {
-    dependsOn(tasks.shadowJar.get())
+    dependsOn(tasks.shadowJar)
 }
 
 description = "party-plus-plus"
