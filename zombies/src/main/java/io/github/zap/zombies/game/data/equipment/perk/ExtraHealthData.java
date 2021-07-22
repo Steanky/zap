@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Data for the extra health perk
  */
-public class ExtraHealthData extends PerkData<ExtraHealthLevel> {
+public class ExtraHealthData extends PerkData<@NotNull ExtraHealthLevel> {
 
     public ExtraHealthData(@NotNull String name, @NotNull String displayName, @NotNull Material material,
                            @NotNull List<String> lore, @NotNull List<ExtraHealthLevel> levels) {

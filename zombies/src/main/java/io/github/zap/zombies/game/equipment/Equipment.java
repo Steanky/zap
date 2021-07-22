@@ -3,10 +3,8 @@ package io.github.zap.zombies.game.equipment;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.localization.LocalizationManager;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,26 +12,17 @@ import org.jetbrains.annotations.NotNull;
  * @param <D> The type of equipment data the equipment uses
  * @param <L> The type of level the equipment uses
  */
-@Getter
-public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
+public class Equipment<D extends @NotNull EquipmentData<L>, @NotNull L> extends HotbarObject {
 
-    private final ZombiesArena arena;
+    private final @NotNull ZombiesPlayer zombiesPlayer;
 
-    private final ZombiesPlayer zombiesPlayer;
+    private final @NotNull LocalizationManager localizationManager;
 
-    private final LocalizationManager localizationManager;
+    private final @NotNull D equipmentData;
 
-    private final D equipmentData;
-
-    public Equipment(ZombiesArena arena, ZombiesPlayer player, int slot, D equipmentData) {
+    public Equipment(@NotNull ZombiesPlayer player, int slot, @NotNull D equipmentData) {
         super(player.getPlayer(), slot);
 
-        if (player.getPlayer() == null) {
-            throw new IllegalArgumentException("Attempted to create an equipment for offline player "
-                    + player.getOfflinePlayer().getName() + " !");
-        }
-
-        this.arena = arena;
         this.zombiesPlayer = player;
         this.localizationManager = Zombies.getInstance().getLocalizationManager();
         this.equipmentData = equipmentData;
@@ -48,5 +37,28 @@ public class Equipment<D extends EquipmentData<L>, L> extends HotbarObject {
         return equipmentData.getLevels().get(0);
     }
 
+    /**
+     * Gets the {@link ZombiesPlayer} associated with this equipment
+     * @return The player
+     */
+    public @NotNull ZombiesPlayer getZombiesPlayer() {
+        return zombiesPlayer;
+    }
+
+    /**
+     * Gets the {@link LocalizationManager} this equipment uses
+     * @return The localization manager
+     */
+    public @NotNull LocalizationManager getLocalizationManager() {
+        return localizationManager;
+    }
+
+    /**
+     * Gets the data associated with this equipment
+     * @return The data
+     */
+    public @NotNull D getEquipmentData() {
+        return equipmentData;
+    }
 
 }

@@ -3,13 +3,12 @@ package io.github.zap.zombies.game.data.equipment.gun;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.game.data.equipment.UltimateableData;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
-import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -20,8 +19,7 @@ import java.util.List;
  * @param <L> The gun level type
  */
 @SuppressWarnings("FieldMayBeFinal")
-@Getter
-public abstract class GunData<L extends GunLevel> extends UltimateableData<L> {
+public abstract class GunData<L extends @NotNull GunLevel> extends UltimateableData<L> {
 
     private Sound sound = null;
 
@@ -40,8 +38,16 @@ public abstract class GunData<L extends GunLevel> extends UltimateableData<L> {
 
     }
 
+    /**
+     * Gets the sound this gun plays
+     * @return The sound
+     */
+    public Sound getSound() {
+        return sound;
+    }
+
     @Override
-    public @NotNull List<String> getLore(@NotNull Player player, int level) {
+    public @NotNull List<String> getLore(@NotNull OfflinePlayer player, int level) {
         List<String> lore = super.getLore(player, level);
 
         lore.add("");

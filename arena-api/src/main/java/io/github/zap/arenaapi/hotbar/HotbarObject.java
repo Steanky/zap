@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.hotbar;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
@@ -11,11 +10,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A single object in a hotbar
  */
-@RequiredArgsConstructor
-@Getter
 public class HotbarObject {
 
-    private final Player player;
+    private final @NotNull OfflinePlayer player;
 
     private final int slot;
 
@@ -28,12 +25,22 @@ public class HotbarObject {
     private boolean removed = false;
 
     /**
+     * Creates a hotbar object that is invisible
+     * @param player The player the hotbar object belongs to
+     * @param slot The slot of the hotbar object
+     */
+    public HotbarObject(@NotNull OfflinePlayer player, int slot) {
+        this.player = player;
+        this.slot = slot;
+    }
+
+    /**
      * Creates a hotbar object that is invisible that would display an item stack
      * @param player The player the hotbar object belongs to
      * @param slot The slot of the hotbar object
      * @param representingItemStack The item stack to display
      */
-    public HotbarObject(@NotNull Player player, int slot, @Nullable ItemStack representingItemStack) {
+    public HotbarObject(@NotNull OfflinePlayer player, int slot, @Nullable ItemStack representingItemStack) {
         this(player, slot);
         this.representingItemStack = representingItemStack;
     }
@@ -44,7 +51,8 @@ public class HotbarObject {
      */
     private void setStack(@Nullable ItemStack itemStack) {
         if (!removed && visible) {
-            player.getInventory().setItem(slot, itemStack);
+            Player onlinePlayer = tryGetPlayer();
+            onlinePlayer.getInventory().setItem(slot, itemStack);
         }
     }
 
@@ -82,7 +90,7 @@ public class HotbarObject {
      * Sets the representing item stack of the hotbar
      * @param representingItemStack The item stack to represent
      */
-    public void setRepresentingItemStack(@NotNull ItemStack representingItemStack) {
+    public void setRepresentingItemStack(@Nullable ItemStack representingItemStack) {
         this.representingItemStack = representingItemStack;
 
         if (visible) {
@@ -97,7 +105,9 @@ public class HotbarObject {
     public void setVisible(boolean visible) {
         if (this.visible = visible) {
             setStack(representingItemStack);
-            if (player.getInventory().getHeldItemSlot() == slot) {
+
+            Player onlinePlayer = tryGetPlayer();
+            if (onlinePlayer.getInventory().getHeldItemSlot() == slot) {
                 onSlotSelected();
             }
         } else {
@@ -113,6 +123,68 @@ public class HotbarObject {
             setStack(null);
         }
         removed = true;
+    }
+
+    /**
+     * Gets the offline player that this hotbar object is held by
+     * @return The hotbar object slot
+     */
+    public @NotNull OfflinePlayer getPlayer() {
+        return player;
+    }
+
+    /**
+     * Tries to get the online player
+     * If the player is not online, throws {@link IllegalStateException}
+     * @return The online player
+     */
+    public @NotNull Player tryGetPlayer() {
+        Player onlinePlayer = player.getPlayer();
+        if (onlinePlayer == null) {
+            throw new IllegalStateException("Player " + player.getName() + " is not online!");
+        }
+
+        return onlinePlayer;
+    }
+
+    /**
+     * Gets the slot this hotbar object should be in
+     * @return The slot
+     */
+    public int getSlot() {
+        return slot;
+    }
+
+    /**
+     * Gets the representing item stack of this hotbar object
+     * @return The item stack
+     */
+    public @Nullable ItemStack getRepresentingItemStack() {
+        return representingItemStack;
+    }
+
+    /**
+     * Whether this hotbar object is visible
+     * @return Visibility state
+     */
+    public boolean isVisible() {
+        return visible;
+    }
+
+    /**
+     * Whether this hotbar object is selected
+     * @return Selection state
+     */
+    public boolean isSelected() {
+        return selected;
+    }
+
+    /**
+     * Whether this hotbar object has been removed
+     * @return Removal state
+     */
+    public boolean isRemoved() {
+        return removed;
     }
 
 }

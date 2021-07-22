@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Data for the frozen bullets perk
  */
-public class FrozenBulletsData extends PerkData<FrozenBulletsLevel> {
+public class FrozenBulletsData extends PerkData<@NotNull FrozenBulletsLevel> {
 
     public FrozenBulletsData(@NotNull String name, @NotNull String displayName,
                              @NotNull Material material, @NotNull List<String> lore,

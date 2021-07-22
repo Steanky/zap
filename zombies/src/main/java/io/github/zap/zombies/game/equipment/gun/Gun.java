@@ -1,6 +1,8 @@
 package io.github.zap.zombies.game.equipment.gun;
 
+import io.github.zap.arenaapi.BukkitTaskManager;
 import io.github.zap.arenaapi.DisposableBukkitRunnable;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.gun.GunData;
 import io.github.zap.zombies.game.data.equipment.gun.GunLevel;
@@ -30,7 +32,12 @@ import org.jetbrains.annotations.NotNull;
  * @param <L> The gun level type
  */
 @Getter
-public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends UpgradeableEquipment<D, L> {
+public abstract class Gun<D extends @NotNull GunData<L>, L extends @NotNull GunLevel>
+        extends UpgradeableEquipment<D, L> {
+
+    private final @NotNull StatsManager statsManager;
+
+    private final @NotNull BukkitTaskManager taskManager;
 
     private int currentClipAmmo;
 
@@ -46,9 +53,12 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     private int shootingTask = -1;
 
-    public Gun(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
-        super(zombiesArena, zombiesPlayer, slot, equipmentData);
+    public Gun(@NotNull ZombiesPlayer zombiesPlayer, int slot, @NotNull D equipmentData,
+               @NotNull StatsManager statsManager, @NotNull BukkitTaskManager taskManager) {
+        super(zombiesPlayer, slot, equipmentData);
 
+        this.statsManager = statsManager;
+        this.taskManager = taskManager;
         refill();
     }
 
@@ -91,11 +101,11 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                 canReload = false;
                 canShoot = false;
 
-                Player player = getPlayer();
+                Player player = tryGetPlayer();
                 player.playSound(Sound.sound(Key.key("minecraft:entity.horse.gallop"), Sound.Source.MASTER, 1F,
                         0.5F));
 
-                reloadTask = getArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
+                reloadTask = taskManager.runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
                     private final Component reloadingComponent = Component
                             .text("RELOADING")
@@ -119,7 +129,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                             setClipAmmo(Math.min(clipAmmo, currentAmmo));
 
                             if (isSelected()) {
-                                getPlayer().sendActionBar(Component.text());
+                                player.sendActionBar(Component.text());
                             }
 
                             canReload = true;
@@ -148,10 +158,10 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         setAmmo(currentAmmo - shots);
         setClipAmmo(currentClipAmmo - shots);
 
-        Player player = getPlayer();
+        Player player = tryGetPlayer();
 
         // Animate xp bar
-        fireDelayTask = getArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
+        fireDelayTask = taskManager.runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
             @SuppressWarnings("ConstantConditions")
             private final int goal = (int) Math.round(getCurrentLevel().getFireRate()
@@ -198,15 +208,17 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
     /**
      * Utility method to set the item durability
-     * @param val the damage value to set
+     * @param damage the damage value to set
      */
-    private void setItemDamage(int val) {
+    private void setItemDamage(int damage) {
         ItemStack itemStack = getRepresentingItemStack();
-        Damageable damageable = (Damageable) itemStack.getItemMeta();
-        damageable.setDamage(val);
+        if (itemStack != null) {
+            Damageable damageable = (Damageable) itemStack.getItemMeta();
+            damageable.setDamage(damage);
 
-        getRepresentingItemStack().setItemMeta((ItemMeta) damageable);
-        setRepresentingItemStack(getRepresentingItemStack());
+            getRepresentingItemStack().setItemMeta((ItemMeta) damageable);
+            setRepresentingItemStack(getRepresentingItemStack());
+        }
     }
 
     /**
@@ -221,7 +233,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     }
 
     private void updateAmmo() {
-        getPlayer().setLevel(currentAmmo);
+        tryGetPlayer().setLevel(currentAmmo);
     }
 
     /**
@@ -239,14 +251,20 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     private void updateClipAmmo() {
         if (currentClipAmmo > 0) {
             setItemDamage(0);
-            getRepresentingItemStack().setAmount(currentClipAmmo);
+            ItemStack itemStack = getRepresentingItemStack();
+            if (itemStack != null) {
+                itemStack.setAmount(currentClipAmmo);
+            }
         } else {
             setItemDamage(getEquipmentData().getMaterial().getMaxDurability());
-            getRepresentingItemStack().setAmount(1);
+            ItemStack itemStack = getRepresentingItemStack();
+            if (itemStack != null) {
+                itemStack.setAmount(1);
+            }
         }
         setRepresentingItemStack(getRepresentingItemStack());
 
-        getPlayer().updateInventory();
+        tryGetPlayer().updateInventory();
     }
 
     @Override
@@ -268,7 +286,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     @Override
     public void onSlotSelected() {
         super.onSlotSelected();
-        Player player = getPlayer();
+        Player player = tryGetPlayer();
 
         player.setLevel(currentAmmo);
         player.setExp(1);
@@ -277,7 +295,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
     @Override
     public void onSlotDeselected() {
         super.onSlotDeselected();
-        Player player = getPlayer();
+        Player player = tryGetPlayer();
 
         player.setLevel(0);
         player.setExp(0);
@@ -298,15 +316,15 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
             shoot(); // Shoot your first shot on the same tick
 
             if (getCurrentLevel().getShotsPerClick() > 1) { // Don't schedule if unnecessary
-                shootingTask = getArena().runTaskTimer(1L, 1L, new DisposableBukkitRunnable() {
+                shootingTask = taskManager.runTaskTimer(1L, 1L, new DisposableBukkitRunnable() {
 
                     private int firedShots = 1;
 
                     @Override
                     public void run() {
                         if (firedShots++ == Math.min(getCurrentLevel().getShotsPerClick(), currentAmmo)) { // Reload while shooting possible
-                            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                                    getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + firedShots),
+                            statsManager.queueCacheModification(CacheInformation.PLAYER, getPlayer().getUniqueId(),
+                                    (stats) -> stats.setBulletsShot(stats.getBulletsShot() + firedShots),
                                     PlayerGeneralStats::new);
                             updateAfterShooting(firedShots);
 
@@ -319,7 +337,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
                 }).getTaskId();
             } else {
-                getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                statsManager.queueCacheModification(CacheInformation.PLAYER,
                         getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1),
                         PlayerGeneralStats::new);
                 updateAfterShooting(1);

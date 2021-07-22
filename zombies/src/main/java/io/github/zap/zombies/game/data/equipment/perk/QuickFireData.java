@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Data for the quick fire perk
  */
-public class QuickFireData extends PerkData<QuickFireLevel> {
+public class QuickFireData extends PerkData<@NotNull QuickFireLevel> {
 
     public QuickFireData(@NotNull String name, @NotNull String displayName, @NotNull Material material,
                          @NotNull List<String> lore, @NotNull List<QuickFireLevel> levels) {

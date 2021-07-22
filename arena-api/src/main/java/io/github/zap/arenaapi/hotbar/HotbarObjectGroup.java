@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.hotbar;
 
 import lombok.Getter;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,9 +16,9 @@ import java.util.Set;
 @Getter
 public class HotbarObjectGroup {
 
-    private final Map<Integer, HotbarObject> hotbarObjectMap = new HashMap<>();
+    private final @NotNull Map<@NotNull Integer, @Nullable HotbarObject> hotbarObjectMap = new HashMap<>();
 
-    private final Player player;
+    private final @NotNull OfflinePlayer player;
 
     private boolean visible = false;
 
@@ -26,7 +27,7 @@ public class HotbarObjectGroup {
      * @param player The player the hotbar object group belongs to
      * @param slots The slots that the hotbar object group manages
      */
-    public HotbarObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots) {
+    public HotbarObjectGroup(@NotNull OfflinePlayer player, @NotNull Set<Integer> slots) {
         this.player = player;
 
         for (Integer slot : slots) {
@@ -40,7 +41,7 @@ public class HotbarObjectGroup {
      * @param slot The slot of the hotbar object
      * @return The new hotbar object
      */
-    public @NotNull HotbarObject createDefaultHotbarObject(@NotNull Player player, int slot) {
+    public @NotNull HotbarObject createDefaultHotbarObject(@NotNull OfflinePlayer player, int slot) {
         return new HotbarObject(player, slot);
     }
 
@@ -150,6 +151,20 @@ public class HotbarObjectGroup {
      */
     public @Nullable Integer getNextEmptySlot() {
         return null;
+    }
+
+    /**
+     * Tries to get the online player
+     * If the player is not online, throws {@link IllegalStateException}
+     * @return The online player
+     */
+    public @NotNull Player tryGetPlayer() {
+        Player onlinePlayer = player.getPlayer();
+        if (onlinePlayer == null) {
+            throw new IllegalStateException("Player " + player.getName() + " is not online!");
+        }
+
+        return onlinePlayer;
     }
 
 }

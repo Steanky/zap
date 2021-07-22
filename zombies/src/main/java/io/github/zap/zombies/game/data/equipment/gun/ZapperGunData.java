@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * Data for a zapper gun
  */
-@Getter
-public class ZapperGunData extends ParticleGunData<ZapperGunLevel> {
+public class ZapperGunData extends ParticleGunData<@NotNull ZapperGunLevel> {
 
     public ZapperGunData(@NotNull String name, @NotNull String displayName, @NotNull Material material,
                          @NotNull List<String> lore, @NotNull List<ZapperGunLevel> levels, @NotNull Particle particle,

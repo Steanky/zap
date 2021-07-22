@@ -1,7 +1,6 @@
 package io.github.zap.zombies.game.data.equipment.gun;
 
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
-import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.jetbrains.annotations.NotNull;
@@ -13,10 +12,9 @@ import java.util.List;
  * Data for a gun associated with a particle
  * @param <L> The gun level type
  */
-@Getter
-public abstract class ParticleGunData<L extends ParticleGunLevel> extends GunData<L> {
+public abstract class ParticleGunData<L extends @NotNull ParticleGunLevel> extends GunData<L> {
 
-    private Particle particle;
+    private final Particle particle;
 
     private final ParticleDataWrapper<?> particleDataWrapper;
 
@@ -30,7 +28,26 @@ public abstract class ParticleGunData<L extends ParticleGunLevel> extends GunDat
     }
 
     protected ParticleGunData() {
+        this.particle = Particle.CRIT;
         this.particleDataWrapper = null;
+    }
+
+    /**
+     * Gets the particle this gun uses
+     * @return The particle
+     */
+    public @NotNull Particle getParticle() {
+        return particle;
+    }
+
+    // TODO: @see
+    /**
+     * Gets the particle data wrapper this gun uses depending on its particle
+     * {@see #getParticle()}
+     * @return The data wrapper
+     */
+    public @Nullable ParticleDataWrapper<?> getParticleDataWrapper() {
+        return particleDataWrapper;
     }
 
 }

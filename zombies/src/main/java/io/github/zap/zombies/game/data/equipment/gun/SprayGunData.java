@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * Data for a spray gun
  */
-@Getter
-public class SprayGunData extends ParticleGunData<SprayGunLevel> {
+public class SprayGunData extends ParticleGunData<@NotNull SprayGunLevel> {
 
     public SprayGunData(@NotNull String name, @NotNull String displayName, @NotNull Material material,
                         @NotNull List<String> lore, @NotNull List<SprayGunLevel> levels, @NotNull Particle particle,

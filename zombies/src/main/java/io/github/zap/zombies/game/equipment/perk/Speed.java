@@ -16,18 +16,17 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Lets players run faster
  */
-public class Speed extends RepeatingEventPerk<SpeedPerkData, SpeedPerkLevel> {
+public class Speed extends RepeatingEventPerk<@NotNull SpeedPerkData, @NotNull SpeedPerkLevel> {
 
-    public Speed(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                 @NotNull SpeedPerkData perkData) {
-        super(arena, player, slot, perkData,
-                new RepeatingEvent(Zombies.getInstance(), 0, perkData.getSpeedReapplyInterval()));
+    public Speed(@NotNull ZombiesPlayer player, int slot, @NotNull SpeedPerkData perkData) {
+        super(player, slot, perkData, new RepeatingEvent(Zombies.getInstance(), 0,
+                perkData.getSpeedReapplyInterval()));
     }
 
     @Override
     public void execute(@Nullable EmptyEventArgs args) {
-        Player player = getZombiesPlayer().getPlayer();
-        if (player != null) {
+        if (getZombiesPlayer().isOnline()) {
+            Player player = getZombiesPlayer().getPlayer();
             player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, getCurrentLevel().getDuration(),
                     getCurrentLevel().getAmplifier(), true, false, false));
         }
@@ -36,8 +35,8 @@ public class Speed extends RepeatingEventPerk<SpeedPerkData, SpeedPerkLevel> {
     @Override
     public void deactivate() {
         super.deactivate();
-        Player player = getZombiesPlayer().getPlayer();
-        if (player != null) {
+        if (getZombiesPlayer().isOnline()) {
+            Player player = getZombiesPlayer().getPlayer();
             player.removePotionEffect(PotionEffectType.SPEED);
         }
     }

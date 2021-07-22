@@ -1,12 +1,10 @@
 package io.github.zap.zombies.game.equipment.perk;
 
 import io.github.zap.arenaapi.event.Event;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.perk.PerkData;
 import io.github.zap.zombies.game.data.equipment.perk.PerkLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,15 +17,14 @@ import org.jetbrains.annotations.Nullable;
  * @param <E> The perk executor type
  * @param <T> The type of arguments the event passes to the perk executor
  */
-public abstract class Perk<D extends PerkData<L>, L extends PerkLevel, E extends Event<T>, T>
+public abstract class Perk<D extends @NotNull PerkData<@NotNull L>, L extends @NotNull PerkLevel,
+        E extends @Nullable Event<@NotNull T>, @NotNull T>
         extends UpgradeableEquipment<D, L> {
 
-    @Getter
     private final E actionTriggerEvent;
 
-    public Perk(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                @NotNull D perkData, @Nullable E actionTriggerEvent) {
-        super(arena, player, slot, perkData);
+    public Perk(@NotNull ZombiesPlayer player, int slot, @NotNull D perkData, @Nullable E actionTriggerEvent) {
+        super(player, slot, perkData);
 
         this.actionTriggerEvent = actionTriggerEvent;
 
@@ -61,6 +58,10 @@ public abstract class Perk<D extends PerkData<L>, L extends PerkLevel, E extends
         }
 
         deactivate();
+    }
+
+    public @Nullable E getActionTriggerEvent() {
+        return actionTriggerEvent;
     }
 
     /**

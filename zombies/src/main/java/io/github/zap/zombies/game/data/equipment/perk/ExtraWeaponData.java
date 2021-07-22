@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Data for the extra weapon perk
  */
-public class ExtraWeaponData extends PerkData<ExtraWeaponLevel> {
+public class ExtraWeaponData extends PerkData<@NotNull ExtraWeaponLevel> {
 
     public ExtraWeaponData(@NotNull String name, @NotNull String displayName,
                            @NotNull Material material, @NotNull List<String> lore,

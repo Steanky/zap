@@ -1,12 +1,12 @@
 package io.github.zap.zombies.game.equipment.melee;
 
+import io.github.zap.arenaapi.BukkitTaskManager;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.melee.AOEMeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.AOEMeleeLevel;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.World;
 import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
@@ -16,12 +16,15 @@ import java.util.Collection;
 /**
  * Melee weapon which deals damage with an Area-of-Effect range
  */
-public class AOEMeleeWeapon extends MeleeWeapon<AOEMeleeData, AOEMeleeLevel> {
+public class AOEMeleeWeapon extends MeleeWeapon<@NotNull AOEMeleeData, @NotNull AOEMeleeLevel> {
 
-    @RequiredArgsConstructor
     private class AOEMeleeDamageAttempt extends MeleeDamageAttempt {
 
-        private final Mob mainMob;
+        private final @NotNull Mob mainMob;
+
+        public AOEMeleeDamageAttempt(@NotNull Mob mainMob) {
+            this.mainMob = mainMob;
+        }
 
         @Override
         public boolean ignoresArmor(@NotNull Damager damager, @NotNull Mob target) {
@@ -30,16 +33,17 @@ public class AOEMeleeWeapon extends MeleeWeapon<AOEMeleeData, AOEMeleeLevel> {
 
     }
 
-    public AOEMeleeWeapon(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot,
-                          AOEMeleeData equipmentData) {
-        super(zombiesArena, zombiesPlayer, slot, equipmentData);
+    private final @NotNull ZombiesArena.DamageHandler damageHandler;
+
+    public AOEMeleeWeapon(@NotNull ZombiesPlayer zombiesPlayer, int slot, @NotNull AOEMeleeData equipmentData,
+                          @NotNull BukkitTaskManager taskManager, @NotNull ZombiesArena.DamageHandler damageHandler) {
+        super(zombiesPlayer, slot, equipmentData, taskManager);
+
+        this.damageHandler = damageHandler;
     }
 
     @Override
     public void attack(Mob mob) {
-        ZombiesArena zombiesArena = getArena();
-        ZombiesArena.DamageHandler damageHandler = zombiesArena.getDamageHandler();
-
         World world = mob.getWorld();
         Collection<Mob> aoeMobs
                 = world.getNearbyEntitiesByType(Mob.class, mob.getLocation(), getCurrentLevel().getRange());

@@ -13,7 +13,6 @@ import java.util.List;
 /**
  * Data for a linear gun
  */
-@Getter
 public class LinearGunData extends ParticleGunData<LinearGunLevel> {
 
     public LinearGunData(@NotNull String name, @NotNull String displayName, @NotNull Material material,

@@ -10,14 +10,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Revives player at a faster speed
  */
-public class FastRevive extends MarkerPerk<FastReviveData, FastReviveLevel> {
+public class FastRevive extends MarkerPerk<@NotNull FastReviveData, @NotNull FastReviveLevel> {
 
     @Getter
     private int reducedReviveTime;
 
-    public FastRevive(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
+    public FastRevive(@NotNull ZombiesPlayer player, int slot,
                       @NotNull FastReviveData perkData) {
-        super(arena, player, slot, perkData);
+        super(player, slot, perkData);
     }
 
     @Override

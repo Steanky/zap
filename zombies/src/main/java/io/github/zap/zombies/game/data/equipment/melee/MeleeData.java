@@ -6,6 +6,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -30,7 +31,7 @@ public abstract class MeleeData<L extends MeleeLevel> extends UltimateableData<L
     }
 
     @Override
-    public @NotNull ItemStack createItemStack(@NotNull Player player, int level) {
+    public @NotNull ItemStack createItemStack(@NotNull OfflinePlayer player, int level) {
         ItemStack itemStack = super.createItemStack(player, level);
 
         ItemMeta itemMeta = itemStack.getItemMeta();

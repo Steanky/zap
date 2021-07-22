@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.equipment.skill;
 
+import io.github.zap.arenaapi.BukkitTaskManager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.skill.SkillData;
 import io.github.zap.zombies.game.data.equipment.skill.SkillLevel;
@@ -12,18 +13,25 @@ import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a skill
  * @param <D> The skill data type
  * @param <L> The skill level type
  */
-public abstract class SkillEquipment<D extends SkillData<L>, L extends SkillLevel> extends UpgradeableEquipment<D, L> {
+public abstract class SkillEquipment<D extends @NotNull SkillData<L>, L extends @NotNull SkillLevel>
+        extends UpgradeableEquipment<D, L> {
 
-    boolean usable = true;
+    private final @NotNull BukkitTaskManager taskManager;
 
-    public SkillEquipment(ZombiesArena arena, ZombiesPlayer player, int slot, D skillData) {
-        super(arena, player, slot, skillData);
+    private boolean usable = true;
+
+    public SkillEquipment(@NotNull ZombiesPlayer player, int slot, @NotNull D skillData,
+                          @NotNull BukkitTaskManager taskManager) {
+        super(player, slot, skillData);
+
+        this.taskManager = taskManager;
     }
 
     @Override
@@ -45,7 +53,7 @@ public abstract class SkillEquipment<D extends SkillData<L>, L extends SkillLeve
 
             execute();
 
-            getArena().runTaskTimer(20L, 20L, () -> {
+            taskManager.runTaskTimer(20L, 20L, () -> {
                 if (--timeRemaining[0] == 0) {
                     setRepresentingItemStack(getEquipmentData().createItemStack(getPlayer(), getLevel()));
                     usable = true;

@@ -2,6 +2,7 @@ package io.github.zap.zombies.game.equipment;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -17,12 +18,12 @@ import java.util.stream.Collectors;
  */
 public abstract class EquipmentObjectGroup extends HotbarObjectGroup {
 
-    public EquipmentObjectGroup(@NotNull Player player, @NotNull Set<Integer> slots) {
+    public EquipmentObjectGroup(@NotNull OfflinePlayer player, @NotNull Set<Integer> slots) {
         super(player, slots);
     }
 
     @Override
-    public @NotNull HotbarObject createDefaultHotbarObject(@NotNull Player player, int slot) {
+    public @NotNull HotbarObject createDefaultHotbarObject(@NotNull OfflinePlayer player, int slot) {
         Set<Integer> slots = getHotbarObjectMap().keySet()
                 .stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new));
         int placeholderNumber = 1;

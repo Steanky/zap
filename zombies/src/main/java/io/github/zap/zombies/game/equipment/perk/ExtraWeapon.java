@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.equipment.perk;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraWeaponData;
 import io.github.zap.zombies.game.data.equipment.perk.ExtraWeaponLevel;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
@@ -15,13 +14,12 @@ import java.util.Set;
 /**
  * Allows players to have extra weapon slots
  */
-public class ExtraWeapon extends MarkerPerk<ExtraWeaponData, ExtraWeaponLevel> {
+public class ExtraWeapon extends MarkerPerk<@NotNull ExtraWeaponData, @NotNull ExtraWeaponLevel> {
 
     private int previousLevel = -1; // local variable since we cannot reliably get the previous level
 
-    public ExtraWeapon(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                       @NotNull ExtraWeaponData perkData) {
-        super(arena, player, slot, perkData);
+    public ExtraWeapon(@NotNull ZombiesPlayer player, int slot, @NotNull ExtraWeaponData perkData) {
+        super(player, slot, perkData);
         activate(); // activate again because previousLevel was set to 0 before initialization
     }
 

@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.equipment.perk;
 
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.perk.QuickFireData;
 import io.github.zap.zombies.game.data.equipment.perk.QuickFireLevel;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
@@ -13,9 +12,8 @@ public class QuickFire extends MarkerPerk<QuickFireData, QuickFireLevel> {
 
     private static final String MODIFIER_NAME = "quick_fire";
 
-    public QuickFire(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                     @NotNull QuickFireData perkData) {
-        super(arena, player, slot, perkData);
+    public QuickFire(@NotNull ZombiesPlayer player, int slot, @NotNull QuickFireData perkData) {
+        super(player, slot, perkData);
     }
 
     @Override

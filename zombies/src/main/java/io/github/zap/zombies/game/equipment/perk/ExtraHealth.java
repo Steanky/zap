@@ -11,18 +11,18 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class ExtraHealth extends MarkerPerk<ExtraHealthData, ExtraHealthLevel> {
+public class ExtraHealth extends MarkerPerk<@NotNull ExtraHealthData, @NotNull ExtraHealthLevel> {
 
     private AttributeModifier currentMod;
 
-    public ExtraHealth(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot, @NotNull ExtraHealthData perkData) {
-        super(arena, player, slot, perkData);
+    public ExtraHealth(@NotNull ZombiesPlayer player, int slot, @NotNull ExtraHealthData perkData) {
+        super(player, slot, perkData);
     }
 
     @Override
     public void activate() {
-        Player player = getZombiesPlayer().getPlayer();
-        if (player != null) {
+        if (getZombiesPlayer().isOnline()) {
+            Player player = getZombiesPlayer().getPlayer();
             AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 
             if (attribute != null) {
@@ -41,8 +41,8 @@ public class ExtraHealth extends MarkerPerk<ExtraHealthData, ExtraHealthLevel> {
 
     @Override
     public void deactivate() {
-        Player player = getZombiesPlayer().getPlayer();
-        if (player != null) {
+        if (getZombiesPlayer().isOnline()) {
+            Player player = getZombiesPlayer().getPlayer();
             AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 
             if (attribute != null && currentMod != null) {

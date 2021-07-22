@@ -1,26 +1,29 @@
 package io.github.zap.zombies.game.equipment.perk;
 
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.perk.FrozenBulletsData;
 import io.github.zap.zombies.game.data.equipment.perk.FrozenBulletsLevel;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Reduces the speed of zombies
  */
-public class FrozenBullets extends MarkerPerk<FrozenBulletsData, FrozenBulletsLevel> {
+public class FrozenBullets extends MarkerPerk<@NotNull FrozenBulletsData, @NotNull FrozenBulletsLevel> {
 
-    @Getter
     private double reducedSpeed;
 
-    @Getter
     private int duration;
 
-    public FrozenBullets(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
-                         @NotNull FrozenBulletsData perkData) {
-        super(arena, player, slot, perkData);
+    public FrozenBullets(@NotNull ZombiesPlayer player, int slot, @NotNull FrozenBulletsData perkData) {
+        super(player, slot, perkData);
+    }
+
+    public double getReducedSpeed() {
+        return reducedSpeed;
+    }
+
+    public int getDuration() {
+        return duration;
     }
 
     @Override

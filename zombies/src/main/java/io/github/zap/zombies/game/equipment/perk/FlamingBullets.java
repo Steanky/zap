@@ -1,23 +1,24 @@
 package io.github.zap.zombies.game.equipment.perk;
 
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.perk.FlamingBulletsData;
 import io.github.zap.zombies.game.data.equipment.perk.FlamingBulletsLevel;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Sets zombies on fire
  */
-public class FlamingBullets extends MarkerPerk<FlamingBulletsData, FlamingBulletsLevel> {
+public class FlamingBullets extends MarkerPerk<@NotNull FlamingBulletsData, @NotNull FlamingBulletsLevel> {
 
-    @Getter
     private int duration;
 
-    public FlamingBullets(@NotNull ZombiesArena arena, @NotNull ZombiesPlayer player, int slot,
+    public FlamingBullets(@NotNull ZombiesPlayer player, int slot,
                           @NotNull FlamingBulletsData perkData) {
-        super(arena, player, slot, perkData);
+        super(player, slot, perkData);
+    }
+
+    public int getDuration() {
+        return duration;
     }
 
     @Override

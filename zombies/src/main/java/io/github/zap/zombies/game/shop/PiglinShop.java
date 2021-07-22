@@ -290,13 +290,13 @@ public class PiglinShop extends Shop<@NotNull PiglinShopData> {
     private boolean attemptToRefill(@NotNull HotbarObjectGroup hotbarObjectGroup,
                                     @NotNull EquipmentData<?> equipmentData) {
         for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-            if (hotbarObject instanceof Gun<?, ?> gun &&
+            if (hotbarObject instanceof Gun<@NotNull ?, @NotNull ?> gun &&
                     gun.getEquipmentData().getName().equals(equipmentData.getName())) {
                 gun.refill();
 
                 sitter.destroy();
 
-                hotbarObjectGroup.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
+                hotbarObjectGroup.tryGetPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
                         Sound.Source.MASTER, 1.0F, 2.0F));
 
                 return true;

@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Data for the fast revive perk
  */
-public class FastReviveData extends PerkData<FastReviveLevel> {
+public class FastReviveData extends PerkData<@NotNull FastReviveLevel> {
 
     public FastReviveData(@NotNull String name, @NotNull String displayName, @NotNull Material material,
                           @NotNull List<String> lore, @NotNull List<FastReviveLevel> levels) {

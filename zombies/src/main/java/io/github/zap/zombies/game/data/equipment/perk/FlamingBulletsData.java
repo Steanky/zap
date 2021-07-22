@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Data for the flaming bullets perk
  */
-public class FlamingBulletsData extends PerkData<FlamingBulletsLevel> {
+public class FlamingBulletsData extends PerkData<@NotNull FlamingBulletsLevel> {
 
     public FlamingBulletsData(@NotNull String name, @NotNull String displayName, @NotNull Material material,
                               @NotNull List<String> lore, @NotNull List<FlamingBulletsLevel> levels) {

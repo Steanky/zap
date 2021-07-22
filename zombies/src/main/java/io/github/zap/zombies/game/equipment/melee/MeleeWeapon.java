@@ -1,13 +1,12 @@
 package io.github.zap.zombies.game.equipment.melee;
 
+import io.github.zap.arenaapi.BukkitTaskManager;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeData;
 import io.github.zap.zombies.game.data.equipment.melee.MeleeLevel;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -22,15 +21,21 @@ import org.jetbrains.annotations.NotNull;
  * @param <D> The data type of the weapon
  * @param <L> The level type of the weapon
  */
-public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> extends UpgradeableEquipment<D, L> {
+public abstract class MeleeWeapon<D extends @NotNull MeleeData<L>, @NotNull L extends MeleeLevel>
+        extends UpgradeableEquipment<D, L> {
 
     protected class MeleeDamageAttempt implements DamageAttempt {
 
-        private final L meleeLevel = getCurrentLevel();
+        private final @NotNull L meleeLevel = getCurrentLevel();
 
-        private final Player player = getPlayer();
+        private final Player player;
 
-        private final boolean isCritical = player.getFallDistance() > 0F;
+        private final boolean isCritical;
+
+        public MeleeDamageAttempt() {
+            player = tryGetPlayer();
+            isCritical = player.getFallDistance() > 0F;
+        }
 
         @Override
         public int getCoins(@NotNull Damager damager, @NotNull Mob target) {
@@ -56,13 +61,22 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
         public double knockbackFactor(@NotNull Damager damager, @NotNull Mob target) {
             return meleeLevel.getKnockbackFactor();
         }
+
     }
 
-    @Getter
+    private final @NotNull BukkitTaskManager taskManager;
+
     private boolean usable = true;
 
-    public MeleeWeapon(ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer, int slot, D equipmentData) {
-        super(zombiesArena, zombiesPlayer, slot, equipmentData);
+    public MeleeWeapon(@NotNull ZombiesPlayer zombiesPlayer, int slot, @NotNull D equipmentData,
+                       @NotNull BukkitTaskManager taskManager) {
+        super(zombiesPlayer, slot, equipmentData);
+
+        this.taskManager = taskManager;
+    }
+
+    public boolean isUsable() {
+        return usable;
     }
 
     /**
@@ -74,8 +88,10 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
     @Override
     public void setVisible(boolean visible) {
         super.setVisible(visible);
+
+        Player onlinePlayer = tryGetPlayer();
         if (isSelected() && getCurrentLevel().isUsesShields()) {
-            EntityEquipment equipment = getPlayer().getEquipment();
+            EntityEquipment equipment = onlinePlayer.getEquipment();
 
             if (visible) {
                 //noinspection ConstantConditions
@@ -98,7 +114,7 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
 
             if (usable) {
                 usable = false;
-                getArena().runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
+                taskManager.runTaskLater(getCurrentLevel().getDelayTicks(), () -> usable = true);
             }
         }
     }
@@ -107,12 +123,13 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
     public void onSlotSelected() {
         super.onSlotSelected();
 
+        Player onlinePlayer = tryGetPlayer();
         if (getCurrentLevel().isUsesShields()) {
-            EntityEquipment equipment = getPlayer().getEquipment();
+            EntityEquipment equipment = onlinePlayer.getEquipment();
 
             //noinspection ConstantConditions
             if (equipment.getItemInOffHand().getType() != Material.SHIELD) {
-                getPlayer().getEquipment().setItemInOffHand(new ItemStack(Material.SHIELD));
+                onlinePlayer.getEquipment().setItemInOffHand(new ItemStack(Material.SHIELD));
             }
         }
     }
@@ -121,12 +138,13 @@ public abstract class MeleeWeapon<D extends MeleeData<L>, L extends MeleeLevel> 
     public void onSlotDeselected() {
         super.onSlotDeselected();
 
+        Player onlinePlayer = tryGetPlayer();
         if (getCurrentLevel().isUsesShields()) {
-            EntityEquipment equipment = getPlayer().getEquipment();
+            EntityEquipment equipment = onlinePlayer.getEquipment();
 
             //noinspection ConstantConditions
             if (equipment.getItemInOffHand().getType() == Material.SHIELD) {
-                getPlayer().getEquipment().setItemInOffHand(new ItemStack(Material.AIR));
+                onlinePlayer.getEquipment().setItemInOffHand(new ItemStack(Material.AIR));
             }
         }
     }

@@ -105,7 +105,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      * @return The game name
      */
     public @NotNull String getGameName() {
-        return this.gameName;
+        return gameName;
     }
 
     /**
@@ -114,7 +114,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      * @return The location
      */
     public @NotNull Location getHubLocation() {
-        return this.hubLocation;
+        return hubLocation;
     }
 
     /**
@@ -122,7 +122,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      * @return The stats manager
      */
     public @NotNull StatsManager getStatsManager() {
-        return this.statsManager;
+        return statsManager;
     }
 
     /**
@@ -130,7 +130,7 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      * @return The arena creation event
      */
     public @NotNull Event<@NotNull Arena<@NotNull T>> getArenaCreated() {
-        return this.arenaCreated;
+        return arenaCreated;
     }
 
 }
