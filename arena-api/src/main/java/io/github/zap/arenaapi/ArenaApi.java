@@ -340,12 +340,5 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     public static void callEvent(Event event) {
         instance.getServer().getPluginManager().callEvent(event);
     }
-
-    @EventHandler
-    private void interact(PlayerInteractEvent event) {
-        if(event.hasItem() && event.getHand() == EquipmentSlot.HAND) {
-            World world = event.getPlayer().getWorld();
-            world.spawnEntity(new Location(world, 0, 0, 0), EntityType.ARMOR_STAND);
-        }
-    }
+    
 }
