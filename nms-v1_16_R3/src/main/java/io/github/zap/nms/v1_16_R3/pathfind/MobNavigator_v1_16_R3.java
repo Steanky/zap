@@ -44,7 +44,7 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
                         }
                     }
 
-                    newPath.c(i + 1);
+                    newPath.c(i);
                     a(newPath, speed);
                     return;
                 }
