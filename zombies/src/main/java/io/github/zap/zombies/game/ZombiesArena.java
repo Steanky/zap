@@ -26,14 +26,14 @@ import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.ChunkLoadHandler;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.arena.round.ZombiesEventManager;
+import io.github.zap.zombies.game.arena.event.ZombiesEventManager;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
-import io.github.zap.zombies.game.data.map.shop.ShopManager;
+import io.github.zap.zombies.game.data.map.shop.ShopDataManager;
 import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
@@ -406,7 +406,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private final PowerUpManager powerUpManager;
 
     @Getter
-    private final ShopManager shopManager;
+    private final ShopDataManager shopDataManager;
 
     @Getter
     private final StatsManager statsManager;
@@ -552,7 +552,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.map = map;
         this.equipmentManager = manager.getEquipmentManager();
         this.powerUpManager = manager.getPowerUpManager();
-        this.shopManager = manager.getShopManager();
+        this.shopDataManager = manager.getShopDataManager();
         this.statsManager = manager.getStatsManager();
         this.emptyTimeout = emptyTimeout;
         this.spawner = new BasicSpawner();
@@ -990,7 +990,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
     }
 
-    private void onZombiesPlayerDamaged(@NotNull ManagedPlayerArgs<ZombiesPlayer, EntityDamageEvent> args) {
+    private void onZombiesPlayerDamaged(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, @NotNull EntityDamageEvent> args) {
         Player player = args.player().getPlayer();
 
         if (args.player().isAlive()) {
@@ -1016,20 +1016,20 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
     }
 
-    private void onMobDamage(@NotNull EntityArgs<Mob, EntityDamageEvent> args) {
+    private void onMobDamage(@NotNull EntityArgs<@NotNull Mob, @NotNull EntityDamageEvent> args) {
         if (args.event().getCause() == EntityDamageEvent.DamageCause.VOID && mobs.contains(args.entity())) {
             args.entity().remove();
         }
     }
 
-    private void onMobDeath(@NotNull EntityArgs<Mob, EntityDeathEvent> args) {
+    private void onMobDeath(@NotNull EntityArgs<@NotNull Mob, @NotNull EntityDeathEvent> args) {
         if (state == ZombiesArenaState.STARTED && mobs.remove(args.entity())) {
             zombiesLeft--;
             checkNextRound();
         }
     }
 
-    private void onMobRemoveFromWorld(@NotNull EntityArgs<Mob, EntityRemoveFromWorldEvent> args) {
+    private void onMobRemoveFromWorld(@NotNull EntityArgs<@NotNull Mob, @NotNull EntityRemoveFromWorldEvent> args) {
         if (state == ZombiesArenaState.STARTED && mobs.remove(args.entity())) {
             zombiesLeft--;
             checkNextRound();
@@ -1405,7 +1405,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private void loadShops() {
         for (ShopData shopData : map.getShops()) {
             if (shopData != null) {
-                Shop<?> shop = shopManager.createShop(this, shopData);
+                Shop<?> shop = shopDataManager.createShop(this, shopData);
                 shops.add(shop);
                 shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
                 getShopEvent(shop.getShopType());
@@ -1415,7 +1415,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         for(DoorData doorData : map.getDoors()) {
             if (doorData != null) {
-                Shop<DoorData> shop = shopManager.createShop(this, doorData);
+                Shop<DoorData> shop = shopDataManager.createShop(this, doorData);
                 shops.add(shop);
                 shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
                 shop.display();

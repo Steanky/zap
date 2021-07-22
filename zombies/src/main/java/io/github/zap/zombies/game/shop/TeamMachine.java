@@ -3,6 +3,8 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.Unique;
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
+import io.github.zap.arenaapi.game.arena.player.PlayerList;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
@@ -15,12 +17,15 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,19 +35,23 @@ import java.util.UUID;
 /**
  * Machine with various tasks helpful for teams
  */
-public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, Disposable {
+public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements Unique, Disposable {
 
     @Getter
-    private final UUID id = UUID.randomUUID();
+    private final @NotNull UUID id = UUID.randomUUID();
 
-    private final Inventory inventory;
+    private final @NotNull Inventory inventory;
 
-    private final Map<Integer, TeamMachineTask> slotMap = new HashMap<>();
+    private final @NotNull Map<Integer, TeamMachineTask> slotMap = new HashMap<>();
 
-    public TeamMachine(ZombiesArena zombiesArena, TeamMachineData shopData) {
-        super(zombiesArena, shopData);
+    private final @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList;
+
+    public TeamMachine(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull TeamMachineData shopData,
+                       @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList) {
+        super(world, eventManager, shopData);
 
         this.inventory = prepareInventory();
+        this.playerList = playerList;
     }
 
     @Override
@@ -70,22 +79,15 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
     }
 
     @Override
-    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
         if (super.interact(args)) {
-            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-
-            if (zombiesPlayer != null) {
-                Player bukkitPlayer = zombiesPlayer.getPlayer();
-
-                if (bukkitPlayer != null) {
-                    if (!getShopData().isRequiresPower() || isPowered()) {
-                        bukkitPlayer.openInventory(inventory);
-                        return true;
-                    } else {
-                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!",
-                                NamedTextColor.RED));
-                    }
-                }
+            ZombiesPlayer player = args.player();
+            if (!getShopData().isRequiresPower() || isPowered()) {
+                player.getPlayer().openInventory(inventory);
+                return true;
+            } else {
+                player.getPlayer().sendMessage(Component.text("The power is not active yet!",
+                        NamedTextColor.RED));
             }
         }
 
@@ -106,39 +108,35 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
      * Handler for inventory clicks to handle team machine events
      * @param args The arguments passed to the handler
      */
-    private void onInventoryClick(ZombiesArena.ProxyArgs<InventoryClickEvent> args) {
-        InventoryClickEvent inventoryClickEvent = args.getEvent();
+    private void onInventoryClick(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, @NotNull InventoryClickEvent> args) {
+        InventoryClickEvent inventoryClickEvent = args.event();
 
         if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
             HumanEntity humanEntity = inventoryClickEvent.getWhoClicked();
             ZombiesArena arena = getArena();
-            ZombiesPlayer player = arena.getPlayerMap().get(humanEntity.getUniqueId());
+            ZombiesPlayer player = playerList.getOnlinePlayer(humanEntity.getUniqueId());
 
             if (player != null) {
-                Player bukkitPlayer = player.getPlayer();
+                inventoryClickEvent.setCancelled(true);
+                TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
 
-                if (bukkitPlayer != null) {
-                    inventoryClickEvent.setCancelled(true);
-                    TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
-
-                    if (teamMachineTask != null
-                            && teamMachineTask.execute(this, arena, player)) {
-                        Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
-                                1.0F, 1.5F);
-                        for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {
-                            otherBukkitPlayer.sendMessage(
-                                    String.format("%sPlayer %s purchased %s from the Team Machine!", ChatColor.YELLOW,
-                                            player.getPlayer().getName(),
-                                            teamMachineTask.getDisplayName()));
-                            otherBukkitPlayer.playSound(sound);
-                        }
-                        humanEntity.closeInventory();
-
-                        inventory.setItem(inventoryClickEvent.getSlot(),
-                                teamMachineTask.getItemStackRepresentationForTeamMachine(this)); // update costs
-
-                        onPurchaseSuccess(player);
+                if (teamMachineTask != null
+                        && teamMachineTask.execute(this, arena, player)) {
+                    Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
+                            1.0F, 1.5F);
+                    for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {
+                        otherBukkitPlayer.sendMessage(
+                                String.format("%sPlayer %s purchased %s from the Team Machine!", ChatColor.YELLOW,
+                                        player.getPlayer().getName(),
+                                        teamMachineTask.getDisplayName()));
+                        otherBukkitPlayer.playSound(sound);
                     }
+                    humanEntity.closeInventory();
+
+                    inventory.setItem(inventoryClickEvent.getSlot(),
+                            teamMachineTask.getItemStackRepresentationForTeamMachine(this)); // update costs
+
+                    onPurchaseSuccess(player);
                 }
             }
         }

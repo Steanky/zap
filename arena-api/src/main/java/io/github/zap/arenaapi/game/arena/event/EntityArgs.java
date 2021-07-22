@@ -8,6 +8,6 @@ import org.jetbrains.annotations.NotNull;
  * @param <T> The type of the entity
  * @param <E> The type of the event
  */
-public record EntityArgs<T, E extends EntityEvent>(@NotNull T entity, @NotNull E event) {
+public record EntityArgs<@NotNull T, @NotNull E extends EntityEvent>(@NotNull T entity, @NotNull E event) {
 
 }

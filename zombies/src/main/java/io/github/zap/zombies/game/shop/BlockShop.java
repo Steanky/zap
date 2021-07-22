@@ -1,22 +1,24 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.BlockShopData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Shop which interacts with a single block
  * @param <D> The data type of the shop
  */
-public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
+public abstract class BlockShop<D extends @NotNull BlockShopData> extends Shop<@NotNull D> {
 
     @Getter
     private final Hologram hologram;
@@ -24,44 +26,36 @@ public abstract class BlockShop<D extends BlockShopData> extends Shop<D> {
     @Getter
     private final Block block;
 
-    public BlockShop(ZombiesArena zombiesArena, D shopData) {
-        super(zombiesArena, shopData);
-
-        World world = zombiesArena.getWorld();
+    public BlockShop(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull D shopData) {
+        super(world, eventManager, shopData);
 
         hologram = new Hologram(shopData.getHologramLocation().toLocation(world));
         block = world.getBlockAt(shopData.getBlockLocation().toLocation(world));
     }
 
     @Override
-    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
+    public void onPlayerJoin(@NotNull List<@NotNull Player> players) {
         Hologram hologram = getHologram();
 
-        for (Player player : args.getPlayers()) {
+        for (Player player : players) {
             hologram.renderToPlayer(player);
         }
 
-        super.onPlayerJoin(args);
+        super.onPlayerJoin(players);
     }
 
     @Override
-    public void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
-        Hologram hologram = getHologram();
-
-        for (ZombiesPlayer player : args.getPlayers()) {
-            Player bukkitPlayer = player.getPlayer();
-
-            if (bukkitPlayer != null) {
-                hologram.renderToPlayer(bukkitPlayer);
-            }
+    public void onPlayerRejoin(@NotNull List<? extends @NotNull ZombiesPlayer> players) {
+        for (ZombiesPlayer player : players) {
+            hologram.renderToPlayer(player.getPlayer());
         }
 
-        super.onPlayerRejoin(args);
+        super.onPlayerRejoin(players);
     }
 
     @Override
-    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (args.getEvent() instanceof PlayerInteractEvent playerInteractEvent) {
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
+        if (args.event() instanceof PlayerInteractEvent playerInteractEvent) {
             return block.equals(playerInteractEvent.getClickedBlock());
         }
 

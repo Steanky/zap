@@ -1,37 +1,35 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Shop which interacts with a single invisible armor stand
  * @param <D> The data type of the shop
  */
 @Getter
-public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<D> {
+public abstract class ArmorStandShop<D extends @NotNull ArmorStandShopData> extends Shop<@NotNull D> {
 
     private final Hologram hologram;
 
     private final ArmorStand armorStand;
 
-    public ArmorStandShop(ZombiesArena zombiesArena, D shopData) {
-        super(zombiesArena, shopData);
+    public ArmorStandShop(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull D shopData) {
+        super(world, eventManager, shopData);
 
-        World world = zombiesArena.getWorld();
-
-        armorStand = world.spawn(
-                getShopData().getRootLocation().toLocation(world).add(0.5D, -1.0D, 0.5D),
-                ArmorStand.class
-        );
+        armorStand = world.spawn(getShopData().getRootLocation().toLocation(world).add(0.5D, -1.0D, 0.5D),
+                ArmorStand.class);
         armorStand.setCollidable(false);
         armorStand.setGravity(false);
         armorStand.setVisible(false);
@@ -40,36 +38,32 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
     }
 
     @Override
-    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
-        Hologram hologram = getHologram();
-        for (Player player : args.getPlayers()) {
+    public void onPlayerJoin(@NotNull List<@NotNull Player> players) {
+        for (Player player : players) {
             hologram.renderToPlayer(player);
         }
 
-        super.onPlayerJoin(args);
+        super.onPlayerJoin(players);
     }
 
     @Override
-    public void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
+    public void onPlayerRejoin(@NotNull List<? extends @NotNull ZombiesPlayer> players) {
         Hologram hologram = getHologram();
 
-        for (ZombiesPlayer player : args.getPlayers()) {
-            Player bukkitPlayer = player.getPlayer();
-
-            if (bukkitPlayer != null) {
-                hologram.renderToPlayer(bukkitPlayer);
-            }
+        for (ZombiesPlayer player : players) {
+            hologram.renderToPlayer(player.getPlayer());
         }
 
-        super.onPlayerRejoin(args);
+        super.onPlayerRejoin(players);
     }
 
     @Override
-    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (args.getEvent() instanceof PlayerInteractAtEntityEvent event) {
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
+        if (args.event() instanceof PlayerInteractAtEntityEvent event) {
             return event.getRightClicked().equals(armorStand);
         }
 
         return false;
     }
+
 }

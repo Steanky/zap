@@ -6,9 +6,9 @@ import io.github.zap.zombies.game.shop.Shop;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Stores and manages information about shops
+ * Stores and manages data about shops
  */
-public interface ShopManager {
+public interface ShopDataManager {
 
     /**
      * Adds a shop mapping

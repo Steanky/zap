@@ -1,5 +1,7 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
+import io.github.zap.arenaapi.game.arena.player.PlayerList;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
@@ -15,8 +17,10 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -24,22 +28,22 @@ import java.util.List;
 /**
  * Machine used to purchase or upgrade perks
  */
-public class PerkMachine extends BlockShop<PerkMachineData>  {
+public class PerkMachine extends BlockShop<@NotNull PerkMachineData>  {
 
-    public PerkMachine(ZombiesArena zombiesArena, PerkMachineData shopData) {
-        super(zombiesArena, shopData);
+    private final @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList;
+
+    public PerkMachine(@NotNull World world, @NotNull ShopEventManager eventManager,
+                       @NotNull PerkMachineData shopData,
+                       @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList) {
+        super(world, eventManager, shopData);
+
+        this.playerList = playerList;
     }
 
     @Override
-    protected void registerArenaEvents() {
-        super.registerArenaEvents();
-
-        getArena().getShopEvent(getShopType()).registerHandler(args -> {
-            Player player = args.getZombiesPlayer().getPlayer();
-            if (player != null) {
-                displayToPlayer(player);
-            }
-        });
+    protected void registerShopEvents(@NotNull ShopEventManager eventManager) {
+        super.registerShopEvents(eventManager);
+        eventManager.getEvent(getShopType()).registerHandler(args -> displayToPlayer(args.player().getPlayer()));
     }
 
     @Override
@@ -53,7 +57,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
     @Override
     protected void displayToPlayer(Player player) {
-        ZombiesPlayer zombiesPlayer = getArena().getPlayerMap().get(player.getUniqueId());
+        ZombiesPlayer zombiesPlayer = playerList.getOnlinePlayer(player);
         PerkMachineData perkMachineData = getShopData();
         Perk<?, ?, ?, ?> perk = determinePerk(zombiesPlayer);
 
@@ -76,63 +80,56 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     }
 
     @Override
-    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
         if (super.interact(args)) {
-            ZombiesPlayer player = args.getManagedPlayer();
+            ZombiesPlayer player = args.player();
+                PerkMachineData perkMachineData = getShopData();
+                Perk<?, ?, ?, ?> perk = determinePerk(player);
 
-            if (player != null) {
-                Player bukkitPlayer = player.getPlayer();
+                if (!perkMachineData.isRequiresPower() || isPowered()) {
+                    int level;
+                    List<Integer> costs = perkMachineData.getCosts();
 
-                if (bukkitPlayer != null) {
-                    PerkMachineData perkMachineData = getShopData();
-                    Perk<?, ?, ?, ?> perk = determinePerk(player);
+                    if (perk == null) {
+                        if (!costs.isEmpty()) {
+                            int cost = costs.get(0);
 
-                    if (!perkMachineData.isRequiresPower() || isPowered()) {
-                        int level;
-                        List<Integer> costs = perkMachineData.getCosts();
-
-                        if (perk == null) {
-                            if (!costs.isEmpty()) {
-                                int cost = costs.get(0);
-
-                                if (player.getCoins() < cost) {
-                                    bukkitPlayer.sendMessage(Component.text("You cannot afford this item!",
-                                            NamedTextColor.RED));
-                                } else if (attemptToBuyPerk(player)) {
-                                    return true;
-                                }
-                            }
-                        } else {
-                            level = perk.getLevel() + 1;
-
-                            if (level < costs.size()) {
-                                int cost = costs.get(level);
-
-                                if (player.getCoins() < cost) {
-                                    bukkitPlayer.sendMessage(Component.text("You cannot afford this item!",
-                                            NamedTextColor.RED));
-                                } else {
-                                    player.subtractCoins(cost);
-                                    perk.upgrade();
-
-                                    onPurchaseSuccess(player);
-                                    return true;
-                                }
-                            } else {
-                                bukkitPlayer.sendMessage(Component.text("You have already maxed out this item!",
+                            if (player.getCoins() < cost) {
+                                player.getPlayer().sendMessage(Component.text("You cannot afford this item!",
                                         NamedTextColor.RED));
+                            } else if (attemptToBuyPerk(player)) {
+                                return true;
                             }
                         }
                     } else {
-                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!",
-                                NamedTextColor.RED));
-                    }
+                        level = perk.getLevel() + 1;
 
-                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
-                            Sound.Source.MASTER, 1.0F, 0.5F));
-                    return true;
+                        if (level < costs.size()) {
+                            int cost = costs.get(level);
+
+                            if (player.getCoins() < cost) {
+                                player.getPlayer().sendMessage(Component.text("You cannot afford this item!",
+                                        NamedTextColor.RED));
+                            } else {
+                                player.subtractCoins(cost);
+                                perk.upgrade();
+
+                                onPurchaseSuccess(player);
+                                return true;
+                            }
+                        } else {
+                            player.getPlayer().sendMessage(Component.text("You have already maxed out this item!",
+                                    NamedTextColor.RED));
+                        }
+                    }
+                } else {
+                    player.getPlayer().sendMessage(Component.text("The power is not active yet!",
+                            NamedTextColor.RED));
                 }
-            }
+
+                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
+                        Sound.Source.MASTER, 1.0F, 0.5F));
+                return true;
         }
 
         return false;
@@ -172,41 +169,37 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
      * @return Whether purchase was successful
      */
     private boolean attemptToBuyPerk(@NotNull ZombiesPlayer player) {
-        Player bukkitPlayer = player.getPlayer();
-
-        if (bukkitPlayer != null) {
-            HotbarManager hotbarManager = player.getHotbarManager();
-            HotbarObjectGroup hotbarObjectGroup = hotbarManager
-                    .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
-            if (hotbarObjectGroup != null) {
-                Integer slot = hotbarObjectGroup.getNextEmptySlot();
-                if (slot == null) {
-                    int heldSlot = bukkitPlayer.getInventory().getHeldItemSlot();
-                    if (hotbarObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
-                        slot = heldSlot;
-                    }
+        HotbarManager hotbarManager = player.getHotbarManager();
+        HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+        if (hotbarObjectGroup != null) {
+            Integer slot = hotbarObjectGroup.getNextEmptySlot();
+            if (slot == null) {
+                int heldSlot = player.getPlayer().getInventory().getHeldItemSlot();
+                if (hotbarObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
+                    slot = heldSlot;
                 }
-
-                if (slot != null) {
-                    ZombiesArena arena = getArena();
-                    hotbarManager.setHotbarObject(slot, arena.getEquipmentManager()
-                            .createEquipment(arena, player, slot, arena.getMap().getName(),
-                                    getShopData().getPerkName()));
-
-                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.firework_rocket.twinkle"),
-                            Sound.Source.MASTER, 1.0F, 1.0F));
-
-                    player.subtractCoins(getShopData().getCosts().get(0));
-                    onPurchaseSuccess(player);
-
-                    return true;
-                } else {
-                    bukkitPlayer.sendMessage(Component.text("Choose a slot to receive the perk in!",
-                            NamedTextColor.RED));
-                }
-            } else {
-                bukkitPlayer.sendMessage(Component.text("You cannot receive this item!", NamedTextColor.RED));
             }
+
+            if (slot != null) {
+                ZombiesArena arena = getArena();
+                hotbarManager.setHotbarObject(slot, arena.getEquipmentManager()
+                        .createEquipment(arena, player, slot, arena.getMap().getName(),
+                                getShopData().getPerkName()));
+
+                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.firework_rocket.twinkle"),
+                        Sound.Source.MASTER, 1.0F, 1.0F));
+
+                player.subtractCoins(getShopData().getCosts().get(0));
+                onPurchaseSuccess(player);
+
+                return true;
+            } else {
+                player.getPlayer().sendMessage(Component.text("Choose a slot to receive the perk in!",
+                        NamedTextColor.RED));
+            }
+        } else {
+            player.getPlayer().sendMessage(Component.text("You cannot receive this item!", NamedTextColor.RED));
         }
 
         return false;

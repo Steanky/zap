@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.arena.round;
+package io.github.zap.zombies.game.arena.event;
 
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
@@ -33,7 +33,7 @@ public class ZombiesEventManager implements EventManager {
 
     private final World world;
 
-    private final PlayerList<ZombiesPlayer> zombiesPlayerList;
+    private final PlayerList<? extends @NotNull ZombiesPlayer> zombiesPlayerList;
 
     private final Set<Mob> mobs;
 
@@ -51,6 +51,8 @@ public class ZombiesEventManager implements EventManager {
 
     @SuppressWarnings("rawtypes")
     private final Map<@NotNull Class<?>, Event> proxies = new HashMap<>();
+
+    private boolean disposed = false;
 
     public ZombiesEventManager(@NotNull Plugin plugin, @NotNull World world,
                                @NotNull PlayerList<ZombiesPlayer> zombiesPlayerList, @NotNull Set<Mob> mobs) {
@@ -209,6 +211,24 @@ public class ZombiesEventManager implements EventManager {
     @Override
     public @NotNull <E extends InventoryEvent> Event<@NotNull E> getInventoryProxy(@NotNull Class<E> bukkitEventClass) {
         return proxies.computeIfAbsent(bukkitEventClass, (clazz) -> new MappingEvent<>(new ProxyEvent<>(plugin, bukkitEventClass, EventPriority.NORMAL, false), event -> Pair.of(true, event)));
+    }
+
+    @Override
+    public void dispose() {
+        if (!disposed) {
+            playerJoinEvent.dispose();
+            playerRejoinEvent.dispose();
+            playerLeaveEvent.dispose();
+            for (Event<?> event : managedProxies.values()) {
+                event.dispose();
+            }
+            for (Event<?> event : mobProxies.values()) {
+                event.dispose();
+            }
+            for (Event<?> event : proxies.values()) {
+                event.dispose();
+            }
+        }
     }
 
 }

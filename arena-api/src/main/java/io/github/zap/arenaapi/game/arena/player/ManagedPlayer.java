@@ -47,6 +47,13 @@ public abstract class ManagedPlayer implements Unique, Disposable {
         return (playerName == null) ? "Unknown Player" : playerName;
     }
 
+    /**
+     * Checks whether the {@link OfflinePlayer} is online
+     * @return Whether it is online
+     */
+    public boolean isOnline() {
+        return player.isOnline();
+    }
 
     @Override
     public int hashCode() {

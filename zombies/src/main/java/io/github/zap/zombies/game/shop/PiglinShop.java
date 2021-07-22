@@ -1,13 +1,16 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.BukkitTaskManager;
 import io.github.zap.arenaapi.DisposableBukkitRunnable;
-import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
+import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.PiglinShopData;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
@@ -17,11 +20,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -31,17 +36,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class PiglinShop extends Shop<PiglinShopData> {
+public class PiglinShop extends Shop<@NotNull PiglinShopData> {
 
-    private final static Random RANDOM = new Random();
+    private final static @NotNull Random RANDOM = new Random();
 
-    private final EntityPiglin dream;
+    private final @NotNull EntityPiglin dream;
 
-    private final Hologram hologram;
+    private final @NotNull Hologram hologram;
 
-    private final List<EquipmentData<?>> equipments = new ArrayList<>();
+    private final @NotNull EquipmentManager equipmentManager;
 
-    private EquipmentData<?> equipmentData;
+    private final @NotNull List<@NotNull EquipmentData<@NotNull ?>> equipments = new ArrayList<>();
+
+    private final BukkitTaskManager taskManager;
+
+    private EquipmentData<@NotNull ?> equipmentData;
 
     private Sitter sitter;
 
@@ -53,9 +62,12 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
     private Player roller;
 
-    public PiglinShop(ZombiesArena arena, PiglinShopData shopData) {
-        super(arena, shopData);
-        dream = new EntityPiglin(EntityTypes.PIGLIN, ((CraftWorld) arena.getWorld()).getHandle()) {
+    public PiglinShop(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull PiglinShopData shopData,
+                      @NotNull MapData map, @NotNull EquipmentManager equipmentManager,
+                      @NotNull BukkitTaskManager taskManager) {
+        super(world, eventManager, shopData);
+
+        this.dream = new EntityPiglin(EntityTypes.PIGLIN, ((CraftWorld) world).getHandle()) {
             @Nullable
             @Override
             public GroupDataEntity prepare(WorldAccess worldaccess, DifficultyDamageScaler difficultydamagescaler, EnumMobSpawn enummobspawn, @Nullable GroupDataEntity groupdataentity, @Nullable NBTTagCompound nbttagcompound) {
@@ -92,14 +104,20 @@ public class PiglinShop extends Shop<PiglinShopData> {
                 return false;
             }
         };
-        dream.setInvulnerable(true);
-        dream.setPersistent();
-        dream.setNoAI(true);
+        this.dream.setInvulnerable(true);
+        this.dream.setPersistent();
+        this.dream.setNoAI(true);
 
-        hologram = new Hologram(shopData.getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(arena.getWorld()));
+        this.hologram = new Hologram(shopData.getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(world));
         for (String equipmentName : shopData.getEquipments()) {
-            equipments.add(arena.getEquipmentManager().getEquipmentData(arena.getMap().getName(), equipmentName));
+            @Nullable EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(map.getName(), equipmentName);
+            if (equipmentData != null) {
+                equipments.add(equipmentData);
+            }
         }
+
+        this.equipmentManager = equipmentManager;
+        this.taskManager = taskManager;
     }
 
     public void setActive(boolean active) {
@@ -130,7 +148,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
         }
         if (!init) {
-            ((CraftWorld) getArena().getWorld()).addEntity(dream, CreatureSpawnEvent.SpawnReason.CUSTOM);
+            ((CraftWorld) getWorld()).addEntity(dream, CreatureSpawnEvent.SpawnReason.CUSTOM);
             dream.setPositionRotation(getShopData().getPiglinLocation().getX(), getShopData().getPiglinLocation().getY(), getShopData().getPiglinLocation().getZ(), getShopData().getDirection(), 0.0F);
             dream.setHeadRotation(getShopData().getDirection());
             init = true;
@@ -146,68 +164,66 @@ public class PiglinShop extends Shop<PiglinShopData> {
     }
 
     @Override
-    public boolean interact(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
-        if (args.getEvent() instanceof PlayerInteractEntityEvent event && event.getRightClicked().getUniqueId().equals(dream.getUniqueID())) {
-            ZombiesPlayer player = args.getManagedPlayer();
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
+        if (args.event() instanceof PlayerInteractEntityEvent event && event.getRightClicked().getUniqueId().equals(dream.getUniqueID())) {
+            ZombiesPlayer player = args.player();
 
-            if (player != null) {
-                Player bukkitPlayer = player.getPlayer();
+            if (getShopData().isRequiresPower() && !isPowered()) {
+                player.getPlayer().sendMessage(Component.text("I need some power to trade!",
+                        NamedTextColor.RED));
+            } else if (!active) {
+                String notActive = "Shop's not open right now.";
+                String piglinRoom = getArena().getPiglinRoom();
+                if (piglinRoom != null) {
+                    notActive += " Go to " + piglinRoom + ", will ya?";
+                }
 
-                if (bukkitPlayer != null) {
-                    if (getShopData().isRequiresPower() && !isPowered()) {
-                        bukkitPlayer.sendMessage(Component.text("I need some power to trade!",
-                                NamedTextColor.RED));
-                    } else if (!active) {
-                        String notActive = "Shop's not open right now.";
-                        String piglinRoom = getArena().getPiglinRoom();
-                        if (piglinRoom != null) {
-                            notActive += " Go to " + piglinRoom + ", will ya?";
-                        }
-
-                        bukkitPlayer.sendMessage(Component.text(notActive, NamedTextColor.RED));
-                    } else if (roller != null) {
-                        if (bukkitPlayer.equals(roller)) {
-                            if (doneThinking) {
-                                if (attemptToClaim(player)) {
-                                    return true;
-                                }
-                            } else {
-                                bukkitPlayer.sendMessage(Component.text("Hey, let me think what to give you!", NamedTextColor.RED));
-                            }
-                        } else {
-                            bukkitPlayer.sendMessage(Component.text("I'm trading with someone else!", NamedTextColor.RED));
-                        }
-                    } else {
-                        int cost = getShopData().getCost();
-                        if (args.getManagedPlayer().getCoins() < cost) {
-                            bukkitPlayer.sendMessage(Component
-                                    .text("You don't have enough coins to trade with me!", NamedTextColor.RED));
-                        } else {
-                            player.subtractCoins(cost);
-
-                            hologram.destroy();
-                            roller = bukkitPlayer;
-                            doneThinking = false;
-
-                            dream.setSlot(EnumItemSlot.OFFHAND, new ItemStack(Items.GOLD_INGOT));
-                            getArena().runTaskLater(120L, () -> {
-                                equipmentData = equipments.get(RANDOM.nextInt(equipments.size()));
-
-                                dream.setSlot(EnumItemSlot.OFFHAND, ItemStack.NULL_ITEM);
-                                dream.setSlot(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(equipmentData.getMaterial())));
-
-                                getArena().runTaskTimer(0L, 2L, sitter = new Sitter(player));
-                            });
-
+                player.getPlayer().sendMessage(Component.text(notActive, NamedTextColor.RED));
+            } else if (roller != null) {
+                if (player.getPlayer().equals(roller)) {
+                    if (doneThinking) {
+                        if (attemptToClaim(player)) {
                             return true;
                         }
+                    } else {
+                        player.getPlayer().sendMessage(Component.text("Hey, let me think what to give you!",
+                                NamedTextColor.RED));
                     }
+                } else {
+                    player.getPlayer().sendMessage(Component.text("I'm trading with someone else!",
+                            NamedTextColor.RED));
+                }
+            } else {
+                int cost = getShopData().getCost();
+                if (player.getCoins() < cost) {
+                    player.getPlayer().sendMessage(Component.text("You don't have enough coins to trade " +
+                            "with me!", NamedTextColor.RED));
+                } else {
+                    player.subtractCoins(cost);
 
-                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.piglin.angry"),
-                            Sound.Source.MASTER, 1.0F, 1.0F));
+                    hologram.destroy();
+                    roller = player.getPlayer();
+                    doneThinking = false;
+
+                    dream.setSlot(EnumItemSlot.OFFHAND, new ItemStack(Items.GOLD_INGOT));
+                    taskManager.runTaskLater(120L, () -> {
+                        equipmentData = equipments.get(RANDOM.nextInt(equipments.size()));
+
+                        dream.setSlot(EnumItemSlot.OFFHAND, ItemStack.NULL_ITEM);
+                        dream.setSlot(EnumItemSlot.MAINHAND,
+                                CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(equipmentData
+                                        .getMaterial())));
+
+                        taskManager.runTaskTimer(0L, 2L, sitter = new Sitter(player));
+                    });
+
                     return true;
                 }
             }
+
+            bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.piglin.angry"),
+                    Sound.Source.MASTER, 1.0F, 1.0F));
+            return true;
         }
 
         return false;
@@ -225,44 +241,40 @@ public class PiglinShop extends Shop<PiglinShopData> {
      * @return Whether claim was successful
      */
     private boolean attemptToClaim(@NotNull ZombiesPlayer player) {
-        Player bukkitPlayer = player.getPlayer();
+        HotbarObjectGroup equipmentObjectGroup = player.getHotbarManager()
+                .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType());
 
-        if (bukkitPlayer != null) {
-            HotbarObjectGroup equipmentObjectGroup = player.getHotbarManager()
-                    .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType());
-
-            if (equipmentObjectGroup != null) {
-                if (attemptToRefill(equipmentObjectGroup, equipmentData)) {
-                    return true;
-                }
-
-                Integer nextSlot = equipmentObjectGroup.getNextEmptySlot();
-                if (nextSlot == null) {
-                    int heldSlot = bukkitPlayer.getInventory().getHeldItemSlot();
-                    if (equipmentObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
-                        nextSlot = heldSlot;
-                    }
-                }
-                if (nextSlot != null) {
-                    ZombiesArena zombiesArena = getArena();
-                    equipmentObjectGroup.setHotbarObject(nextSlot,
-                            zombiesArena.getEquipmentManager().createEquipment(zombiesArena,
-                                    player, nextSlot, equipmentData));
-
-                    sitter.destroy();
-
-                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"), Sound.Source.MASTER,
-                            1.0F, 2.0F));
-
-                    return true;
-                } else {
-                    bukkitPlayer.sendMessage(Component.text("Choose a slot to receive the item in!",
-                            NamedTextColor.RED));
-                }
-            } else {
-                bukkitPlayer.sendMessage(Component.text("You can't claim this weapon!", NamedTextColor.RED));
-                sitter.destroy();
+        if (equipmentObjectGroup != null) {
+            if (attemptToRefill(equipmentObjectGroup, equipmentData)) {
+                return true;
             }
+
+            Integer nextSlot = equipmentObjectGroup.getNextEmptySlot();
+            if (nextSlot == null) {
+                int heldSlot = player.getPlayer().getInventory().getHeldItemSlot();
+                if (equipmentObjectGroup.getHotbarObjectMap().containsKey(heldSlot)) {
+                    nextSlot = heldSlot;
+                }
+            }
+            if (nextSlot != null) {
+                ZombiesArena zombiesArena = getArena();
+                equipmentObjectGroup.setHotbarObject(nextSlot,
+                        zombiesArena.getEquipmentManager().createEquipment(zombiesArena, player, nextSlot,
+                                equipmentData));
+
+                sitter.destroy();
+
+                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"), Sound.Source.MASTER,
+                        1.0F, 2.0F));
+
+                return true;
+            } else {
+                player.getPlayer().sendMessage(Component.text("Choose a slot to receive the item in!",
+                        NamedTextColor.RED));
+            }
+        } else {
+            player.getPlayer().sendMessage(Component.text("You can't claim this weapon!", NamedTextColor.RED));
+            sitter.destroy();
         }
 
         return false;
@@ -298,7 +310,8 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
         private final ZombiesPlayer player;
 
-        private final Hologram endHologram = new Hologram(getShopData().getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(getArena().getWorld()));
+        private final Hologram endHologram = new Hologram(getShopData().getPiglinLocation()
+                .add(new Vector(0, 1, 0)).toLocation(getWorld()));
 
         private long sittingTime = getShopData().getSittingTime();
 

@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.game.arena.event;
 
+import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.event.Event;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityEvent;
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * Manages {@link org.bukkit.event.Event}s within an {@link io.github.zap.arenaapi.game.arena.Arena}
  * Implementations should validate events to make sure that they are applicable to their Arena
  */
-public interface EventManager {
+public interface EventManager extends Disposable {
 
     /**
      * Gets the proxy for {@link PlayerEvent}s

@@ -1,13 +1,14 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.Property;
-import io.github.zap.arenaapi.game.arena.ManagingArena;
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
+import io.github.zap.arenaapi.game.arena.player.PlayerList;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.arenaapi.util.WorldUtils;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoomData;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
@@ -29,7 +30,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -44,16 +45,27 @@ import java.util.Map;
 /**
  * Represents a door used to open other rooms
  */
-public class Door extends Shop<DoorData> {
+public class Door extends Shop<@NotNull DoorData> {
 
-    private final Map<DoorSide, Hologram> doorSideHologramMap = new HashMap<>();
+    private final @NotNull Map<DoorSide, Hologram> doorSideHologramMap = new HashMap<>();
+
+    private final @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList;
+
+    private final @NotNull MapData map;
+
+    private final @NotNull StatsManager statsManager;
 
     private boolean opened = false;
 
-    public Door(ZombiesArena zombiesArena, DoorData shopData) {
-        super(zombiesArena, shopData);
+    public Door(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull DoorData shopData,
+                @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList, @NotNull MapData map,
+                @NotNull StatsManager statsManager) {
+        super(world, eventManager, shopData);
 
-        World world = zombiesArena.getWorld();
+        this.playerList = playerList;
+        this.map = map;
+        this.statsManager = statsManager;
+
         for (DoorSide doorSide : getShopData().getDoorSides()) {
             Hologram hologram = new Hologram(doorSide.getHologramLocation().toLocation(world));
             while (hologram.getHologramLines().size() < 2) {
@@ -65,29 +77,25 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    public void onPlayerJoin(ManagingArena.PlayerListArgs args) {
+    public void onPlayerJoin(@NotNull List<@NotNull Player> players) {
         for (Hologram hologram : doorSideHologramMap.values()) {
-            for (Player player : args.getPlayers()) {
+            for (Player player : players) {
                 hologram.renderToPlayer(player);
             }
         }
 
-        super.onPlayerJoin(args);
+        super.onPlayerJoin(players);
     }
 
     @Override
-    public void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
+    public void onPlayerRejoin(@NotNull List<? extends @NotNull ZombiesPlayer> players) {
         for (Hologram hologram : doorSideHologramMap.values()) {
-            for (ZombiesPlayer player : args.getPlayers()) {
-                Player bukkitPlayer = player.getPlayer();
-
-                if (bukkitPlayer != null) {
-                    hologram.renderToPlayer(bukkitPlayer);
-                }
+            for (ZombiesPlayer player : players) {
+                hologram.renderToPlayer(player.getPlayer());
             }
         }
 
-        super.onPlayerRejoin(args);
+        super.onPlayerRejoin(players);
     }
 
     @Override
@@ -106,7 +114,6 @@ public class Door extends Shop<DoorData> {
     private String getDoorDisplayName(@NotNull Map.Entry<DoorSide, Hologram> entry) {
         StringBuilder stringBuilder = new StringBuilder(ChatColor.GREEN.toString());
         List<String> opensTo = entry.getKey().getOpensTo();
-        MapData map = getArena().getMap();
         if (opensTo.size() > 0) {
             stringBuilder.append(map.getNamedRoom(opensTo.get(0)).getRoomDisplayName());
             for (int i = 1; i < opensTo.size(); i++) {
@@ -119,26 +126,22 @@ public class Door extends Shop<DoorData> {
     }
 
     @Override
-    public boolean interact(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
-        if (args.getEvent() instanceof PlayerInteractEvent event) {
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
+        if (args.event() instanceof PlayerInteractEvent event) {
             DoorData doorData = getShopData();
-            ZombiesPlayer player = args.getManagedPlayer();
+            ZombiesPlayer player = args.player();
 
-            if (player != null) {
-                Player bukkitPlayer = player.getPlayer();
-                Block block = event.getClickedBlock();
-
-                if (bukkitPlayer != null && block != null && !block.getType().isAir()
-                        && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
-                    if (!attemptToOpenDoor(doorData, player)) {
-                        bukkitPlayer.sendMessage(Component.text("You can't open the door from here!",
-                                NamedTextColor.RED));
-                        bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
-                                Sound.Source.MASTER, 1.0F, 0.5F));
-                    }
-
-                    return true;
+            Block block = event.getClickedBlock();
+            if (block != null && !block.getType().isAir()
+                    && doorData.getDoorBounds().contains(block.getLocation().toVector())) {
+                if (!attemptToOpenDoor(doorData, player)) {
+                    player.getPlayer().sendMessage(Component.text("You can't open the door from here!",
+                            NamedTextColor.RED));
+                    player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
+                            Sound.Source.MASTER, 1.0F, 0.5F));
                 }
+
+                return true;
             }
         }
 
@@ -157,36 +160,31 @@ public class Door extends Shop<DoorData> {
      * @return Whether an interaction was made
      */
     private boolean attemptToOpenDoor(@NotNull DoorData doorData, @NotNull ZombiesPlayer player) {
-        Player bukkitPlayer = player.getPlayer();
+        Location playerLocation = player.getPlayer().getLocation();
 
-        if (bukkitPlayer != null) {
-            Location playerLocation = bukkitPlayer.getLocation();
+        for (DoorSide doorSide : doorData.getDoorSides()) {
+            if (doorSide.getTriggerBounds().contains(playerLocation.toVector())) {
+                int cost = doorSide.getCost();
 
-            for (DoorSide doorSide : doorData.getDoorSides()) {
-                if (doorSide.getTriggerBounds().contains(playerLocation.toVector())) {
-                    int cost = doorSide.getCost();
+                if (player.getCoins() < cost) {
+                    player.getPlayer().sendMessage(Component.text("You cannot afford this item!",
+                            NamedTextColor.RED));
+                } else {
+                    WorldUtils.fillBounds(getWorld(), doorData.getDoorBounds(), map.getDoorFillMaterial());
+                    getWorld().playSound(doorData.getOpenSound(), playerLocation.getX(),
+                            playerLocation.getY(), playerLocation.getZ());
 
-                    if (player.getCoins() < cost) {
-                        bukkitPlayer.sendMessage(Component.text("You cannot afford this item!",
-                                NamedTextColor.RED));
-                    } else {
-                        WorldUtils.fillBounds(getArena().getWorld(), doorData.getDoorBounds(),
-                                getArena().getMap().getDoorFillMaterial());
-                        getArena().getWorld().playSound(doorData.getOpenSound(), playerLocation.getX(),
-                                playerLocation.getY(), playerLocation.getZ());
+                    openOtherDoors(doorSide, player.getPlayer());
+                    applySpeedToPlayer(player);
+                    incrementDoorsOpenedStat(player.getPlayer());
 
-                        openOtherDoors(doorSide, bukkitPlayer);
-                        applySpeedToPlayer(player);
-                        incrementDoorsOpenedStat(bukkitPlayer);
+                    player.subtractCoins(cost);
 
-                        player.subtractCoins(cost);
-
-                        opened = true;
-                        onPurchaseSuccess(player);
-                    }
-
-                    return true;
+                    opened = true;
+                    onPurchaseSuccess(player);
                 }
+
+                return true;
             }
         }
 
@@ -199,11 +197,9 @@ public class Door extends Shop<DoorData> {
      * @param opener The player that opened the door
      */
     private void openOtherDoors(@NotNull DoorSide doorSide, @NotNull Player opener) {
-        ZombiesArena arena = getArena();
-
         List<String> newlyOpened = new ArrayList<>();
         for (String openedRoom : doorSide.getOpensTo()) {
-            RoomData room = arena.getMap().getNamedRoom(openedRoom);
+            RoomData room = map.getNamedRoom(openedRoom);
             Property<Boolean> openProperty = room.getOpenProperty();
 
             if (!openProperty.getValue(arena)) {
@@ -236,14 +232,10 @@ public class Door extends Shop<DoorData> {
                 }
             }
 
-            for (ZombiesPlayer player : getArena().getPlayerMap().values()) {
-                Player otherBukkitPlayer = player.getPlayer();
-                if (otherBukkitPlayer != null) {
-                    otherBukkitPlayer.showTitle(Title.title(Component.text(opener.getName(), NamedTextColor.YELLOW),
-                            Component.text(message.toString(), TextColor.color(61, 61, 61)),
-                            Title.Times.of(Duration.ofSeconds(1), Duration.ofSeconds(3),
-                                    Duration.ofSeconds(1))));
-                }
+            for (ZombiesPlayer player : playerList.getOnlinePlayers()) {
+                player.getPlayer().showTitle(Title.title(Component.text(opener.getName(), NamedTextColor.YELLOW),
+                        Component.text(message.toString(), TextColor.color(61, 61, 61)),
+                        Title.Times.of(Duration.ofSeconds(1), Duration.ofSeconds(3), Duration.ofSeconds(1))));
             }
         }
     }
@@ -253,25 +245,20 @@ public class Door extends Shop<DoorData> {
      * @param opener The player that opened the door
      */
     private void applySpeedToPlayer(@NotNull ZombiesPlayer opener) {
-        Player bukkitPlayer = opener.getPlayer();
+        PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED,
+                map.getDoorSpeedTicks(), map.getDoorSpeedLevel(), true, false,
+                false);
+        opener.getPlayer().addPotionEffect(speedEffect);
 
-        if (bukkitPlayer != null) {
-            MapData map = getArena().getMap();
-            PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED,
-                    map.getDoorSpeedTicks(), map.getDoorSpeedLevel(), true, false,
-                    false);
-            bukkitPlayer.addPotionEffect(speedEffect);
+        HotbarManager hotbarManager = opener.getHotbarManager();
+        HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
 
-            HotbarManager hotbarManager = opener.getHotbarManager();
-            HotbarObjectGroup hotbarObjectGroup = hotbarManager
-                    .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
-
-            if (hotbarObjectGroup != null) {
-                for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                    if (hotbarObject instanceof Speed speed) {
-                        speed.activate(); // update speed to synchronize timings
-                        break;
-                    }
+        if (hotbarObjectGroup != null) {
+            for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                if (hotbarObject instanceof Speed speed) {
+                    speed.activate(); // update speed to synchronize timings
+                    break;
                 }
             }
         }
@@ -282,9 +269,9 @@ public class Door extends Shop<DoorData> {
      * @param opener The player that opened the door
      */
     private void incrementDoorsOpenedStat(@NotNull Player opener) {
-        getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+        statsManager.queueCacheModification(CacheInformation.PLAYER,
                 opener.getUniqueId(), (stats) -> {
-                    PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
+                    PlayerMapStats mapStats = stats.getMapStatsForMap(map);
                     mapStats.setDoorsOpened(mapStats.getDoorsOpened() + 1);
                 }, PlayerGeneralStats::new);
     }

@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
@@ -12,17 +12,19 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Machine for upgrading designated upgradeable equipment
  */
-public class UltimateMachine extends BlockShop<UltimateMachineData> {
+public class UltimateMachine extends BlockShop<@NotNull UltimateMachineData> {
 
-    public UltimateMachine(ZombiesArena zombiesArena, UltimateMachineData shopData) {
-        super(zombiesArena, shopData);
+    public UltimateMachine(@NotNull World world, @NotNull ShopEventManager eventManager,
+                           @NotNull UltimateMachineData shopData) {
+        super(world, eventManager, shopData);
     }
 
     @Override
@@ -48,43 +50,36 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
         if (super.interact(args)) {
-            ZombiesPlayer player = args.getManagedPlayer();
+            ZombiesPlayer player = args.player();
 
-            if (player != null) {
-                Player bukkitPlayer = player.getPlayer();
+            if (!getShopData().isRequiresPower() || isPowered()) {
+                int cost = getShopData().getCost();
 
-                if (bukkitPlayer != null) {
-                    UltimateMachineData shopData = getShopData();
-                    if (!shopData.isRequiresPower() || isPowered()) {
-                        int cost = shopData.getCost();
-
-                        if (player.getCoins() < cost) {
-                            bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                        } else {
-                            HotbarObject hotbarObject = player.getHotbarManager().getSelectedObject();
-                            if (hotbarObject instanceof UpgradeableEquipment<?, ?> upgradeableEquipment
-                                    && player.getHotbarManager().getSelectedHotbarObjectGroup()
-                                    instanceof UpgradeableEquipmentObjectGroup upgradeableEquipmentObjectGroup
-                                    && upgradeableEquipmentObjectGroup.isUltimateable()) {
-                                attemptToUltimate(upgradeableEquipment, player, cost);
-                                return true;
-                            } else {
-                                bukkitPlayer.sendMessage(Component
-                                        .text("Choose a slot to receive the upgrade for!", NamedTextColor.RED));
-                            }
-                        }
+                if (player.getCoins() < cost) {
+                    player.getPlayer().sendMessage(Component.text("You cannot afford this item!",
+                            NamedTextColor.RED));
+                } else {
+                    HotbarObject hotbarObject = player.getHotbarManager().getSelectedObject();
+                    if (hotbarObject instanceof UpgradeableEquipment<?, ?> upgradeableEquipment
+                            && player.getHotbarManager().getSelectedHotbarObjectGroup()
+                            instanceof UpgradeableEquipmentObjectGroup upgradeableEquipmentObjectGroup
+                            && upgradeableEquipmentObjectGroup.isUltimateable()) {
+                        attemptToUltimate(upgradeableEquipment, player, cost);
+                        return true;
                     } else {
-                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!",
+                        player.getPlayer().sendMessage(Component.text("Choose a slot to receive the upgrade for!",
                                 NamedTextColor.RED));
                     }
-
-                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
-                            Sound.Source.MASTER, 1.0F, 0.5F));
-                    return true;
                 }
+            } else {
+                player.getPlayer().sendMessage(Component.text("The power is not active yet!", NamedTextColor.RED));
             }
+
+            player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER, 1.0F, 0.5F));
+            return true;
         }
 
         return false;
@@ -97,23 +92,19 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
 
     private void attemptToUltimate(@NotNull UpgradeableEquipment<?, ?> equipment, @NotNull ZombiesPlayer player,
                                       int cost) {
-        Player bukkitPlayer = player.getPlayer();
+        if (equipment.getLevel() < equipment.getEquipmentData().getLevels().size() - 1) {
+            equipment.upgrade();
 
-        if (bukkitPlayer != null) {
-            if (equipment.getLevel() < equipment.getEquipmentData().getLevels().size() - 1) {
-                equipment.upgrade();
+            player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.player.levelup"),
+                    Sound.Source.MASTER, 1.0F, 1.0F));
 
-                bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.player.levelup"),
-                        Sound.Source.MASTER, 1.0F, 1.0F));
-
-                player.subtractCoins(cost);
-                onPurchaseSuccess(player);
-                return;
-            }
-
-            bukkitPlayer.sendMessage(Component.text("You have already maxed out this item!",
-                    NamedTextColor.RED));
+            player.subtractCoins(cost);
+            onPurchaseSuccess(player);
+            return;
         }
+
+        player.getPlayer().sendMessage(Component.text("You have already maxed out this item!",
+                NamedTextColor.RED));
     }
 
 }

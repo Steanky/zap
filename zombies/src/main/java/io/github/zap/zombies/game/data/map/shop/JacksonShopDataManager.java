@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * Class for storing and managing shop data using Jackson's data loader
  */
 @Getter
-public class JacksonShopManager implements ShopManager {
+public class JacksonShopDataManager implements ShopDataManager {
 
     private final FieldTypeDeserializer<ShopData> shopDataDeserializer
             = new FieldTypeDeserializer<>("type");
@@ -22,7 +22,7 @@ public class JacksonShopManager implements ShopManager {
     private final FieldTypeDeserializer<TeamMachineTask> teamMachineTaskFieldTypeDeserializer
             = new FieldTypeDeserializer<>("type");
 
-    public JacksonShopManager() {
+    public JacksonShopDataManager() {
         ArenaApi arenaApi = ArenaApi.getInstance();
 
         arenaApi.addDeserializer(ShopData.class, shopDataDeserializer);

@@ -34,7 +34,7 @@ public interface PlayerList<P extends ManagedPlayer> extends Disposable {
      * @param players The players to check
      * @return Whether all of the players can join
      */
-    default boolean canAllPlayersJoin(@NotNull List<Player> players) {
+    default boolean canAllPlayersJoin(@NotNull List<@NotNull Player> players) {
         return canPlayersJoin();
     }
 
@@ -52,13 +52,13 @@ public interface PlayerList<P extends ManagedPlayer> extends Disposable {
      * @param players The players to check
      * @return Whether all of the players can rejoin
      */
-    default boolean canAllPlayersRejoin(@NotNull List<P> players) {
+    default boolean canAllPlayersRejoin(@NotNull List<@NotNull P> players) {
         if (!canPlayersRejoin()) {
             return false;
         }
 
-        Map<UUID, P> playerMap = getPlayerMap();
-        for (P player : players) {
+        Map<@NotNull UUID, @NotNull P> playerMap = getPlayerMap();
+        for (@NotNull P player : players) {
             if (!playerMap.containsKey(player.getId())) {
                 return false;
             }
@@ -87,8 +87,8 @@ public interface PlayerList<P extends ManagedPlayer> extends Disposable {
     }
 
     default @NotNull Collection<P> getOnlinePlayers() {
-        List<P> players = new ArrayList<>();
-        for (P player : getPlayerMap().values()) {
+        List<@NotNull P> players = new ArrayList<>();
+        for (@NotNull P player : getPlayerMap().values()) {
             if (player.isInGame()) {
                 players.add(player);
             }
@@ -113,6 +113,32 @@ public interface PlayerList<P extends ManagedPlayer> extends Disposable {
      */
     default @Nullable P getPlayer(@NotNull UUID id) {
         return getPlayerMap().get(id);
+    }
+
+    /**
+     * Gets a managed player by the player itself if they are online
+     * @param player The player to get the managed player of
+     * @return The managed player, or null if there is no matching online managed player
+     */
+    default @Nullable P getOnlinePlayer(@NotNull Player player) {
+        return getOnlinePlayer(player.getUniqueId());
+    }
+
+    /**
+     * Gets a managed player by their id if they are online
+     * @param id The unique id of the managed player
+     * @return The managed player, or null if there is no matching online managed player
+     */
+    default @Nullable P getOnlinePlayer(@NotNull UUID id) {
+        P managedPlayer = getPlayer(id);
+        if (managedPlayer == null) {
+            return null;
+        }
+        if (managedPlayer.isOnline()) {
+            return managedPlayer;
+        }
+
+        return null;
     }
 
     /**
