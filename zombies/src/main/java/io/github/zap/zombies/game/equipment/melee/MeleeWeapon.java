@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <D> The data type of the weapon
  * @param <L> The level type of the weapon
  */
-public abstract class MeleeWeapon<D extends @NotNull MeleeData<L>, @NotNull L extends MeleeLevel>
+public abstract class MeleeWeapon<D extends @NotNull MeleeData<L>, L extends @NotNull MeleeLevel>
         extends UpgradeableEquipment<D, L> {
 
     protected class MeleeDamageAttempt implements DamageAttempt {

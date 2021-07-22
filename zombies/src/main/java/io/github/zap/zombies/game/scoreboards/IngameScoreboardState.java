@@ -146,7 +146,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
     public void update() {
         // Update general information
         var playerMap =  gameScoreboard.getZombiesArena().getPlayerMap();
-        zombieLeft.setValue("" + gameScoreboard.getZombiesArena().getZombiesLeft());
+        zombieLeft.setValue("" + gameScoreboard.getZombiesArena().getSpawner().getZombiesLeft());
         if(gameScoreboard.getZombiesArena().getState() == ZombiesArenaState.ENDED) {
             round.setValue("Game Over!");
             time.setValue(formatTime(gameScoreboard.getZombiesArena().getEndTimeStamp() - gameScoreboard.getZombiesArena().getStartTimeStamp()));

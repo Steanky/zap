@@ -27,6 +27,8 @@ import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.ChunkLoadHandler;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.arena.event.ZombiesEventManager;
+import io.github.zap.zombies.game.arena.spawner.BasicSpawner;
+import io.github.zap.zombies.game.arena.spawner.Spawner;
 import io.github.zap.zombies.game.corpse.Corpse;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
@@ -96,44 +98,6 @@ import java.util.stream.Collectors;
  */
 public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
-    public interface Spawner {
-        /**
-         * Spawns the provided SpawnEntries in this arena.
-         * @param mobs The mobs to spawn
-         * @param method The SpawnMethod to use
-         * @param slaSquared The SLA to use
-         * @param randomize Whether or not spawnpoints are randomized
-         * @param updateCount Whether or not to update the total mob count
-         * @return The ActiveMobs that were spawned
-         */
-        List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method, double slaSquared,
-                                  boolean randomize, boolean updateCount);
-
-        /**
-         * Spawns the provided SpawnEntries in this arena. Only spawnpoints that match the provided predicate can spawn
-         * mobs.
-         * @param mobs The mobs to spawn
-         * @param method The method to use while spawning
-         * @param spawnpointPredicate The predicate used to additionally filter spawnpoints
-         * @param slaSquared The value to use for SLA
-         * @param randomize Whether or not spawnpoints are shuffled
-         * @param updateCount Whether or not to update the total mob count
-         * @return The ActiveMobs that were spawned as a result of this operation
-         */
-        List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method,
-                                 @NotNull Predicate<SpawnpointData> spawnpointPredicate, double slaSquared,
-                                  boolean randomize, boolean updateCount);
-
-        /**
-         * Spawns a mob at the specified vector, without performing range checks. If the mob is spawned inside of a
-         * window, it will have the appropriate metadata set.
-         * @param mobType The mob type to spawn
-         * @param vector The vector to spawn the mob at
-         * @return The mob that was spawned, or null if it failed to spawn
-         */
-        ActiveMob spawnMobAt(@NotNull String mobType, @NotNull Vector vector, boolean updateCount);
-    }
-
     /**
      * General interface for an implementation that handles damaging all entities.
      */
@@ -143,191 +107,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
          * @param target The ActiveMob to damage
          */
         void damageEntity(@NotNull Damager comesFrom, @NotNull DamageAttempt with, @NotNull Mob target);
-    }
-
-    /**
-     * Basic spawner implementation.
-     */
-    public class BasicSpawner implements Spawner {
-        @Value
-        private class SpawnContext {
-            SpawnpointData spawnpoint;
-            WindowData window;
-        }
-
-        @Override
-        public List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method,
-                                         double slaSquared, boolean randomize, boolean updateCount) {
-            return spawnMobs(mobs, method, spawnpointData -> true, slaSquared, randomize, updateCount);
-        }
-
-        @Override
-        public ActiveMob spawnMobAt(@NotNull String mobType, @NotNull Vector vector, boolean updateCount) {
-            ActiveMob spawned = spawnMob(mobType, vector);
-
-            if(spawned != null) {
-                if(updateCount) {
-                    zombiesLeft++;
-                }
-
-                RoomData roomIn = map.roomAt(vector);
-                if(roomIn != null) {
-                    for(WindowData windowData : roomIn.getWindows()) {
-                        if(windowData.playerInside(vector)) {
-                            MetadataHelper.setMetadataFor(spawned.getEntity().getBukkitEntity(),
-                                    Zombies.WINDOW_METADATA_NAME, Zombies.getInstance(), windowData);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return spawned;
-        }
-
-        @Override
-        public List<ActiveMob> spawnMobs(@NotNull List<SpawnEntryData> mobs, @NotNull SpawnMethod method,
-                                         @NotNull Predicate<SpawnpointData> filter, double slaSquared,
-                                         boolean randomize, boolean updateCount) {
-            List<SpawnContext> spawns = filterSpawnpoints(mobs, method, filter, slaSquared);
-            List<ActiveMob> spawnedEntities = new ArrayList<>();
-
-            if(spawns.size() == 0) {
-                Zombies.warning("There are no available spawnpoints for this mob set. This likely indicates an error " +
-                        "in map configuration.");
-                return Collections.emptyList();
-            }
-
-            if(randomize) {
-                Collections.shuffle(spawns); //shuffle small candidate set of spawnpoints
-            }
-
-            for(SpawnEntryData spawnEntryData : mobs) {
-                int amt = spawnEntryData.getMobCount();
-
-                outer:
-                while(true) {
-                    int startAmt = amt;
-                    for(SpawnContext context : spawns) {
-                        if(method == SpawnMethod.IGNORE_SPAWNRULE || context.spawnpoint.canSpawn(spawnEntryData.getMobName(), map)) {
-                            ActiveMob mob = spawnMob(spawnEntryData.getMobName(), context.spawnpoint.getSpawn());
-
-                            if(mob != null) {
-                                spawnedEntities.add(mob);
-                                MetadataHelper.setMetadataFor(mob.getEntity().getBukkitEntity(),
-                                        Zombies.WINDOW_METADATA_NAME, Zombies.getInstance(), context.window);
-
-                                if(updateCount) {
-                                    zombiesLeft++;
-                                }
-                            }
-                            else {
-                                //mob failed to spawn; if we're part of a wave, reduce the amt of zombies
-                                if(!updateCount) {
-                                    zombiesLeft--;
-                                    checkNextRound();
-                                }
-
-                                Zombies.warning("Mob failed to spawn!");
-                            }
-
-                            if(--amt == 0) {
-                                break outer;
-                            }
-                        }
-                    }
-
-                    if(startAmt == amt) { //make sure we managed to spawn at least one mob
-                        Zombies.warning("Unable to find a valid spawnpoint for SpawnEntryData.");
-
-                        if(!updateCount) { //reduce zombie count if none spawned due to no windows being in range
-                            zombiesLeft -= amt;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            return spawnedEntities;
-        }
-
-        private ActiveMob spawnMob(String mobName, Vector blockPosition) {
-            MythicMob mob = MythicMobs.inst().getMobManager().getMythicMob(mobName);
-
-            if(mob != null) {
-                ActiveMob activeMob = mob.spawn(new AbstractLocation(new BukkitWorld(world), blockPosition.getX() +
-                        0.5, blockPosition.getY(), blockPosition.getZ() + 0.5), map.getMobSpawnLevel());
-
-                if (activeMob != null) {
-                    mobs.add((Mob) activeMob.getEntity().getBukkitEntity());
-                    MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(), Zombies.ARENA_METADATA_NAME,
-                            Zombies.getInstance(), ZombiesArena.this);
-
-                    return activeMob;
-                }
-                else {
-                    Zombies.warning(String.format("An error occurred while trying to spawn mob of type '%s'.", mobName));
-                }
-            }
-            else {
-                Zombies.warning(String.format("Mob type '%s' is not known.", mobName));
-            }
-
-            return null;
-        }
-
-        private List<SpawnContext> filterSpawnpoints(List<SpawnEntryData> mobs, SpawnMethod method,
-                                                     Predicate<SpawnpointData> filter, double slaSquared) {
-            List<SpawnContext> filtered = new ArrayList<>();
-
-            for(RoomData room : map.getRooms()) { //iterate rooms
-                if(room.isSpawn() || method == SpawnMethod.FORCE || room.getOpenProperty().getValue(ZombiesArena.this)) {
-                    //add all valid spawnpoints in the room
-                    addValidContext(filtered, room.getSpawnpoints(), mobs, method, filter, slaSquared, null);
-
-                    for(WindowData window : room.getWindows()) { //check window spawnpoints next
-                        addValidContext(filtered, window.getSpawnpoints(), mobs, method, filter, slaSquared, window);
-                    }
-                }
-            }
-
-            return filtered;
-        }
-
-        private void addValidContext(List<SpawnContext> addTo, List<SpawnpointData> spawnpoints, List<SpawnEntryData> mobs,
-                                     SpawnMethod method, Predicate<SpawnpointData> filter,
-                                     double slaSquared, WindowData window) {
-            for(SpawnpointData spawnpointData : spawnpoints) {
-                if(filter.test(spawnpointData) && canSpawnAny(spawnpointData, mobs, method, slaSquared)) {
-                    addTo.add(new SpawnContext(spawnpointData, window));
-                }
-            }
-        }
-
-        private boolean canSpawnAny(SpawnpointData spawnpoint, List<SpawnEntryData> entry, SpawnMethod method, double slaSquared) {
-            if(method == SpawnMethod.IGNORE_SPAWNRULE) {
-                return checkSLA(spawnpoint, slaSquared);
-            }
-            else {
-                for(SpawnEntryData data : entry) {
-                    if(spawnpoint.canSpawn(data.getMobName(), map)) {
-                        return method != SpawnMethod.RANGED || checkSLA(spawnpoint, slaSquared);
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private boolean checkSLA(SpawnpointData target, double slaSquared) {
-            for(ZombiesPlayer player : playerList.getOnlinePlayers()) {
-                if (player.getPlayer().getLocation().toVector().distanceSquared(target.getSpawn()) <= slaSquared) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 
     public class BasicDamageHandler implements DamageHandler {
@@ -531,9 +310,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     private final ZombiesEventManager eventManager;
 
-    private final Set<Mob> mobs;
-
-    private final Set<Item> protectedItems;
+    private final Set<@NotNull Item> protectedItems;
 
     /**
      * Creates a new ZombiesArena with the specified map, world, and timeout.
@@ -545,7 +322,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     public ZombiesArena(@NotNull Plugin plugin, @NotNull ZombiesArenaManager manager, @NotNull World world,
                         @NotNull MapData map, @NotNull PlayerList<ZombiesPlayer> players,
                         @NotNull BukkitTaskManager taskManager, @NotNull ZombiesEventManager eventManager,
-                        @NotNull Set<Mob> mobs, @NotNull Set<Item> protectedItems, long emptyTimeout) {
+                        @NotNull Spawner spawner, @NotNull Set<@NotNull Item> protectedItems, long emptyTimeout) {
         super(manager, world);
         this.resourceManager = new ResourceManager(plugin);
         this.plugin = plugin;
@@ -555,7 +332,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.shopDataManager = manager.getShopDataManager();
         this.statsManager = manager.getStatsManager();
         this.emptyTimeout = emptyTimeout;
-        this.spawner = new BasicSpawner();
+        this.spawner = spawner;
         this.damageHandler = new BasicDamageHandler();
         this.gameScoreboard = new GameScoreboard(this);
         gameScoreboard.initialize();
@@ -563,7 +340,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.playerList = players;
         this.taskManager = taskManager;
         this.eventManager = eventManager;
-        this.mobs = mobs;
         this.protectedItems = protectedItems;
         registerArenaEvents();
         registerDisposables();
@@ -755,6 +531,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
             // startTimeout(timeoutTicks);
         }
 
+        // TODO: playerlist handling
         for(S player : leftPlayers) {
             player.quit();
         }
@@ -885,13 +662,6 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         }
     }
 
-    private void checkNextRound() {
-        if(zombiesLeft == 0 && state == ZombiesArenaState.STARTED) {
-            Property<Integer> currentRound = map.getCurrentRoundProperty();
-            doRound(currentRound.getValue(this) + 1);
-        }
-    }
-
     private void onZombiesPlayerMove(@NotNull ManagedPlayerArgs<ZombiesPlayer, PlayerMoveEvent> args) {
         // disgusting! but works (allows head rotation but not movement)
         if (args.player().getState() == ZombiesPlayerState.KNOCKED
@@ -1017,22 +787,21 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     }
 
     private void onMobDamage(@NotNull EntityArgs<@NotNull Mob, @NotNull EntityDamageEvent> args) {
-        if (args.event().getCause() == EntityDamageEvent.DamageCause.VOID && mobs.contains(args.entity())) {
+        if (args.event().getCause() == EntityDamageEvent.DamageCause.VOID
+                && spawner.getMobs().contains(args.entity())) {
             args.entity().remove();
         }
     }
 
     private void onMobDeath(@NotNull EntityArgs<@NotNull Mob, @NotNull EntityDeathEvent> args) {
-        if (state == ZombiesArenaState.STARTED && mobs.remove(args.entity())) {
-            zombiesLeft--;
-            checkNextRound();
+        if (state == ZombiesArenaState.STARTED) {
+            spawner.onMobDeath(args);
         }
     }
 
     private void onMobRemoveFromWorld(@NotNull EntityArgs<@NotNull Mob, @NotNull EntityRemoveFromWorldEvent> args) {
-        if (state == ZombiesArenaState.STARTED && mobs.remove(args.entity())) {
-            zombiesLeft--;
-            checkNextRound();
+        if (state == ZombiesArenaState.STARTED) {
+            spawner.onMobRemoveFromWorld(args);
         }
     }
 
@@ -1097,7 +866,8 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private void onEntityAddToWorld(@NotNull EntityAddToWorldEvent event) {
         // only necessary so long as MythicMobs refuses to work right
         Entity entity = event.getEntity();
-        if (entity.getType() == EntityType.CHICKEN && (!(entity instanceof Mob mob) || !mobs.contains(mob))) {
+        if (entity.getType() == EntityType.CHICKEN && (!(entity instanceof Mob mob)
+                || !spawner.getMobs().contains(mob))) {
             for (Entity passenger : entity.getPassengers()) {
                 entity.removePassenger(passenger);
             }
@@ -1119,11 +889,11 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         if (damagingPlayer != null) {
             if (!damagingPlayer.isAlive()) {
                 event.setCancelled(true);
-            } else if (entity instanceof Mob mob && mobs.contains(mob)) {
+            } else if (entity instanceof Mob mob && spawner.getMobs().contains(mob)) {
                 HotbarManager hotbarManager = damagingPlayer.getHotbarManager();
                 HotbarObject hotbarObject = hotbarManager.getSelectedObject();
 
-                if (hotbarObject instanceof MeleeWeapon<?, ?> meleeWeapon) {
+                if (hotbarObject instanceof MeleeWeapon<@NotNull ?, @NotNull ?> meleeWeapon) {
                     if (meleeWeapon.isUsable() && (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK
                                     || meleeWeapon.getCurrentLevel().isShouldSweep())) {
                         event.setDamage(0D);
@@ -1457,7 +1227,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                 @Override
                 public void handleEvent(ShopEventArgs args) {
                     if (++rolls == map.getRollsPerChest()) {
-                        LuckyChest luckyChest = (LuckyChest) args.getShop();
+                        LuckyChest luckyChest = (LuckyChest) args.shop();
                         luckyChest.setActive(false);
                         List<Shop<?>> chests = new ArrayList<>(shopMap.get(luckyChest.getShopType()));
                         chests.remove(luckyChest);
@@ -1501,7 +1271,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                 @Override
                 public void handleEvent(ShopEventArgs args) {
                     if (++rolls == map.getRollsPerChest()) {
-                        PiglinShop piglinShop = (PiglinShop) args.getShop();
+                        PiglinShop piglinShop = (PiglinShop) args.shop();
                         piglinShop.setActive(false);
                         List<Shop<?>> piglins = new ArrayList<>(shopMap.get(piglinShop.getShopType()));
                         piglins.remove(piglinShop);
