@@ -340,5 +340,5 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     public static void callEvent(Event event) {
         instance.getServer().getPluginManager().callEvent(event);
     }
-    
+
 }
