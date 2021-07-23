@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.scoreboards;
 
+import io.github.zap.arenaapi.BukkitTaskManager;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
@@ -9,9 +10,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -19,17 +20,10 @@ public class GameScoreboard implements Disposable, Runnable {
     // Should these be in a config file?
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yy");
     public static final String SIDEBAR_TITLE = "" + ChatColor.YELLOW + ChatColor.BOLD + "Zombies";
-    private static final Map<ZombiesArenaState, Supplier<GameScoreboardState>> SCOREBOARD_STATES;
-    static {
-        SCOREBOARD_STATES = new HashMap<>();
-        SCOREBOARD_STATES.put(ZombiesArenaState.PREGAME, PregameScoreboardState::new);
-        SCOREBOARD_STATES.put(ZombiesArenaState.COUNTDOWN, PregameScoreboardState::new);
-        SCOREBOARD_STATES.put(ZombiesArenaState.STARTED, IngameScoreboardState::new);
-        SCOREBOARD_STATES.put(ZombiesArenaState.ENDED, IngameScoreboardState::new);
-    }
 
-    @Getter
-    private final ZombiesArena zombiesArena;
+    private final @NotNull Map<@NotNull ZombiesArenaState, @NotNull Supplier<@NotNull GameScoreboardState>> scoreboardStates;
+
+    private final @NotNull BukkitTaskManager taskManager;
 
     @Getter
     private final int refreshRate;
@@ -42,19 +36,22 @@ public class GameScoreboard implements Disposable, Runnable {
 
     private boolean isDisposed;
 
-    public GameScoreboard(ZombiesArena zombiesArena) {
-        this(zombiesArena, 10);
+    public GameScoreboard(@NotNull Map<@NotNull ZombiesArenaState, @NotNull Supplier<@NotNull GameScoreboardState>> scoreboardStates,
+                          @NotNull BukkitTaskManager taskManager) {
+        this(scoreboardStates, taskManager, 10);
     }
 
-    public GameScoreboard(ZombiesArena zombiesArena, int refreshRate) {
-        this.zombiesArena = zombiesArena;
+    public GameScoreboard(@NotNull Map<@NotNull ZombiesArenaState, @NotNull Supplier<@NotNull GameScoreboardState>> scoreboardStates,
+                          @NotNull BukkitTaskManager taskManager, int refreshRate) {
+        this.scoreboardStates = scoreboardStates;
+        this.taskManager = taskManager;
         this.refreshRate = refreshRate;
     }
 
     private GameScoreboardState getCurrentState() {
         var arenaState = getZombiesArena().getState();
-        if(arenaState != previousState) {
-            currentState = SCOREBOARD_STATES.get(arenaState).get();
+        if (arenaState != previousState) {
+            currentState = scoreboardStates.get(arenaState).get();
             currentState.stateChangedFrom(previousState, this);
             previousState = arenaState;
         }
@@ -63,8 +60,9 @@ public class GameScoreboard implements Disposable, Runnable {
     }
 
     public void initialize() {
-        if(updateTask == null)
-            updateTask = zombiesArena.runTaskTimer(0L, refreshRate, this);
+        if (updateTask == null) {
+            updateTask = taskManager.runTaskTimer(0L, refreshRate, this);
+        }
     }
 
     @Override

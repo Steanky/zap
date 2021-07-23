@@ -1,11 +1,14 @@
 package io.github.zap.zombies.game.arena.round;
 
 import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.game.arena.player.PlayerList;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.RoundContext;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.arena.spawner.Spawner;
+import io.github.zap.zombies.game.arena.spawner.ZombieCountChangedArgs;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoundData;
 import io.github.zap.zombies.game.data.map.SpawnEntryData;
@@ -27,6 +30,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,13 +40,29 @@ import java.util.stream.Collectors;
  */
 public class BasicRoundHandler implements RoundHandler {
 
-    private final @NotNull MapData map;
+    private final StatsManager statsManager;
+
+    private final @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList;
 
     private final @NotNull Spawner spawner;
 
-    public BasicRoundHandler(@NotNull MapData map, @NotNull Spawner spawner) {
-        this.map = map;
+    private final @NotNull MapData map;
+
+    private final @NotNull Collection<@NotNull PowerUp> powerUps;
+
+    private final @NotNull RoundContext currentRound = new RoundContext(new ArrayList<>(), new ArrayList<>(),
+            new ArrayList<>());
+
+    private int round = -1;
+
+    public BasicRoundHandler(@NotNull StatsManager statsManager,
+                             @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList, @NotNull Spawner spawner,
+                             @NotNull MapData map, @NotNull Collection<@NotNull PowerUp> powerUps) {
+        this.statsManager = statsManager;
+        this.playerList = playerList;
         this.spawner = spawner;
+        this.map = map;
+        this.powerUps = powerUps;
 
         spawner.getZombieCountChangedEvent().registerHandler(args -> {
             if (args.to() == 0) {
@@ -51,22 +71,26 @@ public class BasicRoundHandler implements RoundHandler {
         });
     }
 
-    private void checkNextRound() {
-        if (state == ZombiesArenaState.STARTED) {
-            Property<Integer> currentRound = map.getCurrentRoundProperty();
-            doRound(currentRound.getValue(this) + 1);
+    @Override
+    public void onGameBegin() {
+
+    }
+
+    @Override
+    public void onZombieCountChanged(@NotNull ZombieCountChangedArgs args) {
+        if (args.to() == 0 && state == ZombiesArenaState.STARTED) {
+
         }
     }
 
-    public void doRound(int targetRound) {
-        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        if(currentRound != null) {
-            currentRound.cancelRound();
+    private void checkNextRound() {
+        if (state == ZombiesArenaState.STARTED) {
+            doRound(++round);
         }
+    }
 
-        currentRound = context;
-
-        Property<Integer> roundIndexProperty = map.getCurrentRoundProperty();
+    private void doRound(int targetRound) {
+        currentRound.reset();
 
         int lastRoundIndex = targetRound - 1;
         int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
@@ -104,9 +128,25 @@ public class BasicRoundHandler implements RoundHandler {
 
         List<RoundData> rounds = map.getRounds();
         if (targetRound < rounds.size()) {
-            RoundData currentRound = rounds.get(targetRound);
+            RoundData nextRound = rounds.get(targetRound);
+            spawner.spawnRound(nextRound);
 
+            for (ZombiesPlayer player : playerList.getOnlinePlayers()) {
+                Component title = nextRound.getCustomMessage() != null && !nextRound.getCustomMessage().isEmpty()
+                        ? Component.text(nextRound.getCustomMessage())
+                        : Component.text("ROUND " + (targetRound + 1), NamedTextColor.RED);
+                player.getPlayer().showTitle(Title.title(title, Component.empty()));
+                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.wither.spawn"), Sound.Source.MASTER,
+                        1.0F, 0.5F));
+            }
 
+            if (map.getDisablePowerUpRound().contains(targetRound + 1)) {
+                for (@NotNull PowerUp powerUp : powerUps) {
+                    if (powerUp.getState() == PowerUpState.NONE || powerUp.getState() == PowerUpState.DROPPED) {
+                        powerUp.deactivate();
+                    }
+                }
+            }
         }
         else {
             //game just finished, do win condition

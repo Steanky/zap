@@ -6,6 +6,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.*;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
+import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hologram.HologramLine;
 import io.github.zap.zombies.Zombies;
@@ -19,9 +20,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +37,7 @@ import java.util.Map;
 /**
  * Shop for purchasing pieces of armor at a time
  */
-public class ArmorShop extends ArmorStandShop<ArmorShopData> {
+public class ArmorShop extends ArmorStandShop<@NotNull ArmorShopData> {
 
     private final static Map<Integer, ArmorShop> ARMOR_STAND_ID_ARMOR_SHOP_MAP = new HashMap<>();
 
@@ -73,8 +76,8 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         });
     }
 
-    public ArmorShop(ZombiesArena zombiesArena, ArmorShopData shopData) {
-        super(zombiesArena, shopData);
+    public ArmorShop(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull ArmorShopData shopData) {
+        super(world, eventManager, shopData);
         this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         ArmorStand armorStand = getArmorStand();
@@ -131,49 +134,43 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
     }
 
     @Override
-    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+    public boolean interact(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, ? extends @NotNull PlayerEvent> args) {
         if (super.interact(args)) {
-            ZombiesPlayer player = args.getManagedPlayer();
+            ZombiesPlayer player = args.player();
+            if (!getShopData().isRequiresPower() || isPowered()) {
+                ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player.getPlayer());
 
-            if (player != null) {
-                Player bukkitPlayer = player.getPlayer();
+                if (armorLevel == null) {
+                    player.getPlayer().sendMessage(Component.text("You already have the" +
+                            " max level of this armor!", NamedTextColor.RED));
+                } else {
+                    int cost = armorLevel.getCost();
 
-                if (bukkitPlayer != null) {
-                    if (!getShopData().isRequiresPower() || isPowered()) {
-                        ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(bukkitPlayer);
-
-                        if (armorLevel == null) {
-                            bukkitPlayer.sendMessage(Component
-                                    .text("You already have the max level of this armor!", NamedTextColor.RED));
-                        } else {
-                            int cost = armorLevel.getCost();
-
-                            if (player.getCoins() < cost) {
-                                bukkitPlayer.sendMessage(Component.text("You cannot afford this item!",
-                                        NamedTextColor.RED));
-                            } else {
-                                applyArmor(player, armorLevel);
-
-                                bukkitPlayer.playSound(Sound.sound(Key.key("block.note_block.pling"),
-                                        Sound.Source.MASTER, 1.0F, 2.0F));
-
-                                player.subtractCoins(cost);
-                                onPurchaseSuccess(player);
-
-                                return true;
-                            }
-                        }
-
-                    } else {
-                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!",
+                    if (player.getCoins() < cost) {
+                        player.getPlayer().sendMessage(Component.text("You cannot afford this item!",
                                 NamedTextColor.RED));
-                    }
+                    } else {
+                        applyArmor(player, armorLevel);
 
-                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
-                            Sound.Source.MASTER, 1.0F, 0.5F));
-                    return true;
+                        player.getPlayer().playSound(Sound.sound(Key.key("block.note_block.pling"),
+                                Sound.Source.MASTER, 1.0F, 2.0F));
+
+                        player.subtractCoins(cost);
+                        onPurchaseSuccess(player);
+
+                        return true;
+                    }
                 }
+
             }
+            else {
+                player.getPlayer().sendMessage(Component.text("The power is not active yet!",
+                        NamedTextColor.RED));
+            }
+
+            player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
+                    Sound.Source.MASTER, 1.0F, 0.5F));
+            return true;
         }
 
         return false;
@@ -190,30 +187,26 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
      * @param armorLevel The armor level to apply
      */
     private void applyArmor(@NotNull ZombiesPlayer player, @NotNull ArmorShopData.ArmorLevel armorLevel) {
-        Player bukkitPlayer = player.getPlayer();
+        // Choose the best equipments
+        Material[] materials = armorLevel.getMaterials();
+        //noinspection ConstantConditions
+        ItemStack[] current = player.getPlayer().getEquipment().getArmorContents();
+        for (int i = 0; i < 4; i++) {
+            Material material = materials[i];
+            ItemStack itemStack = current[i];
 
-        if (bukkitPlayer != null) {
-            // Choose the best equipments
-            Material[] materials = armorLevel.getMaterials();
-            //noinspection ConstantConditions
-            ItemStack[] current = bukkitPlayer.getEquipment().getArmorContents();
-            for (int i = 0; i < 4; i++) {
-                Material material = materials[i];
-                ItemStack itemStack = current[i];
-
-                if (material != null) {
-                    if (itemStack != null
-                            && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
-                        itemStack.setType(material);
-                    } else {
-                        current[i] = new ItemStack(material);
-                    }
+            if (material != null) {
+                if (itemStack != null
+                        && itemStack.getType().getMaxDurability() < material.getMaxDurability()) {
+                    itemStack.setType(material);
+                } else {
+                    current[i] = new ItemStack(material);
                 }
-
             }
 
-            player.updateEquipment(current);
         }
+
+        player.updateEquipment(current);
     }
 
     /**
@@ -278,9 +271,8 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         try {
             protocolManager.sendServerPacket(player, packetContainer);
         } catch (InvocationTargetException exception) {
-            Zombies.warning(
-                    String.format("Error creating armor shop equipment packets for entity id %d", armorStandId)
-            );
+            Zombies.warning(String.format("Error creating armor shop equipment packets" +
+                    " for entity id %d", armorStandId));
         }
     }
 

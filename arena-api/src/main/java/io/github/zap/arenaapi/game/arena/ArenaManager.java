@@ -92,14 +92,6 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
         return Collections.unmodifiableMap(managedArenas);
     }
 
-    @Override
-    public void dispose() {
-        statsManager.destroy();
-        for (T arena : managedArenas.values()) {
-            arena.dispose();
-        }
-    }
-
     /**
      * Gets the name of the game that this ArenaManager manages
      * @return The game name
@@ -131,6 +123,14 @@ public abstract class ArenaManager<T extends Arena<T>> implements Disposable {
      */
     public @NotNull Event<@NotNull Arena<@NotNull T>> getArenaCreated() {
         return arenaCreated;
+    }
+
+    @Override
+    public void dispose() {
+        statsManager.destroy();
+        for (T arena : managedArenas.values()) {
+            arena.dispose();
+        }
     }
 
 }

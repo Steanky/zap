@@ -76,7 +76,7 @@ public class BasicSpawner implements Spawner {
         this.taskManager = taskManager;
     }
 
-    public void spawnRound(@NotNull RoundData round) {
+    public @NotNull RoundContext spawnRound(@NotNull RoundData round) {
         RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
         long cumulativeDelay = 0;
@@ -97,7 +97,7 @@ public class BasicSpawner implements Spawner {
                     for (ActiveMob mob : context.spawnedMobs()) {
                         Entity entity = mob.getEntity().getBukkitEntity();
 
-                        if(entity != null) {
+                        if (entity != null) {
                             entity.remove();
                         }
                     }
@@ -113,23 +113,7 @@ public class BasicSpawner implements Spawner {
             }
         }
 
-        roundIndexProperty.setValue(this, targetRound);
-
-        for (ZombiesPlayer player : playerList.getOnlinePlayers()) {
-            Component title = round.getCustomMessage() != null && !round.getCustomMessage().isEmpty()
-                    ? Component.text(currentRound.getCustomMessage())
-                    : Component.text("ROUND " + (targetRound + 1), NamedTextColor.RED);
-            player.getPlayer().showTitle(Title.title(title, Component.empty()));
-            player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.wither.spawn"), Sound.Source.MASTER,
-                    1.0F, 0.5F));
-        }
-
-        if (map.getDisablePowerUpRound().contains(targetRound + 1)) {
-            var items = getPowerUps().stream()
-                    .filter(x -> x.getState() == PowerUpState.NONE || x.getState() == PowerUpState.DROPPED)
-                    .collect(Collectors.toSet());
-            items.forEach(PowerUp::deactivate);
-        }
+        return context;
     }
 
     @Override

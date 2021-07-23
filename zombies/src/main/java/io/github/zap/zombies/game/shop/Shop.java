@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
+import io.github.zap.zombies.game.shop.visual.ShopVisual;
 import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -19,9 +20,9 @@ import java.util.List;
 @Getter
 public abstract class Shop<D extends @NotNull ShopData> {
 
-    private final World world;
+    private final @NotNull World world;
 
-    private final ShopEventManager eventManager;
+    private final @NotNull ShopEventManager eventManager;
 
     private final D shopData;
 

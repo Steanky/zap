@@ -1,6 +1,7 @@
 package io.github.zap.zombies.game;
 
 import io.github.zap.arenaapi.LoadFailureException;
+import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
@@ -25,6 +26,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
@@ -85,10 +87,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public String getGameName() {
-        return NAME;
-    }
-
     public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         if (!information.joinable().validate()) {
             onCompletion.accept(Pair.of(false, "Someone is offline and therefore unable to join!"));
@@ -129,7 +127,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
                         world.setTime(mapData.getWorldTime());
 
-                        ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
+                        ZombiesArena arena = createArena();
                         managedArenas.put(arena.getId(), arena);
                         getArenaCreated().callEvent(arena);
                         if (arena.handleJoin(information.joinable())) {
@@ -239,4 +237,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             }
         }
     }
+
+    protected @NotNull Arena<@NotNull ZombiesArena> createArena() {
+        // TODO: implement
+        return new ZombiesArena();
+    }
+
 }

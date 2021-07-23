@@ -3,7 +3,9 @@ package io.github.zap.zombies.game.arena.spawner;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.event.EntityArgs;
+import io.github.zap.zombies.game.RoundContext;
 import io.github.zap.zombies.game.SpawnMethod;
+import io.github.zap.zombies.game.data.map.RoundData;
 import io.github.zap.zombies.game.data.map.SpawnEntryData;
 import io.github.zap.zombies.game.data.map.SpawnpointData;
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
@@ -20,6 +22,13 @@ import java.util.function.Predicate;
  * Spawns {@link org.bukkit.entity.Mob}s in a Zombies game
  */
 public interface Spawner {
+
+    /**
+     * Spawns an entire round of Zombies
+     * @param round The round to spawn
+     * @return Context for the round including spawn tasks, despawn tasks, and its spawned mobs
+     */
+    @NotNull RoundContext spawnRound(@NotNull RoundData round);
 
     /**
      * Spawns the provided SpawnEntries in this arena.

@@ -29,6 +29,7 @@ import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.arena.damage.BasicDamageHandler;
 import io.github.zap.zombies.game.arena.damage.DamageHandler;
 import io.github.zap.zombies.game.arena.event.ZombiesEventManager;
+import io.github.zap.zombies.game.arena.round.RoundHandler;
 import io.github.zap.zombies.game.arena.spawner.BasicSpawner;
 import io.github.zap.zombies.game.arena.spawner.Spawner;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -119,6 +120,8 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
     @Getter
     private final DamageHandler damageHandler;
+
+    private final RoundHandler roundHandler;
 
     @Getter
     private final Spawner spawner;
@@ -249,8 +252,9 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     public ZombiesArena(@NotNull Plugin plugin, @NotNull ZombiesArenaManager manager, @NotNull World world,
                         @NotNull MapData map, @NotNull PlayerList<ZombiesPlayer> players,
                         @NotNull BukkitTaskManager taskManager, @NotNull ZombiesEventManager eventManager,
-                        @NotNull Spawner spawner, @NotNull DamageHandler damageHandler,
-                        @NotNull Set<@NotNull Item> protectedItems, long emptyTimeout) {
+                        @NotNull RoundHandler roundHandler, @NotNull Spawner spawner,
+                        @NotNull DamageHandler damageHandler, @NotNull Set<@NotNull Item> protectedItems,
+                        long emptyTimeout) {
         super(manager, world);
         this.resourceManager = new ResourceManager(plugin);
         this.plugin = plugin;
@@ -260,6 +264,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.shopDataManager = manager.getShopDataManager();
         this.statsManager = manager.getStatsManager();
         this.emptyTimeout = emptyTimeout;
+        this.roundHandler = roundHandler;
         this.spawner = spawner;
         this.damageHandler = damageHandler;
         this.gameScoreboard = new GameScoreboard(this);
@@ -853,7 +858,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     }
 
     public void startGame() {
-        if(state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) {
+        if (state == ZombiesArenaState.PREGAME || state == ZombiesArenaState.COUNTDOWN) {
             loadShops();
 
             state = ZombiesArenaState.STARTED;
@@ -907,114 +912,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                 player.startTasks();
             }
 
-            doRound(0);
-        }
-    }
-
-    public void doRound(int targetRound) {
-        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        if(currentRound != null) {
-            currentRound.cancelRound();
-        }
-
-        currentRound = context;
-
-        Property<Integer> roundIndexProperty = map.getCurrentRoundProperty();
-
-        int lastRoundIndex = targetRound - 1;
-        int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
-        for (ZombiesPlayer player : playerList.getOnlinePlayers()) {
-            if (!player.isAlive()) {
-                player.respawn();
-            }
-
-            if (map.getRoundTimesShouldSave().contains(lastRoundIndex)) {
-                statsManager.queueCacheModification(CacheInformation.PLAYER, player.getId(), (stats) -> {
-                    PlayerMapStats mapStats = stats.getMapStatsForMap(map);
-                    mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
-
-                    if (mapStats.getBestRound() < lastRoundIndex) {
-                        mapStats.setBestRound(lastRoundIndex);
-                    }
-
-                    Map<Integer, Integer> bestTimes = mapStats.getBestTimes();
-                    Integer bestTime = bestTimes.get(lastRoundIndex);
-                    if (bestTime == null || bestTime < secondsElapsed) {
-                        bestTimes.put(lastRoundIndex, secondsElapsed);
-                    }
-                }, PlayerGeneralStats::new);
-            } else {
-                statsManager.queueCacheModification(CacheInformation.PLAYER, player.getId(), (stats) -> {
-                    PlayerMapStats mapStats = stats.getMapStatsForMap(map);
-                    mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
-
-                    if (mapStats.getBestRound() < lastRoundIndex) {
-                        mapStats.setBestRound(lastRoundIndex);
-                    }
-                }, PlayerGeneralStats::new);
-            }
-        }
-
-        List<RoundData> rounds = map.getRounds();
-        if(targetRound < rounds.size()) {
-            RoundData currentRound = rounds.get(targetRound);
-
-            long cumulativeDelay = 0;
-            zombiesLeft = 0;
-            for (WaveData wave : currentRound.getWaves()) {
-                cumulativeDelay += wave.getWaveLength();
-
-                BukkitTask waveSpawnTask = taskManager.runTaskLater(cumulativeDelay, () -> {
-                    context.spawnedMobs().addAll(spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
-                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false));
-
-                    for(ActiveMob activeMob : context.spawnedMobs()) {
-                        MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
-                                Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
-                    }
-
-                    BukkitTask removeMobTask = taskManager.runTaskLater(6000, () -> {
-                        for(ActiveMob mob : context.spawnedMobs()) {
-                            Entity entity = mob.getEntity().getBukkitEntity();
-
-                            if(entity != null) {
-                                entity.remove();
-                            }
-                        }
-                    });
-
-                    context.removeTasks().add(removeMobTask);
-                });
-
-                context.spawnTasks().add(waveSpawnTask);
-
-                for(SpawnEntryData spawnEntryData : wave.getSpawnEntries()) {
-                    zombiesLeft += spawnEntryData.getMobCount();
-                }
-            }
-
-            roundIndexProperty.setValue(this, targetRound);
-
-            for (ZombiesPlayer player : playerList.getOnlinePlayers()) {
-                Component title = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty()
-                        ? Component.text(currentRound.getCustomMessage()) // TODO: component serialization
-                        : Component.text("ROUND " + (targetRound + 1), NamedTextColor.RED);
-                player.getPlayer().showTitle(Title.title(title, Component.empty()));
-                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.wither.spawn"), Sound.Source.MASTER,
-                        1.0F, 0.5F));
-            }
-
-            if (map.getDisablePowerUpRound().contains(targetRound + 1)) {
-                var items =getPowerUps().stream()
-                        .filter(x -> x.getState() == PowerUpState.NONE || x.getState() == PowerUpState.DROPPED)
-                        .collect(Collectors.toSet());
-                items.forEach(PowerUp::deactivate);
-            }
-        }
-        else {
-            //game just finished, do win condition
-            state = ZombiesArenaState.ENDED;
-            doVictory();
+            roundHandler.onGameBegin();
         }
     }
 
