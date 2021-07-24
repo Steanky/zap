@@ -7,23 +7,27 @@ import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Basic implementation of an {@link EquipmentCreator}
  */
-@SuppressWarnings("ClassCanBeRecord")
 public class BasicEquipmentCreator implements EquipmentCreator {
 
     private final @NotNull Map<@NotNull String, @NotNull EquipmentObjectGroupMapping> equipmentObjectGroupMappings;
 
-    private final @NotNull Map<@NotNull String, @NotNull EquipmentMapping<@NotNull ?, @NotNull ?>> equipmentMappings;
+    private final @NotNull Map<@NotNull String, @NotNull EquipmentMapping<@NotNull ?, @NotNull ?>> equipmentMappings = new HashMap<>();
 
     public BasicEquipmentCreator(@NotNull Map<@NotNull String, @NotNull EquipmentObjectGroupMapping> equipmentObjectGroupMappings,
-                                 @NotNull Map<@NotNull String, @NotNull EquipmentMapping<@NotNull ?, @NotNull ?>> equipmentMappings) {
+                                 @NotNull List<@NotNull EquipmentDataMappingPair<@NotNull ?, @NotNull ?>> equipmentMappings) {
         this.equipmentObjectGroupMappings = equipmentObjectGroupMappings;
-        this.equipmentMappings = equipmentMappings;
+
+        for (@NotNull EquipmentDataMappingPair<@NotNull ?, @NotNull ?> equipmentDataMappingPair : equipmentMappings) {
+            this.equipmentMappings.put(equipmentDataMappingPair.data().getType(), equipmentDataMappingPair.mapping());
+        }
     }
 
     @Override
@@ -33,13 +37,13 @@ public class BasicEquipmentCreator implements EquipmentCreator {
         return equipmentObjectGroupMappings.get(equipmentObjectGroupType).createEquipmentObjectGroup(player, slots);
     }
 
-    @SuppressWarnings("unchecked") // TODO: somehow make this not unchecked?
+    @SuppressWarnings("unchecked")
     @Override
-    public <D extends @NotNull EquipmentData<L>, L extends @NotNull Object> @Nullable Equipment<D, L> createEquipment(@NotNull ZombiesPlayer player,
-                                                                                                                      int slot,
-                                                                                                                      D data) {
+    public <D extends @NotNull EquipmentData<@NotNull ?>> @Nullable Equipment<D, @NotNull ?> createEquipment(@NotNull ZombiesPlayer player,
+                                                                                                             int slot,
+                                                                                                             D data) {
         @NotNull EquipmentMapping<@NotNull ?, @NotNull ?> creator = equipmentMappings.get(data.getType());
-        return (creator != null) ? ((EquipmentMapping<D, L>) creator).createEquipment(player, slot, data) : null;
+        return (creator != null) ? ((EquipmentMapping<D, @NotNull ?>) creator).createEquipment(player, slot, data) : null;
     }
 
 }
