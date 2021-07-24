@@ -167,14 +167,14 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
                     Boolean refillAttempt = tryRefill(player, gunObjectGroup);
                     if (refillAttempt == null) {
                         if (tryBuy(player, gunObjectGroup)) {
-                            player.getPlayer().playSound(Sound.sound(Key.key("block.note_block.pling"),
+                            player.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
                                     Sound.Source.MASTER, 1.0F, 2.0F));
                             onPurchaseSuccess(player);
                             return true;
                         }
                     } else if (refillAttempt) {
-                        player.getPlayer().playSound(Sound.sound(Key.key("block.note_block.pling"), Sound.Source.MASTER,
-                                1.0F, 2.0F));
+                        player.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
+                                Sound.Source.MASTER, 1.0F, 2.0F));
                         onPurchaseSuccess(player);
                         return true;
                     }
