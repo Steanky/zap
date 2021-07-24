@@ -40,25 +40,30 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
             //player.getPlayer() should NEVER throw an NPE, since we just checked isAlive in the stream
             Set<PathDestination> validTargets = arena.getPlayerMap().values().stream().filter(ZombiesPlayer::isAlive)
                     .map(player -> PathDestination.fromEntity(Objects.requireNonNull(player.getPlayer()), player, true))
-                    .collect(Collectors.toSet());
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
 
             if(!validTargets.isEmpty()) {
-                getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
-                        validTargets, arena.getMapBounds(), targetDeviation), self.getWorld().getWorld());
+                PathOperation operation = PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
+                        validTargets, arena.getMapBounds(), targetDeviation);
 
-                PathResult result = getHandler().tryTakeResult();
+                if(operation != null) {
+                    getHandler().queueOperation(operation, self.getWorld().getWorld());
 
-                if(result != null) {
-                    if(result.destination().target() instanceof ZombiesPlayer zombiesPlayer) {
-                        Player player = zombiesPlayer.getPlayer();
+                    PathResult result = getHandler().tryTakeResult();
 
-                        if(player != null) {
-                            self.setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
-                            this.zombiesPlayer = zombiesPlayer;
-                            this.result = result;
+                    if(result != null) {
+                        if(result.destination().target() instanceof ZombiesPlayer zombiesPlayer) {
+                            Player player = zombiesPlayer.getPlayer();
+
+                            if(player != null) {
+                                self.setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
+                                this.zombiesPlayer = zombiesPlayer;
+                                this.result = result;
+                            }
+                            else {
+                                this.zombiesPlayer = null;
+                            }
                         }
-
-                        this.zombiesPlayer = null;
                     }
                 }
             }

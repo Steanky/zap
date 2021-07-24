@@ -1,12 +1,13 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector3D;
+import io.github.zap.vector.Vector3I;
+import io.github.zap.vector.Vectors;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents an navigation-capable object. Commonly used to wrap Bukkit objects such as Entity. Provides information
@@ -26,9 +27,22 @@ public interface PathAgent extends Vector3D {
      * @param entity The entity from which to create a PathAgent
      * @return A PathAgent object corresponding to the given Entity
      */
-    static @NotNull PathAgent fromEntity(@NotNull Entity entity) {
-        Location location = entity.getLocation();
-        return new PathAgentImpl(new AgentCharacteristics(entity), location.getX(), location.getY(), location.getZ());
+    static @Nullable PathAgent fromEntity(@NotNull Entity entity) {
+        Vector3D location;
+        Location entityLocation = entity.getLocation();
+        if(!Utils.isValidLocation(entityLocation)) {
+            return null;
+        }
+
+        if(!entity.isOnGround()) {
+            double fallDistance = Utils.testFall(entityLocation);
+            location = Vectors.of(entityLocation.getX(), entityLocation.getY() - fallDistance, entityLocation.getZ());
+        }
+        else {
+            location = Vectors.of(entityLocation);
+        }
+
+        return new PathAgentImpl(new AgentCharacteristics(entity), location.x(), location.y(), location.z());
     }
 
     static @NotNull PathAgent fromVector(@NotNull Vector vector, @NotNull AgentCharacteristics characteristics) {

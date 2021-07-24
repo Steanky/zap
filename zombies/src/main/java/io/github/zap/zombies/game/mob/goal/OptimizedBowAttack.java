@@ -34,7 +34,7 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
         this.attackTimer = -1;
         self.clearActiveItem();
         self.setAggressive(false);
-        //self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
+        self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
     }
 
     @Override

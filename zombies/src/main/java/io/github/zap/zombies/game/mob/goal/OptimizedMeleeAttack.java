@@ -26,7 +26,7 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
     @Override
     public void onEnd() {
         self.setAggressive(false);
-        //self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
+        self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
     }
 
     @Override

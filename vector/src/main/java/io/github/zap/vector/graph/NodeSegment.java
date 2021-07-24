@@ -3,22 +3,22 @@ package io.github.zap.vector.graph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class NodeSegment {
+class NodeSegment extends ArrayContainer<NodeLayer> {
     private final NodeChunk parent;
-    private final NodeLayer[] layers = new NodeLayer[16];
     private int emptyCount = 16;
     private final int parentIndex;
 
     NodeSegment(@NotNull NodeChunk parent, int parentIndex) {
+        super(new NodeLayer[16]);
         this.parent = parent;
         this.parentIndex = parentIndex;
     }
 
     void set(int y, @Nullable NodeLayer nodeLayer) {
-        emptyCount = NodeUtils.setterHelper(nodeLayer, layers, y, emptyCount, parent::set, parentIndex);
+        emptyCount = NodeUtils.setterHelper(nodeLayer, array, y, emptyCount, parent::set, parentIndex);
     }
 
     @Nullable NodeLayer get(int y) {
-        return layers[y];
+        return array[y];
     }
 }

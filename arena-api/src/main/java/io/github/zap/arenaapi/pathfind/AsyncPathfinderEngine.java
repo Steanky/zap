@@ -116,7 +116,6 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
             ArenaApi.warning("Cause: " + exception.getCause());
         }
-
         return null;
     }
 
@@ -127,33 +126,34 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
             if(currentNode != null) {
                 for(PathResult successful : context.successfulPaths) {
-                    ChunkGraph<PathNode> resultVisited = successful.visitedNodes();
+                    ChunkGraph<PathNode> resultVisited = successful.visitedNodes(); //get nodes visited by another path
 
                     int x = currentNode.x();
                     int y = currentNode.y();
                     int z = currentNode.z();
 
-                    if(operation.mergeValid(successful.operation()) && resultVisited.hasElement(x, y, z)) {
-                        PathNode intersection = resultVisited.elementAt(x, y, z);
+                    //check if we can merge
+                    if(operation.mergeValid(successful.operation()) && resultVisited.hasElementAt(x, y, z)) {
+                        PathNode intersection = resultVisited.elementAt(x, y, z); //get intersection point
 
                         PathNode sample = intersection;
                         while(sample != null) {
-                            PathNode parent = sample.parent;
+                            PathNode parent = sample.parent; //iterate up parents
 
-                            if(parent != null && parent.child != sample) {
-                                intersection.child = currentNode.child; //link paths
+                            if(parent != null && parent.child != sample) { //check for "broken" link (indicative of path)
+                                intersection.child = currentNode.child;
                                 if(currentNode.child != null) {
-                                    currentNode.child.parent = intersection;
+                                    currentNode.child.parent = intersection; //link up paths
                                 }
 
                                 parent.child = sample; //point path back towards origin
 
-                                PathNode first = intersection; //get origin node
-                                while(first.child != null) {
+                                PathNode first = intersection;
+                                while(first.child != null) { //get origin node
                                     first = first.child;
                                 }
 
-                                PathDestination destination = operation.bestDestination();
+                                PathDestination destination = operation.bestDestination(); //we can just stop now
                                 if(destination != null) {
                                     return new PathResultImpl(first, operation, resultVisited, destination,
                                             PathOperation.State.SUCCEEDED);

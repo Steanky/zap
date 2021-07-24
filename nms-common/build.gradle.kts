@@ -9,6 +9,7 @@ java {
 }
 
 repositories {
+    mavenLocal()
     maven("https://papermc.io/repo/repository/maven-public/")
     maven("https://repo.dmulloy2.net/repository/public/")
 }

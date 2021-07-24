@@ -41,8 +41,32 @@ public class ArrayChunkGraphTest {
     @Test
     public void testAdded() {
         for(Vector3I vector : vectorsAdded) {
-            Assert.assertTrue(graph.hasElement(vector.x(), vector.y(), vector.z()));
+            Assert.assertTrue(graph.hasElementAt(vector.x(), vector.y(), vector.z()));
             Assert.assertSame(graph.elementAt(vector.x(), vector.y(), vector.z()), vector);
         }
+    }
+
+    @Test
+    public void testSize() {
+        int size = this.size * 2;
+        int expectedSize = (int)Math.pow(size, 3);
+
+        Assert.assertEquals(expectedSize, graph.size());
+    }
+
+    @Test
+    public void testIterator() {
+        int expectedSize = graph.size();
+        Set<Vector3I> vectors = new HashSet<>();
+
+        int actualSize = 0;
+        for(Vector3I vector : graph) {
+            actualSize++;
+            Assert.assertFalse(vectors.contains(vector));
+            Assert.assertTrue(graph.hasElementAt(vector));
+            vectors.add(vector);
+        }
+
+        Assert.assertEquals(expectedSize, actualSize);
     }
 }

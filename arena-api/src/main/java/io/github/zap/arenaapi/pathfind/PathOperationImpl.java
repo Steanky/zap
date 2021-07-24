@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
@@ -12,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 class PathOperationImpl implements PathOperation {
+    private static final Object testLock = new Object();
+
     private static final double MERGE_TOLERANCE_SQUARED = 1;
 
     private final PathAgent agent;
@@ -115,7 +116,7 @@ class PathOperationImpl implements PathOperation {
                     break;
                 }
 
-                if(visited.hasElement(candidateNode.x(), candidateNode.y(), candidateNode.z())) {
+                if(visited.hasElementAt(candidateNode.x(), candidateNode.y(), candidateNode.z())) {
                     continue;
                 }
 
@@ -219,7 +220,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean allowMerges() {
-        return false;
+        return true;
     }
 
     @Override
@@ -240,6 +241,8 @@ class PathOperationImpl implements PathOperation {
     private void complete(boolean success) {
         state = success ? State.SUCCEEDED : State.FAILED;
         result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
+
+        validateExplored();
     }
 
     private boolean checkDestinationComparability(Vector3I other) {
@@ -248,5 +251,11 @@ class PathOperationImpl implements PathOperation {
         }
 
         return Vectors.distanceSquared(bestDestination, other) <= MERGE_TOLERANCE_SQUARED;
+    }
+
+    private void validateExplored() {
+        synchronized (testLock) {
+
+        }
     }
 }

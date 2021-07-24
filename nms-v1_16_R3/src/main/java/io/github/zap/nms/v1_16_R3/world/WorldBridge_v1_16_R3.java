@@ -1,6 +1,7 @@
 package io.github.zap.nms.v1_16_R3.world;
 
 import io.github.zap.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.nms.common.world.WorldBridge;
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import org.bukkit.Bukkit;
@@ -30,5 +31,12 @@ public class WorldBridge_v1_16_R3 implements WorldBridge {
     public boolean blockHasCollision(@NotNull Block block) {
         return !((CraftBlockState)block.getState()).getHandle().getCollisionShape(((CraftChunk)block.getChunk()).getHandle(),
                 new BlockPosition(block.getX(), block.getY(), block.getZ())).isEmpty();
+    }
+
+    @Override
+    public @NotNull VoxelShapeWrapper collisionShapeFor(@NotNull Block block) {
+        return new VoxelShapeWrapper_v1_16_R3(((CraftBlockState)block.getState()).getHandle()
+                .getCollisionShape(((CraftChunk)block.getChunk()).getHandle(),
+                new BlockPosition(block.getX(), block.getY(), block.getZ())));
     }
 }

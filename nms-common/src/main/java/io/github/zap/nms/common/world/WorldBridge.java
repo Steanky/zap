@@ -17,4 +17,6 @@ public interface WorldBridge {
     @NotNull CollisionChunkSnapshot takeSnapshot(@NotNull Chunk chunk);
 
     boolean blockHasCollision(@NotNull Block block);
+
+    @NotNull VoxelShapeWrapper collisionShapeFor(@NotNull Block block);
 }

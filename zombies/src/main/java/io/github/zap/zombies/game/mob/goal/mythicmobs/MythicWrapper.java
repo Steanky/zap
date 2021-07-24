@@ -24,6 +24,6 @@ public abstract class MythicWrapper extends WrappedPathfindingGoal implements Pa
         handle = ((CraftEntity) entity.getBukkitEntity()).getHandle();
         proxy = Zombies.getInstance().getNmsProxy();
 
-        retargetTicks = mlc.getInteger("retargetTicks", 20);
+        retargetTicks = mlc.getInteger("retargetTicks", 10);
     }
 }

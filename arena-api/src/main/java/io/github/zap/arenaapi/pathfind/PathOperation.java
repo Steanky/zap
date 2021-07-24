@@ -102,32 +102,54 @@ public interface PathOperation {
                 destinationSelector, coordinateProvider);
     }
 
-    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int loadRadius) {
-        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                AversionCalculator.DEFAULT_WALK, SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeExplorer(),
-                DestinationSelector.CLOSEST, ChunkCoordinateProvider.squareFromCenter(
-                        Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
+    static @Nullable PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations, int loadRadius) {
+        PathAgent agent = PathAgent.fromEntity(entity);
+
+        if(agent != null) {
+            return forAgent(agent, destinations, HeuristicCalculator.DISTANCE_ONLY, AversionCalculator.DEFAULT_WALK,
+                    SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST,
+                    ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
+        }
+
+        return null;
     }
 
-    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
+    static @Nullable PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
                                           ChunkCoordinateProvider searchArea) {
-        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                AversionCalculator.DEFAULT_WALK, SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeExplorer(),
-                DestinationSelector.CLOSEST, searchArea);
+        PathAgent agent = PathAgent.fromEntity(entity);
+
+        if(agent != null) {
+            return forAgent(agent, destinations, HeuristicCalculator.DISTANCE_ONLY, AversionCalculator.DEFAULT_WALK,
+                    SuccessCondition.WITHIN_BLOCK, new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST, searchArea);
+        }
+
+        return null;
     }
 
-    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
+    static @Nullable PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
                                           ChunkCoordinateProvider searchArea, double targetDeviation) {
-        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                AversionCalculator.DEFAULT_WALK, SuccessCondition.whenWithin(targetDeviation * targetDeviation),
-                new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST, searchArea);
+        PathAgent agent = PathAgent.fromEntity(entity);
+
+        if(agent != null) {
+            return forAgent(agent, destinations, HeuristicCalculator.DISTANCE_ONLY,
+                    AversionCalculator.DEFAULT_WALK, SuccessCondition.whenWithin(targetDeviation * targetDeviation),
+                    new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST, searchArea);
+        }
+
+        return null;
     }
 
-    static PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
+    static @Nullable PathOperation forEntityWalking(@NotNull Entity entity, @NotNull Set<? extends PathDestination> destinations,
                                           int loadRadius, double targetDeviation) {
-        return forAgent(PathAgent.fromEntity(entity), destinations, HeuristicCalculator.DISTANCE_ONLY,
-                AversionCalculator.DEFAULT_WALK, SuccessCondition.whenWithin(targetDeviation * targetDeviation),
-                new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST,
-                ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
+        PathAgent agent = PathAgent.fromEntity(entity);
+
+        if(agent != null) {
+            return forAgent(agent, destinations, HeuristicCalculator.DISTANCE_ONLY,
+                    AversionCalculator.DEFAULT_WALK, SuccessCondition.whenWithin(targetDeviation * targetDeviation),
+                    new DefaultWalkNodeExplorer(), DestinationSelector.CLOSEST,
+                    ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(Vectors.of(entity.getLocation())), loadRadius));
+        }
+
+        return null;
     }
 }

@@ -33,7 +33,7 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
                 PathPoint sample = newPath.a(i); //(pr)
 
                 float distanceSquared = sample.a(entityPoint);
-                if(DoubleMath.fuzzyCompare(distanceSquared, 2, Vector.getEpsilon()) <= 0) {
+                if(DoubleMath.fuzzyCompare(distanceSquared, 1, Vector.getEpsilon()) <= 0) {
                     int nextIndex = i + 1;
                     if(nextIndex < newPath.e()) {
                         PathPoint nextPoint = newPath.a(nextIndex);
@@ -52,6 +52,31 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
         }
 
         a(newPath, speed);
+    }
+
+    @Override
+    public boolean a(@javax.annotation.Nullable PathEntity pathentity, double d0) {
+        if (pathentity == null) {
+            this.c = null;
+            return false;
+        } else {
+            this.c = pathentity;
+
+            if (this.m()) {
+                return false;
+            } else {
+                this.D_();
+                if (this.c.e() <= 0) {
+                    return false;
+                } else {
+                    this.d = d0;
+                    Vec3D vec3d = this.b();
+                    this.f = this.e;
+                    this.g = vec3d;
+                    return true;
+                }
+            }
+        }
     }
 
     @Override
