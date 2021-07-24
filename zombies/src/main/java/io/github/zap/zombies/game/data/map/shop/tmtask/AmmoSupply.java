@@ -18,8 +18,8 @@ public class AmmoSupply extends TeamMachineTask {
     }
 
     @Override
-    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
+    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer player) {
+        if (super.execute(teamMachine, zombiesArena, player)) {
             for (ZombiesPlayer otherZombiesPlayer : zombiesArena.getPlayerMap().values()) {
                 GunObjectGroup gunObjectGroup = (GunObjectGroup)
                         otherZombiesPlayer.getHotbarManager().getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());

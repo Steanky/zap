@@ -15,8 +15,8 @@ public class FullRevive extends TeamMachineTask {
     }
 
     @Override
-    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        if (super.execute(teamMachine, zombiesArena, zombiesPlayer)){
+    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer player) {
+        if (super.execute(teamMachine, zombiesArena, player)){
             for (ZombiesPlayer otherZombiesPlayer : zombiesArena.getPlayerMap().values()) {
                 if (otherZombiesPlayer.isInGame()) {
                     if (otherZombiesPlayer.getState() == ZombiesPlayerState.KNOCKED) {

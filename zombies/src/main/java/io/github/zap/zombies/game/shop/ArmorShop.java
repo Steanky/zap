@@ -90,10 +90,11 @@ public class ArmorShop extends ArmorStandShop<@NotNull ArmorShopData> {
         ARMOR_STAND_ID_ARMOR_SHOP_MAP.put(armorStand.getEntityId(), this);
     }
 
-    @Override
-    protected void registerArenaEvents() {
-        super.registerArenaEvents();
-        getArena().getShopEvent(getShopType()).registerHandler(args -> display());
+    /**
+     * Called when another armor shop is purchased from
+     */
+    public void onOtherArmorShopUpdate(@NotNull ShopEventArgs<@NotNull ArmorShop, @NotNull ZombiesPlayer> args) {
+        display();
     }
 
     @Override

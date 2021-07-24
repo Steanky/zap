@@ -62,15 +62,25 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
         this.protectedItems = protectedItems;
     }
 
-    @Override
-    protected void registerShopEvents(@NotNull ShopEventManager eventManager) {
-        super.registerShopEvents(eventManager);
-        eventManager.getEvent(getShopType()).registerHandler(args ->
-                displayToPlayer(args.player().getPlayer()));
-        eventManager.getEvent(ShopType.LUCKY_CHEST.name()).registerHandler(args ->
-                displayToPlayer(args.player().getPlayer()));
-        eventManager.getEvent(ShopType.PIGLIN_SHOP.name()).registerHandler(args ->
-                displayToPlayer(args.player().getPlayer()));
+    /**
+     * Called when another gun shop is purchased from
+     */
+    public void onOtherGunShopUpdate(@NotNull ShopEventArgs<@NotNull ArmorShop, @NotNull ZombiesPlayer> args) {
+        displayToPlayer(args.player().getPlayer());
+    }
+
+    /**
+     * Called when a {@link LuckyChest} is purchased from
+     */
+    public void onLuckyChestUpdate(@NotNull ShopEventArgs<@NotNull LuckyChest, @NotNull ZombiesPlayer> args) {
+        displayToPlayer(args.player().getPlayer());
+    }
+
+    /**
+     * Called when a {@link PiglinShop} is purchased from
+     */
+    public void onPiglinShopUpdate(@NotNull ShopEventArgs<@NotNull PiglinShop, @NotNull ZombiesPlayer> args) {
+        displayToPlayer(args.player().getPlayer());
     }
 
     @Override
@@ -78,7 +88,7 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
         if (item == null) {
             World world = getWorld();
 
-            EquipmentData<?> equipmentData = equipmentDataManager.getEquipmentData(map.getName(),
+            EquipmentData<@NotNull ?> equipmentData = equipmentDataManager.getEquipmentData(map.getName(),
                     getShopData().getGunName());
 
             if (equipmentData == null) {

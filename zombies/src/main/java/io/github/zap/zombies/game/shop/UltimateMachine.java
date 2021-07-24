@@ -90,7 +90,7 @@ public class UltimateMachine extends BlockShop<@NotNull UltimateMachineData> {
         return ShopType.ULTIMATE_MACHINE.name();
     }
 
-    private void attemptToUltimate(@NotNull UpgradeableEquipment<?, ?> equipment, @NotNull ZombiesPlayer player,
+    private void attemptToUltimate(@NotNull UpgradeableEquipment<@NotNull ?, @NotNull ?> equipment, @NotNull ZombiesPlayer player,
                                       int cost) {
         if (equipment.getLevel() < equipment.getEquipmentData().getLevels().size() - 1) {
             equipment.upgrade();

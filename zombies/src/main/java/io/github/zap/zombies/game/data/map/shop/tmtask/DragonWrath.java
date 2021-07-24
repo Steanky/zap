@@ -63,19 +63,14 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     }
 
     @Override
-    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        Player player = zombiesPlayer.getPlayer();
-        if (super.execute(teamMachine, zombiesArena, zombiesPlayer) && player != null) {
+    public boolean execute(TeamMachine teamMachine, ZombiesPlayer zombiesPlayer) {
+        if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
             Location location = teamMachine.getBlock().getLocation();
             Set<UUID> mobIds = zombiesArena.getEntitySet();
 
             World world = zombiesArena.getWorld();
-            world.playSound(Sound.sound(
-                    Key.key("minecraft:entity.ender_dragon.growl"),
-                    Sound.Source.MASTER,
-                    1.0F,
-                    1.0F
-            ), location.getX(), location.getY(), location.getZ());
+            world.playSound(Sound.sound(Key.key("minecraft:entity.ender_dragon.growl"), Sound.Source.MASTER,
+                    1.0F, 1.0F), location.getX(), location.getY(), location.getZ());
 
             zombiesArena.runTaskLater(delay, () -> {
                 int entitiesKilled = 0;
@@ -93,9 +88,8 @@ public class DragonWrath extends TeamMachineTask implements Damager {
 
                 zombiesPlayer.addKills(entitiesKilled);
 
-                player.sendMessage(Component
-                        .text(String.format("Killed %d mobs!", entitiesKilled))
-                        .color(NamedTextColor.GREEN));
+                zombiesPlayer.getPlayer().sendMessage(Component.text(String.format("Killed %d mobs!", entitiesKilled),
+                        NamedTextColor.GREEN));
             });
 
             return true;

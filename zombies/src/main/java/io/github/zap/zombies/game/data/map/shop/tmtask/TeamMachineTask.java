@@ -43,27 +43,20 @@ public abstract class TeamMachineTask {
     /**
      * Executes the team machine task
      * @param teamMachine The team machine that called the task
-     * @param zombiesArena The arena the team machine is in
-     * @param zombiesPlayer The executing player
+     * @param player The executing player
      * @return Whether the execution was successful
      */
-    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer zombiesPlayer) {
-        Player player = zombiesPlayer.getPlayer();
-
+    public boolean execute(TeamMachine teamMachine, ZombiesArena zombiesArena, ZombiesPlayer player) {
         if (player != null) {
             int cost = getCostForTeamMachine(teamMachine);
-            if (zombiesPlayer.getCoins() < cost) {
-                player.sendMessage(ChatColor.RED + "You cannot afford this item!");
+            if (player.getCoins() < cost) {
+                player.getPlayer().sendMessage(Component.text("You cannot afford this item!", NamedTextColor.RED));
 
-                player.playSound(Sound.sound(
-                        Key.key("minecraft:entity.enderman.teleport"),
-                        Sound.Source.MASTER,
-                        1.0F,
-                        0.5F
-                ));
+                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
+                        Sound.Source.MASTER, 1.0F, 0.5F));
             } else {
                 timesUsed.setValue(teamMachine, timesUsed.getValue(teamMachine) + 1);
-                zombiesPlayer.subtractCoins(cost);
+                player.subtractCoins(cost);
 
                 return true;
             }

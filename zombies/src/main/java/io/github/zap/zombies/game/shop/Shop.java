@@ -2,9 +2,9 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.github.zap.zombies.game.shop.visual.ShopVisual;
 import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -32,35 +32,21 @@ public abstract class Shop<D extends @NotNull ShopData> {
         this.world = world;
         this.eventManager = eventManager;
         this.shopData = shopData;
-
-        registerArenaEvents();
-        registerShopEvents(eventManager);
     }
 
     /**
-     * Registers all events from the zombie arena that will be monitored by the shop
+     * Called when the shop is powered by a {@link PowerSwitch}
      */
-    protected void registerArenaEvents() {
-        arena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
-        arena.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
-    }
-
-    /**
-     * Registers all events related to other shops
-     * @param eventManager The event manager to register shop events to
-     */
-    protected void registerShopEvents(@NotNull ShopEventManager eventManager) {
-        eventManager.getEvent(ShopType.POWER_SWITCH.name()).registerHandler(args -> {
-            powered = true;
-            display();
-        });
+    public void onPowered(@NotNull ShopEventArgs<@NotNull PowerSwitch, @NotNull ZombiesPlayer> args) {
+        powered = true;
+        display();
     }
 
     /**
      * Called when players join the {@link ZombiesArena}
      * @param players The list of players
      */
-    protected void onPlayerJoin(@NotNull List<@NotNull Player> players) {
+    public void onPlayerJoin(@NotNull List<@NotNull Player> players) {
         for (Player player : players) {
             displayToPlayer(player);
         }
@@ -70,7 +56,7 @@ public abstract class Shop<D extends @NotNull ShopData> {
      * Called when players rejoin the arena
      * @param players The list of players
      */
-    protected void onPlayerRejoin(@NotNull List<? extends @NotNull ZombiesPlayer> players) {
+    public void onPlayerRejoin(@NotNull List<? extends @NotNull ZombiesPlayer> players) {
         for (ZombiesPlayer player : players) {
             Player bukkitPlayer = player.getPlayer();
             displayToPlayer(bukkitPlayer);

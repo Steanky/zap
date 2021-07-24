@@ -55,10 +55,11 @@ public class PerkMachine extends BlockShop<@NotNull PerkMachineData>  {
         this.equipmentCreator = equipmentCreator;
     }
 
-    @Override
-    protected void registerShopEvents(@NotNull ShopEventManager eventManager) {
-        super.registerShopEvents(eventManager);
-        eventManager.getEvent(getShopType()).registerHandler(args -> displayToPlayer(args.player().getPlayer()));
+    /**
+     * Called when another perk machine is purchased from
+     */
+    public void onOtherPerkMachineUpdate(@NotNull ShopEventArgs<@NotNull PerkMachine, @NotNull ZombiesPlayer> args) {
+        displayToPlayer(args.player().getPlayer());
     }
 
     @Override

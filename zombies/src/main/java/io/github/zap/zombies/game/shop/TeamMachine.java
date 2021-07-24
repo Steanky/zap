@@ -55,14 +55,6 @@ public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements 
     }
 
     @Override
-    protected void registerArenaEvents() {
-        super.registerArenaEvents();
-
-        ZombiesArena zombiesArena = getArena();
-        zombiesArena.getProxyFor(InventoryClickEvent.class).registerHandler(this::onInventoryClick);
-    }
-
-    @Override
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
@@ -108,23 +100,22 @@ public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements 
      * Handler for inventory clicks to handle team machine events
      * @param args The arguments passed to the handler
      */
-    private void onInventoryClick(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer, @NotNull InventoryClickEvent> args) {
+    public void onInventoryClick(@NotNull ManagedPlayerArgs<@NotNull ZombiesPlayer,
+            @NotNull InventoryClickEvent> args) {
         InventoryClickEvent inventoryClickEvent = args.event();
 
         if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
             HumanEntity humanEntity = inventoryClickEvent.getWhoClicked();
-            ZombiesArena arena = getArena();
             ZombiesPlayer player = playerList.getOnlinePlayer(humanEntity.getUniqueId());
 
             if (player != null) {
                 inventoryClickEvent.setCancelled(true);
                 TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
 
-                if (teamMachineTask != null
-                        && teamMachineTask.execute(this, arena, player)) {
+                if (teamMachineTask != null && teamMachineTask.execute(this, arena, player)) {
                     Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
                             1.0F, 1.5F);
-                    for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {
+                    for (Player otherBukkitPlayer : getWorld().getPlayers()) {
                         otherBukkitPlayer.sendMessage(
                                 String.format("%sPlayer %s purchased %s from the Team Machine!", ChatColor.YELLOW,
                                         player.getPlayer().getName(),
