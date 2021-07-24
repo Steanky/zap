@@ -39,7 +39,8 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
                         PathPoint nextPoint = newPath.a(nextIndex);
                         float distanceSquaredToNext = nextPoint.a(entityPoint);
 
-                        if(DoubleMath.fuzzyCompare(distanceSquaredToNext, distanceSquared, Vector.getEpsilon()) <= 0) {
+                        if(DoubleMath.fuzzyCompare(distanceSquaredToNext, distanceSquared, Vector.getEpsilon()) <= 0
+                                && entityPoint.getY() == nextPoint.getY()) {
                             i = nextIndex;
                         }
                     }

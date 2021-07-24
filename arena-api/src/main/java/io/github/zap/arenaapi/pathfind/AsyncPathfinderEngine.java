@@ -141,6 +141,8 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                             PathNode parent = sample.parent; //iterate up parents
 
                             if(parent != null && parent.child != sample) { //check for "broken" link (indicative of path)
+                                PathNode oldIntersectionChild = intersection.child;
+
                                 intersection.child = currentNode.child;
                                 if(currentNode.child != null) {
                                     currentNode.child.parent = intersection; //link up paths
@@ -155,10 +157,12 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
                                 PathDestination destination = operation.bestDestination(); //we can just stop now
                                 if(destination != null) {
+                                    ArenaApi.info("Merged paths (based on common explored node)");
                                     return new PathResultImpl(first, operation, resultVisited, destination,
                                             PathOperation.State.SUCCEEDED);
                                 }
 
+                                intersection.child = oldIntersectionChild;
                                 return null;
                             }
 
@@ -168,6 +172,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                         PathDestination destination = operation.bestDestination();
                         if(intersection != null && destination != null) {
                             //if we reach this point, it means we started directly on an existing path
+                            ArenaApi.info("Merged paths (we're standing on a path already)");
                             return new PathResultImpl(intersection, operation, resultVisited, destination,
                                     PathOperation.State.SUCCEEDED);
                         }

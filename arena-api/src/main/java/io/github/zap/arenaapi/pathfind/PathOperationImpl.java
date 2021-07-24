@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
@@ -108,7 +109,7 @@ class PathOperationImpl implements PathOperation {
                 return true;
             }
 
-            visited.putElement(currentNode.x(), currentNode.y(), currentNode.z(), currentNode);
+            visited.putElement(currentNode, currentNode);
             nodeExplorer.exploreNodes(sampleBuffer, currentNode);
 
             for(PathNode candidateNode : sampleBuffer) {
@@ -220,7 +221,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public boolean allowMerges() {
-        return true;
+        return false;
     }
 
     @Override
@@ -231,18 +232,16 @@ class PathOperationImpl implements PathOperation {
     private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
         BlockSnapshot standingOn = provider.getBlock(node.x(), node.y() - 1, node.z());
 
-        if(standingOn != null) {
-            node.score.setG(node.parent.score.getG() + aversionCalculator.aversionForMaterial(
-                    standingOn.data().getMaterial()) + (aversionCalculator.aversionFactor(node) *
-                    Vectors.distance(node, node.parent)));
-        }
+        node.score.setG(node.parent.score.getG() + (standingOn != null ? (aversionCalculator.aversionForMaterial(
+                standingOn.data().getMaterial())) : 0) + (aversionCalculator.aversionFactor(node) *
+                Vectors.distance(node, node.parent)));
     }
 
     private void complete(boolean success) {
+        analyzeVisited();
+
         state = success ? State.SUCCEEDED : State.FAILED;
         result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
-
-        validateExplored();
     }
 
     private boolean checkDestinationComparability(Vector3I other) {
@@ -253,9 +252,37 @@ class PathOperationImpl implements PathOperation {
         return Vectors.distanceSquared(bestDestination, other) <= MERGE_TOLERANCE_SQUARED;
     }
 
-    private void validateExplored() {
+    private void analyzeVisited() {
         synchronized (testLock) {
+            ArenaApi.info("Starting analysis for " + visited.size() + " explored nodes.");
 
+            for(PathNode node : visited) {
+                analyzeNode(node);
+            }
+        }
+
+        ArenaApi.info("Analysis concluded.");
+    }
+
+    private void analyzeNode(PathNode node) {
+        if(!Double.isFinite(node.score.getH())) {
+            ArenaApi.warning("Non-finite value for heuristic of PathNode " + node);
+        }
+
+        if(!Double.isFinite(node.score.getG())) {
+            ArenaApi.warning("Non-finite value for g of PathNode " + node);
+        }
+
+        StringBuilder log = new StringBuilder();
+        while(node.parent != null) {
+            log.append(node).append(" is child of ").append(node.parent);
+            node = node.parent;
+        }
+
+        if(!Vectors.equals(node, Vectors.asIntFloor(agent))) {
+            ArenaApi.warning("Improper PathNode linkage.");
+            ArenaApi.warning("Dump:");
+            ArenaApi.warning(log.toString());
         }
     }
 }
