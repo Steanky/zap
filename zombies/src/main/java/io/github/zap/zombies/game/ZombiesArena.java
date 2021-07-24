@@ -37,6 +37,7 @@ import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopDataManager;
+import io.github.zap.zombies.game.data.map.shop.ShopMapping;
 import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
@@ -104,6 +105,11 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     @Getter
     private final ShopDataManager shopDataManager;
 
+    /**
+     * Maps {@link Shop} shop types to {@link ShopMapping}s
+     */
+    private final @NotNull Map<@NotNull String, @NotNull ShopMapping> shopMappings;
+
     @Getter
     private final StatsManager statsManager;
 
@@ -125,13 +131,13 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private final long emptyTimeout;
 
     @Getter
-    private final List<Shop<?>> shops = new ArrayList<>();
+    private final List<Shop<@NotNull ?>> shops = new ArrayList<>();
 
     @Getter
-    private final Map<String, List<Shop<?>>> shopMap = new HashMap<>();
+    private final @NotNull Map<String, List<Shop<@NotNull ?>>> shopMap = new HashMap<>();
 
     @Getter
-    private final Map<String, Event<ShopEventArgs>> shopEvents = new HashMap<>();
+    private final @NotNull Map<@NotNull String, @NotNull Event<@NotNull ShopEventArgs>> shopEvents = new HashMap<>();
 
     @Getter
     private String luckyChestRoom;
@@ -241,6 +247,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     public ZombiesArena(@NotNull Plugin plugin, @NotNull ZombiesArenaManager manager, @NotNull World world,
                         @NotNull MapData map, @NotNull PlayerList<ZombiesPlayer> players,
                         @NotNull BukkitTaskManager taskManager, @NotNull ZombiesEventManager eventManager,
+                        @NotNull Map<@NotNull String, @NotNull ShopMapping> shopMappings,
                         @NotNull EquipmentCreator equipmentCreator,
                         @NotNull RoundHandler roundHandler, @NotNull Spawner spawner,
                         @NotNull DamageHandler damageHandler, @NotNull Set<@NotNull Item> protectedItems,
@@ -253,6 +260,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.equipmentCreator = equipmentCreator;
         this.powerUpManager = manager.getPowerUpManager();
         this.shopDataManager = manager.getShopDataManager();
+        this.shopMappings = shopMappings;
         this.statsManager = manager.getStatsManager();
         this.emptyTimeout = emptyTimeout;
         this.roundHandler = roundHandler;
@@ -988,7 +996,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private void loadShops() {
         for (ShopData shopData : map.getShops()) {
             if (shopData != null) {
-                Shop<@NotNull ?> shop = shopDataManager.createShop(this, shopData);
+                Shop<@NotNull ?> shop = shopMappings.get(shopData.getType()).createShop(shopData);
                 shops.add(shop);
                 shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
                 getShopEvent(shop.getShopType());
@@ -998,7 +1006,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         for(DoorData doorData : map.getDoors()) {
             if (doorData != null) {
-                Shop<@NotNull DoorData> shop = shopDataManager.createShop(this, doorData);
+                Shop<@NotNull DoorData> shop = shopMappings.get(doorData.getType()).createShop(doorData);
                 shops.add(shop);
                 shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
                 shop.display();

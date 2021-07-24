@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface EquipmentDataManager {
 
+    // TODO: all equipment types should be passed into constructor, deserializers should be registered way before
     /**
      * Adds a piece of equipment mapping
      * @param equipmentType The equipmentType key of the equipment type

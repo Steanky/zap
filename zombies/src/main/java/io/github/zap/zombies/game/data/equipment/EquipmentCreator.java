@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 /**
- * Creates {@link Equipment} from its data
+ * Creates {@link Equipment}s from a {@link ZombiesPlayer} and the equipment's data in a specific slot
  */
 public interface EquipmentCreator {
 
