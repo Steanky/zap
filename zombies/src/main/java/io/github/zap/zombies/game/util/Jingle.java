@@ -1,10 +1,12 @@
 package io.github.zap.zombies.game.util;
 
+import io.github.zap.arenaapi.BukkitTaskManager;
 import io.github.zap.zombies.game.ZombiesArena;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -15,23 +17,23 @@ public class Jingle {
 
     /**
      * Plays a set of notes
-     * @param zombiesArena The zombies arena the jingle is played in
+     * @param taskManager The task manager used to optionally dispose the jingle tasks
      * @param jingle The notes to play
      * @param location The location to play the jingle at
      */
-    public static void play(ZombiesArena zombiesArena, List<Note> jingle, JingleListener jingleListener,
-                            Location location) {
-        play(zombiesArena, jingle, jingleListener, location, 0);
+    public static void play(@NotNull BukkitTaskManager taskManager, @NotNull List<@NotNull Note> jingle,
+                            @NotNull JingleListener jingleListener, @NotNull Location location) {
+        play(taskManager, jingle, jingleListener, location, 0);
     }
 
     /**
      * Plays the soundNumberth note of the jingle
-     * @param zombiesArena The zombies arena the jingle is played in
+     * @param taskManager The task manager used to optionally dispose the jingle tasks
      * @param location The location to play the note at
      * @param soundNumber The note number in the jingle
      */
-    public static void play(ZombiesArena zombiesArena, List<Note> jingle, JingleListener jingleListener,
-                            Location location, int soundNumber) {
+    public static void play(@NotNull BukkitTaskManager taskManager, @NotNull List<@NotNull Note> jingle,
+                            @NotNull JingleListener jingleListener, @NotNull Location location, int soundNumber) {
         if (soundNumber < jingle.size()) {
             if (soundNumber == 0) {
                 jingleListener.onStart(jingle);
@@ -40,13 +42,13 @@ public class Jingle {
             World world = location.getWorld();
             Note note = jingle.get(soundNumber);
 
-            zombiesArena.runTaskLater(note.getLength(), () -> {
+            taskManager.runTaskLater(note.getLength(), () -> {
                 for (Sound sound : note.getSounds()) {
                     world.playSound(sound, location.getX(), location.getY(), location.getZ());
                 }
                 jingleListener.onNotePlayed(jingle);
 
-                play(zombiesArena, jingle, jingleListener, location, soundNumber + 1);
+                play(taskManager, jingle, jingleListener, location, soundNumber + 1);
             });
         } else {
             jingleListener.onEnd(jingle);

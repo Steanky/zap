@@ -193,7 +193,7 @@ public class LuckyChest extends Shop<@NotNull LuckyChestData> {
                         roller = player.getPlayer();
                         doneRolling = false;
 
-                        Jingle.play(getArena(), getShopData().getJingle(),
+                        Jingle.play(taskManager, getShopData().getJingle(),
                                 gunSwapper = new GunSwapper(player),
                                 chestLocation.clone().add(0, 1, 0));
 
