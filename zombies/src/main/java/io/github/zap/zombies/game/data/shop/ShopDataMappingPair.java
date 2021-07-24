@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.map.shop;
+package io.github.zap.zombies.game.data.shop;
 
 import org.jetbrains.annotations.NotNull;
 

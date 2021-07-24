@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.shop;
 import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
+import io.github.zap.zombies.game.data.shop.UltimateMachineData;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
 import io.github.zap.zombies.game.player.ZombiesPlayer;

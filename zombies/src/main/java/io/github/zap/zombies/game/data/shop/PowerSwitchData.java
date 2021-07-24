@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.map.shop;
+package io.github.zap.zombies.game.data.shop;
 
 import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
@@ -20,5 +20,5 @@ public class PowerSwitchData extends BlockShopData {
     public PowerSwitchData(Vector blockLocation, Vector hologramLocation) {
         super(ShopType.POWER_SWITCH.name(), false, blockLocation, hologramLocation);
     }
-    
+
 }

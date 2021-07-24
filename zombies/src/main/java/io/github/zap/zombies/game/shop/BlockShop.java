@@ -2,7 +2,7 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.game.data.map.shop.BlockShopData;
+import io.github.zap.zombies.game.data.shop.BlockShopData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.World;

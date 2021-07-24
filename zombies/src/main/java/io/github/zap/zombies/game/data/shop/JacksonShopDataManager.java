@@ -1,11 +1,13 @@
-package io.github.zap.zombies.game.data.map.shop;
+package io.github.zap.zombies.game.data.shop;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
-import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.map.shop.tmtask.*;
 import io.github.zap.zombies.game.shop.*;
-import lombok.Getter;
+import io.github.zap.zombies.game.shop.tmtask.AmmoSupply;
+import io.github.zap.zombies.game.shop.tmtask.DragonWrath;
+import io.github.zap.zombies.game.shop.tmtask.FullRevive;
+import io.github.zap.zombies.game.shop.tmtask.TeamMachineTask;
+import io.github.zap.zombies.game.shop.tmtask.TeamMachineTaskType;
 import org.jetbrains.annotations.NotNull;
 
 /**

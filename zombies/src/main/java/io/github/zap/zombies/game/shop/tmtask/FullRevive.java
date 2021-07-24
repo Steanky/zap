@@ -1,17 +1,19 @@
-package io.github.zap.zombies.game.data.map.shop.tmtask;
+package io.github.zap.zombies.game.shop.tmtask;
 
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayerState;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
+import io.github.zap.zombies.game.data.shop.tmtask.FullReviveData;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Task which revives all knocked down players in an arena
  */
-public class FullRevive extends TeamMachineTask {
+public class FullRevive extends TeamMachineTask<@NotNull FullReviveData> {
 
-    public FullRevive() {
-        super(TeamMachineTaskType.FULL_REVIVE.name());
+    public FullRevive(@NotNull FullReviveData fullReviveData) {
+        super(fullReviveData);
     }
 
     @Override
@@ -33,8 +35,7 @@ public class FullRevive extends TeamMachineTask {
         return false;
     }
 
-    @Override
-    public int getCostForTeamMachine(TeamMachine teamMachine) {
-        return getInitialCost();
+    public int getCost() {
+        return getTeamMachineTaskData().getInitialCost();
     }
 }

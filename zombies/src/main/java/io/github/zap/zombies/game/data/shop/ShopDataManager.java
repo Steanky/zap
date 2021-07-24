@@ -1,6 +1,6 @@
-package io.github.zap.zombies.game.data.map.shop;
+package io.github.zap.zombies.game.data.shop;
 
-import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import io.github.zap.zombies.game.shop.tmtask.TeamMachineTask;
 import org.jetbrains.annotations.NotNull;
 
 /**

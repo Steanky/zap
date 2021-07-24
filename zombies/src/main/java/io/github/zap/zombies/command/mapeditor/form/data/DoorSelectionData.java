@@ -2,7 +2,7 @@ package io.github.zap.zombies.command.mapeditor.form.data;
 
 import io.github.zap.zombies.command.mapeditor.EditorContext;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.data.map.shop.DoorData;
+import io.github.zap.zombies.game.data.shop.DoorData;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;

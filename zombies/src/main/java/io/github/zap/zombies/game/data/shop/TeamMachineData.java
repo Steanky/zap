@@ -1,6 +1,6 @@
-package io.github.zap.zombies.game.data.map.shop;
+package io.github.zap.zombies.game.data.shop;
 
-import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import io.github.zap.zombies.game.data.shop.tmtask.TeamMachineTaskData;
 import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
 import org.bukkit.util.Vector;
@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 public class TeamMachineData extends BlockShopData {
 
-    private List<TeamMachineTask> teamMachineTasks = new ArrayList<>();
+    private List<TeamMachineTaskData> teamMachineTasks = new ArrayList<>();
 
     private TeamMachineData() {
         super(ShopType.TEAM_MACHINE.name(), true, null, null);

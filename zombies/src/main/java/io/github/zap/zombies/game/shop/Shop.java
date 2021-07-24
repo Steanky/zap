@@ -2,8 +2,7 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
-import io.github.zap.zombies.game.data.map.shop.ShopData;
+import io.github.zap.zombies.game.data.shop.ShopData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.World;

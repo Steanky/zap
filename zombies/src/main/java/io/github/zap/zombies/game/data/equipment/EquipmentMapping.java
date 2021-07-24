@@ -7,10 +7,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Mapping to create {@link Equipment}s from its data
  * @param <D> The data type of the equipment
- * @param <L> The level type of the equipment
  */
 @FunctionalInterface
-public interface EquipmentMapping<D extends @NotNull EquipmentData<L>, L extends @NotNull Object> {
+public interface EquipmentMapping<D extends @NotNull EquipmentData<?>> {
 
     /**
      * Creates a piece of equipment
@@ -19,6 +18,6 @@ public interface EquipmentMapping<D extends @NotNull EquipmentData<L>, L extends
      * @param data The data used for the equipment
      * @return The new piece of equipment
      */
-    @NotNull Equipment<D, L> createEquipment(@NotNull ZombiesPlayer player, int slot, D data);
+    @NotNull Equipment<D, @NotNull ?> createEquipment(@NotNull ZombiesPlayer player, int slot, D data);
 
 }

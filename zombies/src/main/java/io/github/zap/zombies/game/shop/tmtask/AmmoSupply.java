@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.map.shop.tmtask;
+package io.github.zap.zombies.game.shop.tmtask;
 
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -7,14 +7,16 @@ import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
+import io.github.zap.zombies.game.data.shop.tmtask.AmmoSupplyData;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Task which refills all gun ammo in a player team
  */
-public class AmmoSupply extends TeamMachineTask {
+public class AmmoSupply extends TeamMachineTask<@NotNull AmmoSupplyData> {
 
-    public AmmoSupply() {
-        super(TeamMachineTaskType.AMMO_SUPPLY.name());
+    public AmmoSupply(@NotNull AmmoSupplyData ammoSupplyData) {
+        super(ammoSupplyData);
     }
 
     @Override
@@ -40,7 +42,8 @@ public class AmmoSupply extends TeamMachineTask {
     }
 
     @Override
-    public int getCostForTeamMachine(TeamMachine teamMachine) {
-        return getInitialCost();
+    public int getCost() {
+        return getTeamMachineTaskData().getInitialCost();
     }
+
 }

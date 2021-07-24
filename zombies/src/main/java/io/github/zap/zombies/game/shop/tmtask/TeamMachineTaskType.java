@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.map.shop.tmtask;
+package io.github.zap.zombies.game.shop.tmtask;
 
 /**
  * Utility enum for packaged team machine tasks

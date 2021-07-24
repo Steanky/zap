@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.map.shop;
+package io.github.zap.zombies.game.data.shop;
 
 import lombok.Getter;
 import org.bukkit.util.Vector;

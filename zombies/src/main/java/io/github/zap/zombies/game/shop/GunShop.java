@@ -11,7 +11,7 @@ import io.github.zap.zombies.game.data.equipment.EquipmentCreator;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.equipment.EquipmentDataManager;
 import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.data.map.shop.GunShopData;
+import io.github.zap.zombies.game.data.shop.GunShopData;
 import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.gun.Gun;

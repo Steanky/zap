@@ -12,6 +12,13 @@ import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.RoomSelectionData;
 import io.github.zap.zombies.command.mapeditor.form.data.ShopSelectionData;
 import io.github.zap.zombies.game.data.map.shop.*;
+import io.github.zap.zombies.game.data.shop.ArmorShopData;
+import io.github.zap.zombies.game.data.shop.GunShopData;
+import io.github.zap.zombies.game.data.shop.LuckyChestData;
+import io.github.zap.zombies.game.data.shop.PerkMachineData;
+import io.github.zap.zombies.game.data.shop.PowerSwitchData;
+import io.github.zap.zombies.game.data.shop.TeamMachineData;
+import io.github.zap.zombies.game.data.shop.UltimateMachineData;
 import io.github.zap.zombies.game.shop.ShopType;
 
 public class NewShopForm extends CommandForm<ShopSelectionData> {

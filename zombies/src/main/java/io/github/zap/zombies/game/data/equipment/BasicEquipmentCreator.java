@@ -19,7 +19,7 @@ public class BasicEquipmentCreator implements EquipmentCreator {
 
     private final @NotNull Map<@NotNull String, @NotNull EquipmentObjectGroupMapping> equipmentObjectGroupMappings;
 
-    private final @NotNull Map<@NotNull String, @NotNull EquipmentMapping<@NotNull ?, @NotNull ?>> equipmentMappings = new HashMap<>();
+    private final @NotNull Map<@NotNull String, @NotNull EquipmentMapping<@NotNull ?>> equipmentMappings = new HashMap<>();
 
     public BasicEquipmentCreator(@NotNull Map<@NotNull String, @NotNull EquipmentObjectGroupMapping> equipmentObjectGroupMappings,
                                  @NotNull List<@NotNull EquipmentDataMappingPair<@NotNull ?, @NotNull ?>> equipmentMappings) {
@@ -42,8 +42,8 @@ public class BasicEquipmentCreator implements EquipmentCreator {
     public <D extends @NotNull EquipmentData<@NotNull ?>> @Nullable Equipment<D, @NotNull ?> createEquipment(@NotNull ZombiesPlayer player,
                                                                                                              int slot,
                                                                                                              D data) {
-        @NotNull EquipmentMapping<@NotNull ?, @NotNull ?> creator = equipmentMappings.get(data.getType());
-        return (creator != null) ? ((EquipmentMapping<D, @NotNull ?>) creator).createEquipment(player, slot, data) : null;
+        @NotNull EquipmentMapping<@NotNull ?> creator = equipmentMappings.get(data.getType());
+        return (creator != null) ? ((EquipmentMapping<D>) creator).createEquipment(player, slot, data) : null;
     }
 
 }

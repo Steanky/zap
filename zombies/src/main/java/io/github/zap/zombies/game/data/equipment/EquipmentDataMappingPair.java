@@ -7,6 +7,6 @@ import org.jetbrains.annotations.NotNull;
  * @param <D> The type of the equipment data
  * @param <M> The type of the mapping
  */
-public record EquipmentDataMappingPair<D extends @NotNull EquipmentData<@NotNull ?>, M extends @NotNull EquipmentMapping<D, @NotNull ?>>(D data, M mapping) {
+public record EquipmentDataMappingPair<D extends @NotNull EquipmentData<@NotNull ?>, M extends @NotNull EquipmentMapping<D>>(D data, M mapping) {
 
 }

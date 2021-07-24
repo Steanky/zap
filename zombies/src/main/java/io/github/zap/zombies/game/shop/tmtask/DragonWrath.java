@@ -1,10 +1,11 @@
-package io.github.zap.zombies.game.data.map.shop.tmtask;
+package io.github.zap.zombies.game.shop.tmtask;
 
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
+import io.github.zap.zombies.game.data.shop.tmtask.DragonWrathData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -12,7 +13,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +23,7 @@ import java.util.UUID;
  * Task which kills all zombies within a certain radius of the activating player
  */
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
-public class DragonWrath extends TeamMachineTask implements Damager {
+public class DragonWrath extends TeamMachineTask<@NotNull DragonWrathData> implements Damager {
 
     private static class DragonWrathDamage implements DamageAttempt {
         @Override
@@ -52,18 +52,12 @@ public class DragonWrath extends TeamMachineTask implements Damager {
         }
     }
 
-    private int costIncrement = 1000;
-
-    private int delay = 30;
-
-    private double radius = 15D;
-
-    public DragonWrath() {
-        super(TeamMachineTaskType.DRAGON_WRATH.name());
+    public DragonWrath(DragonWrathData dragonWrathData) {
+        super(dragonWrathData);
     }
 
     @Override
-    public boolean execute(TeamMachine teamMachine, ZombiesPlayer zombiesPlayer) {
+    public boolean execute(TeamMachine teamMachine, ZombiesArena arena, ZombiesPlayer zombiesPlayer) {
         if (super.execute(teamMachine, zombiesArena, zombiesPlayer)) {
             Location location = teamMachine.getBlock().getLocation();
             Set<UUID> mobIds = zombiesArena.getEntitySet();
@@ -99,12 +93,9 @@ public class DragonWrath extends TeamMachineTask implements Damager {
     }
 
     @Override
-    public int getCostForTeamMachine(TeamMachine teamMachine) {
-        return getInitialCost() + (costIncrement * getTimesUsed().getValue(teamMachine));
+    public int getCost() {
+        return getTeamMachineTaskData().getInitialCost()
+                + (getTeamMachineTaskData().getCostIncrement() * getTimesUsed());
     }
 
-    @Override
-    public void onDealsDamage(@NotNull DamageAttempt item, @NotNull Mob damaged, double deltaHealth) {
-
-    }
 }

@@ -6,9 +6,10 @@ import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.game.arena.event.ManagedPlayerArgs;
 import io.github.zap.arenaapi.game.arena.player.PlayerList;
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
-import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import io.github.zap.zombies.game.data.shop.TeamMachineData;
+import io.github.zap.zombies.game.data.shop.tmtask.TeamMachineTaskCreator;
+import io.github.zap.zombies.game.data.shop.tmtask.TeamMachineTaskData;
+import io.github.zap.zombies.game.shop.tmtask.TeamMachineTask;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
@@ -20,13 +21,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,15 +43,16 @@ public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements 
 
     private final @NotNull Inventory inventory;
 
-    private final @NotNull Map<Integer, TeamMachineTask> slotMap = new HashMap<>();
+    private final @NotNull Map<Integer, TeamMachineTask<@NotNull ?>> slotMap = new HashMap<>();
 
     private final @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList;
 
     public TeamMachine(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull TeamMachineData shopData,
-                       @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList) {
+                       @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList,
+                       @NotNull TeamMachineTaskCreator teamMachineTaskCreator) {
         super(world, eventManager, shopData);
 
-        this.inventory = prepareInventory();
+        this.inventory = prepareInventory(teamMachineTaskCreator);
         this.playerList = playerList;
     }
 
@@ -110,7 +112,7 @@ public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements 
 
             if (player != null) {
                 inventoryClickEvent.setCancelled(true);
-                TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
+                TeamMachineTask<@NotNull ?> teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
 
                 if (teamMachineTask != null && teamMachineTask.execute(this, arena, player)) {
                     Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
@@ -119,13 +121,13 @@ public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements 
                         otherBukkitPlayer.sendMessage(
                                 String.format("%sPlayer %s purchased %s from the Team Machine!", ChatColor.YELLOW,
                                         player.getPlayer().getName(),
-                                        teamMachineTask.getDisplayName()));
+                                        teamMachineTask.getTeamMachineTaskData().getDisplayName()));
                         otherBukkitPlayer.playSound(sound);
                     }
                     humanEntity.closeInventory();
 
                     inventory.setItem(inventoryClickEvent.getSlot(),
-                            teamMachineTask.getItemStackRepresentationForTeamMachine(this)); // update costs
+                            teamMachineTask.getItemStackRepresentationForTeamMachine()); // update costs
 
                     onPurchaseSuccess(player);
                 }
@@ -136,11 +138,19 @@ public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements 
     /**
      * Uses magic from TachibanaYui to choose the slots which correspond
      * to team machine tasks within the team machine GUI
+     * @param teamMachineTaskCreator The team machine task creator to convert data to team machine tasks
      * @return The resulting inventory
      */
-    private Inventory prepareInventory() {
+    private Inventory prepareInventory(@NotNull TeamMachineTaskCreator teamMachineTaskCreator) {
         Inventory inventory;
-        List<TeamMachineTask> teamMachineTasks = getShopData().getTeamMachineTasks();
+        List<@NotNull TeamMachineTask<@NotNull ?>> teamMachineTasks = new ArrayList<>();
+        for (@NotNull TeamMachineTaskData teamMachineTaskData : getShopData().getTeamMachineTasks()) {
+            TeamMachineTask<@NotNull ?> task = teamMachineTaskCreator.createTeamMachineTask(teamMachineTaskData);
+            if (task != null) {
+                teamMachineTasks.add(task);
+            }
+        }
+
         int num = teamMachineTasks.size();
 
         if (num > 0) {
@@ -169,9 +179,9 @@ public class TeamMachine extends BlockShop<@NotNull TeamMachineData> implements 
                     int slot = (18 * w + 9) / (2 * lineCount);
                     int pos = (h + offset) * 9 + slot;
 
-                    TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
+                    TeamMachineTask<@NotNull ?> teamMachineTask = teamMachineTasks.get(index);
                     ItemStack teamMachineItemStackRepresentation
-                            = teamMachineTask.getItemStackRepresentationForTeamMachine(this);
+                            = teamMachineTask.getItemStackRepresentationForTeamMachine();
 
                     inventory.setItem(pos, teamMachineItemStackRepresentation);
                     slotMap.put(pos, teamMachineTask);

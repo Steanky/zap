@@ -1,4 +1,4 @@
-package io.github.zap.zombies.game.data.map.shop;
+package io.github.zap.zombies.game.data.shop;
 
 import io.github.zap.zombies.game.shop.ShopType;
 import io.github.zap.zombies.game.util.Jingle;

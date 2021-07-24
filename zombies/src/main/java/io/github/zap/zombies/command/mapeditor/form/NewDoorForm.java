@@ -12,7 +12,7 @@ import io.github.zap.zombies.command.mapeditor.MapeditorValidators;
 import io.github.zap.zombies.command.mapeditor.Regexes;
 import io.github.zap.zombies.command.mapeditor.form.data.DoorSelectionData;
 import io.github.zap.zombies.command.mapeditor.form.data.MapSelectionData;
-import io.github.zap.zombies.game.data.map.shop.DoorData;
+import io.github.zap.zombies.game.data.shop.DoorData;
 
 import java.util.List;
 
