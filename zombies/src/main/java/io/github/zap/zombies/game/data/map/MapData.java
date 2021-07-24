@@ -244,7 +244,7 @@ public class MapData {
     /**
      * Rounds that cannot spawn powerups.
      */
-    Set<Integer> disablePowerUpRound = new HashSet<>();
+    Set<Integer> disablePowerUpRounds = new HashSet<>();
 
     /**
      * All the rounds in the game

@@ -1,13 +1,16 @@
 package io.github.zap.zombies.game.powerups.spawnrules;
 
 import io.github.zap.arenaapi.event.Event;
-import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.arena.round.RoundHandler;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
+import io.github.zap.zombies.game.powerups.managers.PowerUpCreator;
 import lombok.Getter;
 import org.bukkit.Location;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
@@ -15,12 +18,16 @@ import java.util.Collections;
  * This class or its subclasses create Power ups when a condition is met
  * @param <T>
  */
-public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
-    @Getter
-    private final T data;
+public abstract class PowerUpSpawnRule<T extends @NotNull SpawnRuleData> {
+
+    private final @NotNull MapData map;
+
+    private final @NotNull PowerUpCreator powerUpCreator;
+
+    private final @NotNull RoundHandler roundHandler;
 
     @Getter
-    private final ZombiesArena arena;
+    private final T data;
 
     @Getter
     private final Event<PowerUp> powerUpSpawned = new Event<>();
@@ -28,9 +35,12 @@ public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
     @Getter
     private final String spawnTargetName;
 
-    public PowerUpSpawnRule(String spawnTargetName, T data, ZombiesArena arena) {
+    public PowerUpSpawnRule(@NotNull MapData map, @NotNull PowerUpCreator powerUpCreator,
+                            @NotNull RoundHandler roundHandler, T data, @NotNull String spawnTargetName) {
+        this.map = map;
+        this.powerUpCreator = powerUpCreator;
+        this.roundHandler = roundHandler;
         this.data = data;
-        this.arena = arena;
         this.spawnTargetName = spawnTargetName;
     }
 
@@ -39,8 +49,8 @@ public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
      * @return Whether this round disables power up
      */
     public boolean isDisabledRound() {
-        var disabledRounds = getArena().getMap().getDisablePowerUpRound();
-        var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena());
+        var disabledRounds = map.getDisablePowerUpRounds();
+        var currentRound = roundHandler.getCurrentRoundIndex();
         return disabledRounds.contains(currentRound);
     }
 
@@ -48,8 +58,8 @@ public abstract class PowerUpSpawnRule<T extends SpawnRuleData> {
      * Spawn the targeted power up
      * @param loc the location to spawn
      */
-    protected void spawn(Location loc) {
-        var pu = getArena().getPowerUpManager().createPowerUp(getSpawnTargetName(), getArena());
+    protected void spawn(@NotNull Location loc) {
+        var pu = powerUpCreator.createPowerUp(getSpawnTargetName());
         pu.spawnItem(loc);
         powerUpSpawned.callEvent(pu);
         var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ADD, Collections.singleton(pu));

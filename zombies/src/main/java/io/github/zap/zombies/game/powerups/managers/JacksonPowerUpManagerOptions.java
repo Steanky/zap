@@ -3,7 +3,7 @@ package io.github.zap.zombies.game.powerups.managers;
 import lombok.Value;
 
 /**
- * Represent options for instantiating JacksonPowerUpManager
+ * Represent options for instantiating JacksonPowerUpDataManager
  */
 @Value
 public class JacksonPowerUpManagerOptions {

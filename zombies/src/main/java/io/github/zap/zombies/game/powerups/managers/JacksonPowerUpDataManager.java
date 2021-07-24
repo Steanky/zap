@@ -15,6 +15,7 @@ import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.powerups.spawnrules.SpawnRuleType;
 import lombok.Getter;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -27,13 +28,13 @@ import java.util.logging.Level;
  * Manages loaded power ups that use json format
  * order of add/register: Power-up type -> Power-up / spawn rule type -> spawn rule
  */
-public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoading {
+public class JacksonPowerUpDataManager implements PowerUpDataManager, SupportEagerLoading {
     private final FieldTypeDeserializer<PowerUpData> powerUpDataDeserializer = new FieldTypeDeserializer<>("type");
     private final FieldTypeDeserializer<SpawnRuleData> spawnRuleDataFieldTypeDeserializer = new FieldTypeDeserializer<>("type");
     private final Map<String, PowerUpData> dataMap = new HashMap<>();
     private final Map<String, Pair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> typeMap = new HashMap<>();
     private final Map<String, SpawnRuleData> spawnRuleDataMap = new HashMap<>();
-    private final Map<String, Pair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> spawnRuleTypeMap = new HashMap<>();
+    private final Map<String, Pair<SpawnRuleCtor<@NotNull ?, ?>, Class<? extends SpawnRuleData>>> spawnRuleTypeMap = new HashMap<>();
 
     @Getter
     private boolean loaded;
@@ -46,7 +47,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     @Getter
     private final JacksonPowerUpManagerOptions options;
 
-    public JacksonPowerUpManager(DataLoader dataLoader, JacksonPowerUpManagerOptions options) {
+    public JacksonPowerUpDataManager(DataLoader dataLoader, JacksonPowerUpManagerOptions options) {
         this.dataLoader = dataLoader;
         this.options = options;
         ArenaApi.getInstance().addDeserializer(PowerUpData.class, powerUpDataDeserializer);
@@ -202,12 +203,12 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     }
 
     @Override
-    public Set<Pair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> getSpawnRuleInitializers() {
+    public Set<Pair<SpawnRuleCtor<@NotNull ?, ?>, Class<? extends SpawnRuleData>>> getSpawnRuleInitializers() {
         return new HashSet<>(spawnRuleTypeMap.values());
     }
 
     @Override
-    public void registerSpawnRule(String name, SpawnRuleCtor<?, ?> initializer, Class<? extends SpawnRuleData> dataClass) {
+    public void registerSpawnRule(String name, SpawnRuleCtor<@NotNull ?, ?> initializer, Class<? extends SpawnRuleData> dataClass) {
         ensureLoad();
         Validate.isTrue(!spawnRuleTypeMap.containsKey(name), name + " is already exist!");
         spawnRuleTypeMap.put(name, Pair.of(initializer, dataClass));
@@ -267,7 +268,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     }
 
     @Override
-    public PowerUpSpawnRule<?> createSpawnRule(String name, String powerUpName, ZombiesArena arena) {
+    public PowerUpSpawnRule<@NotNull ?> createSpawnRule(String name, String powerUpName, ZombiesArena arena) {
         ensureLoad();
         Validate.isTrue(spawnRuleDataMap.containsKey(name), "spawn rule " + name + " does not exist");
         var data = spawnRuleDataMap.get(name);

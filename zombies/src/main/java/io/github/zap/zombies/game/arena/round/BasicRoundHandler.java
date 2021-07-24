@@ -1,39 +1,30 @@
 package io.github.zap.zombies.game.arena.round;
 
-import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.game.arena.player.PlayerList;
 import io.github.zap.arenaapi.stats.StatsManager;
-import io.github.zap.arenaapi.util.MetadataHelper;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.RoundContext;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.arena.spawner.Spawner;
 import io.github.zap.zombies.game.arena.spawner.ZombieCountChangedArgs;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.RoundData;
-import io.github.zap.zombies.game.data.map.SpawnEntryData;
-import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
-import org.bukkit.entity.Entity;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Basic implementation of a {@link RoundHandler}
@@ -140,7 +131,7 @@ public class BasicRoundHandler implements RoundHandler {
                         1.0F, 0.5F));
             }
 
-            if (map.getDisablePowerUpRound().contains(targetRound + 1)) {
+            if (map.getDisablePowerUpRounds().contains(targetRound + 1)) {
                 for (@NotNull PowerUp powerUp : powerUps) {
                     if (powerUp.getState() == PowerUpState.NONE || powerUp.getState() == PowerUpState.DROPPED) {
                         powerUp.deactivate();

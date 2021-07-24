@@ -15,9 +15,9 @@ import io.github.zap.zombies.game.data.equipment.JacksonEquipmentDataManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.JacksonShopDataManager;
 import io.github.zap.zombies.game.data.map.shop.ShopDataManager;
-import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
+import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpDataManager;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
-import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
+import io.github.zap.zombies.game.powerups.managers.PowerUpDataManager;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.map.MapStats;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
@@ -43,7 +43,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     private final EquipmentDataManager equipmentDataManager;
 
     @Getter
-    private final PowerUpManager powerUpManager;
+    private final PowerUpDataManager powerUpDataManager;
 
     @Getter
     private final ShopDataManager shopDataManager;
@@ -66,8 +66,8 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                                int arenaCapacity, int arenaTimeout) {
         super(NAME, hubLocation, createStatsManager(playerStatsLoader, mapStatsLoader));
         this.equipmentDataManager = new JacksonEquipmentDataManager(equipmentLoader);
-        this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpManagerOptions());
-        ((JacksonPowerUpManager) this.powerUpManager).load();
+        this.powerUpDataManager = new JacksonPowerUpDataManager(powerUpLoader, new JacksonPowerUpManagerOptions());
+        ((JacksonPowerUpDataManager) this.powerUpDataManager).load();
         this.shopDataManager = new JacksonShopDataManager();
         this.arenaCapacity = arenaCapacity;
         this.arenaTimeout = arenaTimeout;

@@ -5,14 +5,18 @@ import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.mutable.MutableInt
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.arena.round.RoundHandler;
+import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.SpawnEntryData;
 import io.github.zap.zombies.game.data.map.WaveData;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
+import io.github.zap.zombies.game.powerups.managers.PowerUpCreator;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.metadata.MetadataValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Random;
@@ -22,9 +26,12 @@ import java.util.stream.Collectors;
  * The default spawnrule that similar to Hypixel
  */
 @SpawnRuleType(getName = "Default")
-public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpawnRuleData> implements Disposable {
-    public DefaultPowerUpSpawnRule(String spawnTargetName, DefaultPowerUpSpawnRuleData data, ZombiesArena arena) {
-        super(spawnTargetName, data, arena);
+public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<@NotNull DefaultPowerUpSpawnRuleData> implements Disposable {
+
+    public DefaultPowerUpSpawnRule(@NotNull MapData map, @NotNull PowerUpCreator powerUpCreator,
+                                   @NotNull RoundHandler roundHandler, DefaultPowerUpSpawnRuleData data,
+                                   @NotNull String spawnTargetName) {
+        super(map, powerUpCreator, roundHandler, data, spawnTargetName);
         getArena().getProxyFor(EntityDeathEvent.class).registerHandler(this::onMobDeath);
 
         // Avoid spawning stuff inside windows

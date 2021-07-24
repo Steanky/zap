@@ -13,9 +13,11 @@ import java.util.function.BiFunction;
 /**
  * Manages loaded power ups
  */
-public interface PowerUpManager {
+public interface PowerUpDataManager {
+
+    // fix like shop and equipment managers
     /**
-     * Retrieve all power up data loaded by this PowerUpManager
+     * Retrieve all power up data loaded by this PowerUpDataManager
      * @return a Set contains all power up data
      */
     Set<PowerUpData> getDataSet();
@@ -33,7 +35,7 @@ public interface PowerUpManager {
     void removePowerUpsData(String name);
 
     /**
-     * Get all the spawnrules data loaded by this PowerUpManager
+     * Get all the spawnrules data loaded by this PowerUpDataManager
      * @return a Set contains all spawnrule data
      */
     Set<SpawnRuleData> getSpawnRules();
@@ -51,7 +53,7 @@ public interface PowerUpManager {
     void removeSpawnRuleData(String name);
 
     /**
-     * Retrieve all power up class initializers loaded by this PowerUpManager
+     * Retrieve all power up class initializers loaded by this PowerUpDataManager
      * @return a Set contains all power up class initializers
      */
     Set<Pair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers();
@@ -84,7 +86,7 @@ public interface PowerUpManager {
     void unregisterPowerUp(String name);
 
     /**
-     * Retrieve all spawnrule class initializers loaded by this PowerUpManager
+     * Retrieve all spawnrule class initializers loaded by this PowerUpDataManager
      * @return a Set contains all spawnrule class initializers
      */
     Set<Pair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> getSpawnRuleInitializers();

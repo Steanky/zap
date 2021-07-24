@@ -45,7 +45,7 @@ import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpBossBar;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
-import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
+import io.github.zap.zombies.game.powerups.managers.PowerUpDataManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
@@ -100,7 +100,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private final @NotNull EquipmentCreator equipmentCreator;
 
     @Getter
-    private final PowerUpManager powerUpManager;
+    private final PowerUpDataManager powerUpDataManager;
 
     @Getter
     private final ShopDataManager shopDataManager;
@@ -258,7 +258,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.map = map;
         this.equipmentDataManager = manager.getEquipmentDataManager();
         this.equipmentCreator = equipmentCreator;
-        this.powerUpManager = manager.getPowerUpManager();
+        this.powerUpDataManager = manager.getPowerUpDataManager();
         this.shopDataManager = manager.getShopDataManager();
         this.shopMappings = shopMappings;
         this.statsManager = manager.getStatsManager();
@@ -278,7 +278,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         bestTimesHologram = setupTimeLeaderboard();
 
-        getMap().getPowerUpSpawnRules().forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpManager()
+        getMap().getPowerUpSpawnRules().forEach(x -> powerUpSpawnRules.add(Pair.of(getPowerUpDataManager()
                 .createSpawnRule(x.getLeft(), x.getRight(), this), x.getRight())));
 
         BoundingBox bounds = map.getMapBounds();
