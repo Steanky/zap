@@ -17,13 +17,13 @@ import org.jetbrains.annotations.Nullable;
  * @param <E> The perk executor type
  * @param <T> The type of arguments the event passes to the perk executor
  */
-public abstract class Perk<D extends @NotNull PerkData<@NotNull L>, L extends @NotNull PerkLevel,
-        E extends @Nullable Event<@NotNull T>, @NotNull T>
+public abstract class Perk<D extends @NotNull PerkData<L>, L extends @NotNull PerkLevel,
+        E extends @Nullable Event<T>, T extends @NotNull Object>
         extends UpgradeableEquipment<D, L> {
 
     private final E actionTriggerEvent;
 
-    public Perk(@NotNull ZombiesPlayer player, int slot, @NotNull D perkData, @Nullable E actionTriggerEvent) {
+    public Perk(@NotNull ZombiesPlayer player, int slot, D perkData, E actionTriggerEvent) {
         super(player, slot, perkData);
 
         this.actionTriggerEvent = actionTriggerEvent;

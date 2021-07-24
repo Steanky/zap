@@ -28,7 +28,7 @@ public abstract class Shop<D extends @NotNull ShopData> {
 
     private boolean powered = false;
 
-    public Shop(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull D shopData) {
+    public Shop(@NotNull World world, @NotNull ShopEventManager eventManager, D shopData) {
         this.world = world;
         this.eventManager = eventManager;
         this.shopData = shopData;

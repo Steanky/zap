@@ -21,32 +21,28 @@ import io.github.zap.arenaapi.pathfind.ChunkBounds;
 import io.github.zap.arenaapi.shadow.com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.arenaapi.stats.StatsManager;
-import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.ChunkLoadHandler;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.arena.damage.BasicDamageHandler;
 import io.github.zap.zombies.game.arena.damage.DamageHandler;
 import io.github.zap.zombies.game.arena.event.ZombiesEventManager;
 import io.github.zap.zombies.game.arena.round.RoundHandler;
-import io.github.zap.zombies.game.arena.spawner.BasicSpawner;
 import io.github.zap.zombies.game.arena.spawner.Spawner;
 import io.github.zap.zombies.game.corpse.Corpse;
+import io.github.zap.zombies.game.data.equipment.EquipmentCreator;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.equipment.EquipmentDataManager;
 import io.github.zap.zombies.game.data.map.*;
 import io.github.zap.zombies.game.data.map.shop.DoorData;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
 import io.github.zap.zombies.game.data.map.shop.ShopDataManager;
-import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
+import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpBossBar;
-import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
@@ -56,13 +52,7 @@ import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.map.MapStats;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.adapters.AbstractLocation;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitWorld;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
-import io.lumine.xikage.mythicmobs.mobs.MythicMob;
 import lombok.Getter;
-import lombok.Value;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -83,7 +73,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -93,8 +82,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Encapsulates an active Zombies game and handles most related logic.
@@ -107,7 +94,9 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     private final Hologram bestTimesHologram;
 
     @Getter
-    private final EquipmentManager equipmentManager;
+    private final EquipmentDataManager equipmentDataManager;
+
+    private final @NotNull EquipmentCreator equipmentCreator;
 
     @Getter
     private final PowerUpManager powerUpManager;
@@ -252,6 +241,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     public ZombiesArena(@NotNull Plugin plugin, @NotNull ZombiesArenaManager manager, @NotNull World world,
                         @NotNull MapData map, @NotNull PlayerList<ZombiesPlayer> players,
                         @NotNull BukkitTaskManager taskManager, @NotNull ZombiesEventManager eventManager,
+                        @NotNull EquipmentCreator equipmentCreator,
                         @NotNull RoundHandler roundHandler, @NotNull Spawner spawner,
                         @NotNull DamageHandler damageHandler, @NotNull Set<@NotNull Item> protectedItems,
                         long emptyTimeout) {
@@ -259,7 +249,8 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         this.resourceManager = new ResourceManager(plugin);
         this.plugin = plugin;
         this.map = map;
-        this.equipmentManager = manager.getEquipmentManager();
+        this.equipmentDataManager = manager.getEquipmentDataManager();
+        this.equipmentCreator = equipmentCreator;
         this.powerUpManager = manager.getPowerUpManager();
         this.shopDataManager = manager.getShopDataManager();
         this.statsManager = manager.getStatsManager();
@@ -611,7 +602,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
         if (event.getHand() == EquipmentSlot.HAND && player.isAlive()) {
             boolean noInteractions = true;
             if (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR) {
-                for (Shop<?> shop : shops) {
+                for (Shop<@NotNull ?> shop : shops) {
                     if (shop.interact(args)) {
                         noInteractions = false;
                         break;
@@ -632,7 +623,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         if (args.event().getHand() == EquipmentSlot.HAND && player.isAlive()) {
             boolean noInteractions = true;
-            for (Shop<?> shop : shops) {
+            for (Shop<@NotNull ?> shop : shops) {
                 if (shop.interact(args)) {
                     noInteractions = false;
                     break;
@@ -877,13 +868,13 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                 ZombiesHotbarManager hotbarManager = player.getHotbarManager();
                 for (Map.Entry<String, Set<Integer>> hotbarObjectGroupSlot : map
                         .getHotbarObjectGroupSlots().entrySet()) {
-                    hotbarManager.addEquipmentObjectGroup(equipmentManager
+                    hotbarManager.addEquipmentObjectGroup(equipmentCreator
                             .createEquipmentObjectGroup(hotbarObjectGroupSlot.getKey(), player.getPlayer(),
                                     hotbarObjectGroupSlot.getValue()));
                 }
 
-                for(String equipment : map.getDefaultEquipments()) {
-                    EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(map.getName(), equipment);
+                for(String deafultEquipment : map.getDefaultEquipments()) {
+                    EquipmentData<?> equipmentData = equipmentDataManager.getEquipmentData(map.getName(), deafultEquipment);
 
                     if(equipmentData != null) {
                         HotbarObjectGroup hotbarObjectGroup = hotbarManager
@@ -893,13 +884,18 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
                             Integer slot = hotbarObjectGroup.getNextEmptySlot();
 
                             if (slot != null) {
-                                hotbarManager.setHotbarObject(slot, equipmentManager
-                                        .createEquipment(this, player, slot, equipmentData));
+                                Equipment<@NotNull ?, @NotNull ?> equipment = equipmentCreator.createEquipment(player, slot, equipmentData);
+                                if (equipment != null) {
+                                    hotbarManager.setHotbarObject(slot, equipment);
+                                }
+                                else {
+                                    Zombies.warning("Failed to create default equipment " + deafultEquipment + "!");
+                                }
                             }
                         }
                     }
                     else {
-                        Zombies.warning("Default equipment " + equipment + " does not exist!");
+                        Zombies.warning("Default equipment " + deafultEquipment + " does not exist!");
                     }
                 }
 
@@ -987,21 +983,12 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
     }
 
     /**
-     * Gets the shop event for a shop type or creates a new one
-     * @param shopType The shop type string representation
-     * @return The shop type's event
-     */
-    public Event<ShopEventArgs> getShopEvent(String shopType) {
-        return shopEvents.computeIfAbsent(shopType, (unused) -> new Event<>());
-    }
-
-    /**
      * Loads shops; should be called just before the game begins
      */
     private void loadShops() {
         for (ShopData shopData : map.getShops()) {
             if (shopData != null) {
-                Shop<?> shop = shopDataManager.createShop(this, shopData);
+                Shop<@NotNull ?> shop = shopDataManager.createShop(this, shopData);
                 shops.add(shop);
                 shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
                 getShopEvent(shop.getShopType());
@@ -1011,7 +998,7 @@ public class ZombiesArena extends Arena<ZombiesArena> implements Listener {
 
         for(DoorData doorData : map.getDoors()) {
             if (doorData != null) {
-                Shop<DoorData> shop = shopDataManager.createShop(this, doorData);
+                Shop<@NotNull DoorData> shop = shopDataManager.createShop(this, doorData);
                 shops.add(shop);
                 shopMap.computeIfAbsent(shop.getShopType(), (unused) -> new ArrayList<>()).add(shop);
                 shop.display();

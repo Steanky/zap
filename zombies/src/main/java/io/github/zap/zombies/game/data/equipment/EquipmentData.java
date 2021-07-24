@@ -17,7 +17,7 @@ import java.util.List;
  * Data for a piece of generic equipment
  * @param <L> The type of the equipment levels
  */
-public abstract class EquipmentData<@NotNull L> {
+public abstract class EquipmentData<L extends @NotNull Object> {
 
     private String type;
 
@@ -29,14 +29,14 @@ public abstract class EquipmentData<@NotNull L> {
 
     private List<String> lore;
 
-    private List<@NotNull L> levels;
+    private List<L> levels;
 
     protected EquipmentData() {
 
     }
 
     public EquipmentData(@NotNull String type, @NotNull String name, @NotNull String displayName,
-                         @NotNull Material material, @NotNull List<String> lore, @NotNull List<@NotNull L> levels) {
+                         @NotNull Material material, @NotNull List<String> lore, @NotNull List<L> levels) {
         this.type = type;
         this.name = name;
         this.displayName = displayName;
@@ -150,7 +150,7 @@ public abstract class EquipmentData<@NotNull L> {
      * Gets the levels of the equipment
      * @return The levels
      */
-    public @NotNull List<@NotNull L> getLevels() {
+    public @NotNull List<L> getLevels() {
         return levels;
     }
 

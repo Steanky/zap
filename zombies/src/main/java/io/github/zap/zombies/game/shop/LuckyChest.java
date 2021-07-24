@@ -12,10 +12,12 @@ import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.equipment.EquipmentCreator;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.equipment.EquipmentDataManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.LuckyChestData;
+import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.util.Jingle;
@@ -54,9 +56,9 @@ public class LuckyChest extends Shop<@NotNull LuckyChestData> {
 
     private final @NotNull Hologram hologram;
 
-    private final @NotNull EquipmentManager equipmentManager;
+    private final @NotNull EquipmentCreator equipmentCreator;
 
-    private final @NotNull List<EquipmentData<?>> equipments = new ArrayList<>();
+    private final @NotNull List<@NotNull EquipmentData<@NotNull ?>> equipments = new ArrayList<>();
 
     private final @NotNull BukkitTaskManager taskManager;
 
@@ -69,8 +71,8 @@ public class LuckyChest extends Shop<@NotNull LuckyChestData> {
     private Player roller;
 
     public LuckyChest(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull LuckyChestData shopData,
-                      @NotNull MapData map, @NotNull EquipmentManager equipmentManager,
-                      @NotNull BukkitTaskManager taskManager) {
+                      @NotNull MapData map, @NotNull EquipmentDataManager equipmentDataManager,
+                      @NotNull EquipmentCreator equipmentCreator, @NotNull BukkitTaskManager taskManager) {
         super(world, eventManager, shopData);
 
         Vector chestLocation = shopData.getChestLocation();
@@ -94,11 +96,14 @@ public class LuckyChest extends Shop<@NotNull LuckyChestData> {
 
         hologram = new Hologram(this.chestLocation.clone());
 
-        this.equipmentManager = equipmentManager;
         String mapName = map.getName();
         for (String equipmentName : shopData.getEquipments()) {
-            equipments.add(equipmentManager.getEquipmentData(mapName, equipmentName));
+            EquipmentData<@NotNull ?> equipmentData = equipmentDataManager.getEquipmentData(mapName, equipmentName);
+            if (equipmentData != null) {
+                equipments.add(equipmentData);
+            }
         }
+        this.equipmentCreator = equipmentCreator;
 
         this.taskManager = taskManager;
     }
@@ -217,7 +222,7 @@ public class LuckyChest extends Shop<@NotNull LuckyChestData> {
      * @return Whether claim was successful
      */
     private boolean attemptToClaim(@NotNull ZombiesPlayer player) {
-        EquipmentData<?> equipmentData = gunSwapper.currentEquipment;
+        EquipmentData<@NotNull ?> equipmentData = gunSwapper.currentEquipment;
         HotbarObjectGroup equipmentObjectGroup = player.getHotbarManager()
                 .getHotbarObjectGroup(equipmentData.getEquipmentObjectGroupType());
 
@@ -234,16 +239,20 @@ public class LuckyChest extends Shop<@NotNull LuckyChestData> {
                 }
             }
             if (nextSlot != null) {
-                ZombiesArena zombiesArena = getArena();
-                equipmentObjectGroup.setHotbarObject(nextSlot,
-                        zombiesArena.getEquipmentManager().createEquipment(zombiesArena,
-                                player, nextSlot, equipmentData));
+                Equipment<@NotNull ?, @NotNull ?> equipment = equipmentCreator.createEquipment(player, nextSlot,
+                        equipmentData);
+                if (equipment != null) {
+                    equipmentObjectGroup.setHotbarObject(nextSlot, equipment);
+                    player.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
+                            Sound.Source.MASTER, 1.0F, 2.0F));
+                }
+                else {
+                    Zombies.warning("Failed to create equipment with name " + equipmentData.getName() + "!");
+                    player.getPlayer().sendMessage(Component.text("This shop was not set up correctly",
+                            NamedTextColor.RED));
+                }
 
                 gunSwapper.destroy();
-
-                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
-                        Sound.Source.MASTER, 1.0F, 2.0F));
-
                 return true;
             } else {
                 player.getPlayer().sendMessage(Component.text("Choose a slot to receive the item in!",
@@ -292,7 +301,7 @@ public class LuckyChest extends Shop<@NotNull LuckyChestData> {
 
         private final Item item;
 
-        private EquipmentData<?> currentEquipment;
+        private EquipmentData<@NotNull ?> currentEquipment;
 
         private int sittingTaskId;
 

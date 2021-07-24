@@ -7,11 +7,12 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.equipment.EquipmentCreator;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.equipment.EquipmentDataManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.GunShopData;
+import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.equipment.gun.GunObjectGroup;
@@ -24,7 +25,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -41,7 +41,9 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
 
     private final @NotNull MapData map;
 
-    private final @NotNull EquipmentManager equipmentManager;
+    private final @NotNull EquipmentDataManager equipmentDataManager;
+
+    private final @NotNull EquipmentCreator equipmentCreator;
 
     private final @NotNull Set<@NotNull Item> protectedItems;
 
@@ -49,12 +51,14 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
 
     public GunShop(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull GunShopData shopData,
                    @NotNull PlayerList<? extends @NotNull ZombiesPlayer> playerList, @NotNull MapData map,
-                   @NotNull EquipmentManager equipmentManager, @NotNull Set<@NotNull Item> protectedItems) {
+                   @NotNull EquipmentDataManager equipmentDataManager, @NotNull EquipmentCreator equipmentCreator,
+                   @NotNull Set<@NotNull Item> protectedItems) {
         super(world, eventManager, shopData);
 
         this.playerList = playerList;
         this.map = map;
-        this.equipmentManager = equipmentManager;
+        this.equipmentDataManager = equipmentDataManager;
+        this.equipmentCreator = equipmentCreator;
         this.protectedItems = protectedItems;
     }
 
@@ -74,8 +78,8 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
         if (item == null) {
             World world = getWorld();
 
-            EquipmentData<?> equipmentData = equipmentManager
-                    .getEquipmentData(map.getName(), getShopData().getGunName());
+            EquipmentData<?> equipmentData = equipmentDataManager.getEquipmentData(map.getName(),
+                    getShopData().getGunName());
 
             if (equipmentData == null) {
                 Zombies.warning("Unable to find equipment data for weapon " + getShopData().getGunName() + "!");
@@ -117,7 +121,8 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
                         .getHotbarObjectGroup(EquipmentObjectGroupType.GUN.name());
                 if (hotbarObjectGroup != null) {
                     for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
-                        if (hotbarObject instanceof Gun<?, ?> gun && gun.getEquipmentData().getName().equals(gunName)) {
+                        if (hotbarObject instanceof Gun<@NotNull ?, @NotNull ?> gun && gun.getEquipmentData().getName()
+                                .equals(gunName)) {
                             firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunDisplayName);
                             secondHologramLine =
                                     String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getRefillCost());
@@ -226,8 +231,6 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
      * @return Whether purchase was successful
      */
     private boolean tryBuy(@NotNull ZombiesPlayer player, @NotNull GunObjectGroup gunObjectGroup) {
-        GunShopData gunShopData = getShopData();
-
         Integer slot = gunObjectGroup.getNextEmptySlot();
         if (slot == null) {
             int selectedSlot = player.getPlayer().getInventory().getHeldItemSlot();
@@ -240,16 +243,39 @@ public class GunShop extends ArmorStandShop<@NotNull GunShopData> {
             }
         }
 
-        int cost = gunShopData.getCost();
+        int cost = getShopData().getCost();
         if (player.getCoins() < cost) {
             player.getPlayer().sendMessage(Component.text("You cannot afford this item!", NamedTextColor.RED));
-            return false;
         } else {
-            player.subtractCoins(getShopData().getCost());
-            gunObjectGroup.setHotbarObject(slot, equipmentManager.createEquipment(getArena(),
-                    player, slot, map.getName(), gunShopData.getGunName()));
-
-            return true;
+            EquipmentData<@NotNull ?> equipmentData = equipmentDataManager.getEquipmentData(map.getName(),
+                    getShopData().getGunName());
+            if (equipmentData != null) {
+                Equipment<@NotNull ?, @NotNull ?> equipment = equipmentCreator.createEquipment(player, slot,
+                        equipmentData);
+                if (equipment != null) {
+                    if (equipment instanceof Gun<@NotNull ?, @NotNull ?>) {
+                        gunObjectGroup.setHotbarObject(slot, equipment);
+                        player.subtractCoins(getShopData().getCost());
+                        return true;
+                    }
+                    else {
+                        Zombies.warning("Tried to give a player a gun with name " + getShopData().getGunName()
+                                + " that isn't a gun!");
+                        player.getPlayer().sendMessage(Component.text("This shop was not set up correctly",
+                                NamedTextColor.RED));
+                    }
+                }
+                else {
+                    Zombies.warning("Failed to create equipment with name " + getShopData().getGunName() + "!");
+                    player.getPlayer().sendMessage(Component.text("This shop was not set up correctly",
+                            NamedTextColor.RED));
+                }
+            }
+            else {
+                Zombies.warning("Failed to create equipment data with name " + getShopData().getGunName() + "!");
+                player.getPlayer().sendMessage(Component.text("This shop was not set up correctly",
+                        NamedTextColor.RED));
+            }
         }
 
         return false;

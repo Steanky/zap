@@ -7,11 +7,14 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.util.TimeUtil;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.data.equipment.EquipmentCreator;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
-import io.github.zap.zombies.game.data.equipment.EquipmentManager;
+import io.github.zap.zombies.game.data.equipment.EquipmentDataManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.PiglinShopData;
+import io.github.zap.zombies.game.equipment.Equipment;
 import io.github.zap.zombies.game.equipment.gun.Gun;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.key.Key;
@@ -24,7 +27,6 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -44,7 +46,7 @@ public class PiglinShop extends Shop<@NotNull PiglinShopData> {
 
     private final @NotNull Hologram hologram;
 
-    private final @NotNull EquipmentManager equipmentManager;
+    private final @NotNull EquipmentCreator equipmentCreator;
 
     private final @NotNull List<@NotNull EquipmentData<@NotNull ?>> equipments = new ArrayList<>();
 
@@ -63,8 +65,8 @@ public class PiglinShop extends Shop<@NotNull PiglinShopData> {
     private Player roller;
 
     public PiglinShop(@NotNull World world, @NotNull ShopEventManager eventManager, @NotNull PiglinShopData shopData,
-                      @NotNull MapData map, @NotNull EquipmentManager equipmentManager,
-                      @NotNull BukkitTaskManager taskManager) {
+                      @NotNull MapData map, @NotNull EquipmentDataManager equipmentDataManager,
+                      @NotNull EquipmentCreator equipmentCreator, @NotNull BukkitTaskManager taskManager) {
         super(world, eventManager, shopData);
 
         this.dream = new EntityPiglin(EntityTypes.PIGLIN, ((CraftWorld) world).getHandle()) {
@@ -110,13 +112,14 @@ public class PiglinShop extends Shop<@NotNull PiglinShopData> {
 
         this.hologram = new Hologram(shopData.getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(world));
         for (String equipmentName : shopData.getEquipments()) {
-            @Nullable EquipmentData<?> equipmentData = equipmentManager.getEquipmentData(map.getName(), equipmentName);
+            EquipmentData<@NotNull ?> equipmentData = equipmentDataManager.getEquipmentData(map.getName(),
+                    equipmentName);
             if (equipmentData != null) {
                 equipments.add(equipmentData);
             }
         }
 
-        this.equipmentManager = equipmentManager;
+        this.equipmentCreator = equipmentCreator;
         this.taskManager = taskManager;
     }
 
@@ -221,8 +224,8 @@ public class PiglinShop extends Shop<@NotNull PiglinShopData> {
                 }
             }
 
-            bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.piglin.angry"),
-                    Sound.Source.MASTER, 1.0F, 1.0F));
+            player.getPlayer().playSound(Sound.sound(Key.key("minecraft:entity.piglin.angry"), Sound.Source.MASTER,
+                    1.0F, 1.0F));
             return true;
         }
 
@@ -257,15 +260,20 @@ public class PiglinShop extends Shop<@NotNull PiglinShopData> {
                 }
             }
             if (nextSlot != null) {
-                ZombiesArena zombiesArena = getArena();
-                equipmentObjectGroup.setHotbarObject(nextSlot,
-                        zombiesArena.getEquipmentManager().createEquipment(zombiesArena, player, nextSlot,
-                                equipmentData));
+                Equipment<@NotNull ?, @NotNull ?> equipment = equipmentCreator.createEquipment(player, nextSlot,
+                        equipmentData);
+                if (equipment != null) {
+                    equipmentObjectGroup.setHotbarObject(nextSlot, equipment);
+                    player.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"),
+                            Sound.Source.MASTER, 1.0F, 2.0F));
+                }
+                else {
+                    Zombies.warning("Failed to create equipment with name " + equipmentData.getName() + "!");
+                    player.getPlayer().sendMessage(Component.text("This shop was not set up correctly",
+                            NamedTextColor.RED));
+                }
 
                 sitter.destroy();
-
-                player.getPlayer().playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"), Sound.Source.MASTER,
-                        1.0F, 2.0F));
 
                 return true;
             } else {

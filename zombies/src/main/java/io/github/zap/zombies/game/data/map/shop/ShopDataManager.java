@@ -34,6 +34,6 @@ public interface ShopDataManager {
      * @param <D> The type of the shop's data
      * @return The new shop
      */
-    @NotNull <D extends ShopData> Shop<D> createShop(@NotNull ZombiesArena arena, @NotNull D shopData);
+    @NotNull <D extends @NotNull ShopData> Shop<D> createShop(@NotNull ZombiesArena arena, @NotNull D shopData);
 
 }

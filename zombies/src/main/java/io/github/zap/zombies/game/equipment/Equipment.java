@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <D> The type of equipment data the equipment uses
  * @param <L> The type of level the equipment uses
  */
-public class Equipment<D extends @NotNull EquipmentData<L>, @NotNull L> extends HotbarObject {
+public class Equipment<D extends @NotNull EquipmentData<@NotNull L>, L extends @NotNull Object> extends HotbarObject {
 
     private final @NotNull ZombiesPlayer zombiesPlayer;
 
