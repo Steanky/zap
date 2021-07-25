@@ -182,7 +182,7 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
 
     @Override
     public boolean setDestination(@Nullable PathEntity pathentity, double speed) {
-        return false;
+        return a(pathentity, speed);
     }
 
     @Nullable

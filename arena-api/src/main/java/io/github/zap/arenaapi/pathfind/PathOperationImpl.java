@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.nms.common.world.BlockSnapshot;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
@@ -12,8 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 class PathOperationImpl implements PathOperation {
-    private static final Object testLock = new Object();
-
     private static final double MERGE_TOLERANCE_SQUARED = 1;
 
     private final PathAgent agent;
@@ -238,8 +235,6 @@ class PathOperationImpl implements PathOperation {
     }
 
     private void complete(boolean success) {
-        analyzeVisited();
-
         state = success ? State.SUCCEEDED : State.FAILED;
         result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
     }
@@ -250,39 +245,5 @@ class PathOperationImpl implements PathOperation {
         }
 
         return Vectors.distanceSquared(bestDestination, other) <= MERGE_TOLERANCE_SQUARED;
-    }
-
-    private void analyzeVisited() {
-        synchronized (testLock) {
-            ArenaApi.info("Starting analysis for " + visited.size() + " explored nodes.");
-
-            for(PathNode node : visited) {
-                analyzeNode(node);
-            }
-        }
-
-        ArenaApi.info("Analysis concluded.");
-    }
-
-    private void analyzeNode(PathNode node) {
-        if(!Double.isFinite(node.score.getH())) {
-            ArenaApi.warning("Non-finite value for heuristic of PathNode " + node);
-        }
-
-        if(!Double.isFinite(node.score.getG())) {
-            ArenaApi.warning("Non-finite value for g of PathNode " + node);
-        }
-
-        StringBuilder log = new StringBuilder();
-        while(node.parent != null) {
-            log.append(node).append(" is child of ").append(node.parent);
-            node = node.parent;
-        }
-
-        if(!Vectors.equals(node, Vectors.asIntFloor(agent))) {
-            ArenaApi.warning("Improper PathNode linkage.");
-            ArenaApi.warning("Dump:");
-            ArenaApi.warning(log.toString());
-        }
     }
 }

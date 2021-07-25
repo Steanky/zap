@@ -4,8 +4,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 public class AgentCharacteristics {
     private static final double DEFAULT_JUMP_HEIGHT = 1.125D;
 

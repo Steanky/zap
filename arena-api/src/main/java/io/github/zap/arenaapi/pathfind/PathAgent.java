@@ -1,7 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector3D;
-import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
