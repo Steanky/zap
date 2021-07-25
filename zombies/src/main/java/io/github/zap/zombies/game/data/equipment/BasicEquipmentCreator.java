@@ -19,14 +19,14 @@ public class BasicEquipmentCreator implements EquipmentCreator {
 
     private final @NotNull Map<@NotNull String, @NotNull EquipmentObjectGroupMapping> equipmentObjectGroupMappings;
 
-    private final @NotNull Map<@NotNull String, @NotNull EquipmentMapping<@NotNull ?>> equipmentMappings = new HashMap<>();
+    private final @NotNull Map<@NotNull Class<? extends EquipmentData<@NotNull ?>>, @NotNull EquipmentMapping<@NotNull ?>> equipmentMappings = new HashMap<>();
 
     public BasicEquipmentCreator(@NotNull Map<@NotNull String, @NotNull EquipmentObjectGroupMapping> equipmentObjectGroupMappings,
                                  @NotNull List<@NotNull EquipmentDataMappingPair<@NotNull ?, @NotNull ?>> equipmentMappings) {
         this.equipmentObjectGroupMappings = equipmentObjectGroupMappings;
 
         for (@NotNull EquipmentDataMappingPair<@NotNull ?, @NotNull ?> equipmentDataMappingPair : equipmentMappings) {
-            this.equipmentMappings.put(equipmentDataMappingPair.data().getType(), equipmentDataMappingPair.mapping());
+            this.equipmentMappings.put(equipmentDataMappingPair.clazz(), equipmentDataMappingPair.mapping());
         }
     }
 
@@ -42,7 +42,7 @@ public class BasicEquipmentCreator implements EquipmentCreator {
     public <D extends @NotNull EquipmentData<@NotNull ?>> @Nullable Equipment<D, @NotNull ?> createEquipment(@NotNull ZombiesPlayer player,
                                                                                                              int slot,
                                                                                                              D data) {
-        @NotNull EquipmentMapping<@NotNull ?> creator = equipmentMappings.get(data.getType());
+        @NotNull EquipmentMapping<@NotNull ?> creator = equipmentMappings.get(data.getClass());
         return (creator != null) ? ((EquipmentMapping<D>) creator).createEquipment(player, slot, data) : null;
     }
 
