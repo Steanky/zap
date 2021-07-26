@@ -122,7 +122,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
                 hologram.addLine("");
             }
 
-            hologram.updateLineForEveryone(0, String.format("%s%sDream Piglin", ChatColor.GOLD, ChatColor.BOLD));
+            hologram.updateLineForEveryone(0, String.format("%s%sLucky Swine", ChatColor.GOLD, ChatColor.BOLD));
             hologram.updateLineForEveryone(1,
                     getShopData().isRequiresPower() && !isPowered()
                             ? String.format("%sRequires Power!", ChatColor.GRAY)
