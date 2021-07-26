@@ -45,6 +45,7 @@ dependencies {
         isTransitive = false
     }
     shadeProject(project(":zombies:nms-v1_16_R3", "shadow"))
+    implementation("com.grinderwolf:slimeworldmanager-api:2.6.1-SNAPSHOT")
 
     shade("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT") {
         exclude("net.kyori", "adventure-api")
