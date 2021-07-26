@@ -10,6 +10,7 @@ import java.util.Map;
 
 public class StandardKeyStoreTest {
     static KeyStore keyStore;
+    static DataMarshal marshal;
     static DataKey key1;
     static DataKey key2;
     static DataKey key3;
@@ -20,6 +21,7 @@ public class StandardKeyStoreTest {
 
     static {
         keyStore = KeyStore.from("test");
+        marshal = DataMarshal.standard();
         key1 = keyStore.named("vegetals");
         key2 = keyStore.named("angery");
         key3 = keyStore.named("suque");
@@ -52,6 +54,6 @@ public class StandardKeyStoreTest {
         objectMap.put(key3.key(), objectMap1);
         objectMap.put(why.key(), recursiveAAAAAAAAA);
 
-        DataContainer dataContainer = keyStore.buildData(objectMap);
+        DataContainer dataContainer = marshal.marshalData(objectMap);
     }
 }

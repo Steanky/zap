@@ -25,4 +25,8 @@ public interface KeyFactory {
      * @return The key, if the syntax is valid
      */
     @NotNull DataKey makeRaw(@NotNull String raw);
+
+    static KeyFactory standard() {
+        return StandardKeyFactory.instance();
+    }
 }

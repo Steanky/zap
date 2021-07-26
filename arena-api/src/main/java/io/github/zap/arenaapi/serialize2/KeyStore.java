@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -44,16 +43,6 @@ public interface KeyStore {
     @NotNull KeyFactory keyFactory();
 
     /**
-     * Creates a data container from the specified map of objects. Will perform a "deep" conversion of the map in order
-     * to ensure that anything that is convertible to a DataContainer will be represented as such.
-     *
-     * This process will mutate the provided map. If this is undesirable, pass in a fresh copy using Map.copyOf().
-     * @param mappings The object mappings to use
-     * @return An object encapsulating those mappings
-     */
-    @NotNull DataContainer buildData(@NotNull Map<String, Object> mappings);
-
-    /**
      * Creates a new KeyStore with the given namespace and KeyFactory, which will be used to create new keys.
      * @param namespace The namespace
      * @param factory The factory
@@ -69,6 +58,6 @@ public interface KeyStore {
      * @return A new KeyStore object
      */
     static @NotNull KeyStore from(@NotNull String namespace) {
-        return from(namespace, new StandardKeyFactory());
+        return from(namespace, KeyFactory.standard());
     }
 }

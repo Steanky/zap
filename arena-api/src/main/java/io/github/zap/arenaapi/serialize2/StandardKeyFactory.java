@@ -3,9 +3,15 @@ package io.github.zap.arenaapi.serialize2;
 import org.jetbrains.annotations.NotNull;
 
 class StandardKeyFactory implements KeyFactory {
+    private static final StandardKeyFactory instance = new StandardKeyFactory();
+
     private static final String DELIMITER = ":";
 
-    StandardKeyFactory() {}
+    private StandardKeyFactory() {}
+
+    public static KeyFactory instance() {
+        return instance;
+    }
 
     private String[] getComponents(String key) {
         if(!key.isEmpty()) {
