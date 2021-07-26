@@ -19,11 +19,9 @@ public interface DataMarshal {
      */
     @NotNull DataContainer marshalData(@NotNull Map<String, Object> mappings);
 
+    void registerTypeConverter(@NotNull TypeConverter<?> converter);
+
     static DataMarshal from(@NotNull KeyFactory factory) {
         return new StandardDataMarshal(factory);
-    }
-
-    static DataMarshal standard() {
-        return new StandardDataMarshal(KeyFactory.standard());
     }
 }

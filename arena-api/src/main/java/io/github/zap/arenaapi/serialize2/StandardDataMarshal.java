@@ -1,21 +1,15 @@
 package io.github.zap.arenaapi.serialize2;
 
-import io.github.zap.arenaapi.ArenaApi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 class StandardDataMarshal implements DataMarshal {
     private final KeyFactory factory;
-    private final KeyTransformer transformer;
-
-    StandardDataMarshal(@NotNull KeyFactory factory, @NotNull KeyTransformer transformer) {
-        this.factory = factory;
-        this.transformer = transformer;
-    }
+    private final Map<TypeConverter.Signature, TypeConverter<?>> converterMap = new HashMap<>();
 
     StandardDataMarshal(@NotNull KeyFactory factory) {
-        this(factory, KeyTransformer.DO_NOTHING);
+        this.factory = factory;
     }
 
     @Override
@@ -34,21 +28,30 @@ class StandardDataMarshal implements DataMarshal {
             for(Map.Entry<String, ?> entry : current.entrySet()) {
                 Object value = entry.getValue();
 
-                if(value instanceof Map<?, ?> map && validateKeys(map)) {
-                    //noinspection unchecked
-                    Map<String, Object> stringObjectMap = (Map<String, Object>)map; //not actually unsafe
+                //if we're in the hashmap, don't bother to validate keys (we know they're good)
+                //otherwise check if they're syntactically valid for this data marshal
+                if(value instanceof Map<?, ?> map) {
+                    if(mapMap.containsKey(map) || validateKeys(map)) {
+                        //noinspection unchecked
+                        Map<String, Object> stringObjectMap = (Map<String, Object>)map; //not actually unsafe
 
-                    //properly resolve references to container instances that have already been checked
-                    StandardDataContainer container = mapMap.get(map);
-                    if(container == null) {
-                        transformKeys(stringObjectMap);
-                        pending.push(stringObjectMap);
-                        container = new StandardDataContainer(stringObjectMap);
-                        mapMap.put(map, container);
+                        //properly resolve references to container instances that have already been checked
+                        StandardDataContainer container = mapMap.get(map);
+                        if(container == null) {
+                            pending.push(stringObjectMap);
+                            container = new StandardDataContainer(stringObjectMap);
+                            mapMap.put(map, container);
+                        }
+
+                        StandardDataContainer finalContainer = container;
+                        postProcess.add(() -> current.replace(entry.getKey(), finalContainer));
                     }
-
-                    StandardDataContainer finalContainer = container;
-                    postProcess.add(() -> current.replace(entry.getKey(), finalContainer));
+                    else {
+                        processValue(current, entry.getKey(), value, postProcess);
+                    }
+                }
+                else {
+                    processValue(current, entry.getKey(), value, postProcess);
                 }
             }
 
@@ -58,6 +61,16 @@ class StandardDataMarshal implements DataMarshal {
         }
 
         return topLevel;
+    }
+
+    @Override
+    public void registerTypeConverter(@NotNull TypeConverter<?> converter) {
+        TypeConverter.Signature signature = new TypeConverter.Signature(converter.convertsFrom(), converter.namespace());
+        if(converterMap.containsKey(signature)) {
+            throw new IllegalArgumentException("A ValueConverter for that type has already been registered.");
+        }
+
+        converterMap.put(signature, converter);
     }
 
     private boolean validateKeys(Map<?, ?> map) { //ensure valid keys while building data
@@ -75,27 +88,16 @@ class StandardDataMarshal implements DataMarshal {
         return true;
     }
 
-    private void transformKeys(Map<String, Object> map) {
-        Queue<Runnable> postTransform = new ArrayDeque<>();
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void processValue(Map<String, Object> target, String key, Object value, Queue<Runnable> postProcess) {
+        if(factory.validKeySyntax(key)) {
+            DataKey dataKey = factory.makeRaw(key);
+            TypeConverter.Signature signature = new TypeConverter.Signature(value.getClass(), dataKey.namespace());
 
-        for(Map.Entry<String, Object> entry : map.entrySet()) {
-            String newKey = transformer.transform(entry.getKey());
-
-            if(!newKey.equals(entry.getKey())) {
-                if(factory.validKeySyntax(newKey)) {
-                    postTransform.add(() -> {
-                        map.remove(entry.getKey());
-                        map.put(newKey, entry.getValue());
-                    });
-                }
-                else {
-                    ArenaApi.warning("Invalid syntax for transformed key: " + entry.getKey() + " -> " + newKey);
-                }
+            TypeConverter converter = converterMap.get(signature);
+            if(converter != null) {
+                postProcess.add(() -> target.replace(key, converter.convert(value)));
             }
-        }
-
-        for(Runnable runnable : postTransform) {
-            runnable.run();
         }
     }
 }
