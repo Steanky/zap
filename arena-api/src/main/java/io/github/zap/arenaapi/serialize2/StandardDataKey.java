@@ -3,23 +3,12 @@ package io.github.zap.arenaapi.serialize2;
 import org.jetbrains.annotations.NotNull;
 
 class StandardDataKey implements DataKey {
-    private static final String DELIMITER = ":";
-
     private final String key;
     private final int delimiterIndex;
 
-    StandardDataKey(@NotNull String namespace, @NotNull String name) {
-        if(namespace.isEmpty() || name.isEmpty()) {
-            throw new IllegalArgumentException("Namespace and name must both be non-empty strings");
-        }
-
-        if(namespace.contains(DELIMITER) || name.contains(DELIMITER)) {
-            throw new IllegalArgumentException("Data namespace and name must not contain delimiter string '" +
-                    DELIMITER + "'");
-        }
-
-        key = namespace.concat(DELIMITER).concat(name);
-        delimiterIndex = namespace.length();
+    StandardDataKey(@NotNull String key, int delimiterIndex) {
+        this.key = key;
+        this.delimiterIndex = delimiterIndex;
     }
 
     @Override

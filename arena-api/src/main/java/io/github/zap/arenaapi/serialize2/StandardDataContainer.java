@@ -16,6 +16,7 @@ class StandardDataContainer implements DataContainer {
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull DataKey key, @NotNull Class<T> type) {
         Object data = map.get(key.key());
+
         if(data == null) {
             return Optional.empty();
         }
@@ -25,6 +26,11 @@ class StandardDataContainer implements DataContainer {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public @NotNull Optional<DataContainer> getChild(@NotNull DataKey key) {
+        return getObject(key, DataContainer.class);
     }
 
     @Override
@@ -70,5 +76,10 @@ class StandardDataContainer implements DataContainer {
     @Override
     public @NotNull Optional<Double> getDouble(@NotNull DataKey key) {
         return getObject(key, Double.class);
+    }
+
+    @Override
+    public @NotNull Map<String, Object> objectMapping() {
+        return Map.copyOf(map);
     }
 }
