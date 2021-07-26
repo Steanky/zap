@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 /**
- * An object containing a set of key-value pairs.
+ * An object containing a number of key-value pairs.
  */
 public interface DataContainer {
     <T> @NotNull Optional<T> getObject(@NotNull DataKey key);

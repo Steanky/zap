@@ -22,7 +22,7 @@ public interface KeyStore {
      * @param name The name to check
      * @return true if a key with the provided name exists in this store, false otherwise
      */
-    boolean hasKey(@NotNull String name);
+    boolean hasKeyWithName(@NotNull String name);
 
     /**
      * Gets an existing key from this KeyStore.
@@ -34,7 +34,7 @@ public interface KeyStore {
      * @param name The name of the key to retrieve
      * @return A stored DataKey object
      */
-    @NotNull DataKey getKey(@NotNull String name);
+    @NotNull DataKey getKeyWithName(@NotNull String name);
 
     /**
      * Returns an immutable copy of all of the DataKey objects managed by this KeyStore.

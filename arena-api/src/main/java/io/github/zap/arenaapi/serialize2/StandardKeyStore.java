@@ -32,7 +32,7 @@ class StandardKeyStore implements KeyStore {
     }
 
     @Override
-    public boolean hasKey(@NotNull String name) {
+    public boolean hasKeyWithName(@NotNull String name) {
         for(DataKey key : keys) {
             if(key.name().equals(name)) {
                 return true;
@@ -43,7 +43,7 @@ class StandardKeyStore implements KeyStore {
     }
 
     @Override
-    public @NotNull DataKey getKey(@NotNull String name) {
+    public @NotNull DataKey getKeyWithName(@NotNull String name) {
         for(DataKey key : keys) {
             if(key.name().equals(name)) {
                 return key;
