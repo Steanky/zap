@@ -29,6 +29,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -226,7 +227,7 @@ implements Listener {
         this.resourceManager = new ResourceManager(plugin);
 
         startTimeout(timeoutTicks);
-        getProxyFor( PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
+        getProxyFor(PlayerQuitEvent.class).registerHandler(this::onPlayerQuit);
 
         Bukkit.getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
@@ -436,6 +437,21 @@ implements Listener {
                 stopTimeout();
             }
 
+            // Hide/Show player logic
+            for (Player player : joining) {
+                for (Player otherPlayer : Bukkit.getOnlinePlayers()) {
+                    S managedPlayer = playerMap.get(otherPlayer.getUniqueId());
+                    if (managedPlayer == null || !managedPlayer.isInGame()) {
+                        player.hidePlayer(ArenaApi.getInstance(), otherPlayer);
+                        otherPlayer.hidePlayer(ArenaApi.getInstance(), player);
+                    }
+                    else {
+                        player.showPlayer(ArenaApi.getInstance(), otherPlayer);
+                        otherPlayer.showPlayer(ArenaApi.getInstance(), player);
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -466,11 +482,42 @@ implements Listener {
         for(S player : leftPlayers) {
             player.quit();
         }
+
+        // Hide/Show player logic
+        for (S player : playerMap.values()) {
+            if (player.isInGame()) {
+                Player bukkitPlayer = player.getPlayer();
+                if (bukkitPlayer != null) {
+                    for (Player leaver : leaving) {
+                        bukkitPlayer.hidePlayer(ArenaApi.getInstance(), leaver);
+                        leaver.hidePlayer(ArenaApi.getInstance(), bukkitPlayer);
+                    }
+                }
+            }
+        }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Arena<?> arena = ArenaApi.getInstance().arenaCurrentlyIn(player);
+            if (arena == null) {
+                for (Player leaver : leaving) {
+                    leaver.showPlayer(ArenaApi.getInstance(), player);
+                }
+            }
+        }
     }
 
     @Override
     public boolean hasPlayer(UUID id) {
         return playerMap.containsKey(id);
+    }
+
+    @Override
+    public boolean isPlayerPlaying(UUID id) {
+        S player = playerMap.get(id);
+        if (player == null) {
+            return false;
+        }
+
+        return player.isInGame();
     }
 
     /**
