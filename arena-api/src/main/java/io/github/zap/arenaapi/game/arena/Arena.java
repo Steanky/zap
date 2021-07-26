@@ -71,4 +71,12 @@ public abstract class Arena<T extends Arena<T>> implements Unique, Disposable {
      * @return Whether or not they are being managed by this arena
      */
     public abstract boolean hasPlayer(UUID id);
+
+    /**
+     * Returns whether or not the player is currently in the arena.
+     * @param id The UUID of the player
+     * @return Whether or not they are currently in this arena
+     */
+    public abstract boolean isPlayerPlaying(UUID id);
+
 }

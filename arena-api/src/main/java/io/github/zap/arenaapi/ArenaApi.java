@@ -259,6 +259,11 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @EventHandler
     private void playerJoinEvent(PlayerJoinEvent event) {
         applyDefaultCondition(event.getPlayer());
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (arenaCurrentlyIn(player) != null) {
+                event.getPlayer().hidePlayer(this, player);
+            }
+        }
     }
 
     @EventHandler
@@ -291,6 +296,20 @@ public final class ArenaApi extends JavaPlugin implements Listener {
             Arena<?> arena = arenaIterator.next();
 
             if(arena.hasPlayer(player.getUniqueId())) {
+                return arena;
+            }
+        }
+
+        return null;
+    }
+
+    public @Nullable Arena<?> arenaCurrentlyIn(@NotNull Player player) {
+        Iterator<? extends Arena<?>> arenaIterator = arenaIterator();
+
+        while(arenaIterator.hasNext()) {
+            Arena<?> arena = arenaIterator.next();
+
+            if(arena.isPlayerPlaying(player.getUniqueId())) {
                 return arena;
             }
         }
@@ -340,5 +359,5 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     public static void callEvent(Event event) {
         instance.getServer().getPluginManager().callEvent(event);
     }
-    
+
 }
