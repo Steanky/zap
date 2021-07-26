@@ -31,7 +31,7 @@ val classModifier: Configuration by configurations.creating {
 
 configurations.implementation.get().extendsFrom(shade, bukkitPlugin)
 
-val outputDir = System.getProperty("outputDir") ?: "../run/server-1"
+val outputDir = project.properties["outputDir"] ?: "../run/server-1"
 val pluginDir = "$outputDir/plugins"
 
 dependencies {

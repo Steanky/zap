@@ -29,7 +29,7 @@ configurations.api.get().extendsFrom(dependencyApi)
 configurations.implementation.get().extendsFrom(shade, shadeProject)
 dependencyApi.extendsFrom(bukkitPlugin)
 
-val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
+val pluginDir = "${project.properties["outputDir"] ?: "../run/server-1"}/plugins"
 
 dependencies {
     dependencyApi(project(":party", "dependencyApi"))

@@ -23,7 +23,7 @@ val dependencyApi: Configuration by configurations.creating
 configurations.implementation.get().extendsFrom(shade)
 configurations.api.get().extendsFrom(dependencyApi)
 
-val pluginDir = "${System.getProperty("outputDir") ?: "../run/server-1"}/plugins"
+val pluginDir = "${project.properties["outputDir"] ?: "../run/server-1"}/plugins"
 
 dependencies {
     dependencyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
