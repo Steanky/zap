@@ -13,7 +13,6 @@ java {
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
     maven("https://papermc.io/repo/repository/maven-public/")
     maven("https://repo.dmulloy2.net/repository/public/")
 }

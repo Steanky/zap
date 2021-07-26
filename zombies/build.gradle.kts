@@ -17,8 +17,7 @@ repositories {
     maven("https://jitpack.io")
     maven("https://repo.rapture.pw/repository/maven-snapshots")
     maven("https://repo.glaremasters.me/repository/concuncan/")
-    maven("https://libraries.minecraft.net")
-    maven("https://repo.aikar.co/content/groups/aikar/")
+    maven("https://repo.dmulloy2.net/repository/public/")
 }
 
 val shade: Configuration by configurations.creating
