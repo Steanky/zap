@@ -22,7 +22,7 @@ public class StandardKeyStoreTest {
 
     static {
         keyStore = KeyStore.from("test");
-        marshal = DataMarshal.standard();
+        marshal = DataMarshal.from(KeyFactory.standard());
         key1 = keyStore.named("vegetals");
         key2 = keyStore.named("angery");
         key3 = keyStore.named("suque");

@@ -32,7 +32,7 @@ class StandardDataMarshal implements DataMarshal {
                 //if we're in the hashmap, don't bother to validate keys (we know they're good)
                 //otherwise check if they're syntactically valid for this data marshal
                 if(value instanceof Map<?, ?> map) {
-                    if(mapMap.containsKey(map) || validateKeys(map)) { //we are a child node
+                    if(mapMap.containsKey(map) || isMapChild(map)) { //we are a child node
                         //noinspection unchecked
                         Map<String, Object> stringObjectMap = (Map<String, Object>)map; //not actually unsafe
 
@@ -56,6 +56,9 @@ class StandardDataMarshal implements DataMarshal {
                     }
                 }
                 else {
+                    /*
+                    process non-map values as they may want type conversion
+                     */
                     processValue(current, entry.getKey(), value, postProcess);
                 }
             }
@@ -79,7 +82,7 @@ class StandardDataMarshal implements DataMarshal {
         converterMap.put(signature, converter);
     }
 
-    private boolean validateKeys(Map<?, ?> map) { //ensure valid keys while building data
+    private boolean isMapChild(Map<?, ?> map) { //ensure valid keys while building data
         for(Object key : map.keySet()) {
             if(key instanceof String string) {
                 if(!factory.validKeySyntax(string)) {
