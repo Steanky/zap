@@ -1,51 +1,59 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import net.minecraft.server.v1_16_R3.EntityLiving;
-import net.minecraft.server.v1_16_R3.EnumHand;
-import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.Location;
+import org.bukkit.entity.Creature;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 
 public class OptimizedMeleeAttack extends RetargetingPathfinder {
+
     private final int attackInterval;
-    private final float attackReach;
+    private final double attackReachSquared;
     private int attackTimer;
 
-    public OptimizedMeleeAttack(AbstractEntity entity, AttributeValue[] attributes, int retargetTicks, double speed,
-                                int attackInterval, float attackReach, double targetDeviation) {
-        super(entity, attributes, retargetTicks, speed, targetDeviation);
+    public OptimizedMeleeAttack(Mob mob, AttributeValue[] attributes, int retargetTicks, double speed,
+                                double targetDeviation, int attackInterval, double attackReachSquared) {
+        super(mob, attributes, retargetTicks, speed, targetDeviation);
         this.attackInterval = attackInterval;
-        this.attackReach = attackReach;
+        this.attackReachSquared = attackReachSquared;
     }
 
     @Override
-    public void onStart() {
-        self.setAggressive(true);
+    public boolean isValid() {
+        return self instanceof Creature;
+    }
+
+    @Override
+    public void start() {
+        getNmsBridge().entityBridge().setAggressive(self, true);
         this.attackTimer = 0;
     }
 
     @Override
-    public void onEnd() {
-        self.setAggressive(false);
-        self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
+    public void end() {
+        getNmsBridge().entityBridge().setAggressive(self, false);
+        self.setTarget(null);
     }
 
     @Override
-    public void doTick() {
-        super.doTick();
+    public void tick() {
+        super.tick();
 
-        EntityLiving target = self.getGoalTarget();
+        LivingEntity target = self.getTarget();
         if(target != null) {
             attackTimer = Math.max(attackTimer - 1, 0);
             tryAttack(target);
         }
     }
 
-    private void tryAttack(EntityLiving target) {
+    private void tryAttack(LivingEntity target) {
         if(this.attackTimer <= 0) {
-            if(self.h(target.locX(), target.locY(), target.locZ()) <= this.checkDistance(target)) {
+            Location location = target.getLocation();
+            if (getNmsBridge().entityBridge().distanceTo(self, location.getX(), location.getY(), location.getZ())
+                    <= this.checkDistance(target)) {
                 this.resetAttackTimer();
-                self.swingHand(EnumHand.MAIN_HAND);
-                self.attackEntity(target);
+                self.swingMainHand();
+                self.attack(target);
             }
         }
     }
@@ -54,7 +62,8 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
         this.attackTimer = attackInterval;
     }
 
-    private double checkDistance(EntityLiving target) {
-        return (self.getWidth() * attackReach * self.getWidth() * attackReach + target.getWidth());
+    private double checkDistance(LivingEntity target) {
+        return (self.getWidth() * self.getWidth() * attackReachSquared + target.getWidth());
     }
+
 }

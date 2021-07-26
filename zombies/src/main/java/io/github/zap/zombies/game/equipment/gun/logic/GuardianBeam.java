@@ -11,7 +11,6 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.gun.GuardianGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -82,7 +81,6 @@ public class GuardianBeam extends BasicBeam {
     }
 
     private PacketContainer getGuardianSpawnPacket() {
-        ZombiesNMSProxy zombiesNMSProxy = Zombies.getInstance().getNmsProxy();
         Vector location = getRoot();
 
         PacketContainer spawnGuardianPacket = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
@@ -99,7 +97,6 @@ public class GuardianBeam extends BasicBeam {
     }
 
     private PacketContainer getArmorStandSpawnPacket() {
-        ZombiesNMSProxy zombiesNMSProxy = Zombies.getInstance().getNmsProxy();
         Vector location = getRoot().clone();
 
         location.add(getDirectionVector().clone().normalize().multiply(getDistance()));

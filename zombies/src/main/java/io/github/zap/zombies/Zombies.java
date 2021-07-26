@@ -20,13 +20,14 @@ import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
+import io.github.zap.zombies.game.mob.goal.BreakWindow;
+import io.github.zap.zombies.game.mob.goal.OptimizedBowAttack;
+import io.github.zap.zombies.game.mob.goal.OptimizedMeleeAttack;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMythicBreakWindow;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMythicOptimizedBowAttack;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMythicOptimizedMeleeAttack;
 import io.github.zap.zombies.game.mob.mechanic.*;
 import io.github.zap.zombies.game.npc.ZombiesNPC;
-import io.github.zap.zombies.proxy.ZombiesNMSProxy;
-import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfinderAdapter;
@@ -58,9 +59,6 @@ import java.util.logging.Level;
 public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private static Zombies instance; //singleton for our main plugin class
-
-    @Getter
-    private ZombiesNMSProxy nmsProxy;
 
     @Getter
     private ArenaApi arenaApi;
@@ -123,10 +121,10 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
-            initProxy();
             initDependencies();
             initConfig();
-            initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class);
+            initPathfinding(WrappedMythicBreakWindow.class, WrappedMythicOptimizedMeleeAttack.class,
+                    WrappedMythicOptimizedBowAttack.class);
             initMechanics(CobwebMechanic.class, SpawnMobMechanic.class, StealCoinsMechanic.class,
                     SlowFireRateMechanic.class, SummonMountMechanic.class, TeleportBehindTargetMechanic.class);
             initPlayerDataManager();
@@ -200,17 +198,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         config.options().copyDefaults(true);
         saveConfig();
-    }
-
-    private void initProxy() throws LoadFailureException {
-        switch (Bukkit.getBukkitVersion()) {
-            case "1.16.4-R0.1-SNAPSHOT":
-            case "1.16.5-R0.1-SNAPSHOT":
-                nmsProxy = new ZombiesNMSProxy_v1_16_R3();
-                break;
-            default:
-                throw new LoadFailureException(String.format("Unsupported MC version '%s'.", Bukkit.getBukkitVersion()));
-        }
     }
 
     private void initDependencies() throws LoadFailureException {
