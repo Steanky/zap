@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.scoreboards;
 
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.RandomStringUtils;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -111,8 +111,8 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, TextWriter {
      */
     public SidebarTextWriter text(Object... contents) {
         for(Object content : contents) {
-            if(content instanceof ITextFragment)
-                add((ITextFragment)content);
+            if(content instanceof ITextFragment textFragment)
+                add(textFragment);
             else
                 add(new StringFragment(content.toString()));
         }
@@ -223,7 +223,7 @@ public class SidebarTextWriter implements Iterable<ITextFragment>, TextWriter {
      */
     @Override
     public void onTextFragmentChanged(ITextFragment fragment) {
-        if(isAutoUpdate() && fragments.indexOf(fragment) != -1) update();
+        if(isAutoUpdate() && fragments.contains(fragment)) update();
     }
 
     /**

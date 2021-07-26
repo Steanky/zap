@@ -38,6 +38,16 @@ public class MultiBoundingBox implements Iterable<BoundingBox> {
         return false;
     }
 
+    public boolean contains(double x, double y, double z) {
+        for(BoundingBox boundingBox : boundingBoxes) {
+            if(boundingBox.contains(x, y, z)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Returns true if all bounds for this MultiBoundingBox are contained in the given BoundingBox. Returns false
      * otherwise
@@ -78,14 +88,6 @@ public class MultiBoundingBox implements Iterable<BoundingBox> {
                     testEnd = test.getMax();
 
                     diffs = testEnd.clone().subtract(sampleEnd);
-
-                    /*
-                    to be considered 'inside' for a particular axis, diff must be < 0 since bounding boxes do not
-                    consider vertices that exactly == maxValue to be inside.
-                     */
-                    xIn = diffs.getX() < 0;
-                    yIn = diffs.getY() < 0;
-                    zIn = diffs.getZ() < 0;
                 }
                 else if(sample.contains(test.getMax())) { //test min is out of bounds
                     sampleEnd = sample.getMin();
@@ -93,15 +95,14 @@ public class MultiBoundingBox implements Iterable<BoundingBox> {
                     testEnd = test.getMin();
 
                     diffs = sampleEnd.clone().subtract(testEnd);
-
-                    //for min comparison, if diff == 0, we are inside — no need to test adjacent bounds
-                    xIn = diffs.getX() <= 0;
-                    yIn = diffs.getY() <= 0;
-                    zIn = diffs.getZ() <= 0;
                 }
                 else { //sample contains neither corner, but may be needed in later check, so don't remove it
                     continue;
                 }
+
+                xIn = diffs.getX() <= 0.0D;
+                yIn = diffs.getY() <= 0.0D;
+                zIn = diffs.getZ() <= 0.0D;
 
                 //don't iterate the sample that triggered this recursive check anymore
                 sampleList.remove(i);
@@ -115,6 +116,7 @@ public class MultiBoundingBox implements Iterable<BoundingBox> {
                 z-facing. the largest is tested first as it is the most likely to not fit, thus preventing additional
                 recursive calls.
                  */
+
                 return (xIn || contains(BoundingBox.of(new Vector(sampleEnd.getX(), testStart.getY(), testStart.getZ()), testEnd), sampleList)) &&
                         (yIn || contains(BoundingBox.of(new Vector(testStart.getX(), sampleEnd.getY(), testStart.getZ()), new Vector(sampleEnd.getX(), testEnd.getY(), testEnd.getZ())), sampleList)) &&
                         (zIn || contains(BoundingBox.of(new Vector(testStart.getX(), testStart.getY(), sampleEnd.getZ()), new Vector(sampleEnd.getX(), sampleEnd.getY(), testEnd.getZ())), sampleList));

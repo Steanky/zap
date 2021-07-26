@@ -2,8 +2,8 @@ package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.ShopData;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -15,12 +15,12 @@ import org.bukkit.event.Event;
 @Getter
 public abstract class Shop<D extends ShopData> {
 
-    private final ZombiesArena zombiesArena;
+    private final ZombiesArena arena;
     private final D shopData;
     private boolean powered = false;
 
-    public Shop(ZombiesArena zombiesArena, D shopData) {
-        this.zombiesArena = zombiesArena;
+    public Shop(ZombiesArena arena, D shopData) {
+        this.arena = arena;
         this.shopData = shopData;
 
         registerArenaEvents();
@@ -30,20 +30,36 @@ public abstract class Shop<D extends ShopData> {
      * Registers all events from the zombie arena that will be monitored by the shop
      */
     protected void registerArenaEvents() {
-        zombiesArena.getShopEvents().get(ShopType.POWER_SWITCH).registerHandler(args -> {
+        arena.getShopEvent(ShopType.POWER_SWITCH.name()).registerHandler(args -> {
             powered = true;
             display();
         });
-        zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+
+        arena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        arena.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
     }
 
     /**
-     * Called when a player joins the arena
+     * Called when players join the arena
      * @param args The list of players
      */
     protected void onPlayerJoin(ManagingArena.PlayerListArgs args) {
         for (Player player : args.getPlayers()) {
-            displayTo(player);
+            displayToPlayer(player);
+        }
+    }
+
+    /**
+     * Called when players rejoin the arena
+     * @param args The list of players
+     */
+    protected void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
+        for (ZombiesPlayer player : args.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
+
+            if (bukkitPlayer != null) {
+                displayToPlayer(bukkitPlayer);
+            }
         }
     }
 
@@ -52,15 +68,15 @@ public abstract class Shop<D extends ShopData> {
      * @param zombiesPlayer The purchasing player
      */
     protected void onPurchaseSuccess(ZombiesPlayer zombiesPlayer) {
-        zombiesArena.getShopEvents().get(getShopType()).callEvent(new ShopEventArgs(this, zombiesPlayer));
+        arena.getShopEvent(getShopType()).callEvent(new ShopEventArgs(this, zombiesPlayer));
     }
 
     /**
      * Displays the shop to all players in its current state
      */
     public void display() {
-        for (Player player : zombiesArena.getWorld().getPlayers()) {
-            displayTo(player);
+        for (Player player : arena.getWorld().getPlayers()) {
+            displayToPlayer(player);
         }
     }
 
@@ -68,20 +84,20 @@ public abstract class Shop<D extends ShopData> {
      * Displays the shop to a single player
      * @param player THe player to display the shop to
      */
-    protected void displayTo(Player player) {
+    protected void displayToPlayer(Player player) {
 
     }
 
     /**
      * Attempts to purchase an item for a player
      * @param args The event called that could cause a shop's interaction
-     * @return Whether the purchase was successful
+     * @return Whether an interaction occurred
      */
-    public abstract boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args);
+    public abstract boolean interact(ZombiesArena.ProxyArgs<? extends Event> args);
 
     /**
      * Gets the type of the shop
      * @return A representation of the type of the shop
      */
-    public abstract ShopType getShopType();
+    public abstract String getShopType();
 }

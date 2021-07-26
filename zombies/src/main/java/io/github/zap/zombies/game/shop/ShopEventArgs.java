@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.zombies.game.ZombiesPlayer;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Value;
 
 /**

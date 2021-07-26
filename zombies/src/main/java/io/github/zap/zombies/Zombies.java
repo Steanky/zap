@@ -1,7 +1,9 @@
 package io.github.zap.zombies;
 
+import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
-import com.grinderwolf.swm.plugin.SWMPlugin;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.*;
+import com.grinderwolf.swm.internal.com.flowpowered.nbt.stream.NBTOutputStream;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
@@ -11,15 +13,18 @@ import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.JacksonDataLoader;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.time.StopWatch;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.arenaapi.world.WorldLoader;
 import io.github.zap.zombies.command.ZombiesCommand;
 import io.github.zap.zombies.command.mapeditor.ContextManager;
 import io.github.zap.zombies.command.mapeditor.MapeditorCommand;
 import io.github.zap.zombies.game.ZombiesArenaManager;
-import io.github.zap.zombies.game.data.map.MapData;
-import io.github.zap.zombies.game.mob.goal.mythicmobs.*;
-import io.github.zap.zombies.game.mob.mechanic.CobwebMechanic;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedBreakWindow;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMeleeAttack;
+import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedStrafeShoot;
+import io.github.zap.zombies.game.mob.mechanic.*;
+import io.github.zap.zombies.game.npc.ZombiesNPC;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy;
 import io.github.zap.zombies.proxy.ZombiesNMSProxy_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
@@ -32,13 +37,12 @@ import io.lumine.xikage.mythicmobs.util.annotations.MythicMechanic;
 import io.lumine.xikage.mythicmobs.volatilecode.handlers.VolatileAIHandler;
 import io.lumine.xikage.mythicmobs.volatilecode.v1_16_R3.VolatileAIHandler_v1_16_R3;
 import lombok.Getter;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
@@ -48,8 +52,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 public final class Zombies extends JavaPlugin implements Listener {
@@ -63,7 +66,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private ArenaApi arenaApi;
 
     @Getter
-    private SWMPlugin SWM;
+    private SlimePlugin SWM;
 
     @Getter
     private File slimeWorldDirectory;
@@ -95,40 +98,42 @@ public final class Zombies extends JavaPlugin implements Listener {
     @Getter
     private CommandManager commandManager;
 
-    @Getter
-    private MoveWaterFallAfterBeta mockedWaterfall;
+    private final List<ZombiesNPC> zombiesNPCS = new ArrayList<>();
 
     public static final String DEFAULT_LOCALE = "en_US";
-    public static final String DEFAULT_LOBBY_WORLD = "world";
     public static final String LOCALIZATION_FOLDER_NAME = "localization";
     public static final String MAP_FOLDER_NAME = "maps";
     public static final String EQUIPMENT_FOLDER_NAME = "equipments";
+    public static final String PLAYER_STATS_FOLDER_NAME = "stats/player";
+    public static final String MAP_STATS_FOLDER_NAME = "stats/map";
     public static final String POWERUPS_FOLDER_NAME = "powerups";
     public static final String PLAYER_DATA_FOLDER_NAME = "playerdata";
 
     public static final String ARENA_METADATA_NAME = "zombies_arena";
-    public static final String SPAWNPOINT_METADATA_NAME = "spawnpoint_metadata";
-    public static final String SPAWNINFO_ENTRY_METADATA_NAME = "spawninfo_metadata";
     public static final String SPAWNINFO_WAVE_METADATA_NAME = "spawninfo_wave_metadata";
     public static final String WINDOW_METADATA_NAME = "spawn_window";
+
     @Override
     public void onEnable() {
-        StopWatch timer = StopWatch.createStarted();
+        java.util.Collections.singletonList(null); //this is needed somehow
+
+        StopWatch timer = new StopWatch();
+        timer.start();
         instance = this;
 
         try {
             //put plugin enabling code below. throw IllegalStateException if something goes wrong and we need to abort
-            initConfig();
             initProxy();
             initDependencies();
-            initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class,
-                    WrappedArrowShoot.class);
-            initMechanics(CobwebMechanic.class);
+            initConfig();
+            initPathfinding(WrappedMeleeAttack.class, WrappedBreakWindow.class, WrappedStrafeShoot.class);
+            initMechanics(CobwebMechanic.class, SpawnMobMechanic.class, StealCoinsMechanic.class,
+                    SlowFireRateMechanic.class, SummonMountMechanic.class, TeleportBehindTargetMechanic.class);
             initPlayerDataManager();
             initLocalization();
             initWorldLoader();
             initArenaManagers();
-            initMockedWaterfall();
+            initNPCs();
             initCommands();
         }
         catch(LoadFailureException exception)
@@ -136,18 +141,13 @@ public final class Zombies extends JavaPlugin implements Listener {
             severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
+            // getServer().shutdown();
             return;
         }
 
+        getServer().getPluginManager().registerEvents(this, this);
         timer.stop();
         info(String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-    }
-
-    private void initMockedWaterfall() {
-        mockedWaterfall = new MoveWaterFallAfterBeta();
-        getServer().getPluginManager().registerEvents(mockedWaterfall, this);
-        var world = Validate.notNull(getServer().getWorld("world"), "Cannot find lobby world!");
-        mockedWaterfall.setLobbyLocation(world.getSpawnLocation());
     }
 
     @Override
@@ -158,10 +158,6 @@ public final class Zombies extends JavaPlugin implements Listener {
 
         if(arenaManager != null) {
             DataLoader loader = arenaManager.getMapLoader(); //save map data in case it was edited
-            for(MapData data : arenaManager.getMaps()) {
-                loader.save(data, data.getName());
-                Zombies.info(String.format("Saved MapData for '%s'", data.getName()));
-            }
 
             for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
                 String fileNameWithExtension = file.getName();
@@ -180,9 +176,15 @@ public final class Zombies extends JavaPlugin implements Listener {
                 }
             }
         }
+
+        for (ZombiesNPC zombiesNPC : zombiesNPCS) {
+            zombiesNPC.destroy();
+        }
     }
 
     private void initConfig() {
+        ConfigurationSerialization.registerClass(ZombiesNPC.ZombiesNPCData.class);
+
         FileConfiguration config = getConfig();
 
         config.addDefault(ConfigNames.MAX_WORLDS, 10);
@@ -192,7 +194,9 @@ public final class Zombies extends JavaPlugin implements Listener {
         config.addDefault(ConfigNames.LOCALIZATION_DIRECTORY, Path.of(getDataFolder().getPath(),
                 LOCALIZATION_FOLDER_NAME).toFile().getPath());
         config.addDefault(ConfigNames.WORLD_SPAWN, new Vector(0, 1, 0));
-        config.addDefault(ConfigNames.LOBBY_WORLD, DEFAULT_LOBBY_WORLD);
+        config.addDefault(ConfigNames.LOBBY_WORLD, ArenaApi.getInstance().getNmsBridge().worldBridge()
+                .getDefaultWorldName());
+        config.addDefault(ConfigNames.NPC_LIST, Collections.emptyList());
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -210,18 +214,43 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initDependencies() throws LoadFailureException {
-        arenaApi = ArenaApi.getRequiredPlugin(PluginNames.ARENA_API, true);
-        SWM = ArenaApi.getRequiredPlugin(PluginNames.SLIME_WORLD_MANAGER, true);
-        mythicMobs = ArenaApi.getRequiredPlugin(PluginNames.MYTHIC_MOBS, false);
+        arenaApi = ArenaApi.getDependentPlugin(PluginNames.ARENA_API, true, true);
+        SWM = ArenaApi.getDependentPlugin(PluginNames.SLIME_WORLD_MANAGER, true, true);
+        mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true,false);
+        fixAswm();
+    }
+
+    private void fixAswm() {
+        Class<?> clazz;
+        try {
+            clazz = Class.forName("com.grinderwolf.swm.internal.com.flowpowered.nbt.stream.NBTOutputStream$1");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        clazz = NBTOutputStream.class;
+        clazz = Tag.class;
+        clazz = TagType.class;
+        clazz = EndTag.class;
+        clazz = ByteTag.class;
+        clazz = ShortTag.class;
+        clazz = IntTag.class;
+        clazz = LongTag.class;
+        clazz = FloatTag.class;
+        clazz = DoubleTag.class;
+        clazz = ByteArrayTag.class;
+        clazz = StringTag.class;
+        clazz = ListTag.class;
+        clazz = CompoundTag.class;
+        clazz = IntArrayTag.class;
+        clazz = LongArrayTag.class;
+        clazz = ShortArrayTag.class;
     }
 
     @SafeVarargs
     private void initPathfinding(Class<? extends PathfinderAdapter>... customGoals) throws LoadFailureException {
         VolatileAIHandler handler = mythicMobs.getVolatileCodeHandler().getAIHandler();
 
-        if(handler instanceof VolatileAIHandler_v1_16_R3) {
-            VolatileAIHandler_v1_16_R3 target = (VolatileAIHandler_v1_16_R3)handler;
-
+        if(handler instanceof VolatileAIHandler_v1_16_R3 target) {
             try {
                 Field aiGoalsField = VolatileAIHandler_v1_16_R3.class.getDeclaredField("AI_GOALS");
                 aiGoalsField.setAccessible(true);
@@ -246,7 +275,7 @@ public final class Zombies extends JavaPlugin implements Listener {
                     }
                 }
             } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-                warning("Reflection-related exception when initializing pathfinding.");
+                throw new LoadFailureException("Reflection-related exception when initializing pathfinding.");
             }
         }
         else {
@@ -276,21 +305,22 @@ public final class Zombies extends JavaPlugin implements Listener {
                     info("Loaded custom MythicMobs mechanic " + customMechanic.getName());
                 }
                 else {
-                    warning("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
+                    throw new LoadFailureException("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-            warning("Reflection-related exception when initializing mechanics.");
+            throw new LoadFailureException("Reflection-related exception when initializing mechanics.");
         }
     }
 
     private void initWorldLoader() {
         info("Preloading worlds.");
 
-        StopWatch timer = StopWatch.createStarted();
+        StopWatch timer = new StopWatch();
+        timer.start();
         slimeWorldDirectory = new File("slime_worlds");
         slimeExtension = ".slime";
-        slimeLoader = new FileLoader(slimeWorldDirectory);
+        slimeLoader = new FileLoader(slimeWorldDirectory); // this is the only instance of swm-plugin code, wish we could remove it
         worldLoader = new SlimeWorldLoader(slimeLoader);
         worldLoader.preload();
         timer.stop();
@@ -315,8 +345,14 @@ public final class Zombies extends JavaPlugin implements Listener {
 
                 DataLoader mapLoader = new JacksonDataLoader(new File(getDataFolder().getPath(), MAP_FOLDER_NAME));
 
+                DataLoader playerStatsLoader = new JacksonDataLoader(new File(getDataFolder().getPath(),
+                        PLAYER_STATS_FOLDER_NAME));
+                DataLoader mapStatsLoader = new JacksonDataLoader(new File(getDataFolder().getPath(),
+                        MAP_STATS_FOLDER_NAME));
+
                 arenaManager = new ZombiesArenaManager(WorldUtils.locationFrom(world, spawn), mapLoader,
-                        equipmentLoader, powerupLoader, config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
+                        equipmentLoader, powerupLoader, playerStatsLoader, mapStatsLoader,
+                        config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaManager.loadMaps();
                 arenaApi.registerArenaManager(arenaManager);
             }
@@ -355,6 +391,27 @@ public final class Zombies extends JavaPlugin implements Listener {
         commandManager.registerCommand(new MapeditorCommand());
 
         contextManager = new ContextManager();
+    }
+
+    private void initNPCs() {
+        FileConfiguration config = getConfig();
+
+        //noinspection unchecked
+        List<ZombiesNPC.ZombiesNPCData> zombiesNPCDataList
+                = (List<ZombiesNPC.ZombiesNPCData>) config.getList(ConfigNames.NPC_LIST);
+
+        if (zombiesNPCDataList != null) {
+            String lobbyWorldName = config.getString(ConfigNames.LOBBY_WORLD);
+            if (lobbyWorldName != null) {
+                World world = Bukkit.getWorld(lobbyWorldName);
+
+                if (world != null) {
+                    for (ZombiesNPC.ZombiesNPCData zombiesNPCData : zombiesNPCDataList) {
+                        zombiesNPCS.add(new ZombiesNPC(world, zombiesNPCData));
+                    }
+                }
+            }
+        }
     }
 
     /*

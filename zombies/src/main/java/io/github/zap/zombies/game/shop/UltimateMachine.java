@@ -1,16 +1,20 @@
 package io.github.zap.zombies.game.shop;
 
 import io.github.zap.arenaapi.hologram.Hologram;
-import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.UltimateMachineData;
-import io.github.zap.zombies.game.equipment.Ultimateable;
 import io.github.zap.zombies.game.equipment.UpgradeableEquipment;
+import io.github.zap.zombies.game.equipment.UpgradeableEquipmentObjectGroup;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Machine for upgrading designated upgradeable equipment
@@ -31,7 +35,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    protected void displayTo(Player player) {
+    protected void displayToPlayer(Player player) {
         Hologram hologram = getHologram();
 
         hologram.updateLineForPlayer(player, 0, ChatColor.GOLD + "Ultimate Machine");
@@ -44,43 +48,72 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (super.purchase(args)) {
-            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
-            Player player = zombiesPlayer.getPlayer();
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.interact(args)) {
+            ZombiesPlayer player = args.getManagedPlayer();
 
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                if (zombiesPlayer.getCoins() < getShopData().getCost()) {
-                    player.sendMessage(ChatColor.RED + "You cannot afford this item!");
-                } else {
-                    HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+            if (player != null) {
+                Player bukkitPlayer = player.getPlayer();
 
-                    HotbarObject hotbarObject = hotbarManager.getSelectedObject();
-                    if (hotbarObject instanceof Ultimateable && hotbarObject instanceof UpgradeableEquipment<?, ?>) {
-                        UpgradeableEquipment<?, ?> upgradeableEquipment = (UpgradeableEquipment<?, ?>) hotbarObject;
-                        if (upgradeableEquipment.getLevel()
-                                < upgradeableEquipment.getEquipmentData().getLevels().size()) {
+                if (bukkitPlayer != null) {
+                    UltimateMachineData shopData = getShopData();
+                    if (!shopData.isRequiresPower() || isPowered()) {
+                        int cost = shopData.getCost();
 
-                            upgradeableEquipment.upgrade();
-                            onPurchaseSuccess(zombiesPlayer);
+                        if (player.getCoins() < cost) {
+                            bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
                         } else {
-                            player.sendMessage(ChatColor.RED + "You have already maxed out this item!");
+                            HotbarObject hotbarObject = player.getHotbarManager().getSelectedObject();
+                            if (hotbarObject instanceof UpgradeableEquipment<?, ?> upgradeableEquipment
+                                    && player.getHotbarManager().getSelectedHotbarObjectGroup()
+                                    instanceof UpgradeableEquipmentObjectGroup upgradeableEquipmentObjectGroup
+                                    && upgradeableEquipmentObjectGroup.isUltimateable()) {
+                                attemptToUltimate(upgradeableEquipment, player, cost);
+                                return true;
+                            } else {
+                                bukkitPlayer.sendMessage(Component
+                                        .text("Choose a slot to receive the upgrade for!", NamedTextColor.RED));
+                            }
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "Choose a slot to receive this item in!");
+                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!",
+                                NamedTextColor.RED));
                     }
-                }
-            } else {
-                player.sendMessage(ChatColor.RED + "The power is not active yet!");
-            }
 
-            return true;
+                    bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.enderman.teleport"),
+                            Sound.Source.MASTER, 1.0F, 0.5F));
+                    return true;
+                }
+            }
         }
+
         return false;
     }
 
     @Override
-    public ShopType getShopType() {
-        return ShopType.ULTIMATE_MACHINE;
+    public String getShopType() {
+        return ShopType.ULTIMATE_MACHINE.name();
     }
+
+    private void attemptToUltimate(@NotNull UpgradeableEquipment<?, ?> equipment, @NotNull ZombiesPlayer player,
+                                      int cost) {
+        Player bukkitPlayer = player.getPlayer();
+
+        if (bukkitPlayer != null) {
+            if (equipment.getLevel() < equipment.getEquipmentData().getLevels().size() - 1) {
+                equipment.upgrade();
+
+                bukkitPlayer.playSound(Sound.sound(Key.key("minecraft:entity.player.levelup"),
+                        Sound.Source.MASTER, 1.0F, 1.0F));
+
+                player.subtractCoins(cost);
+                onPurchaseSuccess(player);
+                return;
+            }
+
+            bukkitPlayer.sendMessage(Component.text("You have already maxed out this item!",
+                    NamedTextColor.RED));
+        }
+    }
+
 }

@@ -3,21 +3,20 @@ package io.github.zap.zombies.game.powerups.managers;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.DataLoader;
 import io.github.zap.arenaapi.serialize.FieldTypeDeserializer;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.Validate;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.data.powerups.DurationPowerUpData;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
-import io.github.zap.zombies.game.data.powerups.spawnrules.DefaultPowerUpSpawnRuleData;
 import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
 import io.github.zap.zombies.game.powerups.*;
-import io.github.zap.zombies.game.powerups.spawnrules.*;
+import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRule;
+import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
+import io.github.zap.zombies.game.powerups.spawnrules.SpawnRuleType;
 import lombok.Getter;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -32,9 +31,9 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     private final FieldTypeDeserializer<PowerUpData> powerUpDataDeserializer = new FieldTypeDeserializer<>("type");
     private final FieldTypeDeserializer<SpawnRuleData> spawnRuleDataFieldTypeDeserializer = new FieldTypeDeserializer<>("type");
     private final Map<String, PowerUpData> dataMap = new HashMap<>();
-    private final Map<String, ImmutablePair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> typeMap = new HashMap<>();
+    private final Map<String, Pair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> typeMap = new HashMap<>();
     private final Map<String, SpawnRuleData> spawnRuleDataMap = new HashMap<>();
-    private final Map<String, ImmutablePair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> spawnRuleTypeMap = new HashMap<>();
+    private final Map<String, Pair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> spawnRuleTypeMap = new HashMap<>();
 
     @Getter
     private boolean loaded;
@@ -82,7 +81,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             ensureLoad();
             Validate.isTrue(!dataMap.containsKey(data.getName()), data.getName() + " is already exist!");
             Validate.isTrue(typeMap.containsKey(data.getPowerUpType()), "Cannot find type: " + data.getPowerUpType() + "! Make sure you register power-up type before adding data.");
-            Validate.isAssignableFrom(typeMap.get(data.getPowerUpType()).right, data.getClass(), "The provided power up type does not accept this data type");
+            Validate.isAssignableFrom(typeMap.get(data.getPowerUpType()).getRight(), data.getClass(), "The provided power up type does not accept this data type");
             dataMap.put(data.getName(), data);
         } catch (IllegalArgumentException e) {
             if(throwOnError) {
@@ -116,7 +115,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             ensureLoad();
             Validate.isTrue(!spawnRuleDataMap.containsKey(spawnRuleData.getName()), spawnRuleData.getName() + " Spawn rule already exist!");
             Validate.isTrue(spawnRuleTypeMap.containsKey(spawnRuleData.getSpawnRuleType()), spawnRuleData.getSpawnRuleType() + " Spawn rule type does not exist!");
-            Validate.isAssignableFrom(spawnRuleTypeMap.get(spawnRuleData.getSpawnRuleType()).right, spawnRuleData.getClass(), "The provided spawn rule type doesn't accept this data type!");
+            Validate.isAssignableFrom(spawnRuleTypeMap.get(spawnRuleData.getSpawnRuleType()).getRight(), spawnRuleData.getClass(), "The provided spawn rule type doesn't accept this data type!");
             spawnRuleDataMap.put(spawnRuleData.getName(), spawnRuleData);
         } catch (Exception e) {
             if (throwOnError) {
@@ -135,7 +134,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     }
 
     @Override
-    public Set<ImmutablePair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers() {
+    public Set<Pair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers() {
         ensureLoad();
         return new HashSet<>(typeMap.values());
     }
@@ -144,7 +143,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     public void registerPowerUp(String name, BiFunction<PowerUpData,ZombiesArena, PowerUp> powerUpsInitializer, Class<? extends PowerUpData> dataClass) {
         ensureLoad();
         Validate.isTrue(!typeMap.containsKey(name), name + " is already exist!");
-        typeMap.put(name, ImmutablePair.of(powerUpsInitializer, dataClass));
+        typeMap.put(name, Pair.of(powerUpsInitializer, dataClass));
     }
 
     @Override
@@ -184,8 +183,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     @Override
     public void registerPowerUp(Class<? extends PowerUp> classType) {
         for (var at : classType.getAnnotations()) {
-            if(at instanceof PowerUpType) {
-                registerPowerUp(((PowerUpType) at).name(), classType);
+            if (at instanceof PowerUpType powerUpType) {
+                registerPowerUp(powerUpType.name(), classType);
                 return;
             }
         }
@@ -203,7 +202,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     }
 
     @Override
-    public Set<ImmutablePair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> getSpawnRuleInitializers() {
+    public Set<Pair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> getSpawnRuleInitializers() {
         return new HashSet<>(spawnRuleTypeMap.values());
     }
 
@@ -211,7 +210,7 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     public void registerSpawnRule(String name, SpawnRuleCtor<?, ?> initializer, Class<? extends SpawnRuleData> dataClass) {
         ensureLoad();
         Validate.isTrue(!spawnRuleTypeMap.containsKey(name), name + " is already exist!");
-        spawnRuleTypeMap.put(name, ImmutablePair.of(initializer, dataClass));
+        spawnRuleTypeMap.put(name, Pair.of(initializer, dataClass));
     }
 
     @Override
@@ -250,8 +249,8 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
     @Override
     public void registerSpawnRule(Class<? extends PowerUpSpawnRule<?>> spawnRuleType) {
         for (var at : spawnRuleType.getAnnotations()) {
-            if(at instanceof SpawnRuleType) {
-                registerSpawnRule(((SpawnRuleType) at).getName(), spawnRuleType);
+            if(at instanceof SpawnRuleType spawnRuleTypeAnnotation) {
+                registerSpawnRule(spawnRuleTypeAnnotation.getName(), spawnRuleType);
                 return;
             }
         }
@@ -264,15 +263,15 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
         ensureLoad();
         Validate.isTrue(dataMap.containsKey(name), name + " power up does not exist");
         var data = dataMap.get(name);
-        return typeMap.get(data.getPowerUpType()).left.apply(data, arena);
+        return typeMap.get(data.getPowerUpType()).getLeft().apply(data, arena);
     }
 
     @Override
     public PowerUpSpawnRule<?> createSpawnRule(String name, String powerUpName, ZombiesArena arena) {
         ensureLoad();
-        Validate.isTrue(spawnRuleDataMap.containsKey(name), " spawn rule does not exist");
+        Validate.isTrue(spawnRuleDataMap.containsKey(name), "spawn rule " + name + " does not exist");
         var data = spawnRuleDataMap.get(name);
-        return spawnRuleTypeMap.get(data.getSpawnRuleType()).left.construct(powerUpName, data, arena);
+        return spawnRuleTypeMap.get(data.getSpawnRuleType()).getLeft().construct(powerUpName, data, arena);
     }
 
     @Override
@@ -295,19 +294,20 @@ public class JacksonPowerUpManager implements PowerUpManager, SupportEagerLoadin
             registerPowerUp(BarricadeCountModificationPowerUp.class);
             registerPowerUp(DamageModificationPowerUp.class);
 
-            //noinspection ConstantConditions
-            Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {return null;}})
-                    .filter(Objects::nonNull)
-                    .forEach(x -> addPowerUpData(x, false));
-
             registerSpawnRule(DefaultPowerUpSpawnRule.class);
 
-            //noinspection ConstantConditions
-            Arrays.stream(dataLoader.getRootDirectory().listFiles())
-                    .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), SpawnRuleData.class); } catch (Exception e) {return null;}})
-                    .filter(Objects::nonNull)
-                    .forEach(x -> addSpawnRuleData(x, false));
+            File[] powerUpFiles = dataLoader.getRootDirectory().listFiles();
+            if(powerUpFiles != null) {
+                Arrays.stream(powerUpFiles)
+                        .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), PowerUpData.class); } catch (Exception e) {return null;}})
+                        .filter(Objects::nonNull)
+                        .forEach(x -> addPowerUpData(x, false));
+
+                Arrays.stream(powerUpFiles)
+                        .map(x -> {try {return dataLoader.load(FilenameUtils.getBaseName(x.getName()), SpawnRuleData.class); } catch (Exception e) {return null;}})
+                        .filter(Objects::nonNull)
+                        .forEach(x -> addSpawnRuleData(x, false));
+            }
 
             loaded = true;
         }

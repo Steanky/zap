@@ -1,10 +1,10 @@
 package io.github.zap.zombies.game.equipment.gun;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunData;
 import io.github.zap.zombies.game.data.equipment.gun.ZapperGunLevel;
 import io.github.zap.zombies.game.equipment.gun.logic.ZapperBeam;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 
 /**
  * Represents a gun that zaps entities
@@ -17,16 +17,16 @@ public class ZapperGun extends Gun<ZapperGunData, ZapperGunLevel> {
 
     @Override
     public void shoot() {
-        ZapperGunData linearGunData = getEquipmentData();
-        ZapperGunLevel currentLevel = linearGunData.getLevels().get(getLevel());
+        ZapperGunData zapperGunData = getEquipmentData();
+        ZapperGunLevel currentLevel = zapperGunData.getLevels().get(getLevel());
 
         new ZapperBeam(
-                getZombiesArena().getMap(),
+                getArena().getMap(),
                 getZombiesPlayer(),
                 getPlayer().getEyeLocation(),
                 currentLevel,
-                linearGunData.getParticle(),
-                linearGunData.getParticleDataWrapper()
+                zapperGunData.getParticle(),
+                zapperGunData.getParticleDataWrapper()
         ).send();
     }
 

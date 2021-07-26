@@ -1,15 +1,16 @@
 package io.github.zap.zombies.game.data.equipment;
 
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.equipment.Equipment;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class that stores a map of string names and an equipment mapping in order to create equipments from an equipment data
+ * Class that stores a map of equipment names and an equipment mapping in order to create equipments
+ * from an equipment's data
  */
 public class EquipmentCreator {
 
@@ -21,6 +22,7 @@ public class EquipmentCreator {
      * @param <D> The data class of the equipment
      * @param <L> The level class of the equipment
      */
+    @FunctionalInterface
     public interface EquipmentMapping<D extends EquipmentData<L>, L> {
         /**
          * Creates a new piece of equipment

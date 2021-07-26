@@ -33,8 +33,8 @@ public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, Te
      */
     public SidebarDisplayNameTextWriter text(Object... contents) {
         for(Object content : contents) {
-            if(content instanceof ITextFragment)
-                add((ITextFragment)content);
+            if(content instanceof ITextFragment textFragment)
+                add(textFragment);
             else
                 add(new StringFragment(content.toString()));
         }
@@ -76,7 +76,7 @@ public class SidebarDisplayNameTextWriter implements Iterable<ITextFragment>, Te
 
     @Override
     public void onTextFragmentChanged(ITextFragment fragment) {
-        if(getWriter().isAutoUpdate() && fragments.indexOf(fragment) != -1) getWriter().update();
+        if(getWriter().isAutoUpdate() && fragments.contains(fragment)) getWriter().update();
     }
 
 

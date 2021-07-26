@@ -4,6 +4,7 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.shop.ArmorStandShopData;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
@@ -28,16 +29,14 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
         World world = zombiesArena.getWorld();
 
         armorStand = world.spawn(
-                getShopData().getRootLocation().toLocation(world).add(0.5, -1.0, 0.5),
+                getShopData().getRootLocation().toLocation(world).add(0.5D, -1.0D, 0.5D),
                 ArmorStand.class
         );
+        armorStand.setCollidable(false);
         armorStand.setGravity(false);
         armorStand.setVisible(false);
 
-        hologram = new Hologram(
-                getShopData().getRootLocation().toLocation(world).add(0.5, -2.0, 0.5),
-                2
-        );
+        hologram = new Hologram(getShopData().getRootLocation().toLocation(world).add(0.5D, -2.0D, 0.5D));
     }
 
     @Override
@@ -51,11 +50,24 @@ public abstract class ArmorStandShop<D extends ArmorStandShopData> extends Shop<
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        Event event = args.getEvent();
-        if (event instanceof PlayerInteractAtEntityEvent) {
-            PlayerInteractAtEntityEvent playerInteractAtEntityEvent = (PlayerInteractAtEntityEvent) event;
-            return playerInteractAtEntityEvent.getRightClicked().equals(armorStand);
+    public void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs args) {
+        Hologram hologram = getHologram();
+
+        for (ZombiesPlayer player : args.getPlayers()) {
+            Player bukkitPlayer = player.getPlayer();
+
+            if (bukkitPlayer != null) {
+                hologram.renderToPlayer(bukkitPlayer);
+            }
+        }
+
+        super.onPlayerRejoin(args);
+    }
+
+    @Override
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (args.getEvent() instanceof PlayerInteractAtEntityEvent event) {
+            return event.getRightClicked().equals(armorStand);
         }
 
         return false;

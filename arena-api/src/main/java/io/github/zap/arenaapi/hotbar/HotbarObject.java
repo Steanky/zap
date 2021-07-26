@@ -1,12 +1,17 @@
 package io.github.zap.arenaapi.hotbar;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A single object in a hotbar
  */
+@RequiredArgsConstructor
 @Getter
 public class HotbarObject {
 
@@ -23,22 +28,12 @@ public class HotbarObject {
     private boolean removed = false;
 
     /**
-     * Creates a hotbar object that is invisible
-     * @param player The player the hotbar object belongs to
-     * @param slot The slot of the hotbar object
-     */
-    public HotbarObject(Player player, int slot) {
-        this.player = player;
-        this.slot = slot;
-    }
-
-    /**
      * Creates a hotbar object that is invisible that would display an item stack
      * @param player The player the hotbar object belongs to
      * @param slot The slot of the hotbar object
      * @param representingItemStack The item stack to display
      */
-    public HotbarObject(Player player, int slot, ItemStack representingItemStack) {
+    public HotbarObject(@NotNull Player player, int slot, @Nullable ItemStack representingItemStack) {
         this(player, slot);
         this.representingItemStack = representingItemStack;
     }
@@ -47,7 +42,7 @@ public class HotbarObject {
      * Sets the item stack in the hotbar object slot
      * @param itemStack The item stack to display
      */
-    private void setStack(ItemStack itemStack) {
+    private void setStack(@Nullable ItemStack itemStack) {
         if (!removed && visible) {
             player.getInventory().setItem(slot, itemStack);
         }
@@ -69,15 +64,17 @@ public class HotbarObject {
 
     /**
      * Method to call when the slot is left clicked in the hotbar
+     * @param action The action that triggered the left click
      */
-    public void onLeftClick() {
+    public void onLeftClick(@NotNull Action action) {
 
     }
 
     /**
      * Method to call when the slot is right clicked in the hotbar
+     * @param action The action that triggered the right click
      */
-    public void onRightClick() {
+    public void onRightClick(@NotNull Action action) {
 
     }
 
@@ -85,7 +82,7 @@ public class HotbarObject {
      * Sets the representing item stack of the hotbar
      * @param representingItemStack The item stack to represent
      */
-    public void setRepresentingItemStack(ItemStack representingItemStack) {
+    public void setRepresentingItemStack(@NotNull ItemStack representingItemStack) {
         this.representingItemStack = representingItemStack;
 
         if (visible) {
@@ -103,6 +100,8 @@ public class HotbarObject {
             if (player.getInventory().getHeldItemSlot() == slot) {
                 onSlotSelected();
             }
+        } else {
+            onSlotDeselected();
         }
     }
 

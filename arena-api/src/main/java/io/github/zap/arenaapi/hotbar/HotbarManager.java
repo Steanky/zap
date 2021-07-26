@@ -4,6 +4,8 @@ import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,13 +29,17 @@ public class HotbarManager {
      * Creates the hotbar manager of a player
      * @param player The player the hotbar manager manages
      */
-    public HotbarManager(Player player) {
+    public HotbarManager(@NotNull Player player) {
         this.player = player;
 
         switchProfile(DEFAULT_PROFILE_NAME);
     }
 
-    public Map<String, HotbarProfile> getProfiles() {
+    /**
+     * Creates an immutable map of the hotbar manager's profiles
+     * @return The hotbar's profiles
+     */
+    public @NotNull Map<String, HotbarProfile> getProfiles() {
         return Collections.unmodifiableMap(profiles);
     }
 
@@ -41,7 +47,7 @@ public class HotbarManager {
      * Switches the HotbarManager profile and creates one if it doesn't exist
      * @param name The name of the HotbarManager profile
      */
-    public void switchProfile(String name) {
+    public void switchProfile(@NotNull String name) {
         if (current != null) {
             current.setVisible(false);
         }
@@ -55,7 +61,7 @@ public class HotbarManager {
      * @param slot The slot to add the item to
      * @param itemStack The item stack to add
      */
-    public void addItem(int slot, ItemStack itemStack) {
+    public void addItem(int slot, @Nullable ItemStack itemStack) {
         addItem(current, slot, itemStack);
     }
 
@@ -65,7 +71,7 @@ public class HotbarManager {
      * @param slot The slot to add the item to
      * @param itemStack The item stack to add
      */
-    public void addItem(HotbarProfile hotbarProfile, int slot, ItemStack itemStack) {
+    public void addItem(@NotNull HotbarProfile hotbarProfile, int slot, @Nullable ItemStack itemStack) {
         hotbarProfile.addItem(slot, itemStack);
     }
 
@@ -74,7 +80,7 @@ public class HotbarManager {
      * @param slot The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to add
      */
-    public void setHotbarObject(int slot, HotbarObject hotbarObject) {
+    public void setHotbarObject(int slot, @NotNull HotbarObject hotbarObject) {
         setHotbarObject(current, slot, hotbarObject);
     }
 
@@ -84,7 +90,7 @@ public class HotbarManager {
      * @param slot The slot to set the hotbar object in
      * @param hotbarObject The hotbar object to add
      */
-    public void setHotbarObject(HotbarProfile hotbarProfile, int slot, HotbarObject hotbarObject) {
+    public void setHotbarObject(@NotNull HotbarProfile hotbarProfile, int slot, @NotNull HotbarObject hotbarObject) {
         hotbarProfile.addHotbarObject(slot, hotbarObject);
     }
 
@@ -105,7 +111,7 @@ public class HotbarManager {
      * @param replace Whether or not the internal hotbar object group should replace the object in the slot and still
      *                manage it
      */
-    public void removeHotbarObject(HotbarProfile hotbarProfile, int slot, boolean replace) {
+    public void removeHotbarObject(@NotNull HotbarProfile hotbarProfile, int slot, boolean replace) {
         hotbarProfile.removeHotbarObject(slot, replace);
     }
 
@@ -114,7 +120,7 @@ public class HotbarManager {
      * @param name The associated name of the hotbar object group
      * @param hotbarObjectGroup The hotbar object group to add
      */
-    public void addHotbarObjectGroup(String name, HotbarObjectGroup hotbarObjectGroup) {
+    public void addHotbarObjectGroup(@NotNull String name, @NotNull HotbarObjectGroup hotbarObjectGroup) {
         addHotbarObjectGroup(current, name, hotbarObjectGroup);
     }
 
@@ -124,7 +130,8 @@ public class HotbarManager {
      * @param name The associated name of the hotbar object group
      * @param hotbarObjectGroup The hotbar object group to add
      */
-    public void addHotbarObjectGroup(HotbarProfile hotbarProfile, String name, HotbarObjectGroup hotbarObjectGroup) {
+    public void addHotbarObjectGroup(@NotNull HotbarProfile hotbarProfile, @NotNull String name,
+                                     @NotNull HotbarObjectGroup hotbarObjectGroup) {
         hotbarProfile.addHotbarObjectGroup(name, hotbarObjectGroup);
     }
 
@@ -141,7 +148,7 @@ public class HotbarManager {
      * @param hotbarProfile The hotbar profile to remove the hotbar object group from
      * @param name The associated name of the hotbar object group
      */
-    public void removeHotbarObjectGroup(HotbarProfile hotbarProfile, String name) {
+    public void removeHotbarObjectGroup(@NotNull HotbarProfile hotbarProfile, @NotNull String name) {
         hotbarProfile.removeHotbarObjectGroup(name);
     }
 
@@ -150,7 +157,7 @@ public class HotbarManager {
      * @param slot The slot to get the hotbar object from
      * @return The hotbar object
      */
-    public HotbarObject getHotbarObject(int slot) {
+    public @Nullable HotbarObject getHotbarObject(int slot) {
         return getHotbarObject(current, slot);
     }
 
@@ -159,7 +166,7 @@ public class HotbarManager {
      * @param name The name of the hotbar object group
      * @return The hotbar object group
      */
-    public HotbarObjectGroup getHotbarObjectGroup(String name) {
+    public @Nullable HotbarObjectGroup getHotbarObjectGroup(@NotNull String name) {
         return getHotbarObjectGroup(current, name);
     }
 
@@ -169,8 +176,9 @@ public class HotbarManager {
      * @param name The name of the hotbar object group
      * @return The hotbar object group
      */
-    public HotbarObjectGroup getHotbarObjectGroup(HotbarProfile hotbarProfile, String name) {
-        return current.getHotbarObjectGroup(name);
+    public @Nullable HotbarObjectGroup getHotbarObjectGroup(@NotNull HotbarProfile hotbarProfile,
+                                                            @NotNull String name) {
+        return hotbarProfile.getHotbarObjectGroup(name);
     }
 
     /**
@@ -179,15 +187,23 @@ public class HotbarManager {
      * @param slot The slot to get the hotbar object from
      * @return The hotbar object
      */
-    public HotbarObject getHotbarObject(HotbarProfile hotbarProfile, int slot) {
+    public @Nullable HotbarObject getHotbarObject(@NotNull HotbarProfile hotbarProfile, int slot) {
         return hotbarProfile.getHotbarObject(slot);
+    }
+
+    /**
+     * Gets the currently selected hotbar object group
+     * @return The currently selected hotbar object group
+     */
+    public @Nullable HotbarObjectGroup getSelectedHotbarObjectGroup() {
+        return current.getHotbarObjectGroup(player.getInventory().getHeldItemSlot());
     }
 
     /**
      * Gets the currently selected hotbar object
      * @return The currently selected hotbar object
      */
-    public HotbarObject getSelectedObject() {
+    public @Nullable HotbarObject getSelectedObject() {
         return current.getHotbarObject(player.getInventory().getHeldItemSlot());
     }
 
@@ -196,19 +212,30 @@ public class HotbarManager {
      * @param slot The selected slot
      */
     public void setSelectedSlot(int slot) {
-        getSelectedObject().onSlotDeselected();
-        getHotbarObject(slot).onSlotSelected();
+        HotbarObject newHotbarObject = getHotbarObject(slot);
+
+        if (newHotbarObject != null) {
+            HotbarObject selectedObject = getSelectedObject();
+            if (selectedObject != null) {
+                selectedObject.onSlotDeselected();
+            }
+
+            newHotbarObject.onSlotSelected();
+        }
     }
 
     /**
      * Method to call when the slot is clicked in the hotbar
      */
-    public void click(Action action) {
+    public void click(@NotNull Action action) {
         HotbarObject hotbarObject = getSelectedObject();
-        if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
-            hotbarObject.onLeftClick();
-        } else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
-            hotbarObject.onRightClick();
+
+        if (hotbarObject != null) {
+            if (action == Action.LEFT_CLICK_BLOCK || action == Action.LEFT_CLICK_AIR) {
+                hotbarObject.onLeftClick(action);
+            } else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+                hotbarObject.onRightClick(action);
+            }
         }
     }
 

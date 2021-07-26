@@ -1,11 +1,11 @@
 package io.github.zap.zombies.game.powerups.managers;
 
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
-import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.data.powerups.spawnrules.SpawnRuleData;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import io.github.zap.zombies.game.powerups.PowerUp;
+import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -54,7 +54,7 @@ public interface PowerUpManager {
      * Retrieve all power up class initializers loaded by this PowerUpManager
      * @return a Set contains all power up class initializers
      */
-    Set<ImmutablePair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers();
+    Set<Pair<BiFunction<PowerUpData,ZombiesArena, PowerUp>, Class<? extends PowerUpData>>> getPowerUpInitializers();
 
     /**
      * Register a power up type
@@ -87,7 +87,7 @@ public interface PowerUpManager {
      * Retrieve all spawnrule class initializers loaded by this PowerUpManager
      * @return a Set contains all spawnrule class initializers
      */
-    Set<ImmutablePair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> getSpawnRuleInitializers();
+    Set<Pair<SpawnRuleCtor<?, ?>, Class<? extends SpawnRuleData>>> getSpawnRuleInitializers();
 
     /**
      * Register a spawnrule type

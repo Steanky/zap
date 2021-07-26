@@ -2,11 +2,7 @@ package io.github.zap.zombies.game.data.powerups;
 
 import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.Value;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 
 /**

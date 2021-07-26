@@ -3,37 +3,43 @@ package io.github.zap.zombies.game.data.map.shop;
 import io.github.zap.zombies.game.shop.ShopType;
 import io.github.zap.zombies.game.util.Jingle;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
+import lombok.Setter;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Data for a lucky chest
  */
 @Getter
+@Setter
 public class LuckyChestData extends ShopData {
-
-    private List<String> equipments = new ArrayList<>();
-
-    private List<Pair<List<Jingle.Note>, Long>> jingle = new ArrayList<>();
 
     private Vector chestLocation;
 
-    private int cost = 0;
+    private List<Jingle.Note> jingle;
 
-    private int rollsUntilMove = 0;
+    private List<String> equipments;
 
-    private long sittingTime = 0L;
+    private long sittingTime = 200;
 
-    public LuckyChestData(Vector chestLocation) {
-        super(ShopType.LUCKY_CHEST, false);
+    private int cost = 1000;
+
+    public LuckyChestData(@NotNull Vector chestLocation, boolean requiresPower) {
+        super(ShopType.LUCKY_CHEST.name(), requiresPower);
+
         this.chestLocation = chestLocation;
     }
 
-    private LuckyChestData() {
-        super(ShopType.LUCKY_CHEST, false);
-
+    public LuckyChestData() {
+        super(ShopType.LUCKY_CHEST.name(), false);
     }
+
+    public LuckyChestData(Vector chestLocation) {
+        super(ShopType.LUCKY_CHEST.name(), false);
+
+        this.chestLocation = chestLocation;
+    }
+
 }

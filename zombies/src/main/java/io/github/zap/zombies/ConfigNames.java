@@ -11,4 +11,5 @@ public final class ConfigNames {
     public static final String ARENA_TIMEOUT = "arenaTimeout";
     public static final String WORLD_SPAWN = "worldSpawn";
     public static final String LOBBY_WORLD = "world";
+    public static final String NPC_LIST = "npcLocations";
 }

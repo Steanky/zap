@@ -1,20 +1,13 @@
 package io.github.zap.arenaapi.hologram;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.github.zap.arenaapi.ArenaApi;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +18,7 @@ import java.util.Set;
  */
 public class Hologram {
 
-    private static final double DEFAULT_LINE_SPACE = 0.25;
+    public static final double DEFAULT_LINE_SPACE = 0.25;
 
     private static final Set<Integer> TEXT_LINE_SET = new HashSet<>();
 
@@ -38,44 +31,9 @@ public class Hologram {
 
     private final Location rootLocation;
 
-    static {
-        ArenaApi arenaApi = ArenaApi.getInstance();
-        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-        manager.addPacketListener(new PacketAdapter(arenaApi, ListenerPriority.NORMAL, PacketType.Play.Client
-                .USE_ENTITY) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                if (event.getPacketType() == PacketType.Play.Client.USE_ENTITY) {
-                    PacketContainer packetContainer = event.getPacket();
-
-                    if (packetContainer.getEntityUseActions().read(0) == EnumWrappers.EntityUseAction
-                            .INTERACT_AT) {
-                        int id = packetContainer.getIntegers().read(0);
-
-                        if (TEXT_LINE_SET.contains(id)) {
-                            event.setCancelled(true);
-
-                            PacketContainer fakePacketContainer = new PacketContainer(PacketType.Play.Client
-                                    .BLOCK_PLACE);
-                            fakePacketContainer.getHands().write(0, packetContainer.getHands()
-                                    .read(0));
-
-                            try {
-                                manager.recieveClientPacket(event.getPlayer(), fakePacketContainer);
-                            } catch (IllegalAccessException | InvocationTargetException e) {
-                                ArenaApi.warning(String.format("Error blocking player interact at entity with id %s:" +
-                                        " %s.", id, e.getMessage()));
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     public Hologram(Location location, double lineSpace) {
         this.arenaApi = ArenaApi.getInstance();
-        this.rootLocation = location;
+        this.rootLocation = location.clone().add(0, 1.975, 0);
         this.lineSpace = lineSpace;
     }
 
@@ -88,10 +46,8 @@ public class Hologram {
      * @param message A pair of the message key and format arguments
      */
     public void addLine(String message) {
-        TextLine textLine = createTextLine(
-                rootLocation.clone().subtract(0, lineSpace * hologramLines.size(), 0),
-                message
-        );
+        TextLine textLine = createTextLine(rootLocation.clone().subtract(0, lineSpace * hologramLines.size(),
+                0), message);
         hologramLines.add(textLine);
         TEXT_LINE_SET.add(textLine.getEntityId());
     }
@@ -127,8 +83,8 @@ public class Hologram {
      */
     public void updateLineForEveryone(int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisualForEveryone(message);
+        if (hologramLine instanceof TextLine textLine) {
+            textLine.setVisualForEveryone(message);
         } else {
 
         }
@@ -141,8 +97,8 @@ public class Hologram {
      */
     public void updateLine(int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisual(message);
+        if (hologramLine instanceof TextLine textLine) {
+            textLine.setVisual(message);
         } else {
 
         }
@@ -156,8 +112,8 @@ public class Hologram {
      */
     public void updateLineForPlayer(Player player, int index, String message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof TextLine) {
-            ((TextLine) hologramLine).setVisualForPlayer(player, message);
+        if (hologramLine instanceof TextLine textLine) {
+            textLine.setVisualForPlayer(player, message);
         } else {
 
         }
@@ -170,8 +126,8 @@ public class Hologram {
      */
     public void updateLineForEveryone(int index, Material material) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof ItemLine) {
-            ((ItemLine) hologramLine).setVisualForEveryone(material);
+        if (hologramLine instanceof ItemLine itemLine) {
+            itemLine.setVisualForEveryone(material);
         } else {
 
         }
@@ -184,8 +140,8 @@ public class Hologram {
      */
     public void updateLine(int index, Material material) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof ItemLine) {
-            ((ItemLine) hologramLine).setVisual(material);
+        if (hologramLine instanceof ItemLine itemLine) {
+            itemLine.setVisual(material);
         } else {
 
         }
@@ -199,8 +155,8 @@ public class Hologram {
      */
     public void updateLineForPlayer(Player player, int index, Material material) {
         HologramLine<?> hologramLine = hologramLines.get(index);
-        if (hologramLine instanceof ItemLine) {
-            ((ItemLine) hologramLine).setVisualForPlayer(player, material);
+        if (hologramLine instanceof ItemLine itemLine) {
+            itemLine.setVisualForPlayer(player, material);
         } else {
 
         }

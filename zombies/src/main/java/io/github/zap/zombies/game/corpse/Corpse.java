@@ -6,17 +6,31 @@ import com.comphenix.protocol.wrappers.*;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.util.TimeUtil;
+import io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.nms.common.player.PlayerBridge;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
-import io.github.zap.zombies.game.perk.FastRevive;
-import io.github.zap.zombies.game.perk.PerkType;
-import io.github.zap.zombies.proxy.ZombiesNMSProxy;
+import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.equipment.EquipmentObjectGroupType;
+import io.github.zap.zombies.game.equipment.perk.FastRevive;
+import io.github.zap.zombies.game.equipment.perk.Speed;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
+import io.github.zap.zombies.stats.player.PlayerMapStats;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,8 +41,9 @@ import java.util.UUID;
  */
 public class Corpse {
 
-    private final ZombiesNMSProxy nmsProxy;
+    private final PlayerBridge playerBridge;
 
+    @Getter
     private final ZombiesPlayer zombiesPlayer;
 
     @Getter
@@ -39,9 +54,6 @@ public class Corpse {
     private final int id;
 
     private final Hologram hologram;
-
-    @Getter
-    private final PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
 
     private final int defaultDeathTime;
 
@@ -56,30 +68,56 @@ public class Corpse {
 
     private int reviveTime;
 
-    public Corpse(ZombiesPlayer zombiesPlayer) {
-        this.nmsProxy = Zombies.getInstance().getNmsProxy();
-        this.zombiesPlayer = zombiesPlayer;
-        this.location = zombiesPlayer.getPlayer().getLocation();
-        this.defaultDeathTime = zombiesPlayer.getArena().getMap().getCorpseDeathTime();
-        this.hologram =
-                new Hologram(location.clone().add(0, 2, 0));
-        this.deathTime = defaultDeathTime;
+    public Corpse(@NotNull ZombiesPlayer player) {
+        this.playerBridge = ArenaApi.getInstance().getNmsBridge().playerBridge();
+        this.zombiesPlayer = player;
 
-        hologram.addLine(ChatColor.YELLOW + "----------------------------------");
-        hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
+        if (player.getPlayer() != null) {
+            EntityBridge entityBridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
 
-        hologram.addLine(String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(defaultDeathTime)));
-        hologram.addLine(ChatColor.YELLOW + "----------------------------------");
+            this.location = player.getPlayer().getLocation();
+            this.defaultDeathTime = player.getArena().getMap().getCorpseDeathTime();
+            this.hologram = new Hologram(location.clone().add(0, 1, 0));
+            this.deathTime = defaultDeathTime;
+            this.id = entityBridge.nextEntityID();
+
+            hologram.addLine(ChatColor.YELLOW + "----------------------------------");
+            hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
+
+            hologram.addLine(String.format("%s%s", ChatColor.RED,
+                    TimeUtil.convertTicksToSecondsString(defaultDeathTime)));
+            hologram.addLine(ChatColor.YELLOW + "----------------------------------");
+
+            ZombiesArena zombiesArena = player.getArena();
+            zombiesArena.getCorpses().add(this);
+            zombiesArena.getAvailableCorpses().add(this);
+            zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+            zombiesArena.getPlayerRejoinEvent().registerHandler(this::onPlayerRejoin);
+
+            spawnDeadBody();
+            startDying();
+        }
+        else {
+            throw new IllegalArgumentException("Tried to construct a corpse for a player that does not exist!");
+        }
+    }
+
+    /**
+     * Terminates the corpse's execution.
+     */
+    public void terminate() {
+        if (hologram.getHologramLines().size() > 0) {
+            hologram.destroy();
+        }
 
         ZombiesArena zombiesArena = zombiesPlayer.getArena();
-        zombiesArena.getCorpses().add(this);
-        zombiesArena.getAvailableCorpses().add(this);
-        zombiesArena.getPlayerJoinEvent().registerHandler(this::onPlayerJoin);
+        zombiesArena.getAvailableCorpses().remove(this);
 
-        id = this.nmsProxy.nextEntityId();
+        if (deathTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(deathTaskId);
+        }
 
-        spawnDeadBody();
-        startDying();
+        active = false;
     }
 
     /**
@@ -87,56 +125,163 @@ public class Corpse {
      * @param reviver The reviver of the corpse
      */
     public void setReviver(ZombiesPlayer reviver) {
-        if (reviver == null) {
-            zombiesPlayer.getArena().getAvailableCorpses().add(this);
-            deathTime = defaultDeathTime;
-            startDying();
-        } else {
-            if (deathTaskId != -1) {
-                Bukkit.getScheduler().cancelTask(deathTaskId);
+        if (active) {
+            if (reviver == null) {
+                zombiesPlayer.getArena().getAvailableCorpses().add(this);
+                startDying();
+            } else {
+                if (deathTaskId != -1) {
+                    Bukkit.getScheduler().cancelTask(deathTaskId);
+                }
+
+                boolean anyFastRevive = false;
+                HotbarManager hotbarManager = reviver.getHotbarManager();
+                HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                        .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+
+                if (hotbarObjectGroup != null) {
+                    for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                        if (hotbarObject instanceof FastRevive fastRevive) {
+                            reviveTime = Math.max(reviver.getArena().getMap()
+                                    .getDefaultReviveTime() - fastRevive.getReducedReviveTime(), 0);
+
+                            anyFastRevive = true;
+
+                            break;
+                        }
+                    }
+                }
+
+                if (!anyFastRevive) {
+                    reviveTime = reviver.getArena().getMap().getDefaultReviveTime();
+                }
+
+                hologram.updateLine(1, ChatColor.RED + "Reviving...");
             }
 
-            this.reviveTime = ((FastRevive) reviver.getPerks().getPerk(PerkType.FAST_REVIVE)).getReviveTime();
-            hologram.updateLine(1, ChatColor.RED + "Reviving...");
+            this.reviver = reviver;
         }
-
-        this.reviver = reviver;
     }
 
     /**
      * Removes 0.1s of revival time from the corpse
      */
     public void continueReviving() {
-        if (reviveTime == 0) {
-            active = false;
-            zombiesPlayer.revive();
-        } else {
-            hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(reviveTime)));
-            reviveTime--;
+        if (active) {
+            if (reviveTime <= 0) {
+                zombiesPlayer.revive();
+
+                Player thisPlayer = zombiesPlayer.getPlayer();
+                Player reviverPlayer = reviver.getPlayer();
+
+                if (thisPlayer != null && reviverPlayer != null) {
+                    thisPlayer.sendActionBar(Component.empty());
+                    reviverPlayer.sendActionBar(Component.empty());
+
+                    ZombiesArena zombiesArena = reviver.getArena();
+                    MapData map = zombiesArena.getMap();
+                    PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED, map.getReviveSpeedTicks(),
+                            map.getReviveSpeedLevel(), true, false, false);
+                    reviverPlayer.addPotionEffect(speedEffect);
+
+                    zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                            reviverPlayer.getUniqueId(), (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(zombiesArena.getMap());
+                        mapStats.setPlayersRevived(mapStats.getPlayersRevived() + 1);
+                    }, PlayerGeneralStats::new);
+
+                    HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
+                    HotbarObjectGroup hotbarObjectGroup = hotbarManager
+                            .getHotbarObjectGroup(EquipmentObjectGroupType.PERK.name());
+
+                    if (hotbarObjectGroup != null) {
+                        for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
+                            if (hotbarObject instanceof Speed speed) {
+                                speed.activate();
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                destroy();
+            } else {
+                String timeRemaining = TimeUtil.convertTicksToSecondsString(reviveTime);
+                String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
+                hologram.updateLine(2, secondsRemainingString);
+
+                Player bukkitPlayer = zombiesPlayer.getPlayer();
+                Player reviverPlayer = reviver.getPlayer();
+
+                if (bukkitPlayer != null && reviverPlayer != null) {
+                    bukkitPlayer.sendActionBar(Component.text(
+                            String.format(
+                                    "%sYou are being revived by %s%s! %s- %s!",
+                                    ChatColor.RED,
+                                    ChatColor.YELLOW,
+                                    reviverPlayer.getName(),
+                                    ChatColor.WHITE,
+                                    secondsRemainingString)
+                    ));
+                    reviverPlayer.sendActionBar(Component.text(
+                            String.format(
+                                    "%sReviving %s%s... %s- %s!",
+                                    ChatColor.RED,
+                                    ChatColor.YELLOW,
+                                    bukkitPlayer.getName(),
+                                    ChatColor.WHITE,
+                                    secondsRemainingString)
+                    ));
+
+                    reviveTime -= 2;
+                }
+            }
         }
     }
 
-    private void startDying() {
-        hologram.updateLine(1, ChatColor.RED + "help this noob");
+    /**
+     * Adds the corpse to a scoreboard team for nametag invisibility
+     * @param player The player to send the packet to
+     */
+    public void addCorpseToScoreboardTeamForPlayer(Player player) {
+        PacketContainer addCorpseToTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+        addCorpseToTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
+        addCorpseToTeamPacket.getIntegers().write(0, 3);
+        addCorpseToTeamPacket.getSpecificModifier(Collection.class)
+                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
 
-        deathTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                Zombies.getInstance(),
-                this::continueDying,
-                0L,
-                2L
-        );
+        sendPacketToPlayer(addCorpseToTeamPacket, player);
     }
 
-    /**
-     * Removes 0.1s of death time from the corpse
-     */
-    public void continueDying() {
-        if (deathTime == 0) {
+    private void startDying() {
+        deathTime = defaultDeathTime;
+        hologram.updateLine(1, ChatColor.RED + "help this noob");
+
+        deathTaskId = zombiesPlayer.getArena().runTaskTimer(0, 2, this::continueDying).getTaskId();
+    }
+
+    private void continueDying() {
+        if (deathTime <= 0) {
             zombiesPlayer.kill();
-            zombiesPlayer.getArena().getAvailableCorpses().remove(this);
+
+            Player bukkitPlayer = zombiesPlayer.getPlayer();
+            if (bukkitPlayer != null) {
+                bukkitPlayer.sendActionBar(Component.text());
+            }
+
+            active = false;
         } else {
-            hologram.updateLine(2, String.format("%s%fs", ChatColor.RED, convertTicksToSeconds(deathTime)));
-            deathTime -= 1;
+            String timeRemaining = TimeUtil.convertTicksToSecondsString(deathTime);
+            String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
+            hologram.updateLine(2, secondsRemainingString);
+
+            Player bukkitPlayer = zombiesPlayer.getPlayer();
+            if(bukkitPlayer != null) {
+                zombiesPlayer.getPlayer().sendActionBar(Component.text(
+                        String.format("%sYou will die in %s%s!", ChatColor.RED, ChatColor.YELLOW, secondsRemainingString)
+                ));
+            }
+            deathTime -= 2;
         }
     }
 
@@ -147,8 +292,11 @@ public class Corpse {
         }
     }
 
-    private double convertTicksToSeconds(int ticks) {
-        return (double) (ticks / 20) + 0.05D * ticks % 20;
+    private void onPlayerRejoin(ZombiesArena.ManagedPlayerListArgs playerListArgs) {
+        for (ZombiesPlayer player : playerListArgs.getPlayers()) {
+            spawnDeadBodyForPlayer(zombiesPlayer.getPlayer());
+            hologram.renderToPlayer(zombiesPlayer.getPlayer());
+        }
     }
 
     private void sendPacketToPlayer(PacketContainer packetContainer, Player player) {
@@ -156,14 +304,22 @@ public class Corpse {
     }
 
     private void sendPacket(PacketContainer packetContainer) {
-        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
-            sendPacketToPlayer(packetContainer, player);
+        Player bukkitPlayer = zombiesPlayer.getPlayer();
+
+        if(bukkitPlayer != null) {
+            for (Player player : bukkitPlayer.getWorld().getPlayers()) {
+                sendPacketToPlayer(packetContainer, player);
+            }
         }
     }
 
     private void spawnDeadBody() {
-        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
-            spawnDeadBodyForPlayer(player);
+        Player bukkitPlayer = zombiesPlayer.getPlayer();
+
+        if(bukkitPlayer != null) {
+            for (Player player : bukkitPlayer.getWorld().getPlayers()) {
+                spawnDeadBodyForPlayer(player);
+            }
         }
     }
 
@@ -171,15 +327,11 @@ public class Corpse {
         sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER), player);
         sendPacketToPlayer(createSpawnPlayerPacketContainer(), player);
         sendPacketToPlayer(createSleepingPacketContainer(), player);
+        addCorpseToScoreboardTeamForPlayer(player);
 
-        addCorpseToTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
-        addCorpseToTeamPacket.getIntegers().write(0, 3);
-        addCorpseToTeamPacket.getSpecificModifier(Collection.class)
-                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
-
-        sendPacketToPlayer(addCorpseToTeamPacket, player);
-
-        //sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER), player);
+        zombiesPlayer.getArena().runTaskLater(1L,
+                () -> sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER),
+                        player));
     }
 
     private PacketContainer createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction playerInfoAction) {
@@ -187,35 +339,43 @@ public class Corpse {
         packetContainer.getPlayerInfoAction().write(0, playerInfoAction);
 
         WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, uniqueId.toString().substring(0, 16));
-        WrappedSignedProperty skin = nmsProxy.getSkin(zombiesPlayer.getPlayer());
-        if (skin != null) {
-            wrappedGameProfile.getProperties().put("textures", nmsProxy.getSkin(zombiesPlayer.getPlayer()));
+
+        Player player = zombiesPlayer.getPlayer();
+        if (player != null) {
+            WrappedSignedProperty skin = playerBridge.getSkin(zombiesPlayer.getPlayer());
+            if (skin != null) {
+                wrappedGameProfile.getProperties().put("textures", skin);
+            }
         }
 
-        packetContainer.getPlayerInfoDataLists().write(0, Collections.singletonList(
-                new PlayerInfoData(
-                        wrappedGameProfile,
-                        0,
+        packetContainer.getPlayerInfoDataLists().write(0,
+                Collections.singletonList(new PlayerInfoData(wrappedGameProfile, 0,
                         EnumWrappers.NativeGameMode.NOT_SET,
-                        WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16))
-                ))
-        );
+                        WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16)))));
 
         return packetContainer;
     }
+
+
 
     private PacketContainer createSpawnPlayerPacketContainer() {
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
         packetContainer.getIntegers().write(0, id);
         packetContainer.getUUIDs().write(0, uniqueId);
 
-        Location location = zombiesPlayer.getPlayer().getLocation();
-        packetContainer.getDoubles()
-                .write(0, location.getX())
-                .write(1, location.getY())
-                .write(2, location.getZ());
+        Player bukkitPlayer = zombiesPlayer.getPlayer();
 
-        return packetContainer;
+        if(bukkitPlayer != null) {
+            Location location = zombiesPlayer.getPlayer().getLocation();
+            packetContainer.getDoubles()
+                    .write(0, location.getX())
+                    .write(1, location.getY())
+                    .write(2, location.getZ());
+
+            return packetContainer;
+        }
+
+        throw new IllegalArgumentException("Tried to send packet container for player that does not exist!");
     }
 
     private PacketContainer createSleepingPacketContainer() {
@@ -225,7 +385,17 @@ public class Corpse {
         WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
 
         Object nmsPose = EnumWrappers.EntityPose.SLEEPING.toNms();
-        wrappedDataWatcher.setObject(6, WrappedDataWatcher.Registry.get(nmsPose.getClass()), nmsPose);
+        WrappedDataWatcher.Serializer poseSerializer = WrappedDataWatcher.Registry.get(nmsPose.getClass());
+        WrappedDataWatcher.WrappedDataWatcherObject pose
+                = new WrappedDataWatcher.WrappedDataWatcherObject(6, poseSerializer);
+
+        WrappedDataWatcher.Serializer overlaySerializer = WrappedDataWatcher.Registry.get(Byte.class);
+        WrappedDataWatcher.WrappedDataWatcherObject overlay
+                = new WrappedDataWatcher.WrappedDataWatcherObject(16, overlaySerializer);
+
+
+        wrappedDataWatcher.setObject(pose, nmsPose);
+        wrappedDataWatcher.setObject(overlay, (byte) 0x7F);
 
         packetContainer.getWatchableCollectionModifier().write(0, wrappedDataWatcher.getWatchableObjects());
 
@@ -236,16 +406,24 @@ public class Corpse {
      * Destroys the corpse and removes its trace from the arena it is in
      */
     public void destroy() {
+        PacketContainer removeCorpseFromTeamPacket = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+        removeCorpseFromTeamPacket.getStrings().write(0, zombiesPlayer.getArena().getCorpseTeamName());
+        removeCorpseFromTeamPacket.getIntegers().write(0, 4);
+        removeCorpseFromTeamPacket.getSpecificModifier(Collection.class)
+                .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
+
+        sendPacket(removeCorpseFromTeamPacket);
+
         PacketContainer killPacketContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        killPacketContainer.getIntegerArrays().write(0, new int[] { id });
+        killPacketContainer.getIntegerArrays().write(0, new int[]{id});
 
-        for (Player player : zombiesPlayer.getPlayer().getWorld().getPlayers()) {
-            sendPacketToPlayer(killPacketContainer, player);
-        }
+        sendPacket(killPacketContainer);
 
-        zombiesPlayer.getArena().getCorpses().remove(this);
-        zombiesPlayer.getArena().getAvailableCorpses().remove(this);
-        zombiesPlayer.getArena().getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        ZombiesArena zombiesArena = getZombiesPlayer().getArena();
+        terminate();
+        zombiesArena.getCorpses().remove(this);
+        zombiesArena.getPlayerJoinEvent().removeHandler(this::onPlayerJoin);
+        zombiesArena.getPlayerRejoinEvent().removeHandler(this::onPlayerRejoin);
     }
 
     @Override

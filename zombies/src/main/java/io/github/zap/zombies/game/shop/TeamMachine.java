@@ -1,12 +1,21 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.Disposable;
+import io.github.zap.arenaapi.Property;
+import io.github.zap.arenaapi.Unique;
 import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.zombies.game.ZombiesArena;
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.map.shop.TeamMachineData;
 import io.github.zap.zombies.game.data.map.shop.tmtask.TeamMachineTask;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
+import lombok.Getter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -16,11 +25,15 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Machine with various tasks helpful for teams
  */
-public class TeamMachine extends BlockShop<TeamMachineData> {
+public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, Disposable {
+
+    @Getter
+    private final UUID id = UUID.randomUUID();
 
     private final Inventory inventory;
 
@@ -36,36 +49,8 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     protected void registerArenaEvents() {
         super.registerArenaEvents();
 
-        ZombiesArena zombiesArena = getZombiesArena();
-        zombiesArena.getInventoryClickEvent().registerHandler(args -> {
-            InventoryClickEvent inventoryClickEvent = args.getEvent();
-
-            if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
-                ZombiesPlayer zombiesPlayer = zombiesArena.getPlayerMap()
-                        .get(inventoryClickEvent.getWhoClicked().getUniqueId());
-
-                if (zombiesPlayer != null) {
-                    TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
-
-                    if (teamMachineTask != null && teamMachineTask.execute(zombiesArena, zombiesPlayer)) {
-                        inventoryClickEvent.setCancelled(true);
-
-                        for (Player player : zombiesArena.getWorld().getPlayers()) {
-                            player.sendMessage(
-                                    String.format(
-                                            "%sPlayer %s purchased %s from the team machine!",
-                                            ChatColor.YELLOW,
-                                            player.getName(),
-                                            teamMachineTask.getDisplayName()
-                                    )
-                            );
-                        }
-
-                        onPurchaseSuccess(zombiesPlayer);
-                    }
-                }
-            }
-        });
+        ZombiesArena zombiesArena = getArena();
+        zombiesArena.getProxyFor(InventoryClickEvent.class).registerHandler(this::onInventoryClick);
     }
 
     @Override
@@ -85,19 +70,78 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
     }
 
     @Override
-    public boolean purchase(ZombiesArena.ProxyArgs<? extends Event> args) {
-        if (super.purchase(args)) {
-            Player player = args.getManagedPlayer().getPlayer();
+    public boolean interact(ZombiesArena.ProxyArgs<? extends Event> args) {
+        if (super.interact(args)) {
+            ZombiesPlayer zombiesPlayer = args.getManagedPlayer();
 
-            if (!getShopData().isRequiresPower() || isPowered()) {
-                player.openInventory(inventory);
-                return true;
-            } else {
-                player.sendMessage("The power is not active yet!");
+            if (zombiesPlayer != null) {
+                Player bukkitPlayer = zombiesPlayer.getPlayer();
+
+                if (bukkitPlayer != null) {
+                    if (!getShopData().isRequiresPower() || isPowered()) {
+                        bukkitPlayer.openInventory(inventory);
+                        return true;
+                    } else {
+                        bukkitPlayer.sendMessage(Component.text("The power is not active yet!",
+                                NamedTextColor.RED));
+                    }
+                }
             }
         }
 
         return false;
+    }
+
+    @Override
+    public String getShopType() {
+        return ShopType.TEAM_MACHINE.name();
+    }
+
+    @Override
+    public void dispose() {
+        Property.removeMappingsFor(this);
+    }
+
+    /**
+     * Handler for inventory clicks to handle team machine events
+     * @param args The arguments passed to the handler
+     */
+    private void onInventoryClick(ZombiesArena.ProxyArgs<InventoryClickEvent> args) {
+        InventoryClickEvent inventoryClickEvent = args.getEvent();
+
+        if (inventory.equals(inventoryClickEvent.getClickedInventory())) {
+            HumanEntity humanEntity = inventoryClickEvent.getWhoClicked();
+            ZombiesArena arena = getArena();
+            ZombiesPlayer player = arena.getPlayerMap().get(humanEntity.getUniqueId());
+
+            if (player != null) {
+                Player bukkitPlayer = player.getPlayer();
+
+                if (bukkitPlayer != null) {
+                    inventoryClickEvent.setCancelled(true);
+                    TeamMachineTask teamMachineTask = slotMap.get(inventoryClickEvent.getSlot());
+
+                    if (teamMachineTask != null
+                            && teamMachineTask.execute(this, arena, player)) {
+                        Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
+                                1.0F, 1.5F);
+                        for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {
+                            otherBukkitPlayer.sendMessage(
+                                    String.format("%sPlayer %s purchased %s from the Team Machine!", ChatColor.YELLOW,
+                                            player.getPlayer().getName(),
+                                            teamMachineTask.getDisplayName()));
+                            otherBukkitPlayer.playSound(sound);
+                        }
+                        humanEntity.closeInventory();
+
+                        inventory.setItem(inventoryClickEvent.getSlot(),
+                                teamMachineTask.getItemStackRepresentationForTeamMachine(this)); // update costs
+
+                        onPurchaseSuccess(player);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -106,48 +150,51 @@ public class TeamMachine extends BlockShop<TeamMachineData> {
      * @return The resulting inventory
      */
     private Inventory prepareInventory() {
+        Inventory inventory;
         List<TeamMachineTask> teamMachineTasks = getShopData().getTeamMachineTasks();
-
         int num = teamMachineTasks.size();
-        int width = (int) Math.ceil(Math.sqrt(num));
-        int height = (int) Math.ceil((double) num / width);
-        int remainderLine = Math.min(6, height) / 2;
-        // this is the first line offset
-        int offset = (height <= 4) ? 1 : 0;
-        // If the height go higher than 6 we need to change our calculation
-        if (height > 6) {
-            width = (int) Math.ceil((double) num / 6);
-        }
-        int finalLine = num % width;
-        if (finalLine == 0) {
-            finalLine = width;
-        }
 
-        int guiSize = 9 * Math.min(6, height + 2);
-        // TODO: localization aaaaaaaaa
-        Inventory inventory = Bukkit.createInventory(null, guiSize, "Team Machine");
-
-        int index = 0;
-
-        for (int h = 0; h < height; h++) {
-            int lineCount = (h == remainderLine) ? finalLine : width;
-            for (int w = 0; w < lineCount && index < num; w++) {
-                int slot = (18 * w + 9) / (2 * lineCount);
-                int pos = (h + offset) * 9 + slot;
-
-                TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
-                inventory.setItem(pos, new ItemStack(teamMachineTask.getDisplayMaterial()));
-                slotMap.put(pos, teamMachineTask);
-
-                index++;
+        if (num > 0) {
+            int width = (int) Math.ceil(Math.sqrt(num));
+            int height = (int) Math.ceil((double) num / width);
+            int remainderLine = Math.min(6, height) / 2;
+            // this is the first line offset
+            int offset = (height <= 4) ? 1 : 0;
+            // If the height go higher than 6 we need to change our calculation
+            if (height > 6) {
+                width = (int) Math.ceil((double) num / 6);
             }
+            int finalLine = num % width;
+            if (finalLine == 0) {
+                finalLine = width;
+            }
+
+            int guiSize = 9 * Math.min(6, height + 2);
+            inventory = Bukkit.createInventory(null, guiSize, Component.text("Team Machine"));
+
+            int index = 0;
+
+            for (int h = 0; h < height; h++) {
+                int lineCount = (h == remainderLine) ? finalLine : width;
+                for (int w = 0; w < lineCount && index < num; w++) {
+                    int slot = (18 * w + 9) / (2 * lineCount);
+                    int pos = (h + offset) * 9 + slot;
+
+                    TeamMachineTask teamMachineTask = teamMachineTasks.get(index);
+                    ItemStack teamMachineItemStackRepresentation
+                            = teamMachineTask.getItemStackRepresentationForTeamMachine(this);
+
+                    inventory.setItem(pos, teamMachineItemStackRepresentation);
+                    slotMap.put(pos, teamMachineTask);
+
+                    index++;
+                }
+            }
+        } else {
+            inventory = Bukkit.createInventory(null, 9, Component.text("Team Machine"));
         }
 
         return inventory;
     }
 
-    @Override
-    public ShopType getShopType() {
-        return ShopType.TEAM_MACHINE;
-    }
 }

@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.serialize;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.gson.stream.JsonReader;
 import io.github.zap.arenaapi.ArenaApi;
 
 import java.io.File;
@@ -16,6 +15,7 @@ public class JacksonDataLoader implements DataLoader {
     private final ObjectReader reader;
 
     private final File rootDirectory;
+
 
     public JacksonDataLoader(File rootDirectory) {
         ObjectMapper mapper = ArenaApi.getInstance().getMapper();
@@ -33,7 +33,7 @@ public class JacksonDataLoader implements DataLoader {
         try {
             writer.writeValue(new File(rootDirectory,filename + EXTENSION), data);
         } catch (IOException e) {
-            ArenaApi.warning(String.format("IOException when writing data to file: %s.", e.getMessage()));
+            ArenaApi.warning(String.format("IOException when writing data to file '%s': %s.", filename, e.getMessage()));
         }
     }
 
@@ -42,7 +42,7 @@ public class JacksonDataLoader implements DataLoader {
         try {
             return reader.readValue(new File(rootDirectory,filename + EXTENSION), objectClass);
         } catch (IOException e) {
-            ArenaApi.warning(String.format("IOException when reading data from file: %s.", e.getMessage()));
+            ArenaApi.warning(String.format("IOException when reading data from file '%s': %s.", filename, e.getMessage()));
         }
 
         return null;

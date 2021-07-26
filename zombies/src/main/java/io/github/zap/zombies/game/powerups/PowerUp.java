@@ -1,13 +1,15 @@
 package io.github.zap.zombies.game.powerups;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.mutable.MutableBoolean;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
+import io.github.zap.zombies.game.ZombiesPlayerState;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
+import io.github.zap.zombies.game.data.util.ItemStackDescription;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import lombok.Getter;
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,7 +17,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -77,13 +78,20 @@ public abstract class PowerUp {
         removePowerUpItem();
         dropLocation = location;
         itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
-        try {
-            itemEntity.setItemStack(Zombies.getInstance().getNmsProxy().getItemStackFromDescription(getData().getItemRepresentation()));
-        } catch (CommandSyntaxException e) {
+
+        ItemStackDescription info = getData().getItemRepresentation();
+        ItemStack itemStack = new ItemStack(info.getMaterial(), info.getCount());
+        if (info.getNbt() != null && !info.getNbt().isEmpty()) {
+            itemStack = ArenaApi.getInstance().getNmsBridge().itemStackBridge().addNBT(itemStack, info.getNbt());
+        }
+
+        if (itemStack != null) {
+            itemEntity.setItemStack(itemStack);
+        } else {
             itemEntity.setItemStack(new ItemStack(Material.REDSTONE_BLOCK));
             Zombies.log(Level.WARNING, "Invalid item representation! Fallback to REDSTONE_BLOCK!");
-            e.printStackTrace();
         }
+
         itemEntity.setCustomName(getData().getDisplayName());
         itemEntity.setCustomNameVisible(true);
         itemEntity.setWillAge(false);
@@ -98,17 +106,16 @@ public abstract class PowerUp {
 
         // Check distance & time-out
         powerUpItemLocation = location;
-        checkForDistTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                MutableBoolean isPickedUp = new MutableBoolean(false);
-                // Check for despawn timer
-                if((System.currentTimeMillis() - spawnedTimeStamp) / 50 > getData().getDespawnDuration()) {
-                    deactivate();
-                    checkForDistTask.cancel();
-                }
+        checkForDistTask = arena.runTaskTimer(0L, getRefreshRate(), () -> {
+            MutableBoolean isPickedUp = new MutableBoolean(false);
+            // Check for despawn timer
+            if((System.currentTimeMillis() - spawnedTimeStamp) / 50 > getData().getDespawnDuration()) {
+                deactivate();
+                checkForDistTask.cancel();
+            }
 
-                getArena().getPlayerMap().forEach((l,r) -> {
+            getArena().getPlayerMap().forEach((l,r) -> {
+                if (r.getPlayer() != null && r.getState() == ZombiesPlayerState.ALIVE) {
                     var itemBox = new BoundingBox(
                             powerUpItemLocation.getX(),
                             powerUpItemLocation.getY(),
@@ -120,27 +127,29 @@ public abstract class PowerUp {
                     var collide = r.getPlayer().getBoundingBox().overlaps(itemBox);
                     itemEntity.setCustomName(getData().getDisplayName());
                     var pickupDist = getData().getPickupRange();
-                    if(collide && !(boolean)isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
-                        if(!checkForDistTask.isCancelled()) checkForDistTask.cancel();
+                    if (collide && !(boolean) isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
+                        if (!checkForDistTask.isCancelled()) checkForDistTask.cancel();
                         var sameType = getSamePowerUp();
-                        if(sameType != null) sameType.deactivate();
+                        if (sameType != null) sameType.deactivate();
                         isPickedUp.setValue(true);
                         removePowerUpItem();
                         var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ACTIVATED, Collections.singleton(getCurrent()));
                         getArena().getPowerUpChangedEvent().callEvent(eventArgs);
-                        getArena().getPlayerMap().forEach((id,player) -> {
-                            player.getPlayer().sendTitle(getData().getDisplayName(), "");
-                            player.getPlayer().sendMessage(ChatColor.YELLOW +  r.getPlayer().getName() + " activated " + getData().getDisplayName());
-                            player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
+                        getArena().getPlayerMap().forEach((id, player) -> {
+                            if (player != null) {
+                                player.getPlayer().sendTitle(getData().getDisplayName(), "");
+                                player.getPlayer().sendMessage(ChatColor.YELLOW + r.getPlayer().getName() + " activated " + getData().getDisplayName() + ChatColor.RESET + ChatColor.YELLOW + "!");
+                                player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
+                            }
                         });
 
                         state = PowerUpState.ACTIVATED;
                         activatedTimeStamp = System.currentTimeMillis();
                         activate();
                     }
-                });
-            }
-        }.runTaskTimer(Zombies.getInstance(), 0, getRefreshRate());
+                }
+            });
+        });
     }
 
     public PowerUp getSamePowerUp() {

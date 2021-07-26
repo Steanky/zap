@@ -1,32 +1,39 @@
 package io.github.zap.zombies.game.mob.goal;
 
+import io.github.zap.arenaapi.pathfind.PathDestination;
+import io.github.zap.arenaapi.pathfind.PathOperation;
+import io.github.zap.arenaapi.pathfind.PathResult;
+import io.github.zap.arenaapi.pathfind.PathTarget;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
 import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public class BreakWindow extends ZombiesPathfinder {
-    private static final int DISTANCE_CHECK_TICKS = 5;
-    private static final double MIN_TARGET_DISTANCE_SQUARED = 3D;
+import java.util.Set;
 
+public class BreakWindow extends BasicMetadataPathfinder {
     private ZombiesArena arena;
     private WindowData window;
     private Vector destination;
     private boolean completed;
 
     private int counter;
+    private int navCounter;
 
     private final int breakTicks;
     private final int breakCount;
     private final double breakReachSquared;
 
-    public BreakWindow(AbstractEntity entity, int breakTicks, int breakCount, double breakReachSquared) {
-        super(entity, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
+    public BreakWindow(AbstractEntity entity, AttributeValue[] values, int retargetTicks, double speed, int breakTicks, int breakCount,
+                       double breakReachSquared) {
+        super(entity, values, retargetTicks, speed, 0.5);
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
+        navCounter = self.getRandom().nextInt(retargetTicks / 2);
     }
 
     @Override
@@ -64,39 +71,48 @@ public class BreakWindow extends ZombiesPathfinder {
     }
 
     @Override
-    public void onStart() {
-
-    }
+    public void onStart() { }
 
     @Override
-    public void onEnd() {
-
-    }
+    public void onEnd() { }
 
     @Override
     public void doTick() {
         if(++counter == breakTicks) {
             Vector center = window.getCenter();
-            if(getProxy().getDistanceToSquared(getHandle(), center.getX(), center.getY(), center.getZ()) < breakReachSquared) {
-                arena.tryBreakWindow(getHandle().getBukkitEntity(), window, breakCount);
+            if(getProxy().getDistanceToSquared(self, center.getX(), center.getY(), center.getZ()) < breakReachSquared) {
+                arena.tryBreakWindow(self.getBukkitEntity(), window, breakCount);
             }
 
             counter = 0;
         }
 
-        if(counter % DISTANCE_CHECK_TICKS == 0) {
-            if(getProxy().getDistanceToSquared(getHandle(), destination.getX(), destination.getY(), destination.getZ())
-                    < MIN_TARGET_DISTANCE_SQUARED && destination.getY() == getHandle().locY()) {
-                Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
-                if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
-                    window.getAttackingEntityProperty().setValue(arena, null);
+        if(!(window.getFaceBounds().contains(self.locX(), self.locY(), self.locZ()) ||
+                window.getInteriorBounds().contains(self.locX(), self.locY(), self.locZ()))) {
+            Entity attackingEntity = window.getAttackingEntityProperty().getValue(arena);
+            if(attackingEntity != null && getEntity().getUniqueId() == attackingEntity.getUniqueId()) {
+                window.getAttackingEntityProperty().setValue(arena, null);
+            }
+
+            completed = true;
+        }
+        else {
+            if(++navCounter == retargetTicks) {
+                PathDestination pathDestination = PathDestination.fromLocation(new Location(arena.getWorld(), destination.getX(),
+                        destination.getY(), destination.getZ()),  new PathTarget() {});
+
+                if(pathDestination != null) {
+                    getHandler().queueOperation(PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
+                            Set.of(pathDestination), 2), arena.getWorld());
                 }
 
-                completed = true;
+                navCounter = self.getRandom().nextInt(retargetTicks / 2);
+            }
+
+            PathResult result = getHandler().tryTakeResult();
+            if(result != null) {
+                getNavigator().navigateAlongPath(result.toPathEntity(), 1);
             }
         }
-
-        getProxy().lookAtPosition(getHandle().getControllerLook(), destination.getX(), destination.getY(), destination.getZ(), 30.0F, 30.0F);
-        getProxy().navigateToLocation(getHandle(), destination.getX(), destination.getY(), destination.getZ(), 1);
     }
 }

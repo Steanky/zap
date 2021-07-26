@@ -1,12 +1,13 @@
 package io.github.zap.zombies.game.scoreboards;
 
 import io.github.zap.arenaapi.Disposable;
-import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.format.DateTimeFormatter;
@@ -14,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class GameScoreboard extends BukkitRunnable implements Disposable {
+public class GameScoreboard implements Disposable, Runnable {
     // Should these be in a config file?
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yy");
     public static final String SIDEBAR_TITLE = "" + ChatColor.YELLOW + ChatColor.BOLD + "Zombies";
@@ -39,6 +40,8 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
 
     private BukkitTask updateTask;
 
+    private boolean isDisposed;
+
     public GameScoreboard(ZombiesArena zombiesArena) {
         this(zombiesArena, 10);
     }
@@ -61,7 +64,7 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
 
     public void initialize() {
         if(updateTask == null)
-            updateTask = this.runTaskTimer(Zombies.getInstance(), 0, refreshRate);
+            updateTask = zombiesArena.runTaskTimer(0L, refreshRate, this);
     }
 
     @Override
@@ -69,14 +72,24 @@ public class GameScoreboard extends BukkitRunnable implements Disposable {
         getCurrentState().update();
     }
 
+
     @Override
     public void dispose() {
+        if(isDisposed)   return;
+        isDisposed = true;
         // stop the update task
         if(updateTask != null && !updateTask.isCancelled())
             updateTask.cancel();
 
-        if(currentState != null && currentState instanceof Disposable) {
-            ((Disposable) currentState).dispose();
+        for (ZombiesPlayer zombiesPlayer : zombiesArena.getPlayerMap().values()) {
+            Player player = zombiesPlayer.getPlayer();
+            if (player != null) {
+                player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            }
+        }
+
+        if(currentState != null && currentState instanceof Disposable disposable) {
+            disposable.dispose();
         }
     }
 }

@@ -11,9 +11,11 @@ import java.util.List;
 /**
  * Data for a side of a door
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Getter
 @AllArgsConstructor
 public class DoorSide {
+
    private int cost = 0;
 
    private List<String> opensTo = new ArrayList<>();
@@ -27,4 +29,5 @@ public class DoorSide {
    public DoorSide(Vector hologramLocation) {
       this.hologramLocation = hologramLocation;
    }
+
 }

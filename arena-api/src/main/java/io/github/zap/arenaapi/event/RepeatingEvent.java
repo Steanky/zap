@@ -46,6 +46,10 @@ public class RepeatingEvent extends Event<EmptyEventArgs> {
      */
     @Override
     public void dispose() {
+        if(super.disposed) {
+            return;
+        }
+
         super.dispose();
         stop();
     }

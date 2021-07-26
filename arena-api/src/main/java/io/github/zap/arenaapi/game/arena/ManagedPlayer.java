@@ -4,24 +4,57 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.Unique;
 import lombok.Getter;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 /**
  * Encapsulates some sort of Arena-managed player.
  */
-@Getter
 public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends ManagingArena<V,T>> implements Unique,
         Disposable {
-    private final V arena;
-    private final Player player;
+    @Getter
+    protected final V arena;
+
+    private final UUID playerUuid;
+    private Player player;
+
+    @Getter
     private boolean inGame = true;
 
-    public ManagedPlayer(V arena, Player player) {
+    public ManagedPlayer(@NotNull V arena, @NotNull Player player) {
         this.arena = arena;
         this.player = player;
+        this.playerUuid = player.getUniqueId();
     }
+
+    /**
+     * Gets the player held by this ManagedPlayer. Returns null if the player is offline, or not currently in this game.
+     */
+    public @Nullable Player getPlayer() {
+        if(player != null) { //check if we have the player stored
+            if(player.isOnline()) { //they're online, return the store
+                return player;
+            }
+            else {
+                player = null; //player is offline
+                return null;
+            }
+        }
+        else {
+            player = Bukkit.getPlayer(playerUuid);
+            return player;
+        }
+    }
+
+    public @NotNull OfflinePlayer getOfflinePlayer() {
+        return Bukkit.getOfflinePlayer(playerUuid);
+    }
+
 
     @Override
     public int hashCode() {
@@ -30,8 +63,8 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof ManagedPlayer) {
-            return ((ManagedPlayer<?,?>) obj).getId().equals(getId());
+        if(obj instanceof ManagedPlayer<?, ?> player) {
+            return player.getId().equals(getId());
         }
 
         return false;
@@ -42,25 +75,20 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
         return player.getUniqueId();
     }
 
-    public ArenaPlayer getArenaPlayer() {
-        return ArenaApi.getInstance().getArenaPlayer(player.getUniqueId());
-    }
-
-    /**
-     * Returns true if the player is currently in the arena. Returns false otherwise.
-     * @return true if the player is in the arena, false otherwise
-     */
-    public boolean inGame() {
-        return inGame;
-    }
-
     /**
      * Called when the player leaves the arena.
      */
     public void quit() {
         if(inGame) {
+            Player player = getPlayer();
+            if(player != null) {
+                player.getInventory().clear();
+                player.updateInventory();
+                ArenaApi.getInstance().applyDefaultCondition(player);
+                ArenaApi.getInstance().evacuatePlayer(getArena(), player);
+            }
+
             inGame = false;
-            getArenaPlayer().removeAllConditionsFor(arena.toString());
         }
     }
 

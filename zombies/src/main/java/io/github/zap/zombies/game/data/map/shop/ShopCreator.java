@@ -2,7 +2,6 @@ package io.github.zap.zombies.game.data.map.shop;
 
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.shop.Shop;
-import io.github.zap.zombies.game.shop.ShopType;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -14,12 +13,13 @@ import java.util.Map;
 public class ShopCreator {
 
     @Getter
-    private final Map<ShopType, ShopMapping<?>> shopMappings = new HashMap<>();
+    private final Map<String, ShopMapping<?>> shopMappings = new HashMap<>();
 
     /**
      * Interface to create a shop from its respective data class
      * @param <D> The data class of the shop
      */
+    @FunctionalInterface
     public interface ShopMapping<D extends ShopData> {
         /**
          * Creates a shop

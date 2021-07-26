@@ -1,89 +1,66 @@
 package io.github.zap.zombies.game.util;
 
-import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.game.ZombiesArena;
 import lombok.Getter;
-import lombok.Value;
-import org.apache.commons.lang3.tuple.Pair;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.World;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
 /**
  * Utility class to play sets of notes
  */
-@Getter
 public class Jingle {
-
-    private final static Zombies zombies;
-
-    static {
-        zombies = Zombies.getInstance();
-    }
-
-    private Jingle() {
-
-    }
 
     /**
      * Plays a set of notes
+     * @param zombiesArena The zombies arena the jingle is played in
      * @param jingle The notes to play
      * @param location The location to play the jingle at
      */
-    public static void play(List<Pair<List<Note>, Long>> jingle, JingleListener jingleListener,
+    public static void play(ZombiesArena zombiesArena, List<Note> jingle, JingleListener jingleListener,
                             Location location) {
-        playAt(jingle, jingleListener, location, 0);
+        play(zombiesArena, jingle, jingleListener, location, 0);
     }
 
     /**
-     * Plays the noteNumberth note of the jingle
+     * Plays the soundNumberth note of the jingle
+     * @param zombiesArena The zombies arena the jingle is played in
      * @param location The location to play the note at
-     * @param noteNumber The note number in the jingle
+     * @param soundNumber The note number in the jingle
      */
-    public static void playAt(List<Pair<List<Note>, Long>> jingle, JingleListener jingleListener,
-                              Location location, int noteNumber) {
-        if (noteNumber < jingle.size()) {
-            if (noteNumber == 0) {
+    public static void play(ZombiesArena zombiesArena, List<Note> jingle, JingleListener jingleListener,
+                            Location location, int soundNumber) {
+        if (soundNumber < jingle.size()) {
+            if (soundNumber == 0) {
                 jingleListener.onStart(jingle);
             }
 
             World world = location.getWorld();
-            Pair<List<Note>, Long> notePair = jingle.get(noteNumber);
+            Note note = jingle.get(soundNumber);
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    for (Note note : notePair.getLeft()) {
-                        world.playSound(
-                                location,
-                                note.getSound(),
-                                note.getVolume(),
-                                note.getPitch()
-                        );
-                    }
-                    playAt(jingle, jingleListener, location, noteNumber + 1);
-
-                    jingleListener.onNotePlayed(jingle);
+            zombiesArena.runTaskLater(note.getLength(), () -> {
+                for (Sound sound : note.getSounds()) {
+                    world.playSound(sound, location.getX(), location.getY(), location.getZ());
                 }
-            }.runTaskLater(zombies, 20 * notePair.getRight());
+                jingleListener.onNotePlayed(jingle);
+
+                play(zombiesArena, jingle, jingleListener, location, soundNumber + 1);
+            });
         } else {
             jingleListener.onEnd(jingle);
         }
     }
 
-    /**
-     * A single note of a jingle
-     */
-    @Value
+    @Getter
     public static class Note {
+        List<Sound> sounds;
+        long length;
 
-        Sound sound;
+        public Note() {
 
-        float volume;
-
-        float pitch;
+        }
 
     }
 
@@ -95,21 +72,21 @@ public class Jingle {
         /**
          * Method called when the jingle playing begins
          */
-        default void onStart(List<Pair<List<Note>, Long>> jingle) {
+        default void onStart(List<Note> jingle) {
 
         }
 
         /**
          * Method called when a note of the jingle is played
          */
-        default void onNotePlayed(List<Pair<List<Note>, Long>> jingle) {
+        default void onNotePlayed(List<Note> jingle) {
 
         }
 
         /**
          * Method called upon jingle completion
          */
-        default void onEnd(List<Pair<List<Note>, Long>> jingle) {
+        default void onEnd(List<Note> jingle) {
 
         }
     }

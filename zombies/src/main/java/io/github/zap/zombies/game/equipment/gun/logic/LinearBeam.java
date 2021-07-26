@@ -1,8 +1,8 @@
 package io.github.zap.zombies.game.equipment.gun.logic;
 
-import io.github.zap.zombies.game.ZombiesPlayer;
 import io.github.zap.zombies.game.data.equipment.gun.LinearGunLevel;
 import io.github.zap.zombies.game.data.map.MapData;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.util.ParticleDataWrapper;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -15,7 +15,7 @@ import org.bukkit.World;
 @Getter
 public class LinearBeam extends BasicBeam {
 
-    public final static int DEFAULT_PARTICLE_COUNT = 50; // TODO: check
+    public final static int DEFAULT_PARTICLE_COUNT = 4;
 
     private final Particle particle;
     private final ParticleDataWrapper<?> particleDataWrapper;

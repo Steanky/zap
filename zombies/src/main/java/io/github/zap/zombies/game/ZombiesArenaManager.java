@@ -4,20 +4,27 @@ import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.DataLoader;
+import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
+import io.github.zap.arenaapi.stats.FileStatsManager;
+import io.github.zap.arenaapi.stats.StatsCache;
+import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.data.equipment.EquipmentManager;
 import io.github.zap.zombies.game.data.equipment.JacksonEquipmentManager;
 import io.github.zap.zombies.game.data.map.MapData;
 import io.github.zap.zombies.game.data.map.shop.JacksonShopManager;
 import io.github.zap.zombies.game.data.map.shop.ShopManager;
-import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManager;
+import io.github.zap.zombies.game.powerups.managers.JacksonPowerUpManagerOptions;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
+import io.github.zap.zombies.stats.CacheInformation;
+import io.github.zap.zombies.stats.map.MapStats;
+import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.io.FilenameUtils;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.*;
@@ -52,9 +59,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     private final Set<String> markedForDeletion = new HashSet<>();
 
-    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader, DataLoader powerUpLoader, int arenaCapacity,
-                               int arenaTimeout) {
-        super(NAME, hubLocation);
+    public ZombiesArenaManager(Location hubLocation, DataLoader mapLoader, DataLoader equipmentLoader,
+                               DataLoader powerUpLoader, DataLoader playerStatsLoader, DataLoader mapStatsLoader,
+                               int arenaCapacity, int arenaTimeout) {
+        super(NAME, hubLocation, createStatsManager(playerStatsLoader, mapStatsLoader));
         this.equipmentManager = new JacksonEquipmentManager(equipmentLoader);
         this.powerUpManager = new JacksonPowerUpManager(powerUpLoader, new JacksonPowerUpManagerOptions());
         ((JacksonPowerUpManager) this.powerUpManager).load();
@@ -65,6 +73,17 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     }
 
+    private static StatsManager createStatsManager(DataLoader playerStatsLoader, DataLoader mapStatsLoader) {
+        StatsManager statsManager = new FileStatsManager(Map.of(CacheInformation.PLAYER,
+                playerStatsLoader, CacheInformation.MAP, mapStatsLoader));
+        statsManager.registerCache(new StatsCache<>(CacheInformation.PLAYER, PlayerGeneralStats.class,
+                CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
+        statsManager.registerCache(new StatsCache<>(CacheInformation.MAP, MapStats.class,
+                CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
+
+        return statsManager;
+    }
+
     @Override
     public String getGameName() {
         return NAME;
@@ -72,7 +91,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
     public void handleJoin(JoinInformation information, Consumer<Pair<Boolean, String>> onCompletion) {
         if(!information.getJoinable().validate()) {
-            onCompletion.accept(ImmutablePair.of(false, "Someone is offline and therefore unable to join!"));
+            onCompletion.accept(Pair.of(false, "Someone is offline and therefore unable to join!"));
             return;
         }
 
@@ -83,9 +102,9 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             MapData mapData = maps.get(mapName);
 
             if(mapData != null) {
-                for(ZombiesArena arena : arenas) {
+                for(ZombiesArena arena : managedArenas.values()) {
                     if(arena.getMap().getName().equals(mapName) && arena.handleJoin(information.getJoinable().getPlayers())) {
-                        onCompletion.accept(ImmutablePair.of(true, null));
+                        onCompletion.accept(Pair.of(true, null));
                         return;
                     }
                 }
@@ -95,15 +114,30 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
                     Zombies.info(String.format("JoinInformation that triggered this load: '%s'.", information));
 
                     Zombies.getInstance().getWorldLoader().loadWorld(mapData.getWorldName(), (world) -> {
+                        world.setGameRule(GameRule.DO_FIRE_TICK, false);
+                        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                        world.setGameRule(GameRule.DO_INSOMNIA, false);
+                        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+                        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+                        world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
+                        world.setGameRule(GameRule.MOB_GRIEFING, false);
+                        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+                        world.setGameRule(GameRule.LOG_ADMIN_COMMANDS, false);
+                        world.setGameRule(GameRule.COMMAND_BLOCK_OUTPUT, false);
+                        world.setGameRule(GameRule.SEND_COMMAND_FEEDBACK, false);
+                        world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
+
+                        world.setTime(mapData.getWorldTime());
+
                         ZombiesArena arena = new ZombiesArena(this, world, maps.get(mapName), arenaTimeout);
                         managedArenas.put(arena.getId(), arena);
                         getArenaCreated().callEvent(arena);
                         if(arena.handleJoin(information.getJoinable().getPlayers())) {
-                            onCompletion.accept(ImmutablePair.of(true, null));
+                            onCompletion.accept(Pair.of(true, null));
                         }
                         else {
                             Zombies.warning(String.format("Newly created arena rejected join request '%s'.", information));
-                            onCompletion.accept(ImmutablePair.of(false, "Tried to make a new arena, but it couldn't accept all of the players!"));
+                            onCompletion.accept(Pair.of(false, "Tried to make a new arena, but it couldn't accept all of the players!"));
                         }
                     });
 
@@ -122,10 +156,10 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
 
             if(arena != null) {
                 if(arena.handleJoin(information.getJoinable().getPlayers())) {
-                    onCompletion.accept(ImmutablePair.of(true, null));
+                    onCompletion.accept(Pair.of(true, null));
                 }
                 else {
-                    onCompletion.accept(ImmutablePair.of(false, "The arena rejected the join request."));
+                    onCompletion.accept(Pair.of(false, "The arena rejected the join request."));
                 }
 
                 return;
@@ -135,7 +169,7 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
             }
         }
 
-        onCompletion.accept(ImmutablePair.of(false, "An unknown error occurred."));
+        onCompletion.accept(Pair.of(false, "An unknown error occurred."));
     }
 
     @Override
@@ -144,7 +178,11 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     @Override
-    public void removeArena(ZombiesArena arena) {
+    public void unloadArena(ZombiesArena arena) {
+        for(Player player : arena.getWorld().getPlayers()) { //tp out any players that could prevent us from unloading
+            player.teleport(getHubLocation());
+        }
+
         managedArenas.remove(arena.getId());
 
         //we are doing a single-world, single-arena approach so no need to check for other arenas sharing this world
@@ -154,13 +192,6 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     @Override
     public boolean hasMap(String mapName) {
         return maps.containsKey(mapName);
-    }
-
-    @Override
-    public void dispose() {
-        for(ZombiesArena arena : arenas) {
-            arena.dispose();
-        }
     }
 
     public MapData getMap(String name) {
