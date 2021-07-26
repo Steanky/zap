@@ -2,6 +2,10 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Contains methods used to validate and create DataKey instances from strings. For general use it is preferred to
+ * create keys using a KeyStore over a KeyFactory, as the former can perform caching and namespace validation.
+ */
 public interface KeyFactory {
     /**
      * Returns true if the given "raw" string is a valid key. Must contain both namespace and name information.

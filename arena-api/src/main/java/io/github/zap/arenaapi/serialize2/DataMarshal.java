@@ -4,6 +4,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+/**
+ * Contains methods useful for converting raw deserialized data (in the form of a map of Strings and Objects) to the
+ * DataContainer API
+ */
 public interface DataMarshal {
     /**
      * Creates a data container from the specified map of objects. Will perform a "deep" conversion of the map in order

@@ -16,6 +16,7 @@ public class StandardKeyStoreTest {
     static DataKey key3;
 
     static DataKey key4;
+    static DataKey key69;
     static DataKey AAAAAAAAA;
     static DataKey why;
 
@@ -26,6 +27,7 @@ public class StandardKeyStoreTest {
         key2 = keyStore.named("angery");
         key3 = keyStore.named("suque");
         key4 = keyStore.named("beaned");
+        key69 = keyStore.named("funny number");
         AAAAAAAAA = keyStore.named("AAAAAAAAAAAAAAAAAA");
         why = keyStore.named("why would you do this");
     }
@@ -45,7 +47,9 @@ public class StandardKeyStoreTest {
         Map<String, Object> objectMap = new HashMap<>();
         Map<String, Object> objectMap1 = new HashMap<>();
         Map<String, Object> recursiveAAAAAAAAA = new HashMap<>();
+        Map<String, Object> mapContainingInvalidKeys = new HashMap<>();
         recursiveAAAAAAAAA.put(AAAAAAAAA.key(), objectMap);
+        mapContainingInvalidKeys.put("this is not a valid key for standard datamarshal", "HAHAHAHAHAHAHA"); //this won't get converted to DataContainer
 
         objectMap1.put(key4.key(), "GIVE ME THE SUCC");
 
@@ -53,7 +57,16 @@ public class StandardKeyStoreTest {
         objectMap.put(key2.key(), 69420);
         objectMap.put(key3.key(), objectMap1);
         objectMap.put(why.key(), recursiveAAAAAAAAA);
+        objectMap.put(key69.key(), mapContainingInvalidKeys);
 
         DataContainer dataContainer = marshal.marshalData(objectMap);
+
+        String json = "{\"test:name\" : \"value\", \"test:nested\" : {\"test:name\" : \"value\"}}";
+
+
+        Gson gson = new Gson();
+        //noinspection unchecked
+        Map<String, Object> map = gson.fromJson(json, Map.class);
+        DataContainer loaded = marshal.marshalData(map);
     }
 }
