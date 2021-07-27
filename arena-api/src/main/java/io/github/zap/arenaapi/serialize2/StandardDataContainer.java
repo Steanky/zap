@@ -2,6 +2,8 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -96,6 +98,6 @@ class StandardDataContainer implements DataContainer {
 
     @Override
     public @NotNull Map<String, Object> objectMapping() {
-        return Map.copyOf(map);
+        return new LinkedHashMap<>(map);
     }
 }

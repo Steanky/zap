@@ -17,7 +17,9 @@ public interface DataMarshal {
      * @param mappings The object mappings to use
      * @return An object encapsulating those mappings
      */
-    @NotNull DataContainer marshalData(@NotNull Map<String, Object> mappings);
+    @NotNull DataContainer fromMappings(@NotNull Map<String, Object> mappings);
+
+    @NotNull Map<String, Object> toMappings(@NotNull DataContainer container);
 
     static DataMarshal from(@NotNull KeyFactory factory) {
         return new StandardDataMarshal(factory);

@@ -15,18 +15,18 @@ class StandardDataMarshal implements DataMarshal {
     }
 
     @Override
-    public @NotNull DataContainer marshalData(@NotNull Map<String, Object> mappings) {
+    public @NotNull DataContainer fromMappings(@NotNull Map<String, Object> mappings) {
         if(isMapNode(mappings)) {
             StandardDataContainer topLevel = new StandardDataContainer(mappings);
             Queue<Runnable> postProcess = new ArrayDeque<>();
-            Stack<NodeContext> pending = new Stack<>();
+            Deque<NodeContext> pending = new ArrayDeque<>();
             Map<Map<?, ?>, StandardDataContainer> mapToContainer = new IdentityHashMap<>(); //we don't care about equals()
 
             pending.push(new NodeContext(null, mappings, null));
             mapToContainer.put(mappings, topLevel);
 
-            while(!pending.empty()) { //using a stack here supports recursive behavior without the overhead
-                NodeContext current = pending.pop();
+            while(!pending.isEmpty()) { //using a stack here supports recursive behavior without the overhead
+                NodeContext current = pending.removeLast();
 
                 for(Map.Entry<String, Object> entry : current.map.entrySet()) {
                     Object value = entry.getValue();
@@ -60,6 +60,41 @@ class StandardDataMarshal implements DataMarshal {
         }
 
         return EMPTY;
+    }
+
+    @Override
+    public @NotNull Map<String, Object> toMappings(@NotNull DataContainer container) {
+        Deque<Map<String, Object>> pending = new ArrayDeque<>();
+        Queue<Runnable> operations = new ArrayDeque<>();
+        Map<String, Object> topLevel = container.objectMapping();
+        Map<DataContainer, Map<String, Object>> dataMap = new IdentityHashMap<>();
+
+        pending.push(topLevel);
+
+        while(!pending.isEmpty()) {
+            Map<String, Object> current = pending.removeLast();
+
+            for(Map.Entry<String, Object> entry : current.entrySet()) {
+                if(entry.getValue() instanceof DataContainer dataContainer) {
+                    Map<String, Object> map = dataMap.get(dataContainer);
+                    if(map == null) {
+                        map = dataContainer.objectMapping();
+                        dataMap.put(dataContainer, map);
+                        pending.push(map);
+                    }
+
+                    Map<String, Object> finalMap = map;
+                    operations.add(() -> current.replace(entry.getKey(), finalMap));
+                }
+            }
+
+            while(!operations.isEmpty()) {
+                operations.remove().run();
+            }
+        }
+
+
+        return topLevel;
     }
 
     private boolean isMapNode(Map<?, ?> map) { //ensure valid keys while building data

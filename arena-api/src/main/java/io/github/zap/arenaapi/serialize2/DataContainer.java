@@ -29,5 +29,8 @@ public interface DataContainer {
 
     @NotNull Optional<Double> getDouble(@NotNull DataKey key);
 
+    /**
+     * Returns the data contained in this DataContainer, in the form of a "raw" map.
+     */
     @NotNull Map<String, Object> objectMapping();
 }

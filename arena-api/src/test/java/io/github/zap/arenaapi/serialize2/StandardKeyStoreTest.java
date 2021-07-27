@@ -4,13 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class StandardKeyStoreTest {
@@ -64,7 +62,7 @@ public class StandardKeyStoreTest {
         objectMap.put(why.key(), recursiveAAAAAAAAA);
         objectMap.put(key69.key(), mapContainingInvalidKeys);
 
-        DataContainer dataContainer = marshal.marshalData(objectMap);
+        DataContainer dataContainer = marshal.fromMappings(objectMap);
 
         String json = "{\"test:name\" : \"value\", \"test:nested\" : {\"test:name\" : \"value\"}, \"test:list\" : [ 10, 10, 10 ]}";
 
@@ -73,7 +71,7 @@ public class StandardKeyStoreTest {
 
         //noinspection unchecked
         Map<String, Object> map = gson.fromJson(json, Map.class);
-        DataContainer loaded = marshal.marshalData(map);
+        DataContainer loaded = marshal.fromMappings(map);
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(json);
