@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.serialize2;
 
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 class StandardKeyFactory implements KeyFactory {
@@ -17,8 +18,13 @@ class StandardKeyFactory implements KeyFactory {
         if(!key.isEmpty()) {
             String[] split = key.split(DELIMITER);
 
-            if(split.length == 2 && validNamespaceAndName(split[0], split[1])) {
-                return split;
+            if(split.length == 1 || split.length == 2) {
+                String namespace = split.length == 1 ? StringUtils.EMPTY : split[0];
+                String name = split.length == 1 ? split[0] : split[1];
+
+                if(validNamespaceAndName(namespace, name)) {
+                    return new String[] { namespace, name };
+                }
             }
         }
 
@@ -26,7 +32,11 @@ class StandardKeyFactory implements KeyFactory {
     }
 
     private boolean validNamespaceAndName(String namespace, String name) {
-        return !namespace.isEmpty() && !name.isEmpty() && !namespace.contains(DELIMITER) && !name.contains(DELIMITER);
+        return !name.isEmpty() && !namespace.contains(DELIMITER) && !name.contains(DELIMITER);
+    }
+
+    private DataKey makeInternal(String namespace, String name) {
+        return new StandardDataKey(namespace.isEmpty() ? name : namespace.concat(DELIMITER).concat(name), namespace.length());
     }
 
     @Override
@@ -37,10 +47,10 @@ class StandardKeyFactory implements KeyFactory {
     @Override
     public @NotNull DataKey make(@NotNull String namespace, @NotNull String name) {
         if(validNamespaceAndName(namespace, name)) {
-            return new StandardDataKey(namespace.concat(DELIMITER).concat(name), namespace.length());
+            return makeInternal(namespace, name);
         }
 
-        throw new IllegalArgumentException("Invalid key syntax for namespace " + namespace + " and name " + name);
+        throw new IllegalArgumentException("Invalid key syntax for namespace " + namespace + " and/or name " + name);
     }
 
     @Override
@@ -50,11 +60,9 @@ class StandardKeyFactory implements KeyFactory {
             String namespace = components[0];
             String name = components[1];
 
-            if(validNamespaceAndName(namespace, name)) {
-                return new StandardDataKey(namespace.concat(DELIMITER).concat(name), namespace.length());
-            }
+            return makeInternal(namespace, name);
         }
 
-        throw new IllegalArgumentException("Invalid key syntax: " + raw);
+        throw new IllegalArgumentException("Invalid key syntax for string: " + raw);
     }
 }
