@@ -13,9 +13,8 @@ class StandardDataContainer implements DataContainer {
         this.map = map;
     }
 
-    @Override
-    public @NotNull <T> Optional<T> getObject(@NotNull DataKey key, @NotNull Class<T> type) {
-        Object data = map.get(key.key());
+    private @NotNull <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, Class<T> type) {
+        Object data = container.map.get(key.key());
 
         if(data == null) {
             return Optional.empty();
@@ -29,53 +28,70 @@ class StandardDataContainer implements DataContainer {
     }
 
     @Override
-    public @NotNull Optional<DataContainer> getChild(@NotNull DataKey key) {
-        return getObject(key, DataContainer.class);
+    public @NotNull <T> Optional<T> getObject(@NotNull Class<T> type, @NotNull DataKey... keys) {
+        if(keys.length == 0) {
+            throw new IllegalArgumentException("getObject called without providing any DataKeys");
+        }
+
+        StandardDataContainer lastContainer = this;
+        for(int i = 0; i < keys.length - 1; i++) {
+            DataKey key = keys[i];
+            Optional<StandardDataContainer> object = getObjectInternal(lastContainer, key, StandardDataContainer.class);
+
+            if(object.isEmpty()) {
+                return Optional.empty();
+            }
+            else {
+                lastContainer = object.get();
+            }
+        }
+
+        return getObjectInternal(lastContainer, keys[keys.length - 1], type);
     }
 
     @Override
     public @NotNull Optional<String> getString(@NotNull DataKey key) {
-        return getObject(key, String.class);
+        return getObjectInternal(this, key, String.class);
     }
 
     @Override
     public @NotNull Optional<Boolean> getBoolean(@NotNull DataKey key) {
-        return getObject(key, Boolean.class);
+        return getObjectInternal(this, key, Boolean.class);
     }
 
     @Override
     public @NotNull Optional<Byte> getByte(@NotNull DataKey key) {
-        return getObject(key, Byte.class);
+        return getObjectInternal(this, key, Byte.class);
     }
 
     @Override
     public @NotNull Optional<Short> getShort(@NotNull DataKey key) {
-        return getObject(key, Short.class);
+        return getObjectInternal(this, key, Short.class);
     }
 
     @Override
     public @NotNull Optional<Integer> getInt(@NotNull DataKey key) {
-        return getObject(key, Integer.class);
+        return getObjectInternal(this, key, Integer.class);
     }
 
     @Override
     public @NotNull Optional<Character> getChar(@NotNull DataKey key) {
-        return getObject(key, Character.class);
+        return getObjectInternal(this, key, Character.class);
     }
 
     @Override
     public @NotNull Optional<Long> getLong(@NotNull DataKey key) {
-        return getObject(key, Long.class);
+        return getObjectInternal(this, key, Long.class);
     }
 
     @Override
     public @NotNull Optional<Float> getFloat(@NotNull DataKey key) {
-        return getObject(key, Float.class);
+        return getObjectInternal(this, key, Float.class);
     }
 
     @Override
     public @NotNull Optional<Double> getDouble(@NotNull DataKey key) {
-        return getObject(key, Double.class);
+        return getObjectInternal(this, key, Double.class);
     }
 
     @Override

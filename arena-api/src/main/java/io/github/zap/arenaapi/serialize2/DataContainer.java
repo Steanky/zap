@@ -9,9 +9,7 @@ import java.util.Optional;
  * An object containing a number of key-value pairs.
  */
 public interface DataContainer {
-    @NotNull <T> Optional<T> getObject(@NotNull DataKey key, @NotNull Class<T> type);
-
-    @NotNull Optional<DataContainer> getChild(@NotNull DataKey key);
+    @NotNull <T> Optional<T> getObject(@NotNull Class<T> type, @NotNull DataKey ... keys);
 
     @NotNull Optional<String> getString(@NotNull DataKey key);
 
