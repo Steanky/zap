@@ -1,11 +1,16 @@
 package io.github.zap.arenaapi.serialize2;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class StandardKeyStoreTest {
@@ -43,7 +48,7 @@ public class StandardKeyStoreTest {
     }
 
     @Test
-    public void test() {
+    public void test() throws JsonProcessingException {
         Map<String, Object> objectMap = new HashMap<>();
         Map<String, Object> objectMap1 = new HashMap<>();
         Map<String, Object> recursiveAAAAAAAAA = new HashMap<>();
@@ -61,12 +66,16 @@ public class StandardKeyStoreTest {
 
         DataContainer dataContainer = marshal.marshalData(objectMap);
 
-        String json = "{\"test:name\" : \"value\", \"test:nested\" : {\"test:name\" : \"value\"}}";
+        String json = "{\"test:name\" : \"value\", \"test:nested\" : {\"test:name\" : \"value\"}, \"test:list\" : [ 10, 10, 10 ]}";
 
 
         Gson gson = new Gson();
+
         //noinspection unchecked
         Map<String, Object> map = gson.fromJson(json, Map.class);
         DataContainer loaded = marshal.marshalData(map);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(json);
     }
 }
