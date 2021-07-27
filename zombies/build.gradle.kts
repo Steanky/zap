@@ -60,7 +60,7 @@ val copyPlugins = tasks.register<Copy>("copyPlugins") {
 val copyClassModifier = tasks.register<Copy>("copyClassModifier") {
     from(classModifier).into(outputDir)
 
-    System.getProperty("useClassModifierVersion")?.let {
+    project.properties["useClassModifierVersion"]?.let {
         classModifier.allDependencies.forEach {
             rename("-${it.version}", "")
         }
