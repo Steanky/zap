@@ -1167,19 +1167,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
             Player player = zombiesPlayer.getPlayer();
             if (player != null) {
-                if (map.getRoundTimesShouldSave().contains(lastRoundIndex)) {
+                if (map.getRoundTimesShouldSave().contains(lastRoundIndex + 1)) {
                     statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
-                        if (mapStats.getBestRound() < lastRoundIndex) {
-                            mapStats.setBestRound(lastRoundIndex);
+                        if (mapStats.getBestRound() < lastRoundIndex + 1) {
+                            mapStats.setBestRound(lastRoundIndex + 1);
                         }
 
                         Map<Integer, Integer> bestTimes = mapStats.getBestTimes();
-                        Integer bestTime = bestTimes.get(lastRoundIndex);
+                        Integer bestTime = bestTimes.get(lastRoundIndex + 1);
                         if (bestTime == null || bestTime < secondsElapsed) {
-                            bestTimes.put(lastRoundIndex, secondsElapsed);
+                            bestTimes.put(lastRoundIndex + 1, secondsElapsed);
                         }
                     }, PlayerGeneralStats::new);
                 } else {
@@ -1187,8 +1187,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
-                        if (mapStats.getBestRound() < lastRoundIndex) {
-                            mapStats.setBestRound(lastRoundIndex);
+                        if (mapStats.getBestRound() < lastRoundIndex + 1) {
+                            mapStats.setBestRound(lastRoundIndex + 1);
                         }
                     }, PlayerGeneralStats::new);
                 }
@@ -1277,7 +1277,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             Player bukkitPlayer = r.getPlayer();
 
             if(bukkitPlayer != null) {
-                r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
+                r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + 1 + "!");
                 statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
                         (playerStats) -> {
                     PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
@@ -1306,7 +1306,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         getPlayerMap().forEach((l,r) -> {
             Player bukkitPlayer = r.getPlayer();
             if(bukkitPlayer != null) {
-                bukkitPlayer.sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
+                bukkitPlayer.sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + 1 + "!");
                 bukkitPlayer.sendActionBar(Component.text());
             }
         });
