@@ -75,6 +75,6 @@ public class StandardKeyStoreTest {
         Map<String, Object> map = gson.fromJson(json, Map.class);
         DataContainer loaded = marshal.fromMappings(map);
 
-        Optional<Set<Integer>> string = loaded.getObject(new TypeInformation(HashSet.class, Integer.class), keyStore.named("list"));
+        Optional<List<Integer>> string = loaded.getObject(new TypeInformation(LinkedList.class, Integer.class), keyStore.named("list"));
     }
 }

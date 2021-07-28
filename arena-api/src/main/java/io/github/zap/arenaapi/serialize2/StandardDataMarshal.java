@@ -87,8 +87,12 @@ class StandardDataMarshal implements DataMarshal {
                                 return null;
                             }
                         }
+
+                        return newCollection;
                     }
-                    catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ignored) {}
+                    catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ignored) {
+
+                    }
                 }
 
                 return null;
