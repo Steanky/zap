@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
+import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -10,20 +10,33 @@ import java.util.Optional;
 @SuppressWarnings("ClassCanBeRecord") //no it can't, map field should not be public smh my head
 class StandardDataContainer implements DataContainer {
     private final Map<String, Object> map;
+    private final ConverterRegistry converters;
 
-    StandardDataContainer(@NotNull Map<String, Object> map) {
+    StandardDataContainer(@NotNull Map<String, Object> map, @NotNull ConverterRegistry converters) {
         this.map = map;
+        this.converters = converters;
     }
 
-    private @NotNull <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, Class<T> type) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, Class<T> type) {
         Object data = container.map.get(key.key());
 
-        if(data == null) {
+        if(data == null) { //missing value
             return Optional.empty();
         }
-        else if(type.isAssignableFrom(data.getClass())) {
-            //noinspection unchecked
+        else if(type.isAssignableFrom(data.getClass())) { //easiest case, we can just cast
             return Optional.of((T)data);
+        }
+        else { //type mismatch, try to perform conversion
+            Converter converter = converters.deserializerFor(data.getClass(), type);
+
+            if(converter != null) {
+                Object converted = converter.convert(data, type);
+
+                if(converted != null && type.isAssignableFrom(converted.getClass())) { //conversion gave us what we needed
+                    return Optional.of((T)converted);
+                }
+            }
         }
 
         return Optional.empty();

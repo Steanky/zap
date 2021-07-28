@@ -63,6 +63,8 @@ class StandardKeyFactory implements KeyFactory {
             return makeInternal(namespace, name);
         }
 
+        Class<String[]> t = String[].class;
+
         throw new IllegalArgumentException("Invalid key syntax for string: " + raw);
     }
 }

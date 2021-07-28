@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.serialize2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -8,8 +10,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class StandardKeyStoreTest {
     static KeyStore keyStore;
@@ -73,7 +77,6 @@ public class StandardKeyStoreTest {
         Map<String, Object> map = gson.fromJson(json, Map.class);
         DataContainer loaded = marshal.fromMappings(map);
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree(json);
+        Optional<Double[]> string = loaded.getObject(Double[].class, keyStore.named("list"));
     }
 }
