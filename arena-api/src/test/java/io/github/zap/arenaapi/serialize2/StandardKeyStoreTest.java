@@ -67,7 +67,7 @@ public class StandardKeyStoreTest {
 
         DataContainer dataContainer = marshal.fromMappings(objectMap);
 
-        String json = "{\"test:name\" : \"value\", \"test:nested\" : {\"test:name\" : \"value\"}, \"test:list\" : [ 10, 10, 10 ]}";
+        String json = "{\"test:name\" : \"value\", \"test:nested\" : {\"test:name\" : \"value\"}, \"test:list\" : [ [ 10, 10, 10 ], [ 10, 10, 10 ], [ 10, 10, 10 ] ]}";
 
         Gson gson = new Gson();
 
@@ -75,6 +75,7 @@ public class StandardKeyStoreTest {
         Map<String, Object> map = gson.fromJson(json, Map.class);
         DataContainer loaded = marshal.fromMappings(map);
 
-        Optional<List<Integer>> string = loaded.getObject(new TypeInformation(LinkedList.class, Integer.class), keyStore.named("list"));
+        Optional<List<List<Integer>>> string = loaded.getObject(new TypeInformation(LinkedList.class,
+                new TypeInformation(LinkedList.class, new TypeInformation(Integer.class))), keyStore.named("list"));
     }
 }

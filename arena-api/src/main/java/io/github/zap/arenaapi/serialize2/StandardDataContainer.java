@@ -17,22 +17,23 @@ class StandardDataContainer implements DataContainer {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, TypeInformation type) {
+    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, TypeInformation info) {
         Object data = container.map.get(key.key());
+        Class<?> classType = info.type();
 
         if(data == null) { //missing value
             return Optional.empty();
         }
-        else if(type.type().isAssignableFrom(data.getClass())) { //easiest case, we can just cast
+        else if(classType.isAssignableFrom(data.getClass())) { //easiest case, we can just cast
             return Optional.of((T)data);
         }
         else { //type mismatch, try to perform conversion
-            Converter converter = converters.deserializerFor(data.getClass(), type.type());
+            Converter converter = converters.deserializerFor(data.getClass(), classType);
 
             if(converter != null) {
-                Object converted = converter.convert(data, type);
+                Object converted = converter.convert(data, info);
 
-                if(converted != null && type.type().isAssignableFrom(converted.getClass())) { //conversion gave us what we needed
+                if(converted != null && classType.isAssignableFrom(converted.getClass())) { //conversion gave us what we needed
                     return Optional.of((T)converted);
                 }
             }

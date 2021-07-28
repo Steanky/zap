@@ -57,7 +57,8 @@ class StandardDataMarshal implements DataMarshal {
 
                     int index = 0;
                     for(Object assign : collection) {
-                        assign = marshalElement(assign, componentType);
+                        assign = marshalElement(assign, new TypeInformation(componentType));
+
                         if(assign != null) {
                             Array.set(newArray, index++, assign);
                         }
@@ -74,11 +75,12 @@ class StandardDataMarshal implements DataMarshal {
                         Constructor constructor = type.getDeclaredConstructor();
                         Collection newCollection = (Collection)constructor.newInstance();
 
-                        Class<?>[] typeParameters = typeInformation.typeParameters();
-                        Class<?> elementType = typeParameters.length == 1 ? typeParameters[0] : null;
+                        TypeInformation[] typeParameters = typeInformation.parameters();
+                        TypeInformation elementType = typeParameters.length == 1 ? typeParameters[0] : null;
 
                         for(Object assign : collection) {
-                            assign = marshalElement(assign, elementType == null ? assign.getClass() : elementType);
+                            assign = marshalElement(assign, elementType == null ?
+                                    new TypeInformation(assign.getClass()) : elementType);
 
                             if(assign != null) {
                                 newCollection.add(assign);
@@ -90,9 +92,8 @@ class StandardDataMarshal implements DataMarshal {
 
                         return newCollection;
                     }
-                    catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ignored) {
-
-                    }
+                    catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                            IllegalAccessException ignored) { }
                 }
 
                 return null;
@@ -103,12 +104,11 @@ class StandardDataMarshal implements DataMarshal {
                 return type.isArray() || Collection.class.isAssignableFrom(type);
             }
         });
-
         converterRegistry.registerDeserializer(new ConverterBase<>(Double.class) {
             @Override
-            public Object convert(@NotNull Double o, @NotNull TypeInformation typeInformation) {
-                if(o % 1 == 0) {
-                    return o.intValue();
+            public Object convert(@NotNull Double value, @NotNull TypeInformation typeInformation) {
+                if(value % 1 == 0) {
+                    return value.intValue();
                 }
 
                 return null;
@@ -122,14 +122,15 @@ class StandardDataMarshal implements DataMarshal {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Object marshalElement(Object assign, Class<?> componentType) {
+    private Object marshalElement(Object assign, TypeInformation componentType) {
         Class<?> convertingFrom = assign.getClass();
+        Class<?> convertingTo = componentType.type();
 
-        if(!componentType.isAssignableFrom(convertingFrom)) { //deep convert arrays if needed
-            Converter converter = deserializerFor(convertingFrom, componentType);
+        if(!convertingTo.isAssignableFrom(convertingFrom)) { //deep convert arrays if needed
+            Converter converter = deserializerFor(convertingFrom, convertingTo);
 
-            if(converter != null && converter.canConvertTo(componentType)) {
-                assign = converter.convert(assign, new TypeInformation(convertingFrom));
+            if(converter != null && converter.canConvertTo(convertingTo)) {
+                assign = converter.convert(assign, componentType);
             }
             else {
                 return null;
