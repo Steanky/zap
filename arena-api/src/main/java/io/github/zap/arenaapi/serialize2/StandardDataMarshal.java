@@ -3,6 +3,8 @@ package io.github.zap.arenaapi.serialize2;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 class StandardDataMarshal implements DataMarshal {
@@ -39,47 +41,98 @@ class StandardDataMarshal implements DataMarshal {
         this.factory = factory;
         this.converterRegistry = this;
 
-        initDefaultConverters();
+        registerConverters();
     }
 
-    private void initDefaultConverters() {
+    private void registerConverters() {
         converterRegistry.registerDeserializer(new ConverterBase<>(Collection.class) {
             @SuppressWarnings({"rawtypes", "unchecked"})
             @Override
-            public Object convert(@NotNull Collection collection, @NotNull Class<?> type) {
-                Object newArray = Array.newInstance(type.getComponentType(), collection.size());
+            public Object convert(@NotNull Collection collection, @NotNull TypeInformation typeInformation) {
+                Class<?> type = typeInformation.type();
 
-                int index = 0;
-                for(Object assign : collection) {
-                    Class<?> convertingFrom = assign.getClass();
+                if(type.isArray()) {
                     Class<?> componentType = type.getComponentType();
+                    Object newArray = Array.newInstance(componentType, collection.size());
 
-                    if(!componentType.isAssignableFrom(convertingFrom)) { //deep convert arrays if needed
-                        Converter converter = deserializerFor(convertingFrom, componentType);
-
-                        if(converter != null && converter.canConvertTo(componentType)) {
-                            assign = converter.convert(assign, convertingFrom);
-
-                            if(assign == null) {
-                                return null;
-                            }
+                    int index = 0;
+                    for(Object assign : collection) {
+                        assign = marshalElement(assign, componentType);
+                        if(assign != null) {
+                            Array.set(newArray, index++, assign);
                         }
-                        else {
+                        else { //element conversion fail
                             return null;
                         }
                     }
 
-                    Array.set(newArray, index++, assign);
+                    return newArray;
+                }
+                else if(Collection.class.isAssignableFrom(type)) {
+                    try {
+                        //most java collections have parameterless constructors
+                        Constructor constructor = type.getDeclaredConstructor();
+                        Collection newCollection = (Collection)constructor.newInstance();
+
+                        Class<?>[] typeParameters = typeInformation.typeParameters();
+                        Class<?> elementType = typeParameters.length == 1 ? typeParameters[0] : null;
+
+                        for(Object assign : collection) {
+                            assign = marshalElement(assign, elementType == null ? assign.getClass() : elementType);
+
+                            if(assign != null) {
+                                newCollection.add(assign);
+                            }
+                            else {
+                                return null;
+                            }
+                        }
+                    }
+                    catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ignored) {}
                 }
 
-                return newArray;
+                return null;
             }
 
             @Override
             public boolean canConvertTo(@NotNull Class<?> type) {
-                return type.isArray();
+                return type.isArray() || Collection.class.isAssignableFrom(type);
             }
         });
+
+        converterRegistry.registerDeserializer(new ConverterBase<>(Double.class) {
+            @Override
+            public Object convert(@NotNull Double o, @NotNull TypeInformation typeInformation) {
+                if(o % 1 == 0) {
+                    return o.intValue();
+                }
+
+                return null;
+            }
+
+            @Override
+            public boolean canConvertTo(@NotNull Class<?> type) {
+                return type.equals(Integer.class);
+            }
+        });
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Object marshalElement(Object assign, Class<?> componentType) {
+        Class<?> convertingFrom = assign.getClass();
+
+        if(!componentType.isAssignableFrom(convertingFrom)) { //deep convert arrays if needed
+            Converter converter = deserializerFor(convertingFrom, componentType);
+
+            if(converter != null && converter.canConvertTo(componentType)) {
+                assign = converter.convert(assign, new TypeInformation(convertingFrom));
+            }
+            else {
+                return null;
+            }
+        }
+
+        return assign;
     }
 
     @Override

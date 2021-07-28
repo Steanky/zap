@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface DataContainer {
     @NotNull <T> Optional<T> getObject(@NotNull Class<T> type, @NotNull DataKey ... keys);
 
+    @NotNull <T> Optional<T> getObject(@NotNull TypeInformation typeInformation, @NotNull DataKey ... keys);
+
     @NotNull Optional<String> getString(@NotNull DataKey key);
 
     @NotNull Optional<Boolean> getBoolean(@NotNull DataKey key);

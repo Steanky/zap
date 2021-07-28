@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,28 +17,32 @@ class StandardDataContainer implements DataContainer {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, Class<T> type) {
+    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, TypeInformation type) {
         Object data = container.map.get(key.key());
 
         if(data == null) { //missing value
             return Optional.empty();
         }
-        else if(type.isAssignableFrom(data.getClass())) { //easiest case, we can just cast
+        else if(type.type().isAssignableFrom(data.getClass())) { //easiest case, we can just cast
             return Optional.of((T)data);
         }
         else { //type mismatch, try to perform conversion
-            Converter converter = converters.deserializerFor(data.getClass(), type);
+            Converter converter = converters.deserializerFor(data.getClass(), type.type());
 
             if(converter != null) {
                 Object converted = converter.convert(data, type);
 
-                if(converted != null && type.isAssignableFrom(converted.getClass())) { //conversion gave us what we needed
+                if(converted != null && type.type().isAssignableFrom(converted.getClass())) { //conversion gave us what we needed
                     return Optional.of((T)converted);
                 }
             }
         }
 
         return Optional.empty();
+    }
+
+    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, Class<?> type) {
+        return getObjectInternal(container, key, new TypeInformation(type));
     }
 
     @Override
@@ -62,6 +65,28 @@ class StandardDataContainer implements DataContainer {
         }
 
         return getObjectInternal(lastContainer, keys[keys.length - 1], type);
+    }
+
+    @Override
+    public @NotNull <T> Optional<T> getObject(@NotNull TypeInformation typeInformation, @NotNull DataKey... keys) {
+        if(keys.length == 0) {
+            throw new IllegalArgumentException("getObject called without providing any DataKeys");
+        }
+
+        StandardDataContainer lastContainer = this;
+        for(int i = 0; i < keys.length - 1; i++) {
+            DataKey key = keys[i];
+            Optional<StandardDataContainer> object = getObjectInternal(lastContainer, key, typeInformation);
+
+            if(object.isEmpty()) {
+                return Optional.empty();
+            }
+            else {
+                lastContainer = object.get();
+            }
+        }
+
+        return getObjectInternal(lastContainer, keys[keys.length - 1], typeInformation);
     }
 
     @Override

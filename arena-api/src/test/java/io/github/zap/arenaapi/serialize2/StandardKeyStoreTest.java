@@ -12,9 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class StandardKeyStoreTest {
     static KeyStore keyStore;
@@ -77,22 +75,6 @@ public class StandardKeyStoreTest {
         Map<String, Object> map = gson.fromJson(json, Map.class);
         DataContainer loaded = marshal.fromMappings(map);
 
-        marshal.registerDeserializer(new ConverterBase<>(Double.class) {
-            @Override
-            public Object convert(@NotNull Double o, @NotNull Class<?> toClass) {
-                if(o % 1 == 0) {
-                    return o.intValue();
-                }
-
-                return null;
-            }
-
-            @Override
-            public boolean canConvertTo(@NotNull Class<?> type) {
-                return type.equals(Integer.class);
-            }
-        });
-
-        Optional<Integer[]> string = loaded.getObject(Integer[].class, keyStore.named("list"));
+        Optional<Set<Integer>> string = loaded.getObject(new TypeInformation(HashSet.class, Integer.class), keyStore.named("list"));
     }
 }
