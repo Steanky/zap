@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +51,7 @@ public class StandardKeyStoreTest {
     }
 
     @Test
-    public void test() throws JsonProcessingException {
+    public void test() {
         Map<String, Object> objectMap = new HashMap<>();
         Map<String, Object> objectMap1 = new HashMap<>();
         Map<String, Object> recursiveAAAAAAAAA = new HashMap<>();
@@ -70,13 +71,28 @@ public class StandardKeyStoreTest {
 
         String json = "{\"test:name\" : \"value\", \"test:nested\" : {\"test:name\" : \"value\"}, \"test:list\" : [ 10, 10, 10 ]}";
 
-
         Gson gson = new Gson();
 
         //noinspection unchecked
         Map<String, Object> map = gson.fromJson(json, Map.class);
         DataContainer loaded = marshal.fromMappings(map);
 
-        Optional<Double[]> string = loaded.getObject(Double[].class, keyStore.named("list"));
+        marshal.registerDeserializer(new ConverterBase<>(Double.class) {
+            @Override
+            public Object convert(@NotNull Double o, @NotNull Class<?> toClass) {
+                if(o % 1 == 0) {
+                    return o.intValue();
+                }
+
+                return null;
+            }
+
+            @Override
+            public boolean canConvertTo(@NotNull Class<?> type) {
+                return type.equals(Integer.class);
+            }
+        });
+
+        Optional<Integer[]> string = loaded.getObject(Integer[].class, keyStore.named("list"));
     }
 }

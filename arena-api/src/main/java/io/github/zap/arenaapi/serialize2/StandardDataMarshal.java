@@ -9,7 +9,6 @@ class StandardDataMarshal implements DataMarshal {
     private record NodeContext(NodeContext previous, Map<String, Object> map, DataKey name) { }
 
     private record ConverterEntry(Converter<?> converter, Class<?> from, List<ConverterEntry> subclasses) {
-
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof ConverterEntry otherEntry) {
@@ -53,12 +52,14 @@ class StandardDataMarshal implements DataMarshal {
                 int index = 0;
                 for(Object assign : collection) {
                     Class<?> convertingFrom = assign.getClass();
+                    Class<?> componentType = type.getComponentType();
 
-                    if(!type.getComponentType().isAssignableFrom(convertingFrom)) { //deep convert arrays if needed
-                        Converter converter = deserializerFor(convertingFrom, type.getComponentType());
+                    if(!componentType.isAssignableFrom(convertingFrom)) { //deep convert arrays if needed
+                        Converter converter = deserializerFor(convertingFrom, componentType);
 
-                        if(converter != null && converter.canConvertTo(convertingFrom)) {
+                        if(converter != null && converter.canConvertTo(componentType)) {
                             assign = converter.convert(assign, convertingFrom);
+
                             if(assign == null) {
                                 return null;
                             }
