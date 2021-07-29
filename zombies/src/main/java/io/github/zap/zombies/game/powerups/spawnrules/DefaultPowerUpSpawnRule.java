@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpawnRuleData> implements Disposable {
     public DefaultPowerUpSpawnRule(String spawnTargetName, DefaultPowerUpSpawnRuleData data, ZombiesArena arena) {
         super(spawnTargetName, data, arena);
-        getArena().getProxyFor(EntityDeathEvent.class).registerHandler(this::onMobDeath);
 
         // Avoid spawning stuff inside windows
         windows = getArena().getMap().getRooms().stream().flatMap(x -> x.getWindows().stream()).collect(Collectors.toList());
@@ -34,6 +33,7 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
     //changed this to a List (set is slow to iterate and you never call .contains which means list is optimal)
     private final List<WindowData> windows;
 
+    private int lastRound = -1;
     private boolean isRound;
     private WaveData chosenWave;
     // The zombies died at this death count will drop power up
@@ -43,12 +43,13 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
 
     private boolean disposed = false;
 
-    private void onMobDeath(ZombiesArena.ProxyArgs<EntityDeathEvent> e) {
+    public void onMobDeath(ZombiesArena.ProxyArgs<EntityDeathEvent> e) {
         var patterns = getData().getPattern();
         var currentRound = getArena().getMap().getCurrentRoundProperty().getValue(getArena());
         if(patterns.contains(currentRound)) {
-            if(!isRound) {
+            if(lastRound != currentRound) {
                 isRound = true;
+                lastRound = currentRound;
                 chooseLuckyZombie(currentRound);
             }
         } else {
@@ -75,13 +76,14 @@ public class DefaultPowerUpSpawnRule extends PowerUpSpawnRule<DefaultPowerUpSpaw
     }
 
     private void chooseLuckyZombie(int currentRound) {
-        var waves = getArena().getMap().getRounds().get(currentRound - 1).getWaves();
+        var waves = getArena().getMap().getRounds().get(currentRound).getWaves();
         var waveCount = waves.size();
         var list = getData().getWaves().stream().filter(x -> x <= waveCount).collect(Collectors.toList());
         chosenWave = waves.get(list.get(random.nextInt(list.size())) - 1);
         final MutableInt waveMobCount = new MutableInt(0);
         chosenWave.getSpawnEntries().stream().map(SpawnEntryData::getMobCount).forEach(waveMobCount::add);
         deathCountUntilDrops = random.nextInt(waveMobCount.getValue());
+        roundDeathCount = 0;
     }
 
     private Location getSuitableLocation(Entity entity) {

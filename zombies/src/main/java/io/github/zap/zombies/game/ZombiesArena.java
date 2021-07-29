@@ -37,6 +37,7 @@ import io.github.zap.zombies.game.powerups.PowerUpBossBar;
 import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
+import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRule;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
@@ -885,6 +886,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private void onEntityDeath(ProxyArgs<EntityDeathEvent> args) {
         if (state == ZombiesArenaState.STARTED && getEntitySet().remove(args.getEvent().getEntity().getUniqueId())) {
             zombiesLeft--;
+
+            // TODO: THIS IS A HACK NEEDS TO BE FIXED
+            for (Pair<PowerUpSpawnRule<?>, String> spawnRule : powerUpSpawnRules) {
+                if (spawnRule.getLeft() instanceof DefaultPowerUpSpawnRule defaultPowerUpSpawnRule) {
+                    defaultPowerUpSpawnRule.onMobDeath(args);
+                }
+            }
+            // THIS IS A HACK NEEDS TO BE FIXED
+
             checkNextRound();
         }
     }
@@ -1205,16 +1215,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 cumulativeDelay += wave.getWaveLength();
 
                 BukkitTask waveSpawnTask = runTaskLater(cumulativeDelay, () -> {
-                    context.spawnedMobs().addAll(spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
-                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false));
+                    List<ActiveMob> newlySpawned = spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
+                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false);
+                    context.spawnedMobs().addAll(newlySpawned);
 
-                    for(ActiveMob activeMob : context.spawnedMobs()) {
+                    for(ActiveMob activeMob : newlySpawned) {
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
                     }
 
                     BukkitTask removeMobTask = runTaskLater(6000, () -> {
-                        for(ActiveMob mob : context.spawnedMobs()) {
+                        for(ActiveMob mob : newlySpawned) {
                             Entity entity = mob.getEntity().getBukkitEntity();
 
                             if(entity != null) {
