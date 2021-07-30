@@ -1,7 +1,7 @@
-# ZAP (Zombies Amendment Project)
+# ZAP (Zombies Amendment Project) ![Discord Shield](https://discordapp.com/api/guilds/687930029954433026/widget.png?style=shield)
 ---
 Recreation of the Hypixel Arcade minigame Zombies.
-Project Discord is [here](https://discord.gg/JvKsGeKjW9).
+Seeks to fix bugs and add features missing from the original game.
 
 # Requirements
 ---
