@@ -24,7 +24,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -36,10 +35,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a door used to open other rooms
@@ -57,7 +53,7 @@ public class Door extends Shop<DoorData> {
         for (DoorSide doorSide : getShopData().getDoorSides()) {
             Hologram hologram = new Hologram(doorSide.getHologramLocation().toLocation(world));
             while (hologram.getHologramLines().size() < 2) {
-                hologram.addLine("");
+                hologram.addLine(Component.empty());
             }
 
             doorSideHologramMap.put(doorSide, hologram);
@@ -97,14 +93,14 @@ public class Door extends Shop<DoorData> {
                 Hologram hologram = entry.getValue();
 
                 hologram.updateLineForEveryone(0, getDoorDisplayName(entry));
-                hologram.updateLineForEveryone(1,
-                        ChatColor.GOLD.toString() + entry.getKey().getCost() + " Gold");
+                hologram.updateLineForEveryone(1, Component.text(entry.getKey().getCost() + " Gold",
+                        NamedTextColor.GOLD));
             }
         }
     }
 
-    private String getDoorDisplayName(@NotNull Map.Entry<DoorSide, Hologram> entry) {
-        StringBuilder stringBuilder = new StringBuilder(ChatColor.GREEN.toString());
+    private Component getDoorDisplayName(@NotNull Map.Entry<DoorSide, Hologram> entry) {
+        StringBuilder stringBuilder = new StringBuilder();
         List<String> opensTo = entry.getKey().getOpensTo();
         MapData map = getArena().getMap();
         if (opensTo.size() > 0) {
@@ -115,7 +111,7 @@ public class Door extends Shop<DoorData> {
             }
         }
 
-        return stringBuilder.toString();
+        return Component.text(stringBuilder.toString(), NamedTextColor.GREEN);
     }
 
     @Override

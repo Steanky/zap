@@ -2,10 +2,7 @@ package io.github.zap.vector.graph;
 
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.HashSet;
 import java.util.Set;

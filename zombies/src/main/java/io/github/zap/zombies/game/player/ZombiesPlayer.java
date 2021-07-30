@@ -4,10 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.hotbar.HotbarManager;
-import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
-import io.github.zap.arenaapi.hotbar.HotbarProfile;
+import io.github.zap.arenaapi.hotbar.*;
 import io.github.zap.arenaapi.pathfind.PathTarget;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -32,10 +29,9 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -46,10 +42,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager, PathTarget {
@@ -223,7 +216,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(amount > 0) {
             Player player = getPlayer();
             if (player != null) {
-                player.sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
+                player.sendMessage(Component.text(String.format("-%d Gold", amount), NamedTextColor.GOLD));
             }
             coins -= amount;
         }

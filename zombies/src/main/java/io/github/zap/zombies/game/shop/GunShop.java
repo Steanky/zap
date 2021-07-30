@@ -16,7 +16,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -85,7 +84,7 @@ public class GunShop extends ArmorStandShop<GunShopData> {
 
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine("");
+            hologram.addLine(Component.empty());
         }
 
         super.display();
@@ -98,11 +97,11 @@ public class GunShop extends ArmorStandShop<GunShopData> {
         String gunName = gunShopData.getGunName();
         String gunDisplayName = gunShopData.getGunDisplayName();
 
-        String firstHologramLine = null;
-        String secondHologramLine = null;
+        Component firstHologramComponent = null;
+        Component secondHologramComponent = null;
 
         if (gunShopData.isRequiresPower() && !isPowered()) {
-            secondHologramLine = ChatColor.GRAY + "Requires Power!";
+            secondHologramComponent = Component.text("Requires Power!", NamedTextColor.GRAY);
         } else {
             if (zombiesPlayer != null) {
                 HotbarObjectGroup hotbarObjectGroup = zombiesPlayer.getHotbarManager()
@@ -110,9 +109,10 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 if (hotbarObjectGroup != null) {
                     for (HotbarObject hotbarObject : hotbarObjectGroup.getHotbarObjectMap().values()) {
                         if (hotbarObject instanceof Gun<?, ?> gun && gun.getEquipmentData().getName().equals(gunName)) {
-                            firstHologramLine = String.format("%sRefill %s", ChatColor.GREEN, gunDisplayName);
-                            secondHologramLine =
-                                    String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getRefillCost());
+                            firstHologramComponent = Component.text("Refill " + gunDisplayName,
+                                    NamedTextColor.GREEN);
+                            secondHologramComponent = Component.text(gunShopData.getRefillCost() + " Gold",
+                                    NamedTextColor.GOLD);
                             break;
                         }
                     }
@@ -120,15 +120,15 @@ public class GunShop extends ArmorStandShop<GunShopData> {
             }
         }
 
-        if (firstHologramLine == null) {
-            firstHologramLine = String.format("%sBuy %s", ChatColor.GREEN, gunDisplayName);
-            secondHologramLine = String.format("%s%d Gold", ChatColor.GOLD, gunShopData.getCost());
+        if (firstHologramComponent == null) {
+            firstHologramComponent = Component.text("Buy " + gunDisplayName, NamedTextColor.GREEN);
+            secondHologramComponent = Component.text(gunShopData.getCost() + " Gold", NamedTextColor.GOLD);
         }
 
         Hologram hologram = getHologram();
 
-        hologram.updateLineForPlayer(player, 0, firstHologramLine);
-        hologram.updateLineForPlayer(player, 1, secondHologramLine);
+        hologram.updateLineForPlayer(player, 0, firstHologramComponent);
+        hologram.updateLineForPlayer(player, 1, secondHologramComponent);
     }
 
     @Override
@@ -197,12 +197,14 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 if (hotbarObject instanceof Gun<?, ?> gun
                         && gun.getEquipmentData().getName().equals(gunShopData.getGunName())) {
                     if (gun.getCurrentAmmo() == gun.getCurrentLevel().getAmmo()) {
-                        bukkitPlayer.sendMessage(ChatColor.RED + "Your gun is already filled!");
+                        bukkitPlayer.sendMessage(Component.text("Your gun is already filled!",
+                                NamedTextColor.RED));
                         return false;
                     } else {
                         int refillCost = gunShopData.getRefillCost();
                         if (player.getCoins() < refillCost) {
-                            bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                            bukkitPlayer.sendMessage(Component.text("You cannot afford this item!",
+                                    NamedTextColor.RED));
 
                             return false;
                         } else {
@@ -236,21 +238,20 @@ public class GunShop extends ArmorStandShop<GunShopData> {
                 if (gunObjectGroup.getHotbarObjectMap().containsKey(selectedSlot)) {
                     slot = selectedSlot;
                 } else {
-                    bukkitPlayer.sendMessage(ChatColor.RED + "Choose the slot you want to buy the gun in!");
+                    bukkitPlayer.sendMessage(Component.text("Choose the slot you want to buy the gun in!",
+                            NamedTextColor.RED));
                     return false;
                 }
             }
 
             int cost = gunShopData.getCost();
             if (player.getCoins() < cost) {
-                bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
-
+                bukkitPlayer.sendMessage(Component.text("You cannot afford this item!", NamedTextColor.RED));
                 return false;
             } else {
                 player.subtractCoins(getShopData().getCost());
                 gunObjectGroup.setHotbarObject(slot, getArena().getEquipmentManager().createEquipment(getArena(),
                         player, slot, getArena().getMap().getName(), gunShopData.getGunName()));
-
                 return true;
             }
         }

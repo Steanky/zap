@@ -2,10 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 public class ChunkBoundsTest {
     private ChunkBounds radialSquare;

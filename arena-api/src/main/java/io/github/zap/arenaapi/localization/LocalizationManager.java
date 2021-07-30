@@ -11,10 +11,7 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.IllegalFormatException;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class LocalizationManager {
 

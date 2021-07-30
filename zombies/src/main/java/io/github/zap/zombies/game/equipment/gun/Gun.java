@@ -119,7 +119,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                             setClipAmmo(Math.min(clipAmmo, currentAmmo));
 
                             if (isSelected()) {
-                                getPlayer().sendActionBar(Component.text());
+                                getPlayer().sendActionBar(Component.empty());
                             }
 
                             canReload = true;
