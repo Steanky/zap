@@ -201,12 +201,10 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                     player.sendMessage(Component.text(String.format("+%d Gold!", amount), NamedTextColor.GOLD));
                 }
                 else {
-                    player.sendMessage(Component
-                            .text()
-                            .append(Component.text(String.format("+%d Gold (", amount), NamedTextColor.GOLD))
-                            .append(builder.build())
-                            .append(Component.text(")!", NamedTextColor.GOLD))
-                            .build());
+                    player.sendMessage(TextComponent.ofChildren(
+                            Component.text(String.format("+%d Gold (", amount), NamedTextColor.GOLD),
+                            builder.build(),
+                            Component.text(")!", NamedTextColor.GOLD)));
                 }
             }
 

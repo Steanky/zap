@@ -52,6 +52,7 @@ import lombok.Value;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
@@ -605,15 +606,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                 Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                     if (startTimeStamp != -1) {
-                        hologram.addLine(Component
-                                .text()
-                                .append(Component.text("#" + finalI, NamedTextColor.YELLOW))
-                                .append(Component.text(" - ", NamedTextColor.WHITE))
-                                .append(Component.text("Loading...", NamedTextColor.GRAY))
-                                .append(Component.text(" - ", NamedTextColor.WHITE))
-                                .append(Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
-                                        NamedTextColor.YELLOW))
-                                .build());
+                        hologram.addLine(TextComponent.ofChildren(Component.text("#" + finalI,
+                                        NamedTextColor.YELLOW),
+                                Component.text(" - ", NamedTextColor.WHITE),
+                                Component.text("Loading...", NamedTextColor.GRAY),
+                                Component.text(" - ", NamedTextColor.WHITE),
+                                Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
+                                        NamedTextColor.YELLOW)));
                     }
                 });
             }
@@ -629,15 +628,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                     String name = objectMapper.readTree(message).get("name").textValue();
                     Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                         if (startTimeStamp != -1) {
-                            hologram.updateLine(finalI, Component
-                                    .text()
-                                    .append(Component.text("#" + finalI, NamedTextColor.YELLOW))
-                                    .append(Component.text(" - ", NamedTextColor.WHITE))
-                                    .append(Component.text(name, NamedTextColor.GRAY))
-                                    .append(Component.text(" - ", NamedTextColor.WHITE))
-                                    .append(Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
-                                            NamedTextColor.YELLOW))
-                                    .build());
+                            hologram.updateLine(finalI, TextComponent.ofChildren(
+                                    Component.text("#" + finalI, NamedTextColor.YELLOW),
+                                    Component.text(" - ", NamedTextColor.WHITE),
+                                    Component.text(name, NamedTextColor.GRAY),
+                                    Component.text(" - ", NamedTextColor.WHITE),
+                                    Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
+                                            NamedTextColor.YELLOW)));
                         }
                     });
                 } catch (IOException e) {

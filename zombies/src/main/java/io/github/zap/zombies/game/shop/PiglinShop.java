@@ -14,6 +14,7 @@ import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.server.v1_16_R3.*;
@@ -313,12 +314,9 @@ public class PiglinShop extends Shop<PiglinShopData> {
             endHologram.addLine(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW));
 
             if (roller.isOnline()) {
-                roller.sendMessage(Component
-                        .text()
-                        .append(Component.text("You got a ", NamedTextColor.RED))
-                        .append(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW))
-                        .append(Component.text("!", NamedTextColor.RED))
-                        .build());
+                roller.sendMessage(TextComponent.ofChildren(Component.text("You got a ", NamedTextColor.RED),
+                        Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW),
+                        Component.text("!", NamedTextColor.RED)));
             }
         }
 

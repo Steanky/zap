@@ -24,6 +24,7 @@ import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -214,25 +215,21 @@ public class Corpse {
                 Player reviverPlayer = reviver.getPlayer();
 
                 if (bukkitPlayer != null && reviverPlayer != null) {
-                    bukkitPlayer.sendActionBar(Component
-                            .text()
-                            .append(Component.text("You are being revived by ",
-                                    NamedTextColor.RED))
-                            .append(Component.text(reviverPlayer.getName(), NamedTextColor.YELLOW))
-                            .append(Component.text("!", NamedTextColor.RED))
-                            .append(Component.text(" - ", NamedTextColor.WHITE))
-                            .append(timeRemainingComponent)
-                            .append(Component.text("!", NamedTextColor.RED))
-                            .build());
-                    reviverPlayer.sendActionBar(Component
-                            .text()
-                            .append(Component.text("Reviving ", NamedTextColor.RED))
-                            .append(Component.text(bukkitPlayer.getName(), NamedTextColor.YELLOW))
-                            .append(Component.text("...", NamedTextColor.YELLOW))
-                            .append(Component.text(" - ", NamedTextColor.WHITE))
-                            .append(timeRemainingComponent)
-                            .append(Component.text("!", NamedTextColor.RED))
-                            .build());
+                    bukkitPlayer.sendActionBar(TextComponent.ofChildren(
+                            Component.text("You are being revived by ",
+                                    NamedTextColor.RED),
+                            Component.text(reviverPlayer.getName(), NamedTextColor.YELLOW),
+                            Component.text("!", NamedTextColor.RED),
+                            Component.text(" - ", NamedTextColor.WHITE),
+                            timeRemainingComponent,
+                            Component.text("!", NamedTextColor.RED)));
+                    reviverPlayer.sendActionBar(TextComponent.ofChildren(
+                            Component.text("Reviving ", NamedTextColor.RED),
+                            Component.text(bukkitPlayer.getName(), NamedTextColor.YELLOW),
+                            Component.text("...", NamedTextColor.YELLOW),
+                            Component.text(" - ", NamedTextColor.WHITE),
+                            timeRemainingComponent,
+                            Component.text("!", NamedTextColor.RED)));
 
                     reviveTime -= 2;
                 }
@@ -277,12 +274,10 @@ public class Corpse {
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();
             if(bukkitPlayer != null) {
-                bukkitPlayer.sendActionBar(Component
-                        .text()
-                        .append(Component.text("You will die in " + timeRemaining,
-                                NamedTextColor.RED))
-                        .append(Component.text("!", NamedTextColor.YELLOW))
-                        .build());
+                bukkitPlayer.sendActionBar(TextComponent.ofChildren(
+                        Component.text("You will die in " + timeRemaining,
+                                NamedTextColor.RED),
+                        Component.text("!", NamedTextColor.YELLOW)));
             }
             deathTime -= 2;
         }
