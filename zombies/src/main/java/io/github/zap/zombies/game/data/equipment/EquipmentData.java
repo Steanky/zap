@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,7 @@ public abstract class EquipmentData<L> {
             ItemMeta itemMeta = itemStack.getItemMeta();
 
             itemMeta.displayName(Component.text(getFormattedDisplayName(player, level), getDefaultChatColor()));
+            itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
             itemMeta.setLore(getLore(player, level));
             itemStack.setItemMeta(itemMeta);
