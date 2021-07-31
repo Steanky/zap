@@ -20,7 +20,7 @@ public class WrappedMythicOptimizedBowAttack extends Pathfinder {
             this.optimizedBowAttack = new OptimizedBowAttack(mob, new AttributeValue[0],
                     mlc.getInteger("retargetTicks", 10), mlc.getDouble("speed", 1),
                     mlc.getDouble("targetDeviation", 0), mlc.getInteger("fireInterval", 20),
-                    mlc.getFloat("targetDistance", 15));
+                    mlc.getFloat("targetDistance", 225));
         }
         else throw new IllegalArgumentException("Tried to apply pathfinder to mob with UUID "
                 + entity.getBukkitEntity().getUniqueId() + " of invalid class "
