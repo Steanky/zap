@@ -11,7 +11,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +28,7 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine("");
+            hologram.addLine(Component.empty());
         }
         super.display();
     }
@@ -38,12 +37,13 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
     protected void displayToPlayer(Player player) {
         Hologram hologram = getHologram();
 
-        hologram.updateLineForPlayer(player, 0, ChatColor.GOLD + "Ultimate Machine");
+        hologram.updateLineForPlayer(player, 0, Component.text("Ultimate Machine",
+                NamedTextColor.GOLD));
 
         hologram.updateLineForPlayer(player, 1,
                 getShopData().isRequiresPower() && !isPowered()
-                        ? ChatColor.GRAY + "Requires Power!"
-                        : String.format("%s%d Gold", ChatColor.GOLD, getShopData().getCost())
+                        ? Component.text("Requires Power!", NamedTextColor.GRAY)
+                        : Component.text(getShopData().getCost() + " Gold", NamedTextColor.GOLD)
         );
     }
 
@@ -61,7 +61,8 @@ public class UltimateMachine extends BlockShop<UltimateMachineData> {
                         int cost = shopData.getCost();
 
                         if (player.getCoins() < cost) {
-                            bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                            bukkitPlayer.sendMessage(Component.text("You cannot afford this item!",
+                                    NamedTextColor.RED));
                         } else {
                             HotbarObject hotbarObject = player.getHotbarManager().getSelectedObject();
                             if (hotbarObject instanceof UpgradeableEquipment<?, ?> upgradeableEquipment

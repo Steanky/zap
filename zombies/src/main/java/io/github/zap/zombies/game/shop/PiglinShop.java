@@ -14,9 +14,10 @@ import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -119,14 +120,16 @@ public class PiglinShop extends Shop<PiglinShopData> {
     public void display() {
         if (active && roller == null) {
             while (hologram.getHologramLines().size() < 2) {
-                hologram.addLine("");
+                hologram.addLine(Component.empty());
             }
 
-            hologram.updateLineForEveryone(0, String.format("%s%sDream Piglin", ChatColor.GOLD, ChatColor.BOLD));
+            hologram.updateLineForEveryone(0, Component.text("Lucky Swine", NamedTextColor.GOLD,
+                    TextDecoration.BOLD));
             hologram.updateLineForEveryone(1,
                     getShopData().isRequiresPower() && !isPowered()
-                            ? String.format("%sRequires Power!", ChatColor.GRAY)
-                            : String.format("%s%s%d Gold", ChatColor.YELLOW, ChatColor.BOLD, getShopData().getCost()));
+                            ? Component.text("Requires Power!", NamedTextColor.GRAY)
+                            : Component.text(getShopData().getCost() + " Gold", NamedTextColor.YELLOW,
+                            TextDecoration.BOLD));
 
         }
         if (!init) {
@@ -306,22 +309,23 @@ public class PiglinShop extends Shop<PiglinShopData> {
             this.player = player;
 
             doneThinking = true;
-            endHologram.addLine(ChatColor.RED + "Right Click to Claim!");
-            endHologram.addLine(ChatColor.RED + equipmentData.getDisplayName());
-            endHologram.addLine(ChatColor.YELLOW + equipmentData.getDisplayName());
+            endHologram.addLine(Component.text("Right Click to Claim!", NamedTextColor.RED));
+            endHologram.addLine(Component.empty());
+            endHologram.addLine(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW));
 
             if (roller.isOnline()) {
-                roller.sendMessage(Component.text("You got a ", NamedTextColor.RED)
-                        .append(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW))
-                        .append(Component.text("!", NamedTextColor.RED)));
+                roller.sendMessage(TextComponent.ofChildren(Component.text("You got a ", NamedTextColor.RED),
+                        Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW),
+                        Component.text("!", NamedTextColor.RED)));
             }
         }
 
         @Override
         public void run() {
             if (sittingTime > 0) {
-                String timeRemaining = TimeUtil.convertTicksToSecondsString(sittingTime);
-                endHologram.updateLineForEveryone(1, String.format("%s%s", ChatColor.RED, timeRemaining));
+                endHologram.updateLineForEveryone(1,
+                        Component.text(TimeUtil.convertTicksToSecondsString(sittingTime),
+                                NamedTextColor.RED));
 
                 sittingTime -= 2;
             } else {

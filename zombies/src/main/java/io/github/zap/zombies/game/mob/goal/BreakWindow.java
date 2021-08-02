@@ -1,9 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathOperation;
-import io.github.zap.arenaapi.pathfind.PathResult;
-import io.github.zap.arenaapi.pathfind.PathTarget;
+import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;

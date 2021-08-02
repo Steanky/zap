@@ -20,11 +20,9 @@ import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -88,14 +86,16 @@ public class ZombiesNPC implements Listener {
 
     private final PacketContainer playerRemovePacket = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
 
-    private final PacketContainer spawnPlayerPacket = new PacketContainer(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
+    private final PacketContainer spawnPacket;
 
-    private final PacketContainer playerMetadataPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
+    private final PacketContainer metadataPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
 
-    private final PacketContainer playerHeadRotationPacket
+    private final PacketContainer headRotationPacket
             = new PacketContainer(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
 
-    private final PacketContainer playerLookPacket = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
+    private final PacketContainer lookPacket = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
+
+    private final boolean isPlayer;
 
     public ZombiesNPC(World world, ZombiesNPCData data) {
         this.location = data.location.toLocation(world);
@@ -110,65 +110,94 @@ public class ZombiesNPC implements Listener {
             protocolManager.addPacketListener(packetAdapter);
         }
 
-        // init player info data
         UUID uniqueId = entityBridge.randomUUID();
-        WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, PLAY_ZOMBIES);
-        WrappedSignedProperty texture = data.texture;
-        if (texture != null) {
-            wrappedGameProfile.getProperties().put("textures", texture);
+        metadataPacket.getIntegers().write(0, id);
+        WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
+
+        if (data.getEntityType() == EntityType.PLAYER) {
+            isPlayer = true;
+
+            // init player info data
+            WrappedGameProfile wrappedGameProfile = new WrappedGameProfile(uniqueId, PLAY_ZOMBIES);
+            WrappedSignedProperty texture = data.texture;
+            if (texture != null) {
+                wrappedGameProfile.getProperties().put("textures", texture);
+            }
+
+            PlayerInfoData playerInfoData = new PlayerInfoData(wrappedGameProfile, 0,
+                    EnumWrappers.NativeGameMode.NOT_SET, WrappedChatComponent.fromText(PLAY_ZOMBIES));
+            List<PlayerInfoData> playerInfoDataList = Collections.singletonList(playerInfoData);
+
+
+            // init player add packet
+            playerAddPacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+            playerAddPacket.getPlayerInfoDataLists().write(0, playerInfoDataList);
+
+
+            // init player remove packet
+            playerRemovePacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+            playerRemovePacket.getPlayerInfoDataLists().write(0, playerInfoDataList);
+
+
+            // set spawn packet
+            spawnPacket = new PacketContainer(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
+
+
+            // init metadata packet
+            WrappedDataWatcher.Serializer overlaySerializer = WrappedDataWatcher.Registry.get(Byte.class);
+            WrappedDataWatcher.WrappedDataWatcherObject overlay
+                    = new WrappedDataWatcher.WrappedDataWatcherObject(16, overlaySerializer);
+
+            wrappedDataWatcher.setObject(overlay, (byte) 0x7F);
+
+        }
+        else {
+            isPlayer = false;
+
+            // set spawn packet
+            spawnPacket = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING); // todo: check if living?
+            spawnPacket.getIntegers().write(1, ArenaApi.getInstance().getNmsBridge().entityBridge()
+                    .getEntityTypeID(data.getEntityType()));
+
+
+            // init metadata packet
+            WrappedDataWatcher.Serializer customNameSerializer = WrappedDataWatcher.Registry
+                    .getChatComponentSerializer(true);
+            WrappedDataWatcher.WrappedDataWatcherObject customName
+                    = new WrappedDataWatcher.WrappedDataWatcherObject(2, customNameSerializer);
+            WrappedDataWatcher.Serializer customNameVisibleSerializer = WrappedDataWatcher.Registry.get(Boolean.class);
+            WrappedDataWatcher.WrappedDataWatcherObject customNameVisible
+                    = new WrappedDataWatcher.WrappedDataWatcherObject(3, customNameVisibleSerializer);
+
+            wrappedDataWatcher.setObject(customName, Optional.of(WrappedChatComponent.fromText(PLAY_ZOMBIES)
+                    .getHandle()));
+            wrappedDataWatcher.setObject(customNameVisible, true);
+
         }
 
-        PlayerInfoData playerInfoData = new PlayerInfoData(wrappedGameProfile, 0,
-                EnumWrappers.NativeGameMode.NOT_SET, WrappedChatComponent.fromText(PLAY_ZOMBIES));
-        List<PlayerInfoData> playerInfoDataList = Collections.singletonList(playerInfoData);
+        metadataPacket.getWatchableCollectionModifier()
+                .write(0, wrappedDataWatcher.getWatchableObjects());
 
-
-        // init player add packet
-        playerAddPacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
-        playerAddPacket.getPlayerInfoDataLists().write(0, playerInfoDataList);
-
-
-        // init player remove packet
-        playerRemovePacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
-        playerRemovePacket.getPlayerInfoDataLists().write(0, playerInfoDataList);
-
-
-        // init spawn player packet
-        spawnPlayerPacket.getIntegers().write(0, id);
-        spawnPlayerPacket.getUUIDs().write(0, uniqueId);
-        spawnPlayerPacket.getDoubles()
+        // init spawn packet
+        spawnPacket.getIntegers().write(0, id);
+        spawnPacket.getUUIDs().write(0, uniqueId);
+        spawnPacket.getDoubles()
                 .write(0, location.getX())
                 .write(1, location.getY())
                 .write(2, location.getZ());
 
-
-        // init player metadata packet
-        playerMetadataPacket.getIntegers().write(0, id);
-
-        WrappedDataWatcher wrappedDataWatcher = new WrappedDataWatcher();
-
-        WrappedDataWatcher.Serializer overlaySerializer = WrappedDataWatcher.Registry.get(Byte.class);
-        WrappedDataWatcher.WrappedDataWatcherObject overlay
-                = new WrappedDataWatcher.WrappedDataWatcherObject(16, overlaySerializer);
-
-        wrappedDataWatcher.setObject(overlay, (byte) 0x7F);
-
-        playerMetadataPacket.getWatchableCollectionModifier()
-                .write(0, wrappedDataWatcher.getWatchableObjects());
-
-
-        // init player head rotation packet
-        playerHeadRotationPacket.getIntegers().write(0, id);
-        playerHeadRotationPacket.getBytes()
+        // init head rotation packet
+        headRotationPacket.getIntegers().write(0, id);
+        headRotationPacket.getBytes()
                 .write(0, (byte) (data.direction * 256.0F / 360.0F));
 
 
-        // init player head look packet
-        playerLookPacket.getIntegers().write(0, id);
-        playerLookPacket.getBytes()
+        // init head look packet
+        lookPacket.getIntegers().write(0, id);
+        lookPacket.getBytes()
                 .write(0, (byte) (data.direction * 256.0F / 360.0F))
-                .write(1, (byte) 0F);
-        playerLookPacket.getBooleans().write(0, true);
+                .write(1, (byte) 0);
+        lookPacket.getBooleans().write(0, true);
 
 
         // init GUI inventory
@@ -251,14 +280,15 @@ public class ZombiesNPC implements Listener {
     public void displayToPlayer(Player player) {
         Zombies zombies = Zombies.getInstance();
         ArenaApi arenaApi = ArenaApi.getInstance();
-        arenaApi.sendPacketToPlayer(zombies, player, playerAddPacket);
-        arenaApi.sendPacketToPlayer(zombies, player, spawnPlayerPacket);
-        arenaApi.sendPacketToPlayer(zombies, player, playerMetadataPacket);
-        arenaApi.sendPacketToPlayer(zombies, player, playerHeadRotationPacket);
-        arenaApi.sendPacketToPlayer(zombies, player, playerLookPacket);
-
-        Bukkit.getScheduler().runTaskLater(Zombies.getInstance(),
-                () -> arenaApi.sendPacketToPlayer(zombies, player, playerRemovePacket), 40L);
+        if (isPlayer) {
+            arenaApi.sendPacketToPlayer(zombies, player, playerAddPacket);
+            Bukkit.getScheduler().runTaskLater(Zombies.getInstance(),
+                    () -> arenaApi.sendPacketToPlayer(zombies, player, playerRemovePacket), 40L);
+        }
+        arenaApi.sendPacketToPlayer(zombies, player, spawnPacket);
+        arenaApi.sendPacketToPlayer(zombies, player, metadataPacket);
+        arenaApi.sendPacketToPlayer(zombies, player, headRotationPacket);
+        arenaApi.sendPacketToPlayer(zombies, player, lookPacket);
     }
 
     @EventHandler
@@ -415,6 +445,8 @@ public class ZombiesNPC implements Listener {
     @Getter
     public static class ZombiesNPCData implements ConfigurationSerializable {
 
+        private final EntityType entityType;
+
         private final Vector location;
 
         private final float direction;
@@ -424,6 +456,7 @@ public class ZombiesNPC implements Listener {
         @Override
         public @NotNull Map<String, Object> serialize() {
             Map<String, Object> serialized = new HashMap<>();
+            serialized.put("entityType", entityType.toString());
             serialized.put("location", location);
             serialized.put("direction", direction);
 
@@ -437,6 +470,7 @@ public class ZombiesNPC implements Listener {
 
         @SuppressWarnings("unused")
         public static ZombiesNPCData deserialize(Map<String, Object> data) {
+            EntityType entityType = EntityType.valueOf((String) data.get("entityType"));
             Vector location = (Vector) data.get("location");
             float direction = (float) (double) data.get("direction");
 
@@ -450,7 +484,7 @@ public class ZombiesNPC implements Listener {
                 texture = null;
             }
 
-            return new ZombiesNPCData(location, direction, texture);
+            return new ZombiesNPCData(entityType, location, direction, texture);
         }
 
     }

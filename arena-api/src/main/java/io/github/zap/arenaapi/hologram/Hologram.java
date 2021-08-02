@@ -4,14 +4,12 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.ArenaApi;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a hologram which can show lines of text or items
@@ -45,14 +43,14 @@ public class Hologram {
      * Adds a line with a message key and format arguments
      * @param message A pair of the message key and format arguments
      */
-    public void addLine(String message) {
+    public void addLine(Component message) {
         TextLine textLine = createTextLine(rootLocation.clone().subtract(0, lineSpace * hologramLines.size(),
                 0), message);
         hologramLines.add(textLine);
         TEXT_LINE_SET.add(textLine.getEntityId());
     }
 
-    private TextLine createTextLine(Location location, String message) {
+    private TextLine createTextLine(Location location, Component message) {
         TextLine textLine = new TextLine(location);
         textLine.setVisualForEveryone(message);
 
@@ -81,7 +79,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLineForEveryone(int index, String message) {
+    public void updateLineForEveryone(int index, Component message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine textLine) {
             textLine.setVisualForEveryone(message);
@@ -95,7 +93,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLine(int index, String message) {
+    public void updateLine(int index, Component message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine textLine) {
             textLine.setVisual(message);
@@ -110,7 +108,7 @@ public class Hologram {
      * @param index The index of the line to update
      * @param message The updated line
      */
-    public void updateLineForPlayer(Player player, int index, String message) {
+    public void updateLineForPlayer(Player player, int index, Component message) {
         HologramLine<?> hologramLine = hologramLines.get(index);
         if (hologramLine instanceof TextLine textLine) {
             textLine.setVisualForPlayer(player, message);

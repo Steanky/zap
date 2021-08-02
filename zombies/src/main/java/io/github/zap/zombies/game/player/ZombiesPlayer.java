@@ -4,10 +4,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.hotbar.HotbarManager;
-import io.github.zap.arenaapi.hotbar.HotbarObject;
-import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
-import io.github.zap.arenaapi.hotbar.HotbarProfile;
+import io.github.zap.arenaapi.hotbar.*;
 import io.github.zap.arenaapi.pathfind.PathTarget;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -32,10 +29,10 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -46,10 +43,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager, PathTarget {
@@ -174,40 +168,44 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     }
 
     public void addCoins(int amount) {
-        addCoins(amount, "");
+        addCoins(amount, Component.empty());
     }
 
-    public void addCoins(int amount, String msg) {
+    public void addCoins(int amount, Component extra) {
         if(amount > 0) {
             Player player = getPlayer();
 
             if (player != null) {
-                StringBuilder sb = new StringBuilder();
+                TextComponent.Builder builder = Component.text();
                 double multiplier = 1;
                 int count = 0;
                 var optGM = getArena().getPowerUps().stream()
                         .filter(x -> x instanceof EarnedGoldMultiplierPowerUp && x.getState() == PowerUpState.ACTIVATED)
                         .collect(Collectors.toSet());
-                if (msg != null && !msg.isEmpty()) {
-                    sb.append(msg);
+                if (extra != null && extra != Component.empty()) {
+                    builder.append(extra);
                     count++;
                 }
 
-
                 for (var item : optGM) {
-                    if (count != 0)
-                        sb.append(ChatColor.RESET).append(ChatColor.GOLD).append(", ");
-                    sb.append(ChatColor.RESET).append(item.getData().getDisplayName());
+                    if (count != 0) {
+                        builder.append(Component.text(", ", NamedTextColor.GOLD));
+                    }
+                    builder.append(Component.text(item.getData().getDisplayName()));
                     multiplier *= ((EarnedGoldMultiplierPowerUpData) item.getData()).getMultiplier();
                     count++;
                 }
 
-                String fullMsg = sb.append(ChatColor.RESET).append(ChatColor.GOLD).toString();
                 amount *= multiplier;
-                if (ChatColor.stripColor(fullMsg).isEmpty())
-                    getPlayer().sendMessage(String.format("%s+%d Gold!", ChatColor.GOLD, amount));
-                else
-                    getPlayer().sendMessage(String.format("%s+%d Gold (%s)!", ChatColor.GOLD, amount, fullMsg));
+                if (count == 0) {
+                    player.sendMessage(Component.text(String.format("+%d Gold!", amount), NamedTextColor.GOLD));
+                }
+                else {
+                    player.sendMessage(TextComponent.ofChildren(
+                            Component.text(String.format("+%d Gold (", amount), NamedTextColor.GOLD),
+                            builder.build(),
+                            Component.text(")!", NamedTextColor.GOLD)));
+                }
             }
 
             // Still add coins even if player is gone
@@ -223,7 +221,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(amount > 0) {
             Player player = getPlayer();
             if (player != null) {
-                player.sendMessage(String.format("%s-%d Gold", ChatColor.GOLD, amount));
+                player.sendMessage(Component.text(String.format("-%d Gold", amount), NamedTextColor.GOLD));
             }
             coins -= amount;
         }
@@ -377,7 +375,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             int coins = attempt.getCoins(this, damaged);
 
             if (attempt.ignoresArmor(this, damaged)) {
-                addCoins(coins, "Critical Hit");
+                addCoins(coins, Component.text("Critical Hit", NamedTextColor.GOLD));
             } else {
                 addCoins(coins);
             }

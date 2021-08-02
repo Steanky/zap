@@ -14,7 +14,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +45,7 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine("");
+            hologram.addLine(Component.empty());
         }
         super.display();
     }
@@ -59,20 +58,20 @@ public class PerkMachine extends BlockShop<PerkMachineData>  {
 
         int level = (perk == null) ? 0 : perk.getLevel() + 1;
 
-        String secondHologramLine;
+        Component secondHologramComponent;
         if (perk == null || level < perk.getEquipmentData().getLevels().size()) {
-            secondHologramLine = perkMachineData.isRequiresPower() && !isPowered()
-                    ? ChatColor.GRAY + "Requires Power!"
-                    : String.format("%s%d Gold", ChatColor.GOLD, perkMachineData.getCosts().get(level));
+            secondHologramComponent = perkMachineData.isRequiresPower() && !isPowered()
+                    ? Component.text("Requires Power!", NamedTextColor.GRAY)
+                    : Component.text(perkMachineData.getCosts().get(level) + " Gold", NamedTextColor.GOLD);
         } else {
-            secondHologramLine = ChatColor.GREEN + "Active";
+            secondHologramComponent = Component.text("Active", NamedTextColor.GREEN);
         }
 
 
         Hologram hologram = getHologram();
-        hologram.updateLineForPlayer(player, 0, String.format("%sBuy %s", ChatColor.BLUE,
-                perkMachineData.getPerkName()));
-        hologram.updateLineForPlayer(player, 1, secondHologramLine);
+        hologram.updateLineForPlayer(player, 0, Component.text("Buy " + perkMachineData.getPerkName(),
+                NamedTextColor.BLUE));
+        hologram.updateLineForPlayer(player, 1, secondHologramComponent);
     }
 
     @Override

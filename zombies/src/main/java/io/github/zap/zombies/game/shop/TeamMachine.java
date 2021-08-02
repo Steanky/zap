@@ -14,7 +14,6 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -22,10 +21,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Machine with various tasks helpful for teams
@@ -57,15 +53,15 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine("");
+            hologram.addLine(Component.empty());
         }
 
-        hologram.updateLineForEveryone(0, ChatColor.BLUE + "Team Machine");
+        hologram.updateLineForEveryone(0, Component.text("Team Machine", NamedTextColor.BLUE));
         hologram.updateLineForEveryone(
                 1,
                 (getShopData().isRequiresPower() && !isPowered())
-                        ? ChatColor.GRAY + "Requires Power!"
-                        : ChatColor.GREEN + "Right click to open!"
+                        ? Component.text("Requires Power!", NamedTextColor.GRAY)
+                        : Component.text("Right click to open!", NamedTextColor.GREEN)
         );
     }
 
@@ -126,10 +122,9 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                         Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
                                 1.0F, 1.5F);
                         for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {
-                            otherBukkitPlayer.sendMessage(
-                                    String.format("%sPlayer %s purchased %s from the Team Machine!", ChatColor.YELLOW,
-                                            player.getPlayer().getName(),
-                                            teamMachineTask.getDisplayName()));
+                            otherBukkitPlayer.sendMessage(Component.text(String.format("Player %s purchased " +
+                                            "%s from the Team Machine!", player.getPlayer().getName(),
+                                    teamMachineTask.getDisplayName()), NamedTextColor.YELLOW));
                             otherBukkitPlayer.playSound(sound);
                         }
                         humanEntity.closeInventory();

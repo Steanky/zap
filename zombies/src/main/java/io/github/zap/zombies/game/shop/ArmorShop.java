@@ -16,7 +16,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -26,10 +25,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Shop for purchasing pieces of armor at a time
@@ -99,7 +95,7 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
 
         List<HologramLine<?>> lines = hologram.getHologramLines();
         while (lines.size() < 2) {
-            hologram.addLine("");
+            hologram.addLine(Component.empty());
         }
 
         super.display();
@@ -114,20 +110,21 @@ public class ArmorShop extends ArmorStandShop<ArmorShopData> {
         ArmorShopData.ArmorLevel armorLevel = determineArmorLevel(player);
 
         // Display the hologram
-        String secondHologramLine;
+        Component secondHologramComponent;
         if (armorLevel == null) {
             armorLevel = armorLevels.get(armorLevels.size() - 1);
-            secondHologramLine = ChatColor.RED + "You have already unlocked this item!";
+            secondHologramComponent = Component.text("You have already unlocked this item!",
+                    NamedTextColor.RED);
         } else {
-            secondHologramLine = (armorShopData.isRequiresPower() && !isPowered())
-                    ? ChatColor.GRAY + "Requires Power!"
-                    : String.format("%s%d Gold", ChatColor.GOLD, armorLevel.getCost());
+            secondHologramComponent = (armorShopData.isRequiresPower() && !isPowered())
+                    ? Component.text("Requires Power!", NamedTextColor.GRAY)
+                    : Component.text(armorLevel.getCost() + " Gold", NamedTextColor.GOLD);
         }
 
         sendArmorStandUpdatePackets(player, armorLevel);
 
-        hologram.updateLineForPlayer(player, 0, ChatColor.GREEN + armorLevel.getName());
-        hologram.updateLineForPlayer(player, 1, secondHologramLine);
+        hologram.updateLineForPlayer(player, 0, Component.text(armorLevel.getName(), NamedTextColor.GREEN));
+        hologram.updateLineForPlayer(player, 1, secondHologramComponent);
     }
 
     @Override

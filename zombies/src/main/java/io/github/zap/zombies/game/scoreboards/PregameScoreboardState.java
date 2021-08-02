@@ -5,6 +5,8 @@ import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesArenaState;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -95,37 +97,38 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
 
         tfPlayerCount.setValue("" + arena.getPlayerMap().size());
         switch (arena.getState()) {
-            case PREGAME:
-                if(counter != cdt + 1) {
-                    arena.getPlayerMap().forEach((l,r) -> {
-                        r.getPlayer().sendMessage(ChatColor.YELLOW + "Not enough player to start the game, countdown canceled");
+            case PREGAME -> {
+                if (counter != cdt + 1) {
+                    arena.getPlayerMap().forEach((l, r) -> {
+                        r.getPlayer().sendMessage(Component.text("Not enough player to start the game, " +
+                                "countdown canceled", NamedTextColor.YELLOW));
                         r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1, 1);
                     });
 
                     counter = cdt + 1;
                 }
-
                 status.setValue("Waiting...");
                 cd.setValue("");
-                break;
-            case COUNTDOWN:
+            }
+            case COUNTDOWN -> {
                 status.setValue("Starting in");
                 var lastDisplayCounter = (int) Math.ceil(counter);
                 counter = counter > cdt ? cdt : counter - gameScoreboard.getRefreshRate() / 20f;
                 var displayCounter = (int) Math.ceil(counter);
-
-                if(CD_MILESTONE.contains(displayCounter) && lastDisplayCounter != displayCounter)  {
-                    arena.getPlayerMap().forEach((l,r) -> {
-                        r.getPlayer().sendMessage(ChatColor.YELLOW + "The game starts in " + displayCounter + " seconds!");
-                        r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1, 1);
+                if (CD_MILESTONE.contains(displayCounter) && lastDisplayCounter != displayCounter) {
+                    arena.getPlayerMap().forEach((l, r) -> {
+                        if (r.getPlayer() != null) {
+                            r.getPlayer().sendMessage(Component.text("The game starts in " + displayCounter
+                                    + " seconds!", NamedTextColor.YELLOW));
+                            r.getPlayer().playSound(r.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1, 1);
+                        }
                     });
                 }
-
                 cd.setValue("" + displayCounter + "s");
-                if(counter <= 0) {
+                if (counter <= 0) {
                     arena.startGame();
                 }
-                break;
+            }
         }
 
         writer.update();

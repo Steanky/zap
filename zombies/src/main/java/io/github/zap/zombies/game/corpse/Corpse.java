@@ -24,8 +24,9 @@ import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -81,12 +82,12 @@ public class Corpse {
             this.deathTime = defaultDeathTime;
             this.id = entityBridge.nextEntityID();
 
-            hologram.addLine(ChatColor.YELLOW + "----------------------------------");
-            hologram.addLine(String.format("%shelp this noob", ChatColor.RED));
+            hologram.addLine(Component.text("----------------------------------", NamedTextColor.YELLOW));
+            hologram.addLine(Component.text("REVIVE THIS PLAYER", NamedTextColor.RED));
 
-            hologram.addLine(String.format("%s%s", ChatColor.RED,
-                    TimeUtil.convertTicksToSecondsString(defaultDeathTime)));
-            hologram.addLine(ChatColor.YELLOW + "----------------------------------");
+            hologram.addLine(Component.text(TimeUtil.convertTicksToSecondsString(defaultDeathTime),
+                    NamedTextColor.RED));
+            hologram.addLine(Component.text("----------------------------------", NamedTextColor.YELLOW));
 
             ZombiesArena zombiesArena = player.getArena();
             zombiesArena.getCorpses().add(this);
@@ -156,7 +157,7 @@ public class Corpse {
                     reviveTime = reviver.getArena().getMap().getDefaultReviveTime();
                 }
 
-                hologram.updateLine(1, ChatColor.RED + "Reviving...");
+                hologram.updateLine(1, Component.text("Reviving...", NamedTextColor.RED));
             }
 
             this.reviver = reviver;
@@ -207,31 +208,28 @@ public class Corpse {
                 destroy();
             } else {
                 String timeRemaining = TimeUtil.convertTicksToSecondsString(reviveTime);
-                String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
-                hologram.updateLine(2, secondsRemainingString);
+                Component timeRemainingComponent = Component.text(timeRemaining, NamedTextColor.RED);
+                hologram.updateLine(2, timeRemainingComponent);
 
                 Player bukkitPlayer = zombiesPlayer.getPlayer();
                 Player reviverPlayer = reviver.getPlayer();
 
                 if (bukkitPlayer != null && reviverPlayer != null) {
-                    bukkitPlayer.sendActionBar(Component.text(
-                            String.format(
-                                    "%sYou are being revived by %s%s! %s- %s!",
-                                    ChatColor.RED,
-                                    ChatColor.YELLOW,
-                                    reviverPlayer.getName(),
-                                    ChatColor.WHITE,
-                                    secondsRemainingString)
-                    ));
-                    reviverPlayer.sendActionBar(Component.text(
-                            String.format(
-                                    "%sReviving %s%s... %s- %s!",
-                                    ChatColor.RED,
-                                    ChatColor.YELLOW,
-                                    bukkitPlayer.getName(),
-                                    ChatColor.WHITE,
-                                    secondsRemainingString)
-                    ));
+                    bukkitPlayer.sendActionBar(TextComponent.ofChildren(
+                            Component.text("You are being revived by ",
+                                    NamedTextColor.RED),
+                            Component.text(reviverPlayer.getName(), NamedTextColor.YELLOW),
+                            Component.text("!", NamedTextColor.RED),
+                            Component.text(" - ", NamedTextColor.WHITE),
+                            timeRemainingComponent,
+                            Component.text("!", NamedTextColor.RED)));
+                    reviverPlayer.sendActionBar(TextComponent.ofChildren(
+                            Component.text("Reviving ", NamedTextColor.RED),
+                            Component.text(bukkitPlayer.getName(), NamedTextColor.YELLOW),
+                            Component.text("...", NamedTextColor.YELLOW),
+                            Component.text(" - ", NamedTextColor.WHITE),
+                            timeRemainingComponent,
+                            Component.text("!", NamedTextColor.RED)));
 
                     reviveTime -= 2;
                 }
@@ -255,7 +253,7 @@ public class Corpse {
 
     private void startDying() {
         deathTime = defaultDeathTime;
-        hologram.updateLine(1, ChatColor.RED + "help this noob");
+        hologram.updateLine(1, Component.text("REVIVE THIS PLAYER", NamedTextColor.RED));
 
         deathTaskId = zombiesPlayer.getArena().runTaskTimer(0, 2, this::continueDying).getTaskId();
     }
@@ -266,20 +264,20 @@ public class Corpse {
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();
             if (bukkitPlayer != null) {
-                bukkitPlayer.sendActionBar(Component.text());
+                bukkitPlayer.sendActionBar(Component.empty());
             }
 
             active = false;
         } else {
             String timeRemaining = TimeUtil.convertTicksToSecondsString(deathTime);
-            String secondsRemainingString = String.format("%s%s", ChatColor.RED, timeRemaining);
-            hologram.updateLine(2, secondsRemainingString);
+            hologram.updateLine(2, Component.text(timeRemaining, NamedTextColor.RED));
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();
             if(bukkitPlayer != null) {
-                zombiesPlayer.getPlayer().sendActionBar(Component.text(
-                        String.format("%sYou will die in %s%s!", ChatColor.RED, ChatColor.YELLOW, secondsRemainingString)
-                ));
+                bukkitPlayer.sendActionBar(TextComponent.ofChildren(
+                        Component.text("You will die in " + timeRemaining,
+                                NamedTextColor.RED),
+                        Component.text("!", NamedTextColor.YELLOW)));
             }
             deathTime -= 2;
         }

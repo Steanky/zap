@@ -29,7 +29,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -595,6 +594,21 @@ implements Listener {
         resourceManager.dispose(); //clear resources
 
         stopTimeout();
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Arena<?> arena = ArenaApi.getInstance().arenaCurrentlyIn(player);
+            if (arena == null) {
+                // TODO: this can prob be optimized by getting a set of good managedplayers that execute this code
+                for (S leaver : playerMap.values()) {
+                    if (leaver.isInGame()) {
+                        Player leaverPlayer = leaver.getPlayer();
+                        if (leaverPlayer != null) {
+                            leaverPlayer.showPlayer(ArenaApi.getInstance(), player);
+                        }
+                    }
+                }
+            }
+        }
 
         for(S player : new ArrayList<>(playerMap.values())) { //dispose players
             player.dispose();

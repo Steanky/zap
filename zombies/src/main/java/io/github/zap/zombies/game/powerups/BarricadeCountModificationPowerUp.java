@@ -6,6 +6,8 @@ import io.github.zap.zombies.game.data.map.WindowData;
 import io.github.zap.zombies.game.data.powerups.BarricadeCountModificationPowerUpData;
 import io.github.zap.zombies.game.data.powerups.ModifierMode;
 import io.github.zap.zombies.game.util.MathUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -30,7 +32,8 @@ public class BarricadeCountModificationPowerUp extends PowerUp{
         getArena().getMap().getRooms().stream().flatMap(x -> x.getWindows().stream())
                 .filter(x -> cData.isAffectAll() || x.inRange(getDropLocation().toVector(), cData.getAffectedRange()))
                 .forEach(x -> modWindow(x, cData));
-        getArena().getPlayerMap().forEach((l,r) -> r.addCoins(((BarricadeCountModificationPowerUpData) getData()).getRewardGold(), getData().getDisplayName()));
+        getArena().getPlayerMap().forEach((l,r) -> r.addCoins(((BarricadeCountModificationPowerUpData) getData())
+                .getRewardGold(), Component.text(getData().getDisplayName(), NamedTextColor.GOLD)));
     }
 
     private void modWindow(WindowData windowData, BarricadeCountModificationPowerUpData data) {
