@@ -782,7 +782,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                     // There are no players alive, so end the game
                     for (ZombiesPlayer player : getPlayerMap().values()) {
-                        player.kill();
+                        player.kill("DEFAULT");
                     }
                     doLoss();
                 }
@@ -962,7 +962,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                     // There are no players alive, so end the game
                     for (ZombiesPlayer player : getPlayerMap().values()) {
-                        player.kill();
+                        player.kill("DEFAULT");
                     }
                     doLoss();
                 }

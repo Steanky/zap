@@ -260,7 +260,7 @@ public class Corpse {
 
     private void continueDying() {
         if (deathTime <= 0) {
-            zombiesPlayer.kill();
+            zombiesPlayer.kill("DEFAULT");
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();
             if (bukkitPlayer != null) {

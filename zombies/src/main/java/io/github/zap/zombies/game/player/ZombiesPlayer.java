@@ -25,6 +25,9 @@ import io.github.zap.zombies.game.task.ZombiesTask;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
+import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -38,10 +41,12 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -116,7 +121,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     public void quit() {
         if (isInGame()) {
-            kill();
+            kill("QUIT");
             disablePerks(arena.getMap().isPerksLostOnQuit());
             endTasks();
         }
@@ -290,10 +295,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         }
     }
 
+    // TODO: no magic strings
     /**
      * Commits murder. 😈
      */
-    public void kill() {
+    public void kill(@NotNull String killReason) {
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
             state = ZombiesPlayerState.DEAD;
 
@@ -303,6 +309,49 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             for (ZombiesTask zombiesTask : tasks) {
                 zombiesTask.notifyChange();
+            }
+
+            Player bukkitPlayer = getPlayer();
+            if (bukkitPlayer != null) {
+                switch (killReason) {
+                    case "QUIT" -> {
+                        for (Player player : getArena().getWorld().getPlayers()) {
+                            player.sendMessage(TextComponent.ofChildren(
+                                    Component.text(bukkitPlayer.getName(), NamedTextColor.YELLOW),
+                                    Component.text(" quit.", NamedTextColor.RED)
+                            ));
+                        }
+                    }
+                    default -> {
+                        if (bukkitPlayer.getLastDamageCause() instanceof EntityDamageByEntityEvent event) {
+                            Component lastHitterName = event.getDamager().customName();
+                            if (lastHitterName != null) broadcastDeathMessage(bukkitPlayer.getName(), lastHitterName);
+                            else {
+                                BukkitAPIHelper apiHelper = MythicMobs.inst().getAPIHelper();
+                                ActiveMob activeMob = apiHelper.getMythicMobInstance(event.getDamager());
+
+                                if (activeMob != null) {
+                                    String mythicMobsDisplayName = activeMob.getDisplayName();
+                                    if (mythicMobsDisplayName != null) {
+                                        broadcastDeathMessage(bukkitPlayer.getName(),
+                                                Component.text(mythicMobsDisplayName));
+                                    }
+                                    else {
+                                        String configDisplayName = apiHelper.getMythicMob(activeMob.getMobType())
+                                                .getConfig().getString("DisplayName");
+                                        broadcastDeathMessage(bukkitPlayer.getName(),
+                                                configDisplayName != null
+                                                        ? Component.text(configDisplayName)
+                                                        : Component.text(activeMob.getMobType(), NamedTextColor.RED));
+                                    }
+                                }
+                                else broadcastDeathMessage(bukkitPlayer.getName(),
+                                        Component.text(event.getDamager().getName(), NamedTextColor.RED));
+                            }
+                        }
+                        else broadcastDeathMessage(bukkitPlayer.getName(), null);
+                    }
+                }
             }
 
             Location corpseLocation = corpse.getLocation();
@@ -323,6 +372,26 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             }, PlayerGeneralStats::new);
 
             setDeadState();
+        }
+    }
+
+    // TODO: player name nullability in arena refactor
+    private void broadcastDeathMessage(@NotNull String playerName, @Nullable Component killer) {
+        if (killer == null || killer == Component.empty()) {
+            for (Player player : getArena().getWorld().getPlayers()) {
+                player.sendMessage(TextComponent.ofChildren(
+                        Component.text(playerName, NamedTextColor.YELLOW),
+                        Component.text(" was killed!", NamedTextColor.RED)
+                ));
+            }
+        }
+        else for (Player player : getArena().getWorld().getPlayers()) {
+            player.sendMessage(TextComponent.ofChildren(
+                    Component.text(playerName, NamedTextColor.YELLOW),
+                    Component.text(" was killed by ", NamedTextColor.RED),
+                    killer,
+                    Component.text("!", NamedTextColor.RED)
+            ));
         }
     }
 
