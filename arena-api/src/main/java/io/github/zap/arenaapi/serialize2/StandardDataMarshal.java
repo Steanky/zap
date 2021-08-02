@@ -10,7 +10,7 @@ import java.util.*;
 class StandardDataMarshal implements DataMarshal {
     private record NodeContext(NodeContext previous, Map<String, Object> map, DataKey name) { }
 
-    private record ConverterEntry(Converter<?> converter, Class<?> from, List<ConverterEntry> subclasses) {
+    private record ConverterEntry(Converter<?> converter, Class<?> from, Set<ConverterEntry> subclasses) {
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof ConverterEntry otherEntry) {
@@ -26,10 +26,10 @@ class StandardDataMarshal implements DataMarshal {
         }
     }
 
-    private static final DataContainer EMPTY = new StandardDataContainer(new HashMap<>(), ConverterRegistry.DEFAULT);
+    private static final DataContainer EMPTY = new StandardDataContainer(new HashMap<>(), ConverterRegistry.DEFAULT_REGISTRY);
 
     private final KeyFactory factory;
-    private final List<ConverterEntry> deserializers = new ArrayList<>();
+    private final Set<ConverterEntry> deserializers = new HashSet<>();
     private final ConverterRegistry converterRegistry;
 
     StandardDataMarshal(@NotNull KeyFactory factory, @NotNull ConverterRegistry converterRegistry) {
@@ -248,7 +248,9 @@ class StandardDataMarshal implements DataMarshal {
         Class<?> from = converter.convertsFrom();
 
         ConverterEntry entry = lowestEntry(from);
-        entry.subclasses.add(new ConverterEntry(converter, from, new ArrayList<>()));
+        if(!entry.subclasses.add(new ConverterEntry(converter, from, new HashSet<>()))) {
+            throw new IllegalArgumentException("A converter converting from type " + converter.convertsFrom() + " has already been registered!");
+        }
     }
 
     /**
