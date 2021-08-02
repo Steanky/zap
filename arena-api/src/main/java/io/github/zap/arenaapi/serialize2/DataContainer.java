@@ -32,7 +32,9 @@ public interface DataContainer {
     @NotNull Optional<Double> getDouble(@NotNull DataKey key);
 
     /**
-     * Returns the data contained in this DataContainer, in the form of a "raw" map.
+     * Returns the data contained in this DataContainer, in the form of a "raw" map, with no conversions performed.
+     * If one is intended to serialize this object, it is generally required to use a DataMarshal on this DataContainer
+     * instead.
      */
     @NotNull Map<String, Object> objectMapping();
 }

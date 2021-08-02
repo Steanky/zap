@@ -18,7 +18,6 @@ public interface PathDestination extends Vector3I {
         Location location = entity.getLocation();
 
         if(findBlock) {
-
             double fallDistance = Utils.testFall(location);
 
             if(Double.isNaN(fallDistance)) {
