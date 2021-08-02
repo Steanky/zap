@@ -46,7 +46,7 @@ class StandardDataMarshal implements DataMarshal {
 
     private void registerConverters() {
         converterRegistry.registerDeserializer(new ConverterBase<>(Collection.class) {
-            @SuppressWarnings({"rawtypes", "unchecked"})
+            @SuppressWarnings({"rawtypes"})
             @Override
             public Object convert(@NotNull Collection collection, @NotNull TypeInformation typeInformation) {
                 Class<?> type = typeInformation.type();
@@ -57,7 +57,7 @@ class StandardDataMarshal implements DataMarshal {
 
                     int index = 0;
                     for(Object assign : collection) {
-                        assign = marshalElement(assign, new TypeInformation(componentType));
+                        assign = convertElement(converterRegistry, assign, new TypeInformation(componentType));
 
                         if(assign != null) {
                             Array.set(newArray, index++, assign);
@@ -71,26 +71,7 @@ class StandardDataMarshal implements DataMarshal {
                 }
                 else if(Collection.class.isAssignableFrom(type)) {
                     try {
-                        //most java collections have parameterless constructors
-                        Constructor constructor = type.getDeclaredConstructor();
-                        Collection newCollection = (Collection)constructor.newInstance();
-
-                        TypeInformation[] typeParameters = typeInformation.parameters();
-                        TypeInformation elementType = typeParameters.length == 1 ? typeParameters[0] : null;
-
-                        for(Object assign : collection) {
-                            assign = marshalElement(assign, elementType == null ?
-                                    new TypeInformation(assign.getClass()) : elementType);
-
-                            if(assign != null) {
-                                newCollection.add(assign);
-                            }
-                            else {
-                                return null;
-                            }
-                        }
-
-                        return newCollection;
+                        return super.convertCollection(converterRegistry, collection, typeInformation);
                     }
                     catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
                             IllegalAccessException ignored) { }
@@ -104,6 +85,51 @@ class StandardDataMarshal implements DataMarshal {
                 return type.isArray() || Collection.class.isAssignableFrom(type);
             }
         });
+
+        converterRegistry.registerDeserializer(new ConverterBase<>(Map.class) {
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            @Override
+            public Object convert(@NotNull Map map, @NotNull TypeInformation typeInformation) {
+                Class<?> type = typeInformation.type();
+
+                try {
+                    Constructor constructor = type.getDeclaredConstructor();
+                    Map newMap = (Map)constructor.newInstance();
+
+                    TypeInformation[] typeParameters = typeInformation.parameters();
+                    TypeInformation keyType = null;
+                    TypeInformation valueType = null;
+
+                    if(typeParameters.length == 2) {
+                        keyType = typeParameters[0];
+                        valueType = typeParameters[1];
+                    }
+
+                    for (Map.Entry entry : (Iterable<Map.Entry>) map.entrySet()) {
+                        Object newValue = convertElement(converterRegistry, entry.getValue(), valueType);
+                        Object newKey = convertElement(converterRegistry, entry.getKey(), keyType);
+
+                        if (newValue != null && newKey != null) {
+                            newMap.put(newKey, newValue);
+                        } else {
+                            return null;
+                        }
+                    }
+
+                    return newMap;
+                }
+                catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                        IllegalAccessException ignored) { }
+
+                return null;
+            }
+
+            @Override
+            public boolean canConvertTo(@NotNull Class<?> type) {
+                return Map.class.isAssignableFrom(type);
+            }
+        });
+
         converterRegistry.registerDeserializer(new ConverterBase<>(Double.class) {
             @Override
             public Object convert(@NotNull Double value, @NotNull TypeInformation typeInformation) {
@@ -119,25 +145,6 @@ class StandardDataMarshal implements DataMarshal {
                 return type.equals(Integer.class);
             }
         });
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private Object marshalElement(Object assign, TypeInformation componentType) {
-        Class<?> convertingFrom = assign.getClass();
-        Class<?> convertingTo = componentType.type();
-
-        if(!convertingTo.isAssignableFrom(convertingFrom)) { //deep convert arrays if needed
-            Converter converter = deserializerFor(convertingFrom, convertingTo);
-
-            if(converter != null && converter.canConvertTo(convertingTo)) {
-                assign = converter.convert(assign, componentType);
-            }
-            else {
-                return null;
-            }
-        }
-
-        return assign;
     }
 
     @Override
@@ -165,7 +172,7 @@ class StandardDataMarshal implements DataMarshal {
 
                             //properly resolve references to container instances that have already been checked
                             StandardDataContainer container = mapToContainer.get(map);
-                            if(container == null) {
+                            if(container == null) { //only "recurse" on new maps
                                 pending.push(new NodeContext(current, stringObjectMap, factory.makeRaw(entry.getKey())));
                                 container = new StandardDataContainer(stringObjectMap, converterRegistry);
                                 mapToContainer.put(map, container);
@@ -244,6 +251,12 @@ class StandardDataMarshal implements DataMarshal {
         entry.subclasses.add(new ConverterEntry(converter, from, new ArrayList<>()));
     }
 
+    /**
+     * Obtains the most specific converter for a given class. An example: if class B extends class A, there is a
+     * converter registered for class B and A, lowestEntry will return the converter for B if the object is an
+     * instance of B. Otherwise, if there is no converter registered for B, lowestEntry will return the converter for
+     * A.
+     */
     private ConverterEntry lowestEntry(Class<?> from) {
         Set<ConverterEntry> visited = Collections.newSetFromMap(new IdentityHashMap<>());
         Deque<ConverterEntry> pending = new ArrayDeque<>();

@@ -15,17 +15,24 @@ class StandardKeyFactory implements KeyFactory {
     }
 
     private String[] getComponents(String key) {
-        if(!key.isEmpty()) {
-            String[] split = key.split(DELIMITER);
+        String[] split = key.split(DELIMITER);
+        String namespace;
+        String name;
 
-            if(split.length == 1 || split.length == 2) {
-                String namespace = split.length == 1 ? StringUtils.EMPTY : split[0];
-                String name = split.length == 1 ? split[0] : split[1];
+        if(split.length == 1) {
+            namespace = StringUtils.EMPTY;
+            name = split[0];
+        }
+        else if(split.length == 2) {
+            namespace = split[0];
+            name = split[1];
+        }
+        else {
+            return null;
+        }
 
-                if(validNamespaceAndName(namespace, name)) {
-                    return new String[] { namespace, name };
-                }
-            }
+        if(validNamespaceAndName(namespace, name)) {
+            return new String[] { namespace, name };
         }
 
         return null;
@@ -62,8 +69,6 @@ class StandardKeyFactory implements KeyFactory {
 
             return makeInternal(namespace, name);
         }
-
-        Class<String[]> t = String[].class;
 
         throw new IllegalArgumentException("Invalid key syntax for string: " + raw);
     }

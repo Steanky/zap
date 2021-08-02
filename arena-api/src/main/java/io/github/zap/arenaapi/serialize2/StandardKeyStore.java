@@ -1,10 +1,13 @@
 package io.github.zap.arenaapi.serialize2;
 
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 class StandardKeyStore implements KeyStore {
+    private static final StandardKeyStore GLOBAL = new StandardKeyStore(StringUtils.EMPTY, KeyFactory.standard());
+
     private final String namespace;
     private final Map<String, DataKey> keys = new HashMap<>();
     private final KeyFactory factory;
@@ -12,6 +15,10 @@ class StandardKeyStore implements KeyStore {
     StandardKeyStore(@NotNull String namespace, @NotNull KeyFactory factory) {
         this.namespace = namespace;
         this.factory = factory;
+    }
+
+    public static KeyStore global() {
+        return GLOBAL;
     }
 
     @Override

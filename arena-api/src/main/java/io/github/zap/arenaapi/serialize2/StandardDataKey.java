@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.serialize2;
 
-import io.github.zap.party.shadow.io.github.regularcommands.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 class StandardDataKey implements DataKey {

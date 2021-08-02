@@ -25,7 +25,7 @@ public interface DataKey {
     /**
      * Returns a string which is a combination of the namespace and name, which may be used as a unique identifier even
      * in situations in which DataContainers are being stored alongside keys of other namespaces. A typical pattern
-     * mimics Minecraft's identifiers, ex. namespace:name
+     * mimics Minecraft's identifiers, ex. namespace:name, but this is not enforced and other formats may be used.
      * @return A combination of namespace and name
      */
     @NotNull String key();

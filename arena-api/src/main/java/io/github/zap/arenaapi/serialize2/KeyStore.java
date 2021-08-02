@@ -60,4 +60,8 @@ public interface KeyStore {
     static @NotNull KeyStore from(@NotNull String namespace) {
         return from(namespace, KeyFactory.standard());
     }
+
+    static KeyStore global() {
+        return StandardKeyStore.global();
+    }
 }
