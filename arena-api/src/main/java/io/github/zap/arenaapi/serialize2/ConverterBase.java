@@ -20,7 +20,7 @@ public abstract class ConverterBase<From> implements Converter<From> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public @Nullable Object convertElement(@NotNull ConverterRegistry converters, @NotNull Object element,
+    protected @Nullable Object convertElement(@NotNull ConverterRegistry converters, @NotNull Object element,
                                            @Nullable TypeInformation elementType) {
         if(elementType == null) {
             return element;
@@ -44,7 +44,7 @@ public abstract class ConverterBase<From> implements Converter<From> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public @Nullable Object convertCollection(@NotNull ConverterRegistry converters, Collection<?> collection,
+    protected @Nullable Object convertCollection(@NotNull ConverterRegistry converters, Collection<?> collection,
                                               @NotNull TypeInformation convertTo) throws NoSuchMethodException,
             InvocationTargetException, InstantiationException, IllegalAccessException {
         if(Collection.class.isAssignableFrom(convertTo.type())) {
