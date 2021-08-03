@@ -71,7 +71,7 @@ class StandardDataContainer implements DataContainer {
 
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull TypeInformation typeInformation, @NotNull DataKey... keys) {
-        return getObjectInternal(this, typeInformation, keys[keys.length - 1]);
+        return getObjectPathInternal(typeInformation, keys[keys.length - 1]);
     }
 
     @Override
