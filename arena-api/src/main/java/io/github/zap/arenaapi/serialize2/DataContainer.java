@@ -34,7 +34,7 @@ public interface DataContainer {
     /**
      * Returns the data contained in this DataContainer, in the form of a "raw" map, with no conversions performed.
      * If one is intended to serialize this object, it is generally required to use a DataMarshal on this DataContainer
-     * instead.
+     * instead. This map should be a copy of the internal map, to ensure immutability of DataContainers.
      */
     @NotNull Map<String, Object> objectMapping();
 }
