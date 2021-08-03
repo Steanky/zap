@@ -26,7 +26,7 @@ class StandardDataMarshal implements DataMarshal {
         }
     }
 
-    private static final DataContainer EMPTY = new StandardDataContainer(new HashMap<>(), ConverterRegistry.DEFAULT_REGISTRY);
+    private static final DataContainer EMPTY = new StandardDataContainer(new HashMap<>(), ConverterRegistry.EMPTY_REGISTRY);
 
     private final KeyFactory factory;
     private final Set<ConverterEntry> deserializers = new HashSet<>();
