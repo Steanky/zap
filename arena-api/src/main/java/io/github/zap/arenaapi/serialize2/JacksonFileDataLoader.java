@@ -20,7 +20,8 @@ public class JacksonFileDataLoader implements DataLoader {
 
     private final ObjectWriter writer;
 
-    public JacksonFileDataLoader(@NotNull Logger logger, @NotNull DataMarshal marshal, @NotNull ObjectMapper mapper, @NotNull File file) {
+    public JacksonFileDataLoader(@NotNull Logger logger, @NotNull DataMarshal marshal, @NotNull ObjectMapper mapper,
+                                 @NotNull File file) {
         this.logger = logger;
         this.marshal = marshal;
         this.mapper = mapper;

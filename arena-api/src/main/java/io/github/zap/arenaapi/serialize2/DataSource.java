@@ -13,4 +13,8 @@ public interface DataSource {
     void pushContainer(@NotNull DataContainer container, @NotNull DataKey key);
 
     void associateLoader(@NotNull DataLoader loader, @NotNull DataKey key);
+
+    static @NotNull DataSource standard() {
+        return new StandardDataSource();
+    }
 }

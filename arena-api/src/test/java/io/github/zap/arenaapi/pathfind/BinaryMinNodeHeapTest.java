@@ -1,13 +1,11 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vectors;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class BinaryMinNodeHeapTest {
     private final BinaryMinNodeHeap heap = new BinaryMinNodeHeap(128);
