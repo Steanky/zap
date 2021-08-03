@@ -14,7 +14,7 @@ public interface DataSource {
 
     void associateLoader(@NotNull DataLoader loader, @NotNull DataKey key);
 
-    static @NotNull DataSource standard() {
+    static @NotNull DataSource newStandard() {
         return new StandardDataSource();
     }
 }
