@@ -35,8 +35,7 @@ public class JacksonFileDataLoader implements DataLoader {
         try {
             return Optional.of(marshal.fromMappings(mapper.convertValue(mapper.readTree(file), new TypeReference<>() {})));
         } catch (IOException error) {
-            logger.log(Level.WARNING, "IOException occurred while parsing JSON data from file " + file + " using Jackson:");
-            logger.log(Level.WARNING, error.getMessage());
+            logger.log(Level.WARNING, "IOException occurred while parsing JSON data from file " + file + " using Jackson", error);
         }
 
         return Optional.empty();
@@ -49,8 +48,7 @@ public class JacksonFileDataLoader implements DataLoader {
         try {
             writer.writeValue(file, mappings);
         } catch (IOException error) {
-            logger.log(Level.WARNING, "IOException occurred while writing JSON data to file " + file + " using Jackson:");
-            logger.log(Level.WARNING, error.getMessage());
+            logger.log(Level.WARNING, "IOException occurred while writing JSON data to file " + file + " using Jackson", error);
         }
     }
 }
