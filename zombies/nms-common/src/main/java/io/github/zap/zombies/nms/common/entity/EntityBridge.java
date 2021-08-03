@@ -65,10 +65,10 @@ public interface EntityBridge {
     @NotNull Piglin makeDream(@NotNull World world);
 
     /**
-     * Finishes up's dream existence
+     * Adds dream to a world
      * @param dream The legend himself
      * @param world His lovely home
      */
-    void finalizeDream(@NotNull Piglin dream, @NotNull World world);
+    void spawnDream(@NotNull Piglin dream, @NotNull World world);
 
 }

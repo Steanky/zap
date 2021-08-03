@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.shop;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
@@ -96,7 +95,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
         }
         if (!init) {
-            Zombies.getInstance().getNmsBridge().entityBridge().finalizeDream(dream, getArena().getWorld());
+            Zombies.getInstance().getNmsBridge().entityBridge().spawnDream(dream, getArena().getWorld());
             dream.teleportAsync(new Location(getArena().getWorld(), getShopData().getPiglinLocation().getX(),
                     getShopData().getPiglinLocation().getY(), getShopData().getPiglinLocation().getZ(),
                     getShopData().getDirection(), 0.0F));

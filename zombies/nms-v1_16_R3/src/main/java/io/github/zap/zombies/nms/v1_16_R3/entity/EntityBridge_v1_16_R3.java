@@ -128,7 +128,7 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
     }
 
     @Override
-    public void finalizeDream(@NotNull Piglin dream, @NotNull World world) {
+    public void spawnDream(@NotNull Piglin dream, @NotNull World world) {
         ((CraftWorld) world).addEntity(((CraftEntity) dream).getHandle(), CreatureSpawnEvent.SpawnReason.CUSTOM);
     }
 
