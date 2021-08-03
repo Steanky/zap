@@ -89,6 +89,10 @@ tasks.shadowJar {
     configurations = listOf(shade)
     archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
+
+    from(shadeProject.map {
+        if (it.isDirectory) it else zipTree(it)
+    })
 }
 
 tasks.build {
