@@ -12,12 +12,9 @@ import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
 import io.github.zap.arenaapi.serialize.*;
-import io.github.zap.arenaapi.nms.common.NMSBridge;
-import io.github.zap.arenaapi.nms.v1_16_R3.NMSBridge_v1_16_R3;
-import io.github.zap.arenaapi.serialize2.DataKey;
-import io.github.zap.arenaapi.serialize2.DataMarshal;
-import io.github.zap.arenaapi.serialize2.TypeInformation;
+import io.github.zap.arenaapi.nms.v1_16_R3.ArenaNMSBridge_v1_16_R3;
 import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
@@ -54,7 +51,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private static ArenaApi instance;
 
     @Getter
-    private NMSBridge nmsBridge;
+    private ArenaNMSBridge nmsBridge;
 
     @Getter
     private PartyPlusPlus partyPlusPlus;
@@ -101,10 +98,10 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     }
 
     private void initBridge() throws LoadFailureException {
-        nmsBridge = NMSBridge.selectBridge(NMSBridge_v1_16_R3.INSTANCE);
+        nmsBridge = ArenaNMSBridge.selectBridge(ArenaNMSBridge_v1_16_R3.INSTANCE);
 
         if(nmsBridge == null) {
-            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", NMSBridge.CURRENT_NMS_VERSION));
+            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", ArenaNMSBridge.CURRENT_NMS_VERSION));
         }
     }
 

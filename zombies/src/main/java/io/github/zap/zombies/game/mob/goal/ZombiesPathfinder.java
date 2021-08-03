@@ -1,12 +1,13 @@
 package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
 import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathfinderEngine;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.nms.common.pathfind.MobNavigator;
 import io.github.zap.zombies.Zombies;
-import io.github.zap.zombies.nms.common.NMSBridge;
+import io.github.zap.zombies.nms.common.ZombiesNMSBridge;
 import lombok.Getter;
 import org.bukkit.entity.Mob;
 import org.bukkit.metadata.MetadataValue;
@@ -26,10 +27,10 @@ public abstract class ZombiesPathfinder {
     private final String[] metadataKeys;
 
     @Getter
-    private final io.github.zap.arenaapi.nms.common.NMSBridge arenaNmsBridge;
+    private final ArenaNMSBridge arenaNmsBridge;
 
     @Getter
-    private final NMSBridge zombiesNmsBridge;
+    private final ZombiesNMSBridge zombiesNmsBridge;
 
     @Getter
     private final MobNavigator navigator;

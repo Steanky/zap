@@ -10,7 +10,7 @@ import java.util.Objects;
 /**
  * Used to provide a consistent interface between various NMS versions and ZAP-related code modules.
  */
-public interface NMSBridge {
+public interface ZombiesNMSBridge {
 
     String CURRENT_NMS_VERSION = nmsVersion();
 
@@ -40,10 +40,10 @@ public interface NMSBridge {
      * @param bridges The bridges to select from.
      * @return The first compatible NMSBridge instance, or null if none can be found
      */
-    static @Nullable NMSBridge selectBridge(@NotNull NMSBridge... bridges) {
+    static @Nullable ZombiesNMSBridge selectBridge(@NotNull ZombiesNMSBridge... bridges) {
         Objects.requireNonNull(bridges, "bridges cannot be null!");
 
-        for(NMSBridge bridge : bridges) {
+        for(ZombiesNMSBridge bridge : bridges) {
             if(bridge.version().equals(CURRENT_NMS_VERSION)) {
                 return bridge;
             }

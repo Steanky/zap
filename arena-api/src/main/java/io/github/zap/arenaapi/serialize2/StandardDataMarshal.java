@@ -57,7 +57,7 @@ class StandardDataMarshal implements DataMarshal {
 
                     int index = 0;
                     for(Object assign : collection) {
-                        assign = convertElement(converterRegistry, assign, new TypeInformation(componentType));
+                        assign = convertElement(converterRegistry, assign, new TypeInformation<>(componentType));
 
                         if(assign != null) {
                             Array.set(newArray, index++, assign);

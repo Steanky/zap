@@ -18,6 +18,7 @@ repositories {
     maven("https://repo.rapture.pw/repository/maven-snapshots")
     maven("https://repo.glaremasters.me/repository/concuncan/")
     maven("https://repo.dmulloy2.net/repository/public/")
+    maven("https://papermc.io/repo/repository/maven-public/")
 }
 
 val shade: Configuration by configurations.creating

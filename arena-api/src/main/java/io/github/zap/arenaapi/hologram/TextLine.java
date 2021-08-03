@@ -4,7 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import io.github.zap.arenaapi.nms.common.NMSBridge;
+import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Location;
@@ -24,7 +24,7 @@ public class TextLine extends HologramLine<Component> {
 
     @Override
     protected PacketContainer createSpawnPacketContainer() {
-        NMSBridge nmsBridge = getBridge();
+        ArenaNMSBridge nmsBridge = getBridge();
 
         PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
         packetContainer.getIntegers().write(0, getEntityId());

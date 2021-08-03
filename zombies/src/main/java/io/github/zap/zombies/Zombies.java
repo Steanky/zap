@@ -9,8 +9,7 @@ import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.LoadFailureException;
 import io.github.zap.arenaapi.localization.LocalizationManager;
-import io.github.zap.arenaapi.nms.common.NMSBridge;
-import io.github.zap.arenaapi.nms.v1_16_R3.NMSBridge_v1_16_R3;
+import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
 import io.github.zap.arenaapi.playerdata.FilePlayerDataManager;
 import io.github.zap.arenaapi.playerdata.PlayerDataManager;
 import io.github.zap.arenaapi.serialize.DataLoader;
@@ -27,6 +26,8 @@ import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMythicOptimizedBowA
 import io.github.zap.zombies.game.mob.goal.mythicmobs.WrappedMythicOptimizedMeleeAttack;
 import io.github.zap.zombies.game.mob.mechanic.*;
 import io.github.zap.zombies.game.npc.ZombiesNPC;
+import io.github.zap.zombies.nms.common.ZombiesNMSBridge;
+import io.github.zap.zombies.nms.v1_16_R3.ZombiesNMSBridge_v1_16_R3;
 import io.github.zap.zombies.world.SlimeWorldLoader;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.mobs.ai.PathfinderAdapter;
@@ -60,7 +61,7 @@ public final class Zombies extends JavaPlugin implements Listener {
     private static Zombies instance; //singleton for our main plugin class
 
     @Getter
-    private NMSBridge nmsBridge;
+    private ZombiesNMSBridge nmsBridge;
 
     @Getter
     private ArenaApi arenaApi;
@@ -180,10 +181,10 @@ public final class Zombies extends JavaPlugin implements Listener {
     }
 
     private void initBridge() throws LoadFailureException {
-        nmsBridge = NMSBridge.selectBridge(NMSBridge_v1_16_R3.INSTANCE);
+        nmsBridge = ZombiesNMSBridge.selectBridge(ZombiesNMSBridge_v1_16_R3.INSTANCE);
 
         if(nmsBridge == null) {
-            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", io.github.zap.arenaapi.nms.common.NMSBridge.CURRENT_NMS_VERSION));
+            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", ArenaNMSBridge.CURRENT_NMS_VERSION));
         }
     }
 

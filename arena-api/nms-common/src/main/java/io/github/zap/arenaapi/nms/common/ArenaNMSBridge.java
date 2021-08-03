@@ -13,7 +13,7 @@ import java.util.Objects;
 /**
  * Used to provide a consistent interface between various NMS versions with basic uses of nms code.
  */
-public interface NMSBridge {
+public interface ArenaNMSBridge {
     String CURRENT_NMS_VERSION = nmsVersion();
 
     private static String nmsVersion() {
@@ -60,10 +60,10 @@ public interface NMSBridge {
      * @param bridges The bridges to select from.
      * @return The first compatible NMSBridge instance, or null if none can be found
      */
-    static @Nullable NMSBridge selectBridge(@NotNull NMSBridge... bridges) {
+    static @Nullable ArenaNMSBridge selectBridge(@NotNull ArenaNMSBridge... bridges) {
         Objects.requireNonNull(bridges, "bridges cannot be null!");
 
-        for(NMSBridge bridge : bridges) {
+        for(ArenaNMSBridge bridge : bridges) {
             if(bridge.version().equals(CURRENT_NMS_VERSION)) {
                 return bridge;
             }
