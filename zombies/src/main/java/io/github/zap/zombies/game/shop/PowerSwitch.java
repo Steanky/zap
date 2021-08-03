@@ -6,7 +6,10 @@ import io.github.zap.zombies.game.data.map.shop.PowerSwitchData;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.util.Ticks;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
@@ -24,14 +27,14 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     public void display() {
         Hologram hologram = getHologram();
         while (hologram.getHologramLines().size() < 2) {
-            hologram.addLine("");
+            hologram.addLine(Component.empty());
         }
 
-        hologram.updateLineForEveryone(0, ChatColor.GOLD + "Power Switch");
+        hologram.updateLineForEveryone(0, Component.text("Power Switch", NamedTextColor.GOLD));
         hologram.updateLineForEveryone(1,
                 isPowered()
-                        ? ChatColor.GREEN + "Active"
-                        : String.format("%s%d Gold", ChatColor.GOLD, getShopData().getCost())
+                        ? Component.text("Active", NamedTextColor.GREEN)
+                        : Component.text(getShopData().getCost() + " Gold", NamedTextColor.GOLD)
                 );
     }
 
@@ -45,12 +48,14 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
 
                 if (bukkitPlayer != null) {
                     if (isPowered()) {
-                        bukkitPlayer.sendMessage(ChatColor.RED + "You have already turned on the power!");
+                        bukkitPlayer.sendMessage(Component.text("You have already turned on the power!",
+                                NamedTextColor.RED));
                     } else {
                         int cost = getShopData().getCost();
 
                         if (player.getCoins() < cost) {
-                            bukkitPlayer.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                            bukkitPlayer.sendMessage(Component.text("You cannot afford this item!",
+                                    NamedTextColor.RED));
                         } else {
                             notifyPowerTurnedOn(bukkitPlayer);
 
@@ -82,8 +87,10 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
      */
     private void notifyPowerTurnedOn(@NotNull Player activator) {
         for (Player playerInWorld : getArena().getWorld().getPlayers()) {
-            playerInWorld.sendTitle(ChatColor.YELLOW + activator.getName() + " turned on the power!",
-                    ChatColor.GOLD + "Shops which require power are now activated", 20, 60, 20);
+            playerInWorld.showTitle(Title.title(Component.text(activator.getName()
+                    + " turned on the power!", NamedTextColor.YELLOW),
+                    Component.text("Shops which require gold are now activated.", NamedTextColor.GOLD),
+                    Title.Times.of(Ticks.duration(20L), Ticks.duration(60L), Ticks.duration(20L))));
             playerInWorld.playSound(Sound.sound(Key.key("minecraft:entity.blaze.death"),
                     Sound.Source.MASTER, 1.0F, 2.0F));
         }

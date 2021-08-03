@@ -3,7 +3,7 @@ package io.github.zap.arenaapi.hologram;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import io.github.zap.nms.common.NMSBridge;
+import io.github.zap.arenaapi.nms.common.NMSBridge;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;

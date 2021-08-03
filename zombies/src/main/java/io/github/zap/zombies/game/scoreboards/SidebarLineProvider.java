@@ -88,7 +88,7 @@ public class SidebarLineProvider {
      * @param lineIndex the position of the line to write
      * @param content the content to write
      */
-    public void setLine (int lineIndex, String content) {
+    public void setLine(int lineIndex, String content) {
         // Generating lines with placeholder string
         while(getLineCount() <= lineIndex) {
             if(teams.size() > getLineCount()) {

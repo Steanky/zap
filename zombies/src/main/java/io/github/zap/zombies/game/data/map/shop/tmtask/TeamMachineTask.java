@@ -9,7 +9,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -53,7 +52,7 @@ public abstract class TeamMachineTask {
         if (player != null) {
             int cost = getCostForTeamMachine(teamMachine);
             if (zombiesPlayer.getCoins() < cost) {
-                player.sendMessage(ChatColor.RED + "You cannot afford this item!");
+                player.sendMessage(Component.text("You cannot afford this item!", NamedTextColor.RED));
 
                 player.playSound(Sound.sound(
                         Key.key("minecraft:entity.enderman.teleport"),

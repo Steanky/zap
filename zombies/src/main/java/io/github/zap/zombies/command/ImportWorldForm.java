@@ -1,9 +1,6 @@
 package io.github.zap.zombies.command;
 
-import com.grinderwolf.swm.api.exceptions.InvalidWorldException;
-import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
-import com.grinderwolf.swm.api.exceptions.WorldLoadedException;
-import com.grinderwolf.swm.api.exceptions.WorldTooBigException;
+import com.grinderwolf.swm.api.exceptions.*;
 import io.github.regularcommands.commands.CommandForm;
 import io.github.regularcommands.commands.Context;
 import io.github.regularcommands.converter.Parameter;

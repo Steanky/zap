@@ -82,9 +82,11 @@ public class GameScoreboard implements Disposable, Runnable {
             updateTask.cancel();
 
         for (ZombiesPlayer zombiesPlayer : zombiesArena.getPlayerMap().values()) {
-            Player player = zombiesPlayer.getPlayer();
-            if (player != null) {
-                player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            if (zombiesPlayer.isInGame()) {
+                Player player = zombiesPlayer.getPlayer();
+                if (player != null) {
+                    player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+                }
             }
         }
 

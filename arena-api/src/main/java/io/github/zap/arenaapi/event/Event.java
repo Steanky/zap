@@ -3,10 +3,7 @@ package io.github.zap.arenaapi.event;
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.ObjectDisposedException;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * Encapsulates an event, which is capable of calling a list of EventHandlers. EVENTS ARE NOT THREAD SAFE! VERY VERY bad

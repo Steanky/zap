@@ -17,11 +17,11 @@ repositories {
     maven("https://jitpack.io")
     maven("https://repo.rapture.pw/repository/maven-snapshots")
     maven("https://repo.glaremasters.me/repository/concuncan/")
-    maven("https://libraries.minecraft.net")
-    maven("https://repo.aikar.co/content/groups/aikar/")
+    maven("https://repo.dmulloy2.net/repository/public/")
 }
 
 val shade: Configuration by configurations.creating
+val shadeProject: Configuration by configurations.creating
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
@@ -29,7 +29,7 @@ val classModifier: Configuration by configurations.creating {
     isTransitive = false
 }
 
-configurations.implementation.get().extendsFrom(shade, bukkitPlugin)
+configurations.implementation.get().extendsFrom(shade, shadeProject, bukkitPlugin)
 
 val outputDir = project.properties["outputDir"] ?: "../run/server-1"
 val pluginDir = "$outputDir/plugins"
@@ -37,10 +37,13 @@ val pluginDir = "$outputDir/plugins"
 dependencies {
     implementation(project(":arena-api", "dependencyApi"))
     implementation(project(":arena-api", "shadow"))
-    implementation("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
-        exclude("io.papermc", "minecraft-server")
-    }
+    implementation("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     implementation("com.grinderwolf:slimeworldmanager-api:2.6.1-SNAPSHOT")
+
+    shadeProject(project(":zombies:nms-common")) {
+        isTransitive = false
+    }
+    shadeProject(project(":zombies:nms-v1_16_R3", "shadow"))
 
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
@@ -60,7 +63,7 @@ val copyPlugins = tasks.register<Copy>("copyPlugins") {
 val copyClassModifier = tasks.register<Copy>("copyClassModifier") {
     from(classModifier).into(outputDir)
 
-    System.getProperty("useClassModifierVersion")?.let {
+    project.properties["useClassModifierVersion"]?.let {
         classModifier.allDependencies.forEach {
             rename("-${it.version}", "")
         }
@@ -86,6 +89,10 @@ tasks.shadowJar {
     configurations = listOf(shade)
     archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
+
+    from(shadeProject.map {
+        if (it.isDirectory) it else zipTree(it)
+    })
 }
 
 tasks.build {

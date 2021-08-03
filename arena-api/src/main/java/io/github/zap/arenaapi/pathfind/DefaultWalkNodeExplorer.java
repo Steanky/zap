@@ -2,9 +2,9 @@ package io.github.zap.arenaapi.pathfind;
 
 import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.nms.common.world.BlockSnapshot;
-import io.github.zap.nms.common.world.BoxPredicate;
-import io.github.zap.nms.common.world.VoxelShapeWrapper;
+import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
+import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;

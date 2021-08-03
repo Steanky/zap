@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ArrayChunkGraph;

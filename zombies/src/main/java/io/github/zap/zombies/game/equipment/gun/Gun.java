@@ -119,7 +119,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                             setClipAmmo(Math.min(clipAmmo, currentAmmo));
 
                             if (isSelected()) {
-                                getPlayer().sendActionBar(Component.text());
+                                getPlayer().sendActionBar(Component.empty());
                             }
 
                             canReload = true;
@@ -202,11 +202,13 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
      */
     private void setItemDamage(int val) {
         ItemStack itemStack = getRepresentingItemStack();
-        Damageable damageable = (Damageable) itemStack.getItemMeta();
-        damageable.setDamage(val);
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta instanceof Damageable damageable) {
+            damageable.setDamage(val);
 
-        getRepresentingItemStack().setItemMeta((ItemMeta) damageable);
-        setRepresentingItemStack(getRepresentingItemStack());
+            getRepresentingItemStack().setItemMeta(itemMeta);
+            setRepresentingItemStack(getRepresentingItemStack());
+        }
     }
 
     /**

@@ -13,8 +13,8 @@ import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.serialize.*;
-import io.github.zap.nms.common.NMSBridge;
-import io.github.zap.nms.v1_16_R3.NMSBridge_v1_16_R3;
+import io.github.zap.arenaapi.nms.common.NMSBridge;
+import io.github.zap.arenaapi.nms.v1_16_R3.NMSBridge_v1_16_R3;
 import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
@@ -23,10 +23,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.GameMode;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -259,6 +256,11 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     @EventHandler
     private void playerJoinEvent(PlayerJoinEvent event) {
         applyDefaultCondition(event.getPlayer());
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (arenaCurrentlyIn(player) != null) {
+                event.getPlayer().hidePlayer(this, player);
+            }
+        }
     }
 
     @EventHandler
@@ -291,6 +293,20 @@ public final class ArenaApi extends JavaPlugin implements Listener {
             Arena<?> arena = arenaIterator.next();
 
             if(arena.hasPlayer(player.getUniqueId())) {
+                return arena;
+            }
+        }
+
+        return null;
+    }
+
+    public @Nullable Arena<?> arenaCurrentlyIn(@NotNull Player player) {
+        Iterator<? extends Arena<?>> arenaIterator = arenaIterator();
+
+        while(arenaIterator.hasNext()) {
+            Arena<?> arena = arenaIterator.next();
+
+            if(arena.isPlayerPlaying(player.getUniqueId())) {
                 return arena;
             }
         }
@@ -340,5 +356,5 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     public static void callEvent(Event event) {
         instance.getServer().getPluginManager().callEvent(event);
     }
-    
+
 }

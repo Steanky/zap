@@ -6,6 +6,7 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.util.TimeUtil;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.map.shop.PiglinShopData;
@@ -14,18 +15,19 @@ import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.ChatColor;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.Piglin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +37,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
     private final static Random RANDOM = new Random();
 
-    private final EntityPiglin dream;
+    private final Piglin dream;
 
     private final Hologram hologram;
 
@@ -55,50 +57,11 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
     public PiglinShop(ZombiesArena arena, PiglinShopData shopData) {
         super(arena, shopData);
-        dream = new EntityPiglin(EntityTypes.PIGLIN, ((CraftWorld) arena.getWorld()).getHandle()) {
-            @Nullable
-            @Override
-            public GroupDataEntity prepare(WorldAccess worldaccess, DifficultyDamageScaler difficultydamagescaler, EnumMobSpawn enummobspawn, @Nullable GroupDataEntity groupdataentity, @Nullable NBTTagCompound nbttagcompound) {
-                return null;
-            }
 
-            @Override
-            protected void a(DifficultyDamageScaler difficultydamagescaler) {
-
-            }
-
-            @Override
-            public EnumInteractionResult b(EntityHuman entityhuman, EnumHand enumhand) {
-                return EnumInteractionResult.PASS;
-            }
-
-            @Override
-            protected void mobTick() {
-
-            }
-
-            @Override
-            public boolean damageEntity(DamageSource damagesource, float f) {
-                return false;
-            }
-
-            @Override
-            protected void b(EntityItem entityitem) {
-
-            }
-
-            @Override
-            public boolean isCollidable() {
-                return false;
-            }
-        };
-        dream.setInvulnerable(true);
-        dream.setPersistent();
-        dream.setNoAI(true);
-
-        hologram = new Hologram(shopData.getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(arena.getWorld()));
+        this.dream = Zombies.getInstance().getNmsBridge().entityBridge().makeDream(arena.getWorld());
+        this.hologram = new Hologram(shopData.getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(arena.getWorld()));
         for (String equipmentName : shopData.getEquipments()) {
-            equipments.add(arena.getEquipmentManager().getEquipmentData(arena.getMap().getName(), equipmentName));
+            this.equipments.add(arena.getEquipmentManager().getEquipmentData(arena.getMap().getName(), equipmentName));
         }
     }
 
@@ -119,20 +82,23 @@ public class PiglinShop extends Shop<PiglinShopData> {
     public void display() {
         if (active && roller == null) {
             while (hologram.getHologramLines().size() < 2) {
-                hologram.addLine("");
+                hologram.addLine(Component.empty());
             }
 
-            hologram.updateLineForEveryone(0, String.format("%s%sDream Piglin", ChatColor.GOLD, ChatColor.BOLD));
+            hologram.updateLineForEveryone(0, Component.text("Lucky Swine", NamedTextColor.GOLD,
+                    TextDecoration.BOLD));
             hologram.updateLineForEveryone(1,
                     getShopData().isRequiresPower() && !isPowered()
-                            ? String.format("%sRequires Power!", ChatColor.GRAY)
-                            : String.format("%s%s%d Gold", ChatColor.YELLOW, ChatColor.BOLD, getShopData().getCost()));
+                            ? Component.text("Requires Power!", NamedTextColor.GRAY)
+                            : Component.text(getShopData().getCost() + " Gold", NamedTextColor.YELLOW,
+                            TextDecoration.BOLD));
 
         }
         if (!init) {
-            ((CraftWorld) getArena().getWorld()).addEntity(dream, CreatureSpawnEvent.SpawnReason.CUSTOM);
-            dream.setPositionRotation(getShopData().getPiglinLocation().getX(), getShopData().getPiglinLocation().getY(), getShopData().getPiglinLocation().getZ(), getShopData().getDirection(), 0.0F);
-            dream.setHeadRotation(getShopData().getDirection());
+            Zombies.getInstance().getNmsBridge().entityBridge().spawnDream(dream, getArena().getWorld());
+            dream.teleportAsync(new Location(getArena().getWorld(), getShopData().getPiglinLocation().getX(),
+                    getShopData().getPiglinLocation().getY(), getShopData().getPiglinLocation().getZ(),
+                    getShopData().getDirection(), 0.0F));
             init = true;
         }
 
@@ -147,7 +113,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
     @Override
     public boolean interact(ManagingArena<ZombiesArena, ZombiesPlayer>.ProxyArgs<? extends Event> args) {
-        if (args.getEvent() instanceof PlayerInteractEntityEvent event && event.getRightClicked().getUniqueId().equals(dream.getUniqueID())) {
+        if (args.getEvent() instanceof PlayerInteractEntityEvent event && event.getRightClicked().getUniqueId().equals(dream.getUniqueId())) {
             ZombiesPlayer player = args.getManagedPlayer();
 
             if (player != null) {
@@ -189,12 +155,17 @@ public class PiglinShop extends Shop<PiglinShopData> {
                             roller = bukkitPlayer;
                             doneThinking = false;
 
-                            dream.setSlot(EnumItemSlot.OFFHAND, new ItemStack(Items.GOLD_INGOT));
+                            EntityEquipment initialEquipment = dream.getEquipment();
+                            if (initialEquipment != null) {
+                                initialEquipment.setItemInOffHand(new ItemStack(Material.GOLD_INGOT));
+                            }
                             getArena().runTaskLater(120L, () -> {
                                 equipmentData = equipments.get(RANDOM.nextInt(equipments.size()));
-
-                                dream.setSlot(EnumItemSlot.OFFHAND, ItemStack.NULL_ITEM);
-                                dream.setSlot(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(equipmentData.getMaterial())));
+                                EntityEquipment equipment = dream.getEquipment();
+                                if (equipment != null) {
+                                    equipment.setItemInOffHand(null);
+                                    equipment.setItemInMainHand(new ItemStack(equipmentData.getMaterial()));
+                                }
 
                                 getArena().runTaskTimer(0L, 2L, sitter = new Sitter(player));
                             });
@@ -306,22 +277,23 @@ public class PiglinShop extends Shop<PiglinShopData> {
             this.player = player;
 
             doneThinking = true;
-            endHologram.addLine(ChatColor.RED + "Right Click to Claim!");
-            endHologram.addLine(ChatColor.RED + equipmentData.getDisplayName());
-            endHologram.addLine(ChatColor.YELLOW + equipmentData.getDisplayName());
+            endHologram.addLine(Component.text("Right Click to Claim!", NamedTextColor.RED));
+            endHologram.addLine(Component.empty());
+            endHologram.addLine(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW));
 
             if (roller.isOnline()) {
-                roller.sendMessage(Component.text("You got a ", NamedTextColor.RED)
-                        .append(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW))
-                        .append(Component.text("!", NamedTextColor.RED)));
+                roller.sendMessage(TextComponent.ofChildren(Component.text("You got a ", NamedTextColor.RED),
+                        Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW),
+                        Component.text("!", NamedTextColor.RED)));
             }
         }
 
         @Override
         public void run() {
             if (sittingTime > 0) {
-                String timeRemaining = TimeUtil.convertTicksToSecondsString(sittingTime);
-                endHologram.updateLineForEveryone(1, String.format("%s%s", ChatColor.RED, timeRemaining));
+                endHologram.updateLineForEveryone(1,
+                        Component.text(TimeUtil.convertTicksToSecondsString(sittingTime),
+                                NamedTextColor.RED));
 
                 sittingTime -= 2;
             } else {
@@ -333,7 +305,10 @@ public class PiglinShop extends Shop<PiglinShopData> {
             endHologram.destroy();
             equipmentData = null;
             roller = null;
-            dream.setSlot(EnumItemSlot.MAINHAND, ItemStack.NULL_ITEM);
+            EntityEquipment equipment = dream.getEquipment();
+            if (equipment != null) {
+                equipment.setItemInMainHand(null);
+            }
 
             display();
             onPurchaseSuccess(player);

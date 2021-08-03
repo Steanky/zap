@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 
 /**
  * Manages groups of disposable objects. In particular, ensures that all objects it manages have their dispose() method

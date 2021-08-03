@@ -31,12 +31,10 @@ import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
-import io.github.zap.zombies.game.powerups.PowerUp;
-import io.github.zap.zombies.game.powerups.PowerUpBossBar;
-import io.github.zap.zombies.game.powerups.PowerUpState;
+import io.github.zap.zombies.game.powerups.*;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
+import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRule;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.scoreboards.GameScoreboard;
 import io.github.zap.zombies.game.shop.*;
@@ -54,6 +52,8 @@ import lombok.Value;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.apache.commons.io.IOUtils;
@@ -606,9 +606,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                 Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                     if (startTimeStamp != -1) {
-                        hologram.addLine(String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW, finalI,
-                                ChatColor.WHITE, ChatColor.GRAY, "Loading...", ChatColor.WHITE, ChatColor.YELLOW,
-                                TimeUtil.convertTicksToSecondsString(time.getValue())));
+                        hologram.addLine(TextComponent.ofChildren(Component.text("#" + finalI,
+                                        NamedTextColor.YELLOW),
+                                Component.text(" - ", NamedTextColor.WHITE),
+                                Component.text("Loading...", NamedTextColor.GRAY),
+                                Component.text(" - ", NamedTextColor.WHITE),
+                                Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
+                                        NamedTextColor.YELLOW)));
                     }
                 });
             }
@@ -624,9 +628,13 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                     String name = objectMapper.readTree(message).get("name").textValue();
                     Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                         if (startTimeStamp != -1) {
-                            hologram.updateLine(finalI, String.format("%s#%d %s- %s%s %s- %s%s", ChatColor.YELLOW,
-                                    finalI, ChatColor.WHITE, ChatColor.GRAY, name, ChatColor.WHITE, ChatColor.YELLOW,
-                                    TimeUtil.convertTicksToSecondsString(time.getValue())));
+                            hologram.updateLine(finalI, TextComponent.ofChildren(
+                                    Component.text("#" + finalI, NamedTextColor.YELLOW),
+                                    Component.text(" - ", NamedTextColor.WHITE),
+                                    Component.text(name, NamedTextColor.GRAY),
+                                    Component.text(" - ", NamedTextColor.WHITE),
+                                    Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
+                                            NamedTextColor.YELLOW)));
                         }
                     });
                 } catch (IOException e) {
@@ -681,7 +689,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             for (Player player : args.getPlayers()) {
                 player.teleport(WorldUtils.locationFrom(world, map.getSpawn()));
 
-                player.sendTitle(ChatColor.YELLOW + "ZOMBIES", map.getSplashScreenSubtitles().isEmpty() ? "" : map.getSplashScreenSubtitles().get(random.nextInt(map.getSplashScreenSubtitles().size())), 0, 60, 20);
+                player.showTitle(Title.title(Component.text("ZOMBIES", NamedTextColor.YELLOW),
+                        map.getSplashScreenSubtitles().isEmpty()
+                                ? Component.empty()
+                                : Component.text(map.getSplashScreenSubtitles()
+                                .get(random.nextInt(map.getSplashScreenSubtitles().size())))));
             }
             Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                 if (startTimeStamp != -1) {
@@ -770,7 +782,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                     // There are no players alive, so end the game
                     for (ZombiesPlayer player : getPlayerMap().values()) {
-                        player.kill();
+                        player.kill("DEFAULT");
                     }
                     doLoss();
                 }
@@ -885,6 +897,15 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private void onEntityDeath(ProxyArgs<EntityDeathEvent> args) {
         if (state == ZombiesArenaState.STARTED && getEntitySet().remove(args.getEvent().getEntity().getUniqueId())) {
             zombiesLeft--;
+
+            // TODO: THIS IS A HACK NEEDS TO BE FIXED
+            for (Pair<PowerUpSpawnRule<?>, String> spawnRule : powerUpSpawnRules) {
+                if (spawnRule.getLeft() instanceof DefaultPowerUpSpawnRule defaultPowerUpSpawnRule) {
+                    defaultPowerUpSpawnRule.onMobDeath(args);
+                }
+            }
+            // THIS IS A HACK NEEDS TO BE FIXED
+
             checkNextRound();
         }
     }
@@ -919,11 +940,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                                 Player otherBukkitPlayer = otherPlayer.getPlayer();
 
                                 if (otherPlayer != knocked && otherBukkitPlayer != null) {
-                                    otherBukkitPlayer.showTitle(Title.title(Component.text(knocked.getPlayer().getName())
-                                            .color(TextColor.color(255, 255, 0)), Component.text("was knocked down in " + message)
-                                            .color(TextColor.color(61, 61, 61)), Title.Times.of(Duration.ofSeconds(1),
-                                            Duration.ofSeconds(3), Duration.ofSeconds(1))));
-
+                                    otherBukkitPlayer.showTitle(Title.title(
+                                            Component.text(knocked.getPlayer().getName(), NamedTextColor.YELLOW),
+                                            Component.text("was knocked down in " + message,
+                                                    TextColor.color(61, 61, 61)),
+                                            Title.Times.of(Duration.ofSeconds(1), Duration.ofSeconds(3),
+                                                    Duration.ofSeconds(1))));
 
                                     otherPlayer.getPlayer().playSound(Sound.sound(
                                             Key.key("minecraft:entity.ender_dragon.growl"),
@@ -940,7 +962,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                     // There are no players alive, so end the game
                     for (ZombiesPlayer player : getPlayerMap().values()) {
-                        player.kill();
+                        player.kill("DEFAULT");
                     }
                     doLoss();
                 }
@@ -1098,7 +1120,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 Player bukkitPlayer = zombiesPlayer.getPlayer();
 
                 if(bukkitPlayer != null) {
-                    bukkitPlayer.sendMessage(ChatColor.YELLOW + "Started!");
+                    bukkitPlayer.sendMessage(Component.text("Started!", NamedTextColor.YELLOW));
                     zombiesPlayer.setAliveState();
 
                     Vector spawn = map.getSpawn();
@@ -1167,19 +1189,19 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
             Player player = zombiesPlayer.getPlayer();
             if (player != null) {
-                if (map.getRoundTimesShouldSave().contains(lastRoundIndex)) {
+                if (map.getRoundTimesShouldSave().contains(lastRoundIndex + 1)) {
                     statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
-                        if (mapStats.getBestRound() < lastRoundIndex) {
-                            mapStats.setBestRound(lastRoundIndex);
+                        if (mapStats.getBestRound() < lastRoundIndex + 1) {
+                            mapStats.setBestRound(lastRoundIndex + 1);
                         }
 
                         Map<Integer, Integer> bestTimes = mapStats.getBestTimes();
-                        Integer bestTime = bestTimes.get(lastRoundIndex);
+                        Integer bestTime = bestTimes.get(lastRoundIndex + 1);
                         if (bestTime == null || bestTime < secondsElapsed) {
-                            bestTimes.put(lastRoundIndex, secondsElapsed);
+                            bestTimes.put(lastRoundIndex + 1, secondsElapsed);
                         }
                     }, PlayerGeneralStats::new);
                 } else {
@@ -1187,8 +1209,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
-                        if (mapStats.getBestRound() < lastRoundIndex) {
-                            mapStats.setBestRound(lastRoundIndex);
+                        if (mapStats.getBestRound() < lastRoundIndex + 1) {
+                            mapStats.setBestRound(lastRoundIndex + 1);
                         }
                     }, PlayerGeneralStats::new);
                 }
@@ -1205,16 +1227,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 cumulativeDelay += wave.getWaveLength();
 
                 BukkitTask waveSpawnTask = runTaskLater(cumulativeDelay, () -> {
-                    context.spawnedMobs().addAll(spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
-                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false));
+                    List<ActiveMob> newlySpawned = spawner.spawnMobs(wave.getSpawnEntries(), wave.getMethod(),
+                            wave.getSlaSquared(), wave.isRandomizeSpawnpoints(), false);
+                    context.spawnedMobs().addAll(newlySpawned);
 
-                    for(ActiveMob activeMob : context.spawnedMobs()) {
+                    for(ActiveMob activeMob : newlySpawned) {
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
                     }
 
                     BukkitTask removeMobTask = runTaskLater(6000, () -> {
-                        for(ActiveMob mob : context.spawnedMobs()) {
+                        for(ActiveMob mob : newlySpawned) {
                             Entity entity = mob.getEntity().getBukkitEntity();
 
                             if(entity != null) {
@@ -1238,9 +1261,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             getPlayerMap().forEach((l,r) -> {
                 Player bukkitPlayer = r.getPlayer();
                 if(bukkitPlayer != null) {
-                    var messageTitle = currentRound.getCustomMessage() != null && !currentRound.getCustomMessage().isEmpty() ?
-                            currentRound.getCustomMessage() : ChatColor.RED + "ROUND " + (targetRound + 1);
-                    bukkitPlayer.sendTitle(messageTitle, "");
+                    bukkitPlayer.showTitle(Title.title(currentRound.getCustomMessage() != null
+                            && !currentRound.getCustomMessage().isEmpty()
+                            ? Component.text(currentRound.getCustomMessage())
+                            : Component.text("ROUND " + (targetRound + 1), NamedTextColor.RED),
+                            Component.empty()));
                     bukkitPlayer.playSound(Sound.sound(
                             Key.key("minecraft:entity.wither.spawn"),
                             Sound.Source.MASTER,
@@ -1277,7 +1302,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             Player bukkitPlayer = r.getPlayer();
 
             if(bukkitPlayer != null) {
-                r.getPlayer().sendTitle(ChatColor.GREEN + "You Win!", ChatColor.GRAY + "You made it to Round " + round + "!");
+                bukkitPlayer.showTitle(Title.title(Component.text("You Win!", NamedTextColor.GREEN),
+                        Component.text("You made it to Round " + (round + 1) + "!", NamedTextColor.GRAY)));
                 statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
                         (playerStats) -> {
                     PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
@@ -1306,8 +1332,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         getPlayerMap().forEach((l,r) -> {
             Player bukkitPlayer = r.getPlayer();
             if(bukkitPlayer != null) {
-                bukkitPlayer.sendTitle(ChatColor.GREEN + "Game Over!", ChatColor.GRAY + "You made it to Round " + round + "!");
-                bukkitPlayer.sendActionBar(Component.text());
+                bukkitPlayer.showTitle(Title.title(Component.text("Game Over!", NamedTextColor.GREEN),
+                        Component.text("You made it to Round " + (round + 1) + "!", NamedTextColor.GRAY)));
+                bukkitPlayer.sendActionBar(Component.empty());
             }
         });
         gameScoreboard.run();
