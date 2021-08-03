@@ -9,7 +9,7 @@ public abstract class RetargetingPathfinder extends BasicMetadataPathfinder {
     public RetargetingPathfinder(Mob mob, AttributeValue[] values, int retargetTicks, double speed,
                                  double targetDeviation) {
         super(mob, values, retargetTicks, speed, targetDeviation);
-        retargetCounter = getNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks);
+        retargetCounter = getArenaNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks);
     }
 
     @Override
@@ -22,7 +22,7 @@ public abstract class RetargetingPathfinder extends BasicMetadataPathfinder {
 
         if (++retargetCounter == retargetTicks) {
             //randomly offset the navigation so we don't flood the pathfinder
-            this.retargetCounter = getNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
+            this.retargetCounter = getArenaNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
             retarget();
         }
 

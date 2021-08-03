@@ -25,13 +25,13 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
 
     @Override
     public void start() {
-        getNmsBridge().entityBridge().setAggressive(self, true);
+        getZombiesNmsBridge().entityBridge().setAggressive(self, true);
         this.attackTimer = 0;
     }
 
     @Override
     public void end() {
-        getNmsBridge().entityBridge().setAggressive(self, false);
+        getZombiesNmsBridge().entityBridge().setAggressive(self, false);
         self.setTarget(null);
     }
 
@@ -49,7 +49,7 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
     private void tryAttack(LivingEntity target) {
         if(this.attackTimer <= 0) {
             Location location = target.getLocation();
-            if (getNmsBridge().entityBridge().distanceTo(self, location.getX(), location.getY(), location.getZ())
+            if (getArenaNmsBridge().entityBridge().distanceTo(self, location.getX(), location.getY(), location.getZ())
                     <= this.checkDistance(target)) {
                 this.resetAttackTimer();
                 self.swingMainHand();

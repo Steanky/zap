@@ -1,9 +1,6 @@
-package io.github.zap.arenaapi.nms.common;
+package io.github.zap.zombies.nms.common;
 
-import io.github.zap.arenaapi.nms.common.world.WorldBridge;
-import io.github.zap.arenaapi.nms.common.entity.EntityBridge;
-import io.github.zap.arenaapi.nms.common.itemstack.ItemStackBridge;
-import io.github.zap.arenaapi.nms.common.player.PlayerBridge;
+import io.github.zap.zombies.nms.common.entity.EntityBridge;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,9 +8,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 /**
- * Used to provide a consistent interface between various NMS versions with basic uses of nms code.
+ * Used to provide a consistent interface between various NMS versions and ZAP-related code modules.
  */
 public interface NMSBridge {
+
     String CURRENT_NMS_VERSION = nmsVersion();
 
     private static String nmsVersion() {
@@ -36,24 +34,6 @@ public interface NMSBridge {
     @NotNull EntityBridge entityBridge();
 
     /**
-     * Returns a bridge used to proxy methods relating to item stacks.
-     * @return A PlayerBridge instance
-     */
-    @NotNull ItemStackBridge itemStackBridge();
-
-    /**
-     * Returns a bridge used to proxy methods relating to players.
-     * @return A PlayerBridge instance
-     */
-    @NotNull PlayerBridge playerBridge();
-
-    /**
-     * Returns a bridge used to proxy methods relating to the NMS World object, as well as closely related functions.
-     * @return A WorldBridge instance
-     */
-    @NotNull WorldBridge worldBridge();
-
-    /**
      * Tries to select the NMSBridge instance for the current NMS version, using the provided bridges. Each bridges'
      * reported version strings are used for comparison. Versions comparison is case-sensitive; that is, v1_16_R3 is
      * different from V1_16_R3. If multiple bridges are compatible, the first will be selected.
@@ -71,4 +51,5 @@ public interface NMSBridge {
 
         return null;
     }
+
 }

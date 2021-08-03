@@ -22,12 +22,12 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
     }
 
     public boolean isValid() {
-        return getNmsBridge().entityBridge().isAbstractSkeleton(self);
+        return getZombiesNmsBridge().entityBridge().isAbstractSkeleton(self);
     }
 
     @Override
     public void start() {
-        getNmsBridge().entityBridge().setAggressive(self, true);
+        getZombiesNmsBridge().entityBridge().setAggressive(self, true);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
         this.drawTimer = 0;
         this.attackTimer = -1;
         self.clearActiveItem();
-        getNmsBridge().entityBridge().setAggressive(self, false);
+        getZombiesNmsBridge().entityBridge().setAggressive(self, false);
         self.setTarget(null);
     }
 
@@ -47,9 +47,9 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
 
         if (target != null) {
             Location location = target.getLocation();
-            double distanceToTargetSquared = getNmsBridge().entityBridge().distanceTo(self, location.getX(),
+            double distanceToTargetSquared = getArenaNmsBridge().entityBridge().distanceTo(self, location.getX(),
                     location.getY(), location.getZ());
-            boolean hasSight = getNmsBridge().entityBridge().canSee(self, target);
+            boolean hasSight = getArenaNmsBridge().entityBridge().canSee(self, target);
 
             boolean bowPartiallyDrawn = this.drawTimer > 0;
             if (hasSight != bowPartiallyDrawn) {
@@ -69,11 +69,11 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
             }
 
             if (this.strafeTimer >= 20) {
-                if ((double) getNmsBridge().entityBridge().getRandomFor(self).nextFloat() < 0.3D) {
+                if ((double) getArenaNmsBridge().entityBridge().getRandomFor(self).nextFloat() < 0.3D) {
                     this.strafeB = !this.strafeB;
                 }
 
-                if ((double) getNmsBridge().entityBridge().getRandomFor(self).nextFloat() < 0.3D) {
+                if ((double) getArenaNmsBridge().entityBridge().getRandomFor(self).nextFloat() < 0.3D) {
                     this.strafeA = !this.strafeA;
                 }
 
@@ -87,8 +87,8 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
                     this.strafeA = true;
                 }
 
-                getNmsBridge().entityBridge().strafe(self, this.strafeA ? -0.5F : 0.5F, this.strafeB ? 0.5F : -0.5F);
-                getNmsBridge().entityBridge().setLookDirection(self, target, 30.0F, 30.0F);
+                getZombiesNmsBridge().entityBridge().strafe(self, this.strafeA ? -0.5F : 0.5F, this.strafeB ? 0.5F : -0.5F);
+                getArenaNmsBridge().entityBridge().setLookDirection(self, target, 30.0F, 30.0F);
             } else {
                 self.lookAt(target, 30.0F, 30.0F);
             }
@@ -97,16 +97,16 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
                 if (!hasSight && this.drawTimer < -60) {
                     self.clearActiveItem();
                 } else if (hasSight && distanceToTargetSquared < shootDistanceSquared) {
-                    int itemStage = getNmsBridge().entityBridge().getTicksUsingItem(self);
+                    int itemStage = getZombiesNmsBridge().entityBridge().getTicksUsingItem(self);
                     if (itemStage >= 20) {
                         self.clearActiveItem();
-                        ((RangedEntity) self).rangedAttack(target, getNmsBridge().entityBridge().getCharge(itemStage));
+                        ((RangedEntity) self).rangedAttack(target, getZombiesNmsBridge().entityBridge().getCharge(itemStage));
                         this.attackTimer = this.attackInterval;
                     }
                 }
             } else if (--this.attackTimer <= 0 && this.drawTimer >= -60
                     && distanceToTargetSquared < shootDistanceSquared) {
-                getNmsBridge().entityBridge().startPullingBow(self);
+                getZombiesNmsBridge().entityBridge().startPullingBow(self);
             }
         }
     }

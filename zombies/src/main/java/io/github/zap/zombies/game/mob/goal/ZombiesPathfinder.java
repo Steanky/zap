@@ -4,9 +4,9 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathfinderEngine;
 import io.github.zap.arenaapi.util.MetadataHelper;
-import io.github.zap.arenaapi.nms.common.NMSBridge;
 import io.github.zap.arenaapi.nms.common.pathfind.MobNavigator;
 import io.github.zap.zombies.Zombies;
+import io.github.zap.zombies.nms.common.NMSBridge;
 import lombok.Getter;
 import org.bukkit.entity.Mob;
 import org.bukkit.metadata.MetadataValue;
@@ -26,7 +26,10 @@ public abstract class ZombiesPathfinder {
     private final String[] metadataKeys;
 
     @Getter
-    private final NMSBridge nmsBridge;
+    private final io.github.zap.arenaapi.nms.common.NMSBridge arenaNmsBridge;
+
+    @Getter
+    private final NMSBridge zombiesNmsBridge;
 
     @Getter
     private final MobNavigator navigator;
@@ -43,7 +46,8 @@ public abstract class ZombiesPathfinder {
         this.self = mob;
         this.metadataKeys = metadataKeys;
         this.metadataLoaded = metadataKeys.length == 0;
-        nmsBridge = ArenaApi.getInstance().getNmsBridge();
+        arenaNmsBridge = ArenaApi.getInstance().getNmsBridge();
+        zombiesNmsBridge = Zombies.getInstance().getNmsBridge();
 
         try {
             navigator = ArenaApi.getInstance().getNmsBridge().entityBridge().overrideNavigatorFor(mob);
@@ -54,13 +58,13 @@ public abstract class ZombiesPathfinder {
 
         handler = new PathHandler(PathfinderEngine.async());
 
-        if (!nmsBridge.entityBridge().replacePersistentGoals(self)) {
+        if (!Zombies.getInstance().getNmsBridge().entityBridge().replacePersistentGoals(self)) {
             Zombies.warning("Failed to replace persistent goals on a " + self.getClass().getName() + " due to a " +
                     "reflection-related exception.");
         }
 
         for(AttributeValue value : values) {
-            nmsBridge.entityBridge().setAttributeFor(self, value.attribute(), value.value());
+            arenaNmsBridge.entityBridge().setAttributeFor(self, value.attribute(), value.value());
         }
 
         this.retargetTicks = retargetTicks;

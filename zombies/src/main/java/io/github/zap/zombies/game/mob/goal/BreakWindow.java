@@ -31,7 +31,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
         this.breakTicks = breakTicks;
         this.breakCount = breakCount;
         this.breakReachSquared = breakReachSquared;
-        navCounter = getNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
+        navCounter = getArenaNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
     }
 
     public boolean isValid() {
@@ -82,7 +82,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
     public void tick() {
         if(++counter == breakTicks) {
             Vector center = window.getCenter();
-            if (getNmsBridge().entityBridge().distanceTo(self, center.getX(), center.getY(), center.getZ())
+            if (getArenaNmsBridge().entityBridge().distanceTo(self, center.getX(), center.getY(), center.getZ())
                     < breakReachSquared) {
                 arena.tryBreakWindow(self, window, breakCount);
             }
@@ -111,7 +111,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
                             Set.of(pathDestination), 2), arena.getWorld());
                 }
 
-                navCounter = getNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
+                navCounter = getArenaNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
             }
 
             PathResult result = getHandler().tryTakeResult();

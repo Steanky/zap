@@ -7,6 +7,7 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.util.TimeUtil;
+import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.equipment.EquipmentData;
 import io.github.zap.zombies.game.data.map.shop.PiglinShopData;
@@ -58,7 +59,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
     public PiglinShop(ZombiesArena arena, PiglinShopData shopData) {
         super(arena, shopData);
 
-        this.dream = ArenaApi.getInstance().getNmsBridge().entityBridge().makeDream(arena.getWorld());
+        this.dream = Zombies.getInstance().getNmsBridge().entityBridge().makeDream(arena.getWorld());
         this.hologram = new Hologram(shopData.getPiglinLocation().add(new Vector(0, 1, 0)).toLocation(arena.getWorld()));
         for (String equipmentName : shopData.getEquipments()) {
             this.equipments.add(arena.getEquipmentManager().getEquipmentData(arena.getMap().getName(), equipmentName));
@@ -95,7 +96,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
         }
         if (!init) {
-            ArenaApi.getInstance().getNmsBridge().entityBridge().finalizeDream(dream, getArena().getWorld());
+            Zombies.getInstance().getNmsBridge().entityBridge().finalizeDream(dream, getArena().getWorld());
             dream.teleportAsync(new Location(getArena().getWorld(), getShopData().getPiglinLocation().getX(),
                     getShopData().getPiglinLocation().getY(), getShopData().getPiglinLocation().getZ(),
                     getShopData().getDirection(), 0.0F));
