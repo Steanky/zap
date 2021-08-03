@@ -14,7 +14,7 @@ import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRule;
 import io.github.zap.zombies.game.powerups.spawnrules.PowerUpSpawnRule;
 import io.github.zap.zombies.game.powerups.spawnrules.SpawnRuleType;
 import lombok.Getter;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.lang.reflect.Constructor;

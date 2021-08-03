@@ -1,10 +1,9 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.event.entity.EntityTargetEvent;
-
-import java.util.EnumSet;
+import com.destroystokyo.paper.entity.RangedEntity;
+import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 
 public class OptimizedBowAttack extends RetargetingPathfinder {
     private final int attackInterval;
@@ -15,37 +14,42 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
     private boolean strafeA;
     private int strafeTimer = -1;
 
-    public OptimizedBowAttack(AbstractEntity entity, AttributeValue[] attributes, int retargetTicks, double speed,
-                              int attackInterval, float shootDistance, int targetDeviation) {
-        super(entity, attributes, retargetTicks, speed, targetDeviation);
+    public OptimizedBowAttack(Mob mob, AttributeValue[] values, int retargetTicks, double speed,
+                              double targetDeviation, int attackInterval, float shootDistanceSquared) {
+        super(mob, values, retargetTicks, speed, targetDeviation);
         this.attackInterval = attackInterval;
-        this.shootDistanceSquared = shootDistance * shootDistance;
-        this.a(EnumSet.of(Type.MOVE, Type.LOOK));
+        this.shootDistanceSquared = shootDistanceSquared;
+    }
+
+    public boolean isValid() {
+        return getZombiesNmsBridge().entityBridge().isAbstractSkeleton(self);
     }
 
     @Override
-    public void onStart() {
-        self.setAggressive(true);
+    public void start() {
+        getZombiesNmsBridge().entityBridge().setAggressive(self, true);
     }
 
     @Override
-    public void onEnd() {
+    public void end() {
         this.drawTimer = 0;
         this.attackTimer = -1;
         self.clearActiveItem();
-        self.setAggressive(false);
-        self.setGoalTarget(null, EntityTargetEvent.TargetReason.CUSTOM, false);
+        getZombiesNmsBridge().entityBridge().setAggressive(self, false);
+        self.setTarget(null);
     }
 
     @Override
-    public void doTick() {
-        super.doTick();
+    public void tick() {
+        super.tick();
 
-        EntityLiving target = self.getGoalTarget();
+        LivingEntity target = self.getTarget();
 
         if (target != null) {
-            double distanceToTargetSquared = self.h(target.locX(), target.locY(), target.locZ());
-            boolean hasSight = self.getEntitySenses().a(target);
+            Location location = target.getLocation();
+            double distanceToTargetSquared = getArenaNmsBridge().entityBridge().distanceTo(self, location.getX(),
+                    location.getY(), location.getZ());
+            boolean hasSight = getArenaNmsBridge().entityBridge().canSee(self, target);
 
             boolean bowPartiallyDrawn = this.drawTimer > 0;
             if (hasSight != bowPartiallyDrawn) {
@@ -65,11 +69,11 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
             }
 
             if (this.strafeTimer >= 20) {
-                if ((double) self.getRandom().nextFloat() < 0.3D) {
+                if ((double) getArenaNmsBridge().entityBridge().getRandomFor(self).nextFloat() < 0.3D) {
                     this.strafeB = !this.strafeB;
                 }
 
-                if ((double) self.getRandom().nextFloat() < 0.3D) {
+                if ((double) getArenaNmsBridge().entityBridge().getRandomFor(self).nextFloat() < 0.3D) {
                     this.strafeA = !this.strafeA;
                 }
 
@@ -83,25 +87,26 @@ public class OptimizedBowAttack extends RetargetingPathfinder {
                     this.strafeA = true;
                 }
 
-                self.getControllerMove().a(this.strafeA ? -0.5F : 0.5F, this.strafeB ? 0.5F : -0.5F);
-                self.a(target, 30.0F, 30.0F);
+                getZombiesNmsBridge().entityBridge().strafe(self, this.strafeA ? -0.5F : 0.5F, this.strafeB ? 0.5F : -0.5F);
+                getArenaNmsBridge().entityBridge().setLookDirection(self, target, 30.0F, 30.0F);
             } else {
-                self.getControllerLook().a(target, 30.0F, 30.0F);
+                self.lookAt(target, 30.0F, 30.0F);
             }
 
             if (self.isHandRaised()) {
                 if (!hasSight && this.drawTimer < -60) {
                     self.clearActiveItem();
                 } else if (hasSight && distanceToTargetSquared < shootDistanceSquared) {
-                    int itemStage = self.ea();
+                    int itemStage = getZombiesNmsBridge().entityBridge().getTicksUsingItem(self);
                     if (itemStage >= 20) {
                         self.clearActiveItem();
-                        ((IRangedEntity)self).a(target, ItemBow.a(itemStage));
+                        ((RangedEntity) self).rangedAttack(target, getZombiesNmsBridge().entityBridge().getCharge(itemStage));
                         this.attackTimer = this.attackInterval;
                     }
                 }
-            } else if (--this.attackTimer <= 0 && this.drawTimer >= -60 && distanceToTargetSquared < shootDistanceSquared) {
-                self.c(ProjectileHelper.a(self, Items.BOW));
+            } else if (--this.attackTimer <= 0 && this.drawTimer >= -60
+                    && distanceToTargetSquared < shootDistanceSquared) {
+                getZombiesNmsBridge().entityBridge().startPullingBow(self);
             }
         }
     }

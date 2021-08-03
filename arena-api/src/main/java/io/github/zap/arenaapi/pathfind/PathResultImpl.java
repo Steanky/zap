@@ -1,9 +1,9 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.nms.common.entity.EntityBridge;
-import io.github.zap.nms.common.pathfind.PathEntityWrapper;
-import io.github.zap.nms.common.pathfind.PathPointWrapper;
+import io.github.zap.arenaapi.nms.common.entity.EntityBridge;
+import io.github.zap.arenaapi.nms.common.pathfind.PathEntityWrapper;
+import io.github.zap.arenaapi.nms.common.pathfind.PathPointWrapper;
 import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;

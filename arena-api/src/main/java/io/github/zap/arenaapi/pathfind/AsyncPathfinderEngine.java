@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.arenaapi.nms.common.world.CollisionChunkSnapshot;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.bukkit.Bukkit;

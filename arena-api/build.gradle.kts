@@ -13,7 +13,6 @@ java {
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
     maven("https://papermc.io/repo/repository/maven-public/")
     maven("https://repo.dmulloy2.net/repository/public/")
 }
@@ -35,10 +34,10 @@ dependencies {
     dependencyApi(project(":party", "dependencyApi"))
     dependencyApi(project(":party", "shadow"))
 
-    shadeProject(project(":nms-common")) {
+    shadeProject(project(":arena-api:nms-common")) {
         isTransitive = false
     }
-    shadeProject(project(":nms-v1_16_R3", "shadow"))
+    shadeProject(project(":arena-api:nms-v1_16_R3", "shadow"))
     shadeProject(project(":vector")) {
         isTransitive = false
     }

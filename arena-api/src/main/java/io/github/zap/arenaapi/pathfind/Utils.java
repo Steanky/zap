@@ -1,8 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.nms.common.world.VoxelShapeWrapper;
-import io.github.zap.nms.common.world.WorldBridge;
+import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
+import io.github.zap.arenaapi.nms.common.world.WorldBridge;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
