@@ -136,9 +136,7 @@ public final class Zombies extends JavaPlugin implements Listener {
             initArenaManagers();
             initNPCs();
             initCommands();
-        }
-        catch(LoadFailureException exception)
-        {
+        } catch (LoadFailureException exception) {
             severe(String.format("A fatal error occurred that prevented the plugin from enabling properly: '%s'.",
                     exception.getMessage()));
             getPluginLoader().disablePlugin(this, false);
@@ -153,20 +151,20 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        if(playerDataManager != null) {
+        if (playerDataManager != null) {
             playerDataManager.flushAll(); //ensures any unsaved playerdata is saved when the plugin shuts down
         }
 
-        if(arenaManager != null) {
+        if (arenaManager != null) {
             DataLoader loader = arenaManager.getMapLoader(); //save map data in case it was edited
 
-            for(File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
+            for (File file : loader.getRootDirectory().listFiles()) { //delete map data that shouldn't exist
                 String fileNameWithExtension = file.getName();
 
-                if(fileNameWithExtension.endsWith(arenaManager.getMapLoader().getExtension())) {
+                if (fileNameWithExtension.endsWith(arenaManager.getMapLoader().getExtension())) {
                     String filename = FilenameUtils.getBaseName(fileNameWithExtension);
 
-                    if(arenaManager.canDelete(filename)) {
+                    if (arenaManager.canDelete(filename)) {
                         try {
                             Files.delete(file.toPath());
                             Zombies.info(String.format("Deleted marked map file: '%s'", filename));
@@ -214,10 +212,11 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initDependencies() throws LoadFailureException {
         arenaApi = ArenaApi.getDependentPlugin(PluginNames.ARENA_API, true, true);
         SWM = ArenaApi.getDependentPlugin(PluginNames.SLIME_WORLD_MANAGER, true, true);
-        mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true,false);
+        mythicMobs = ArenaApi.getDependentPlugin(PluginNames.MYTHIC_MOBS, true, false);
         fixAswm();
     }
 
+    @SuppressWarnings("UnusedAssignment") //frick you unintelliJ this is necessary
     private void fixAswm() {
         Class<?> clazz;
         try {
@@ -248,35 +247,33 @@ public final class Zombies extends JavaPlugin implements Listener {
     private void initPathfinding(Class<? extends PathfinderAdapter>... customGoals) throws LoadFailureException {
         VolatileAIHandler handler = mythicMobs.getVolatileCodeHandler().getAIHandler();
 
-        if(handler instanceof VolatileAIHandler_v1_16_R3 target) {
+        if (handler instanceof VolatileAIHandler_v1_16_R3 target) {
             try {
                 Field aiGoalsField = VolatileAIHandler_v1_16_R3.class.getDeclaredField("AI_GOALS");
                 aiGoalsField.setAccessible(true);
 
                 @SuppressWarnings("unchecked") Map<String, Class<? extends PathfinderAdapter>> aiGoals =
-                        (Map<String, Class<? extends PathfinderAdapter>>)aiGoalsField.get(target);
+                        (Map<String, Class<? extends PathfinderAdapter>>) aiGoalsField.get(target);
 
-                for(Class<? extends PathfinderAdapter> customGoal : customGoals) {
+                for (Class<? extends PathfinderAdapter> customGoal : customGoals) {
                     MythicAIGoal mythicAnnotation = customGoal.getAnnotation(MythicAIGoal.class);
 
-                    if(mythicAnnotation != null) {
+                    if (mythicAnnotation != null) {
                         aiGoals.put(mythicAnnotation.name().toUpperCase(), customGoal);
 
-                        for(String alias : mythicAnnotation.aliases()) {
+                        for (String alias : mythicAnnotation.aliases()) {
                             aiGoals.put(alias.toUpperCase(), customGoal);
                         }
 
                         info("Loaded custom AI goal " + customGoal.getName());
-                    }
-                    else {
+                    } else {
                         warning("Class " + customGoal.getName() + " should be annotated with @MythicAIGoal!");
                     }
                 }
             } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
                 throw new LoadFailureException("Reflection-related exception when initializing pathfinding.");
             }
-        }
-        else {
+        } else {
             throw new LoadFailureException("Unsupported version of MythicMobs AIHandler!");
         }
     }
@@ -288,21 +285,20 @@ public final class Zombies extends JavaPlugin implements Listener {
             mechanicsField.setAccessible(true);
 
             @SuppressWarnings("unchecked") Map<String, Class<? extends SkillMechanic>> mechanics =
-                    (Map<String, Class<? extends SkillMechanic>>)mechanicsField.get(null);
+                    (Map<String, Class<? extends SkillMechanic>>) mechanicsField.get(null);
 
-            for(Class<? extends SkillMechanic> customMechanic : customMechanics) {
+            for (Class<? extends SkillMechanic> customMechanic : customMechanics) {
                 MythicMechanic mythicAnnotation = customMechanic.getAnnotation(MythicMechanic.class);
 
-                if(mythicAnnotation != null) {
+                if (mythicAnnotation != null) {
                     mechanics.put(mythicAnnotation.name().toUpperCase(), customMechanic);
 
-                    for(String alias : mythicAnnotation.aliases()) {
+                    for (String alias : mythicAnnotation.aliases()) {
                         mechanics.put(alias.toUpperCase(), customMechanic);
                     }
 
                     info("Loaded custom MythicMobs mechanic " + customMechanic.getName());
-                }
-                else {
+                } else {
                     throw new LoadFailureException("Class " + customMechanic.getName() + " should be annotated with @MythicMechanic!");
                 }
             }
@@ -331,10 +327,10 @@ public final class Zombies extends JavaPlugin implements Listener {
         Vector spawn = config.getVector(ConfigNames.WORLD_SPAWN);
         String worldName = config.getString(ConfigNames.LOBBY_WORLD);
 
-        if(spawn != null && worldName != null) {
+        if (spawn != null && worldName != null) {
             World world = Bukkit.getWorld(worldName);
 
-            if(world != null) {
+            if (world != null) {
                 DataLoader equipmentLoader = new JacksonDataLoader(new File(getDataFolder().getPath(),
                         EQUIPMENT_FOLDER_NAME));
 
@@ -353,12 +349,10 @@ public final class Zombies extends JavaPlugin implements Listener {
                         config.getInt(ConfigNames.MAX_WORLDS), config.getInt(ConfigNames.ARENA_TIMEOUT));
                 arenaManager.loadMaps();
                 arenaApi.registerArenaManager(arenaManager);
-            }
-            else {
+            } else {
                 throw new LoadFailureException(String.format("Specified lobby world '%s' does not exist.", worldName));
             }
-        }
-        else {
+        } else {
             throw new LoadFailureException("Unable to load required configuration information for ZombiesArenaManager.");
         }
     }
@@ -374,11 +368,10 @@ public final class Zombies extends JavaPlugin implements Listener {
         String locale = config.getString(ConfigNames.DEFAULT_LOCALE);
         String localizationDirectory = config.getString(ConfigNames.LOCALIZATION_DIRECTORY);
 
-        if(locale != null && localizationDirectory != null) {
+        if (locale != null && localizationDirectory != null) {
             localizationManager = new LocalizationManager(Locale.forLanguageTag(locale),
                     new File(localizationDirectory), playerDataManager);
-        }
-        else {
+        } else {
             throw new LoadFailureException("One or more required configuration entries could not be retrieved.");
         }
     }
@@ -418,7 +411,8 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     /**
      * Logs a message with this plugin, at the specified level.
-     * @param level The level to log at
+     *
+     * @param level   The level to log at
      * @param message The log message
      */
     public static void log(Level level, String message) {
@@ -427,6 +421,7 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     /**
      * Logs a message with this plugin at Level.INFO
+     *
      * @param message The message to log
      */
     public static void info(String message) {
@@ -435,6 +430,7 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     /**
      * Logs a message with this plugin at Level.WARNING
+     *
      * @param message The message to log
      */
     public static void warning(String message) {
@@ -443,6 +439,7 @@ public final class Zombies extends JavaPlugin implements Listener {
 
     /**
      * Logs a message with this plugin at Level.SEVERE
+     *
      * @param message The message to log
      */
     public static void severe(String message) {

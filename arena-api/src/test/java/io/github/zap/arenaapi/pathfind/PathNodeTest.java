@@ -6,7 +6,7 @@ import org.junit.*;
 import java.util.*;
 
 public class PathNodeTest {
-    private List<PathNode> testNodes = new ArrayList<>();
+    private final List<PathNode> testNodes = new ArrayList<>();
 
     @Before
     public void setUp() {
@@ -25,11 +25,6 @@ public class PathNodeTest {
                 }
             }
         }
-    }
-
-    @After
-    public void tearDown() {
-        testNodes = null;
     }
 
     @Test

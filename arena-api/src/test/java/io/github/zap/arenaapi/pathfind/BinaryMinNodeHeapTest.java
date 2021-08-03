@@ -3,34 +3,26 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.vector.Vectors;
 import org.junit.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class BinaryMinNodeHeapTest {
-    private BinaryMinNodeHeap heap;
+    private final BinaryMinNodeHeap heap = new BinaryMinNodeHeap(128);
 
     @Before
     public void setUp() {
-        heap = new BinaryMinNodeHeap(128);
         for(int i = 0; i < 100; i++) {
             for(int j = 0; j < 100; j++) {
-                PathNode node = new PathNode(Vectors.of(i, j, i+j));
+                PathNode node = new PathNode(Vectors.of(i, j, i + j));
                 node.score.set(i, j);
                 heap.addNode(node);
             }
         }
     }
 
-    @After
-    public void tearDown() {
-        heap = null;
-    }
-
     @Test
     public void testPeekBest() {
-        Assert.assertFalse(heap.isEmpty());
-
         PathNode node = heap.peekBest();
+
         Assert.assertNotNull(node);
         Assert.assertTrue(node.heapIndex != -1);
         Assert.assertTrue(heap.contains(node));
