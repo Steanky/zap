@@ -16,7 +16,7 @@ class StandardDataContainer implements DataContainer {
         this.converters = converters;
     }
 
-    private <T> Optional<T> getObjectPathInternal(TypeInformation info, DataKey ... keys) {
+    private <T> Optional<T> getObjectPathInternal(TypeInformation<?> info, DataKey ... keys) {
         if(keys.length == 0) {
             throw new IllegalArgumentException("getObject called without providing any DataKeys");
         }
@@ -25,7 +25,7 @@ class StandardDataContainer implements DataContainer {
         for(int i = 0; i < keys.length - 1; i++) {
             DataKey key = keys[i];
             Optional<StandardDataContainer> object = getObjectInternal(lastContainer,
-                    new TypeInformation(StandardDataContainer.class), key);
+                    new TypeInformation<>(StandardDataContainer.class), key);
 
             if(object.isEmpty()) {
                 return Optional.empty();
@@ -66,57 +66,57 @@ class StandardDataContainer implements DataContainer {
 
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull Class<T> type, @NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(type), keys);
+        return getObjectPathInternal(new TypeInformation<>(type), keys);
     }
 
     @Override
-    public @NotNull <T> Optional<T> getObject(@NotNull TypeInformation typeInformation, @NotNull DataKey... keys) {
+    public @NotNull <T> Optional<T> getObject(@NotNull TypeInformation<T> typeInformation, @NotNull DataKey... keys) {
         return getObjectPathInternal(typeInformation, keys);
     }
 
     @Override
     public @NotNull Optional<String> getString(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(String.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(String.class), keys);
     }
 
     @Override
     public @NotNull Optional<Boolean> getBoolean(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Boolean.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Boolean.class), keys);
     }
 
     @Override
     public @NotNull Optional<Byte> getByte(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Byte.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Byte.class), keys);
     }
 
     @Override
     public @NotNull Optional<Short> getShort(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Short.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Short.class), keys);
     }
 
     @Override
     public @NotNull Optional<Integer> getInt(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Integer.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Integer.class), keys);
     }
 
     @Override
     public @NotNull Optional<Character> getChar(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Character.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Character.class), keys);
     }
 
     @Override
     public @NotNull Optional<Long> getLong(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Long.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Long.class), keys);
     }
 
     @Override
     public @NotNull Optional<Float> getFloat(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Float.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Float.class), keys);
     }
 
     @Override
     public @NotNull Optional<Double> getDouble(@NotNull DataKey... keys) {
-        return getObjectPathInternal(new TypeInformation(Double.class), keys);
+        return getObjectPathInternal(new TypeInformation<>(Double.class), keys);
     }
 
     @Override

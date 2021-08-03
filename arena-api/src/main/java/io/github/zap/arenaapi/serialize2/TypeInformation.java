@@ -2,4 +2,4 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
-public record TypeInformation(@NotNull Class<?> type, @NotNull TypeInformation ... parameters) { }
+public record TypeInformation<T>(@NotNull Class<? super T> type, @NotNull TypeInformation<?> ... parameters) { }
