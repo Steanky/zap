@@ -11,7 +11,7 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
-import io.github.zap.nms.common.entity.EntityBridge;
+import io.github.zap.arenaapi.nms.common.entity.EntityBridge;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
