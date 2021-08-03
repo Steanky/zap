@@ -6,10 +6,8 @@ import io.github.zap.arenaapi.pathfind.PathResult;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -23,9 +21,9 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
     private final double targetDeviation;
     protected PathResult result;
 
-    public BasicMetadataPathfinder(AbstractEntity entity, AttributeValue[] values, int retargetTicks,
-                                   double speed, double targetDeviation) {
-        super(entity, values, retargetTicks, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
+    public BasicMetadataPathfinder(Mob mob, AttributeValue[] values, int retargetTicks, double speed,
+                                   double targetDeviation) {
+        super(mob, values, retargetTicks, Zombies.ARENA_METADATA_NAME, Zombies.WINDOW_METADATA_NAME);
         this.speed = speed;
         this.targetDeviation = targetDeviation;
     }
@@ -42,11 +40,11 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                     .filter(Objects::nonNull).collect(Collectors.toSet());
 
             if(!validTargets.isEmpty()) {
-                PathOperation operation = PathOperation.forEntityWalking(getEntity().getBukkitEntity(),
-                        validTargets, arena.getMapBounds(), targetDeviation);
+                PathOperation operation = PathOperation.forEntityWalking(self, validTargets, arena.getMapBounds(),
+                        targetDeviation);
 
                 if(operation != null) {
-                    getHandler().queueOperation(operation, self.getWorld().getWorld());
+                    getHandler().queueOperation(operation, self.getWorld());
 
                     PathResult result = getHandler().tryTakeResult();
 
@@ -55,7 +53,7 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                             Player player = zombiesPlayer.getPlayer();
 
                             if(player != null) {
-                                self.setGoalTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
+                                self.setTarget(player);
                                 this.zombiesPlayer = zombiesPlayer;
                                 this.result = result;
                             }

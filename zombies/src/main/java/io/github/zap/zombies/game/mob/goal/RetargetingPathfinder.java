@@ -1,27 +1,28 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.lumine.xikage.mythicmobs.adapters.AbstractEntity;
-import net.minecraft.server.v1_16_R3.EntityLiving;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 
 public abstract class RetargetingPathfinder extends BasicMetadataPathfinder {
     private int retargetCounter;
 
-    public RetargetingPathfinder(AbstractEntity entity, AttributeValue[] values, int retargetTicks, double speed, double targetDeviation) {
-        super(entity, values, retargetTicks, speed, targetDeviation);
-        retargetCounter = self.getRandom().nextInt(retargetTicks);
+    public RetargetingPathfinder(Mob mob, AttributeValue[] values, int retargetTicks, double speed,
+                                 double targetDeviation) {
+        super(mob, values, retargetTicks, speed, targetDeviation);
+        retargetCounter = getArenaNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks);
     }
 
     @Override
-    public void doTick() {
-        EntityLiving target = self.getGoalTarget();
+    public void tick() {
+        LivingEntity target = self.getTarget();
 
         if(target != null) {
-            self.getControllerLook().a(target, 30.0F, 30.0F);
+            self.lookAt(target, 30.0F, 30.0F);
         }
 
         if (++retargetCounter == retargetTicks) {
             //randomly offset the navigation so we don't flood the pathfinder
-            this.retargetCounter = self.getRandom().nextInt(retargetTicks / 2);
+            this.retargetCounter = getArenaNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
             retarget();
         }
 
@@ -37,7 +38,7 @@ public abstract class RetargetingPathfinder extends BasicMetadataPathfinder {
     }
 
     @Override
-    public boolean stayActive() {
-        return true;
+    public boolean shouldEnd() {
+        return false;
     }
 }

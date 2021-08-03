@@ -1,5 +1,5 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import net.minecraft.server.v1_16_R3.AttributeBase;
+import org.bukkit.attribute.Attribute;
 
-public record AttributeValue(AttributeBase attribute, double value) { }
+public record AttributeValue(Attribute attribute, double value) { }
