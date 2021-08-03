@@ -16,8 +16,30 @@ class StandardDataContainer implements DataContainer {
         this.converters = converters;
     }
 
+    private <T> Optional<T> getObjectPathInternal(TypeInformation info, DataKey ... keys) {
+        if(keys.length == 0) {
+            throw new IllegalArgumentException("getObject called without providing any DataKeys");
+        }
+
+        StandardDataContainer lastContainer = this;
+        for(int i = 0; i < keys.length - 1; i++) {
+            DataKey key = keys[i];
+            Optional<StandardDataContainer> object = getObjectInternal(lastContainer,
+                    new TypeInformation(StandardDataContainer.class), key);
+
+            if(object.isEmpty()) {
+                return Optional.empty();
+            }
+            else {
+                lastContainer = object.get();
+            }
+        }
+
+        return getObjectInternal(lastContainer, info, keys[keys.length - 1]);
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, TypeInformation info) {
+    private <T> Optional<T> getObjectInternal(StandardDataContainer container, TypeInformation info, DataKey key) {
         Object data = container.map.get(key.key());
         Class<?> classType = info.type();
 
@@ -42,97 +64,59 @@ class StandardDataContainer implements DataContainer {
         return Optional.empty();
     }
 
-    private <T> Optional<T> getObjectInternal(StandardDataContainer container, DataKey key, Class<?> type) {
-        return getObjectInternal(container, key, new TypeInformation(type));
-    }
-
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull Class<T> type, @NotNull DataKey... keys) {
-        if(keys.length == 0) {
-            throw new IllegalArgumentException("getObject called without providing any DataKeys");
-        }
-
-        StandardDataContainer lastContainer = this;
-        for(int i = 0; i < keys.length - 1; i++) {
-            DataKey key = keys[i];
-            Optional<StandardDataContainer> object = getObjectInternal(lastContainer, key, StandardDataContainer.class);
-
-            if(object.isEmpty()) {
-                return Optional.empty();
-            }
-            else {
-                lastContainer = object.get();
-            }
-        }
-
-        return getObjectInternal(lastContainer, keys[keys.length - 1], type);
+        return getObjectPathInternal(new TypeInformation(type), keys[keys.length - 1]);
     }
 
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull TypeInformation typeInformation, @NotNull DataKey... keys) {
-        if(keys.length == 0) {
-            throw new IllegalArgumentException("getObject called without providing any DataKeys");
-        }
-
-        StandardDataContainer lastContainer = this;
-        for(int i = 0; i < keys.length - 1; i++) {
-            DataKey key = keys[i];
-            Optional<StandardDataContainer> object = getObjectInternal(lastContainer, key, typeInformation);
-
-            if(object.isEmpty()) {
-                return Optional.empty();
-            }
-            else {
-                lastContainer = object.get();
-            }
-        }
-
-        return getObjectInternal(lastContainer, keys[keys.length - 1], typeInformation);
+        return getObjectInternal(this, typeInformation, keys[keys.length - 1]);
     }
 
     @Override
-    public @NotNull Optional<String> getString(@NotNull DataKey key) {
-        return getObjectInternal(this, key, String.class);
+    public @NotNull Optional<String> getString(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(String.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Boolean> getBoolean(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Boolean.class);
+    public @NotNull Optional<Boolean> getBoolean(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Boolean.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Byte> getByte(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Byte.class);
+    public @NotNull Optional<Byte> getByte(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Byte.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Short> getShort(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Short.class);
+    public @NotNull Optional<Short> getShort(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Short.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Integer> getInt(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Integer.class);
+    public @NotNull Optional<Integer> getInt(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Integer.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Character> getChar(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Character.class);
+    public @NotNull Optional<Character> getChar(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Character.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Long> getLong(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Long.class);
+    public @NotNull Optional<Long> getLong(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Long.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Float> getFloat(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Float.class);
+    public @NotNull Optional<Float> getFloat(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Float.class), keys);
     }
 
     @Override
-    public @NotNull Optional<Double> getDouble(@NotNull DataKey key) {
-        return getObjectInternal(this, key, Double.class);
+    public @NotNull Optional<Double> getDouble(@NotNull DataKey... keys) {
+        return getObjectPathInternal(new TypeInformation(Double.class), keys);
     }
 
     @Override
