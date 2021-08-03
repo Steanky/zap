@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocatio
 
 plugins {
     `java-library`
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow")
 }
 
 java {
@@ -23,7 +23,7 @@ val shade: Configuration by configurations.creating
 configurations.implementation.get().extendsFrom(shade)
 
 dependencies {
-    implementation(project(":nms-common"))
+    implementation(project(":arena-api:nms-common"))
     implementation("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
         exclude("io.papermc", "minecraft-server")
     }

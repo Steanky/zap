@@ -1,6 +1,5 @@
 package io.github.zap.nms.common.entity;
 
-import com.destroystokyo.paper.entity.RangedEntity;
 import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.nms.common.pathfind.PathPointWrapper;

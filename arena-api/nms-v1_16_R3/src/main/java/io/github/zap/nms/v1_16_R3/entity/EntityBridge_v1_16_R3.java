@@ -1,7 +1,5 @@
 package io.github.zap.nms.v1_16_R3.entity;
 
-import com.destroystokyo.paper.entity.CraftRangedEntity;
-import com.destroystokyo.paper.entity.RangedEntity;
 import io.github.zap.nms.common.entity.EntityBridge;
 import io.github.zap.nms.common.pathfind.MobNavigator;
 import io.github.zap.nms.common.pathfind.PathEntityWrapper;
