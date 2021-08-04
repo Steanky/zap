@@ -11,14 +11,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JacksonFileDataLoader extends JacksonDataLoader {
-    private final Logger logger;
     private final File file;
 
     private final ObjectWriter writer;
 
     public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file) {
         super(mapper, logger);
-        this.logger = logger;
         this.file = file;
 
         this.writer = mapper.writer();

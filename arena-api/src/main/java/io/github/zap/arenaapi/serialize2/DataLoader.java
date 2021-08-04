@@ -21,5 +21,10 @@ public interface DataLoader<T extends DataContainer> {
      */
     void write(@NotNull T container);
 
+    /**
+     * Creates a data container from the given object.
+     * @param object The object to make data from
+     * @return An Optional which will contain the DataContainer if it can be made, or Optional.empty() if it cannot
+     */
     @NotNull Optional<T> makeContainer(@NotNull Object object);
 }
