@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.Optional;
 
 public class StandardDataSource implements DataSource {
-    private final Map<DataKey, DataLoader> loaders = new HashMap<>();
+    private final Map<String, DataLoader> loaders = new HashMap<>();
 
     @Override
-    public @NotNull Optional<DataContainer> pullContainer(@NotNull DataKey key) {
+    public @NotNull Optional<DataContainer> pullContainer(@NotNull String key) {
         DataLoader loader = loaders.get(key);
 
         if(loader != null) {
@@ -21,7 +21,7 @@ public class StandardDataSource implements DataSource {
     }
 
     @Override
-    public void pushContainer(@NotNull DataContainer container, @NotNull DataKey key) {
+    public void pushContainer(@NotNull DataContainer container, @NotNull String key) {
         DataLoader loader = loaders.get(key);
 
         if(loader != null) {
@@ -30,7 +30,7 @@ public class StandardDataSource implements DataSource {
     }
 
     @Override
-    public void associateLoader(@NotNull DataLoader loader, @NotNull DataKey key) {
+    public void associateLoader(@NotNull DataLoader loader, @NotNull String key) {
         loaders.put(key, loader);
     }
 }

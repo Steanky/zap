@@ -8,11 +8,11 @@ import java.util.Optional;
  * Represents an object that translates DataKeys into mappings, which may be used to form DataContainers.
  */
 public interface DataSource {
-    @NotNull Optional<DataContainer> pullContainer(@NotNull DataKey key);
+    @NotNull Optional<DataContainer> pullContainer(@NotNull String key);
 
-    void pushContainer(@NotNull DataContainer container, @NotNull DataKey key);
+    void pushContainer(@NotNull DataContainer container, @NotNull String key);
 
-    void associateLoader(@NotNull DataLoader loader, @NotNull DataKey key);
+    void associateLoader(@NotNull DataLoader loader, @NotNull String key);
 
     static @NotNull DataSource newStandard() {
         return new StandardDataSource();
