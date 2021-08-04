@@ -17,12 +17,17 @@ public class JacksonFileDataLoader extends JacksonDataLoader {
 
     private final ObjectWriter writer;
 
-    public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file) {
-        super(mapper, logger);
+    public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file,
+                                 @NotNull JacksonContainerFactory factory) {
+        super(mapper, logger, factory);
         this.logger = logger;
         this.file = file;
 
         this.writer = mapper.writer();
+    }
+
+    public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file) {
+        this(mapper, logger, file, new JacksonContainerFactory(mapper, logger));
     }
 
     @Override

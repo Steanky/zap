@@ -14,6 +14,10 @@ public abstract class TypeToken<T> implements Comparable<TypeToken<T>> {
         type = ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
+    protected TypeToken(@NotNull Type type) {
+        this.type = type;
+    }
+
     @Override
     public int compareTo(@NotNull TypeToken<T> o) {
         return 0;

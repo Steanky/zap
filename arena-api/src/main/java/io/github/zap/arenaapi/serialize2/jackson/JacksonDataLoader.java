@@ -12,10 +12,10 @@ public abstract class JacksonDataLoader implements DataLoader {
     protected final Logger logger;
     protected final ContainerFactory factory;
 
-    protected JacksonDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger) {
+    protected JacksonDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull JacksonContainerFactory factory) {
         this.mapper = mapper;
         this.logger = logger;
-        this.factory = new JacksonContainerFactory(mapper, logger);
+        this.factory = factory;
     }
 
     @Override
