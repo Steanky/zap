@@ -12,16 +12,14 @@ import java.util.Optional;
 
 @SuppressWarnings("ClassCanBeRecord") //bad unintelliJ
 class JacksonDataContainer implements DataContainer {
-    private static abstract class TypeReferenceWrapper<T> extends TypeReference<T> {
+    private static class TypeReferenceWrapper<T> extends TypeReference<T> {
         private final Type type;
 
         TypeReferenceWrapper(Class<?> clazz) {
-            super();
             type = clazz;
         }
 
         TypeReferenceWrapper(TypeToken<?> token) {
-            super();
             type = token.type();
         }
 
@@ -54,57 +52,57 @@ class JacksonDataContainer implements DataContainer {
 
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull Class<T> type, @NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(type) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(type), keys);
     }
 
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull TypeToken<T> typeToken, @NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(typeToken) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(typeToken), keys);
     }
 
     @Override
     public @NotNull Optional<String> getString(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(String.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(String.class), keys);
     }
 
     @Override
     public @NotNull Optional<Boolean> getBoolean(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Boolean.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Boolean.class), keys);
     }
 
     @Override
     public @NotNull Optional<Byte> getByte(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Byte.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Byte.class), keys);
     }
 
     @Override
     public @NotNull Optional<Short> getShort(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Short.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Short.class), keys);
     }
 
     @Override
     public @NotNull Optional<Integer> getInt(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Integer.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Integer.class), keys);
     }
 
     @Override
     public @NotNull Optional<Character> getChar(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Character.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Character.class), keys);
     }
 
     @Override
     public @NotNull Optional<Long> getLong(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Long.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Long.class), keys);
     }
 
     @Override
     public @NotNull Optional<Float> getFloat(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Float.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Float.class), keys);
     }
 
     @Override
     public @NotNull Optional<Double> getDouble(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Double.class) {}, keys);
+        return getObjectInternal(new TypeReferenceWrapper<>(Double.class), keys);
     }
 
     public JsonNode node() {
