@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.serialize2.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import io.github.zap.arenaapi.serialize2.DataContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -17,21 +16,16 @@ public class JacksonFileDataLoader extends JacksonDataLoader {
 
     private final ObjectWriter writer;
 
-    public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file,
-                                 @NotNull JacksonContainerFactory factory) {
-        super(mapper, logger, factory);
+    public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file) {
+        super(mapper, logger);
         this.logger = logger;
         this.file = file;
 
         this.writer = mapper.writer();
     }
 
-    public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file) {
-        this(mapper, logger, file, new JacksonContainerFactory(mapper, logger));
-    }
-
     @Override
-    public @NotNull Optional<DataContainer> read() {
+    public @NotNull Optional<JacksonDataContainer> read() {
         try {
             return Optional.of(new JacksonDataContainer(mapper, mapper.readTree(file)));
         } catch (IOException error) {
@@ -42,16 +36,11 @@ public class JacksonFileDataLoader extends JacksonDataLoader {
     }
 
     @Override
-    public void write(@NotNull DataContainer container) {
-        if(container instanceof JacksonDataContainer jacksonDataContainer) {
-            try {
-                writer.writeValue(file, jacksonDataContainer.node());
-            } catch (IOException error) {
-                logger.log(Level.WARNING, "IOException occurred while writing JSON data to file " + file + " using Jackson", error);
-            }
-        }
-        else {
-            logger.log(Level.WARNING, "Cannot write DataContainer " + container + " using JacksonFileDataLoader");
+    public void write(@NotNull JacksonDataContainer container) {
+        try {
+            writer.writeValue(file, container.node());
+        } catch (IOException error) {
+            logger.log(Level.WARNING, "IOException occurred while writing JSON data to file " + file + " using Jackson", error);
         }
     }
 }

@@ -105,7 +105,11 @@ class JacksonDataContainer implements DataContainer {
         return getObjectInternal(new TypeReferenceWrapper<>(Double.class), keys);
     }
 
-    public JsonNode node() {
+    /**
+     * Gets the underlying JsonNode for this JacksonDataContainer instance
+     * @return The underlying JsonNode
+     */
+    public @NotNull JsonNode node() {
         return node;
     }
 }

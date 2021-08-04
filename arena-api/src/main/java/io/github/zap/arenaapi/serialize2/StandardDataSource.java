@@ -7,11 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 
 class StandardDataSource implements DataSource {
-    private final Map<String, DataLoader> loaders = new HashMap<>();
+    private final Map<String, DataLoader<? extends DataContainer>> loaders = new HashMap<>();
 
     @Override
-    public @NotNull Optional<DataContainer> readContainer(@NotNull String key) {
-        DataLoader loader = loaders.get(key);
+    public @NotNull Optional<? extends DataContainer> readContainer(@NotNull String key) {
+        DataLoader<? extends DataContainer> loader = loaders.get(key);
 
         if(loader != null) {
             return loader.read();
@@ -22,20 +22,25 @@ class StandardDataSource implements DataSource {
 
     @Override
     public void writeContainer(@NotNull Object data, @NotNull String key) {
-        DataLoader loader = loaders.get(key);
+        DataLoader<? extends DataContainer> loader = loaders.get(key);
 
         if(loader != null) {
-            loader.factory().makeFrom(data).ifPresent(loader::write);
+            writeHelper(loader, data);
         }
     }
 
     @Override
-    public void registerLoader(@NotNull DataLoader loader, @NotNull String key) {
+    public void registerLoader(@NotNull DataLoader<? extends DataContainer> loader, @NotNull String key) {
         loaders.put(key, loader);
     }
 
     @Override
-    public DataLoader getLoader(@NotNull String key) {
+    public DataLoader<? extends DataContainer> getLoader(@NotNull String key) {
         return loaders.get(key);
+    }
+
+    //oh boy do i love java generics
+    private <T extends DataContainer> void writeHelper(DataLoader<T> loader, Object data) {
+        loader.makeContainer(data).ifPresent(loader::write);
     }
 }
