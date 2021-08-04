@@ -10,14 +10,14 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class JacksonFileDataLoader implements DataLoader {
+public class JacksonFileDataLoader implements DataLoader {
     private final Logger logger;
     private final ObjectMapper mapper;
     private final File file;
 
     private final ObjectWriter writer;
 
-    JacksonFileDataLoader(@NotNull Logger logger, @NotNull ObjectMapper mapper, @NotNull File file) {
+    public JacksonFileDataLoader(@NotNull Logger logger, @NotNull ObjectMapper mapper, @NotNull File file) {
         this.logger = logger;
         this.mapper = mapper;
         this.file = file;

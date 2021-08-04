@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Type;
 import java.util.Optional;
 
+@SuppressWarnings("ClassCanBeRecord") //bad unintelliJ
 class JacksonDataContainer implements DataContainer {
     private static abstract class TypeReferenceWrapper<T> extends TypeReference<T> {
         private final Type type;
@@ -36,7 +37,7 @@ class JacksonDataContainer implements DataContainer {
         this.node = node;
     }
 
-    private <T> Optional<T> getObjectInternal(@NotNull TypeReference<T> type, @NotNull String... keys) {
+    private <T> Optional<T> getObjectInternal(TypeReference<T> type, String... keys) {
         JsonNode current = this.node;
         for(String key : keys) {
             current = current.get(key);
