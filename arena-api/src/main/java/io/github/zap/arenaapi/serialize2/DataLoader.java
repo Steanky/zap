@@ -8,4 +8,6 @@ public interface DataLoader {
     @NotNull Optional<DataContainer> read();
 
     void write(@NotNull DataContainer container);
+
+    @NotNull ContainerFactory factory();
 }

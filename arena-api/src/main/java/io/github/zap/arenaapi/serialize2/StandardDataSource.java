@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class StandardDataSource implements DataSource {
+class StandardDataSource implements DataSource {
     private final Map<String, DataLoader> loaders = new HashMap<>();
 
     @Override
-    public @NotNull Optional<DataContainer> pullContainer(@NotNull String key) {
+    public @NotNull Optional<DataContainer> readContainer(@NotNull String key) {
         DataLoader loader = loaders.get(key);
 
         if(loader != null) {
@@ -21,16 +21,21 @@ public class StandardDataSource implements DataSource {
     }
 
     @Override
-    public void pushContainer(@NotNull DataContainer container, @NotNull String key) {
+    public void writeContainer(@NotNull Object data, @NotNull String key) {
         DataLoader loader = loaders.get(key);
 
         if(loader != null) {
-            loader.write(container);
+            loader.factory().makeFrom(data).ifPresent(loader::write);
         }
     }
 
     @Override
-    public void associateLoader(@NotNull DataLoader loader, @NotNull String key) {
+    public void registerLoader(@NotNull DataLoader loader, @NotNull String key) {
         loaders.put(key, loader);
+    }
+
+    @Override
+    public DataLoader getLoader(@NotNull String key) {
+        return loaders.get(key);
     }
 }

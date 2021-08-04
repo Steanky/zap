@@ -1,7 +1,8 @@
-package io.github.zap.arenaapi.serialize2;
+package io.github.zap.arenaapi.serialize2.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import io.github.zap.arenaapi.serialize2.DataContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -10,16 +11,15 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JacksonFileDataLoader implements DataLoader {
+public class JacksonFileDataLoader extends JacksonDataLoader {
     private final Logger logger;
-    private final ObjectMapper mapper;
     private final File file;
 
     private final ObjectWriter writer;
 
-    public JacksonFileDataLoader(@NotNull Logger logger, @NotNull ObjectMapper mapper, @NotNull File file) {
+    public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file) {
+        super(mapper, logger);
         this.logger = logger;
-        this.mapper = mapper;
         this.file = file;
 
         this.writer = mapper.writer();

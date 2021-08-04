@@ -1,8 +1,10 @@
-package io.github.zap.arenaapi.serialize2;
+package io.github.zap.arenaapi.serialize2.jackson;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.zap.arenaapi.serialize2.DataContainer;
+import io.github.zap.arenaapi.serialize2.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;

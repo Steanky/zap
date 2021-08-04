@@ -5,13 +5,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 public interface DataSource {
-    @NotNull Optional<DataContainer> pullContainer(@NotNull String key);
+    @NotNull Optional<DataContainer> readContainer(@NotNull String key);
 
-    void pushContainer(@NotNull DataContainer container, @NotNull String key);
+    void writeContainer(@NotNull Object data, @NotNull String key);
 
-    void associateLoader(@NotNull DataLoader loader, @NotNull String key);
+    void registerLoader(@NotNull DataLoader loader, @NotNull String key);
 
-    static @NotNull DataSource newStandard() {
-        return new StandardDataSource();
-    }
+    DataLoader getLoader(@NotNull String key);
 }
