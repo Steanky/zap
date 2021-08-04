@@ -23,6 +23,10 @@ public abstract class TypeToken<T> implements Comparable<TypeToken<T>> {
         return 0;
     }
 
+    /**
+     * Obtains the type information stored in this object.
+     * @return The type information, which may or may not contain additional information about generic types
+     */
     public @NotNull Type type() {
         return type;
     }
