@@ -1,42 +1,94 @@
 package io.github.zap.party.party;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import java.lang.ref.WeakReference;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * A member of a party
  */
-@Getter
-@RequiredArgsConstructor
 public class PartyMember {
 
-    private final Party party;
+    private final Server server;
 
-    private final OfflinePlayer player;
+    private final UUID playerUUID;
 
-    @Setter
+    private WeakReference<OfflinePlayer> cachedPlayer;
+
     private boolean inPartyChat = false;
 
-    @Setter
     private boolean muted = false;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        PartyMember that = (PartyMember) o;
-
-        return Objects.equals(party, that.party) && Objects.equals(player, that.player);
+    public PartyMember(@NotNull Player player) {
+        this.server = player.getServer();
+        this.playerUUID = player.getUniqueId();
+        this.cachedPlayer = new WeakReference<>(player);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(party, player);
+    /**
+     * Gets the associated {@link Player} with this member if they are online.
+     * This should be used in contrast to {@link OfflinePlayer#getPlayer()} from {@link #getOfflinePlayer()}
+     * for better caching
+     * @return An optional of the player
+     */
+    public @NotNull Optional<Player> getPlayerIfOnline() {
+        OfflinePlayer player = cachedPlayer.get();
+
+        if (player != null) {
+            if (player.isOnline()) {
+                return Optional.ofNullable(player.getPlayer());
+            }
+            else {
+                this.cachedPlayer.clear();
+            }
+        }
+        else {
+            Player fresh = server.getPlayer(playerUUID);
+
+            if (fresh != null && fresh.isOnline()) {
+                this.cachedPlayer = new WeakReference<>(fresh);
+                return Optional.of(fresh);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Gets the {@link OfflinePlayer} associated with this member
+     * @return The offline player
+     */
+    public @NotNull OfflinePlayer getOfflinePlayer() {
+        OfflinePlayer player = this.cachedPlayer.get();
+        if (player != null) {
+            return player;
+        }
+        else {
+            OfflinePlayer fresh = this.server.getOfflinePlayer(this.playerUUID);
+            this.cachedPlayer = new WeakReference<>(fresh);
+            return fresh;
+        }
+    }
+
+    public boolean isInPartyChat() {
+        return this.inPartyChat;
+    }
+
+    public void setInPartyChat(boolean inPartyChat) {
+        this.inPartyChat = inPartyChat;
+    }
+
+    public boolean isMuted() {
+        return this.muted;
+    }
+
+    public void setMuted(boolean muted) {
+        this.muted = muted;
     }
 
 }

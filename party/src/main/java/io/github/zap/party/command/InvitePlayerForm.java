@@ -10,8 +10,11 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
+import io.github.zap.party.party.PartyMember;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.Optional;
 
 /**
  * Invites a player to your party
@@ -51,13 +54,10 @@ public class InvitePlayerForm extends CommandForm<Player> {
     @Override
     public String execute(Context context, Object[] arguments, Player data) {
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-
         Player sender = (Player) context.getSender();
-        Party party = partyManager.getPartyForPlayer(sender);
 
-        if (party == null) {
-            party = partyManager.createParty(sender);
-        }
+        Party party = partyManager.getPartyForPlayer(sender).orElseGet(() ->
+                partyManager.createParty(new PartyMember(sender), partyManager.createPartySettings(sender)));
 
         if (party.isOwner(sender) || party.getPartySettings().isAllInvite()) {
             partyManager.invitePlayer(party, sender, data);

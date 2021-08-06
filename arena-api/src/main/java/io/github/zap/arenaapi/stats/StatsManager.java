@@ -16,7 +16,7 @@ import java.util.function.Function;
  */
 public abstract class StatsManager {
 
-    private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     private final static long EXPERIMENTALLY_DETERMINED_BEST_EXECUTOR_SERVICE_SHUTDOWN_TIME = 69L;
 

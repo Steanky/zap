@@ -252,9 +252,13 @@ implements Listener {
     public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
         PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
         if (partyPlusPlus != null) {
-            PartyMember partyMember = partyPlusPlus.getPartyManager().getPlayerAsPartyMember(event.getPlayer());
-            if (partyMember != null && partyMember.isInPartyChat()) {
-                return;
+            Optional<PartyMember> partyMemberOptional = partyPlusPlus.getPartyManager()
+                    .getPlayerAsPartyMember(event.getPlayer());
+            if (partyMemberOptional.isPresent()) {
+                PartyMember partyMember = partyMemberOptional.get();
+                if (partyMember.isInPartyChat()) {
+                    return;
+                }
             }
         }
 

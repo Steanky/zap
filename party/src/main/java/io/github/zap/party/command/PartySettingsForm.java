@@ -12,6 +12,7 @@ import io.github.zap.party.party.Party;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 // TODO: far post-beta, allow for settings to be more flexible
 public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
@@ -24,12 +25,13 @@ public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
 
     private static final CommandValidator<Pair<Party, Object[]>, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager()
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyManager()
                 .getPartyForPlayer(previousData);
-
-        if (party == null) {
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
+
+        Party party = partyOptional.get();
 
         if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);

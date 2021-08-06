@@ -14,6 +14,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
+
 /**
  * Transfers the party to another player
  */
@@ -27,11 +29,13 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
     private static final CommandValidator<Pair<Party, Player>, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer(previousData);
 
-        if (party == null) {
+        Optional<Party> partyOptional = partyManager.getPartyForPlayer(previousData);
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
+
+        Party party = partyOptional.get();
 
         if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
@@ -47,11 +51,15 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
             return ValidationResult.of(false, String.format("%s is currently not online.", playerName), null);
         }
 
-        if (!party.equals(partyManager.getPartyForPlayer(toTransfer))) {
-            return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
+        Optional<Party> toTransferPartyOptional = partyManager.getPartyForPlayer(toTransfer);
+        if (toTransferPartyOptional.isPresent()) {
+            Party toTransferParty = toTransferPartyOptional.get();
+            if (party.equals(toTransferParty)) {
+                return ValidationResult.of(true, null, Pair.of(party, toTransfer));
+            }
         }
 
-        return ValidationResult.of(true, null, Pair.of(party, toTransfer));
+        return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
     }, Validators.PLAYER_EXECUTOR);
 
     public TransferPartyForm() {

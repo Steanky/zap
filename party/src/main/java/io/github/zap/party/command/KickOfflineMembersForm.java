@@ -11,6 +11,8 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
 
+import java.util.Optional;
+
 /**
  * Kicks all offline members from the party
  */
@@ -23,11 +25,13 @@ public class KickOfflineMembersForm extends CommandForm<Party> {
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer(previousData);
 
-        if (party == null) {
+        Optional<Party> partyOptional = partyManager.getPartyForPlayer(previousData);
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
+
+        Party party = partyOptional.get();
 
         if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);

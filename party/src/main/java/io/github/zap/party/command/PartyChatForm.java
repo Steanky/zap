@@ -12,6 +12,8 @@ import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
+
 public class PartyChatForm extends CommandForm<Void> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {
@@ -20,9 +22,8 @@ public class PartyChatForm extends CommandForm<Void> {
 
     private static final CommandValidator<Void, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
-
-        if (party == null) {
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
@@ -47,8 +48,10 @@ public class PartyChatForm extends CommandForm<Void> {
     public String execute(Context context, Object[] arguments, Void data) {
         Player sender = (Player) context.getSender();
 
-        PartyMember partyMember = PartyPlusPlus.getInstance().getPartyManager().getPlayerAsPartyMember(sender);
-        if (partyMember != null) {
+        Optional<PartyMember> partyMemberOptional = PartyPlusPlus.getInstance().getPartyManager()
+                .getPlayerAsPartyMember(sender);
+        if (partyMemberOptional.isPresent()) {
+            PartyMember partyMember = partyMemberOptional.get();
             partyMember.setInPartyChat(!partyMember.isInPartyChat());
             return String.format(">gold{Turned party chat %s!}", (partyMember.isInPartyChat()) ? "ON" : "OFF");
         }

@@ -3,6 +3,7 @@ package io.github.zap.party.party;
 import io.github.zap.party.PartyPlusPlus;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -10,24 +11,25 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Manages all party logic
  */
 public class PartyManager implements Listener {
 
-    private final Map<OfflinePlayer, Party> partyMap = new HashMap<>();
+    private final BukkitScheduler bukkitScheduler;
 
-    private final Map<Party, Map<OfflinePlayer, Integer>> partyInvitationMap = new HashMap<>();
+    private final Map<UUID, Party> partyMap = new HashMap<>();
 
-    public PartyManager() {
-        Bukkit.getPluginManager().registerEvents(this, PartyPlusPlus.getInstance());
+    private final Map<Party, Map<UUID, Integer>> partyInvitationMap = new HashMap<>();
+
+    public PartyManager(@NotNull BukkitScheduler bukkitScheduler) {
+        this.bukkitScheduler = bukkitScheduler;
     }
 
     /**
@@ -42,27 +44,20 @@ public class PartyManager implements Listener {
     /**
      * Gets the party of a player
      * @param player The player to get the party of
-     * @return The party of the player, or null if it does not exist
+     * @return The party of the player
      */
-    public @Nullable Party getPartyForPlayer(@NotNull OfflinePlayer player) {
-        return partyMap.get(player);
+    public @NotNull Optional<Party> getPartyForPlayer(@NotNull OfflinePlayer player) {
+        return Optional.ofNullable(partyMap.get(player.getUniqueId()));
     }
 
     /**
      * Gets the player as a member of a party
      * @param player The player to get the party member of
-     * @return The party member representation of the player, or null if the player is not in a party
+     * @return The party member representation of the player
      */
-    public @Nullable PartyMember getPlayerAsPartyMember(@NotNull OfflinePlayer player) {
-        String name = player.getName();
-        if (name != null) {
-            Party party = getPartyForPlayer(player);
-            if (party != null) {
-                return party.getMember(player.getName());
-            }
-        }
-
-        return null;
+    public @NotNull Optional<PartyMember> getPlayerAsPartyMember(@NotNull OfflinePlayer player) {
+        Optional<Party> partyOptional = getPartyForPlayer(player);
+        return partyOptional.flatMap(party -> party.getMember(player.getUniqueId()));
     }
 
     /**
@@ -70,8 +65,9 @@ public class PartyManager implements Listener {
      * @param owner The owner of the party
      * @return The new party
      */
-    public @NotNull Party createParty(@NotNull Player owner) {
-        return partyMap.computeIfAbsent(owner, (unused) -> new Party(owner));
+    public @NotNull Party createParty(@NotNull PartyMember owner, @NotNull PartySettings partySettings) {
+        return partyMap.computeIfAbsent(owner.getOfflinePlayer().getUniqueId(),
+                (unused) -> new Party(owner, partySettings));
     }
 
     /**
@@ -79,15 +75,15 @@ public class PartyManager implements Listener {
      * @param party The party to add the player to
      * @param player The player to add to the party
      */
-    public void addPlayerToParty(@NotNull Party party, @NotNull OfflinePlayer player) {
+    public void addPlayerToParty(@NotNull Party party, @NotNull Player player) {
         party.addMember(player);
-        partyMap.put(player, party);
+        this.partyMap.put(player.getUniqueId(), party);
 
-        Map<OfflinePlayer, Integer> map = partyInvitationMap.get(party);
+        Map<UUID, Integer> map = this.partyInvitationMap.get(party);
         if (map != null) {
-            Bukkit.getScheduler().cancelTask(map.remove(player));
+            this.bukkitScheduler.cancelTask(map.remove(player.getUniqueId()));
             if (map.isEmpty()) {
-                partyInvitationMap.remove(party);
+                this.partyInvitationMap.remove(party);
             }
         }
     }
@@ -98,11 +94,11 @@ public class PartyManager implements Listener {
      * @param forced Whether the removal was forced
      */
     public void removePlayerFromParty(@NotNull OfflinePlayer player, boolean forced) {
-        Party party = partyMap.get(player);
+        Party party = this.partyMap.get(player.getUniqueId());
 
         if (player.getName() != null && party != null) {
-            party.removeMember(player.getName(), forced);
-            partyMap.remove(player);
+            party.removeMember(player.getUniqueId(), forced);
+            this.partyMap.remove(player.getUniqueId());
         }
     }
 
@@ -110,18 +106,18 @@ public class PartyManager implements Listener {
      * Disbands a party and removes all players from it
      * @param party The party to disband
      */
-    public void disbandParty(@NotNull Party party) {
+    public void disbandParty(@NotNull BukkitScheduler bukkitScheduler, @NotNull Party party) {
         for (OfflinePlayer player : party.disband()) {
-            partyMap.remove(player);
+            this.partyMap.remove(player.getUniqueId());
         }
 
-        Map<OfflinePlayer, Integer> map = partyInvitationMap.get(party);
+        Map<UUID, Integer> map = this.partyInvitationMap.get(party);
         if (map != null) {
             for (Integer task : map.values()) {
-                Bukkit.getScheduler().cancelTask(task);
+                bukkitScheduler.cancelTask(task);
             }
             if (map.isEmpty()) {
-                partyInvitationMap.remove(party);
+                this.partyInvitationMap.remove(party);
             }
         }
     }
@@ -132,7 +128,7 @@ public class PartyManager implements Listener {
      */
     public void kickOffline(@NotNull Party party) {
         for (OfflinePlayer player : party.kickOffline()) {
-            partyMap.remove(player);
+            this.partyMap.remove(player.getUniqueId());
         }
     }
 
@@ -149,74 +145,101 @@ public class PartyManager implements Listener {
         double expirationTime = party.getPartySettings().getInviteExpirationTime() / 20F;
 
         String ownerName = Objects.toString(partyOwner.getName());
-        String inviteeName = invitee.getName();
         String joinCommand = String.format("/party join %s", ownerName);
 
-        Component invitation = Component.text(inviter.getName(), NamedTextColor.GRAY)
-                .append(Component.text((partyOwner.equals(inviter))
-                        ? " has invited you to join their party! Click"
-                        : String.format(" has invited you to join %s's party! Click", ownerName),
-                        NamedTextColor.YELLOW))
-                .append(Component.text(" here ", NamedTextColor.RED)
-                        .hoverEvent(Component.text(joinCommand, NamedTextColor.YELLOW))
-                        .clickEvent(ClickEvent.runCommand(joinCommand)))
-                .append(Component.text(String.format("to join! You have %.1f seconds to accept!", expirationTime),
-                        NamedTextColor.YELLOW));
+        Player onlinePartyOwner = partyOwner.getPlayer();
+        Component ownerComponent = (onlinePartyOwner != null)
+                ? onlinePartyOwner.displayName()
+                : Component.text(ownerName, NamedTextColor.GRAY);
 
-        invitee.sendMessage(invitation);
+        Component joinCommandComponent = TextComponent.ofChildren(
+                Component.text("/party join "),
+                ownerComponent
+        );
 
-        Component invitationNotification = Component.text(inviter.getName(), NamedTextColor.GRAY)
-                .append(Component.text(" has invited ", NamedTextColor.YELLOW))
-                .append(Component.text(inviteeName, NamedTextColor.GRAY))
-                .append(Component.text(String.format(" to the party! They have %.1f seconds to accept.",
-                        expirationTime), NamedTextColor.YELLOW));
+        Component second;
+        if (partyOwner.equals(inviter)) {
+            second = Component.text(" has invited you to join their party! Click", NamedTextColor.YELLOW);
+        }
+        else {
+            second = TextComponent.ofChildren(
+                    Component.text(" has invited you to join ", NamedTextColor.YELLOW),
+                    ownerComponent,
+                    Component.text("'s party! Click", NamedTextColor.YELLOW)
+            );
+        }
 
-        party.broadcastMessage(invitationNotification);
+        invitee.sendMessage(TextComponent.ofChildren(
+                inviter.displayName(),
+                second,
+                Component.text(" here ", NamedTextColor.RED)
+                        .hoverEvent(joinCommandComponent)
+                        .clickEvent(ClickEvent.runCommand(joinCommand)),
+                Component.text(String.format("to join! You have %.1f seconds to accept!", expirationTime),
+                                NamedTextColor.YELLOW)
+        ));
 
-        int taskId = Bukkit.getScheduler().runTaskLater(PartyPlusPlus.getInstance(), () -> {
+        party.broadcastMessage(TextComponent.ofChildren(
+                inviter.displayName(),
+                Component.text(" has invited ", NamedTextColor.YELLOW),
+                invitee.displayName(),
+                Component.text(String.format(" to the party! They have %.1f seconds to accept.",
+                        expirationTime), NamedTextColor.YELLOW)
+        ));
+
+        Component inviteeDisplayName = invitee.displayName();
+
+        int taskId = this.bukkitScheduler.runTaskLater(PartyPlusPlus.getInstance(), () -> {
             party.removeInvite(invitee);
 
-            if (!party.hasMember(invitee.getName())) {
-                Component partyExpiration = Component.text("The invite to ", NamedTextColor.YELLOW)
-                        .append(Component.text(inviteeName, NamedTextColor.GRAY))
-                        .append(Component.text(" has expired.", NamedTextColor.YELLOW));
+            if (!party.hasMember(invitee.getUniqueId())) {
+                party.broadcastMessage(TextComponent.ofChildren(
+                        Component.text("The invite to ", NamedTextColor.YELLOW),
+                        inviteeDisplayName,
+                        Component.text(" has expired.", NamedTextColor.YELLOW)
+                ));
 
-                party.broadcastMessage(partyExpiration);
-
-                Component inviteeExpiration = Component.text("The invite to ", NamedTextColor.YELLOW)
-                        .append(Component.text(ownerName, NamedTextColor.GRAY))
-                        .append(Component.text("'s party has expired.", NamedTextColor.YELLOW));
                 if (invitee.isOnline()) {
-                    invitee.sendMessage(inviteeExpiration);
+                    invitee.sendMessage(TextComponent.ofChildren(
+                            Component.text("The invite to ", NamedTextColor.YELLOW),
+                            ownerComponent,
+                            Component.text("'s party has expired.")
+                    ));
                 }
             }
         }, party.getPartySettings().getInviteExpirationTime()).getTaskId();
-        partyInvitationMap.computeIfAbsent(party, unused -> new HashMap<>()).put(invitee, taskId);
+        this.partyInvitationMap.computeIfAbsent(party, unused -> new HashMap<>()).put(invitee.getUniqueId(), taskId);
     }
 
     @EventHandler
     private void onAsyncChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        Party party = getPartyForPlayer(player);
+        Optional<Party> partyOptional = this.getPartyForPlayer(player);
 
-        if (party != null) {
-            PartyMember partyMember = party.getMember(player.getName());
-            if (partyMember != null && partyMember.isInPartyChat()) {
-                event.setCancelled(true);
+        if (partyOptional.isPresent()) {
+            Party party = partyOptional.get();
+            Optional<PartyMember> optionalPartyMember = party.getMember(player.getUniqueId());
+            if (optionalPartyMember.isPresent()) {
+                PartyMember partyMember = optionalPartyMember.get();
+                if (partyMember.isInPartyChat()) {
+                    event.setCancelled(true);
 
-                if (partyMember.isMuted()) {
-                    player.sendMessage(Component.text("You are muted from speaking in the party chat.",
-                            NamedTextColor.RED));
-                } else if (party.getPartySettings().isMuted() && !party.isOwner(player)) {
-                    player.sendMessage(Component.text("The party chat is muted.",
-                            NamedTextColor.RED));
-                } else {
-                    Component message = Component.empty()
-                            .append(Component.text("Party > ", NamedTextColor.BLUE))
-                            .append(Component.text(String.format("<%s> ", event.getPlayer().getName()),
-                                    NamedTextColor.WHITE))
-                            .append(event.message());
-                    party.broadcastMessage(message);
+                    if (partyMember.isMuted()) {
+                        player.sendMessage(Component.text("You are muted from speaking in the party chat.",
+                                NamedTextColor.RED));
+                    }
+                    else if (party.getPartySettings().isMuted() && !party.isOwner(player)) {
+                        player.sendMessage(Component.text("The party chat is muted.", NamedTextColor.RED));
+                    }
+                    else {
+                        party.broadcastMessage(TextComponent.ofChildren(
+                                Component.text("Party", NamedTextColor.BLUE),
+                                Component.text(" >", NamedTextColor.DARK_GRAY),
+                                Component.text("<", NamedTextColor.WHITE),
+                                event.getPlayer().displayName(),
+                                Component.text("> ")
+                        ));
+                    }
                 }
             }
         }

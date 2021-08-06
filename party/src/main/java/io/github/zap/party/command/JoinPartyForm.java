@@ -12,6 +12,9 @@ import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+
+import java.util.Optional;
 
 /**
  * Joins a player's party if it exists
@@ -45,12 +48,12 @@ public class JoinPartyForm extends CommandForm<Party> {
 
         ownerName = owner.getName(); // change any capitalization
 
-        Party party = partyManager.getPartyForPlayer(owner);
-
-        if (party == null) {
+        Optional<Party> partyOptional = partyManager.getPartyForPlayer(owner);
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, String.format("%s is not in a party.", owner), null);
         }
 
+        Party party = partyOptional.get();
         if (!(party.hasInvite(previousData) || party.getPartySettings().isAnyoneCanJoin())) {
             return ValidationResult.of(false, String.format("You don't have an invite to %s's party!",
                     ownerName), null);
@@ -70,7 +73,7 @@ public class JoinPartyForm extends CommandForm<Party> {
 
     @Override
     public String execute(Context context, Object[] arguments, Party data) {
-        PartyPlusPlus.getInstance().getPartyManager().addPlayerToParty(data, (OfflinePlayer) context.getSender());
+        PartyPlusPlus.getInstance().getPartyManager().addPlayerToParty(data, (Player) context.getSender());
         return null;
     }
 

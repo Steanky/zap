@@ -13,6 +13,8 @@ import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
+import java.util.Optional;
+
 /**
  * Kicks a member from the party
  */
@@ -26,11 +28,13 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
     private static final CommandValidator<OfflinePlayer, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer(previousData);
 
-        if (party == null) {
+        Optional<Party> partyOptional = partyManager.getPartyForPlayer(previousData);
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
+
+        Party party = partyOptional.get();
 
         if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
@@ -47,11 +51,15 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
                     null);
         }
 
-        if (!party.equals(partyManager.getPartyForPlayer(toKick))) {
-            return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
+        Optional<Party> toKickPartyOptional = partyManager.getPartyForPlayer(toKick);
+        if (toKickPartyOptional.isPresent()) {
+            if (party.equals(toKickPartyOptional.get())) {
+                return ValidationResult.of(true, null, toKick);
+            }
         }
 
-        return ValidationResult.of(true, null, toKick);
+        return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
+
     }, Validators.PLAYER_EXECUTOR);
 
     public KickMemberForm() {

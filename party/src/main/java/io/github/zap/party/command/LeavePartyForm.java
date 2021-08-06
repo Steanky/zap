@@ -11,6 +11,8 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import org.bukkit.OfflinePlayer;
 
+import java.util.Optional;
+
 /**
  * Leaves your current party
  */
@@ -22,9 +24,8 @@ public class LeavePartyForm extends CommandForm<Void> {
 
     private static final CommandValidator<Void, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
-
-        if (party == null) {
+        Optional<Party> party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
+        if (party.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 

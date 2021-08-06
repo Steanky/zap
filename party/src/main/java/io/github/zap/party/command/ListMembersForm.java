@@ -11,6 +11,8 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import net.kyori.adventure.text.Component;
 
+import java.util.Optional;
+
 /**
  * Lists all members in a party
  */
@@ -22,13 +24,12 @@ public class ListMembersForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
-
-        if (party == null) {
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        return ValidationResult.of(true, null, party);
+        return ValidationResult.of(true, null, partyOptional.get());
     }, Validators.PLAYER_EXECUTOR);
 
     public ListMembersForm() {

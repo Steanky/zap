@@ -1,8 +1,8 @@
 package io.github.zap.party.party;
 
 import io.github.zap.party.PartyPlusPlus;
-import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -21,77 +21,88 @@ public class Party {
 
     private final static PartyMember[] ARRAY = new PartyMember[0];
 
-    @Getter
     private final UUID uuid = UUID.randomUUID();
 
-    @Getter
     private final PartySettings partySettings;
 
-    private final Map<String, PartyMember> members = new HashMap<>();
+    private final Map<UUID, PartyMember> members = new HashMap<>();
 
     private final Set<OfflinePlayer> invites = new HashSet<>();
 
     private PartyMember owner;
 
-    public Party(@NotNull Player owner) {
-        this.owner = new PartyMember(this, owner);
-        this.partySettings = PartyPlusPlus.getInstance().getPartyManager().createPartySettings(owner);
+    public Party(@NotNull PartyMember owner, @NotNull PartySettings partySettings) {
+        this.owner = owner;
+        this.partySettings = partySettings;
 
-        members.put(owner.getName().toLowerCase(), this.owner);
+        members.put(owner.getOfflinePlayer().getUniqueId(), owner);
     }
 
     /**
      * Adds a member to the party
      * @param player The new player
      */
-    public void addMember(@NotNull OfflinePlayer player) {
-        String memberName = player.getName();
+    public void addMember(@NotNull Player player) {
+        UUID memberUUID = player.getUniqueId();
 
-        if (memberName != null && !members.containsKey(memberName)) {
-            members.put(memberName.toLowerCase(), new PartyMember(this, player));
+        if (!members.containsKey(memberUUID)) {
+            members.put(memberUUID, new PartyMember(player));
             invites.remove(player);
 
-            Component newPlayer = Component.text(memberName, NamedTextColor.GRAY)
-                    .append(Component.text(" has joined the party.", NamedTextColor.YELLOW));
-
-            broadcastMessage(newPlayer);
+            broadcastMessage(TextComponent.ofChildren(
+                    player.displayName(),
+                    Component.text(" has joined the party.", NamedTextColor.YELLOW)
+            ));
         }
     }
 
     /**
      * Removes a member from the party
-     * @param name The name of the member to remove
+     * @param uuid The id of the member to remove
      */
-    public void removeMember(@NotNull String name, boolean forced) {
-        if (members.containsKey(name.toLowerCase())) {
-            PartyMember removed = members.remove(name);
+    public void removeMember(@NotNull UUID uuid, boolean forced) {
+        if (members.containsKey(uuid)) {
+            PartyMember removed = members.remove(uuid);
             String message = (forced) ? "been removed from" : "left";
+
+            OfflinePlayer offlinePlayer = owner.getOfflinePlayer();
+            Player onlinePlayer = offlinePlayer.getPlayer();
+
+            Component name = (onlinePlayer != null)
+                    ? onlinePlayer.displayName()
+                    : Component.text(Objects.toString(offlinePlayer.getName()), NamedTextColor.GRAY);
 
             if (owner.equals(removed)) {
                 chooseNewOwner();
 
                 if (owner != null) {
-                    Component partyTransferred = Component.text(name, NamedTextColor.GRAY)
-                            .append(Component
-                                    .text(String.format(" has %s the party. The party has been transferred to ",
-                                            message), NamedTextColor.YELLOW))
-                            .append(Component.text(Objects.toString(owner.getPlayer().getName()), NamedTextColor.GRAY));
-                    broadcastMessage(partyTransferred);
-                }
-                // if there was nobody else in the party, there was nobody else to transfer the party to.
+                    OfflinePlayer offlineOwner = owner.getOfflinePlayer();
+                    Player onlineOwner = offlineOwner.getPlayer();
+                    Component toName = (onlineOwner != null)
+                            ? onlineOwner.displayName()
+                            : Component.text(Objects.toString(offlineOwner.getName()), NamedTextColor.GRAY);
 
+                    broadcastMessage(TextComponent.ofChildren(
+                            name,
+                            Component.text(" has been removed from the party. " +
+                                    "The party has been transferred to ", NamedTextColor.YELLOW),
+                            toName,
+                            Component.text(".", NamedTextColor.YELLOW)
+                    ));
+                }
+
+                // if there was nobody else in the party, there was nobody else to transfer the party to.
                 return;
             }
 
-            Component memberLeft = Component.text(name, NamedTextColor.GRAY)
-                    .append(Component.text(String.format(" has %s the party.", message), NamedTextColor.YELLOW));
-            broadcastMessage(memberLeft);
+            broadcastMessage(TextComponent.ofChildren(
+                    name,
+                    Component.text(String.format(" has %s the party.", message), NamedTextColor.YELLOW)
+            ));
 
-            Player player = removed.getPlayer().getPlayer();
-            if (player != null) {
-                player.sendMessage(Component.text(String.format("You have %s the party.", message),
-                        NamedTextColor.YELLOW));
-            }
+            removed.getPlayerIfOnline().ifPresent(oldOwner ->
+                    oldOwner.sendMessage(Component.text(String.format("You have %s the party.", message),
+                            NamedTextColor.YELLOW)));
         }
     }
 
@@ -105,25 +116,30 @@ public class Party {
         Iterator<PartyMember> iterator = members.values().iterator();
         while (iterator.hasNext()) {
             PartyMember partyMember = iterator.next();
-
-            if (!partyMember.getPlayer().isOnline()) {
+            OfflinePlayer player = partyMember.getOfflinePlayer();
+            if (!player.isOnline()) {
                 if (owner.equals(partyMember)) {
                     chooseNewOwner();
 
                     if (owner != null) {
-                        Component partyTransferred = Component.text(Objects.toString(partyMember.getPlayer().getName()),
-                                NamedTextColor.GRAY)
-                                .append(Component.text(" has been removed from the party. " +
-                                                "The party has been transferred to ", NamedTextColor.YELLOW))
-                                .append(Component.text(Objects.toString(owner.getPlayer().getName()),
-                                        NamedTextColor.GRAY));
-                        broadcastMessage(partyTransferred);
+                        OfflinePlayer offlineOwner = owner.getOfflinePlayer();
+                        Player onlineOwner = offlineOwner.getPlayer();
+                        Component name = (onlineOwner != null)
+                                ? onlineOwner.displayName()
+                                : Component.text(Objects.toString(offlineOwner.getName()), NamedTextColor.GRAY);
+
+                        broadcastMessage(TextComponent.ofChildren(
+                                Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY),
+                                Component.text(" has been removed from the party. " +
+                                        "The party has been transferred to ", NamedTextColor.YELLOW),
+                                name,
+                                Component.text(".", NamedTextColor.YELLOW)
+                        ));
                     }
-                    // if there was nobody else in the party, there was nobody else to transfer the party to.
                 }
 
                 iterator.remove();
-                offlinePlayers.add(partyMember.getPlayer());
+                offlinePlayers.add(player);
             }
         }
 
@@ -151,20 +167,24 @@ public class Party {
      * @param player The player to toggle on
      */
     public void mutePlayer(@NotNull OfflinePlayer player) {
-        PartyMember member = members.get(player.getName());
+        PartyMember member = members.get(player.getUniqueId());
         if (member != null && member != owner) {
             member.setMuted(!member.isMuted());
 
-            Component muted = Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY)
-                    .append(Component.text(String.format(" has been %s.", member.isMuted() ? "muted" : "unmuted"),
-                            NamedTextColor.YELLOW));
-            broadcastMessage(muted);
+            Component name = member.getPlayerIfOnline()
+                    .map(Player::displayName)
+                    .orElse(Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY));
+            broadcastMessage(TextComponent.ofChildren(
+                    name,
+                    Component.text(String.format(" has been %s.", member.isMuted() ? "muted" : "unmuted"),
+                            NamedTextColor.YELLOW)
+            ));
         }
     }
 
     private void chooseNewOwner() {
         List<PartyMember> memberArray = members.values().stream()
-                .filter(member -> member.getPlayer().isOnline() && !owner.equals(member)).toList();
+                .filter(member -> member.getOfflinePlayer().isOnline() && !owner.equals(member)).toList();
 
         if (memberArray.size() > 0) {
             owner = memberArray.get(RANDOM.nextInt(memberArray.size()));
@@ -180,7 +200,7 @@ public class Party {
      * Disbands the party
      * @return The players that were in the party
      */
-    public Collection<OfflinePlayer> disband() {
+    public @NotNull Collection<OfflinePlayer> disband() {
         Collection<PartyMember> memberCollection = members.values();
         List<OfflinePlayer> offlinePlayers = new ArrayList<>(memberCollection.size());
 
@@ -188,7 +208,7 @@ public class Party {
 
         Iterator<PartyMember> iterator = memberCollection.iterator();
         while (iterator.hasNext()) {
-            OfflinePlayer offlinePlayer = iterator.next().getPlayer();
+            OfflinePlayer offlinePlayer = iterator.next().getOfflinePlayer();
             Player player = offlinePlayer.getPlayer();
 
             if (player != null) {
@@ -233,7 +253,7 @@ public class Party {
      * @return Whether the player is the party owner
      */
     public boolean isOwner(@NotNull OfflinePlayer player) {
-        return owner.getPlayer().equals(player);
+        return owner.getOfflinePlayer().equals(player);
     }
 
     /**
@@ -241,7 +261,7 @@ public class Party {
      * @return The owner of the party
      */
     public @NotNull OfflinePlayer getOwner() {
-        return owner.getPlayer();
+        return owner.getOfflinePlayer();
     }
 
     /**
@@ -249,33 +269,37 @@ public class Party {
      * @param player The player to transfer the party to
      */
     public void transferPartyToPlayer(@NotNull OfflinePlayer player) {
-        String playerName = player.getName();
+        PartyMember member = members.get(player.getUniqueId());
 
-        if (playerName != null) {
-            PartyMember member = members.get(playerName.toLowerCase());
+        if (member != null) {
+            Component fromName = member.getPlayerIfOnline()
+                    .map(Player::displayName)
+                    .orElse(Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY));
 
-            if (member != null) {
-                Component transfer = Component.text("The party has been transferred from ",
-                        NamedTextColor.YELLOW)
-                        .append(Component.text(Objects.toString(owner.getPlayer().getName()), NamedTextColor.GRAY))
-                        .append(Component.text(" to ", NamedTextColor.YELLOW))
-                        .append(Component.text(playerName, NamedTextColor.GRAY))
-                        .append(Component.text(".", NamedTextColor.YELLOW));
+            Player toPlayer = player.getPlayer();
+            Component toName = (toPlayer != null)
+                    ? toPlayer.displayName()
+                    : Component.text(Objects.toString(player.getName()), NamedTextColor.YELLOW);
 
-                broadcastMessage(transfer);
+            broadcastMessage(TextComponent.ofChildren(
+                    Component.text("The party has been transferred from ", NamedTextColor.YELLOW),
+                    fromName,
+                    Component.text(" to ", NamedTextColor.YELLOW),
+                    toName,
+                    Component.text(".", NamedTextColor.YELLOW)
+            ));
 
-                owner = member;
-            }
+            owner = member;
         }
     }
 
     /**
      * Gets a party member
-     * @param name The name of the player
+     * @param uuid The id of the player
      * @return The party member corresponding to the player, or null if it does not exist
      */
-    public @Nullable PartyMember getMember(@NotNull String name) {
-        return members.get(name.toLowerCase());
+    public @NotNull Optional<PartyMember> getMember(@NotNull UUID uuid) {
+        return Optional.ofNullable(members.get(uuid));
     }
 
     /**
@@ -283,17 +307,23 @@ public class Party {
      * @return The online players in the party
      */
     public @NotNull List<Player> getOnlinePlayers() {
-        return members.values().stream().map(PartyMember::getPlayer).filter(OfflinePlayer::isOnline)
-                .map(player -> (Player) player).collect(Collectors.toList());
+        List<Player> players = new ArrayList<>();
+
+        for (PartyMember partyMember : members.values()) {
+            Optional<Player> partyMemberOptional = partyMember.getPlayerIfOnline();
+            partyMemberOptional.ifPresent(players::add);
+        }
+
+        return players;
     }
 
     /**
      * Determines if the party has a member
-     * @param name The name of the member
+     * @param uuid The id of the member
      * @return Whether the party has the member
      */
-    public boolean hasMember(@NotNull String name) {
-        return members.containsKey(name.toLowerCase());
+    public boolean hasMember(@NotNull UUID uuid) {
+        return members.containsKey(uuid);
     }
 
     /**
@@ -301,12 +331,8 @@ public class Party {
      * @param message The component to send
      */
     public void broadcastMessage(@NotNull Component message) {
-        for (PartyMember partyMember : members.values()) {
-            Player player = partyMember.getPlayer().getPlayer();
-
-            if (player != null) {
-                player.sendMessage(message);
-            }
+        for (PartyMember member : members.values()) {
+            member.getPlayerIfOnline().ifPresent(player -> player.sendMessage(message));
         }
     }
 
@@ -315,69 +341,77 @@ public class Party {
      * @return The collection of components
      */
     public Collection<Component> getPartyListComponents() {
-        Component online = Component.text("Online", NamedTextColor.GREEN)
+        TextComponent.Builder online = Component.text()
+                .append(Component.text("Online", NamedTextColor.GREEN))
                 .append(Component.text(": ", NamedTextColor.WHITE));
-        Component offline = Component.text("Offline", NamedTextColor.RED)
+        TextComponent.Builder offline = Component.text()
+                .append(Component.text("Offline", NamedTextColor.RED))
                 .append(Component.text(": ", NamedTextColor.WHITE));
-        Component invited = Component.text("Invites", NamedTextColor.BLUE)
+        TextComponent.Builder invited = Component.text()
+                .append(Component.text("Invites", NamedTextColor.BLUE))
                 .append(Component.text(": ", NamedTextColor.WHITE));
 
         Collection<PartyMember> memberCollection = members.values();
-        List<OfflinePlayer> onlinePlayers = new ArrayList<>(memberCollection.size()),
-                offlinePlayers = new ArrayList<>(memberCollection.size());
+        List<Player> onlinePlayers = new ArrayList<>(memberCollection.size());
+        List<OfflinePlayer> offlinePlayers = new ArrayList<>(memberCollection.size());
 
         for (PartyMember member : memberCollection) {
-            OfflinePlayer player = member.getPlayer();
-            String playerName = player.getName();
-
-            if (playerName != null) {
-                if (player.isOnline()) {
-                    onlinePlayers.add(player);
-                } else {
-                    offlinePlayers.add(player);
-                }
+            OfflinePlayer offlinePlayer = member.getOfflinePlayer();
+            Player onlinePlayer = offlinePlayer.getPlayer();
+            if (onlinePlayer != null) {
+                onlinePlayers.add(onlinePlayer);
+            } else {
+                offlinePlayers.add(offlinePlayer);
             }
         }
 
         for (int i = 0; i < onlinePlayers.size(); i++) {
-            String playerName = onlinePlayers.get(i).getName();
+            online.append(onlinePlayers.get(i).displayName());
 
-            if (playerName != null) {
-                online = online.append(Component.text(playerName, NamedTextColor.GREEN));
-
-                if (i < onlinePlayers.size() - 1) {
-                    online = online.append(Component.text(", ", NamedTextColor.WHITE));
-                }
+            if (i < onlinePlayers.size() - 1) {
+                online.append(Component.text(", ", NamedTextColor.WHITE));
             }
         }
 
         for (int i = 0; i < offlinePlayers.size(); i++) {
-            String playerName = offlinePlayers.get(i).getName();
-
-            if (playerName != null) {
-                online = online.append(Component.text(playerName, NamedTextColor.RED));
-
-                if (i < offlinePlayers.size() - 1) {
-                    online = online.append(Component.text(", ", NamedTextColor.WHITE));
-                }
+            offline.append(Component.text(Objects.toString(offlinePlayers.get(i)), NamedTextColor.RED));
+            if (i < offlinePlayers.size() - 1) {
+                offline.append(Component.text(", ", NamedTextColor.WHITE));
             }
         }
 
         Iterator<OfflinePlayer> iterator = invites.iterator();
         while (iterator.hasNext()) {
-            OfflinePlayer next = iterator.next();
-            String playerName = next.getName();
+            OfflinePlayer offlinePlayer = iterator.next();
+            Player onlinePlayer = offlinePlayer.getPlayer();
 
-            if (playerName != null) {
-                invited = invited.append(Component.text(playerName, NamedTextColor.BLUE));
+            invited.append((onlinePlayer != null)
+                    ? onlinePlayer.displayName()
+                    : Component.text(Objects.toString(offlinePlayer.getName()), NamedTextColor.BLUE));
 
-                if (iterator.hasNext()) {
-                    invited = invited.append(Component.text(", ", NamedTextColor.WHITE));
-                }
+            if (iterator.hasNext()) {
+                invited.append(Component.text(", ", NamedTextColor.WHITE));
             }
         }
 
-        return List.of(online, offline, invited);
+        return List.of(online.build(), offline.build(), invited.build());
+    }
+
+
+    /**
+     * Gets the unique identifier of this party
+     * @return The UUID
+     */
+    public @NotNull UUID getId() {
+        return this.uuid;
+    }
+
+    /**
+     * Gets the party's settings
+     * @return The settings
+     */
+    public @NotNull PartySettings getPartySettings() {
+        return this.partySettings;
     }
 
     @Override

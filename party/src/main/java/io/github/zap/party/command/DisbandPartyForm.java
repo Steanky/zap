@@ -9,6 +9,9 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import org.bukkit.Bukkit;
+
+import java.util.Optional;
 
 /**
  * Removes all players in a party
@@ -21,12 +24,13 @@ public class DisbandPartyForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager()
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyManager()
                 .getPartyForPlayer(previousData);
 
-        if (party == null) {
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
+        Party party = partyOptional.get();
 
         if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
@@ -46,7 +50,7 @@ public class DisbandPartyForm extends CommandForm<Party> {
 
     @Override
     public String execute(Context context, Object[] arguments, Party data) {
-        PartyPlusPlus.getInstance().getPartyManager().disbandParty(data);
+        PartyPlusPlus.getInstance().getPartyManager().disbandParty(Bukkit.getScheduler(), data);
 
         return null;
     }

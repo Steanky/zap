@@ -18,6 +18,7 @@ import io.github.zap.zombies.Zombies;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
+import java.util.Optional;
 
 public class JoinZombiesGameForm extends CommandForm<Joinable> {
     private static final Parameter[] parameters = new Parameter[] {
@@ -46,9 +47,9 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
         Joinable joinable = null;
         PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
         if (partyPlusPlus != null) {
-            Party party = partyPlusPlus.getPartyManager().getPartyForPlayer(previousData);
-            if (party != null) {
-                joinable = new SimpleJoinable(party.getOnlinePlayers());
+            Optional<Party> partyOptional = partyPlusPlus.getPartyManager().getPartyForPlayer(previousData);
+            if (partyOptional.isPresent()) {
+                joinable = new SimpleJoinable(partyOptional.get().getOnlinePlayers());
             }
         }
         if (joinable == null) {

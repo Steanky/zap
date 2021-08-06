@@ -13,6 +13,8 @@ import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
+import java.util.Optional;
+
 /**
  * Mute a player or the party chat
  */
@@ -26,11 +28,13 @@ public class PartyMuteForm extends CommandForm<OfflinePlayer> {
     private static final CommandValidator<OfflinePlayer, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
         PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-        Party party = partyManager.getPartyForPlayer(previousData);
 
-        if (party == null) {
+        Optional<Party> partyOptional = partyManager.getPartyForPlayer(previousData);
+        if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
+
+        Party party = partyOptional.get();
 
         if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
@@ -48,8 +52,11 @@ public class PartyMuteForm extends CommandForm<OfflinePlayer> {
                         null);
             }
 
-            if (!party.equals(partyManager.getPartyForPlayer(toKick))) {
-                return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
+            Optional<Party> toKickPartyOptional = partyManager.getPartyForPlayer(toKick);
+            if (toKickPartyOptional.isPresent()) {
+                if (!party.equals(toKickPartyOptional.get())) {
+                    return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
+                }
             }
 
             return ValidationResult.of(true, null, toKick);
@@ -69,9 +76,10 @@ public class PartyMuteForm extends CommandForm<OfflinePlayer> {
 
     @Override
     public String execute(Context context, Object[] arguments, OfflinePlayer data) {
-        Party party = PartyPlusPlus.getInstance().getPartyManager()
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyManager()
                 .getPartyForPlayer((OfflinePlayer) context.getSender());
-        if (party != null) {
+        if (partyOptional.isPresent()) {
+            Party party = partyOptional.get();
             if (data == null) {
                 party.mute();
             } else {

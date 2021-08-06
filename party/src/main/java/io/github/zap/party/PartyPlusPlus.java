@@ -3,8 +3,10 @@ package io.github.zap.party;
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.party.command.PartyCommand;
 import io.github.zap.party.party.PartyManager;
+import io.github.zap.party.party.PartyMember;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -39,7 +41,8 @@ public class PartyPlusPlus extends JavaPlugin {
      * Initializes the party manager
      */
     private void initPartyManager() {
-        partyManager = new PartyManager();
+        PartyManager partyManager = new PartyManager(Bukkit.getScheduler());
+        Bukkit.getPluginManager().registerEvents(partyManager, this);
     }
 
     /**
