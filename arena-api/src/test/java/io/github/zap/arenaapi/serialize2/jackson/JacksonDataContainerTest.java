@@ -116,4 +116,11 @@ public class JacksonDataContainerTest {
         Optional<Nested> nestedOptional = container.getObject(new TypeToken<>() {}, "nested");
         Assertions.assertTrue(nestedOptional.isPresent());
     }
+
+    @Test
+    public void testNestedObjectDeserialization() {
+        Optional<NestedNested> nestedNestedOptional = container.getObject(new TypeToken<>(){}, "nested", "nested_nested");
+        Assertions.assertTrue(nestedNestedOptional.isPresent());
+        Assertions.assertEquals(69420, nestedNestedOptional.get().nested_nested_integer);
+    }
 }
