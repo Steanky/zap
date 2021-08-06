@@ -9,7 +9,6 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
@@ -27,9 +26,9 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
     private static final CommandValidator<OfflinePlayer, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
+        PartyPlusPlus partyPlusPlus = PartyPlusPlus.getInstance();
 
-        Optional<Party> partyOptional = partyManager.getPartyForPlayer(previousData);
+        Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
         if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
@@ -51,7 +50,7 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
                     null);
         }
 
-        Optional<Party> toKickPartyOptional = partyManager.getPartyForPlayer(toKick);
+        Optional<Party> toKickPartyOptional = partyPlusPlus.getPartyForPlayer(toKick);
         if (toKickPartyOptional.isPresent()) {
             if (party.equals(toKickPartyOptional.get())) {
                 return ValidationResult.of(true, null, toKick);
@@ -73,7 +72,7 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
     @Override
     public String execute(Context context, Object[] arguments, OfflinePlayer data) {
-        PartyPlusPlus.getInstance().getPartyManager().removePlayerFromParty(data, true);
+        PartyPlusPlus.getInstance().getPartyForPlayer(data).ifPresent(party -> party.removeMember(data, true));
         return null;
     }
 

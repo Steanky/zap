@@ -5,7 +5,7 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,7 +18,7 @@ public class PartyMember {
 
     private final UUID playerUUID;
 
-    private WeakReference<OfflinePlayer> cachedPlayer;
+    private SoftReference<OfflinePlayer> cachedPlayer;
 
     private boolean inPartyChat = false;
 
@@ -27,7 +27,7 @@ public class PartyMember {
     public PartyMember(@NotNull Player player) {
         this.server = player.getServer();
         this.playerUUID = player.getUniqueId();
-        this.cachedPlayer = new WeakReference<>(player);
+        this.cachedPlayer = new SoftReference<>(player);
     }
 
     /**
@@ -51,7 +51,7 @@ public class PartyMember {
             Player fresh = server.getPlayer(playerUUID);
 
             if (fresh != null && fresh.isOnline()) {
-                this.cachedPlayer = new WeakReference<>(fresh);
+                this.cachedPlayer = new SoftReference<>(fresh);
                 return Optional.of(fresh);
             }
         }
@@ -70,7 +70,7 @@ public class PartyMember {
         }
         else {
             OfflinePlayer fresh = this.server.getOfflinePlayer(this.playerUUID);
-            this.cachedPlayer = new WeakReference<>(fresh);
+            this.cachedPlayer = new SoftReference<>(fresh);
             return fresh;
         }
     }

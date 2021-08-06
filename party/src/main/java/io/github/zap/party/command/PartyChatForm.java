@@ -14,20 +14,20 @@ import org.bukkit.entity.Player;
 
 import java.util.Optional;
 
-public class PartyChatForm extends CommandForm<Void> {
+public class PartyChatForm extends CommandForm<Party> {
 
     private static final Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("chat")
     };
 
-    private static final CommandValidator<Void, ?> VALIDATOR
+    private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyForPlayer(previousData);
         if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
-        return ValidationResult.of(true, null, null);
+        return ValidationResult.of(true, null, partyOptional.get());
     }, Validators.PLAYER_EXECUTOR);
 
     public PartyChatForm() {
@@ -40,16 +40,13 @@ public class PartyChatForm extends CommandForm<Void> {
     }
 
     @Override
-    public CommandValidator<Void, ?> getValidator(Context context, Object[] arguments) {
+    public CommandValidator<Party, ?> getValidator(Context context, Object[] arguments) {
         return VALIDATOR;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments, Void data) {
-        Player sender = (Player) context.getSender();
-
-        Optional<PartyMember> partyMemberOptional = PartyPlusPlus.getInstance().getPartyManager()
-                .getPlayerAsPartyMember(sender);
+    public String execute(Context context, Object[] arguments, Party data) {
+        Optional<PartyMember> partyMemberOptional = data.getMember((Player) context.getSender());
         if (partyMemberOptional.isPresent()) {
             PartyMember partyMember = partyMemberOptional.get();
             partyMember.setInPartyChat(!partyMember.isInPartyChat());

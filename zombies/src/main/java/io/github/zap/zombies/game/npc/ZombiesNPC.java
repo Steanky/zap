@@ -325,7 +325,7 @@ public class ZombiesNPC implements Listener {
                     Joinable joinable = null;
                     PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
                     if (partyPlusPlus != null) {
-                        Optional<Party> partyOptional = partyPlusPlus.getPartyManager().getPartyForPlayer(player);
+                        Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(player);
                         if (partyOptional.isPresent()) {
                             joinable = new SimpleJoinable(partyOptional.get().getOnlinePlayers());
                         }

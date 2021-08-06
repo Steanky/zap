@@ -9,7 +9,6 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import io.github.zap.party.party.PartyManager;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -28,9 +27,9 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
 
     private static final CommandValidator<Pair<Party, Player>, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
+        PartyPlusPlus partyPlusPlus = PartyPlusPlus.getInstance();
 
-        Optional<Party> partyOptional = partyManager.getPartyForPlayer(previousData);
+        Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
         if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
@@ -51,7 +50,7 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
             return ValidationResult.of(false, String.format("%s is currently not online.", playerName), null);
         }
 
-        Optional<Party> toTransferPartyOptional = partyManager.getPartyForPlayer(toTransfer);
+        Optional<Party> toTransferPartyOptional = partyPlusPlus.getPartyForPlayer(toTransfer);
         if (toTransferPartyOptional.isPresent()) {
             Party toTransferParty = toTransferPartyOptional.get();
             if (party.equals(toTransferParty)) {
@@ -76,4 +75,5 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
         data.getLeft().transferPartyToPlayer(data.getRight());
         return null;
     }
+
 }
