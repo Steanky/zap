@@ -53,7 +53,7 @@ public interface IOSource {
 
             @Override
             public @NotNull OutputStream newOutput() {
-                return new ByteArrayOutputStream(0);
+                return OutputStream.nullOutputStream();
             }
         };
     }
