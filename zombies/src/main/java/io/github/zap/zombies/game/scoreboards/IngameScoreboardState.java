@@ -64,7 +64,14 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                     .line("Zombies Left: " + ChatColor.GREEN, zombieLeft)
                     .line();
 
-            playerStatues.forEach((l,r) -> writer.line(ChatColor.GRAY, r.getLeft(), ChatColor.WHITE + ": ", r.getRight()));
+            Pair<StringFragment, StringFragment> first = playerStatues.get(player.getKey());
+            writer.line(first);
+            for (Map.Entry<UUID, Pair<StringFragment, StringFragment>> entry : playerStatues.entrySet()) {
+                if (!entry.getKey().equals(player.getKey())) {
+                    writer.line(ChatColor.GRAY, entry.getValue().getLeft(), ChatColor.WHITE + ": ",
+                            entry.getValue().getRight());
+                }
+            }
 
             writer.line()
                     .line("Zombie Kills: " + ChatColor.GREEN, zombieKills)
