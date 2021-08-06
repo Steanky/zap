@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.serialize2.jackson;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +12,7 @@ import java.util.logging.Logger;
 
 public class JacksonIODataLoader extends JacksonDataLoaderAbstract {
     private final IOSource io;
+
     private final ObjectWriter writer;
 
     public JacksonIODataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull IOSource io) {
@@ -22,7 +24,14 @@ public class JacksonIODataLoader extends JacksonDataLoaderAbstract {
     @Override
     public @NotNull Optional<JacksonDataContainer> read() {
         try {
-            return Optional.of(new JacksonDataContainer(mapper, mapper.readTree(io.newInput())));
+            JsonNode node = mapper.readTree(io.newInput());
+
+            if(node != null) {
+                return Optional.of(new JacksonDataContainer(mapper, node));
+            }
+            else {
+                logger.log(Level.WARNING, "No context found for JSON data: end-of-input");
+            }
         } catch (IOException error) {
             logger.log(Level.WARNING, "IOException occurred while parsing JSON data from input stream using Jackson", error);
         }
