@@ -18,7 +18,6 @@ public class JacksonFileDataLoader extends JacksonDataLoader {
     public JacksonFileDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger, @NotNull File file) {
         super(mapper, logger);
         this.file = file;
-
         this.writer = mapper.writer();
     }
 
@@ -38,7 +37,8 @@ public class JacksonFileDataLoader extends JacksonDataLoader {
         try {
             writer.writeValue(file, container.node());
         } catch (IOException error) {
-            logger.log(Level.WARNING, "IOException occurred while writing JSON data to file " + file + " using Jackson", error);
+            logger.log(Level.WARNING, "IOException occurred while writing JSON data to file " + file +
+                    " using JacksonFileDataLoader", error);
         }
     }
 }

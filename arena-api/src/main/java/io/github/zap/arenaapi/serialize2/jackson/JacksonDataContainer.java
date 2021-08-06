@@ -112,4 +112,12 @@ class JacksonDataContainer implements DataContainer {
     public @NotNull JsonNode node() {
         return node;
     }
+
+    /**
+     * Gets the ObjectMapper associated with this JacksonDataContainer
+     * @return The associated ObjectMapper
+     */
+    public @NotNull ObjectMapper mapper() {
+        return mapper;
+    }
 }
