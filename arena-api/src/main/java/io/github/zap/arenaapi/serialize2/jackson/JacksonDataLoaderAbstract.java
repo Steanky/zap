@@ -9,11 +9,11 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class JacksonDataLoader implements DataLoader<JacksonDataContainer> {
+public abstract class JacksonDataLoaderAbstract implements DataLoader<JacksonDataContainer> {
     protected final ObjectMapper mapper;
     protected final Logger logger;
 
-    protected JacksonDataLoader(@NotNull ObjectMapper mapper, @NotNull Logger logger) {
+    protected JacksonDataLoaderAbstract(@NotNull ObjectMapper mapper, @NotNull Logger logger) {
         this.mapper = mapper;
         this.logger = logger;
     }
