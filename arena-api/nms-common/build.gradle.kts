@@ -17,11 +17,13 @@ val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
 
-configurations.api.get().extendsFrom(bukkitPlugin)
+configurations.compileOnlyApi.get().extendsFrom(bukkitPlugin)
 
 dependencies {
-    api("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    api(project(":vector"))
+    compileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+    compileOnlyApi(project(":vector"))
 
     bukkitPlugin("com.comphenix.protocol:ProtocolLib:4.7.0")
 }

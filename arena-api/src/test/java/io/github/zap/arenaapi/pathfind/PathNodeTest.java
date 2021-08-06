@@ -1,14 +1,16 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vectors;
-import org.junit.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
 public class PathNodeTest {
     private final List<PathNode> testNodes = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         PathNode node = null;
         for(int i = 0; i < 50; i++) {
@@ -31,9 +33,9 @@ public class PathNodeTest {
     public void reverse() {
         PathNode reversed = testNodes.get(testNodes.size() - 1).reverse();
 
-        Assert.assertTrue(deepEquals(reversed, testNodes.get(0)));
-        Assert.assertTrue(ensureNonLoopingParentTraversal(reversed));
-        Assert.assertTrue(ensureNonLoopingChildTraversal(testNodes.get(testNodes.size() - 1)));
+        Assertions.assertTrue(deepEquals(reversed, testNodes.get(0)));
+        Assertions.assertTrue(ensureNonLoopingParentTraversal(reversed));
+        Assertions.assertTrue(ensureNonLoopingChildTraversal(testNodes.get(testNodes.size() - 1)));
 
         int parentCount = 0;
         while(reversed.parent != null) {
@@ -41,7 +43,7 @@ public class PathNodeTest {
             parentCount++;
         }
 
-        Assert.assertEquals(testNodes.size(), parentCount + 1);
+        Assertions.assertEquals(testNodes.size(), parentCount + 1);
     }
 
     private boolean deepEquals(PathNode one, PathNode two) {

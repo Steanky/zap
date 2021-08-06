@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zap.arenaapi.serialize2.TypeToken;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +26,7 @@ public class JacksonDataContainerTest {
 
     private JacksonDataContainer container;
 
-    @Before
+    @BeforeEach
     public void setup() throws JsonProcessingException {
         container = new JacksonDataContainer(mapper, mapper.readTree(TEST_JSON));
     }
@@ -34,86 +34,86 @@ public class JacksonDataContainerTest {
     @Test
     public void testNonexistentAccess() {
         Optional<Object> objectOptional = container.getObject(Object.class, "this object", "does not exist");
-        Assert.assertFalse(objectOptional.isPresent());
+        Assertions.assertFalse(objectOptional.isPresent());
     }
 
     @Test
     public void testStringAccess() {
         Optional<String> stringOptional = container.getString("string");
-        Assert.assertTrue(stringOptional.isPresent());
-        Assert.assertEquals("this is a string", stringOptional.orElse(""));
+        Assertions.assertTrue(stringOptional.isPresent());
+        Assertions.assertEquals("this is a string", stringOptional.orElse(""));
     }
 
     @Test
     public void testIntAccess() {
         Optional<Integer> integerOptional = container.getInt("int");
-        Assert.assertTrue(integerOptional.isPresent());
-        Assert.assertEquals((Integer)69, integerOptional.orElse(0));
+        Assertions.assertTrue(integerOptional.isPresent());
+        Assertions.assertEquals((Integer)69, integerOptional.orElse(0));
     }
 
     @Test
     public void testDoubleAccess() {
         Optional<Double> doubleOptional = container.getDouble("double");
-        Assert.assertTrue(doubleOptional.isPresent());
-        Assert.assertEquals(100.420, doubleOptional.get(), epsilon);
+        Assertions.assertTrue(doubleOptional.isPresent());
+        Assertions.assertEquals(100.420, doubleOptional.get(), epsilon);
     }
 
     @Test
     public void testListStringAccess() {
         Optional<List<String>> listStringOptional = container.getObject(new TypeToken<>() {}, "list_string");
-        Assert.assertTrue(listStringOptional.isPresent());
+        Assertions.assertTrue(listStringOptional.isPresent());
 
         int count = 0;
         for(String value : listStringOptional.get()) {
-            Assert.assertEquals("element_" + count++, value);
+            Assertions.assertEquals("element_" + count++, value);
         }
     }
 
     @Test
     public void testListIntAccess() {
         Optional<List<Integer>> listIntegerOptional = container.getObject(new TypeToken<>() {}, "list_int");
-        Assert.assertTrue(listIntegerOptional.isPresent());
+        Assertions.assertTrue(listIntegerOptional.isPresent());
 
         int count = 0;
         for(int value : listIntegerOptional.get()) {
-            Assert.assertEquals(count++, value);
+            Assertions.assertEquals(count++, value);
         }
     }
 
     @Test
     public void testListDoubleAccess() {
         Optional<List<Double>> listDoubleOptional = container.getObject(new TypeToken<>() {}, "list_double");
-        Assert.assertTrue(listDoubleOptional.isPresent());
+        Assertions.assertTrue(listDoubleOptional.isPresent());
 
         int count = 0;
         for(double value : listDoubleOptional.get()) {
-            Assert.assertEquals(0.69 + count++, value, epsilon);
+            Assertions.assertEquals(0.69 + count++, value, epsilon);
         }
     }
 
     @Test
     public void testNestedStringAccess() {
         Optional<String> stringOptional = container.getString("nested", "nested_string");
-        Assert.assertTrue(stringOptional.isPresent());
-        Assert.assertEquals("this is a nested string", stringOptional.get());
+        Assertions.assertTrue(stringOptional.isPresent());
+        Assertions.assertEquals("this is a nested string", stringOptional.get());
     }
 
     @Test
     public void testNestedNestedIntegerAccess() {
         Optional<Integer> integerOptional = container.getInt("nested", "nested_nested", "nested_nested_integer");
-        Assert.assertTrue(integerOptional.isPresent());
-        Assert.assertEquals(69420, (int)integerOptional.get());
+        Assertions.assertTrue(integerOptional.isPresent());
+        Assertions.assertEquals(69420, (int)integerOptional.get());
     }
 
     @Test
     public void testObjectDeserializationThroughClass() {
         Optional<Nested> nestedOptional = container.getObject(Nested.class, "nested");
-        Assert.assertTrue(nestedOptional.isPresent());
+        Assertions.assertTrue(nestedOptional.isPresent());
     }
 
     @Test
     public void testObjectDeserializationThroughTypeToken() {
         Optional<Nested> nestedOptional = container.getObject(new TypeToken<>() {}, "nested");
-        Assert.assertTrue(nestedOptional.isPresent());
+        Assertions.assertTrue(nestedOptional.isPresent());
     }
 }

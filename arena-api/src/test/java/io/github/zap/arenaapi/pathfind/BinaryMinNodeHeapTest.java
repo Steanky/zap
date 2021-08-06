@@ -1,14 +1,16 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vectors;
-import org.junit.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
 public class BinaryMinNodeHeapTest {
     private final BinaryMinNodeHeap heap = new BinaryMinNodeHeap(128);
 
-    @Before
+    @BeforeEach
     public void setUp() {
         for(int i = 0; i < 100; i++) {
             for(int j = 0; j < 100; j++) {
@@ -23,45 +25,45 @@ public class BinaryMinNodeHeapTest {
     public void testPeekBest() {
         PathNode node = heap.peekBest();
 
-        Assert.assertNotNull(node);
-        Assert.assertTrue(node.heapIndex != -1);
-        Assert.assertTrue(heap.contains(node));
-        Assert.assertEquals(0, heap.indexOf(node));
+        Assertions.assertNotNull(node);
+        Assertions.assertTrue(node.heapIndex != -1);
+        Assertions.assertTrue(heap.contains(node));
+        Assertions.assertEquals(0, heap.indexOf(node));
         ensureHeapInvariant();
     }
 
     @Test
     public void testTakeBest() {
         int size = heap.size();
-        Assert.assertFalse(heap.isEmpty());
+        Assertions.assertFalse(heap.isEmpty());
 
         PathNode node = heap.peekBest();
         PathNode nodeTaken = heap.takeBest();
 
-        Assert.assertNotNull(nodeTaken);
-        Assert.assertEquals(node, nodeTaken);
-        Assert.assertEquals(heap.size() + 1, size);
+        Assertions.assertNotNull(nodeTaken);
+        Assertions.assertEquals(node, nodeTaken);
+        Assertions.assertEquals(heap.size() + 1, size);
         ensureHeapInvariant();
     }
 
     @Test
     public void testAddNode() {
         int size = heap.size();
-        Assert.assertFalse(heap.isEmpty());
+        Assertions.assertFalse(heap.isEmpty());
 
         PathNode node = new PathNode(Vectors.of(0, 0, 0));
         node.score.set(1000, 1000);
 
         heap.addNode(node);
-        Assert.assertEquals(node, heap.peekBest());
-        Assert.assertEquals(size + 1, heap.size());
+        Assertions.assertEquals(node, heap.peekBest());
+        Assertions.assertEquals(size + 1, heap.size());
         ensureHeapInvariant();
     }
 
     @Test
     public void testUpdateNode() {
         int size = heap.size();
-        Assert.assertFalse(heap.isEmpty());
+        Assertions.assertFalse(heap.isEmpty());
 
         for(int i = 0; i < size; i++) {
             PathNode node = heap.nodeAt(i);
@@ -69,17 +71,17 @@ public class BinaryMinNodeHeapTest {
             heap.replaceNode(i, node);
 
             PathNode retrieved = heap.nodeAt(node.heapIndex);
-            Assert.assertEquals(node, retrieved);
+            Assertions.assertEquals(node, retrieved);
         }
 
-        Assert.assertEquals(size, heap.size());
+        Assertions.assertEquals(size, heap.size());
         ensureHeapInvariant();
     }
 
     @Test
     public void ensureHeapInvariant() {
         int size = heap.size();
-        Assert.assertFalse(heap.isEmpty());
+        Assertions.assertFalse(heap.isEmpty());
 
         PathNode[] nodes = heap.internalArray();
         for(int i = 0; i < size; i++) {
@@ -88,16 +90,16 @@ public class BinaryMinNodeHeapTest {
 
             if(parent != null) {
                 int result = NodeComparator.instance().compare(parent, sample);
-                Assert.assertTrue(result <= 0);
+                Assertions.assertTrue(result <= 0);
             }
 
-            Assert.assertEquals(sample.heapIndex, i);
+            Assertions.assertEquals(sample.heapIndex, i);
         }
     }
 
     @Test
     public void testIteration() {
-        Assert.assertFalse(heap.isEmpty());
+        Assertions.assertFalse(heap.isEmpty());
 
         List<PathNode> nodes = new ArrayList<>();
         while(heap.size() > 0) {
@@ -108,7 +110,7 @@ public class BinaryMinNodeHeapTest {
         for(PathNode node : nodes) {
             if(previous != null) {
                 int comparisonResult = NodeComparator.instance().compare(previous, node);
-                Assert.assertTrue(comparisonResult <= 0);
+                Assertions.assertTrue(comparisonResult <= 0);
             }
 
             previous = node;

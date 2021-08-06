@@ -13,8 +13,10 @@ repositories {
 }
 
 dependencies {
-    api("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    api(project(":vector"))
+    compileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+    compileOnlyApi(project(":vector"))
 }
 
 description = "zombies-nms-common"

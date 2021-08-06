@@ -2,27 +2,27 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 public class ChunkBoundsTest {
     private ChunkBounds radialSquare;
     private ChunkBounds by2;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         radialSquare = (ChunkBounds)ChunkCoordinateProvider.squareFromCenter(Vectors.of(0, 0), 1);
         by2 = new ChunkBounds(0, 0, 1, 1);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         radialSquare = null;
     }
 
     @Test
     public void testChunkCount() {
-        Assert.assertEquals(9, radialSquare.chunkCount());
-        Assert.assertEquals(1, by2.chunkCount());
+        Assertions.assertEquals(9, radialSquare.chunkCount());
+        Assertions.assertEquals(1, by2.chunkCount());
 
         int rCount = 0;
         int by2count = 0;
@@ -35,7 +35,7 @@ public class ChunkBoundsTest {
             by2count++;
         }
 
-        Assert.assertEquals(rCount, radialSquare.chunkCount());
-        Assert.assertEquals(by2count, by2.chunkCount());
+        Assertions.assertEquals(rCount, radialSquare.chunkCount());
+        Assertions.assertEquals(by2count, by2.chunkCount());
     }
 }

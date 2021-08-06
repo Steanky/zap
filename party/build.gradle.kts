@@ -17,18 +17,18 @@ repositories {
     maven("https://papermc.io/repo/repository/maven-public/")
 }
 
-val shade: Configuration by configurations.creating
-val dependencyApi: Configuration by configurations.creating
+val dependencyCompileOnlyApi: Configuration by configurations.creating
 
-configurations.implementation.get().extendsFrom(shade)
-configurations.api.get().extendsFrom(dependencyApi)
+configurations.compileOnlyApi.get().extendsFrom(dependencyCompileOnlyApi)
 
 val pluginDir = "${project.properties["outputDir"] ?: "../run/server-1"}/plugins"
 
 dependencies {
-    dependencyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
-    shade("org.apache.commons:commons-lang3:3.12.0")
+    dependencyCompileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+    implementation("com.github.Steanky:RegularCommands:master-SNAPSHOT")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
@@ -46,7 +46,6 @@ val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
 tasks.shadowJar {
     dependsOn(relocate.get())
 
-    configurations = listOf(shade)
     archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
 }
