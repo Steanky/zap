@@ -15,6 +15,8 @@ import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
@@ -49,6 +51,9 @@ public class JoinZombiesGameForm extends CommandForm<Joinable> {
         if (partyPlusPlus != null) {
             Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
             if (partyOptional.isPresent()) {
+                if (!partyOptional.get().isOwner(previousData)) {
+                    return ValidationResult.of(false, "You are not the owner of the party!", null);
+                }
                 joinable = new SimpleJoinable(partyOptional.get().getOnlinePlayers());
             }
         }

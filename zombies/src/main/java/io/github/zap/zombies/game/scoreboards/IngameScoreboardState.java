@@ -65,7 +65,8 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                     .line();
 
             Pair<StringFragment, StringFragment> first = playerStatues.get(player.getKey());
-            writer.line(first);
+            writer.line(ChatColor.GRAY, first.getLeft(), ChatColor.WHITE + ": ",
+                    first.getRight());
             for (Map.Entry<UUID, Pair<StringFragment, StringFragment>> entry : playerStatues.entrySet()) {
                 if (!entry.getKey().equals(player.getKey())) {
                     writer.line(ChatColor.GRAY, entry.getValue().getLeft(), ChatColor.WHITE + ": ",

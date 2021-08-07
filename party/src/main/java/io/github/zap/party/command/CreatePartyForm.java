@@ -30,7 +30,7 @@ public class CreatePartyForm extends CommandForm<Void> {
         Optional<Party> partyOptional = PartyPlusPlus.getInstance()
                 .getPartyForPlayer((OfflinePlayer) context.getSender());
 
-        if (partyOptional.isEmpty()) {
+        if (partyOptional.isPresent()) {
             return ValidationResult.of(false, "You are already in a party.", null);
         }
 

@@ -502,8 +502,7 @@ implements Listener {
             }
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
-            Arena<?> arena = ArenaApi.getInstance().arenaCurrentlyIn(player);
-            if (arena == null) {
+            if (leaving.contains(player) || ArenaApi.getInstance().arenaCurrentlyIn(player) == null) {
                 for (Player leaver : leaving) {
                     leaver.showPlayer(ArenaApi.getInstance(), player);
                 }
@@ -604,7 +603,7 @@ implements Listener {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             Arena<?> arena = ArenaApi.getInstance().arenaCurrentlyIn(player);
-            if (arena == null) {
+            if (arena == null || playerMap.containsKey(player.getUniqueId())) {
                 // TODO: this can prob be optimized by getting a set of good managedplayers that execute this code
                 for (S leaver : playerMap.values()) {
                     if (leaver.isInGame()) {

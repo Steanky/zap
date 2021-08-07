@@ -95,6 +95,8 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         for(ArenaManager<?> manager : arenaManagers.values()) {
             manager.dispose();
         }
+
+        info("Disabled successfully.");
     }
 
     private void initBridge() throws LoadFailureException {

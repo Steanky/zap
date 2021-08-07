@@ -72,12 +72,7 @@ public class PartyPlusPlus extends JavaPlugin implements Listener {
 
             this.partyMap.put(member.getOfflinePlayer().getUniqueId(), party);
         });
-        party.registerLeaveHandler(member -> {
-            OfflinePlayer player = member.getOfflinePlayer();
-            if (this.partyMap.containsKey(player.getUniqueId())) {
-                this.partyMap.remove(player.getUniqueId()).removeMember(player, false);
-            }
-        });
+        party.registerLeaveHandler(member -> this.partyMap.remove(member.getOfflinePlayer().getUniqueId()));
 
         for (PartyMember member : party.getMembers()) {
             this.partyMap.put(member.getOfflinePlayer().getUniqueId(), party);

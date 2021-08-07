@@ -653,6 +653,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
     @Override
     public void dispose() {
+        for (ZombiesPlayer player : getPlayerMap().values()) {
+            if (player.isInGame()) {
+                Player bukkitPlayer = player.getPlayer();
+                if (bukkitPlayer != null) {
+                    for (Player hiddenPlayer : hiddenPlayers) {
+                        bukkitPlayer.showPlayer(Zombies.getInstance(), hiddenPlayer);
+                    }
+                }
+            }
+        }
+
         super.dispose(); //dispose of superclass-specific resources
 
         //cleanup mappings and remove arena from manager

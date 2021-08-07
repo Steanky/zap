@@ -63,7 +63,7 @@ public class InvitePlayerForm extends CommandForm<Player> {
         });
 
         if (party.isOwner(sender) || party.getPartySettings().isAllInvite()) {
-            party.invitePlayer(sender, data);
+            party.invitePlayer(data, sender);
             return null;
         }
 

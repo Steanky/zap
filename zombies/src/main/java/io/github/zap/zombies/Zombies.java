@@ -181,6 +181,8 @@ public final class Zombies extends JavaPlugin implements Listener {
         for (ZombiesNPC zombiesNPC : zombiesNPCS) {
             zombiesNPC.destroy();
         }
+
+        info("Disabled successfully.");
     }
 
     private void initBridge() throws LoadFailureException {

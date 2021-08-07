@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 /**
  * Manager for player statistics regarding an arena type
@@ -89,11 +90,13 @@ public abstract class StatsManager {
             cache.flush((flushedStats) -> writeStats(cache.getName(), flushedStats));
         }
 
+        ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) shutdown begin");
         EXECUTOR_SERVICE.shutdown();
         try {
             //noinspection ResultOfMethodCallIgnored
             EXECUTOR_SERVICE.awaitTermination(EXPERIMENTALLY_DETERMINED_BEST_EXECUTOR_SERVICE_SHUTDOWN_TIME,
                     TimeUnit.SECONDS);
+            ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) shutdown end");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

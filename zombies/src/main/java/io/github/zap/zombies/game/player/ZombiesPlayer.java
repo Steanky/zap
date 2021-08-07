@@ -21,6 +21,9 @@ import io.github.zap.zombies.game.player.task.ReviveTask;
 import io.github.zap.zombies.game.player.task.WindowRepairTask;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
+import io.github.zap.zombies.game.shop.PerkMachine;
+import io.github.zap.zombies.game.shop.Shop;
+import io.github.zap.zombies.game.shop.ShopType;
 import io.github.zap.zombies.game.task.ZombiesTask;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
@@ -95,6 +98,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Getter
     private final List<ZombiesTask> tasks = new ArrayList<>();
 
+    @Getter
+    private final Event<ZombiesPlayerState> stateChangedEvent = new Event<>();
+
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
@@ -133,7 +139,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     public void rejoin() {
         super.rejoin();
 
-        state = ZombiesPlayerState.DEAD;
+        stateChangedEvent.callEvent(state = ZombiesPlayerState.DEAD);
         setDeadState();
 
         //noinspection ConstantConditions
@@ -275,7 +281,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      */
     public void knock() {
         if(isAlive() && isInGame()) {
-            state = ZombiesPlayerState.KNOCKED;
+            stateChangedEvent.callEvent(state = ZombiesPlayerState.KNOCKED);
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
@@ -301,7 +307,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      */
     public void kill(@NotNull String killReason) {
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
-            state = ZombiesPlayerState.DEAD;
+            stateChangedEvent.callEvent(state = ZombiesPlayerState.DEAD);
 
             disablePerks(arena.getMap().isPerksLostOnDeath());
 
@@ -400,7 +406,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      */
     public void revive() {
         if (!isAlive() && isInGame()) {
-            state = ZombiesPlayerState.ALIVE;
+            stateChangedEvent.callEvent(state = ZombiesPlayerState.ALIVE);
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
 
