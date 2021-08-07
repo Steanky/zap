@@ -76,10 +76,8 @@ public class Party {
                     ChatRenderer oldRenderer = event.renderer();
                     event.renderer((source, sourceDisplayName, message, viewer) ->
                             TextComponent.ofChildren(
-                                    TextComponent.ofChildren(
-                                            Component.text("Party", NamedTextColor.BLUE),
-                                            Component.text(" > ", NamedTextColor.DARK_GRAY)
-                                    ),
+                                    Component.text("Party", NamedTextColor.BLUE),
+                                    Component.text(" > ", NamedTextColor.DARK_GRAY),
                                     oldRenderer.render(source, sourceDisplayName, message, viewer)
                     ));
                 }
