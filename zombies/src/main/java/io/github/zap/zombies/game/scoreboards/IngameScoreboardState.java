@@ -44,7 +44,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
     public void stateChangedFrom(ZombiesArenaState gameState, GameScoreboard scoreboard) {
         this.gameScoreboard = scoreboard;
         var date = DATE_FORMATTER.format(LocalDateTime.now());
-        var map = scoreboard.getZombiesArena().getMap().getName();
+        var map = scoreboard.getZombiesArena().getMap().getMapDisplayName();
 
         for(var i : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
             var tfName = new StringFragment(i.getValue().getOfflinePlayer().getName());
