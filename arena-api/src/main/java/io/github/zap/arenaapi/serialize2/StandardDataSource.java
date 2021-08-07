@@ -21,7 +21,7 @@ class StandardDataSource implements DataSource {
     }
 
     @Override
-    public void writeContainer(@NotNull Object data, @NotNull String key) {
+    public void writeObject(@NotNull Object data, @NotNull String key) {
         DataLoader<? extends DataContainer> loader = loaders.get(key);
 
         if(loader != null) {

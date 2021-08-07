@@ -24,7 +24,7 @@ public interface DataSource {
      * @param data The data to write
      * @param key The name of the DataSource we're writing to
      */
-    void writeContainer(@NotNull Object data, @NotNull String key);
+    void writeObject(@NotNull Object data, @NotNull String key);
 
     /**
      * Associates and stores the given DataLoader with a named key.

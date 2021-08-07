@@ -65,6 +65,7 @@ class StandardDataSourceTest {
     }
 
     private static class MockDataLoader implements DataLoader<MockDataContainer> {
+        private MockDataContainer lastWritten;
 
         @Override
         public @NotNull Optional<MockDataContainer> read() {
@@ -72,7 +73,9 @@ class StandardDataSourceTest {
         }
 
         @Override
-        public void write(@NotNull MockDataContainer container) {}
+        public void write(@NotNull MockDataContainer container) {
+            lastWritten = container;
+        }
 
         @Override
         public @NotNull Optional<MockDataContainer> makeContainer(@NotNull Object object) {
@@ -94,5 +97,16 @@ class StandardDataSourceTest {
 
         Assertions.assertTrue(containerOptional.isPresent());
         Assertions.assertSame(dataLoader, registeredLoader);
+    }
+
+    @Test
+    void testWrite() {
+        MockDataLoader loader = new MockDataLoader();
+        MockDataContainer container = new MockDataContainer();
+
+        standardDataSource.registerLoader(loader, "key");
+        standardDataSource.writeObject(container, "key");
+
+        Assertions.assertNotNull(loader.lastWritten);
     }
 }
