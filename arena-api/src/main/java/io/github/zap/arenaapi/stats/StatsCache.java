@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.stats;
 
+import io.github.zap.arenaapi.ArenaApi;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +13,7 @@ import java.util.concurrent.Phaser;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 /**
  * Represents a cache of stats
@@ -139,8 +141,11 @@ public class StatsCache<I, S extends Stats<I>> {
      */
     public synchronized void flush(@NotNull Consumer<Stats<I>> callback) {
         pendingFlushPhaser.register(); // register a flush to notify requests to wait
+        ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) registered flush phaser");
         pendingRequestPhaser.register(); // register to the pending requests
+        ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) registered request phaser");
         pendingRequestPhaser.arriveAndAwaitAdvance(); // await until all pending requests have completed
+        ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) await request phaser");
 
         Iterator<Map.Entry<I, S>> iterator = cache.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -155,6 +160,7 @@ public class StatsCache<I, S extends Stats<I>> {
         }
 
         pendingFlushPhaser.arriveAndDeregister(); // complete flush and restart waiting requests
+        ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) deregister flush phaser");
     }
 
 }
