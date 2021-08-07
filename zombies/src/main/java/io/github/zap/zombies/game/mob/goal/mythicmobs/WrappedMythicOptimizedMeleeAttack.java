@@ -24,9 +24,8 @@ public class WrappedMythicOptimizedMeleeAttack extends Pathfinder {
         if (entity.getBukkitEntity() instanceof Mob mob) {
             ActiveMob activeMob = MythicMobs.inst().getAPIHelper().getMythicMobInstance(mob);
             if (activeMob != null) {
-                if (ArenaApi.getInstance().getNmsBridge().entityBridge()
+                if (!ArenaApi.getInstance().getNmsBridge().entityBridge()
                         .hasAttribute(mob, Attribute.GENERIC_ATTACK_DAMAGE)) {
-
                     attributes = new AttributeValue[] {
                             new AttributeValue(Attribute.GENERIC_ATTACK_DAMAGE,
                                     activeMob.getDamage() == 0 ? 2F : activeMob.getDamage()),
