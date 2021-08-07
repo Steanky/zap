@@ -505,6 +505,7 @@ implements Listener {
             if (leaving.contains(player) || ArenaApi.getInstance().arenaCurrentlyIn(player) == null) {
                 for (Player leaver : leaving) {
                     leaver.showPlayer(ArenaApi.getInstance(), player);
+                    player.showPlayer(ArenaApi.getInstance(), leaver);
                 }
             }
         }
@@ -610,6 +611,7 @@ implements Listener {
                         Player leaverPlayer = leaver.getPlayer();
                         if (leaverPlayer != null) {
                             leaverPlayer.showPlayer(ArenaApi.getInstance(), player);
+                            player.showPlayer(ArenaApi.getInstance(), leaverPlayer);
                         }
                     }
                 }

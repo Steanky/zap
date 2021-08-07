@@ -1,6 +1,8 @@
 package io.github.zap.party.party;
 
+import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -71,15 +73,14 @@ public class Party {
                 else {
                     event.viewers().removeIf(audience ->
                             !(audience instanceof Player player && this.hasMember(player)));
-                    event.message(TextComponent.ofChildren(
+                    ChatRenderer oldRenderer = event.renderer();
+                    event.renderer((source, sourceDisplayName, message, viewer) ->
                             TextComponent.ofChildren(
-                                    Component.text("Party", NamedTextColor.BLUE),
-                                    Component.text(" >", NamedTextColor.DARK_GRAY),
-                                    Component.text("<", NamedTextColor.WHITE),
-                                    event.getPlayer().displayName(),
-                                    Component.text("> ")
-                            ),
-                            event.message()
+                                    TextComponent.ofChildren(
+                                            Component.text("Party", NamedTextColor.BLUE),
+                                            Component.text(" > ", NamedTextColor.DARK_GRAY)
+                                    ),
+                                    oldRenderer.render(source, sourceDisplayName, message, viewer)
                     ));
                 }
             }
