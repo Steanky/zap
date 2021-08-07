@@ -179,15 +179,15 @@ public class Corpse {
                     thisPlayer.sendActionBar(Component.empty());
                     reviverPlayer.sendActionBar(Component.empty());
 
-                    ZombiesArena zombiesArena = reviver.getArena();
-                    MapData map = zombiesArena.getMap();
+                    ZombiesArena arena = reviver.getArena();
+                    MapData map = arena.getMap();
                     PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED, map.getReviveSpeedTicks(),
                             map.getReviveSpeedLevel(), true, false, false);
                     reviverPlayer.addPotionEffect(speedEffect);
 
-                    zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
+                    arena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
                             reviverPlayer.getUniqueId(), (stats) -> {
-                        PlayerMapStats mapStats = stats.getMapStatsForMap(zombiesArena.getMap());
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
                         mapStats.setPlayersRevived(mapStats.getPlayersRevived() + 1);
                     }, PlayerGeneralStats::new);
 
@@ -202,6 +202,16 @@ public class Corpse {
                                 break;
                             }
                         }
+                    }
+
+                    Component message = TextComponent.ofChildren(
+                            thisPlayer.displayName(),
+                            Component.text(" was revived by ", NamedTextColor.RED),
+                            reviverPlayer.displayName(),
+                            Component.text("!", NamedTextColor.RED)
+                    );
+                    for (Player player : arena.getWorld().getPlayers()) {
+                        player.sendMessage(message);
                     }
                 }
 

@@ -19,6 +19,7 @@ import io.github.zap.zombies.game.util.Jingle;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
@@ -301,7 +302,6 @@ public class LuckyChest extends Shop<LuckyChestData> {
 
         private int sittingTaskId;
 
-
         private final Hologram equipmentName;
 
         private final Hologram endHologram;
@@ -357,12 +357,25 @@ public class LuckyChest extends Shop<LuckyChestData> {
             endHologram.addLine(Component.text("Right Click to Claim!", NamedTextColor.RED));
             endHologram.addLine(Component.empty());
 
-            Component message = Component
-                    .text("You found ", NamedTextColor.RED)
-                    .append(Component.text(currentEquipment.getDisplayName(), NamedTextColor.YELLOW))
-                    .append(Component.text(" in the Lucky Chest!", NamedTextColor.RED));
+            Component equipmentName = Component.text(currentEquipment.getDisplayName(), NamedTextColor.YELLOW);
+            Component inTheLuckyChest = Component.text(" in the Lucky Chest!", NamedTextColor.RED);
             if (roller.isOnline()) {
-                roller.sendMessage(message);
+                roller.sendMessage(TextComponent.ofChildren(
+                        Component.text("You found ", NamedTextColor.RED),
+                        equipmentName,
+                        inTheLuckyChest
+                ));
+            }
+            Component message = TextComponent.ofChildren(
+                    roller.displayName(),
+                    Component.text(" found ", NamedTextColor.RED),
+                    equipmentName,
+                    inTheLuckyChest
+            );
+            for (Player player : roller.getWorld().getPlayers()) {
+                if (!player.equals(roller)) {
+                    player.sendMessage(message);
+                }
             }
 
             sittingTaskId = getArena().runTaskTimer(0L, 2L, new Runnable() {

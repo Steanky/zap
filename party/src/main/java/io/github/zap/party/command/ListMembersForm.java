@@ -24,7 +24,7 @@ public class ListMembersForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyForPlayer(previousData);
         if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }

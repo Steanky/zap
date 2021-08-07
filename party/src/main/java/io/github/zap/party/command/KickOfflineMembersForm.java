@@ -9,7 +9,6 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import io.github.zap.party.party.PartyManager;
 
 import java.util.Optional;
 
@@ -24,15 +23,12 @@ public class KickOfflineMembersForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
-        PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-
-        Optional<Party> partyOptional = partyManager.getPartyForPlayer(previousData);
+        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyForPlayer(previousData);
         if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, "You are not currently in a party.", null);
         }
 
         Party party = partyOptional.get();
-
         if (!party.isOwner(previousData)) {
             return ValidationResult.of(false, "You are not the party owner.", null);
         }
@@ -51,7 +47,7 @@ public class KickOfflineMembersForm extends CommandForm<Party> {
 
     @Override
     public String execute(Context context, Object[] arguments, Party data) {
-        PartyPlusPlus.getInstance().getPartyManager().kickOffline(data);
+        data.kickOffline();
         return null;
     }
 

@@ -9,7 +9,6 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import io.github.zap.party.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -28,9 +27,9 @@ public class JoinPartyForm extends CommandForm<Party> {
 
     private static final CommandValidator<Party, ?> VALIDATOR
             = new CommandValidator<>(((context, arguments, previousData) -> {
-        PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
+        PartyPlusPlus partyPlusPlus = PartyPlusPlus.getInstance();
 
-        if (partyManager.getPartyForPlayer(previousData) != null) {
+        if (partyPlusPlus.getPartyForPlayer(previousData).isPresent()) {
             return ValidationResult.of(false,
                     "You are already in a party! Leave it to join another one.", null);
         }
@@ -48,7 +47,7 @@ public class JoinPartyForm extends CommandForm<Party> {
 
         ownerName = owner.getName(); // change any capitalization
 
-        Optional<Party> partyOptional = partyManager.getPartyForPlayer(owner);
+        Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(owner);
         if (partyOptional.isEmpty()) {
             return ValidationResult.of(false, String.format("%s is not in a party.", owner), null);
         }
@@ -73,7 +72,7 @@ public class JoinPartyForm extends CommandForm<Party> {
 
     @Override
     public String execute(Context context, Object[] arguments, Party data) {
-        PartyPlusPlus.getInstance().getPartyManager().addPlayerToParty(data, (Player) context.getSender());
+        data.addMember((Player) context.getSender());
         return null;
     }
 

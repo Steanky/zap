@@ -2,25 +2,30 @@ package io.github.zap.party;
 
 import io.github.regularcommands.commands.CommandManager;
 import io.github.zap.party.command.PartyCommand;
-import io.github.zap.party.party.PartyManager;
+import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.*;
 import java.util.logging.Level;
 
 /**
  * Creates cool parties for you!
  */
-public class PartyPlusPlus extends JavaPlugin {
+public class PartyPlusPlus extends JavaPlugin implements Listener {
 
     @Getter
     private static PartyPlusPlus instance;
 
-    @Getter
-    private PartyManager partyManager;
+    private Map<UUID, Party> partyMap;
 
     private CommandManager commandManager;
 
@@ -30,8 +35,10 @@ public class PartyPlusPlus extends JavaPlugin {
 
         instance = this;
 
-        initPartyManager();
+        initPartyMap();
         initCommands();
+
+        Bukkit.getPluginManager().registerEvents(this, this);
 
         timer.stop();
         instance.getLogger().log(Level.INFO, String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
@@ -40,9 +47,8 @@ public class PartyPlusPlus extends JavaPlugin {
     /**
      * Initializes the party manager
      */
-    private void initPartyManager() {
-        PartyManager partyManager = new PartyManager(Bukkit.getScheduler());
-        Bukkit.getPluginManager().registerEvents(partyManager, this);
+    private void initPartyMap() {
+        this.partyMap = new HashMap<>();
     }
 
     /**
@@ -51,6 +57,45 @@ public class PartyPlusPlus extends JavaPlugin {
     private void initCommands() {
         commandManager = new CommandManager(this);
         commandManager.registerCommand(new PartyCommand());
+    }
+
+    /**
+     * Starts tracking a party
+     * @param party The party to track
+     */
+    public void trackParty(@NotNull Party party) {
+        party.registerJoinHandler(member -> {
+            OfflinePlayer player = member.getOfflinePlayer();
+            if (this.partyMap.containsKey(player.getUniqueId())) {
+                this.partyMap.get(player.getUniqueId()).removeMember(player, false);
+            }
+
+            this.partyMap.put(member.getOfflinePlayer().getUniqueId(), party);
+        });
+        party.registerLeaveHandler(member -> {
+            OfflinePlayer player = member.getOfflinePlayer();
+            if (this.partyMap.containsKey(player.getUniqueId())) {
+                this.partyMap.remove(player.getUniqueId()).removeMember(player, false);
+            }
+        });
+
+        for (PartyMember member : party.getMembers()) {
+            this.partyMap.put(member.getOfflinePlayer().getUniqueId(), party);
+        }
+    }
+
+    /**
+     * Gets the party a player is in
+     * @param player The player to check
+     * @return An optional of their party
+     */
+    public @NotNull Optional<Party> getPartyForPlayer(@NotNull OfflinePlayer player) {
+        return Optional.ofNullable(this.partyMap.get(player.getUniqueId()));
+    }
+
+    @EventHandler
+    public void onAsyncChat(AsyncChatEvent event) {
+        this.getPartyForPlayer(event.getPlayer()).ifPresent(party -> party.onAsyncChat(event));
     }
 
 }

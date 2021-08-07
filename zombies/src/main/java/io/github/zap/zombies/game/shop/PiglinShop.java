@@ -281,10 +281,25 @@ public class PiglinShop extends Shop<PiglinShopData> {
             endHologram.addLine(Component.empty());
             endHologram.addLine(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW));
 
+            Component equipmentName = Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW);
+            Component exclamationPoint = Component.text("!", NamedTextColor.RED);
             if (roller.isOnline()) {
-                roller.sendMessage(TextComponent.ofChildren(Component.text("You got a ", NamedTextColor.RED),
-                        Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW),
-                        Component.text("!", NamedTextColor.RED)));
+                roller.sendMessage(TextComponent.ofChildren(
+                        Component.text("You got a ", NamedTextColor.RED),
+                        equipmentName,
+                        exclamationPoint
+                ));
+            }
+            Component message = TextComponent.ofChildren(
+                    roller.displayName(),
+                    Component.text(" got a ", NamedTextColor.RED),
+                    equipmentName,
+                    exclamationPoint
+            );
+            for (Player otherPlayer : roller.getWorld().getPlayers()) {
+                if (!otherPlayer.equals(roller)) {
+                    otherPlayer.sendMessage(message);
+                }
             }
         }
 
