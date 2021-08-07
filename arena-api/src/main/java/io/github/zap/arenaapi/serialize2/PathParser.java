@@ -2,13 +2,26 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public interface PathParser {
     PathParser STANDARD = new StandardParser();
 
     class StandardParser implements PathParser {
+        private static final String[] emptyString = new String[0];
         @Override
         public @NotNull String[] parse(@NotNull String input) {
-            return input.split("/");
+            String[] array = input.split("/");
+            List<String> newList = new ArrayList<>();
+
+            for(String element : array) {
+                if(!element.isEmpty()) {
+                    newList.add(element);
+                }
+            }
+
+            return newList.toArray(emptyString);
         }
     }
 
