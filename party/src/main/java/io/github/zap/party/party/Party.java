@@ -2,11 +2,11 @@ package io.github.zap.party.party;
 
 import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -61,25 +61,23 @@ public class Party {
             PartyMember partyMember = optionalPartyMember.get();
             if (partyMember.isInPartyChat()) {
                 if (partyMember.isMuted()) {
-                    event.getPlayer().sendMessage(Component.text("You are muted from speaking " +
-                                    "in the party chat.", NamedTextColor.RED));
+                    event.getPlayer().sendMessage(MiniMessage.get().parse("<red>You are muted from speaking " +
+                                    "in the party chat."));
                     event.setCancelled(true);
                 }
                 else if (this.getPartySettings().isMuted() && !this.isOwner(event.getPlayer())) {
-                    event.getPlayer().sendMessage(Component.text("The party chat is muted.",
-                            NamedTextColor.RED));
+                    event.getPlayer().sendMessage(MiniMessage.get().parse("<red>The party chat is muted."));
                     event.setCancelled(true);
                 }
                 else {
                     event.viewers().removeIf(audience ->
                             !(audience instanceof Player player && this.hasMember(player)));
                     ChatRenderer oldRenderer = event.renderer();
-                    event.renderer((source, sourceDisplayName, message, viewer) ->
-                            TextComponent.ofChildren(
-                                    Component.text("Party", NamedTextColor.BLUE),
-                                    Component.text(" > ", NamedTextColor.DARK_GRAY),
-                                    oldRenderer.render(source, sourceDisplayName, message, viewer)
-                    ));
+                    event.renderer((source, sourceDisplayName, message, viewer) -> {
+                            Component render = oldRenderer.render(source, sourceDisplayName, message, viewer);
+                            return MiniMessage.get().parse("<blue>Party <dark_gray>> <reset><message>",
+                                    Template.of("message", render));
+                    });
                 }
             }
         }
@@ -117,10 +115,8 @@ public class Party {
                 this.plugin.getServer().getScheduler().cancelTask(taskId);
             }
 
-            this.broadcastMessage(TextComponent.ofChildren(
-                    player.displayName(),
-                    Component.text(" has joined the party.", NamedTextColor.YELLOW)
-            ));
+            this.broadcastMessage(MiniMessage.get().parse("<member> <yellow>has joined the party.",
+                    Template.of("member", player.displayName())));
 
             for (Consumer<PartyMember> handler : partyJoinHandlers) {
                 handler.accept(partyMember);
@@ -145,7 +141,7 @@ public class Party {
 
             Component name = (onlinePlayer != null)
                     ? onlinePlayer.displayName()
-                    : Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY);
+                    : MiniMessage.get().parse("<gray>" + player.getName());
 
             boolean clearHandlers = false;
             if (this.owner.equals(removed)) {
@@ -156,13 +152,10 @@ public class Party {
                     Player onlineOwner = offlineOwner.getPlayer();
                     Component toName = (onlineOwner != null)
                             ? onlineOwner.displayName()
-                            : Component.text(Objects.toString(offlineOwner.getName()), NamedTextColor.GRAY);
+                            : MiniMessage.get().parse("<gray>" + offlineOwner.getName());
 
-                    this.broadcastMessage(TextComponent.ofChildren(
-                            Component.text("The party has been transferred to ", NamedTextColor.YELLOW),
-                            toName,
-                            Component.text(".", NamedTextColor.YELLOW)
-                    ));
+                    this.broadcastMessage(MiniMessage.get().parse("<yellow>The party has been transferred " +
+                            "to <to><reset><yellow>.", Template.of("to", toName)));
                 }
                 else {
                     cancelAllOutgoingInvitations();
@@ -170,15 +163,14 @@ public class Party {
                 }
             }
 
-            this.broadcastMessage(TextComponent.ofChildren(
-                    name,
-                    Component.text(String.format(" has %s the party.", message), NamedTextColor.YELLOW)
-            ));
+            this.broadcastMessage(TextComponent.ofChildren(MiniMessage.get()
+                    .parse(String.format("<member> <reset><yellow>has %s the party.", message),
+                            Template.of("member", name))));
 
             Player removedPlayer = player.getPlayer();
             if (removedPlayer != null) {
-                removedPlayer.sendMessage(Component.text(String.format("You have %s the party.", message),
-                        NamedTextColor.YELLOW));
+                removedPlayer.sendMessage(MiniMessage.get()
+                        .parse(String.format("<yellow>You have %s the party.", message)));
             }
 
             for (Consumer<PartyMember> handler : partyLeaveHandlers) {
@@ -215,13 +207,10 @@ public class Party {
                                 ? onlineOwner.displayName()
                                 : Component.text(Objects.toString(offlineOwner.getName()), NamedTextColor.GRAY);
 
-                        this.broadcastMessage(TextComponent.ofChildren(
-                                Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY),
-                                Component.text(" has been removed from the party. " +
-                                        "The party has been transferred to ", NamedTextColor.YELLOW),
-                                name,
-                                Component.text(".", NamedTextColor.YELLOW)
-                        ));
+                        this.broadcastMessage(MiniMessage.get()
+                                .parse("<gray>" + player.getName() + " <yellow>has been removed from " +
+                                        "the party. The party has been transferred to <reset><owner><reset><yellow>.",
+                                        Template.of("owner", name)));
                     }
                     else {
                         cancelAllOutgoingInvitations();
@@ -238,8 +227,8 @@ public class Party {
             }
         }
 
-        this.broadcastMessage(Component.text(String.format("%d offline players have been removed from the party.",
-                offlinePlayers.size()), NamedTextColor.RED));
+        this.broadcastMessage(MiniMessage.get().parse(String.format("<red>%d offline players have been removed from " +
+                "the party.", offlinePlayers.size())));
 
         if (clearHandlers) {
             this.partyJoinHandlers.clear();
@@ -265,9 +254,9 @@ public class Party {
      * Toggles whether the party is muted
      */
     public void mute() {
-        partySettings.setMuted(!partySettings.isMuted());
-        this.broadcastMessage(Component.text(String.format("The party has been %s.",
-                partySettings.isMuted() ? "muted" : "unmuted"), NamedTextColor.YELLOW));
+        this.partySettings.setMuted(!this.partySettings.isMuted());
+        this.broadcastMessage(MiniMessage.get().parse(String.format("<yellow>The party has been %s.",
+                this.partySettings.isMuted() ? "muted" : "unmuted")));
     }
 
     /**
@@ -282,11 +271,8 @@ public class Party {
             Component name = member.getPlayerIfOnline()
                     .map(Player::displayName)
                     .orElseGet(() -> Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY));
-            this.broadcastMessage(TextComponent.ofChildren(
-                    name,
-                    Component.text(String.format(" has been %s.", member.isMuted() ? "muted" : "unmuted"),
-                            NamedTextColor.YELLOW)
-            ));
+            this.broadcastMessage(MiniMessage.get()
+                    .parse("<member> <reset><yellow>has been %s.", Template.of("member", name)));
         }
     }
 
@@ -315,7 +301,7 @@ public class Party {
         Collection<PartyMember> memberCollection = this.members.values();
         List<OfflinePlayer> offlinePlayers = new ArrayList<>(memberCollection.size());
 
-        Component disband = Component.text("The party has been disbanded.", NamedTextColor.RED);
+        Component disband = MiniMessage.get().parse("<red>The party has been disbanded.");
 
         this.owner = null;
 
@@ -369,65 +355,44 @@ public class Party {
                         : Component.text(Objects.toString(invitee.getName()), NamedTextColor.GRAY);
 
                 String ownerName = Objects.toString(partyOwner.getName());
-                String joinCommand = String.format("/party join %s", ownerName);
 
                 Component ownerComponent = (onlinePartyOwner != null)
                         ? onlinePartyOwner.displayName()
                         : Component.text(ownerName, NamedTextColor.GRAY);
 
-                Component joinCommandComponent = TextComponent.ofChildren(
-                        Component.text("/party join "),
-                        ownerComponent
-                );
-
-                Component second;
-                if (partyOwner.equals(inviter)) {
-                    second = Component.text(" has invited you to join their party! Click", NamedTextColor.YELLOW);
-                } else {
-                    second = TextComponent.ofChildren(
-                            Component.text(" has invited you to join ", NamedTextColor.YELLOW),
-                            ownerComponent,
-                            Component.text("'s party! Click", NamedTextColor.YELLOW)
-                    );
-                }
-
                 if (onlineInvitee != null) {
-                    onlineInvitee.sendMessage(TextComponent.ofChildren(
-                            inviterComponent,
-                            second,
-                            Component.text(" here ", NamedTextColor.RED)
-                                    .hoverEvent(joinCommandComponent)
-                                    .clickEvent(ClickEvent.runCommand(joinCommand)),
-                            Component.text(String.format("to join! You have %.1f seconds to accept!", expirationTime),
-                                    NamedTextColor.YELLOW)
-                    ));
+                    Template ownerTemplate = Template.of("owner", ownerComponent);
+                    onlineInvitee.sendMessage(MiniMessage.get().parse(String.format("<inviter> <reset><yellow>has " +
+                                            "invited you to join <owner-msg> <reset><yellow>party! Click " +
+                                            "<hover:show_text:'<yellow>/party join <reset><owner>'>" +
+                                            "<click:run_command:/party join %s>" +
+                                            "<red>here <yellow>to join! You have %.1f seconds to accept!",
+                                    ownerName, expirationTime),
+                            Template.of("inviter", inviterComponent),
+                            (partyOwner.equals(inviter))
+                                    ? Template.of("owner-msg", "their")
+                                    : Template.of("owner-msg",
+                                    MiniMessage.get().parse("<reset><owner>'s", ownerTemplate)), ownerTemplate));
                 }
 
-                this.broadcastMessage(TextComponent.ofChildren(
-                        inviterComponent,
-                        Component.text(" has invited ", NamedTextColor.YELLOW),
-                        inviteeComponent,
-                        Component.text(String.format(" to the party! They have %.1f seconds to accept.",
-                                expirationTime), NamedTextColor.YELLOW)
-                ));
+                this.broadcastMessage(MiniMessage.get().parse(String.format("<inviter> <reset><yellow>has invited " +
+                                        "<reset><invitee> <reset><yellow>to the party! They have %.1f seconds " +
+                                        "to accept.",
+                                expirationTime),
+                        Template.of("inviter", inviterComponent), Template.of("invitee", inviteeComponent)));
 
                 this.invitationMap.put(invitee.getUniqueId(),
                         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
                     this.invitationMap.remove(invitee.getUniqueId());
 
                     if (!this.hasMember(invitee)) {
-                        this.broadcastMessage(TextComponent.ofChildren(
-                                Component.text("The invite to ", NamedTextColor.YELLOW),
-                                inviteeComponent,
-                                Component.text(" has expired.", NamedTextColor.YELLOW)
-                        ));
+                        this.broadcastMessage(MiniMessage.get().parse("<yellow>The invite to <reset><invitee> " +
+                                "<reset><yellow>has expired.", Template.of("invitee", inviteeComponent)));
 
-                        if (onlineInvitee != null) {
-                            onlineInvitee.sendMessage(TextComponent.ofChildren(
-                                    Component.text("The invite to ", NamedTextColor.YELLOW),
-                                    ownerComponent,
-                                    Component.text("'s party has expired.")
-                            ));
+                        if (onlineInvitee != null && onlineInvitee.isOnline()) {
+                            onlineInvitee.sendMessage(MiniMessage.get().parse("<yellow>The invite to " +
+                                    "<reset><owner><reset><yellow>'s party has expired.",
+                                    Template.of("owner", ownerComponent)));
                         }
                     }
                 }, this.getPartySettings().getInviteExpirationTime()).getTaskId());
@@ -486,13 +451,9 @@ public class Party {
                     ? toPlayer.displayName()
                     : Component.text(Objects.toString(player.getName()), NamedTextColor.YELLOW);
 
-            this.broadcastMessage(TextComponent.ofChildren(
-                    Component.text("The party has been transferred from ", NamedTextColor.YELLOW),
-                    fromName,
-                    Component.text(" to ", NamedTextColor.YELLOW),
-                    toName,
-                    Component.text(".", NamedTextColor.YELLOW)
-            ));
+            this.broadcastMessage(MiniMessage.get().parse("<yellow>The party has been transferred " +
+                    "from <reset><from> <reset><yellow>to <reset><to><reset><yellow>.",
+                    Template.of("from", fromName), Template.of("to", toName)));
 
             this.owner = member;
         }
@@ -554,15 +515,10 @@ public class Party {
      * @return The collection of components
      */
     public @NotNull Collection<Component> getPartyListComponents() {
-        TextComponent.Builder online = Component.text()
-                .append(Component.text("Online", NamedTextColor.GREEN))
-                .append(Component.text(": ", NamedTextColor.WHITE));
-        TextComponent.Builder offline = Component.text()
-                .append(Component.text("Offline", NamedTextColor.RED))
-                .append(Component.text(": ", NamedTextColor.WHITE));
+        TextComponent.Builder online = Component.text().append(MiniMessage.get().parse("<green>Online<white>: "));
+        TextComponent.Builder offline = Component.text().append(MiniMessage.get().parse("<red>Offline<white>: "));
         TextComponent.Builder invited = Component.text()
-                .append(Component.text("Invites", NamedTextColor.BLUE))
-                .append(Component.text(": ", NamedTextColor.WHITE));
+                .append(MiniMessage.get().parse("<blue>Invites<white>: "));
 
         Collection<PartyMember> memberCollection = this.members.values();
         List<Player> onlinePlayers = new ArrayList<>(memberCollection.size());
@@ -578,18 +534,19 @@ public class Party {
             }
         }
 
+        Component comma = MiniMessage.get().parse("<white>, ");
         for (int i = 0; i < onlinePlayers.size(); i++) {
             online.append(onlinePlayers.get(i).displayName());
 
             if (i < onlinePlayers.size() - 1) {
-                online.append(Component.text(", ", NamedTextColor.WHITE));
+                online.append(comma);
             }
         }
 
         for (int i = 0; i < offlinePlayers.size(); i++) {
-            offline.append(Component.text(Objects.toString(offlinePlayers.get(i)), NamedTextColor.RED));
+            offline.append(MiniMessage.get().parse("<red>" + offlinePlayers.get(i)));
             if (i < offlinePlayers.size() - 1) {
-                offline.append(Component.text(", ", NamedTextColor.WHITE));
+                offline.append(comma);
             }
         }
 
@@ -600,10 +557,10 @@ public class Party {
 
             invited.append((onlinePlayer != null)
                     ? onlinePlayer.displayName()
-                    : Component.text(Objects.toString(offlinePlayer.getName()), NamedTextColor.BLUE));
+                    : MiniMessage.get().parse("<blue>" + offlinePlayer.getName()));
 
             if (iterator.hasNext()) {
-                invited.append(Component.text(", ", NamedTextColor.WHITE));
+                invited.append(comma);
             }
         }
 

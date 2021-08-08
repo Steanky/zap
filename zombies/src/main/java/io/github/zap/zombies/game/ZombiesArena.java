@@ -55,6 +55,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.*;
@@ -606,13 +607,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                 Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                     if (startTimeStamp != -1) {
-                        hologram.addLine(TextComponent.ofChildren(Component.text("#" + finalI,
-                                        NamedTextColor.YELLOW),
-                                Component.text(" - ", NamedTextColor.WHITE),
-                                Component.text("Loading...", NamedTextColor.GRAY),
-                                Component.text(" - ", NamedTextColor.WHITE),
-                                Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
-                                        NamedTextColor.YELLOW)));
+                        hologram.addLine(MiniMessage.get()
+                                .parse(String.format("<yellow>#%d <white>- <gray>Loading... <white>- <yellow>%s",
+                                        finalI, TimeUtil.convertTicksToSecondsString(time.getValue()))));
                     }
                 });
             }
@@ -628,13 +625,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                     String name = objectMapper.readTree(message).get("name").textValue();
                     Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                         if (startTimeStamp != -1) {
-                            hologram.updateLine(finalI, TextComponent.ofChildren(
-                                    Component.text("#" + finalI, NamedTextColor.YELLOW),
-                                    Component.text(" - ", NamedTextColor.WHITE),
-                                    Component.text(name, NamedTextColor.GRAY),
-                                    Component.text(" - ", NamedTextColor.WHITE),
-                                    Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
-                                            NamedTextColor.YELLOW)));
+                            hologram.updateLine(finalI, MiniMessage.get()
+                                    .parse(String.format("<yellow>#%d <white>- <gray>%s <white>- <yellow>%s",
+                                            finalI, name, TimeUtil.convertTicksToSecondsString(time.getValue()))));
                         }
                     });
                 } catch (IOException e) {

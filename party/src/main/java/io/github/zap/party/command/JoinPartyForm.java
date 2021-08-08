@@ -49,7 +49,7 @@ public class JoinPartyForm extends CommandForm<Party> {
 
         Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(owner);
         if (partyOptional.isEmpty()) {
-            return ValidationResult.of(false, String.format("%s is not in a party.", owner), null);
+            return ValidationResult.of(false, String.format("%s is not in a party.", ownerName), null);
         }
 
         Party party = partyOptional.get();
