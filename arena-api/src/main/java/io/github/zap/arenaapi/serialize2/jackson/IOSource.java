@@ -58,7 +58,8 @@ public interface IOSource {
         };
     }
 
-    static @NotNull IOSource fromStreams(@NotNull Supplier<InputStream> inputStream, @NotNull Supplier<OutputStream> outputStream) {
+    static @NotNull IOSource fromStreams(@NotNull Supplier<InputStream> inputStream,
+                                         @NotNull Supplier<OutputStream> outputStream) {
         return new IOSource() {
             @Override
             public @NotNull InputStream newInput() {

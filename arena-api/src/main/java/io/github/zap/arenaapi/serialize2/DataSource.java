@@ -41,7 +41,7 @@ public interface DataSource {
     DataLoader<? extends DataContainer> getLoader(@NotNull String key);
 
     /**
-     * Creates a new standard implementation of DataSource.
+     * Creates a new standard implementation of DataSource, with a standard transformation context
      * @return A new, standard implementation of DataSource
      */
     static @NotNull DataSource newStandard() {

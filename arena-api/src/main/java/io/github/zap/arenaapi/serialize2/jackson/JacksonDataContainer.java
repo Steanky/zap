@@ -15,11 +15,11 @@ class JacksonDataContainer implements DataContainer {
     private static class TypeReferenceWrapper<T> extends TypeReference<T> {
         private final Type type;
 
-        TypeReferenceWrapper(Class<?> clazz) {
+        private TypeReferenceWrapper(Class<?> clazz) {
             type = clazz;
         }
 
-        TypeReferenceWrapper(TypeToken<?> token) {
+        private TypeReferenceWrapper(TypeToken<?> token) {
             type = token.type();
         }
 
@@ -37,7 +37,7 @@ class JacksonDataContainer implements DataContainer {
         this.node = node;
     }
 
-    private <T> Optional<T> getObjectInternal(TypeReference<T> type, String... keys) {
+    private <T> Optional<T> getObjectInternal(TypeToken<T> type, String... keys) {
         JsonNode current = this.node;
         for(String key : keys) {
             current = current.get(key);
@@ -47,62 +47,66 @@ class JacksonDataContainer implements DataContainer {
             }
         }
 
-        return Optional.of(mapper.convertValue(current, type));
+        return Optional.of(mapper.convertValue(current, new TypeReferenceWrapper<>(type)));
+    }
+
+    private <T> Optional<T> getObjectInternal(Class<T> type, String... keys) {
+        return getObjectInternal(new TypeToken<>(type) {}, keys);
     }
 
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull Class<T> type, @NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(type), keys);
+        return getObjectInternal(type, keys);
     }
 
     @Override
     public @NotNull <T> Optional<T> getObject(@NotNull TypeToken<T> typeToken, @NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(typeToken), keys);
+        return getObjectInternal(typeToken, keys);
     }
 
     @Override
     public @NotNull Optional<String> getString(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(String.class), keys);
+        return getObjectInternal(String.class, keys);
     }
 
     @Override
     public @NotNull Optional<Boolean> getBoolean(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Boolean.class), keys);
+        return getObjectInternal(Boolean.class, keys);
     }
 
     @Override
     public @NotNull Optional<Byte> getByte(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Byte.class), keys);
+        return getObjectInternal(Byte.class, keys);
     }
 
     @Override
     public @NotNull Optional<Short> getShort(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Short.class), keys);
+        return getObjectInternal(Short.class, keys);
     }
 
     @Override
     public @NotNull Optional<Integer> getInt(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Integer.class), keys);
+        return getObjectInternal(Integer.class, keys);
     }
 
     @Override
     public @NotNull Optional<Character> getChar(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Character.class), keys);
+        return getObjectInternal(Character.class, keys);
     }
 
     @Override
     public @NotNull Optional<Long> getLong(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Long.class), keys);
+        return getObjectInternal(Long.class, keys);
     }
 
     @Override
     public @NotNull Optional<Float> getFloat(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Float.class), keys);
+        return getObjectInternal(Float.class, keys);
     }
 
     @Override
     public @NotNull Optional<Double> getDouble(@NotNull String... keys) {
-        return getObjectInternal(new TypeReferenceWrapper<>(Double.class), keys);
+        return getObjectInternal(Double.class, keys);
     }
 
     /**
@@ -119,5 +123,24 @@ class JacksonDataContainer implements DataContainer {
      */
     public @NotNull ObjectMapper mapper() {
         return mapper;
+    }
+
+    @Override
+    public int hashCode() {
+        return node.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof JacksonDataContainer container) {
+            return node.equals(container.node);
+        }
+
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "DataContainer{node=" + node + "}";
     }
 }

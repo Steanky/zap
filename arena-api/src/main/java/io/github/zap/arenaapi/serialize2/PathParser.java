@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.serialize2;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -9,7 +10,6 @@ public interface PathParser {
     PathParser STANDARD = new StandardParser();
 
     class StandardParser implements PathParser {
-        private static final String[] emptyString = new String[0];
         @Override
         public @NotNull String[] parse(@NotNull String input) {
             String[] array = input.split("/");
@@ -21,7 +21,7 @@ public interface PathParser {
                 }
             }
 
-            return newList.toArray(emptyString);
+            return newList.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
         }
     }
 

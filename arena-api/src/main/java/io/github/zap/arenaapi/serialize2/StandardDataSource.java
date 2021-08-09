@@ -2,9 +2,7 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 class StandardDataSource implements DataSource {
     private final Map<String, DataLoader<? extends DataContainer>> loaders = new HashMap<>();

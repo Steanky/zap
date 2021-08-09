@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.*;
 
 /**
- * Represents a reference to a generic type.
+ * Contains generic type information.
  */
 public abstract class TypeToken<T> implements Comparable<TypeToken<T>> {
     private final Type type;
@@ -29,5 +29,19 @@ public abstract class TypeToken<T> implements Comparable<TypeToken<T>> {
      */
     public @NotNull Type type() {
         return type;
+    }
+
+    @Override
+    public int hashCode() {
+        return type.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof TypeToken typeToken) {
+            return typeToken.type.equals(type);
+        }
+
+        return false;
     }
 }

@@ -3,11 +3,9 @@ package io.github.zap.arenaapi.serialize2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
 class PathParserTest {
     private static final String basic = "this is/a/well formed/path";
-    private static final String complicated = "////this is///a path///that////someone///made////while///drunk///";
+    private static final String drunk = "/this is///a path///that////someone///made////while///drunk///";
 
     private static final String[] basicExpected = new String[] {
             "this is",
@@ -16,7 +14,7 @@ class PathParserTest {
             "path"
     };
 
-    private static final String[] complicatedExpected = new String[] {
+    private static final String[] drunkExpected = new String[] {
             "this is",
             "a path",
             "that",
@@ -33,6 +31,6 @@ class PathParserTest {
 
     @Test
     public void testComplicatedInput() {
-        Assertions.assertArrayEquals(complicatedExpected, PathParser.path(complicated));
+        Assertions.assertArrayEquals(drunkExpected, PathParser.path(drunk));
     }
 }
