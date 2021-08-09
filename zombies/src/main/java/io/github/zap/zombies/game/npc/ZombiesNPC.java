@@ -20,6 +20,7 @@ import io.github.zap.zombies.game.data.map.MapData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.EntityType;
@@ -327,6 +328,11 @@ public class ZombiesNPC implements Listener {
                     if (partyPlusPlus != null) {
                         Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(player);
                         if (partyOptional.isPresent()) {
+                            if (!partyOptional.get().isOwner(player)) {
+                                player.sendMessage(Component.text("You are not the owner of the party!",
+                                        NamedTextColor.RED));
+                                return;
+                            }
                             joinable = new SimpleJoinable(partyOptional.get().getOnlinePlayers());
                         }
                     }

@@ -46,6 +46,9 @@ dependencies {
     }
     shadeProject(project(":zombies:nms-v1_16_R3", "shadow"))
 
+    shade("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT") {
+        exclude("net.kyori", "adventure-api")
+    }
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
     bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0-Fixed")

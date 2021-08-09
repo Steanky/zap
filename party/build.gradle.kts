@@ -27,6 +27,9 @@ dependencies {
     dependencyCompileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
     }
+    implementation("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT") {
+        exclude("net.kyori", "adventure-api")
+    }
     implementation("com.github.Steanky:RegularCommands:master-SNAPSHOT")
     implementation("org.apache.commons:commons-lang3:3.12.0")
 

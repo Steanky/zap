@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 /**
  * Manager for player statistics regarding an arena type
@@ -85,17 +86,21 @@ public abstract class StatsManager {
      * Destroys the stats manager and writes all caches to storage
      */
     public void destroy() {
-        for (StatsCache<?, ?> cache : caches.values()) {
-            cache.flush((flushedStats) -> writeStats(cache.getName(), flushedStats));
-        }
-
+        ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) shutdown begin");
         EXECUTOR_SERVICE.shutdown();
         try {
             //noinspection ResultOfMethodCallIgnored
             EXECUTOR_SERVICE.awaitTermination(EXPERIMENTALLY_DETERMINED_BEST_EXECUTOR_SERVICE_SHUTDOWN_TIME,
                     TimeUnit.SECONDS);
+            ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) shutdown end");
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+
+        // once all requests have gone through, flush all caches
+        ArenaApi.getInstance().getLogger().log(Level.INFO, "(debugging unresolved issue) cache flushing");
+        for (StatsCache<?, ?> cache : caches.values()) {
+            cache.flush((flushedStats) -> writeStats(cache.getName(), flushedStats));
         }
     }
 

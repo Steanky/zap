@@ -94,13 +94,19 @@ public class PartyAsyncChatTest {
         Component originalMessage = Component.text("Hello, World!");
         AsyncChatEvent event = new AsyncChatEvent(true, this.member,
                 new HashSet<>(Set.of(this.owner, this.member, this.noob)),
-                Mockito.mock(ChatRenderer.class), originalMessage, originalMessage);
+                ChatRenderer.defaultRenderer(), originalMessage, originalMessage);
+        ChatRenderer originalRenderer = event.renderer();
         party.onAsyncChat(event);
 
         Assertions.assertFalse(event.isCancelled());
         Assertions.assertEquals(Set.of(this.owner, this.member), event.viewers());
-        Assertions.assertTrue(event.message().children().contains(event.originalMessage()));
-    }
+        for (Audience audience : event.viewers()) {
+            Component oldMessage = originalRenderer.render(this.member, this.member.displayName(),
+                    event.originalMessage(), audience);
+            Component newMessage = event.renderer().render(this.member, this.member.displayName(),
+                    event.message(), audience);
+            Assertions.assertTrue(newMessage.children().contains(oldMessage));
+        }}
 
     @Test
     public void testAsyncChatFromMutedPlayerInPartyNotInPartyChat() {

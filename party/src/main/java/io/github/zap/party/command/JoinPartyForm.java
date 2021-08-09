@@ -41,7 +41,7 @@ public class JoinPartyForm extends CommandForm<Party> {
 
         OfflinePlayer owner = Bukkit.getOfflinePlayerIfCached(ownerName);
         if (owner == null) {
-            return ValidationResult.of(false, String.format("%s is registered on the server!", ownerName),
+            return ValidationResult.of(false, String.format("%s is not registered on the server!", ownerName),
                     null);
         }
 
@@ -49,7 +49,7 @@ public class JoinPartyForm extends CommandForm<Party> {
 
         Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(owner);
         if (partyOptional.isEmpty()) {
-            return ValidationResult.of(false, String.format("%s is not in a party.", owner), null);
+            return ValidationResult.of(false, String.format("%s is not in a party.", ownerName), null);
         }
 
         Party party = partyOptional.get();
