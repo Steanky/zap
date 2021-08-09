@@ -38,7 +38,7 @@ class BasicHotbarManager implements HotbarManager {
     }
 
     @Override
-    public @NotNull PlayerView owner() {
+    public @NotNull PlayerView getOwner() {
         return owner;
     }
 

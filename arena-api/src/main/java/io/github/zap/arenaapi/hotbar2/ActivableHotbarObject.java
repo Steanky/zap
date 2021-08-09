@@ -21,23 +21,23 @@ public abstract class ActivableHotbarObject implements HotbarObject {
     }
 
     @Override
-    public @NotNull PlayerView owner() {
+    public @NotNull PlayerView getOwner() {
         return owner;
     }
 
     @Override
-    public int slot() {
+    public int getSlot() {
         return slot;
     }
 
     @Override
     public void onActivate() {
-        owner.getPlayerIfValid().ifPresent(player -> player.getInventory().setItem(slot(), getStack()));
+        owner.getPlayerIfValid().ifPresent(player -> player.getInventory().setItem(getSlot(), getStack()));
     }
 
     @Override
     public void onDeactivate() {
-        owner.getPlayerIfValid().ifPresent(player -> player.getInventory().setItem(slot(), getInactiveStack()));
+        owner.getPlayerIfValid().ifPresent(player -> player.getInventory().setItem(getSlot(), getInactiveStack()));
     }
 
     public abstract @Nullable ItemStack getInactiveStack();

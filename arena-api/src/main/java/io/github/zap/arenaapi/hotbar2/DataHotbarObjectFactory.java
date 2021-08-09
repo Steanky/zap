@@ -7,16 +7,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class RegistrableHotbarObjectFactory implements HotbarObjectFactory {
-    private static final RegistrableHotbarObjectFactory INSTANCE = new RegistrableHotbarObjectFactory();
+public class DataHotbarObjectFactory implements HotbarObjectFactory {
+    private static final DataHotbarObjectFactory INSTANCE = new DataHotbarObjectFactory();
 
     private static final String TYPE_FIELD = "type";
 
     private final Map<String, HotbarObjectFactory> factories = new HashMap<>();
 
-    private RegistrableHotbarObjectFactory() {}
+    private DataHotbarObjectFactory() {}
 
-    public static @NotNull RegistrableHotbarObjectFactory instance() {
+    public static @NotNull DataHotbarObjectFactory instance() {
         return INSTANCE;
     }
 
@@ -40,7 +40,7 @@ public class RegistrableHotbarObjectFactory implements HotbarObjectFactory {
     }
 
     public void registerFactory(@NotNull String type, @NotNull HotbarObjectFactory factory) {
-        if(!(factory instanceof RegistrableHotbarObjectFactory)) { //naive attempt to prevent bad recursive registration
+        if(!(factory instanceof DataHotbarObjectFactory)) { //naive attempt to prevent bad recursive registration
             factories.put(type, factory);
         }
     }

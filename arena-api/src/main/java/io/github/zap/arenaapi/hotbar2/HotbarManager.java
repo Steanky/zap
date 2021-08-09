@@ -3,7 +3,7 @@ package io.github.zap.arenaapi.hotbar2;
 import org.jetbrains.annotations.NotNull;
 
 public interface HotbarManager {
-    @NotNull PlayerView owner();
+    @NotNull PlayerView getOwner();
 
     void registerProfile(@NotNull String name, @NotNull HotbarProfile profile);
 

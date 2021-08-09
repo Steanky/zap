@@ -8,11 +8,11 @@ import org.jetbrains.annotations.NotNull;
  * Represents an interactive item which exists in a player's hotbar.
  */
 public interface HotbarObject {
-    @NotNull PlayerView owner();
+    @NotNull PlayerView getOwner();
 
     @NotNull ItemStack getStack();
 
-    int slot();
+    int getSlot();
 
     void onLeftClick(@NotNull Block interactedWith);
 
