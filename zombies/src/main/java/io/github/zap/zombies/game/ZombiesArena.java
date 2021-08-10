@@ -597,12 +597,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         statsManager.queueCacheRequest(CacheInformation.MAP, map.getName(), MapStats::new, (stats) -> {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            List<Map.Entry<UUID, Integer>> bestTimes = new ArrayList<>(stats.getBestTimes().entrySet());
+            List<Map.Entry<UUID, Long>> bestTimes = new ArrayList<>(stats.getBestTimes().entrySet());
             bestTimes.sort((a, b) -> b.getValue().compareTo(a.getValue()));
 
             int bound = Math.min(map.getBestTimesCount(), bestTimes.size());
             for (int i = 0; i < bound; i++) {
-                Map.Entry<UUID, Integer> time = bestTimes.get(i);
+                Map.Entry<UUID, Long> time = bestTimes.get(i);
                 int finalI = i;
 
                 Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
@@ -614,7 +614,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 });
             }
             for (int i = 0; i < bound; i++) {
-                Map.Entry<UUID, Integer> time = bestTimes.get(i);
+                Map.Entry<UUID, Long> time = bestTimes.get(i);
                 int finalI = i;
 
                 try {
@@ -1185,7 +1185,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         Property<Integer> roundIndexProperty = map.getCurrentRoundProperty();
 
         int lastRoundIndex = targetRound - 1;
-        int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
+        long approximateTicks = (System.currentTimeMillis() - startTimeStamp) / 50; // todo: approximation bad
+
         for (ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
             if (!zombiesPlayer.isAlive()) {
                 zombiesPlayer.respawn();
@@ -1193,7 +1194,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
             Player player = zombiesPlayer.getPlayer();
             if (player != null) {
-                if (map.getRoundTimesShouldSave().contains(lastRoundIndex + 1)) {
+                if (map.getRoundTimesShouldSave().contains(targetRound)) {
                     statsManager.queueCacheRequest(CacheInformation.PLAYER, player.getUniqueId(),
                             PlayerGeneralStats::new, (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
@@ -1203,10 +1204,32 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                             mapStats.setBestRound(lastRoundIndex + 1);
                         }
 
-                        Map<Integer, Integer> bestTimes = mapStats.getBestTimes();
-                        Integer bestTime = bestTimes.get(lastRoundIndex + 1);
-                        if (bestTime == null || bestTime < secondsElapsed) {
-                            bestTimes.put(lastRoundIndex + 1, secondsElapsed);
+                        Component bar = MiniMessage.get().parse("<green>=======================");
+                        Map<Integer, Long> bestTimes = mapStats.getBestTimes();
+                        Long bestTime = bestTimes.get(targetRound);
+                        if (bestTime == null || bestTime < approximateTicks) {
+                            bestTimes.put(targetRound, approximateTicks);
+                            Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
+                                if (player.isOnline()) {
+                                    player.sendMessage(bar);
+                                    player.sendMessage(MiniMessage.get()
+                                            .parse(String.format("<red>You beat round %d in %s!", targetRound + 1,
+                                                    TimeUtil.convertTicksToSecondsString(approximateTicks))));
+                                    player.sendMessage(MiniMessage.get().parse("<gold>NEW PERSONAL BEST!"));
+                                    player.sendMessage(bar);
+                                }
+                            });
+                        }
+                        else {
+                            Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
+                                if (player.isOnline()) {
+                                    player.sendMessage(bar);
+                                    player.sendMessage(MiniMessage.get()
+                                            .parse(String.format("<red>You beat round %d in %s!", targetRound + 1,
+                                                    TimeUtil.convertTicksToSecondsString(approximateTicks))));
+                                    player.sendMessage(bar);
+                                }
+                            });
                         }
                     });
                 } else {
@@ -1301,7 +1324,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private void doVictory() {
         state = ZombiesArenaState.ENDED;
         endTimeStamp = System.currentTimeMillis();
-        int duration = (int) ((endTimeStamp - startTimeStamp) / 1000);
+        long approximateTicks = (endTimeStamp - startTimeStamp) / 50;
 
         var round = map.getCurrentRoundProperty().getValue(this);
         getPlayerMap().forEach((l,r) -> {
@@ -1315,12 +1338,12 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                     PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
                     playerMapStats.setWins(playerMapStats.getWins() + 1);
 
-                    if (playerMapStats.getBestTime() == null || duration < playerMapStats.getBestTime()) {
-                        playerMapStats.setBestTime(duration);
+                    if (playerMapStats.getBestTime() == null || approximateTicks < playerMapStats.getBestTime()) {
+                        playerMapStats.setBestTime(approximateTicks);
                         statsManager.queueCacheRequest(CacheInformation.MAP, map.getName(), MapStats::new,
                                 (mapStats) -> {
-                            Map<UUID, Integer> bestTimes = mapStats.getBestTimes();
-                            bestTimes.put(bukkitPlayer.getUniqueId(), duration);
+                            Map<UUID, Long> bestTimes = mapStats.getBestTimes();
+                            bestTimes.put(bukkitPlayer.getUniqueId(), approximateTicks);
                         });
                     }
                 });

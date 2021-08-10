@@ -26,6 +26,6 @@ public class MapStats extends Stats<String> {
 
     }
 
-    Map<UUID, Integer> bestTimes = new HashMap<>();
+    Map<UUID, Long> bestTimes = new HashMap<>();
 
 }
