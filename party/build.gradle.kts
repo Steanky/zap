@@ -36,7 +36,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
 
-    testImplementation("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+    testRuntimeOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
     }
 

@@ -291,11 +291,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 zombiesTask.notifyChange();
             }
 
-            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                    getOfflinePlayer().getUniqueId(), (stats) -> {
+            getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                    getOfflinePlayer().getUniqueId(), PlayerGeneralStats::new, (stats) -> {
                 PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setKnockDowns(mapStats.getKnockDowns() + 1);
-            }, PlayerGeneralStats::new);
+            });
 
             setKnockedState();
         }
@@ -371,11 +371,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             }
             corpse.terminate();
 
-            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                    getOfflinePlayer().getUniqueId(), (stats) -> {
+            getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                    getOfflinePlayer().getUniqueId(), PlayerGeneralStats::new, (stats) -> {
                 PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setDeaths(mapStats.getDeaths() + 1);
-            }, PlayerGeneralStats::new);
+            });
 
             setDeadState();
         }
@@ -459,11 +459,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                     attempt.ignoresArmor(this, damaged) ? 1.5F : 2F));
 
             if (damaged.getHealth() <= 0) {
-                getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(),
-                        (stats) -> {
+                getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER, player.getUniqueId(),
+                        PlayerGeneralStats::new, (stats) -> {
                     PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                     mapStats.setKills(mapStats.getKills() + 1);
-                    }, PlayerGeneralStats::new);
+                });
 
                 addKills(1);
             } else {

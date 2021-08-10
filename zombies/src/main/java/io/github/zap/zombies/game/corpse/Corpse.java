@@ -185,11 +185,11 @@ public class Corpse {
                             map.getReviveSpeedLevel(), true, false, false);
                     reviverPlayer.addPotionEffect(speedEffect);
 
-                    arena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                            reviverPlayer.getUniqueId(), (stats) -> {
+                    arena.getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                            reviverPlayer.getUniqueId(), PlayerGeneralStats::new, (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
                         mapStats.setPlayersRevived(mapStats.getPlayersRevived() + 1);
-                    }, PlayerGeneralStats::new);
+                    });
 
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                     HotbarObjectGroup hotbarObjectGroup = hotbarManager

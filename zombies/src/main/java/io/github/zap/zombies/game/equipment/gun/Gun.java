@@ -307,9 +307,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                     @Override
                     public void run() {
                         if (firedShots++ == Math.min(getCurrentLevel().getShotsPerClick(), currentAmmo)) { // Reload while shooting possible
-                            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                                    getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + firedShots),
-                                    PlayerGeneralStats::new);
+                            getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                                    getPlayer().getUniqueId(), PlayerGeneralStats::new,
+                                    (stats) -> stats.setBulletsShot(stats.getBulletsShot() + firedShots));
                             updateAfterShooting(firedShots);
 
                             shootingTask = -1;
@@ -321,9 +321,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
                 }).getTaskId();
             } else {
-                getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                        getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1),
-                        PlayerGeneralStats::new);
+                getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                        getPlayer().getUniqueId(), PlayerGeneralStats::new,
+                        (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1));
                 updateAfterShooting(1);
             }
         }

@@ -278,11 +278,11 @@ public class Door extends Shop<DoorData> {
      * @param opener The player that opened the door
      */
     private void incrementDoorsOpenedStat(@NotNull Player opener) {
-        getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                opener.getUniqueId(), (stats) -> {
-                    PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
-                    mapStats.setDoorsOpened(mapStats.getDoorsOpened() + 1);
-                }, PlayerGeneralStats::new);
+        getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                opener.getUniqueId(), PlayerGeneralStats::new, (stats) -> {
+            PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
+            mapStats.setDoorsOpened(mapStats.getDoorsOpened() + 1);
+        });
     }
 
 }
