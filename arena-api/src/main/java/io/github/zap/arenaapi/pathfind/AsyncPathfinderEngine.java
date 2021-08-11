@@ -221,7 +221,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                     context.syncSemaphore.acquire();
                 }
                 catch (InterruptedException e) {
-                    ArenaApi.warning("Interrupted while attemping to force acquire sychronization semaphore.");
+                    ArenaApi.warning("Interrupted while attempting to force acquire synchronization semaphore.");
                     return;
                 }
             }

@@ -1,6 +1,8 @@
 package io.github.zap.arenaapi.hotbar2;
 
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class HotbarObjectAbstract implements HotbarObject {
     protected final PlayerView playerView;
@@ -26,7 +28,7 @@ public abstract class HotbarObjectAbstract implements HotbarObject {
     @Override
     public void show() {
         if(!shown) {
-            getOwner().getPlayerIfValid().ifPresent(player -> player.getInventory().setItem(slot, getStack()));
+            setStack(getStack());
             shown = true;
         }
     }
@@ -34,7 +36,7 @@ public abstract class HotbarObjectAbstract implements HotbarObject {
     @Override
     public void hide() {
         if(shown) {
-            getOwner().getPlayerIfValid().ifPresent(player -> player.getInventory().setItem(slot, null));
+            setStack(null);
             shown = false;
         }
     }
@@ -42,5 +44,9 @@ public abstract class HotbarObjectAbstract implements HotbarObject {
     @Override
     public int getSlot() {
         return slot;
+    }
+
+    public void setStack(@Nullable ItemStack stack) {
+        getOwner().getPlayerIfValid().ifPresent(player -> player.getInventory().setItem(slot, stack));
     }
 }
