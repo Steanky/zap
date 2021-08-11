@@ -2,11 +2,13 @@ package io.github.zap.arenaapi.hotbar2;
 
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ActivableHotbarObject extends HotbarObjectAbstract {
-    private boolean active = true;
-    private final ItemStack inactiveStack;
-    protected ItemStack currentStack;
+    protected final ItemStack inactiveStack;
+
+    private ItemStack currentStack;
+    private boolean active = false;
 
     protected ActivableHotbarObject(@NotNull PlayerView playerView, @NotNull ItemStack inactiveStack, int slot) {
         super(playerView, slot);
@@ -24,8 +26,7 @@ public abstract class ActivableHotbarObject extends HotbarObjectAbstract {
     @Override
     public void deactivate() {
         if(active) {
-            currentStack = inactiveStack;
-            setStack(currentStack);
+            setStack(inactiveStack);
             active = false;
         }
     }
@@ -33,5 +34,11 @@ public abstract class ActivableHotbarObject extends HotbarObjectAbstract {
     @Override
     public @NotNull ItemStack getStack() {
         return currentStack;
+    }
+
+    @Override
+    public void setStack(@Nullable ItemStack stack) {
+        super.setStack(stack);
+        currentStack = stack;
     }
 }
