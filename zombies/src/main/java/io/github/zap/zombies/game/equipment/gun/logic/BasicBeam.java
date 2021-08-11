@@ -111,7 +111,7 @@ public class BasicBeam {
 
     /**
      * Gets the targeted block of the shot
-     * Adapted from {@link org.bukkit.craftbukkit.v1_16_R3.entity.CraftLivingEntity#getTargetBlock(int)} nested calls
+     * Adapted from {@link org.bukkit.entity.LivingEntity} CraftBukkit implementation nested calls
      * @return The targeted block
      */
     private Block getTargetBlock() {
@@ -160,9 +160,9 @@ public class BasicBeam {
         List<Pair<RayTraceResult, Double>> hits = rayTrace();
 
         if (hits.size() > 0) {
-            getZombiesPlayer().getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                    zombiesPlayer.getOfflinePlayer().getUniqueId(),
-                    (stats) -> stats.setBulletsHit(stats.getBulletsHit() + 1), PlayerGeneralStats::new);
+            getZombiesPlayer().getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                    zombiesPlayer.getOfflinePlayer().getUniqueId(), PlayerGeneralStats::new,
+                    (stats) -> stats.setBulletsHit(stats.getBulletsHit() + 1));
 
             for (Pair<RayTraceResult, Double> rayTraceResult : rayTrace()) {
                 damageEntity(rayTraceResult.getLeft());
@@ -226,9 +226,9 @@ public class BasicBeam {
             boolean isHeadshot = determineIfHeadshot(rayTraceResult, mob);
 
             if (isHeadshot) {
-                arena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                        getZombiesPlayer().getOfflinePlayer().getUniqueId(),
-                        (stats) -> stats.setHeadShots(stats.getHeadShots() + 1), PlayerGeneralStats::new);
+                arena.getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                        getZombiesPlayer().getOfflinePlayer().getUniqueId(), PlayerGeneralStats::new,
+                        (stats) -> stats.setHeadShots(stats.getHeadShots() + 1));
             }
 
             arena.getDamageHandler().damageEntity(getZombiesPlayer(),

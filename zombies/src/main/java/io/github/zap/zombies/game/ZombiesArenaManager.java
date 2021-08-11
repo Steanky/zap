@@ -28,6 +28,7 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 /**
@@ -74,11 +75,12 @@ public class ZombiesArenaManager extends ArenaManager<ZombiesArena> {
     }
 
     private static StatsManager createStatsManager(DataLoader playerStatsLoader, DataLoader mapStatsLoader) {
-        StatsManager statsManager = new FileStatsManager(Map.of(CacheInformation.PLAYER,
-                playerStatsLoader, CacheInformation.MAP, mapStatsLoader));
-        statsManager.registerCache(new StatsCache<>(CacheInformation.PLAYER, PlayerGeneralStats.class,
-                CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
-        statsManager.registerCache(new StatsCache<>(CacheInformation.MAP, MapStats.class,
+        StatsManager statsManager = new FileStatsManager(Zombies.getInstance(),
+                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()),
+                Map.of(CacheInformation.PLAYER, playerStatsLoader, CacheInformation.MAP, mapStatsLoader));
+        statsManager.registerCache(new StatsCache<>(Zombies.getInstance(), CacheInformation.PLAYER,
+                PlayerGeneralStats.class, CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
+        statsManager.registerCache(new StatsCache<>(Zombies.getInstance(), CacheInformation.MAP, MapStats.class,
                 CacheInformation.MAX_FREE_MAP_CACHE_SIZE));
 
         return statsManager;
