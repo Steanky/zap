@@ -18,7 +18,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
 
     private static final int MIN_CHUNK_SYNC_AGE = 20;
-    private static final int PATH_CAPACITY = 64;
+    private static final int PATH_CAPACITY = 32;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 4;
     private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.8;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
@@ -249,6 +249,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
                 } else if(!latch.await(CHUNK_SYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
                     ArenaApi.warning("Chunk synchronizing took more than " + CHUNK_SYNC_TIMEOUT_MS + "ms! Is the server lagging?");
                     Bukkit.getScheduler().cancelTask(taskId); //don't bother to finish sync on a laggy server
+                    latch.countDown(); //idk if necessary
                 }
             } catch (InterruptedException ignored) {
                 ArenaApi.warning("Interrupted while waiting for chunks to sync.");

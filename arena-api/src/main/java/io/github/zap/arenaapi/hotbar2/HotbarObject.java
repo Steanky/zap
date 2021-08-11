@@ -14,13 +14,21 @@ public interface HotbarObject {
 
     int getSlot();
 
+    @NotNull HotbarObject copyInSlot(int slot);
+
     void onLeftClick(@NotNull Block interactedWith);
 
     void onRightClick(@NotNull Block interactedWith);
 
-    void onActivate();
+    boolean isShown();
 
-    void onDeactivate();
+    void show();
+
+    void hide();
+
+    void activate();
+
+    void deactivate();
 
     void onSelected();
 

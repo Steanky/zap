@@ -15,24 +15,22 @@ class BasicHotbarManager implements HotbarManager {
     BasicHotbarManager(@NotNull PlayerView player, @NotNull HotbarProfile defaultProfile) {
         this.owner = player;
         this.defaultProfile = defaultProfile;
+        switchToProfileInternal(defaultProfile); //i don't like this but it's necessary
     }
 
-    private void switchProfileInternal(HotbarProfile newProfile) {
+    private void switchToProfileInternal(HotbarProfile newProfile) {
         if(currentProfile != newProfile) { //if same profile, don't update
             HotbarProfile previousProfile = currentProfile;
             currentProfile = newProfile;
 
-            for(int i = 0; i < 9; i++) {
-                HotbarObject previousObject = previousProfile == null ? null : previousProfile.getObject(i);
-                HotbarObject currentObject = currentProfile.getObject(i);
-
-                if(previousObject != null) {
-                    previousObject.onDeactivate();
+            if(previousProfile != null) {
+                for(HotbarObject object : previousProfile) {
+                    object.hide();
                 }
+            }
 
-                if(currentObject != null) {
-                    currentObject.onActivate();
-                }
+            for(HotbarObject object : currentProfile) {
+                object.show();
             }
         }
     }
@@ -57,7 +55,7 @@ class BasicHotbarManager implements HotbarManager {
         HotbarProfile profile = profiles.get(name);
 
         if(profile != null) {
-            switchProfileInternal(profile);
+            switchToProfileInternal(profile);
         }
         else {
             throw new IllegalArgumentException("Profile named " + name + " has not been registered");
@@ -66,11 +64,11 @@ class BasicHotbarManager implements HotbarManager {
 
     @Override
     public void switchToDefaultProfile() {
-        switchProfileInternal(defaultProfile);
+        switchToProfileInternal(defaultProfile);
     }
 
     @Override
-    public HotbarProfile currentProfile() {
+    public @NotNull HotbarProfile currentProfile() {
         return currentProfile;
     }
 }

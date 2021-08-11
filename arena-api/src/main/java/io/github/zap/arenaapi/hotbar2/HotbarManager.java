@@ -13,5 +13,5 @@ public interface HotbarManager {
 
     void switchToDefaultProfile();
 
-    HotbarProfile currentProfile();
+    @NotNull HotbarProfile currentProfile();
 }
