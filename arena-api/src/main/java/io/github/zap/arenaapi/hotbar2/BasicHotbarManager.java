@@ -24,9 +24,11 @@ class BasicHotbarManager implements HotbarManager {
 
             if(previousProfile != null) {
                 previousProfile.setActive(false);
+                previousProfile.redrawAll();
             }
 
             currentProfile.setActive(true);
+            currentProfile.redrawAll();
         }
     }
 

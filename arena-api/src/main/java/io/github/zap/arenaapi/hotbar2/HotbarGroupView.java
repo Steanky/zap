@@ -16,4 +16,6 @@ public interface HotbarGroupView {
     int getSizeOfGroup(@NotNull String groupName);
 
     void removeObjectFromGroup(@NotNull String groupName, int groupIndex, boolean collapse);
+
+    void redrawAllInGroup(@NotNull String groupName);
 }

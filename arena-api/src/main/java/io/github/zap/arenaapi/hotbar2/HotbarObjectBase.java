@@ -7,53 +7,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class HotbarObjectBase implements HotbarObject {
-    protected final HotbarCanvas hotbarCanvas;
     protected final int slot;
+    protected ItemStack currentStack;
 
-    private boolean isShown = true;
     private boolean isSelected = false;
-    private ItemStack currentStack;
 
-    protected HotbarObjectBase(@NotNull HotbarCanvas hotbarCanvas, int slot) {
-        this.hotbarCanvas = hotbarCanvas;
+    protected HotbarObjectBase(int slot) {
         this.slot = slot;
     }
 
     @Override
-    public @NotNull HotbarCanvas getCanvas() {
-        return hotbarCanvas;
-    }
-
-    @Override
-    public boolean isShown() {
-        return isShown;
-    }
-
-    @Override
-    public void show() {
-        if(!isShown()) {
-            setStack(getStack());
-            isShown = true;
-        }
-    }
-
-    @Override
-    public void hide() {
-        if(isShown()) {
-            setStack(null);
-            isShown = false;
-        }
-    }
-
-    @Override
     public void cleanup() {}
-
-    @Override
-    public void refresh() {
-        ItemStack current = getStack();
-        setStack(current);
-        hotbarCanvas.drawItem(current, getSlot());
-    }
 
     @Override
     public int getSlot() {
@@ -63,10 +27,6 @@ public abstract class HotbarObjectBase implements HotbarObject {
     @Override
     public @NotNull ItemStack getStack() {
         return currentStack;
-    }
-
-    public void setStack(@Nullable ItemStack stack) {
-        this.currentStack = stack;
     }
 
     @Override

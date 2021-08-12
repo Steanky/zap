@@ -7,27 +7,19 @@ import java.util.Iterator;
 import java.util.Objects;
 
 class BasicHotbarProfile implements HotbarProfile {
+    private final HotbarCanvas canvas;
     private final HotbarObject[] objects = new HotbarObject[9];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
 
-    boolean active = false;
+    private boolean active = false;
 
-    BasicHotbarProfile() {}
+    BasicHotbarProfile(@NotNull HotbarCanvas canvas) {
+        this.canvas = canvas;
+    }
 
     @Override
     public void setActive(boolean active) {
-        if(this.active != active) {
-            for(HotbarObject object : this) {
-                if(active) {
-                    object.show();
-                }
-                else {
-                    object.hide();
-                }
-            }
-
-            this.active = active;
-        }
+        this.active = active;
     }
 
     @Override
@@ -35,11 +27,34 @@ class BasicHotbarProfile implements HotbarProfile {
         return active;
     }
 
-    @Override
-    public void refreshAll() {
-        for(HotbarObject object : this) {
-            object.refresh();
+    private void redrawSlotInternal(int slot) {
+        if(isActive()) {
+            HotbarObject object = objects[slot];
+
+            if(object == null) {
+                canvas.drawItem(null, slot);
+            }
+            else {
+                canvas.drawItem(object.getStack(), slot);
+            }
         }
+    }
+
+    @Override
+    public void redrawObject(int slot) {
+        redrawSlotInternal(slot);
+    }
+
+    @Override
+    public void redrawAll() {
+        for(int i = 0; i < objects.length; i++) {
+            redrawSlotInternal(i);
+        }
+    }
+
+    @Override
+    public @NotNull HotbarCanvas getCanvas() {
+        return canvas;
     }
 
     @Override
@@ -48,14 +63,9 @@ class BasicHotbarProfile implements HotbarProfile {
         HotbarObject existingObject = objects[slot];
 
         if(existingObject != null) {
-            if(active) {
-                existingObject.hide();
-            }
-
             existingObject.cleanup();
         }
 
-        object.show();
         objects[slot] = object;
     }
 
@@ -64,10 +74,6 @@ class BasicHotbarProfile implements HotbarProfile {
         HotbarObject delete = objects[slot];
 
         if(delete != null) {
-            if(active) {
-                delete.hide();
-            }
-
             delete.cleanup();
         }
 
@@ -84,23 +90,11 @@ class BasicHotbarProfile implements HotbarProfile {
 
         if(from != null) {
             fromCopy = from.copyInSlot(indexTo);
-
-            if(active) {
-                from.hide();
-                fromCopy.show();
-            }
-
             from.cleanup();
         }
 
         if(to != null) {
             toCopy = to.copyInSlot(indexFrom);
-
-            if(active) {
-                to.hide();
-                toCopy.show();
-            }
-
             to.cleanup();
         }
 

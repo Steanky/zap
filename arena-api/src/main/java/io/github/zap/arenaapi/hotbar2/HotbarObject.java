@@ -9,8 +9,6 @@ import org.jetbrains.annotations.NotNull;
  * Represents an interactive item which exists in a player's hotbar.
  */
 public interface HotbarObject {
-    @NotNull HotbarCanvas getCanvas();
-
     @NotNull ItemStack getStack();
 
     int getSlot();
@@ -19,15 +17,7 @@ public interface HotbarObject {
 
     void onPlayerInteract(@NotNull PlayerInteractEvent event);
 
-    boolean isShown();
-
-    void show();
-
-    void hide();
-
     void cleanup();
-
-    void refresh();
 
     boolean isSelected();
 

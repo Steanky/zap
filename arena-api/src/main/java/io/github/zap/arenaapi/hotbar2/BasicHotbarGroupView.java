@@ -60,20 +60,14 @@ class BasicHotbarGroupView implements HotbarGroupView {
 
     @Override
     public void appendObjectToGroup(@NotNull String groupName, @NotNull HotbarObject object) {
-        if(object.isShown()) {
-            int[] group = getGroupInternal(groupName);
-
-            for(int slot : group) {
-                HotbarObject hotbarObject = profile.getObject(slot);
-
-                if(hotbarObject == null) {
-                    profile.putObject(object);
-                    return;
-                }
+        for(int slot : getGroupInternal(groupName)) {
+            if(profile.getObject(slot) == null) {
+                profile.putObject(object);
+                return;
             }
-
-            throw new IllegalArgumentException("Hotbar group " + groupName + " is full");
         }
+
+        throw new IllegalArgumentException("Hotbar group " + groupName + " is full");
     }
 
     @Override
@@ -120,6 +114,13 @@ class BasicHotbarGroupView implements HotbarGroupView {
                 profile.swapObjects(currentHotbarIndex, previousHotbarIndex);
                 previousHotbarIndex = currentHotbarIndex;
             }
+        }
+    }
+
+    @Override
+    public void redrawAllInGroup(@NotNull String groupName) {
+        for(int slot : getGroupInternal(groupName)) {
+            profile.redrawObject(slot);
         }
     }
 }
