@@ -14,15 +14,15 @@ class BasicHotbarGroupView implements HotbarGroupView {
         this.profile = profile;
     }
 
-    private boolean validateNewSlots(int[] slots) {
-        for(int slot : slots) {
-            if(slot < 0 || slot > 8) {
+    private boolean validateNewSlots(int[] newSlots) {
+        for(int newSlot : newSlots) {
+            if(newSlot < 0 || newSlot > 8) {
                 return false;
             }
 
             for(int[] group : groupMap.values()) {
                 for(int groupSlot : group) {
-                    if(groupSlot == slot) {
+                    if(groupSlot == newSlot) {
                         return false;
                     }
                 }

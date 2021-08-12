@@ -10,8 +10,6 @@ public abstract class HotbarObjectBase implements HotbarObject {
     protected final int slot;
     protected ItemStack currentStack;
 
-    private boolean isSelected = false;
-
     protected HotbarObjectBase(int slot) {
         this.slot = slot;
     }
@@ -42,31 +40,16 @@ public abstract class HotbarObjectBase implements HotbarObject {
     }
 
     @Override
-    public boolean isSelected() {
-        return isSelected;
-    }
-
-    @Override
     public void onSelected() {
-        if(!isSelected()) {
-            isSelected = true;
-            handleSelect();
-        }
+
     }
 
     @Override
     public void onDeselected() {
-        if(isSelected()) {
-            isSelected = false;
-            handleDeselect();
-        }
+
     }
 
     protected void handleLeftClick(@NotNull PlayerInteractEvent event) {}
 
     protected void handleRightClick(@NotNull PlayerInteractEvent event) {}
-
-    protected void handleSelect() {}
-
-    protected void handleDeselect() {}
 }

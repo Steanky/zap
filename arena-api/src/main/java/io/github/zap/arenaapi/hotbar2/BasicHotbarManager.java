@@ -50,6 +50,13 @@ class BasicHotbarManager implements HotbarManager {
     }
 
     @Override
+    public void redrawCurrentProfile() {
+        if(currentProfile != null) {
+            currentProfile.redrawAll();
+        }
+    }
+
+    @Override
     public @NotNull HotbarProfile currentProfile() {
         return currentProfile;
     }

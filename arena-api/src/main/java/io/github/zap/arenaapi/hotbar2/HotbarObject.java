@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.hotbar2;
 
-import org.bukkit.block.Block;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -18,8 +17,6 @@ public interface HotbarObject {
     void onPlayerInteract(@NotNull PlayerInteractEvent event);
 
     void cleanup();
-
-    boolean isSelected();
 
     void onSelected();
 
