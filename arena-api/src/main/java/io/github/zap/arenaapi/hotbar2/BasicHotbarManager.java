@@ -17,21 +17,6 @@ class BasicHotbarManager implements HotbarManager {
         this.defaultProfile = defaultProfile;
     }
 
-    private void switchToProfileInternal(HotbarProfile newProfile) {
-        if(currentProfile != newProfile) { //if same profile, don't update
-            HotbarProfile previousProfile = currentProfile;
-            currentProfile = newProfile;
-
-            if(previousProfile != null) {
-                previousProfile.setActive(false);
-                previousProfile.redrawAll();
-            }
-
-            currentProfile.setActive(true);
-            currentProfile.redrawAll();
-        }
-    }
-
     @Override
     public @NotNull PlayerView getOwner() {
         return owner;
@@ -52,7 +37,7 @@ class BasicHotbarManager implements HotbarManager {
         HotbarProfile profile = profiles.get(name);
 
         if(profile != null) {
-            switchToProfileInternal(profile);
+            currentProfile = profile;
         }
         else {
             throw new IllegalArgumentException("Profile named " + name + " has not been registered");
@@ -61,7 +46,7 @@ class BasicHotbarManager implements HotbarManager {
 
     @Override
     public void switchToDefaultProfile() {
-        switchToProfileInternal(defaultProfile);
+        currentProfile = defaultProfile;
     }
 
     @Override

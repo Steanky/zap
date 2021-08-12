@@ -19,12 +19,10 @@ class BasicHotbarGroupView implements HotbarGroupView {
             if(slot < 0 || slot > 8) {
                 return false;
             }
-        }
 
-        for(int[] group : groupMap.values()) {
-            for(int slot : group) {
-                for(int newSlot : slots) {
-                    if(slot == newSlot) {
+            for(int[] group : groupMap.values()) {
+                for(int groupSlot : group) {
+                    if(groupSlot == slot) {
                         return false;
                     }
                 }

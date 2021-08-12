@@ -11,32 +11,18 @@ class BasicHotbarProfile implements HotbarProfile {
     private final HotbarObject[] objects = new HotbarObject[9];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
 
-    private boolean active = false;
-
     BasicHotbarProfile(@NotNull HotbarCanvas canvas) {
         this.canvas = canvas;
     }
 
-    @Override
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    @Override
-    public boolean isActive() {
-        return active;
-    }
-
     private void redrawSlotInternal(int slot) {
-        if(isActive()) {
-            HotbarObject object = objects[slot];
+        HotbarObject object = objects[slot];
 
-            if(object == null) {
-                canvas.drawItem(null, slot);
-            }
-            else {
-                canvas.drawItem(object.getStack(), slot);
-            }
+        if(object == null) {
+            canvas.drawItem(null, slot);
+        }
+        else {
+            canvas.drawItem(object.getStack(), slot);
         }
     }
 
@@ -60,10 +46,10 @@ class BasicHotbarProfile implements HotbarProfile {
     @Override
     public void putObject(@NotNull HotbarObject object) {
         int slot = object.getSlot();
-        HotbarObject existingObject = objects[slot];
+        HotbarObject oldObject = objects[slot];
 
-        if(existingObject != null) {
-            existingObject.cleanup();
+        if(oldObject != null) {
+            oldObject.cleanup();
         }
 
         objects[slot] = object;

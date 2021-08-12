@@ -15,10 +15,6 @@ public interface HotbarProfile extends Iterable<HotbarObject> {
 
     HotbarObject getObject(int slot);
 
-    void setActive(boolean active);
-
-    boolean isActive();
-
     void redrawObject(int slot);
 
     void redrawAll();
