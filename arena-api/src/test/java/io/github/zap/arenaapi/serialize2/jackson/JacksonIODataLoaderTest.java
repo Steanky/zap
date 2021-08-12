@@ -34,23 +34,22 @@ class JacksonIODataLoaderTest {
     @Test
     void write() {
         Optional<JacksonDataContainer> container = dataLoader.read();
+        Assertions.assertTrue(container.isPresent());
 
-        if(container.isPresent()) {
-            JacksonDataContainer first = container.get();
-            dataLoader.write(first);
+        JacksonDataContainer first = container.get();
+        dataLoader.write(first);
 
-            String resultingOutput = outputStream.toString(StandardCharsets.UTF_8);
-            Assertions.assertFalse(resultingOutput.isEmpty());
+        String resultingOutput = outputStream.toString(StandardCharsets.UTF_8);
+        Assertions.assertFalse(resultingOutput.isEmpty());
 
-            ByteArrayInputStream newInput = new ByteArrayInputStream(resultingOutput.getBytes(StandardCharsets.UTF_8));
-            ByteArrayOutputStream newOutput = new ByteArrayOutputStream();
+        ByteArrayInputStream newInput = new ByteArrayInputStream(resultingOutput.getBytes(StandardCharsets.UTF_8));
+        ByteArrayOutputStream newOutput = new ByteArrayOutputStream();
 
-            JacksonIODataLoader second = newLoader(newInput, newOutput);
-            Optional<JacksonDataContainer> newContainer = second.read();
-            Assertions.assertTrue(newContainer.isPresent());
+        JacksonIODataLoader second = newLoader(newInput, newOutput);
+        Optional<JacksonDataContainer> newContainer = second.read();
+        Assertions.assertTrue(newContainer.isPresent());
 
-            Assertions.assertEquals(first.node(), newContainer.get().node(),
-                    "Serialized data does not deserialize to the same object!");
-        }
+        Assertions.assertEquals(first.node(), newContainer.get().node(),
+                "Serialized data does not deserialize to the same object!");
     }
 }

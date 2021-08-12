@@ -26,9 +26,7 @@ public interface HotbarObject {
 
     void hide();
 
-    void activate();
-
-    void deactivate();
+    void refresh();
 
     void onSelected();
 
