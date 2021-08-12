@@ -3,8 +3,6 @@ package io.github.zap.arenaapi.hotbar2;
 import org.jetbrains.annotations.NotNull;
 
 public interface HotbarProfile extends Iterable<HotbarObject> {
-    @NotNull PlayerView getOwner();
-
     void putObject(@NotNull HotbarObject object);
 
     void deleteObjectInSlot(int slot);
@@ -19,9 +17,11 @@ public interface HotbarProfile extends Iterable<HotbarObject> {
 
     boolean isActive();
 
+    void refreshAll();
+
     @NotNull HotbarGroupView asGroupView();
 
-    static @NotNull HotbarProfile newProfile(@NotNull PlayerView owner) {
-        return new BasicHotbarProfile(owner);
+    static @NotNull HotbarProfile newProfile() {
+        return new BasicHotbarProfile();
     }
 }

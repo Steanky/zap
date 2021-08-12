@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.hotbar2;
 
 import org.bukkit.block.Block;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * Represents an interactive item which exists in a player's hotbar.
  */
 public interface HotbarObject {
-    @NotNull PlayerView getOwner();
+    @NotNull HotbarCanvas getCanvas();
 
     @NotNull ItemStack getStack();
 
@@ -16,9 +17,7 @@ public interface HotbarObject {
 
     @NotNull HotbarObject copyInSlot(int slot);
 
-    void onLeftClick(@NotNull Block interactedWith);
-
-    void onRightClick(@NotNull Block interactedWith);
+    void onPlayerInteract(@NotNull PlayerInteractEvent event);
 
     boolean isShown();
 
@@ -26,7 +25,11 @@ public interface HotbarObject {
 
     void hide();
 
+    void cleanup();
+
     void refresh();
+
+    boolean isSelected();
 
     void onSelected();
 

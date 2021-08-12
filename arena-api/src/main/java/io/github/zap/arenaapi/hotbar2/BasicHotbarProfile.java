@@ -7,15 +7,12 @@ import java.util.Iterator;
 import java.util.Objects;
 
 class BasicHotbarProfile implements HotbarProfile {
-    private final PlayerView owner;
     private final HotbarObject[] objects = new HotbarObject[9];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
 
     boolean active = false;
 
-    BasicHotbarProfile(@NotNull PlayerView owner) {
-        this.owner = owner;
-    }
+    BasicHotbarProfile() {}
 
     @Override
     public void setActive(boolean active) {
@@ -39,8 +36,10 @@ class BasicHotbarProfile implements HotbarProfile {
     }
 
     @Override
-    public @NotNull PlayerView getOwner() {
-        return owner;
+    public void refreshAll() {
+        for(HotbarObject object : this) {
+            object.refresh();
+        }
     }
 
     @Override
@@ -48,14 +47,15 @@ class BasicHotbarProfile implements HotbarProfile {
         int slot = object.getSlot();
         HotbarObject existingObject = objects[slot];
 
-        if(active) {
-            if(existingObject != null) {
+        if(existingObject != null) {
+            if(active) {
                 existingObject.hide();
             }
 
-            object.show();
+            existingObject.cleanup();
         }
 
+        object.show();
         objects[slot] = object;
     }
 
@@ -63,13 +63,15 @@ class BasicHotbarProfile implements HotbarProfile {
     public void deleteObjectInSlot(int slot) {
         HotbarObject delete = objects[slot];
 
-        if(active) {
-            if(delete != null) {
+        if(delete != null) {
+            if(active) {
                 delete.hide();
             }
 
-            objects[slot] = null;
+            delete.cleanup();
         }
+
+        objects[slot] = null;
     }
 
     @Override
@@ -83,15 +85,23 @@ class BasicHotbarProfile implements HotbarProfile {
         if(from != null) {
             fromCopy = from.copyInSlot(indexTo);
 
-            from.hide();
-            fromCopy.show();
+            if(active) {
+                from.hide();
+                fromCopy.show();
+            }
+
+            from.cleanup();
         }
 
         if(to != null) {
             toCopy = to.copyInSlot(indexFrom);
 
-            to.hide();
-            toCopy.show();
+            if(active) {
+                to.hide();
+                toCopy.show();
+            }
+
+            to.cleanup();
         }
 
         objects[indexTo] = fromCopy;

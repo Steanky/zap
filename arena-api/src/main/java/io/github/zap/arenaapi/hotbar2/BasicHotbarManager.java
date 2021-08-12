@@ -15,7 +15,6 @@ class BasicHotbarManager implements HotbarManager {
     BasicHotbarManager(@NotNull PlayerView player, @NotNull HotbarProfile defaultProfile) {
         this.owner = player;
         this.defaultProfile = defaultProfile;
-        switchToProfileInternal(defaultProfile); //i don't like this but it's necessary
     }
 
     private void switchToProfileInternal(HotbarProfile newProfile) {
@@ -24,14 +23,10 @@ class BasicHotbarManager implements HotbarManager {
             currentProfile = newProfile;
 
             if(previousProfile != null) {
-                for(HotbarObject object : previousProfile) {
-                    object.hide();
-                }
+                previousProfile.setActive(false);
             }
 
-            for(HotbarObject object : currentProfile) {
-                object.show();
-            }
+            currentProfile.setActive(true);
         }
     }
 
