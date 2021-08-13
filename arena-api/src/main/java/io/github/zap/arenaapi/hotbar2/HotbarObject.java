@@ -29,8 +29,6 @@ public interface HotbarObject {
 
     @NotNull ItemStack getStack();
 
-    @NotNull HotbarObject copy();
-
     void onPlayerInteract(@NotNull PlayerInteractEvent event);
 
     void cleanup();

@@ -39,21 +39,16 @@ class BasicHotbarProfile implements HotbarProfile {
         HotbarObject from = objects[indexFrom];
         HotbarObject to = objects[indexTo];
 
-        HotbarObject fromCopy = null;
-        HotbarObject toCopy = null;
-
         if(from != null) {
-            fromCopy = from.copy();
             from.cleanup();
         }
 
         if(to != null) {
-            toCopy = to.copy();
             to.cleanup();
         }
 
-        objects[indexTo] = fromCopy;
-        objects[indexFrom] = toCopy;
+        objects[indexTo] = from;
+        objects[indexFrom] = to;
     }
 
     @Override
