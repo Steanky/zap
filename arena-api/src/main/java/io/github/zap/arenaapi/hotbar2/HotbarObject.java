@@ -10,8 +10,6 @@ import org.jetbrains.annotations.NotNull;
 public interface HotbarObject {
     @NotNull ItemStack getStack();
 
-    int getSlot();
-
     @NotNull HotbarObject copyInSlot(int slot);
 
     void onPlayerInteract(@NotNull PlayerInteractEvent event);

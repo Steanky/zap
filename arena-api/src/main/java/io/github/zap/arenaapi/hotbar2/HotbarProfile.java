@@ -3,9 +3,7 @@ package io.github.zap.arenaapi.hotbar2;
 import org.jetbrains.annotations.NotNull;
 
 public interface HotbarProfile extends Iterable<HotbarObject> {
-    @NotNull HotbarCanvas getCanvas();
-
-    void putObject(@NotNull HotbarObject object);
+    void putObject(@NotNull HotbarObject object, int slot);
 
     void deleteObjectInSlot(int slot);
 
@@ -15,13 +13,11 @@ public interface HotbarProfile extends Iterable<HotbarObject> {
 
     HotbarObject getObject(int slot);
 
-    void redrawObject(int slot);
-
-    void redrawAll();
+    int indexOf(@NotNull HotbarObject hotbarObject);
 
     @NotNull HotbarGroupView asGroupView();
 
-    static @NotNull HotbarProfile newProfile(@NotNull HotbarCanvas canvas) {
-        return new BasicHotbarProfile(canvas);
+    static @NotNull HotbarProfile newProfile() {
+        return new BasicHotbarProfile();
     }
 }

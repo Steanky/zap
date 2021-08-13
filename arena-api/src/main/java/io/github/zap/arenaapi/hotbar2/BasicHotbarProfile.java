@@ -7,45 +7,13 @@ import java.util.Iterator;
 import java.util.Objects;
 
 class BasicHotbarProfile implements HotbarProfile {
-    private final HotbarCanvas canvas;
     private final HotbarObject[] objects = new HotbarObject[9];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
 
-    BasicHotbarProfile(@NotNull HotbarCanvas canvas) {
-        this.canvas = canvas;
-    }
-
-    private void redrawSlotInternal(int slot) {
-        HotbarObject object = objects[slot];
-
-        if(object == null) {
-            canvas.drawItem(null, slot);
-        }
-        else {
-            canvas.drawItem(object.getStack(), slot);
-        }
-    }
+    BasicHotbarProfile() {}
 
     @Override
-    public void redrawObject(int slot) {
-        redrawSlotInternal(slot);
-    }
-
-    @Override
-    public void redrawAll() {
-        for(int i = 0; i < objects.length; i++) {
-            redrawSlotInternal(i);
-        }
-    }
-
-    @Override
-    public @NotNull HotbarCanvas getCanvas() {
-        return canvas;
-    }
-
-    @Override
-    public void putObject(@NotNull HotbarObject object) {
-        int slot = object.getSlot();
+    public void putObject(@NotNull HotbarObject object, int slot) {
         HotbarObject oldObject = objects[slot];
 
         if(oldObject != null) {
@@ -96,6 +64,20 @@ class BasicHotbarProfile implements HotbarProfile {
     @Override
     public HotbarObject getObject(int slot) {
         return objects[slot];
+    }
+
+    @Override
+    public int indexOf(@NotNull HotbarObject hotbarObject) {
+        int i = 0;
+        for(HotbarObject object : objects) {
+            if(object == hotbarObject) {
+                return i;
+            }
+
+            i++;
+        }
+
+        return -1;
     }
 
     @Override

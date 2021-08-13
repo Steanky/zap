@@ -4,23 +4,12 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class HotbarObjectBase implements HotbarObject {
-    protected final int slot;
     protected ItemStack currentStack;
-
-    protected HotbarObjectBase(int slot) {
-        this.slot = slot;
-    }
 
     @Override
     public void cleanup() {}
-
-    @Override
-    public int getSlot() {
-        return slot;
-    }
 
     @Override
     public @NotNull ItemStack getStack() {

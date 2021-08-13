@@ -3,11 +3,11 @@ package io.github.zap.arenaapi.hotbar2;
 import org.jetbrains.annotations.NotNull;
 
 public interface HotbarManager {
-    @NotNull PlayerView getOwner();
-
-    void registerProfile(@NotNull String name, @NotNull HotbarProfile profile);
+    void newProfile(@NotNull String name);
 
     HotbarProfile getProfile(@NotNull String name);
+
+    @NotNull HotbarCanvas getCanvas();
 
     void switchToProfile(@NotNull String name);
 
@@ -16,4 +16,8 @@ public interface HotbarManager {
     @NotNull HotbarProfile currentProfile();
 
     void redrawCurrentProfile();
+
+    void redrawHotbarObject(int index);
+
+    void redrawHotbarObject(@NotNull HotbarObject object);
 }

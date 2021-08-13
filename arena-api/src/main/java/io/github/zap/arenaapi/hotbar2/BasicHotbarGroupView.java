@@ -60,7 +60,7 @@ class BasicHotbarGroupView implements HotbarGroupView {
     public void appendObjectToGroup(@NotNull String groupName, @NotNull HotbarObject object) {
         for(int slot : getGroupInternal(groupName)) {
             if(profile.getObject(slot) == null) {
-                profile.putObject(object);
+                profile.putObject(object, slot);
                 return;
             }
         }
@@ -112,13 +112,6 @@ class BasicHotbarGroupView implements HotbarGroupView {
                 profile.swapObjects(currentHotbarIndex, previousHotbarIndex);
                 previousHotbarIndex = currentHotbarIndex;
             }
-        }
-    }
-
-    @Override
-    public void redrawAllInGroup(@NotNull String groupName) {
-        for(int slot : getGroupInternal(groupName)) {
-            profile.redrawObject(slot);
         }
     }
 }
