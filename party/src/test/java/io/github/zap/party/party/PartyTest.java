@@ -21,9 +21,11 @@ import java.util.UUID;
 
 public class PartyTest {
 
-    private final static UUID VERYAVERAGE_UUID = UUID.fromString("ade229bf-d062-46e8-99d8-97b667d5a127");
+    private final UUID veryAverageUUID = UUID.fromString("ade229bf-d062-46e8-99d8-97b667d5a127");
 
-    private final static UUID BIGDIP_UUID = UUID.fromString("a7db1c97-6064-46a1-91c6-77a4c974b692");
+    private final UUID bigDipUUID = UUID.fromString("a7db1c97-6064-46a1-91c6-77a4c974b692");
+
+    private final MiniMessage miniMessage = MiniMessage.get();
 
     private Plugin plugin;
 
@@ -45,11 +47,11 @@ public class PartyTest {
         Mockito.when(this.server.getScheduler()).thenReturn(this.scheduler);
 
         this.owner = Mockito.mock(Player.class);
-        Mockito.when(this.owner.getUniqueId()).thenReturn(VERYAVERAGE_UUID);
+        Mockito.when(this.owner.getUniqueId()).thenReturn(veryAverageUUID);
         Mockito.when(this.owner.displayName()).thenReturn(Component.text("VeryAverage"));
 
         this.member = Mockito.mock(Player.class);
-        Mockito.when(this.member.getUniqueId()).thenReturn(BIGDIP_UUID);
+        Mockito.when(this.member.getUniqueId()).thenReturn(bigDipUUID);
         Mockito.when(this.member.displayName()).thenReturn(Component.text("BigDip123"));
     }
 
@@ -57,7 +59,7 @@ public class PartyTest {
     public void testBroadcastMessage() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);
@@ -77,7 +79,7 @@ public class PartyTest {
     public void testTransferToPlayerInParty() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);
@@ -98,7 +100,7 @@ public class PartyTest {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
         PartyMember oldOwner = new PartyMember(this.owner);
-        Party party = new Party(this.plugin, MiniMessage.get(), oldOwner, new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, this.miniMessage, oldOwner, new PartySettings(), PartyMember::new);
 
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);
         Mockito.when(this.member.isOnline()).thenReturn(true);
@@ -113,7 +115,7 @@ public class PartyTest {
     public void testInvitePlayerNotInPartyWithoutExpiration() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         int taskId = 69;
@@ -149,7 +151,7 @@ public class PartyTest {
     public void testInvitePlayerNotInPartyWithExpiration() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Runnable[] runnable = new Runnable[1];
@@ -191,7 +193,7 @@ public class PartyTest {
     public void testInviteRecreatedPlayer() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         int taskId = 69;
@@ -207,7 +209,7 @@ public class PartyTest {
         OfflinePlayer reborn = Mockito.mock(OfflinePlayer.class);
         Mockito.when(reborn.getPlayer()).thenReturn(null);
         Mockito.when(reborn.isOnline()).thenReturn(false);
-        Mockito.when(reborn.getUniqueId()).thenReturn(BIGDIP_UUID);
+        Mockito.when(reborn.getUniqueId()).thenReturn(bigDipUUID);
 
         Assertions.assertTrue(party.hasInvite(reborn));
     }
@@ -216,7 +218,7 @@ public class PartyTest {
     public void testAddPlayerNotInParty() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         int taskId = 69;
@@ -248,7 +250,7 @@ public class PartyTest {
     public void testAddPlayerInParty() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);
@@ -267,7 +269,7 @@ public class PartyTest {
     public void testRemovePlayerNotInParty() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         party.registerLeaveHandler(player -> Assertions.fail("No player leave handler should be called."));
@@ -285,7 +287,7 @@ public class PartyTest {
     public void testRemovePlayerInParty() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         int[] playersRemoved = new int[] { 0 };
@@ -321,7 +323,7 @@ public class PartyTest {
     public void testRemoveOwnerWithAnotherMember() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         int[] playersRemoved = new int[] { 0 };
@@ -361,7 +363,7 @@ public class PartyTest {
     public void testRemoveOwnerWithAnotherInvite() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         int taskId = 69;
@@ -395,7 +397,7 @@ public class PartyTest {
     public void testDisbandWithMember() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);
@@ -419,7 +421,7 @@ public class PartyTest {
     public void testDisbandWithInvite() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         int taskId = 69;
@@ -450,7 +452,7 @@ public class PartyTest {
     public void testKickOfflineWithOnlineOwner() {
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Server server = Mockito.mock(Server.class);
@@ -480,7 +482,7 @@ public class PartyTest {
         Mockito.when(this.owner.isOnline()).thenReturn(false);
         Mockito.when(this.owner.getServer()).thenReturn(this.server);
         Mockito.when(this.server.getOfflinePlayer(this.owner.getUniqueId())).thenReturn(this.owner);
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);

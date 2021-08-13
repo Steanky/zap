@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 
 public class PartyAsyncChatTest {
 
+    private final MiniMessage miniMessage = MiniMessage.get();
+
     private Player owner, member, noob;
 
     private Plugin plugin;
@@ -55,7 +57,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerNotInParty() {
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         Set<Audience> audiences = Set.of(this.owner, this.noob);
@@ -71,7 +73,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromUnmutedPlayerInUnmutedPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
         party.addMember(this.member);
 
@@ -88,7 +90,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromUnmutedPlayerInUnmutedPartyInPartyChat() {
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
         Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
 
@@ -114,7 +116,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromMutedPlayerInPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
         Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
 
@@ -133,7 +135,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromMutedPlayerInPartyInPartyChat() {
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
         boolean[] freeze = new boolean[]{ false };
@@ -165,7 +167,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerInMutedPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
         party.getPartySettings().setMuted(true);
         party.addMember(this.member);
@@ -182,7 +184,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerInMutedPartyInPartyChat() {
-        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
         party.getPartySettings().setMuted(true);
 
