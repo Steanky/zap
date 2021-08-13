@@ -9,6 +9,7 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -17,32 +18,36 @@ import java.util.Optional;
  */
 public class KickOfflineMembersForm extends CommandForm<Party> {
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("kickoffline")
     };
 
-    private static final CommandValidator<Party, ?> VALIDATOR
-            = new CommandValidator<>((context, arguments, previousData) -> {
-        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyForPlayer(previousData);
-        if (partyOptional.isEmpty()) {
-            return ValidationResult.of(false, "You are not currently in a party.", null);
-        }
+    private final PartyPlusPlus partyPlusPlus;
 
-        Party party = partyOptional.get();
-        if (!party.isOwner(previousData)) {
-            return ValidationResult.of(false, "You are not the party owner.", null);
-        }
+    private final CommandValidator<Party, ?> validator;
 
-        return ValidationResult.of(true, null, party);
-    }, Validators.PLAYER_EXECUTOR);
-
-    public KickOfflineMembersForm() {
+    public KickOfflineMembersForm(@NotNull PartyPlusPlus partyPlusPlus) {
         super("Kicks a member from your party.", Permissions.NONE, PARAMETERS);
+
+        this.partyPlusPlus = partyPlusPlus;
+        this.validator = new CommandValidator<>((context, arguments, previousData) -> {
+            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            if (partyOptional.isEmpty()) {
+                return ValidationResult.of(false, "You are not currently in a party.", null);
+            }
+
+            Party party = partyOptional.get();
+            if (!party.isOwner(previousData)) {
+                return ValidationResult.of(false, "You are not the party owner.", null);
+            }
+
+            return ValidationResult.of(true, null, party);
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     @Override
     public CommandValidator<Party, ?> getValidator(Context context, Object[] arguments) {
-        return VALIDATOR;
+        return validator;
     }
 
     @Override

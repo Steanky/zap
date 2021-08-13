@@ -48,7 +48,7 @@ public class PartyMember {
             }
         }
         else {
-            Player fresh = server.getPlayer(playerUUID);
+            Player fresh = this.server.getPlayer(this.playerUUID);
 
             if (fresh != null && fresh.isOnline()) {
                 this.cachedPlayer = new SoftReference<>(fresh);

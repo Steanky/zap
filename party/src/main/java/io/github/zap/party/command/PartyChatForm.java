@@ -11,27 +11,29 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
 public class PartyChatForm extends CommandForm<Party> {
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("chat")
     };
 
-    private static final CommandValidator<Party, ?> VALIDATOR
-            = new CommandValidator<>((context, arguments, previousData) -> {
-        Optional<Party> partyOptional = PartyPlusPlus.getInstance().getPartyForPlayer(previousData);
-        if (partyOptional.isEmpty()) {
-            return ValidationResult.of(false, "You are not currently in a party.", null);
-        }
+    private final CommandValidator<Party, ?> validator;
 
-        return ValidationResult.of(true, null, partyOptional.get());
-    }, Validators.PLAYER_EXECUTOR);
-
-    public PartyChatForm() {
+    public PartyChatForm(@NotNull PartyPlusPlus partyPlusPlus) {
         super("Toggles party chat.", Permissions.NONE, PARAMETERS);
+
+        this.validator = new CommandValidator<>((context, arguments, previousData) -> {
+            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            if (partyOptional.isEmpty()) {
+                return ValidationResult.of(false, "You are not currently in a party.", null);
+            }
+
+            return ValidationResult.of(true, null, partyOptional.get());
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     @Override
@@ -41,7 +43,7 @@ public class PartyChatForm extends CommandForm<Party> {
 
     @Override
     public CommandValidator<Party, ?> getValidator(Context context, Object[] arguments) {
-        return VALIDATOR;
+        return validator;
     }
 
     @Override

@@ -4,6 +4,7 @@ import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -54,7 +55,8 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerNotInParty() {
-        Party party = new Party(this.plugin, new PartyMember(this.owner), new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+                PartyMember::new);
 
         Set<Audience> audiences = Set.of(this.owner, this.noob);
         Component originalMessage = Component.text("Hello, World!");
@@ -69,7 +71,8 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromUnmutedPlayerInUnmutedPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, new PartyMember(this.owner), new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+                PartyMember::new);
         party.addMember(this.member);
 
         Component originalMessage = Component.text("Hello, World!");
@@ -85,7 +88,8 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromUnmutedPlayerInUnmutedPartyInPartyChat() {
-        Party party = new Party(this.plugin, new PartyMember(this.owner), new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+                PartyMember::new);
         Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
 
         Assertions.assertTrue(partyMemberOptional.isPresent());
@@ -110,7 +114,8 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromMutedPlayerInPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, new PartyMember(this.owner), new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+                PartyMember::new);
         Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
 
         Assertions.assertTrue(partyMemberOptional.isPresent());
@@ -128,7 +133,8 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromMutedPlayerInPartyInPartyChat() {
-        Party party = new Party(this.plugin, new PartyMember(this.owner), new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+                PartyMember::new);
 
         boolean[] freeze = new boolean[]{ false };
         int[] counts = new int[]{ 0 };
@@ -159,7 +165,8 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerInMutedPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, new PartyMember(this.owner), new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+                PartyMember::new);
         party.getPartySettings().setMuted(true);
         party.addMember(this.member);
 
@@ -175,7 +182,8 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerInMutedPartyInPartyChat() {
-        Party party = new Party(this.plugin, new PartyMember(this.owner), new PartySettings(), PartyMember::new);
+        Party party = new Party(this.plugin, MiniMessage.get(), new PartyMember(this.owner), new PartySettings(),
+                PartyMember::new);
         party.getPartySettings().setMuted(true);
 
         boolean[] freeze = new boolean[]{ false };

@@ -10,6 +10,7 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -18,34 +19,37 @@ import java.util.Optional;
  */
 public class LeavePartyForm extends CommandForm<Void> {
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("leave")
     };
 
-    private static final CommandValidator<Void, ?> VALIDATOR
-            = new CommandValidator<>((context, arguments, previousData) -> {
-        Optional<Party> party = PartyPlusPlus.getInstance().getPartyForPlayer(previousData);
-        if (party.isEmpty()) {
-            return ValidationResult.of(false, "You are not currently in a party.", null);
-        }
+    private final PartyPlusPlus partyPlusPlus;
 
-        return ValidationResult.of(true, null, null);
-    }, Validators.PLAYER_EXECUTOR);
+    private final CommandValidator<Void, ?> validator;
 
-    public LeavePartyForm() {
+    public LeavePartyForm(@NotNull PartyPlusPlus partyPlusPlus) {
         super("Leaves your party.", Permissions.NONE, PARAMETERS);
+
+        this.partyPlusPlus = partyPlusPlus;
+        this.validator = new CommandValidator<>((context, arguments, previousData) -> {
+            Optional<Party> party = partyPlusPlus.getPartyForPlayer(previousData);
+            if (party.isEmpty()) {
+                return ValidationResult.of(false, "You are not currently in a party.", null);
+            }
+
+            return ValidationResult.of(true, null, null);
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     @Override
     public CommandValidator<Void, ?> getValidator(Context context, Object[] arguments) {
-        return VALIDATOR;
+        return validator;
     }
 
     @Override
     public String execute(Context context, Object[] arguments, Void data) {
         OfflinePlayer sender = (OfflinePlayer) context.getSender();
-        PartyPlusPlus.getInstance().getPartyForPlayer(sender)
-                .ifPresent(party -> party.removeMember(sender, false));
+        partyPlusPlus.getPartyForPlayer(sender).ifPresent(party -> party.removeMember(sender, false));
         return null;
     }
 

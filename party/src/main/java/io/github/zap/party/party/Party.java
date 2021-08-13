@@ -31,6 +31,8 @@ public class Party {
 
     private final Plugin plugin;
 
+    private final MiniMessage miniMessage;
+
     private final PartySettings partySettings;
 
     private final Function<Player, PartyMember> partyMemberBuilder;
@@ -41,9 +43,10 @@ public class Party {
 
     private PartyMember owner;
 
-    public Party(@NotNull Plugin plugin, @NotNull PartyMember owner, @NotNull PartySettings partySettings,
-                 @NotNull Function<Player, PartyMember> partyMemberBuilder) {
+    public Party(@NotNull Plugin plugin, @NotNull MiniMessage miniMessage, @NotNull PartyMember owner,
+                 @NotNull PartySettings partySettings, @NotNull Function<Player, PartyMember> partyMemberBuilder) {
         this.plugin = plugin;
+        this.miniMessage = miniMessage;
         this.owner = owner;
         this.partySettings = partySettings;
         this.partyMemberBuilder = partyMemberBuilder;
@@ -61,12 +64,12 @@ public class Party {
             PartyMember partyMember = optionalPartyMember.get();
             if (partyMember.isInPartyChat()) {
                 if (partyMember.isMuted()) {
-                    event.getPlayer().sendMessage(MiniMessage.get().parse("<red>You are muted from speaking " +
+                    event.getPlayer().sendMessage(this.miniMessage.parse("<red>You are muted from speaking " +
                                     "in the party chat."));
                     event.setCancelled(true);
                 }
                 else if (this.getPartySettings().isMuted() && !this.isOwner(event.getPlayer())) {
-                    event.getPlayer().sendMessage(MiniMessage.get().parse("<red>The party chat is muted."));
+                    event.getPlayer().sendMessage(this.miniMessage.parse("<red>The party chat is muted."));
                     event.setCancelled(true);
                 }
                 else {
@@ -75,7 +78,7 @@ public class Party {
                     ChatRenderer oldRenderer = event.renderer();
                     event.renderer((source, sourceDisplayName, message, viewer) -> {
                             Component render = oldRenderer.render(source, sourceDisplayName, message, viewer);
-                            return MiniMessage.get().parse("<blue>Party <dark_gray>> <reset><message>",
+                            return this.miniMessage.parse("<blue>Party <dark_gray>> <reset><message>",
                                     Template.of("message", render));
                     });
                 }
@@ -115,7 +118,7 @@ public class Party {
                 this.plugin.getServer().getScheduler().cancelTask(taskId);
             }
 
-            this.broadcastMessage(MiniMessage.get().parse("<member> <yellow>has joined the party.",
+            this.broadcastMessage(this.miniMessage.parse("<member> <yellow>has joined the party.",
                     Template.of("member", player.displayName())));
 
             for (Consumer<PartyMember> handler : partyJoinHandlers) {
@@ -141,7 +144,7 @@ public class Party {
 
             Component name = (onlinePlayer != null)
                     ? onlinePlayer.displayName()
-                    : MiniMessage.get().parse("<gray>" + player.getName());
+                    : this.miniMessage.parse("<gray>" + player.getName());
 
             boolean clearHandlers = false;
             if (this.owner.equals(removed)) {
@@ -152,9 +155,9 @@ public class Party {
                     Player onlineOwner = offlineOwner.getPlayer();
                     Component toName = (onlineOwner != null)
                             ? onlineOwner.displayName()
-                            : MiniMessage.get().parse("<gray>" + offlineOwner.getName());
+                            : this.miniMessage.parse("<gray>" + offlineOwner.getName());
 
-                    this.broadcastMessage(MiniMessage.get().parse("<yellow>The party has been transferred " +
+                    this.broadcastMessage(this.miniMessage.parse("<yellow>The party has been transferred " +
                             "to <to><reset><yellow>.", Template.of("to", toName)));
                 }
                 else {
@@ -163,14 +166,13 @@ public class Party {
                 }
             }
 
-            this.broadcastMessage(TextComponent.ofChildren(MiniMessage.get()
-                    .parse(String.format("<member> <reset><yellow>has %s the party.", message),
+            this.broadcastMessage(TextComponent.ofChildren(this.miniMessage
+                    .parse("<member> <reset><yellow>has " + message + " the party.",
                             Template.of("member", name))));
 
             Player removedPlayer = player.getPlayer();
-            if (removedPlayer != null) {
-                removedPlayer.sendMessage(MiniMessage.get()
-                        .parse(String.format("<yellow>You have %s the party.", message)));
+            if (removedPlayer != null && removedPlayer.isOnline()) {
+                removedPlayer.sendMessage(this.miniMessage.parse("<yellow>You have " + message + " the party."));
             }
 
             for (Consumer<PartyMember> handler : partyLeaveHandlers) {
@@ -207,7 +209,7 @@ public class Party {
                                 ? onlineOwner.displayName()
                                 : Component.text(Objects.toString(offlineOwner.getName()), NamedTextColor.GRAY);
 
-                        this.broadcastMessage(MiniMessage.get()
+                        this.broadcastMessage(this.miniMessage
                                 .parse("<gray>" + player.getName() + " <yellow>has been removed from " +
                                         "the party. The party has been transferred to <reset><owner><reset><yellow>.",
                                         Template.of("owner", name)));
@@ -227,8 +229,14 @@ public class Party {
             }
         }
 
-        this.broadcastMessage(MiniMessage.get().parse(String.format("<red>%d offline players have been removed from " +
-                "the party.", offlinePlayers.size())));
+        if (offlinePlayers.size() == 1) {
+            this.broadcastMessage(this.miniMessage.parse("<red>1 offline players have been removed from " +
+                    "the party."));
+        }
+        else {
+            this.broadcastMessage(this.miniMessage.parse("<red>" + offlinePlayers.size() + " offline players " +
+                    "have been removed from the party."));
+        }
 
         if (clearHandlers) {
             this.partyJoinHandlers.clear();
@@ -255,8 +263,8 @@ public class Party {
      */
     public void mute() {
         this.partySettings.setMuted(!this.partySettings.isMuted());
-        this.broadcastMessage(MiniMessage.get().parse(String.format("<yellow>The party has been %s.",
-                this.partySettings.isMuted() ? "muted" : "unmuted")));
+        this.broadcastMessage(this.miniMessage.parse("<yellow>The party has been "
+                + (this.partySettings.isMuted() ? "muted" : "unmuted") + "."));
     }
 
     /**
@@ -271,8 +279,9 @@ public class Party {
             Component name = member.getPlayerIfOnline()
                     .map(Player::displayName)
                     .orElseGet(() -> Component.text(Objects.toString(player.getName()), NamedTextColor.GRAY));
-            this.broadcastMessage(MiniMessage.get()
-                    .parse("<member> <reset><yellow>has been %s.", Template.of("member", name)));
+            this.broadcastMessage(this.miniMessage
+                    .parse("<member> <reset><yellow>has been " + (member.isMuted() ? "muted" : "unmuted") + ".",
+                            Template.of("member", name)));
         }
     }
 
@@ -301,7 +310,7 @@ public class Party {
         Collection<PartyMember> memberCollection = this.members.values();
         List<OfflinePlayer> offlinePlayers = new ArrayList<>(memberCollection.size());
 
-        Component disband = MiniMessage.get().parse("<red>The party has been disbanded.");
+        Component disband = this.miniMessage.parse("<red>The party has been disbanded.");
 
         this.owner = null;
 
@@ -362,7 +371,7 @@ public class Party {
 
                 if (onlineInvitee != null) {
                     Template ownerTemplate = Template.of("owner", ownerComponent);
-                    onlineInvitee.sendMessage(MiniMessage.get().parse(String.format("<inviter> <reset><yellow>has " +
+                    onlineInvitee.sendMessage(this.miniMessage.parse(String.format("<inviter> <reset><yellow>has " +
                                             "invited you to join <owner-msg> <reset><yellow>party! Click " +
                                             "<hover:show_text:'<yellow>/party join <reset><owner>'>" +
                                             "<click:run_command:/party join %s>" +
@@ -372,10 +381,10 @@ public class Party {
                             (partyOwner.equals(inviter))
                                     ? Template.of("owner-msg", "their")
                                     : Template.of("owner-msg",
-                                    MiniMessage.get().parse("<reset><owner>'s", ownerTemplate)), ownerTemplate));
+                                    this.miniMessage.parse("<reset><owner>'s", ownerTemplate)), ownerTemplate));
                 }
 
-                this.broadcastMessage(MiniMessage.get().parse(String.format("<inviter> <reset><yellow>has invited " +
+                this.broadcastMessage(this.miniMessage.parse(String.format("<inviter> <reset><yellow>has invited " +
                                         "<reset><invitee> <reset><yellow>to the party! They have %.1f seconds " +
                                         "to accept.",
                                 expirationTime),
@@ -386,11 +395,11 @@ public class Party {
                     this.invitationMap.remove(invitee.getUniqueId());
 
                     if (!this.hasMember(invitee)) {
-                        this.broadcastMessage(MiniMessage.get().parse("<yellow>The invite to <reset><invitee> " +
+                        this.broadcastMessage(this.miniMessage.parse("<yellow>The invite to <reset><invitee> " +
                                 "<reset><yellow>has expired.", Template.of("invitee", inviteeComponent)));
 
                         if (onlineInvitee != null && onlineInvitee.isOnline()) {
-                            onlineInvitee.sendMessage(MiniMessage.get().parse("<yellow>The invite to " +
+                            onlineInvitee.sendMessage(this.miniMessage.parse("<yellow>The invite to " +
                                     "<reset><owner><reset><yellow>'s party has expired.",
                                     Template.of("owner", ownerComponent)));
                         }
@@ -451,7 +460,7 @@ public class Party {
                     ? toPlayer.displayName()
                     : Component.text(Objects.toString(player.getName()), NamedTextColor.YELLOW);
 
-            this.broadcastMessage(MiniMessage.get().parse("<yellow>The party has been transferred " +
+            this.broadcastMessage(this.miniMessage.parse("<yellow>The party has been transferred " +
                     "from <reset><from> <reset><yellow>to <reset><to><reset><yellow>.",
                     Template.of("from", fromName), Template.of("to", toName)));
 
@@ -515,10 +524,10 @@ public class Party {
      * @return The collection of components
      */
     public @NotNull Collection<Component> getPartyListComponents() {
-        TextComponent.Builder online = Component.text().append(MiniMessage.get().parse("<green>Online<white>: "));
-        TextComponent.Builder offline = Component.text().append(MiniMessage.get().parse("<red>Offline<white>: "));
+        TextComponent.Builder online = Component.text().append(this.miniMessage.parse("<green>Online<white>: "));
+        TextComponent.Builder offline = Component.text().append(this.miniMessage.parse("<red>Offline<white>: "));
         TextComponent.Builder invited = Component.text()
-                .append(MiniMessage.get().parse("<blue>Invites<white>: "));
+                .append(this.miniMessage.parse("<blue>Invites<white>: "));
 
         Collection<PartyMember> memberCollection = this.members.values();
         List<Player> onlinePlayers = new ArrayList<>(memberCollection.size());
@@ -534,7 +543,7 @@ public class Party {
             }
         }
 
-        Component comma = MiniMessage.get().parse("<white>, ");
+        Component comma = this.miniMessage.parse("<white>, ");
         for (int i = 0; i < onlinePlayers.size(); i++) {
             online.append(onlinePlayers.get(i).displayName());
 
@@ -544,7 +553,7 @@ public class Party {
         }
 
         for (int i = 0; i < offlinePlayers.size(); i++) {
-            offline.append(MiniMessage.get().parse("<red>" + offlinePlayers.get(i)));
+            offline.append(this.miniMessage.parse("<red>" + offlinePlayers.get(i)));
             if (i < offlinePlayers.size() - 1) {
                 offline.append(comma);
             }
@@ -557,7 +566,7 @@ public class Party {
 
             invited.append((onlinePlayer != null)
                     ? onlinePlayer.displayName()
-                    : MiniMessage.get().parse("<blue>" + offlinePlayer.getName()));
+                    : this.miniMessage.parse("<blue>" + offlinePlayer.getName()));
 
             if (iterator.hasNext()) {
                 invited.append(comma);
