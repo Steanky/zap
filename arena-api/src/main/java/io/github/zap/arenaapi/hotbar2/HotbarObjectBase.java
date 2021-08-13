@@ -6,13 +6,16 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class HotbarObjectBase implements HotbarObject {
+public class HotbarObjectBase implements HotbarObject {
     protected final HotbarManager hotbarManager;
     protected ItemStack currentStack;
 
-    protected HotbarObjectBase(@NotNull HotbarManager hotbarManager, @Nullable ItemStack initialStack) {
+    private boolean selected;
+
+    protected HotbarObjectBase(@NotNull HotbarManager hotbarManager, @Nullable ItemStack initialStack, boolean selected) {
         this.hotbarManager = hotbarManager;
         this.currentStack = initialStack;
+        this.selected = selected;
     }
 
     @Override
@@ -28,30 +31,34 @@ public abstract class HotbarObjectBase implements HotbarObject {
         Action action = event.getAction();
 
         if(action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
-            handleLeftClick(event);
+            onLeftClick(event);
         }
         else if(action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
-            handleRightClick(event);
+            onRightClick(event);
         }
     }
 
     @Override
-    public void onSelected() {
-
+    public final boolean isSelected() {
+        return selected;
     }
 
     @Override
-    public void onDeselected() {
-
+    public final void setSelected() {
+        if(!selected) {
+            selected = true;
+            onSelected();
+        }
     }
 
-    /*
-    this maybe needs a more performant implementation — this is just an example of a method HotbarObjectBase might
-    want to provide so subclasses can update the view
+    @Override
+    public final void setDeselected() {
+        if(selected) {
+            selected = false;
+            onDeselected();
+        }
+    }
 
-    note: indexof is actually not slow, even though it's O(n) i'm 99% sure it's way faster than a hashmap
-    seeing as it just iterates a fixed-length array of 9 elements
-     */
     public void redraw() {
         int index = hotbarManager.currentProfile().indexOf(this);
 
@@ -60,7 +67,11 @@ public abstract class HotbarObjectBase implements HotbarObject {
         }
     }
 
-    protected void handleLeftClick(@NotNull PlayerInteractEvent event) {}
+    protected void onLeftClick(@NotNull PlayerInteractEvent event) {}
 
-    protected void handleRightClick(@NotNull PlayerInteractEvent event) {}
+    protected void onRightClick(@NotNull PlayerInteractEvent event) {}
+
+    protected void onSelected() {}
+
+    protected void onDeselected() {}
 }

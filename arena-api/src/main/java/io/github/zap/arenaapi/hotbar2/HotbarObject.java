@@ -33,7 +33,9 @@ public interface HotbarObject {
 
     void cleanup();
 
-    void onSelected();
+    boolean isSelected();
 
-    void onDeselected();
+    void setSelected();
+
+    void setDeselected();
 }

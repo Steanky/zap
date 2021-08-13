@@ -26,12 +26,17 @@ class BasicHotbarProfileTest {
         }
 
         @Override
-        public void onSelected() {
+        public boolean isSelected() {
+            return false;
+        }
+
+        @Override
+        public void setSelected() {
 
         }
 
         @Override
-        public void onDeselected() {
+        public void setDeselected() {
 
         }
     }
@@ -48,6 +53,7 @@ class BasicHotbarProfileTest {
         HotbarObject object = new MockHotbarObject();
         profile.putObject(object, 0);
         HotbarObject.Slotted slotted = profile.getObject(0);
+
         Assertions.assertEquals(0, slotted.getSlot());
         Assertions.assertSame(object, slotted.getHotbarObject());
     }
@@ -55,7 +61,10 @@ class BasicHotbarProfileTest {
     @Test
     void testCapacity() {
         for(int i = 0; i < 9; i++) {
-            profile.putObject(new MockHotbarObject(), i);
+            HotbarObject object = new MockHotbarObject();
+            profile.putObject(object, i);
+            Assertions.assertEquals(profile.getObject(i).getSlot(), i);
+            Assertions.assertSame(object, profile.getObject(i).getHotbarObject());
         }
     }
 
