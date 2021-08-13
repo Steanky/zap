@@ -32,11 +32,6 @@ class BasicHotbarManager implements HotbarManager {
     }
 
     @Override
-    public @NotNull HotbarCanvas getCanvas() {
-        return canvas;
-    }
-
-    @Override
     public void switchToProfile(@NotNull String name) {
         HotbarProfile profile = profiles.get(name);
 
@@ -56,7 +51,8 @@ class BasicHotbarManager implements HotbarManager {
     @Override
     public void redrawCurrentProfile() {
         for(int i = 0; i < 9; i++) {
-            HotbarObject hotbarObject = currentProfile.getObject(i);
+            HotbarObject.Slotted slottedObject = currentProfile.getObject(i);
+            HotbarObject hotbarObject = slottedObject.getHotbarObject();
 
             if(hotbarObject != null) {
                 canvas.drawItem(hotbarObject.getStack(), i);
@@ -68,8 +64,14 @@ class BasicHotbarManager implements HotbarManager {
     }
 
     @Override
+    public @NotNull HotbarCanvas getCanvas() {
+        return canvas;
+    }
+
+    @Override
     public void redrawHotbarObject(int index) {
-        HotbarObject hotbarObject = currentProfile.getObject(index);
+        HotbarObject.Slotted slottedObject = currentProfile.getObject(index);
+        HotbarObject hotbarObject = slottedObject.getHotbarObject();
 
         if(hotbarObject != null) {
             canvas.drawItem(hotbarObject.getStack(), index);
@@ -80,14 +82,18 @@ class BasicHotbarManager implements HotbarManager {
     }
 
     @Override
-    public void redrawHotbarObject(@NotNull HotbarObject object) {
-        int index = currentProfile.indexOf(object);
+    public void redrawHotbarGroup(@NotNull String groupName) {
+        HotbarObject.Slotted[] objects = currentProfile.asGroupView().getObjectsFromGroup(groupName);
 
-        if(index != -1) {
-            canvas.drawItem(object.getStack(), index);
-        }
-        else {
-            throw new IllegalArgumentException("HotbarObject " + object + " is not managed by the current profile");
+        for(HotbarObject.Slotted slottedObject : objects) {
+            HotbarObject hotbarObject = slottedObject.getHotbarObject();
+
+            if(hotbarObject != null) {
+                canvas.drawItem(hotbarObject.getStack(), slottedObject.getSlot());
+            }
+            else {
+                canvas.drawItem(null, slottedObject.getSlot());
+            }
         }
     }
 

@@ -9,7 +9,7 @@ public interface HotbarGroupView {
 
     void appendObjectToGroup(@NotNull String groupName, @NotNull HotbarObject object);
 
-    HotbarObject[] getObjectsFromGroup(@NotNull String groupName);
+    HotbarObject.Slotted[] getObjectsFromGroup(@NotNull String groupName);
 
     int getCapacityOfGroup(@NotNull String groupName);
 

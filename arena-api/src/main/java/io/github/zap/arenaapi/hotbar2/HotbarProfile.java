@@ -9,11 +9,11 @@ public interface HotbarProfile extends Iterable<HotbarObject> {
 
     void swapObjects(int indexFrom, int indexTo);
 
-    HotbarObject[] getObjects();
+    HotbarObject.Slotted[] getObjects();
 
-    HotbarObject getObject(int slot);
+    int indexOf(@NotNull HotbarObject object);
 
-    int indexOf(@NotNull HotbarObject hotbarObject);
+    @NotNull HotbarObject.Slotted getObject(int slot);
 
     @NotNull HotbarGroupView asGroupView();
 

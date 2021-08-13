@@ -59,7 +59,9 @@ class BasicHotbarGroupView implements HotbarGroupView {
     @Override
     public void appendObjectToGroup(@NotNull String groupName, @NotNull HotbarObject object) {
         for(int slot : getGroupInternal(groupName)) {
-            if(profile.getObject(slot) == null) {
+            HotbarObject.Slotted slottedObject = profile.getObject(slot);
+
+            if(slottedObject.getHotbarObject() == null) {
                 profile.putObject(object, slot);
                 return;
             }
@@ -69,9 +71,9 @@ class BasicHotbarGroupView implements HotbarGroupView {
     }
 
     @Override
-    public HotbarObject[] getObjectsFromGroup(@NotNull String groupName) {
+    public HotbarObject.Slotted[] getObjectsFromGroup(@NotNull String groupName) {
         int[] slots = getGroupInternal(groupName);
-        HotbarObject[] objects = new HotbarObject[slots.length];
+        HotbarObject.Slotted[] objects = new HotbarObject.Slotted[slots.length];
 
         for(int i = 0; i < slots.length; i++) {
             objects[i] = profile.getObject(slots[i]);
@@ -89,9 +91,9 @@ class BasicHotbarGroupView implements HotbarGroupView {
     public int getSizeOfGroup(@NotNull String groupName) {
         int size = 0;
         for(int slot : getGroupInternal(groupName)) {
-            HotbarObject object = profile.getObject(slot);
+            HotbarObject.Slotted object = profile.getObject(slot);
 
-            if(object != null) {
+            if(object.getHotbarObject() != null) {
                 size++;
             }
         }

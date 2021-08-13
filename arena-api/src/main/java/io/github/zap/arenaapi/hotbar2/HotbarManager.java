@@ -2,6 +2,8 @@ package io.github.zap.arenaapi.hotbar2;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 public interface HotbarManager {
     void newProfile(@NotNull String name);
 
@@ -19,5 +21,9 @@ public interface HotbarManager {
 
     void redrawHotbarObject(int index);
 
-    void redrawHotbarObject(@NotNull HotbarObject object);
+    void redrawHotbarGroup(@NotNull String groupName);
+
+    static @NotNull HotbarManager newManager(@NotNull HotbarCanvas canvas, @NotNull Supplier<HotbarProfile> profileSupplier) {
+        return new BasicHotbarManager(canvas, profileSupplier);
+    }
 }

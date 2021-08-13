@@ -43,12 +43,12 @@ class BasicHotbarProfile implements HotbarProfile {
         HotbarObject toCopy = null;
 
         if(from != null) {
-            fromCopy = from.copyInSlot(indexTo);
+            fromCopy = from.copy();
             from.cleanup();
         }
 
         if(to != null) {
-            toCopy = to.copyInSlot(indexFrom);
+            toCopy = to.copy();
             to.cleanup();
         }
 
@@ -57,27 +57,30 @@ class BasicHotbarProfile implements HotbarProfile {
     }
 
     @Override
-    public HotbarObject[] getObjects() {
-        return Arrays.copyOf(objects, objects.length);
+    public HotbarObject.Slotted[] getObjects() {
+        HotbarObject.Slotted[] newArray = new HotbarObject.Slotted[objects.length];
+
+        for(int i = 0; i < objects.length; i++) {
+            newArray[i] = new HotbarObject.Slotted(objects[i], i);
+        }
+
+        return newArray;
     }
 
     @Override
-    public HotbarObject getObject(int slot) {
-        return objects[slot];
-    }
-
-    @Override
-    public int indexOf(@NotNull HotbarObject hotbarObject) {
-        int i = 0;
-        for(HotbarObject object : objects) {
-            if(object == hotbarObject) {
+    public int indexOf(@NotNull HotbarObject object) {
+        for(int i = 0; i < objects.length; i++) {
+            if(object == objects[i]) {
                 return i;
             }
-
-            i++;
         }
 
         return -1;
+    }
+
+    @Override
+    public @NotNull HotbarObject.Slotted getObject(int slot) {
+        return new HotbarObject.Slotted(objects[slot], slot);
     }
 
     @Override
