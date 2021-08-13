@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class BasicHotbarProfile implements HotbarProfile {
     private final HotbarObject[] objects = new HotbarObject[9];
@@ -84,7 +85,12 @@ class BasicHotbarProfile implements HotbarProfile {
     }
 
     @Override
-    public @NotNull Iterator<HotbarObject> iterator() {
-        return Arrays.stream(objects).filter(Objects::nonNull).iterator();
+    public @NotNull Iterator<HotbarObject.Slotted> iterator() {
+        AtomicInteger index = new AtomicInteger(-1);
+        return Arrays.stream(objects).filter((object) ->
+        {
+            index.incrementAndGet();
+            return object != null;
+        }).map((object) -> new HotbarObject.Slotted(object, index.get())).iterator();
     }
 }
