@@ -27,7 +27,7 @@ public interface HotbarObject {
         }
     }
 
-    @NotNull ItemStack getStack();
+    @Nullable ItemStack getStack();
 
     void onPlayerInteract(@NotNull PlayerInteractEvent event);
 

@@ -19,7 +19,7 @@ public abstract class HotbarObjectBase implements HotbarObject {
     public void cleanup() {}
 
     @Override
-    public @NotNull ItemStack getStack() {
+    public @Nullable ItemStack getStack() {
         return currentStack;
     }
 
