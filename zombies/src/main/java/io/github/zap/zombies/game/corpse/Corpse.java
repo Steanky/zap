@@ -28,14 +28,15 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents the corpse of a knocked down or dead player
@@ -46,6 +47,8 @@ public class Corpse {
 
     @Getter
     private final ZombiesPlayer zombiesPlayer;
+
+    private final ItemStack boots, leggings, chestplate, helmet;
 
     @Getter
     private final Location location;
@@ -74,6 +77,14 @@ public class Corpse {
         this.zombiesPlayer = player;
 
         if (player.getPlayer() != null) {
+            EntityEquipment equipment = player.getPlayer().getEquipment();
+            ItemStack boots = equipment.getBoots(), leggings = equipment.getLeggings();
+            ItemStack chestplate = equipment.getChestplate(), helmet = equipment.getHelmet();
+            this.boots = (boots != null) ? new ItemStack(boots.getType()) : null;
+            this.leggings = (leggings != null) ? new ItemStack(leggings.getType()) : null;
+            this.chestplate = (chestplate != null) ? new ItemStack(chestplate.getType()) : null;
+            this.helmet = (helmet != null) ? new ItemStack(helmet.getType()) : null;
+
             EntityBridge entityBridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
 
             this.location = player.getPlayer().getLocation();
@@ -334,6 +345,7 @@ public class Corpse {
     private void spawnDeadBodyForPlayer(Player player) {
         sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER), player);
         sendPacketToPlayer(createSpawnPlayerPacketContainer(), player);
+        sendPacketToPlayer(createArmorPacketContainer(), player);
         sendPacketToPlayer(createSleepingPacketContainer(), player);
         addCorpseToScoreboardTeamForPlayer(player);
 
@@ -384,6 +396,21 @@ public class Corpse {
         }
 
         throw new IllegalArgumentException("Tried to send packet container for player that does not exist!");
+    }
+
+    private @NotNull PacketContainer createArmorPacketContainer() {
+        PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_EQUIPMENT);
+        packetContainer.getIntegers().write(0, id);
+
+        List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentSlotStackPairList = new ArrayList<>();
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.FEET, boots));
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.LEGS, leggings));
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.CHEST, chestplate));
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.HEAD, helmet));
+
+        packetContainer.getSlotStackPairLists().write(0, equipmentSlotStackPairList);
+
+        return packetContainer;
     }
 
     private PacketContainer createSleepingPacketContainer() {
