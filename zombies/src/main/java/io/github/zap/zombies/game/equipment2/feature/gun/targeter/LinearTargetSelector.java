@@ -50,24 +50,15 @@ public class LinearTargetSelector implements TargetSelector {
         double shotRange = getShotRange(map, world, root, previousDirection, maxRange);
         List<Pair<RayTraceResult, Mob>> rayTraces = new ArrayList<>(candidates.size());
         Map<Mob, Double> distances = new HashMap<>();
-        if (reuse) {
-            for (Mob mob : candidates) {
-                RayTraceResult rayTrace = mob.getBoundingBox().rayTrace(root, modifiedPreviousDirection, shotRange);
-                if (rayTrace != null) {
-                    distances.put(mob, root.distanceSquared(rayTrace.getHitPosition()));
-                    rayTraces.add(Pair.of(rayTrace, mob));
-                }
+        for (Mob mob : candidates) {
+            if (!reuse && !used.contains(mob)) {
+                continue;
             }
-        }
-        else {
-            for (Mob mob : candidates) {
-                if (!used.contains(mob)) {
-                    RayTraceResult rayTrace = mob.getBoundingBox().rayTrace(root, modifiedPreviousDirection, shotRange);
-                    if (rayTrace != null) {
-                        distances.put(mob, root.distanceSquared(rayTrace.getHitPosition()));
-                        rayTraces.add(Pair.of(rayTrace, mob));
-                    }
-                }
+
+            RayTraceResult rayTrace = mob.getBoundingBox().rayTrace(root, modifiedPreviousDirection, shotRange);
+            if (rayTrace != null) {
+                distances.put(mob, root.distanceSquared(rayTrace.getHitPosition()));
+                rayTraces.add(Pair.of(rayTrace, mob));
             }
         }
 
@@ -111,7 +102,7 @@ public class LinearTargetSelector implements TargetSelector {
                         continue;
                     }
 
-                    lastRayTrace = boundingBox.rayTrace(root, direction, maxRange + Math.sqrt(3.0));
+                    lastRayTrace = boundingBox.rayTrace(root, direction, maxRange + Math.sqrt(3));
                     if (lastRayTrace == null) {
                         continue;
                     }
@@ -122,7 +113,7 @@ public class LinearTargetSelector implements TargetSelector {
         }
 
         if (wallshot) {
-            lastRayTrace = targetBlock.getBoundingBox().rayTrace(root, direction, maxRange + Math.sqrt(3.0));
+            lastRayTrace = targetBlock.getBoundingBox().rayTrace(root, direction, maxRange + Math.sqrt(3));
         }
 
         return (lastRayTrace != null) ? root.distance(lastRayTrace.getHitPosition()) : maxRange;

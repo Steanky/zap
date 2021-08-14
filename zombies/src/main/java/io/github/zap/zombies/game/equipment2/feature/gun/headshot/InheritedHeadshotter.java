@@ -3,7 +3,6 @@ package io.github.zap.zombies.game.equipment2.feature.gun.headshot;
 import io.github.zap.zombies.game.equipment2.feature.gun.headshot.historyreader.HeadshotHistoryReader;
 import org.bukkit.util.RayTraceResult;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -24,10 +23,10 @@ public class InheritedHeadshotter implements Headshotter {
     }
 
     @Override
-    public boolean isHeadshot(@Nullable RayTraceResult rayTraceResult, @NotNull List<Boolean> headshotHistory) {
+    public boolean isHeadshot(@NotNull RayTraceResult rayTraceResult, @NotNull List<Boolean> headshotHistory) {
         if (headshotHistory.isEmpty()) {
             return fallback.isHeadshot(rayTraceResult, headshotHistory);
         }
-        else return inverted != reader.isHeadshot(headshotHistory); // same as BasicHeadshotter
+        else return inverted != reader.isHeadshot(headshotHistory); // see BasicHeadshotter
     }
 }
