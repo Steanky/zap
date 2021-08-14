@@ -1,6 +1,5 @@
 package io.github.zap.zombies.game.equipment2.feature.gun.beam;
 
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;

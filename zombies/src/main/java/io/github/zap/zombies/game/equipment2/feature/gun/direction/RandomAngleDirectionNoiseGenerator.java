@@ -4,7 +4,6 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
-import java.util.function.Function;
 
 @SuppressWarnings("ClassCanBeRecord")
 public class RandomAngleDirectionNoiseGenerator implements DirectionNoiseGenerator {

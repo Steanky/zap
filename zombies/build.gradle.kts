@@ -58,6 +58,14 @@ dependencies {
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
+
+    testRuntimeOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+
+    testImplementation("org.mockito:mockito-core:3.11.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.0-M1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.0-M1")
 }
 
 val copyPlugins = tasks.register<Copy>("copyPlugins") {
@@ -72,6 +80,10 @@ val copyClassModifier = tasks.register<Copy>("copyClassModifier") {
             rename("-${it.version}", "")
         }
     }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 tasks.compileJava {
