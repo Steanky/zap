@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
-import io.github.zap.arenaapi.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
 import net.minecraft.server.v1_16_R3.BlockPosition;
@@ -23,8 +23,13 @@ public class WorldBridge_v1_16_R3 implements WorldBridge {
     }
 
     @Override
-    public @NotNull CollisionChunkSnapshot takeSnapshot(@NotNull Chunk chunk) {
-        return new CollisionChunkSnapshot_v1_16_R3(chunk);
+    public @NotNull CollisionChunkView proxyView(@NotNull Chunk chunk) {
+        return new CollisionChunkProxy_v1_16_R3(((CraftChunk)chunk).getHandle());
+    }
+
+    @Override
+    public @NotNull CollisionChunkView snapshotView(@NotNull Chunk chunk) {
+        return new CollisionChunkSnapshot_v1_16_R3(((CraftChunk)chunk).getHandle());
     }
 
     @Override

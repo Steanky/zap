@@ -4,12 +4,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class BasicHotbarProfile implements HotbarProfile {
     private final HotbarObject[] objects = new HotbarObject[9];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
+
+    private HotbarObject lastObject = null;
+    private int lastIndex = -1;
 
     BasicHotbarProfile() {}
 
@@ -40,14 +42,6 @@ class BasicHotbarProfile implements HotbarProfile {
         HotbarObject from = objects[indexFrom];
         HotbarObject to = objects[indexTo];
 
-        if(from != null) {
-            from.cleanup();
-        }
-
-        if(to != null) {
-            to.cleanup();
-        }
-
         objects[indexTo] = from;
         objects[indexFrom] = to;
     }
@@ -65,13 +59,19 @@ class BasicHotbarProfile implements HotbarProfile {
 
     @Override
     public int indexOf(@NotNull HotbarObject object) {
+        if(object == lastObject) { //for render loops that frequently index the same item, don't iterate again
+            return lastIndex;
+        }
+
         for(int i = 0; i < objects.length; i++) {
-            if(object == objects[i]) {
-                return i;
+            HotbarObject sample = objects[i];
+            if(object == sample) {
+                lastObject = sample;
+                return lastIndex = i;
             }
         }
 
-        return -1;
+        return lastIndex = -1;
     }
 
     @Override
@@ -86,6 +86,7 @@ class BasicHotbarProfile implements HotbarProfile {
 
     @Override
     public @NotNull Iterator<HotbarObject.Slotted> iterator() {
+        //this is a somewhat questionable hack but it absolutely works
         AtomicInteger index = new AtomicInteger(-1);
         return Arrays.stream(objects).filter((object) ->
         {

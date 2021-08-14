@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.graph.ChunkGraph;
 import org.bukkit.Bukkit;
@@ -189,7 +189,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         int stale = 0;
 
         for(Vector2I chunkVectorAccess : chunks) {
-            CollisionChunkSnapshot chunk = provider.chunkAt(chunkVectorAccess.x(), chunkVectorAccess.z());
+            CollisionChunkView chunk = provider.chunkAt(chunkVectorAccess.x(), chunkVectorAccess.z());
 
             if(chunk == null || (Bukkit.getCurrentTick() - chunk.captureTick()) > MIN_CHUNK_SYNC_AGE) {
                 stale++;
@@ -266,7 +266,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
     @Override
     public @NotNull Future<PathResult> giveOperation(@NotNull PathOperation operation, @NotNull World world) {
         Context context = contexts.computeIfAbsent(world.getUID(), (key) ->
-                new Context(new AsyncBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
+                new Context(new SnapshotBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
 
         return completionService.submit(() -> processOperation(context, operation));
     }

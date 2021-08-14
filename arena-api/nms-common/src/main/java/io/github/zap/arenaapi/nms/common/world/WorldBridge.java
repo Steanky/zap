@@ -14,7 +14,9 @@ public interface WorldBridge {
      */
     @NotNull String getDefaultWorldName();
 
-    @NotNull CollisionChunkSnapshot takeSnapshot(@NotNull Chunk chunk);
+    @NotNull CollisionChunkView proxyView(@NotNull Chunk chunk);
+
+    @NotNull CollisionChunkView snapshotView(@NotNull Chunk chunk);
 
     boolean blockHasCollision(@NotNull Block block);
 

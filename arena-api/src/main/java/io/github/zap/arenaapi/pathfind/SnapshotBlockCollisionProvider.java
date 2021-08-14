@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
-import io.github.zap.arenaapi.nms.common.world.CollisionChunkSnapshot;
+import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.Bukkit;
@@ -15,14 +15,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-class AsyncBlockCollisionProvider implements BlockCollisionProvider {
-    private static final Map<ChunkIdentifier, CollisionChunkSnapshot> globalChunks = new ConcurrentHashMap<>();
+class SnapshotBlockCollisionProvider implements BlockCollisionProvider {
+    private static final Map<ChunkIdentifier, CollisionChunkView> globalChunks = new ConcurrentHashMap<>();
 
     private final World world;
     private final UUID worldUUID;
     private final int maxCaptureAge;
 
-    AsyncBlockCollisionProvider(@NotNull World world, int maxCaptureAge) {
+    SnapshotBlockCollisionProvider(@NotNull World world, int maxCaptureAge) {
         this.world = world;
         worldUUID = world.getUID();
         this.maxCaptureAge = maxCaptureAge;
@@ -44,11 +44,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
             ChunkIdentifier targetChunk = new ChunkIdentifier(worldUUID, coordinate);
 
             if(world.isChunkLoaded(coordinate.x(), coordinate.z())) {
-                CollisionChunkSnapshot oldSnapshot = chunkAtInternal(targetChunk);
+                CollisionChunkView oldSnapshot = chunkAtInternal(targetChunk);
 
                 if(oldSnapshot == null || (Bukkit.getCurrentTick() - oldSnapshot.captureTick()) > maxCaptureAge) {
                     globalChunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
-                            .takeSnapshot(world.getChunkAt(coordinate.x(), coordinate.z())));
+                            .snapshotView(world.getChunkAt(coordinate.x(), coordinate.z())));
                 }
             }
             else {
@@ -75,11 +75,11 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
     }
 
     @Override
-    public CollisionChunkSnapshot chunkAt(int x, int z) {
+    public CollisionChunkView chunkAt(int x, int z) {
         return chunkAtInternal(new ChunkIdentifier(worldUUID, Vectors.of(x, z)));
     }
 
-    private CollisionChunkSnapshot chunkAtInternal(ChunkIdentifier identifier) {
+    private CollisionChunkView chunkAtInternal(ChunkIdentifier identifier) {
         return globalChunks.get(identifier);
     }
 
@@ -89,10 +89,10 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
             return null;
         }
 
-        CollisionChunkSnapshot snapshot = chunkAt(worldX >> 4, worldZ >> 4);
+        CollisionChunkView snapshot = chunkAt(worldX >> 4, worldZ >> 4);
 
         if(snapshot != null) {
-            return snapshot.collisionSnapshot(worldX & 15, worldY, worldZ & 15);
+            return snapshot.collisionView(worldX & 15, worldY, worldZ & 15);
         }
 
         return null;
@@ -103,7 +103,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
 
         while(iterator.hasNext()) {
-            CollisionChunkSnapshot chunk = iterator.next();
+            CollisionChunkView chunk = iterator.next();
 
             if(chunk != null && chunk.collidesWithAny(worldRelativeBounds)) {
                 return true;
@@ -119,7 +119,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
 
         while(iterator.hasNext()) {
-            CollisionChunkSnapshot chunk = iterator.next();
+            CollisionChunkView chunk = iterator.next();
 
             if(chunk != null) {
                 shapes.addAll(chunk.collisionsWith(worldRelativeBounds));
@@ -129,7 +129,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         return shapes;
     }
 
-    private class ChunkBoundsIterator implements Iterator<CollisionChunkSnapshot> {
+    private class ChunkBoundsIterator implements Iterator<CollisionChunkView> {
         private final int minChunkX;
         private final int maxChunkX;
         private final int maxChunkZ;
@@ -162,7 +162,7 @@ class AsyncBlockCollisionProvider implements BlockCollisionProvider {
         }
 
         @Override
-        public CollisionChunkSnapshot next() {
+        public CollisionChunkView next() {
             if(++x == maxChunkX) {
                 x = minChunkX;
                 z++;

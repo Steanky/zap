@@ -18,6 +18,10 @@ public class HotbarObjectBase implements HotbarObject {
         this.selected = selected;
     }
 
+    protected HotbarObjectBase(@NotNull HotbarManager hotbarManager, boolean selected) {
+        this(hotbarManager, null, selected);
+    }
+
     @Override
     public void cleanup() {}
 

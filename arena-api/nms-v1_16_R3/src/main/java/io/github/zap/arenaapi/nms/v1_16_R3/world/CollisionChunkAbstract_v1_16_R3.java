@@ -1,0 +1,152 @@
+package io.github.zap.arenaapi.nms.v1_16_R3.world;
+
+import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
+import net.minecraft.server.v1_16_R3.Chunk;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
+    @FunctionalInterface
+    interface BlockSnapshotFactory {
+        @Nullable BlockSnapshot make(int chunkX, int chunkY, int chunkZ);
+    }
+
+    private static class SnapshotIterator implements Iterator<BlockSnapshot> {
+        protected final BlockSnapshotFactory factory;
+
+        protected final int startX;
+        protected final int startY;
+
+        protected final int endX;
+        protected final int endY;
+        protected final int endZ;
+
+        protected int x;
+        protected int y;
+        protected int z;
+
+        SnapshotIterator(@NotNull BoundingBox overlap, @NotNull BlockSnapshotFactory factory) {
+            Vector min = overlap.getMin();
+            Vector max = overlap.getMax();
+
+            this.factory = factory;
+
+            startX = min.getBlockX();
+            startY = min.getBlockY();
+
+            x = startX - 1;
+            y = startY;
+            z = min.getBlockZ();
+
+            endX = max.getBlockX() + 1;
+            endY = max.getBlockY() + 1;
+            endZ = max.getBlockZ() + 1;
+        }
+
+        @Override
+        public boolean hasNext() {
+            int nextX = x + 1;
+            int nextY = y;
+            int nextZ = z;
+
+            if(nextX == endX) {
+                nextY++;
+            }
+
+            if(nextY == endY) {
+                nextZ++;
+            }
+
+            return nextZ < endZ;
+        }
+
+        @Override
+        public BlockSnapshot next() {
+            if(++x == endX) {
+                if(++y == endY) {
+                    z++;
+                    y = startY;
+                }
+
+                x = startX;
+            }
+
+            return factory.make(x & 15, y, z & 15);
+        }
+    }
+
+    protected final int x;
+    protected final int z;
+
+    private final BoundingBox chunkBounds;
+
+    CollisionChunkAbstract_v1_16_R3(@NotNull Chunk chunk) {
+        this.x = chunk.locX;
+        this.z = chunk.locZ;
+
+        int originX = x << 16;
+        int originZ = x << 16;
+
+        this.chunkBounds = new BoundingBox(originX, 0, originZ, originX + 16, 255, originZ + 16);
+    }
+
+    @Override
+    public @Nullable BlockSnapshot collisionView(int chunkX, int chunkY, int chunkZ) {
+        return getSnapshotFactory().make(chunkX, chunkY, chunkZ);
+    }
+
+    @Override
+    public boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds) {
+        if(chunkBounds.overlaps(worldRelativeBounds)) {
+            BoundingBox overlap = worldRelativeBounds.clone().intersection(chunkBounds);
+            CollisionChunkAbstract_v1_16_R3.SnapshotIterator iterator =
+                    new SnapshotIterator(overlap, getSnapshotFactory());
+
+            while(iterator.hasNext()) {
+                BlockSnapshot snapshot = iterator.next();
+
+                if(snapshot.overlaps(overlap)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public @NotNull List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldBounds) {
+        List<BlockSnapshot> shapes = new ArrayList<>();
+
+        if(worldBounds.overlaps(chunkBounds)) {
+            BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
+            CollisionChunkAbstract_v1_16_R3.SnapshotIterator iterator =
+                    new SnapshotIterator(overlap, getSnapshotFactory());
+
+            while(iterator.hasNext()) {
+                BlockSnapshot snapshot = iterator.next();
+
+                if(snapshot.overlaps(overlap)) {
+                    shapes.add(snapshot);
+                }
+            }
+        }
+
+        return shapes;
+    }
+
+    protected void assertValidChunkCoordinate(int x, int y, int z) {
+        if(x < 0 || x >= 16 || y < 0 || y >= 256 || z < 0 || z >= 16) {
+            throw new IllegalArgumentException("Invalid chunk coordinates [" + x + ", " + y + ", " + z + "]");
+        }
+    }
+
+    protected abstract @NotNull BlockSnapshotFactory getSnapshotFactory();
+}
