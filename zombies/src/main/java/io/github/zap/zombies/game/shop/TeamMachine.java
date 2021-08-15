@@ -127,7 +127,7 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                                 1.0F, 1.5F);
                         Component message = TextComponent.ofChildren(
                                 player.getPlayer().displayName(),
-                                Component.text("purchased " + teamMachineTask.getDisplayName() +
+                                Component.text(" purchased " + teamMachineTask.getDisplayName() +
                                         " from the Team Machine!", NamedTextColor.YELLOW)
                         );
                         for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {

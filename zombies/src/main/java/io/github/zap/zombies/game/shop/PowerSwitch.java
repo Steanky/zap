@@ -88,7 +88,7 @@ public class PowerSwitch extends BlockShop<PowerSwitchData> {
     private void notifyPowerTurnedOn(@NotNull Player activator) {
         for (Player playerInWorld : getArena().getWorld().getPlayers()) {
             playerInWorld.showTitle(Title.title(activator.displayName(),
-                    Component.text("Turned on the power!", NamedTextColor.GOLD),
+                    Component.text("turned on the power!", NamedTextColor.GOLD),
                     Title.Times.of(Ticks.duration(20L), Ticks.duration(60L), Ticks.duration(20L))));
             playerInWorld.playSound(Sound.sound(Key.key("minecraft:entity.blaze.death"),
                     Sound.Source.MASTER, 1.0F, 2.0F));
