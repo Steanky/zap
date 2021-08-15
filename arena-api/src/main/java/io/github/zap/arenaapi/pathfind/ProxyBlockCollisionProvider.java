@@ -9,11 +9,12 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
-    private final Map<ChunkIdentifier, CollisionChunkView> chunkMap = new WeakHashMap<>();
+    private final Map<ChunkIdentifier, CollisionChunkView> chunkMap = Collections.synchronizedMap(new WeakHashMap<>());
 
     private final WorldBridge worldBridge = ArenaApi.getInstance().getNmsBridge().worldBridge();
 
