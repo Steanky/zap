@@ -15,21 +15,17 @@ import java.util.concurrent.ConcurrentHashMap;
 class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
     private static final Map<ChunkIdentifier, CollisionChunkView> globalChunks = new ConcurrentHashMap<>();
 
-    private final World world;
-    private final UUID worldUUID;
     private final int maxCaptureAge;
 
     SnapshotBlockCollisionProvider(@NotNull World world, int maxCaptureAge) {
         super(world, true);
-        this.world = world;
-        worldUUID = world.getUID();
         this.maxCaptureAge = maxCaptureAge;
     }
 
     @Override
     public void updateRegion(@NotNull ChunkCoordinateProvider coordinates) {
         for(Vector2I coordinate : coordinates) {
-            ChunkIdentifier targetChunk = new ChunkIdentifier(worldUUID, coordinate);
+            ChunkIdentifier targetChunk = new ChunkIdentifier(world.getUID(), coordinate);
 
             if(world.isChunkLoaded(coordinate.x(), coordinate.z())) {
                 CollisionChunkView oldSnapshot = globalChunks.get(targetChunk);
@@ -48,22 +44,22 @@ class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
     @Override
     public void clearRegion(@NotNull ChunkCoordinateProvider coordinates) {
         for(Vector2I coordinate : coordinates) {
-            globalChunks.remove(new ChunkIdentifier(worldUUID, coordinate));
+            globalChunks.remove(new ChunkIdentifier(world.getUID(), coordinate));
         }
     }
 
     @Override
     public void clearForWorld() {
-        globalChunks.keySet().removeIf(id -> id.worldID.equals(worldUUID));
+        globalChunks.keySet().removeIf(id -> id.worldID.equals(world.getUID()));
     }
 
     @Override
     public boolean hasChunk(int x, int z) {
-        return globalChunks.containsKey(new ChunkIdentifier(worldUUID, Vectors.of(x, z)));
+        return globalChunks.containsKey(new ChunkIdentifier(world.getUID(), Vectors.of(x, z)));
     }
 
     @Override
     public CollisionChunkView chunkAt(int x, int z) {
-        return globalChunks.get(new ChunkIdentifier(worldUUID, Vectors.of(x, z)));
+        return globalChunks.get(new ChunkIdentifier(world.getUID(), Vectors.of(x, z)));
     }
 }

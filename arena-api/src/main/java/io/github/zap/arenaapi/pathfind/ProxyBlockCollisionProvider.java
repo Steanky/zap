@@ -16,11 +16,9 @@ class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
     private final Map<ChunkIdentifier, CollisionChunkView> chunkMap = new WeakHashMap<>();
 
     private final WorldBridge worldBridge = ArenaApi.getInstance().getNmsBridge().worldBridge();
-    private final World world;
 
     ProxyBlockCollisionProvider(@NotNull World world) {
         super(world, true);
-        this.world = world;
     }
 
     @Override

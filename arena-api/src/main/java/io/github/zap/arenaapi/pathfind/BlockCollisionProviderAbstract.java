@@ -12,7 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider {
-    private final World world;
+    protected final World world;
+
     private final boolean supportsAsync;
 
     BlockCollisionProviderAbstract(@NotNull World world, boolean supportsAsync) {
