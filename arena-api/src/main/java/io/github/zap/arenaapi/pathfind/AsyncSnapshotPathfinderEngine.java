@@ -40,7 +40,6 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
 
     private AsyncSnapshotPathfinderEngine() { //singleton
         super(new ConcurrentHashMap<>());
-        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
     /**
@@ -122,14 +121,5 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
 
     public static AsyncSnapshotPathfinderEngine getInstance() {
         return INSTANCE;
-    }
-
-    @EventHandler
-    private void onWorldUnload(WorldUnloadEvent event) {
-        PathfinderContext context = contexts.get(event.getWorld().getUID());
-
-        if(context != null) {
-            context.blockProvider().clearForWorld();
-        }
     }
 }

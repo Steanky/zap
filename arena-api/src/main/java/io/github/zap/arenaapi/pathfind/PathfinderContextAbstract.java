@@ -22,16 +22,7 @@ abstract class PathfinderContextAbstract implements PathfinderContext {
     }
 
     @Override
-    public void recordPath(@NotNull PathResult result) {
-        PathOperation.State state = result.state();
-
-        if(state == PathOperation.State.SUCCEEDED) {
-            successfulPaths.add(result);
-        }
-        else if(state == PathOperation.State.FAILED) {
-            failedPaths.add(result);
-        }
-    }
+    public void recordPath(@NotNull PathResult result) {}
 
     @Override
     public @NotNull BlockCollisionProvider blockProvider() {

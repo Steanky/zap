@@ -1,7 +1,11 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implements PathfinderEngine {
+abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implements PathfinderEngine, Listener {
     protected static final ExecutorCompletionService<PathResult> completionService =
             new ExecutorCompletionService<>(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
 
@@ -20,6 +24,7 @@ abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implem
 
     AsyncPathfinderEngineAbstract(@NotNull Map<UUID, T> contexts) {
         this.contexts = contexts;
+        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
     @Override
@@ -78,4 +83,13 @@ abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implem
     protected abstract @NotNull T makeContext(@NotNull BlockCollisionProvider provider);
 
     protected abstract @NotNull BlockCollisionProvider getBlockCollisionProvider(@NotNull World world);
+
+    @EventHandler
+    private void onWorldUnload(WorldUnloadEvent event) {
+        PathfinderContext context = contexts.remove(event.getWorld().getUID());
+
+        if(context != null) {
+            context.blockProvider().clearForWorld();
+        }
+    }
 }
