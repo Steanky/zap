@@ -11,15 +11,14 @@ public class LastHeadshotReader implements HeadshotHistoryReader {
         if (headshotHistory.isEmpty()) {
             throw new IllegalArgumentException("Tried to read the last headshot of an empty history!");
         }
-        else {
-            Boolean headshot = headshotHistory.get(headshotHistory.size() - 1);
-            if (headshot == null) {
-                throw new IllegalArgumentException("Tried to read the last headshot of a history " +
-                        "with a null last headshot!");
-            }
 
-            return headshot;
+        Boolean headshot = headshotHistory.get(headshotHistory.size() - 1);
+        if (headshot == null) {
+            throw new IllegalArgumentException("Tried to read the last headshot of a history with a " +
+                    "null last headshot!");
         }
+
+        return headshot;
     }
 
 }
