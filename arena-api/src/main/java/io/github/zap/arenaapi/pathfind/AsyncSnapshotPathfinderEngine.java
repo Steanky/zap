@@ -3,18 +3,17 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.Vector2I;
-import io.github.zap.vector.graph.ChunkGraph;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
 import java.util.concurrent.*;
 
-public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener {
+public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract<SynchronizedPathfinderContext> implements Listener {
     private static final AsyncSnapshotPathfinderEngine INSTANCE = new AsyncSnapshotPathfinderEngine();
 
     private static final int MIN_CHUNK_SYNC_AGE = 40;
@@ -23,61 +22,8 @@ public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener
     private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.9;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
-    private final ExecutorCompletionService<PathResult> completionService =
-            new ExecutorCompletionService<>(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
-
-    private final Map<UUID, Context> contexts = new ConcurrentHashMap<>();
-
-    private class Context implements PathfinderContext {
-        private final Semaphore syncSemaphore = new Semaphore(MAX_SCHEDULED_SYNC_TASKS);
-
-        private final Queue<PathResult> successfulPaths = new ArrayDeque<>();
-        private final BlockCollisionProvider blockCollisionProvider;
-
-        private int lastSyncTick = -1;
-
-        private Context(@NotNull BlockCollisionProvider blockCollisionProvider) {
-            this.blockCollisionProvider = blockCollisionProvider;
-        }
-
-        @Override
-        public @NotNull PathfinderEngine engine() {
-            return AsyncSnapshotPathfinderEngine.this;
-        }
-
-        @Override
-        public @NotNull BlockCollisionProvider blockProvider() {
-            return blockCollisionProvider;
-        }
-
-        public void recordPath(PathResult path) {
-            PathOperation.State state = path.state();
-
-            if (state == PathOperation.State.SUCCEEDED) {
-                handleAddition(path, successfulPaths);
-            }
-        }
-
-        private void handleAddition(PathResult result, Queue<PathResult> target) {
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (target) {
-                int oldCount = target.size();
-                int newCount = oldCount + 1;
-
-                target.add(result);
-
-                if(newCount == PATH_CAPACITY) {
-                    target.poll();
-                }
-            }
-        }
-    }
-
-    private AsyncSnapshotPathfinderEngine() { //singleton
-        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
-    }
-
-    private PathResult processOperation(Context context, PathOperation operation) {
+    @Override
+    protected @Nullable PathResult processOperation(@NotNull SynchronizedPathfinderContext context, @NotNull PathOperation operation) {
         try {
             trySyncChunks(context, operation.searchArea(), isUrgent(operation.searchArea(), context.blockProvider()));
             operation.init(context);
@@ -97,7 +43,7 @@ public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener
                 }
 
                 if(operation.allowMerges()) {
-                    PathResult result = attemptMergeFor(context, operation);
+                    PathResult result = context.merger().attemptMerge(operation, context.successfulPaths());
 
                     if(result != null) {
                         return result;
@@ -113,72 +59,23 @@ public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener
 
             ArenaApi.warning("Cause: " + exception.getCause());
         }
+
         return null;
     }
 
-    //fancy path merging optimizations; this code alone results in extremely significant speedups
-    private PathResult attemptMergeFor(Context context, PathOperation operation) {
-        synchronized (context.successfulPaths) { //try to merge paths if possible
-            PathNode currentNode = operation.currentNode();
+    @Override
+    protected @NotNull SynchronizedPathfinderContext makeContext(@NotNull BlockCollisionProvider provider) {
+        return new SynchronizedPathfinderContextImpl(provider, new PathMergerImpl(), MAX_SCHEDULED_SYNC_TASKS, PATH_CAPACITY);
+    }
 
-            if(currentNode != null) {
-                for(PathResult successful : context.successfulPaths) {
-                    ChunkGraph<PathNode> resultVisited = successful.visitedNodes(); //get nodes visited by another path
+    @Override
+    protected @NotNull BlockCollisionProvider getBlockCollisionProvider(@NotNull World world) {
+        return new SnapshotBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE);
+    }
 
-                    int x = currentNode.x();
-                    int y = currentNode.y();
-                    int z = currentNode.z();
-
-                    //check if we can merge
-                    if(operation.mergeValid(successful.operation()) && resultVisited.hasElementAt(x, y, z)) {
-                        PathNode intersection = resultVisited.elementAt(x, y, z); //get intersection point
-
-                        PathNode sample = intersection;
-                        while(sample != null) {
-                            PathNode parent = sample.parent; //iterate up parents
-
-                            if(parent != null && parent.child != sample) { //check for "broken" link (indicative of path)
-                                PathNode oldIntersectionChild = intersection.child;
-
-                                intersection.child = currentNode.child;
-                                if(currentNode.child != null) {
-                                    currentNode.child.parent = intersection; //link up paths
-                                }
-
-                                parent.child = sample; //point path back towards origin
-
-                                PathNode first = intersection;
-                                while(first.child != null) { //get origin node
-                                    first = first.child;
-                                }
-
-                                PathDestination destination = operation.bestDestination(); //we can just stop now
-                                if(destination != null) {
-                                    ArenaApi.info("Merged paths (based on common explored node)");
-                                    return new PathResultImpl(first, operation, resultVisited, destination,
-                                            PathOperation.State.SUCCEEDED);
-                                }
-
-                                intersection.child = oldIntersectionChild;
-                                return null;
-                            }
-
-                            sample = sample.parent;
-                        }
-
-                        PathDestination destination = operation.bestDestination();
-                        if(intersection != null && destination != null) {
-                            //if we reach this point, it means we started directly on an existing path
-                            ArenaApi.info("Merged paths (we're standing on a path already)");
-                            return new PathResultImpl(intersection, operation, resultVisited, destination,
-                                    PathOperation.State.SUCCEEDED);
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
+    private AsyncSnapshotPathfinderEngine() { //singleton
+        super(new ConcurrentHashMap<>());
+        Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
     /**
@@ -199,7 +96,7 @@ public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener
         return (double)stale / (double)chunks.chunkCount() >= PERCENTAGE_STALE_REQUIRED_TO_FORCE;
     }
 
-    private void trySyncChunks(Context context, ChunkCoordinateProvider coordinateProvider, boolean force) {
+    private void trySyncChunks(SynchronizedPathfinderContext context, ChunkCoordinateProvider coordinateProvider, boolean force) {
         int currentTick = Bukkit.getCurrentTick();
 
         /*
@@ -211,14 +108,14 @@ public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener
         really, really needs fresh chunks, such as for a new PathOperation or one that's going on in a really outdated
         area
         */
-        if(force || (currentTick - context.lastSyncTick) > MIN_CHUNK_SYNC_AGE && context.syncSemaphore.tryAcquire()) {
+        if(force || (currentTick - context.lastSyncTick()) > MIN_CHUNK_SYNC_AGE && context.tryAcquirePermit()) {
             if(force) {
                 /*
                  * respect the hard limit of bukkit tasks, but we really need this operation to complete, so wait
                  * to acquire it
                  */
                 try {
-                    context.syncSemaphore.acquire();
+                    context.acquirePermit();
                 }
                 catch (InterruptedException e) {
                     ArenaApi.warning("Interrupted while attempting to force acquire synchronization semaphore.");
@@ -229,15 +126,15 @@ public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener
             CountDownLatch latch = new CountDownLatch(1);
             int taskId = Bukkit.getScheduler().runTask(ArenaApi.getInstance(), () -> {
                 try {
-                    context.blockCollisionProvider.updateRegion(coordinateProvider);
+                    context.blockProvider().updateRegion(coordinateProvider);
                 }
                 catch (Exception exception) {
                     ArenaApi.warning("An exception occurred while synchronizing chunks:");
                     exception.printStackTrace();
                 }
                 finally {
-                    context.lastSyncTick = Bukkit.getCurrentTick();
-                    context.syncSemaphore.release();
+                    context.reportSync();
+                    context.releasePermit();
                     latch.countDown();
                 }
             }).getTaskId();
@@ -258,31 +155,13 @@ public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener
         }
     }
 
-    /**
-     * Queues a pathfinding operation onto the pathfinding thread. This method is thread-safe.
-     * @param operation The operation to enqueue
-     * @return A Future object representing the computation
-     */
-    @Override
-    public @NotNull Future<PathResult> giveOperation(@NotNull PathOperation operation, @NotNull World world) {
-        Context context = contexts.computeIfAbsent(world.getUID(), (key) ->
-                new Context(new SnapshotBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE)));
-
-        return completionService.submit(() -> processOperation(context, operation));
-    }
-
-    @Override
-    public boolean isAsync() {
-        return true;
-    }
-
     public static AsyncSnapshotPathfinderEngine instance() {
         return INSTANCE;
     }
 
     @EventHandler
     private void onWorldUnload(WorldUnloadEvent event) {
-        Context context = contexts.get(event.getWorld().getUID());
+        PathfinderContext context = contexts.get(event.getWorld().getUID());
 
         if(context != null) {
             context.blockProvider().clearForWorld();
