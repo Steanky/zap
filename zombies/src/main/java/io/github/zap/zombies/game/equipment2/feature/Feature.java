@@ -10,8 +10,15 @@ import java.util.function.Consumer;
 
 public interface Feature {
 
-    void onUse(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-               @NotNull Consumer<ItemStack> onVisualUpdate);
+    void onLeftClick(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
+                     @NotNull Consumer<ItemStack> onVisualUpdate);
+
+    void onRightClick(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
+                      @NotNull Consumer<ItemStack> onVisualUpdate);
+
+    void onSelected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player);
+
+    void onDeselected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player);
 
     @Nullable ItemStack getVisual(@NotNull Equipment equipment);
 

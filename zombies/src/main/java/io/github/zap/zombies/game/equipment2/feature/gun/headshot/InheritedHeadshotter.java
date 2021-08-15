@@ -27,6 +27,7 @@ public class InheritedHeadshotter implements Headshotter {
         if (headshotHistory.isEmpty()) {
             return fallback.isHeadshot(rayTraceResult, headshotHistory);
         }
-        else return inverted != reader.isHeadshot(headshotHistory); // see BasicHeadshotter
+
+        return inverted != reader.isHeadshot(headshotHistory); // see BasicHeadshotter
     }
 }

@@ -98,8 +98,14 @@ public class Gun implements Feature {
     }
 
     @Override
-    public void onUse(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-                      @NotNull Consumer<ItemStack> onVisualUpdate) {
+    public void onLeftClick(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
+                            @NotNull Consumer<ItemStack> onVisualUpdate) {
+        doReload(equipment, player, onVisualUpdate);
+    }
+
+    @Override
+    public void onRightClick(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
+                             @NotNull Consumer<ItemStack> onVisualUpdate) {
         if (canShoot) {
             Player bukkitPlayer = player.getPlayer();
             if (bukkitPlayer != null) {
@@ -132,6 +138,22 @@ public class Gun implements Feature {
                     }
                 }
             } else throw new IllegalArgumentException("Tried to shoot for a player that is not online!");
+        }
+    }
+
+    @Override
+    public void onSelected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player) {
+        Player bukkitPlayer = player.getPlayer();
+        if (bukkitPlayer != null) {
+            bukkitPlayer.setLevel(ammo);
+        }
+    }
+
+    @Override
+    public void onDeselected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player) {
+        Player bukkitPlayer = player.getPlayer();
+        if (bukkitPlayer != null) {
+            bukkitPlayer.setLevel(0);
         }
     }
 

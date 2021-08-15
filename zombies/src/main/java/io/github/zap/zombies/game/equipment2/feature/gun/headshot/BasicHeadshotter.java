@@ -19,27 +19,28 @@ public class BasicHeadshotter implements Headshotter {
     @Override
     public boolean isHeadshot(@NotNull RayTraceResult rayTraceResult, @NotNull List<Boolean> headshotHistory) {
         Entity hit = rayTraceResult.getHitEntity();
-        if (hit != null) {
-            if (hit instanceof LivingEntity livingEntity) {
-                // height - 2 * (height - eyeHeight) = 2 * eyeHeight - height
-                double bottomY = 2 * livingEntity.getEyeHeight() - livingEntity.getHeight();
-                double hitY = rayTraceResult.getHitPosition().getY();
-
-                boolean headshot = bottomY <= hitY && hitY <= livingEntity.getHeight();
-
-                /*
-                 * inverted, headshot -> false
-                 * inverted, !headshot -> true
-                 * !inverted, headshot -> true
-                 * !inverted, !headshot -> false
-                 */
-                return headshot != inverted;
-            } else throw new IllegalArgumentException("Tried to determine a headshot on a raytrace that did not " +
-                    "involve a living entity!");
-        } else
+        if (hit == null) {
             throw new IllegalArgumentException("Tried to determine a headshot on a raytrace that did not involve " +
                     "a living entity!");
+        }
+        if (!(hit instanceof LivingEntity livingEntity)) {
+            throw new IllegalArgumentException("Tried to determine a headshot on a raytrace that did not involve " +
+                    "a living entity!");
+        }
 
+        // height - 2 * (height - eyeHeight) = 2 * eyeHeight - height
+        double bottomY = 2 * livingEntity.getEyeHeight() - livingEntity.getHeight();
+        double hitY = rayTraceResult.getHitPosition().getY();
+
+        boolean headshot = bottomY <= hitY && hitY <= livingEntity.getHeight();
+
+        /*
+         * inverted, headshot -> false
+         * inverted, !headshot -> true
+         * !inverted, headshot -> true
+         * !inverted, !headshot -> false
+         */
+        return headshot != inverted;
     }
 
 }
