@@ -21,7 +21,7 @@ public class HitHandler {
 
     private final ZombiesArena.DamageHandler damageHandler;
 
-    private final List<Consumer<Mob>> effectCallbacks;
+    private final List<Consumer<TargetSelection>> effectCallbacks;
 
     private final Collection<Shot> childShots;
 
@@ -35,9 +35,10 @@ public class HitHandler {
 
     private final double damage;
 
-    public HitHandler(@NotNull ZombiesArena.DamageHandler damageHandler, @NotNull List<Consumer<Mob>> effectCallbacks,
-                      @NotNull Collection<Shot> childShots, int goldPerShot, int goldPerHeadshot,
-                      double shotKnockbackFactor, double headshotKnockbackFactor, double damage) {
+    public HitHandler(@NotNull ZombiesArena.DamageHandler damageHandler,
+                      @NotNull List<Consumer<TargetSelection>> effectCallbacks, @NotNull Collection<Shot> childShots,
+                      int goldPerShot, int goldPerHeadshot, double shotKnockbackFactor, double headshotKnockbackFactor,
+                      double damage) {
         this.damageHandler = damageHandler;
         this.effectCallbacks = effectCallbacks;
         this.childShots = childShots;
@@ -78,8 +79,8 @@ public class HitHandler {
             }
         }, selection.mob());
 
-        for (Consumer<Mob> effectCallback : effectCallbacks) {
-            effectCallback.accept(selection.mob());
+        for (Consumer<TargetSelection> effectCallback : effectCallbacks) {
+            effectCallback.accept(selection);
         }
 
         headshotHistory.add(selection.headshot());
