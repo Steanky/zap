@@ -81,14 +81,17 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
     protected final int x;
     protected final int z;
 
+    protected final int originX;
+    protected final int originZ;
+
     private final BoundingBox chunkBounds;
 
     CollisionChunkAbstract_v1_16_R3(@NotNull Chunk chunk) {
         this.x = chunk.locX;
         this.z = chunk.locZ;
 
-        int originX = x << 16;
-        int originZ = x << 16;
+        this.originX = x << 4;
+        this.originZ = z << 4;
 
         this.chunkBounds = new BoundingBox(originX, 0, originZ, originX + 16, 255, originZ + 16);
     }

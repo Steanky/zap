@@ -24,8 +24,6 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
 
     private static final IBlockData AIR_BLOCK_DATA = Blocks.AIR.getBlockData();
 
-    private final int chunkX;
-    private final int chunkZ;
     private final DataPaletteBlock<IBlockData>[] palette;
     private final ChunkGraph<BlockCollisionView> nonSolidOrPartial = new ArrayChunkGraph<>(0, 0, 1, 1);
     private final int captureTick;
@@ -33,8 +31,6 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
         super(chunk);
 
-        chunkX = chunk.locX;
-        chunkZ = chunk.locX;
         palette = loadFromChunk(chunk);
         captureTick = Bukkit.getCurrentTick();
     }
@@ -46,7 +42,7 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
         if(snapshot == null) {
             IBlockData data = palette[chunkY >> 4].a(chunkX, chunkY & 15, chunkZ);
 
-            snapshot = BlockCollisionView.from((chunkX << 4) + chunkX, chunkY, (chunkZ << 4) + chunkZ,
+            snapshot = BlockCollisionView.from(originX + chunkX, chunkY, originZ + chunkZ,
                     data.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
         }
 
@@ -101,8 +97,8 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
 
                             VoxelShape shape = blockData.getCollisionShape(chunk, examine);
                             if(!blockData.getMaterial().isSolid() || (shape != VoxelShapes.empty() && shape != VoxelShapes.fullCube())) {
-                                nonSolidOrPartial.putElement(x, y, z, BlockCollisionView.from((chunkX << 4) + x, y,
-                                        (chunkZ << 4) + z, blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shape)));
+                                nonSolidOrPartial.putElement(x, y, z, BlockCollisionView.from(originX + x, y,
+                                        originZ + z, blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shape)));
                             }
                         }
                     });

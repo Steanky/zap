@@ -30,7 +30,7 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
 
     @Override
     protected @NotNull SynchronizedPathfinderContext makeContext(@NotNull BlockCollisionProvider provider) {
-        return new SynchronizedPathfinderContextImpl(provider, new PathMergerImpl(), MAX_SCHEDULED_SYNC_TASKS, PATH_CAPACITY);
+        return new SynchronizedPathfinderContextImpl(provider, new PathMergerImpl(), PATH_CAPACITY, MAX_SCHEDULED_SYNC_TASKS);
     }
 
     @Override
