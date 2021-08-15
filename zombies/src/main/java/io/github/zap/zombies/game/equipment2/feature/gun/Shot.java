@@ -39,14 +39,14 @@ public class Shot {
                 previousDirection, headshotHistory, range, hitHandlers.size());
 
         if (selections.isEmpty() && headshotHistory.isEmpty()) {
-            beam.send(world, root, root.clone().add(previousDirection.clone().multiply(range)), () -> {});
+            beam.send(world, null, root, root.clone().add(previousDirection.clone().multiply(range)), () -> {});
         } else for (int i = 0; i < selections.size(); i++) {
             TargetSelection selection = selections.get(i);
             if (selection.sendBeam()) {
                 int finalI = i;
-                beam.send(world, root, selection.location(), () -> {
-                    hitHandlers.get(finalI).hit(map, world, damager, selection, candidates, used, headshotHistory);
-                });
+                beam.send(world, null, root, selection.location(),
+                        () -> hitHandlers.get(finalI).hit(map, world, damager, selection, candidates, used,
+                                headshotHistory));
             } else hitHandlers.get(i).hit(map, world, damager, selection, candidates, used, headshotHistory);
         }
     }

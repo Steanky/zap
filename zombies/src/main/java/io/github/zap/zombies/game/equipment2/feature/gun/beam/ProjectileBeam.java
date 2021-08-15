@@ -6,12 +6,12 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NoBeam implements Beam {
+public class ProjectileBeam implements Beam {
 
     @Override
     public void send(@NotNull World world, @Nullable Mob target, @NotNull Vector from, @NotNull Vector to,
                      @NotNull Runnable onceHit) {
-        onceHit.run();
+
     }
 
 }
