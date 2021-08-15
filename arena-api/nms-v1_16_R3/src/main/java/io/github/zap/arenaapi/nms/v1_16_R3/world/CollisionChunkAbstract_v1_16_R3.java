@@ -13,30 +13,21 @@ import java.util.Iterator;
 import java.util.List;
 
 abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
-    @FunctionalInterface
-    interface BlockSnapshotFactory {
-        @Nullable BlockSnapshot make(int chunkX, int chunkY, int chunkZ);
-    }
+    private class SnapshotIterator implements Iterator<BlockSnapshot> {
+        private final int startX;
+        private final int startY;
 
-    private static class SnapshotIterator implements Iterator<BlockSnapshot> {
-        protected final BlockSnapshotFactory factory;
+        private final int endX;
+        private final int endY;
+        private final int endZ;
 
-        protected final int startX;
-        protected final int startY;
+        private int x;
+        private int y;
+        private int z;
 
-        protected final int endX;
-        protected final int endY;
-        protected final int endZ;
-
-        protected int x;
-        protected int y;
-        protected int z;
-
-        SnapshotIterator(@NotNull BoundingBox overlap, @NotNull BlockSnapshotFactory factory) {
+        SnapshotIterator(@NotNull BoundingBox overlap) {
             Vector min = overlap.getMin();
             Vector max = overlap.getMax();
-
-            this.factory = factory;
 
             startX = min.getBlockX();
             startY = min.getBlockY();
@@ -78,7 +69,12 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
                 x = startX;
             }
 
-            return factory.make(x & 15, y, z & 15);
+            int chunkX = x & 15;
+            int chunkY = y;
+            int chunkZ = z & 15;
+
+            assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
+            return makeSnapshot(chunkX, chunkY, chunkZ);
         }
     }
 
@@ -99,15 +95,15 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
 
     @Override
     public @Nullable BlockSnapshot collisionView(int chunkX, int chunkY, int chunkZ) {
-        return getSnapshotFactory().make(chunkX, chunkY, chunkZ);
+        assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
+        return makeSnapshot(chunkX, chunkY, chunkZ);
     }
 
     @Override
     public boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds) {
         if(chunkBounds.overlaps(worldRelativeBounds)) {
             BoundingBox overlap = worldRelativeBounds.clone().intersection(chunkBounds);
-            CollisionChunkAbstract_v1_16_R3.SnapshotIterator iterator =
-                    new SnapshotIterator(overlap, getSnapshotFactory());
+            SnapshotIterator iterator = new SnapshotIterator(overlap);
 
             while(iterator.hasNext()) {
                 BlockSnapshot snapshot = iterator.next();
@@ -127,8 +123,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
 
         if(worldBounds.overlaps(chunkBounds)) {
             BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
-            CollisionChunkAbstract_v1_16_R3.SnapshotIterator iterator =
-                    new SnapshotIterator(overlap, getSnapshotFactory());
+            SnapshotIterator iterator = new SnapshotIterator(overlap);
 
             while(iterator.hasNext()) {
                 BlockSnapshot snapshot = iterator.next();
@@ -148,5 +143,5 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
         }
     }
 
-    protected abstract @NotNull BlockSnapshotFactory getSnapshotFactory();
+    protected abstract BlockSnapshot makeSnapshot(int chunkX, int chunkY, int chunkZ);
 }

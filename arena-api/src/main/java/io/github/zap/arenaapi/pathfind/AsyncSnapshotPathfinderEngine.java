@@ -14,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
-    private static final AsyncPathfinderEngine INSTANCE = new AsyncPathfinderEngine();
+public class AsyncSnapshotPathfinderEngine implements PathfinderEngine, Listener {
+    private static final AsyncSnapshotPathfinderEngine INSTANCE = new AsyncSnapshotPathfinderEngine();
 
     private static final int MIN_CHUNK_SYNC_AGE = 40;
     private static final int PATH_CAPACITY = 32;
@@ -42,7 +42,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
 
         @Override
         public @NotNull PathfinderEngine engine() {
-            return AsyncPathfinderEngine.this;
+            return AsyncSnapshotPathfinderEngine.this;
         }
 
         @Override
@@ -73,7 +73,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         }
     }
 
-    private AsyncPathfinderEngine() { //singleton
+    private AsyncSnapshotPathfinderEngine() { //singleton
         Bukkit.getServer().getPluginManager().registerEvents(this, ArenaApi.getInstance());
     }
 
@@ -276,7 +276,7 @@ public class AsyncPathfinderEngine implements PathfinderEngine, Listener {
         return true;
     }
 
-    public static AsyncPathfinderEngine instance() {
+    public static AsyncSnapshotPathfinderEngine instance() {
         return INSTANCE;
     }
 

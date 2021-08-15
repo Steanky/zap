@@ -1,6 +1,5 @@
 package io.github.zap.arenaapi.nms.common.world;
 
-import org.bukkit.ChunkSnapshot;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

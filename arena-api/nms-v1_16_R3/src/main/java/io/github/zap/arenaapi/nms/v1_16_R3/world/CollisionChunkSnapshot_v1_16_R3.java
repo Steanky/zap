@@ -1,16 +1,12 @@
 package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
 import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
-import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.graph.ArrayChunkGraph;
 import io.github.zap.vector.graph.ChunkGraph;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
 import java.util.function.Predicate;
 
 class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
@@ -34,8 +30,6 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     private final ChunkGraph<BlockSnapshot> nonSolidOrPartial = new ArrayChunkGraph<>(0, 0, 1, 1);
     private final int captureTick;
 
-    private final CollisionChunkAbstract_v1_16_R3.BlockSnapshotFactory factory;
-
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
         super(chunk);
 
@@ -43,21 +37,20 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
         chunkZ = chunk.locX;
         palette = loadFromChunk(chunk);
         captureTick = Bukkit.getCurrentTick();
+    }
 
-        factory = (chunkX, chunkY, chunkZ) -> {
-            assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
+    @Override
+    protected BlockSnapshot makeSnapshot(int chunkX, int chunkY, int chunkZ) {
+        BlockSnapshot snapshot = nonSolidOrPartial.elementAt(chunkX, chunkY, chunkZ);
 
-            BlockSnapshot snapshot = nonSolidOrPartial.elementAt(chunkX, chunkY, chunkZ);
+        if(snapshot == null) {
+            IBlockData data = palette[chunkY >> 4].a(chunkX, chunkY & 15, chunkZ);
 
-            if(snapshot == null) {
-                IBlockData data = palette[chunkY >> 4].a(chunkX, chunkY & 15, chunkZ);
+            snapshot = BlockSnapshot.from((chunkX << 4) + chunkX, chunkY, (chunkZ << 4) + chunkZ,
+                    data.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
+        }
 
-                snapshot = BlockSnapshot.from((chunkX << 4) + chunkX, chunkY, (chunkZ << 4) + chunkZ,
-                        data.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
-            }
-
-            return snapshot;
-        };
+        return snapshot;
     }
 
     private DataPaletteBlock<IBlockData>[] loadFromChunk(net.minecraft.server.v1_16_R3.Chunk chunk) {
@@ -127,10 +120,5 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     @Override
     public int captureTick() {
         return captureTick;
-    }
-
-    @Override
-    protected @NotNull BlockSnapshotFactory getSnapshotFactory() {
-        return factory;
     }
 }
