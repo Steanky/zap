@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.hotbar2;
 
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,12 +32,12 @@ class BasicHotbarProfileTest {
         }
 
         @Override
-        public void setSelected() {
+        public void setSelected(@NotNull PlayerItemHeldEvent event) {
 
         }
 
         @Override
-        public void setDeselected() {
+        public void setDeselected(@NotNull PlayerItemHeldEvent event) {
 
         }
     }

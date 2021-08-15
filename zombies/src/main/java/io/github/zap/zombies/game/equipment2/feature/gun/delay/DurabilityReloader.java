@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -37,7 +38,7 @@ public class DurabilityReloader implements VisualDelayer {
 
     @Override
     public @NotNull BukkitTask delay(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-                                     @NotNull Consumer<ItemStack> onVisualUpdate, @NotNull Runnable onReloadEnd) {
+                                     @Nullable Consumer<ItemStack> onVisualUpdate, @NotNull Runnable onReloadEnd) {
         Player bukkitPlayer = player.getPlayer();
         if (bukkitPlayer != null) {
             bukkitPlayer.playSound(reloadSound);
@@ -92,7 +93,9 @@ public class DurabilityReloader implements VisualDelayer {
                     if (meta instanceof Damageable damageable) {
                         damageable.setDamage(damage);
                         stack.setItemMeta(meta);
-                        onVisualUpdate.accept(stack);
+                        if (onVisualUpdate != null) {
+                            onVisualUpdate.accept(stack);
+                        }
                     }
                 }
             }

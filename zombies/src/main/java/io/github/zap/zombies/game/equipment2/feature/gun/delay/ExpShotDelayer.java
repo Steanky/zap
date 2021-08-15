@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -29,7 +30,7 @@ public class ExpShotDelayer implements VisualDelayer {
 
     @Override
     public @NotNull BukkitTask delay(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-                                     @NotNull Consumer<ItemStack> onVisualUpdate, @NotNull Runnable onDelayEnd) {
+                                     @Nullable Consumer<ItemStack> onVisualUpdate, @NotNull Runnable onDelayEnd) {
         Double delayFactor = delayModifier.getValue();
         if (delayFactor == null) {
             throw new IllegalStateException("Tried to delay when delay modifier state was null!");

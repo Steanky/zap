@@ -99,13 +99,13 @@ public class Gun implements Feature {
 
     @Override
     public void onLeftClick(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-                            @NotNull Consumer<ItemStack> onVisualUpdate) {
+                            @Nullable Consumer<ItemStack> onVisualUpdate) {
         doReload(equipment, player, onVisualUpdate);
     }
 
     @Override
     public void onRightClick(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-                             @NotNull Consumer<ItemStack> onVisualUpdate) {
+                             @Nullable Consumer<ItemStack> onVisualUpdate) {
         if (canShoot) {
             Player bukkitPlayer = player.getPlayer();
             if (bukkitPlayer != null) {
@@ -142,7 +142,8 @@ public class Gun implements Feature {
     }
 
     @Override
-    public void onSelected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player) {
+    public void onSelected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
+                           @Nullable Consumer<ItemStack> onVisualUpdate) {
         Player bukkitPlayer = player.getPlayer();
         if (bukkitPlayer != null) {
             bukkitPlayer.setLevel(ammo);
@@ -150,7 +151,8 @@ public class Gun implements Feature {
     }
 
     @Override
-    public void onDeselected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player) {
+    public void onDeselected(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
+                             @Nullable Consumer<ItemStack> onVisualUpdate) {
         Player bukkitPlayer = player.getPlayer();
         if (bukkitPlayer != null) {
             bukkitPlayer.setLevel(0);
@@ -159,7 +161,7 @@ public class Gun implements Feature {
 
     @SuppressWarnings("ConstantConditions")
     private void doShot(@NotNull Equipment equipment, @NotNull Shot shot, @NotNull ZombiesPlayer player,
-                        @NotNull Set<Mob> used, @NotNull Consumer<ItemStack> onVisualUpdate) {
+                        @NotNull Set<Mob> used, @Nullable Consumer<ItemStack> onVisualUpdate) {
         Location eyeLocation = player.getPlayer().getEyeLocation();
         shot.shoot(map, player.getPlayer().getWorld(), player, mobSet, used, eyeLocation.toVector(),
                 eyeLocation.getDirection(), new ArrayList<>());
@@ -171,19 +173,21 @@ public class Gun implements Feature {
     }
 
     private void updateAfterShooting(@NotNull Equipment equipment, @NotNull Player player,
-                                     @NotNull Consumer<ItemStack> onVisualUpdate) {
+                                     @Nullable Consumer<ItemStack> onVisualUpdate) {
         if (equipment.isSelected()) {
             player.setLevel(ammo);
         }
         ItemStack stack = equipment.getStack();
         if (stack != null) {
             stack.setAmount(clip);
-            onVisualUpdate.accept(stack);
+            if (onVisualUpdate != null) {
+                onVisualUpdate.accept(stack);
+            }
         }
     }
 
     private void doShotDelay(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-                             @NotNull Consumer<ItemStack> onVisualUpdate) {
+                             @Nullable Consumer<ItemStack> onVisualUpdate) {
         shotDelayer.delay(equipment, player, onVisualUpdate, () -> {
             if (clip == 0) {
                 if (ammo == 0) {
@@ -200,7 +204,7 @@ public class Gun implements Feature {
     }
 
     private void doReload(@NotNull Equipment equipment, @NotNull ZombiesPlayer player,
-                          @NotNull Consumer<ItemStack> onVisualUpdate) {
+                          @Nullable Consumer<ItemStack> onVisualUpdate) {
         if (canReload) {
             canReload = false;
             reloader.delay(equipment, player, onVisualUpdate, () -> {
