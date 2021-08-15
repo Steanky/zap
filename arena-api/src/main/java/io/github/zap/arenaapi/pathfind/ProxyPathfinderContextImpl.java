@@ -7,11 +7,4 @@ class ProxyPathfinderContextImpl extends PathfinderContextAbstract {
                                @NotNull PathMerger merger, int pathCapacity) {
         super(blockCollisionProvider, merger, pathCapacity);
     }
-
-    @Override
-    public void recordPath(@NotNull PathResult result) {
-        if(result.state() == PathOperation.State.SUCCEEDED) {
-            successfulPaths.add(result);
-        }
-    }
 }
