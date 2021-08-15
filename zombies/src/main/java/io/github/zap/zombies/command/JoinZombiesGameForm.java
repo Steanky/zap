@@ -15,8 +15,6 @@ import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;

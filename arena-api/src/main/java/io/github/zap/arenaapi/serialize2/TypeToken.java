@@ -2,7 +2,8 @@ package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.*;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * Contains generic type information.

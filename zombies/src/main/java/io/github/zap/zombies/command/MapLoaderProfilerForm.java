@@ -1,6 +1,9 @@
 package io.github.zap.zombies.command;
 
-import io.github.regularcommands.commands.*;
+import io.github.regularcommands.commands.CommandForm;
+import io.github.regularcommands.commands.CommandManager;
+import io.github.regularcommands.commands.Context;
+import io.github.regularcommands.commands.PermissionData;
 import io.github.regularcommands.converter.Parameter;
 import io.github.regularcommands.util.Converters;
 import io.github.regularcommands.util.Validators;

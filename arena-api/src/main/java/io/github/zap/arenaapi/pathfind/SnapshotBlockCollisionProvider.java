@@ -1,18 +1,15 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {

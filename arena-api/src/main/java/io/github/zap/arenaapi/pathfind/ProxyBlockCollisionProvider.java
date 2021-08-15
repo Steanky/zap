@@ -1,17 +1,14 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
 import io.github.zap.vector.Vectors;
 import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 

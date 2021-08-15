@@ -1,10 +1,8 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.concurrent.Semaphore;
 
 public interface PathfinderContext {
     @NotNull BlockCollisionProvider blockProvider();

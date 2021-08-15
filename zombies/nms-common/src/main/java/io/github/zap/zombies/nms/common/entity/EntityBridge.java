@@ -1,7 +1,10 @@
 package io.github.zap.zombies.nms.common.entity;
 
 import org.bukkit.World;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Piglin;
 import org.jetbrains.annotations.NotNull;
 
 /**

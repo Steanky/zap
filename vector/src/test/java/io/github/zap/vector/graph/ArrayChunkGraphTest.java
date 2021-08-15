@@ -2,7 +2,10 @@ package io.github.zap.vector.graph;
 
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;

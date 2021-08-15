@@ -2,7 +2,6 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ConcurrentHashMap;
 

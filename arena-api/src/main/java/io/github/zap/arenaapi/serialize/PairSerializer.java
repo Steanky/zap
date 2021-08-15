@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.IOException;
 

@@ -2,10 +2,10 @@ package io.github.zap.zombies.game.mob.goal;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
+import io.github.zap.arenaapi.nms.common.pathfind.MobNavigator;
 import io.github.zap.arenaapi.pathfind.PathHandler;
 import io.github.zap.arenaapi.pathfind.PathfinderEngine;
 import io.github.zap.arenaapi.util.MetadataHelper;
-import io.github.zap.arenaapi.nms.common.pathfind.MobNavigator;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.nms.common.ZombiesNMSBridge;
 import lombok.Getter;

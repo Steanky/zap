@@ -2,11 +2,15 @@ package io.github.zap.arenaapi.stats;
 
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.mockito.Mockito;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.function.Function;

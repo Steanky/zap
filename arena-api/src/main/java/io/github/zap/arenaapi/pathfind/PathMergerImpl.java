@@ -4,8 +4,6 @@ import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 class PathMergerImpl implements PathMerger {
     @Override
     public @Nullable PathResult attemptMerge(@NotNull PathOperation operation, @NotNull PathfinderContext context) {

@@ -19,8 +19,10 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
+import org.bukkit.util.BlockIterator;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import org.bukkit.util.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
