@@ -11,8 +11,10 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
 import io.github.zap.party.party.PartySettings;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -21,24 +23,28 @@ import java.util.Optional;
  */
 public class CreatePartyForm extends CommandForm<Void> {
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("create")
     };
 
-    private static final CommandValidator<Void, ?> VALIDATOR
-            = new CommandValidator<>((context, arguments, previousData) -> {
-        Optional<Party> partyOptional = PartyPlusPlus.getInstance()
-                .getPartyForPlayer((OfflinePlayer) context.getSender());
 
-        if (partyOptional.isPresent()) {
-            return ValidationResult.of(false, "You are already in a party.", null);
-        }
+    private final PartyPlusPlus partyPlusPlus;
 
-        return ValidationResult.of(true, null, null);
-    }, Validators.PLAYER_EXECUTOR);
+    private final CommandValidator<Void, ?> validator;
 
-    public CreatePartyForm() {
+    public CreatePartyForm(@NotNull PartyPlusPlus partyPlusPlus) {
         super("Creates a party.", Permissions.NONE, PARAMETERS);
+
+        this.partyPlusPlus = partyPlusPlus;
+        this.validator = new CommandValidator<>((context, arguments, previousData) -> {
+            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer((OfflinePlayer) context.getSender());
+
+            if (partyOptional.isPresent()) {
+                return ValidationResult.of(false, "You are already in a party.", null);
+            }
+
+            return ValidationResult.of(true, null, null);
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     @Override
@@ -48,14 +54,14 @@ public class CreatePartyForm extends CommandForm<Void> {
 
     @Override
     public CommandValidator<Void, ?> getValidator(Context context, Object[] arguments) {
-        return VALIDATOR;
+        return validator;
     }
 
     @Override
     public String execute(Context context, Object[] arguments, Void data) {
         Player sender = (Player) context.getSender();
-        PartyPlusPlus.getInstance().trackParty(new Party(PartyPlusPlus.getInstance(), new PartyMember(sender),
-                new PartySettings(), PartyMember::new));
+        partyPlusPlus.trackParty(new Party(partyPlusPlus, MiniMessage.get(),
+                new PartyMember(sender), new PartySettings(), PartyMember::new));
 
         return ">gold{Created a new party.}";
     }

@@ -12,6 +12,7 @@ import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.HumanEntity;
@@ -124,10 +125,13 @@ public class TeamMachine extends BlockShop<TeamMachineData> implements Unique, D
                             && teamMachineTask.execute(this, arena, player)) {
                         Sound sound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER,
                                 1.0F, 1.5F);
+                        Component message = TextComponent.ofChildren(
+                                player.getPlayer().displayName(),
+                                Component.text("purchased " + teamMachineTask.getDisplayName() +
+                                        " from the Team Machine!", NamedTextColor.YELLOW)
+                        );
                         for (Player otherBukkitPlayer : arena.getWorld().getPlayers()) {
-                            otherBukkitPlayer.sendMessage(Component.text(String.format("Player %s purchased " +
-                                            "%s from the Team Machine!", player.getPlayer().getName(),
-                                    teamMachineTask.getDisplayName()), NamedTextColor.YELLOW));
+                            otherBukkitPlayer.sendMessage(message);
                             otherBukkitPlayer.playSound(sound);
                         }
                         humanEntity.closeInventory();

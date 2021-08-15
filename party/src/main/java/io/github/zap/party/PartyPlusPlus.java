@@ -66,34 +66,13 @@ public class PartyPlusPlus extends JavaPlugin implements Listener {
      * Starts tracking a party
      * @param party The party to track
      */
-    public void trackParty(@NotNull Party party) {
-        party.registerJoinHandler(member -> {
-            OfflinePlayer player = member.getOfflinePlayer();
-            if (this.partyMap.containsKey(player.getUniqueId())) {
-                this.partyMap.get(player.getUniqueId()).removeMember(player, false);
-            }
-
-            this.partyMap.put(member.getOfflinePlayer().getUniqueId(), party);
-        });
-        party.registerLeaveHandler(member -> this.partyMap.remove(member.getOfflinePlayer().getUniqueId()));
-
-        for (PartyMember member : party.getMembers()) {
-            this.partyMap.put(member.getOfflinePlayer().getUniqueId(), party);
-        }
-    }
+    void trackParty(@NotNull Party party);
 
     /**
      * Gets the party a player is in
      * @param player The player to check
      * @return An optional of their party
      */
-    public @NotNull Optional<Party> getPartyForPlayer(@NotNull OfflinePlayer player) {
-        return Optional.ofNullable(this.partyMap.get(player.getUniqueId()));
-    }
-
-    @EventHandler
-    public void onAsyncChat(AsyncChatEvent event) {
-        this.getPartyForPlayer(event.getPlayer()).ifPresent(party -> party.onAsyncChat(event));
-    }
+    @NotNull Optional<Party> getPartyForPlayer(@NotNull OfflinePlayer player);
 
 }

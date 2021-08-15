@@ -11,6 +11,7 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -19,64 +20,65 @@ import java.util.Optional;
  */
 public class PartyMuteForm extends CommandForm<OfflinePlayer> {
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("mute"),
             new Parameter("\\w+", "[player-name]", "")
     };
 
-    private static final CommandValidator<OfflinePlayer, ?> VALIDATOR
-            = new CommandValidator<>((context, arguments, previousData) -> {
-        PartyPlusPlus partyPlusPlus = PartyPlusPlus.getInstance();
+    private final PartyPlusPlus partyPlusPlus;
 
-        Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
-        if (partyOptional.isEmpty()) {
-            return ValidationResult.of(false, "You are not currently in a party.", null);
-        }
+    private final CommandValidator<OfflinePlayer, ?> validator;
 
-        Party party = partyOptional.get();
-
-        if (!party.isOwner(previousData)) {
-            return ValidationResult.of(false, "You are not the party owner.", null);
-        }
-
-        String playerName = (String) arguments[1];
-        if (previousData.getName().equalsIgnoreCase(playerName)) {
-            return ValidationResult.of(false, "You cannot kick yourself.", null);
-        }
-
-        if (!playerName.equals("")) {
-            OfflinePlayer toKick = Bukkit.getOfflinePlayerIfCached(playerName);
-            if (toKick == null) {
-                return ValidationResult.of(false, String.format("%s is not registered on the server!", playerName),
-                        null);
-            }
-
-            Optional<Party> toKickPartyOptional = partyPlusPlus.getPartyForPlayer(toKick);
-            if (toKickPartyOptional.isPresent()) {
-                if (!party.equals(toKickPartyOptional.get())) {
-                    return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
-                }
-            }
-
-            return ValidationResult.of(true, null, toKick);
-        } else {
-            return ValidationResult.of(true, null, null);
-        }
-    }, Validators.PLAYER_EXECUTOR);
-
-    public PartyMuteForm() {
+    public PartyMuteForm(@NotNull PartyPlusPlus partyPlusPlus) {
         super("Mutes a member in your party.", Permissions.NONE, PARAMETERS);
+
+        this.partyPlusPlus = partyPlusPlus;
+        this.validator = new CommandValidator<>((context, arguments, previousData) -> {
+            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            if (partyOptional.isEmpty()) {
+                return ValidationResult.of(false, "You are not currently in a party.", null);
+            }
+
+            Party party = partyOptional.get();
+
+            if (!party.isOwner(previousData)) {
+                return ValidationResult.of(false, "You are not the party owner.", null);
+            }
+
+            String playerName = (String) arguments[1];
+            if (previousData.getName().equalsIgnoreCase(playerName)) {
+                return ValidationResult.of(false, "You cannot kick yourself.", null);
+            }
+
+            if (!playerName.equals("")) {
+                OfflinePlayer toKick = Bukkit.getOfflinePlayerIfCached(playerName);
+                if (toKick == null) {
+                    return ValidationResult.of(false, String.format("%s is not registered on the server!", playerName),
+                            null);
+                }
+
+                Optional<Party> toKickPartyOptional = partyPlusPlus.getPartyForPlayer(toKick);
+                if (toKickPartyOptional.isPresent()) {
+                    if (!party.equals(toKickPartyOptional.get())) {
+                        return ValidationResult.of(false, String.format("%s is not in your party.", playerName), null);
+                    }
+                }
+
+                return ValidationResult.of(true, null, toKick);
+            } else {
+                return ValidationResult.of(true, null, null);
+            }
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     @Override
     public CommandValidator<OfflinePlayer, ?> getValidator(Context context, Object[] arguments) {
-        return VALIDATOR;
+        return validator;
     }
 
     @Override
     public String execute(Context context, Object[] arguments, OfflinePlayer data) {
-        Optional<Party> partyOptional = PartyPlusPlus.getInstance()
-                .getPartyForPlayer((OfflinePlayer) context.getSender());
+        Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer((OfflinePlayer) context.getSender());
         if (partyOptional.isPresent()) {
             Party party = partyOptional.get();
             if (data == null) {
