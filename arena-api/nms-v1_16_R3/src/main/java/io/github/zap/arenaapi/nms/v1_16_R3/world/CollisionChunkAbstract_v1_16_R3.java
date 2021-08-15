@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
-import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import net.minecraft.server.v1_16_R3.Chunk;
 import org.bukkit.util.BoundingBox;
@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
-    private class SnapshotIterator implements Iterator<BlockSnapshot> {
+    private class SnapshotIterator implements Iterator<BlockCollisionView> {
         private final int startX;
         private final int startY;
 
@@ -59,7 +59,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
         }
 
         @Override
-        public BlockSnapshot next() {
+        public BlockCollisionView next() {
             if(++x == endX) {
                 if(++y == endY) {
                     z++;
@@ -94,7 +94,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
     }
 
     @Override
-    public @Nullable BlockSnapshot collisionView(int chunkX, int chunkY, int chunkZ) {
+    public @Nullable BlockCollisionView collisionView(int chunkX, int chunkY, int chunkZ) {
         assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
         return makeSnapshot(chunkX, chunkY, chunkZ);
     }
@@ -106,7 +106,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
             SnapshotIterator iterator = new SnapshotIterator(overlap);
 
             while(iterator.hasNext()) {
-                BlockSnapshot snapshot = iterator.next();
+                BlockCollisionView snapshot = iterator.next();
 
                 if(snapshot.overlaps(overlap)) {
                     return true;
@@ -118,15 +118,15 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
     }
 
     @Override
-    public @NotNull List<BlockSnapshot> collisionsWith(@NotNull BoundingBox worldBounds) {
-        List<BlockSnapshot> shapes = new ArrayList<>();
+    public @NotNull List<BlockCollisionView> collisionsWith(@NotNull BoundingBox worldBounds) {
+        List<BlockCollisionView> shapes = new ArrayList<>();
 
         if(worldBounds.overlaps(chunkBounds)) {
             BoundingBox overlap = worldBounds.clone().intersection(chunkBounds);
             SnapshotIterator iterator = new SnapshotIterator(overlap);
 
             while(iterator.hasNext()) {
-                BlockSnapshot snapshot = iterator.next();
+                BlockCollisionView snapshot = iterator.next();
 
                 if(snapshot.overlaps(overlap)) {
                     shapes.add(snapshot);
@@ -143,5 +143,5 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
         }
     }
 
-    protected abstract BlockSnapshot makeSnapshot(int chunkX, int chunkY, int chunkZ);
+    protected abstract BlockCollisionView makeSnapshot(int chunkX, int chunkY, int chunkZ);
 }

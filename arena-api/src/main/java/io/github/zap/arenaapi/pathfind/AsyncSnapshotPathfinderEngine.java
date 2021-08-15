@@ -23,44 +23,8 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
 
     @Override
-    protected @Nullable PathResult processOperation(@NotNull SynchronizedPathfinderContext context, @NotNull PathOperation operation) {
-        try {
-            trySyncChunks(context, operation.searchArea(), isUrgent(operation.searchArea(), context.blockProvider()));
-            operation.init(context);
-
-            while(operation.state() == PathOperation.State.STARTED) {
-                for(int i = 0; i < operation.iterations(); i++) {
-                    if(operation.step(context)) {
-                        PathResult result = operation.result();
-                        context.recordPath(result);
-                        return result;
-                    }
-                }
-
-                if(Thread.interrupted()) {
-                    ArenaApi.warning("processOperation interrupted for PathOperation. Returning null PathResult.");
-                    return null;
-                }
-
-                if(operation.allowMerges()) {
-                    PathResult result = context.merger().attemptMerge(operation, context.successfulPaths());
-
-                    if(result != null) {
-                        return result;
-                    }
-                }
-            }
-
-            return operation.result();
-        }
-        catch (Exception exception) {
-            ArenaApi.warning("Exception thrown in PathOperation handler:");
-            exception.printStackTrace();
-
-            ArenaApi.warning("Cause: " + exception.getCause());
-        }
-
-        return null;
+    protected void preProcess(@NotNull SynchronizedPathfinderContext context, @NotNull PathOperation operation) {
+        trySyncChunks(context, operation.searchArea(), isUrgent(operation.searchArea(), context.blockProvider()));
     }
 
     @Override

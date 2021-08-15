@@ -5,15 +5,15 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
-public interface BlockSnapshot extends Vector3I {
+public interface BlockCollisionView extends Vector3I {
     @NotNull BlockData data();
 
     @NotNull VoxelShapeWrapper collision();
 
     boolean overlaps(@NotNull BoundingBox worldBounds);
 
-    static BlockSnapshot from(int x, int y, int z, @NotNull BlockData data,
-                              @NotNull VoxelShapeWrapper shape) {
-        return new BlockSnapshotImpl(x, y, z, data, shape);
+    static BlockCollisionView from(int x, int y, int z, @NotNull BlockData data,
+                                   @NotNull VoxelShapeWrapper shape) {
+        return new BlockCollisionViewImpl(x, y, z, data, shape);
     }
 }

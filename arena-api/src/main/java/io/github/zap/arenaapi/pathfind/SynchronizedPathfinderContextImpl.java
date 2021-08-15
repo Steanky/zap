@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
 class SynchronizedPathfinderContextImpl extends PathfinderContextAbstract implements SynchronizedPathfinderContext {
@@ -14,6 +15,30 @@ class SynchronizedPathfinderContextImpl extends PathfinderContextAbstract implem
         super(blockCollisionProvider, merger, pathCapacity);
         this.semaphore = new Semaphore(initialPermits);
         lastSyncTick = Bukkit.getCurrentTick();
+    }
+
+
+    private void handleAddition(PathResult result, Queue<PathResult> target) {
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (target) {
+            int oldCount = target.size();
+            int newCount = oldCount + 1;
+
+            target.add(result);
+
+            if(newCount == pathCapacity) {
+                target.poll();
+            }
+        }
+    }
+
+    @Override
+    public void recordPath(@NotNull PathResult path) {
+        PathOperation.State state = path.state();
+
+        if (state == PathOperation.State.SUCCEEDED) {
+            handleAddition(path, successfulPaths);
+        }
     }
 
     @Override

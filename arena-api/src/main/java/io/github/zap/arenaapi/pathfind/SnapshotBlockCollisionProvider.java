@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-class SnapshotBlockCollisionProvider implements BlockCollisionProvider {
+class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
     private static final Map<ChunkIdentifier, CollisionChunkView> globalChunks = new ConcurrentHashMap<>();
 
     private final World world;
@@ -23,19 +23,10 @@ class SnapshotBlockCollisionProvider implements BlockCollisionProvider {
     private final int maxCaptureAge;
 
     SnapshotBlockCollisionProvider(@NotNull World world, int maxCaptureAge) {
+        super(world, true);
         this.world = world;
         worldUUID = world.getUID();
         this.maxCaptureAge = maxCaptureAge;
-    }
-
-    @Override
-    public @NotNull World world() {
-        return world;
-    }
-
-    @Override
-    public boolean supportsAsync() {
-        return true;
     }
 
     @Override
@@ -44,7 +35,7 @@ class SnapshotBlockCollisionProvider implements BlockCollisionProvider {
             ChunkIdentifier targetChunk = new ChunkIdentifier(worldUUID, coordinate);
 
             if(world.isChunkLoaded(coordinate.x(), coordinate.z())) {
-                CollisionChunkView oldSnapshot = chunkAtInternal(targetChunk);
+                CollisionChunkView oldSnapshot = globalChunks.get(targetChunk);
 
                 if(oldSnapshot == null || (Bukkit.getCurrentTick() - oldSnapshot.captureTick()) > maxCaptureAge) {
                     globalChunks.put(targetChunk, ArenaApi.getInstance().getNmsBridge().worldBridge()
@@ -76,103 +67,6 @@ class SnapshotBlockCollisionProvider implements BlockCollisionProvider {
 
     @Override
     public CollisionChunkView chunkAt(int x, int z) {
-        return chunkAtInternal(new ChunkIdentifier(worldUUID, Vectors.of(x, z)));
-    }
-
-    private CollisionChunkView chunkAtInternal(ChunkIdentifier identifier) {
-        return globalChunks.get(identifier);
-    }
-
-    @Override
-    public @Nullable BlockSnapshot getBlock(int worldX, int worldY, int worldZ) {
-        if(worldY < 0) {
-            return null;
-        }
-
-        CollisionChunkView snapshot = chunkAt(worldX >> 4, worldZ >> 4);
-
-        if(snapshot != null) {
-            return snapshot.collisionView(worldX & 15, worldY, worldZ & 15);
-        }
-
-        return null;
-    }
-
-    @Override
-    public boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds) {
-        ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
-
-        while(iterator.hasNext()) {
-            CollisionChunkView chunk = iterator.next();
-
-            if(chunk != null && chunk.collidesWithAny(worldRelativeBounds)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public @NotNull List<BlockSnapshot> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
-        List<BlockSnapshot> shapes = new ArrayList<>();
-        ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
-
-        while(iterator.hasNext()) {
-            CollisionChunkView chunk = iterator.next();
-
-            if(chunk != null) {
-                shapes.addAll(chunk.collisionsWith(worldRelativeBounds));
-            }
-        }
-
-        return shapes;
-    }
-
-    private class ChunkBoundsIterator implements Iterator<CollisionChunkView> {
-        private final int minChunkX;
-        private final int maxChunkX;
-        private final int maxChunkZ;
-
-        int x;
-        int z;
-
-        private ChunkBoundsIterator(@NotNull BoundingBox worldRelativeBounds) {
-            Vector min = worldRelativeBounds.getMin();
-            Vector max = worldRelativeBounds.getMax();
-
-            minChunkX = min.getBlockX() >> 4;
-            maxChunkX = (max.getBlockX() >> 4) + 1;
-            maxChunkZ = (max.getBlockZ() >> 4) + 1;
-
-            x = minChunkX - 1;
-            z = min.getBlockZ() >> 4;
-        }
-
-        @Override
-        public boolean hasNext() {
-            int nextX = x + 1;
-            int nextZ = z;
-
-            if(nextX == maxChunkX) {
-                nextZ++;
-            }
-
-            return nextZ < maxChunkZ;
-        }
-
-        @Override
-        public CollisionChunkView next() {
-            if(++x == maxChunkX) {
-                x = minChunkX;
-                z++;
-            }
-
-            if(z >= maxChunkZ || x >= maxChunkX) {
-                throw new IllegalStateException();
-            }
-
-            return chunkAt(x, z);
-        }
+        return globalChunks.get(new ChunkIdentifier(worldUUID, Vectors.of(x, z)));
     }
 }

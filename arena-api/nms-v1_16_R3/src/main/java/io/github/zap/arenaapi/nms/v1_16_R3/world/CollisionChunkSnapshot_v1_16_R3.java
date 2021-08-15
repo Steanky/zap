@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
-import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.vector.graph.ArrayChunkGraph;
 import io.github.zap.vector.graph.ChunkGraph;
 import net.minecraft.server.v1_16_R3.*;
@@ -27,7 +27,7 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     private final int chunkX;
     private final int chunkZ;
     private final DataPaletteBlock<IBlockData>[] palette;
-    private final ChunkGraph<BlockSnapshot> nonSolidOrPartial = new ArrayChunkGraph<>(0, 0, 1, 1);
+    private final ChunkGraph<BlockCollisionView> nonSolidOrPartial = new ArrayChunkGraph<>(0, 0, 1, 1);
     private final int captureTick;
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
@@ -40,13 +40,13 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     }
 
     @Override
-    protected BlockSnapshot makeSnapshot(int chunkX, int chunkY, int chunkZ) {
-        BlockSnapshot snapshot = nonSolidOrPartial.elementAt(chunkX, chunkY, chunkZ);
+    protected BlockCollisionView makeSnapshot(int chunkX, int chunkY, int chunkZ) {
+        BlockCollisionView snapshot = nonSolidOrPartial.elementAt(chunkX, chunkY, chunkZ);
 
         if(snapshot == null) {
             IBlockData data = palette[chunkY >> 4].a(chunkX, chunkY & 15, chunkZ);
 
-            snapshot = BlockSnapshot.from((chunkX << 4) + chunkX, chunkY, (chunkZ << 4) + chunkZ,
+            snapshot = BlockCollisionView.from((chunkX << 4) + chunkX, chunkY, (chunkZ << 4) + chunkZ,
                     data.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shapeFromData(data)));
         }
 
@@ -101,7 +101,7 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
 
                             VoxelShape shape = blockData.getCollisionShape(chunk, examine);
                             if(!blockData.getMaterial().isSolid() || (shape != VoxelShapes.empty() && shape != VoxelShapes.fullCube())) {
-                                nonSolidOrPartial.putElement(x, y, z, BlockSnapshot.from((chunkX << 4) + x, y,
+                                nonSolidOrPartial.putElement(x, y, z, BlockCollisionView.from((chunkX << 4) + x, y,
                                         (chunkZ << 4) + z, blockData.createCraftBlockData(), new VoxelShapeWrapper_v1_16_R3(shape)));
                             }
                         }

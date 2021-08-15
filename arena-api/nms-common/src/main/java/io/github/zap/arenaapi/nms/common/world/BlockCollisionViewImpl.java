@@ -4,7 +4,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
-record BlockSnapshotImpl(int x, int y, int z, BlockData data, VoxelShapeWrapper collision) implements BlockSnapshot {
+record BlockCollisionViewImpl(int x, int y, int z, BlockData data, VoxelShapeWrapper collision) implements BlockCollisionView {
     @Override
     public boolean overlaps(@NotNull BoundingBox worldBounds) {
         return collision.collidesWith(worldBounds.getMinX() - x, worldBounds.getMinY() - y,
