@@ -44,6 +44,8 @@ public interface PathfinderEngine {
      * @return An asynchronous PathfinderEngine implementation
      */
     static PathfinderEngine async() {
-        return AsyncSnapshotPathfinderEngine.instance();
+        return AsyncSnapshotPathfinderEngine.getInstance();
     }
+
+    static PathfinderEngine proxyAsync() { return AsyncProxyPathfinderEngine.getInstance(); }
 }

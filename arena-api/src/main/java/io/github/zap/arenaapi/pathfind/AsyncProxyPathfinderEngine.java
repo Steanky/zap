@@ -6,10 +6,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.ConcurrentHashMap;
 
 class AsyncProxyPathfinderEngine extends AsyncPathfinderEngineAbstract<PathfinderContext> {
+    private static final AsyncProxyPathfinderEngine INSTANCE = new AsyncProxyPathfinderEngine();
     private static final int PATH_CAPACITY = 32;
 
-    AsyncProxyPathfinderEngine() {
+    private AsyncProxyPathfinderEngine() {
         super(new ConcurrentHashMap<>());
+    }
+
+    public static AsyncProxyPathfinderEngine getInstance() {
+        return INSTANCE;
     }
 
     @NotNull

@@ -120,7 +120,7 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
         }
     }
 
-    public static AsyncSnapshotPathfinderEngine instance() {
+    public static AsyncSnapshotPathfinderEngine getInstance() {
         return INSTANCE;
     }
 
