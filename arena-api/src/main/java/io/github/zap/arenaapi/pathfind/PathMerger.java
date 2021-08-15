@@ -6,5 +6,5 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public interface PathMerger {
-    @Nullable PathResult attemptMerge(@NotNull PathOperation operation, @NotNull Collection<PathResult> results);
+    @Nullable PathResult attemptMerge(@NotNull PathOperation operation, @NotNull PathfinderContext context);
 }

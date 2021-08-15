@@ -8,11 +8,11 @@ import java.util.Collection;
 
 class PathMergerImpl implements PathMerger {
     @Override
-    public @Nullable PathResult attemptMerge(@NotNull PathOperation operation, @NotNull Collection<PathResult> results) {
+    public @Nullable PathResult attemptMerge(@NotNull PathOperation operation, @NotNull PathfinderContext context) {
         PathNode currentNode = operation.currentNode();
 
         if(currentNode != null) {
-            for(PathResult successful : results) {
+            for(PathResult successful : context.successfulPaths()) {
                 ChunkGraph<PathNode> resultVisited = successful.visitedNodes(); //get nodes visited by another path
 
                 int x = currentNode.x();

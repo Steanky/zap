@@ -3,7 +3,6 @@ package io.github.zap.arenaapi.pathfind;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Queue;
 
@@ -34,7 +33,7 @@ abstract class PathfinderContextAbstract implements PathfinderContext {
 
     @Override
     public @NotNull Collection<PathResult> failedPaths() {
-        return new ArrayList<>();
+        return failedPaths;
     }
 
     @Override

@@ -64,7 +64,7 @@ abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implem
             }
 
             if(operation.allowMerges()) {
-                PathResult result = context.merger().attemptMerge(operation, context.successfulPaths());
+                PathResult result = context.merger().attemptMerge(operation, context);
 
                 if(result != null) {
                     return result;
