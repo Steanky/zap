@@ -52,9 +52,9 @@ dependencies {
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
     bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0-Fixed")
-    bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.1-SNAPSHOT")
+    bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.2-SNAPSHOT")
 
-    classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.6.1-SNAPSHOT")
+    classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.6.2-SNAPSHOT")
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")

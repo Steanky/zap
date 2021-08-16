@@ -1,5 +1,6 @@
 package io.github.zap.zombies;
 
+import com.github.luben.zstd.ZstdCompressCtx;
 import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.internal.com.flowpowered.nbt.*;
@@ -242,6 +243,7 @@ public final class Zombies extends JavaPlugin implements Listener {
         clazz = IntArrayTag.class;
         clazz = LongArrayTag.class;
         clazz = ShortArrayTag.class;
+        clazz = ZstdCompressCtx.class;
     }
 
     @SafeVarargs
