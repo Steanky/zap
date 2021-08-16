@@ -424,8 +424,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 zombiesTask.notifyChange();
             }
 
-            enablePerks();
             setAliveState();
+            enablePerks();
         }
     }
 
@@ -588,7 +588,6 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                     false, false));
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, false, false, false));
             player.setInvulnerable(false);
-            player.setInvisible(false);
             player.setGameMode(GameMode.ADVENTURE);
             arena.getHiddenPlayers().remove(player);
         }
