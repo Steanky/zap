@@ -1,9 +1,13 @@
 package io.github.zap.arenaapi.hotbar;
 
+import io.github.zap.arenaapi.ArenaApi;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,11 +15,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A single object in a hotbar
  */
-@RequiredArgsConstructor
 @Getter
-public class HotbarObject {
+public class HotbarObject implements Listener {
 
-    private final Player player;
+    private Player player;
 
     private final int slot;
 
@@ -36,6 +39,19 @@ public class HotbarObject {
     public HotbarObject(@NotNull Player player, int slot, @Nullable ItemStack representingItemStack) {
         this(player, slot);
         this.representingItemStack = representingItemStack;
+    }
+
+    public HotbarObject(Player player, int slot) {
+        this.player = player;
+        this.slot = slot;
+        Bukkit.getPluginManager().registerEvents(this, ArenaApi.getInstance());
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (event.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+            player = event.getPlayer();
+        }
     }
 
     /**
