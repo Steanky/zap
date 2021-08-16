@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.pathfind;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
+import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -14,7 +15,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
-    private final Map<ChunkIdentifier, CollisionChunkView> chunkMap = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<Vector2I, CollisionChunkView> chunkMap = Collections.synchronizedMap(new WeakHashMap<>());
 
     private final WorldBridge worldBridge = ArenaApi.getInstance().getNmsBridge().worldBridge();
 
@@ -30,14 +31,14 @@ class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
 
     @Override
     public @Nullable CollisionChunkView chunkAt(int x, int z) {
-        ChunkIdentifier identifier = new ChunkIdentifier(world.getUID(), Vectors.of(x, z));
-        CollisionChunkView view = chunkMap.get(identifier);
+        Vector2I loc = Vectors.of(x, z);
+        CollisionChunkView view = chunkMap.get(loc);
 
         if(view == null) {
             Chunk chunk = worldBridge.getChunkIfLoadedImmediately(world, x, z);
             if(chunk != null) {
                 view = worldBridge.proxyView(chunk);
-                chunkMap.put(identifier, view);
+                chunkMap.put(loc, view);
             }
         }
 

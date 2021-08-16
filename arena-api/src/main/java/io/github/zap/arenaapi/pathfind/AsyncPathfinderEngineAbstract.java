@@ -12,13 +12,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implements PathfinderEngine, Listener {
-    protected static final ExecutorCompletionService<PathResult> completionService =
-            new ExecutorCompletionService<>(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
+    protected static final ExecutorService completionService =
+            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     protected final Map<UUID, T> contexts;
 
