@@ -87,7 +87,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
             GunLevel level = getCurrentLevel();
             int clipAmmo = level.getClipAmmo();
 
-            if (currentClipAmmo < clipAmmo && clipAmmo <= currentAmmo) {
+            if (currentClipAmmo < clipAmmo && currentAmmo > 0) {
                 canReload = false;
                 canShoot = false;
 
@@ -150,6 +150,14 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
         Player player = getPlayer();
 
+        if (currentClipAmmo == 0) {
+            if (currentAmmo > 0) {
+                reload();
+            } else {
+                player.sendMessage(Component.text("You don't have any ammo!", NamedTextColor.RED));
+            }
+        }
+
         // Animate xp bar
         fireDelayTask = getArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
@@ -172,16 +180,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         player.setExp(1);
                     }
 
-                    canReload = true;
-                    if (currentAmmo > 0) {
+                    if (canReload && currentAmmo > 0) {
                         canShoot = true;
-                    }
-                    if (currentClipAmmo == 0) {
-                        if (currentAmmo > 0) {
-                            reload();
-                        } else {
-                            player.sendMessage(Component.text("You don't have any ammo!", NamedTextColor.RED));
-                        }
                     }
                     fireDelayTask = -1;
                     cancel();
@@ -296,7 +296,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         super.onRightClick(action);
 
         if (canShoot) {
-            canReload = canShoot = false;
+            canShoot = false;
             shoot(); // Shoot your first shot on the same tick
 
             if (getCurrentLevel().getShotsPerClick() > 1) { // Don't schedule if unnecessary
