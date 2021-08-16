@@ -11,14 +11,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implements PathfinderEngine, Listener {
-    protected static final ExecutorService completionService =
+    protected static final ExecutorService pathfindService =
             Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     protected final Map<UUID, T> contexts;
@@ -32,7 +31,7 @@ abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implem
     public @NotNull Future<PathResult> giveOperation(@NotNull PathOperation operation, @NotNull World world) {
         T context = contexts.computeIfAbsent(world.getUID(), (key) -> makeContext(getBlockCollisionProvider(world)));
 
-        return completionService.submit(() -> {
+        return pathfindService.submit(() -> {
             try {
                 return processOperation(context, operation);
             }

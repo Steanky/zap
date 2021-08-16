@@ -39,7 +39,7 @@ dependencies {
     implementation(project(":arena-api", "dependencyCompileOnlyApi"))
     implementation(project(":arena-api", "shadow"))
     implementation("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    implementation("com.grinderwolf:slimeworldmanager-api:2.6.1-SNAPSHOT")
+    implementation("com.grinderwolf:slimeworldmanager-api:2.6.2-SNAPSHOT")
 
     shadeProject(project(":zombies:nms-common")) {
         isTransitive = false
