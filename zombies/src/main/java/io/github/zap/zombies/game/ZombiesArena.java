@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
@@ -61,6 +62,9 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.block.Action;
@@ -389,6 +393,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             return before - mob.getHealth();
         }
     }
+
+    private static final String MOB_SPEEDUP_ATTRIBUTE_NAME = "mob_speedup";
 
     @Getter
     private final MapData map;
@@ -1177,7 +1183,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     }
 
     public void doRound(int targetRound) {
-        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         if(currentRound != null) {
             currentRound.cancelRound();
         }
@@ -1265,6 +1271,34 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                     for(ActiveMob activeMob : newlySpawned) {
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
+                        Entity entity = activeMob.getEntity().getBukkitEntity();
+                        if (entity instanceof Mob mob) {
+                            AttributeInstance attributeInstance = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                            if (attributeInstance == null) {
+                                mob.registerAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                                attributeInstance = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                            }
+                            if (attributeInstance != null) {
+                                AttributeInstance finalAttributeInstance = attributeInstance;
+                                AttributeModifier[] last = new AttributeModifier[] { null };
+                                double[] value = new double[] { 1.0 };
+                                BukkitTask speedupTask = runTaskTimer(0L, 20L, new DisposableBukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        if (!mob.isDead()) {
+                                            AttributeModifier finalLast = last[0];
+                                            if (finalLast != null) {
+                                                finalAttributeInstance.removeModifier(finalLast);
+                                            }
+                                            finalAttributeInstance.addModifier(last[0] = new AttributeModifier(MOB_SPEEDUP_ATTRIBUTE_NAME, (value[0] *= 1.00366875) - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+                                        }
+                                        else cancel();
+                                    }
+                                });
+
+                                context.speedupTasks().add(speedupTask);
+                            }
+                        }
                     }
 
                     BukkitTask removeMobTask = runTaskLater(6000, () -> {
