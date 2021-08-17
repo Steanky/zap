@@ -60,7 +60,8 @@ public class SpawnMobMechanic extends ZombiesArenaSkill implements Listener {
 
         if(spawnedMobs.size() < mobCap) {
             int limit = mobCap - spawnedMobs.size();
-            int spawnAmount = Math.min(limit, mobCountMin + RNG.nextInt(mobCountMax - mobCountMin));
+            int rngBound = mobCountMax - mobCountMin;
+            int spawnAmount = Math.min(limit, mobCountMin + ((rngBound <= 0) ? 0 : RNG.nextInt(rngBound)));
 
             if(useSpawnpoints) {
                 List<ActiveMob> spawned = arena.getSpawner().spawnMobs(ImmutableList.of(new SpawnEntryData(mobType, spawnAmount)),
