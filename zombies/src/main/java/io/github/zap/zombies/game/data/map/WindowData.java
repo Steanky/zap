@@ -190,6 +190,6 @@ public class WindowData {
     }
 
     public boolean playerInside(Vector location) {
-        return getInteriorBounds().contains(location) || faceBounds.clone().expand(0.3).contains(location);
+        return getInteriorBounds().contains(location) || faceBounds.clone().expand(0.3).expandDirectional(0, -1, 0).contains(location);
     }
 }
