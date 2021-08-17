@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class BasicKillManager implements KillManager {
+public class BasicKills implements Kills {
 
     private final StatsManager statsManager;
 
@@ -19,7 +19,7 @@ public class BasicKillManager implements KillManager {
 
     private int kills = 0;
 
-    public BasicKillManager(@NotNull StatsManager statsManager, @NotNull MapData map, @NotNull UUID playerUUID) {
+    public BasicKills(@NotNull StatsManager statsManager, @NotNull MapData map, @NotNull UUID playerUUID) {
         this.statsManager = statsManager;
         this.map = map;
         this.playerUUID = playerUUID;

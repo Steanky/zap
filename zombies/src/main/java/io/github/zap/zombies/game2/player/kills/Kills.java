@@ -1,6 +1,6 @@
 package io.github.zap.zombies.game2.player.kills;
 
-public interface KillManager {
+public interface Kills {
 
     void addKills(int kills);
 

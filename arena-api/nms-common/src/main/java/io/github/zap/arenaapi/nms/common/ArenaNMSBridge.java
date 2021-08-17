@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.nms.common;
 
 import io.github.zap.arenaapi.nms.common.entity.EntityBridge;
 import io.github.zap.arenaapi.nms.common.itemstack.ItemStackBridge;
+import io.github.zap.arenaapi.nms.common.packet.PacketBridge;
 import io.github.zap.arenaapi.nms.common.player.PlayerBridge;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
 import org.bukkit.Bukkit;
@@ -41,6 +42,8 @@ public interface ArenaNMSBridge {
      */
     @NotNull ItemStackBridge itemStackBridge();
 
+
+    @NotNull PacketBridge packetBridge();
     /**
      * Returns a bridge used to proxy methods relating to players.
      * @return A PlayerBridge instance

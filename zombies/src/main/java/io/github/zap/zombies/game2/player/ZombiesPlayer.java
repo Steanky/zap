@@ -4,8 +4,9 @@ import io.github.zap.arenaapi.hotbar2.HotbarManager;
 import io.github.zap.arenaapi.hotbar2.PlayerView;
 import io.github.zap.zombies.game.DamageAttempt;
 import io.github.zap.zombies.game.Damager;
-import io.github.zap.zombies.game2.player.coin.CoinManager;
-import io.github.zap.zombies.game2.player.kills.KillManager;
+import io.github.zap.zombies.game2.player.armor.ArmorHolder;
+import io.github.zap.zombies.game2.player.coin.Coins;
+import io.github.zap.zombies.game2.player.kills.Kills;
 import io.github.zap.zombies.game2.player.state.PlayerStateManager;
 import io.github.zap.zombies.game2.player.task.PlayerTask;
 import org.bukkit.entity.Mob;
@@ -19,24 +20,27 @@ public class ZombiesPlayer implements Damager {
 
     private final PlayerStateManager playerStateManager;
 
+    private final ArmorHolder armorHolder;
+
     private final HotbarManager hotbarManager;
 
-    private final KillManager killManager;
+    private final Kills kills;
 
-    private final CoinManager coinManager;
+    private final Coins coins;
 
     private final List<PlayerTask> tasks;
 
     private boolean inGame = true;
 
     public ZombiesPlayer(@NotNull PlayerView playerView, @NotNull PlayerStateManager playerStateManager,
-                         @NotNull HotbarManager hotbarManager, @NotNull KillManager killManager,
-                         @NotNull CoinManager coinManager, @NotNull List<PlayerTask> tasks) {
+                         @NotNull ArmorHolder armorHolder, @NotNull HotbarManager hotbarManager, @NotNull Kills kills,
+                         @NotNull Coins coins, @NotNull List<PlayerTask> tasks) {
         this.playerView = playerView;
         this.playerStateManager = playerStateManager;
+        this.armorHolder = armorHolder;
         this.hotbarManager = hotbarManager;
-        this.killManager = killManager;
-        this.coinManager = coinManager;
+        this.kills = kills;
+        this.coins = coins;
         this.tasks = tasks;
     }
 
@@ -48,12 +52,16 @@ public class ZombiesPlayer implements Damager {
         return playerStateManager;
     }
 
+    public @NotNull ArmorHolder getArmorHolder() {
+        return armorHolder;
+    }
+
     public @NotNull HotbarManager getHotbarManager() {
         return hotbarManager;
     }
 
-    public @NotNull CoinManager getCoinManager() {
-        return coinManager;
+    public @NotNull Coins getCoinManager() {
+        return coins;
     }
 
     public boolean isInGame() {

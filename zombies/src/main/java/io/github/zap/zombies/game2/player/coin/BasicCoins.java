@@ -3,11 +3,11 @@ package io.github.zap.zombies.game2.player.coin;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-public class BasicCoinManager implements CoinManager {
+public class BasicCoins implements Coins {
 
     private int coins;
 
-    public BasicCoinManager(int startingCoins) {
+    public BasicCoins(int startingCoins) {
         this.coins = startingCoins;
     }
 
