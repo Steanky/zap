@@ -142,6 +142,7 @@ public class Corpse {
                 zombiesPlayer.getArena().getAvailableCorpses().add(this);
                 startDying();
             } else {
+                zombiesPlayer.getArena().getAvailableCorpses().remove(this);
                 if (deathTaskId != -1) {
                     Bukkit.getScheduler().cancelTask(deathTaskId);
                 }
