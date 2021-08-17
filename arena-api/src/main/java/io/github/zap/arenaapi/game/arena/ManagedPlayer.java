@@ -21,14 +21,12 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
     protected final V arena;
 
     private final UUID playerUuid;
-    private Player player;
 
     @Getter
     private boolean inGame = true;
 
     public ManagedPlayer(@NotNull V arena, @NotNull Player player) {
         this.arena = arena;
-        this.player = player;
         this.playerUuid = player.getUniqueId();
     }
 
@@ -36,19 +34,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
      * Gets the player held by this ManagedPlayer. Returns null if the player is offline, or not currently in this game.
      */
     public @Nullable Player getPlayer() {
-        if(player != null) { //check if we have the player stored
-            if(player.isOnline()) { //they're online, return the store
-                return player;
-            }
-            else {
-                player = null; //player is offline
-                return null;
-            }
-        }
-        else {
-            player = Bukkit.getPlayer(playerUuid);
-            return player;
-        }
+        return Bukkit.getPlayer(playerUuid);
     }
 
     public @NotNull OfflinePlayer getOfflinePlayer() {
@@ -72,7 +58,7 @@ public abstract class ManagedPlayer<T extends ManagedPlayer<T, V>, V extends Man
 
     @Override
     public UUID getId() {
-        return player.getUniqueId();
+        return playerUuid;
     }
 
     /**

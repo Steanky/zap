@@ -432,7 +432,11 @@ public class Party {
      * @return Whether the player is the party owner
      */
     public boolean isOwner(@NotNull OfflinePlayer player) {
-        return this.owner.getOfflinePlayer().equals(player);
+        if (this.owner != null) {
+            return this.owner.getOfflinePlayer().getUniqueId().equals(player.getUniqueId());
+        }
+
+        return false;
     }
 
     /**
