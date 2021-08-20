@@ -28,13 +28,10 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
     private PathAgent agent;
 
     private double width;
-    private double halfWidth;
 
     private Vector3D halfWidthVector;
-    private Vector3D blockOffsetVector;
 
     private double negativeWidth;
-    private double blockOffset;
 
     @Override
     public void init(@NotNull PathfinderContext context, @NotNull PathAgent agent) {
@@ -44,11 +41,11 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         width = agent.characteristics().width();
         negativeWidth = -width;
 
-        halfWidth = width / 2D;
+        double halfWidth = width / 2D;
         halfWidthVector = Vectors.of(halfWidth, 0, halfWidth);
 
-        blockOffset = 0.5D - (halfWidth);
-        blockOffsetVector = Vectors.of(blockOffset, 0, blockOffset);
+        double blockOffset = 0.5D - (halfWidth);
+        Vector3D blockOffsetVector = Vectors.of(blockOffset, 0, blockOffset);
     }
 
     @Override
@@ -109,7 +106,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                 BlockCollisionView block = context.blockProvider().getBlock(node);
 
                 if(block != null && DoubleMath.fuzzyCompare(block.collision().maxY(), 0.5, Vectors.EPSILON) > 0) {
-                    node.up = true;
+                    node.isPartialBlock = true;
                 }
 
                 buffer[j++] = node;

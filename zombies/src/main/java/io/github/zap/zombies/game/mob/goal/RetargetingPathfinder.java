@@ -34,11 +34,17 @@ public abstract class RetargetingPathfinder extends BasicMetadataPathfinder {
 
     @Override
     public boolean canStart() {
+        LivingEntity target = self.getTarget();
+
+        if (target != null) {
+            return target.getWorld().getUID().equals(self.getWorld().getUID());
+        }
+
         return true;
     }
 
     @Override
     public boolean shouldEnd() {
-        return false;
+        return !canStart();
     }
 }

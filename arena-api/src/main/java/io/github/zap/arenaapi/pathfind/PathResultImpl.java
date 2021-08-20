@@ -72,7 +72,7 @@ class PathResultImpl implements PathResult {
 
         PathPointWrapper previous = null;
         for(PathNode node : pathNodes) {
-            PathPointWrapper point = bridge.makePathPoint(node.up ? Vectors.add(node, Direction.UP) : node);
+            PathPointWrapper point = bridge.makePathPoint(node.isPartialBlock ? Vectors.add(node, Direction.UP) : node);
             point.setParent(previous);
 
             wrapper.add(point);

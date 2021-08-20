@@ -30,7 +30,7 @@ public class Event<T> implements Disposable {
      * Creates a new event with the specified exception handling policy.
      * @param rethrowExceptions The exception handling policy, which if true will rethrow exceptions outside of the
      *                          calling loop (that is, one handler cannot prevent the execution of other handlers if
-     *                          it throws an exception). If multiple handlers throw exceptions,
+     *                          it throws an exception).
      */
     public Event(boolean rethrowExceptions) {
         this.rethrowExceptions = rethrowExceptions;

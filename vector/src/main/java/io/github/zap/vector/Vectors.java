@@ -132,6 +132,10 @@ public class Vectors {
                 NumberConversions.floor(other.z()));
     }
 
+    public static @NotNull Vector3I asIntFloor(double x, double y, double z) {
+        return new Vector3IImpl(NumberConversions.floor(x), NumberConversions.floor(y), NumberConversions.floor(z));
+    }
+
     public static @NotNull Vector3I asChunkRelative(@NotNull Vector3I worldRelative) {
         return new Vector3IImpl(worldRelative.x() & 15, worldRelative.y(), worldRelative.z() & 15);
     }
