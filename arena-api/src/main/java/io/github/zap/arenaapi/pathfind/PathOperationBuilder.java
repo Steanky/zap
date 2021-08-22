@@ -1,12 +1,9 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.Vector;
-import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,16 +73,13 @@ public class PathOperationBuilder {
 
         heuristicCalculator = heuristicCalculator == null ? HeuristicCalculator.DISTANCE_ONLY : heuristicCalculator;
         aversionCalculator = aversionCalculator == null ? AversionCalculator.DEFAULT_WALK : aversionCalculator;
-        successCondition = successCondition == null ? SuccessCondition.WITHIN_BLOCK : successCondition;
+        successCondition = successCondition == null ? SuccessCondition.SAME_BLOCK : successCondition;
         chunkCoordinateProvider = chunkCoordinateProvider == null ?
                 ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(agent), DEFAULT_PATHFIND_RADIUS) : chunkCoordinateProvider;
-        nodeExplorer = nodeExplorer == null ? defaultExplorer() : nodeExplorer;
+        nodeExplorer = nodeExplorer == null ? new DefaultWalkNodeExplorer(agent, nodeStepper == null ?
+                new WalkNodeStepper(agent.characteristics()) : nodeStepper) : nodeExplorer;
 
         return new PathOperationImpl(agent, destination, heuristicCalculator, aversionCalculator, successCondition,
                 nodeExplorer, chunkCoordinateProvider);
-    }
-
-    private NodeExplorer defaultExplorer() {
-        return new DefaultWalkNodeExplorer(agent, nodeStepper == null ? new WalkNodeStepper(agent.characteristics()) : nodeStepper);
     }
 }

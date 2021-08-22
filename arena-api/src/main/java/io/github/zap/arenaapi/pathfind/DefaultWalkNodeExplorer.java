@@ -1,21 +1,14 @@
 package io.github.zap.arenaapi.pathfind;
 
 import com.google.common.math.DoubleMath;
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
-import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
-import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 class DefaultWalkNodeExplorer implements NodeExplorer {
-    private static final Vector3D BLOCK_OFFSET = Vectors.of(0.5, 0, 0.5);
     private final PathAgent agent;
     private final NodeStepper stepper;
 
@@ -41,7 +34,7 @@ class DefaultWalkNodeExplorer implements NodeExplorer {
             position = agent;
         }
         else { //otherwise make the assumption it's trying to pathfind from the exact center of the block
-            position = Vectors.add(Vectors.of(current), BLOCK_OFFSET);
+            position = Vectors.of(current.x() + 0.5, blockAtCurrent.exactY(), current.z() + 0.5);
         }
 
         int j = 0;

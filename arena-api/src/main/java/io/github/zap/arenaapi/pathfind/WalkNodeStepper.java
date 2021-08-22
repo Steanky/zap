@@ -76,10 +76,10 @@ class WalkNodeStepper implements NodeStepper {
                 BlockCollisionView highest = selectHighest(collisions);
 
                 if(isJump) {
-                    stepDelta = highest.maxY() - bounds.getMinY();
+                    stepDelta = highest.exactY() - bounds.getMinY();
                 }
                 else { //termination condition for falling
-                    return Vectors.of(bounds.getCenterX(), highest.maxY(), bounds.getCenterZ());
+                    return Vectors.of(bounds.getCenterX(), highest.exactY(), bounds.getCenterZ());
                 }
             }
 
@@ -106,7 +106,7 @@ class WalkNodeStepper implements NodeStepper {
         BlockCollisionView highestBlock = null;
 
         for(BlockCollisionView collisionView : collisions) {
-            double maxY = collisionView.maxY();
+            double maxY = collisionView.exactY();
             if(maxY > largestY) {
                 largestY = maxY;
                 highestBlock = collisionView;

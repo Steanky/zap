@@ -12,7 +12,7 @@ public interface BlockCollisionView extends Vector3I {
 
     boolean overlaps(@NotNull BoundingBox worldBounds);
 
-    double maxY();
+    double exactY();
 
     static BlockCollisionView from(int x, int y, int z, @NotNull BlockData data,
                                    @NotNull VoxelShapeWrapper shape) {
