@@ -97,7 +97,7 @@ tasks.shadowJar {
 }
 
 tasks.build {
-    dependsOn(tasks.shadowJar)
+    dependsOn(tasks.shadowJar.get())
 }
 
 description = "arena-api"
