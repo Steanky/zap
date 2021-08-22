@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 
 class WalkNodeStepper implements NodeStepper {
+    private static final Vector3D BLOCK_OFFSET = Vectors.of(0.5, 0, 0.5);
     private final AgentCharacteristics characteristics;
 
     private final double halfWidth;
@@ -28,8 +29,9 @@ class WalkNodeStepper implements NodeStepper {
     @Override
     public @Nullable Vector3I stepDirectional(@NotNull BlockCollisionProvider collisionProvider,
                                               @NotNull Vector3D agentPosition, @NotNull Direction direction) {
+        Vector3D translation = computeTranslation(agentPosition, direction);
         BoundingBox agentBounds = getAgentBounds(agentPosition);
-        BoundingBox agentBoundsShifted = agentBounds.clone().shift(direction.x(), direction.y(), direction.z());
+        BoundingBox agentBoundsShifted = agentBounds.clone().shift(translation.x(), translation.y(), translation.z());
 
         if(collisionProvider.collidesMovingAlong(agentBounds, direction, 1)) {
             Vector3D result = seekDirectional(collisionProvider, agentBoundsShifted, true);
@@ -112,5 +114,12 @@ class WalkNodeStepper implements NodeStepper {
         }
 
         return highestBlock;
+    }
+
+    private Vector3D computeTranslation(Vector3D agentPosition, Direction direction) {
+        Vector3I agentBlockPosition = Vectors.asIntFloor(agentPosition);
+        Vector3I targetBlock = Vectors.add(agentBlockPosition, direction);
+        Vector3D targetBlockCenter = Vectors.add(targetBlock, BLOCK_OFFSET);
+        return Vectors.subtract(targetBlockCenter, agentPosition);
     }
 }

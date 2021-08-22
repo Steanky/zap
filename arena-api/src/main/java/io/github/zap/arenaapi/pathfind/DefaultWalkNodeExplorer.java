@@ -36,18 +36,18 @@ class DefaultWalkNodeExplorer implements NodeExplorer {
             return;
         }
 
-        Vector3D agentPosition;
+        Vector3D position;
         if(Vectors.equals(Vectors.asIntFloor(agent), current)) {
-            agentPosition = agent;
+            position = agent;
         }
         else { //otherwise make the assumption it's trying to pathfind from the exact center of the block
-            agentPosition = Vectors.add(Vectors.of(current), BLOCK_OFFSET);
+            position = Vectors.add(Vectors.of(current), BLOCK_OFFSET);
         }
 
         int j = 0;
         for(int i = 0; i < buffer.length; i++) { //try to go all 8 cardinal + intercardinal directions
             Direction direction = Direction.valueAtIndex(i);
-            Vector3I nodePosition = stepper.stepDirectional(context.blockProvider(), agentPosition, direction);
+            Vector3I nodePosition = stepper.stepDirectional(context.blockProvider(), position, direction);
 
             if(nodePosition != null) {
                 PathNode node = new PathNode(nodePosition);
