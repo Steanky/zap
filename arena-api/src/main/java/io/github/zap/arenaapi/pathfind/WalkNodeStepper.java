@@ -14,7 +14,6 @@ import java.util.List;
 
 class WalkNodeStepper implements NodeStepper {
     private static final Vector3D BLOCK_OFFSET = Vectors.of(0.5, 0, 0.5);
-    private static final Vector3D UP_TRANSLATE = Vectors.of(0.0, 1.0, 0.0);
 
     private final AgentCharacteristics characteristics;
 

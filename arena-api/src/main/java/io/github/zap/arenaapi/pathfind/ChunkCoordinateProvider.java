@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vector3I;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,6 +11,10 @@ public interface ChunkCoordinateProvider extends Iterable<Vector2I> {
     boolean hasChunk(int x, int z);
 
     boolean hasBlock(int x, int y, int z);
+
+    default boolean hasBlock(@NotNull Vector3I block) {
+        return hasBlock(block.x(), block.y(), block.z());
+    }
 
     int chunkCount();
 
