@@ -43,7 +43,7 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
 
     @Override
     public @NotNull List<BoundingBox> boundingBoxes() {
-        return shape.d().stream().map(bb -> new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ))
+        return bounds.stream().map(bb -> new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ))
                 .collect(Collectors.toList());
     }
 
@@ -60,7 +60,13 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
 
     @Override
     public boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return VoxelShapes.applyOperation(shape, VoxelShapes.create(minX, minY, minZ, maxX, maxY, maxZ), OperatorBoolean.AND);
+        for(AxisAlignedBB bound : bounds) {
+            if(bound.intersects(minX, minY, minZ, maxX, maxY, maxZ)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public @NotNull VoxelShape getShape() {
