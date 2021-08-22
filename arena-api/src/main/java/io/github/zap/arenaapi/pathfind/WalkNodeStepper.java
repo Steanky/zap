@@ -31,12 +31,16 @@ class WalkNodeStepper implements NodeStepper {
     @Override
     public @Nullable Vector3I stepDirectional(@NotNull BlockCollisionProvider collisionProvider,
                                               @NotNull Vector3D agentPosition, @NotNull Direction direction) {
-        Vector3D horizontalTranslation = computeTranslation(agentPosition, direction);
+        Vector3D horizontalTranslation = computeHorizontalTranslation(agentPosition, direction);
         BoundingBox agentBounds = getAgentBounds(agentPosition);
         BoundingBox agentBoundsShifted = agentBounds.clone().shift(horizontalTranslation.x(),
                 horizontalTranslation.y(), horizontalTranslation.z());
 
         if(collisionProvider.collidesMovingAlong(agentBounds, direction, horizontalTranslation)) {
+            if(direction.isIntercardinal()) { //mobs can't jump diagonally
+                return null;
+            }
+
             Vector3D result = seekDirectional(collisionProvider, agentBoundsShifted, true);
 
             if(result != null) {
@@ -120,10 +124,10 @@ class WalkNodeStepper implements NodeStepper {
         return highestBlock;
     }
 
-    private Vector3D computeTranslation(Vector3D agentPosition, Direction direction) {
+    private Vector3D computeHorizontalTranslation(Vector3D agentPosition, Direction direction) {
         Vector3I agentBlockPosition = Vectors.asIntFloor(agentPosition);
         Vector3I targetBlock = Vectors.add(agentBlockPosition, direction);
         Vector3D targetBlockCenter = Vectors.add(targetBlock, BLOCK_OFFSET);
-        return Vectors.subtract(targetBlockCenter, agentPosition);
+        return Vectors.of(targetBlockCenter.x() - agentPosition.x(), 0, targetBlockCenter.z() - agentPosition.z());
     }
 }
