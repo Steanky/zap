@@ -23,7 +23,11 @@ import java.util.logging.Logger;
 
 public class PartyAsyncChatTest {
 
+    private final static int BEST_TICK = 69;
+
     private final MiniMessage miniMessage = MiniMessage.get();
+
+    private static Server server;
 
     private Player owner, member, noob;
 
@@ -31,8 +35,9 @@ public class PartyAsyncChatTest {
 
     @BeforeAll
     public static void start() {
-        Server server = Mockito.mock(Server.class);
+        server = Mockito.mock(Server.class);
         Mockito.when(server.getLogger()).thenReturn(Logger.getLogger("Minecraft"));
+        Mockito.when(server.getCurrentTick()).thenReturn(BEST_TICK);
         Bukkit.setServer(server); // ._.
     }
 
@@ -43,18 +48,25 @@ public class PartyAsyncChatTest {
         Mockito.when(this.owner.isOnline()).thenReturn(true);
         Mockito.when(this.owner.getUniqueId()).thenReturn(UUID.fromString("ade229bf-d062-46e8-99d8-97b667d5a127"));
         Mockito.when(this.owner.displayName()).thenReturn(Component.text("VeryAverage"));
+        Mockito.when(this.owner.getServer()).thenReturn(server);
+
         this.member = Mockito.mock(Player.class);
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);
         Mockito.when(this.member.isOnline()).thenReturn(true);
         Mockito.when(this.member.getUniqueId()).thenReturn(UUID.fromString("a7db1c97-6064-46a1-91c6-77a4c974b692"));
         Mockito.when(this.member.displayName()).thenReturn(Component.text("BigDip123"));
+        Mockito.when(this.member.getServer()).thenReturn(server);
+
         this.noob = Mockito.mock(Player.class);
         Mockito.when(this.noob.getPlayer()).thenReturn(this.noob);
         Mockito.when(this.noob.isOnline()).thenReturn(true);
         Mockito.when(this.noob.getUniqueId()).thenReturn(UUID.fromString("31ee3877-dbd8-423a-95e4-9181b8acfe74"));
         Mockito.when(this.noob.displayName()).thenReturn(Component.text("SimpleCactus"));
+        Mockito.when(this.noob.getServer()).thenReturn(server);
+
         OngoingStubbing<Collection<? extends Player>> ongoingStubbing = Mockito.when(Bukkit.getServer().getOnlinePlayers());
         ongoingStubbing.thenReturn(List.of(this.owner, this.member, this.noob)); // why does java hate me? why can't I put it on one line?
+
         this.plugin = Mockito.mock(Plugin.class);
     }
 
