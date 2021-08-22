@@ -10,6 +10,7 @@ import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vectors;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,12 +100,14 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
         }
         else {
             double width = agentBounds.getWidthX();
-            int dirFac = direction.x() *  direction.z();
+            double halfWidth = width / 2;
+            int dirFac = direction.x() * direction.z();
             List<BlockCollisionView> shapes = collidingSolidsAt(expandedBounds);
 
             for(BlockCollisionView shape : shapes) {
                 VoxelShapeWrapper collision = shape.collision();
 
+                //translate to a coordinate space centered on our entity
                 double x = shape.x() - agentBounds.getCenterX();
                 double z = shape.z() - agentBounds.getCenterZ();
 
@@ -115,7 +118,13 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
                     maxX += x;
                     maxZ += z;
 
-                    return diagonalCollisionCheck(width, dirFac, minX, minZ, maxX, maxZ);
+                    //*may* need to change these to DoubleMath.fuzzyCompare
+                    if(minX < halfWidth && maxX > -halfWidth && minZ < halfWidth && maxZ > -halfWidth) {
+                        return false;
+                    }
+                    else {
+                        return diagonalCollisionCheck(width, dirFac, minX, minZ, maxX, maxZ);
+                    }
                 })) {
                     return true;
                 }
@@ -125,8 +134,7 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
         return false;
     }
 
-    private boolean diagonalCollisionCheck(double width, int dirFac, double minX, double minZ,
-                                           double maxX, double maxZ) {
+    private boolean diagonalCollisionCheck(double width, int dirFac, double minX, double minZ, double maxX, double maxZ) {
         double zMinusXMin = minZ - (minX * dirFac);
         if(!(DoubleMath.fuzzyCompare(zMinusXMin, width, Vectors.EPSILON) == -1)) {
             return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), width, Vectors.EPSILON) == -1;
