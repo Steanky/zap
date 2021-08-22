@@ -20,6 +20,7 @@ public class PathOperationBuilder {
     private NodeExplorer nodeExplorer;
     private ChunkCoordinateProvider chunkCoordinateProvider;
     private NodeStepper nodeStepper;
+    private int pathfindRadius = DEFAULT_PATHFIND_RADIUS;
 
     public PathOperationBuilder() {}
 
@@ -57,8 +58,13 @@ public class PathOperationBuilder {
         return this;
     }
 
-    public @NotNull PathOperationBuilder withChunks(@Nullable ChunkCoordinateProvider chunkCoordinateProvider) {
+    public @NotNull PathOperationBuilder withRange(@Nullable ChunkCoordinateProvider chunkCoordinateProvider) {
         this.chunkCoordinateProvider = chunkCoordinateProvider;
+        return this;
+    }
+
+    public @NotNull PathOperationBuilder withRange(int pathfindRadius) {
+        this.pathfindRadius = pathfindRadius;
         return this;
     }
 
@@ -75,9 +81,9 @@ public class PathOperationBuilder {
         aversionCalculator = aversionCalculator == null ? AversionCalculator.DEFAULT_WALK : aversionCalculator;
         successCondition = successCondition == null ? SuccessCondition.SAME_BLOCK : successCondition;
         chunkCoordinateProvider = chunkCoordinateProvider == null ?
-                ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(agent), DEFAULT_PATHFIND_RADIUS) : chunkCoordinateProvider;
+                ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(agent), pathfindRadius) : chunkCoordinateProvider;
         nodeExplorer = nodeExplorer == null ? new DefaultWalkNodeExplorer(agent, nodeStepper == null ?
-                new WalkNodeStepper(agent.characteristics()) : nodeStepper) : nodeExplorer;
+                new WalkNodeStepper(agent.characteristics()) : nodeStepper, chunkCoordinateProvider) : nodeExplorer;
 
         return new PathOperationImpl(agent, destination, heuristicCalculator, aversionCalculator, successCondition,
                 nodeExplorer, chunkCoordinateProvider);

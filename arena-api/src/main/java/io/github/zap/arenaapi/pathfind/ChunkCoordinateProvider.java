@@ -9,6 +9,8 @@ import java.util.Objects;
 public interface ChunkCoordinateProvider extends Iterable<Vector2I> {
     boolean hasChunk(int x, int z);
 
+    boolean hasBlock(int x, int y, int z);
+
     int chunkCount();
 
     int width();

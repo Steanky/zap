@@ -14,6 +14,11 @@ record BlockCollisionViewImpl(int x, int y, int z, BlockData data, VoxelShapeWra
 
     @Override
     public double exactY() {
-        return y + collision.maxY();
+        double collisionY = collision.maxY();
+        if(Double.isFinite(collisionY)) {
+            return y + collision.maxY();
+        }
+
+        return y;
     }
 }
