@@ -6,6 +6,7 @@ import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vectors;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -89,9 +90,9 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
     }
 
     @Override
-    public boolean collidesMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction, double directionMultiplier) {
-        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(
-                Vectors.asBukkit(Vectors.multiply(direction, directionMultiplier)));
+    public boolean collidesMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction,
+                                       @NotNull Vector3D translation) {
+        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translation));
 
         if(direction.isCardinal()) {
             return collidesAt(expandedBounds);

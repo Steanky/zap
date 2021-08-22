@@ -48,7 +48,7 @@ public interface BlockCollisionProvider {
 
     @NotNull List<BlockCollisionView> collidingSolidsAt(@NotNull BoundingBox bounds);
 
-    boolean collidesMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction, double directionMultiplier);
+    boolean collidesMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction, @NotNull Vector3D translation);
 
     default @Nullable BlockCollisionView getBlock(@NotNull Vector3I at) {
         return getBlock(at.x(), at.y(), at.z());

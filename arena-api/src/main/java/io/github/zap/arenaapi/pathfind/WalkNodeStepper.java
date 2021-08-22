@@ -14,6 +14,8 @@ import java.util.List;
 
 class WalkNodeStepper implements NodeStepper {
     private static final Vector3D BLOCK_OFFSET = Vectors.of(0.5, 0, 0.5);
+    private static final Vector3D UP_TRANSLATE = Vectors.of(0.0, 1.0, 0.0);
+
     private final AgentCharacteristics characteristics;
 
     private final double halfWidth;
@@ -29,18 +31,20 @@ class WalkNodeStepper implements NodeStepper {
     @Override
     public @Nullable Vector3I stepDirectional(@NotNull BlockCollisionProvider collisionProvider,
                                               @NotNull Vector3D agentPosition, @NotNull Direction direction) {
-        Vector3D translation = computeTranslation(agentPosition, direction);
+        Vector3D horizontalTranslation = computeTranslation(agentPosition, direction);
         BoundingBox agentBounds = getAgentBounds(agentPosition);
-        BoundingBox agentBoundsShifted = agentBounds.clone().shift(translation.x(), translation.y(), translation.z());
+        BoundingBox agentBoundsShifted = agentBounds.clone().shift(horizontalTranslation.x(),
+                horizontalTranslation.y(), horizontalTranslation.z());
 
-        if(collisionProvider.collidesMovingAlong(agentBounds, direction, 1)) {
+        if(collisionProvider.collidesMovingAlong(agentBounds, direction, horizontalTranslation)) {
             Vector3D result = seekDirectional(collisionProvider, agentBoundsShifted, true);
 
             if(result != null) {
                 double deltaY = result.y() - agentBounds.getMinY();
 
-                if(!collisionProvider.collidesMovingAlong(agentBounds, Direction.UP, deltaY) && !collisionProvider
-                        .collidesMovingAlong(agentBounds.clone().shift(0, deltaY, 0), direction, 1)) {
+                if(!collisionProvider.collidesMovingAlong(agentBounds, Direction.UP, Vectors.of(0, deltaY, 0)) &&
+                        !collisionProvider.collidesMovingAlong(agentBounds.clone().shift(0, deltaY, 0),
+                                direction, horizontalTranslation)) {
                     return Vectors.asIntFloor(result);
                 }
             }

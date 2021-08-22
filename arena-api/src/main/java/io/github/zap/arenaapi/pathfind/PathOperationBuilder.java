@@ -82,7 +82,7 @@ public class PathOperationBuilder {
         successCondition = successCondition == null ? SuccessCondition.SAME_BLOCK : successCondition;
         chunkCoordinateProvider = chunkCoordinateProvider == null ?
                 ChunkCoordinateProvider.squareFromCenter(Vectors.asChunk(agent), pathfindRadius) : chunkCoordinateProvider;
-        nodeExplorer = nodeExplorer == null ? new DefaultWalkNodeExplorer(agent, nodeStepper == null ?
+        nodeExplorer = nodeExplorer == null ? new WalkNodeExplorer(agent, nodeStepper == null ?
                 new WalkNodeStepper(agent.characteristics()) : nodeStepper, chunkCoordinateProvider) : nodeExplorer;
 
         return new PathOperationImpl(agent, destination, heuristicCalculator, aversionCalculator, successCondition,

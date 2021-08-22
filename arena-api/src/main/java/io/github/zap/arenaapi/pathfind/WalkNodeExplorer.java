@@ -9,13 +9,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("ClassCanBeRecord") //unintelliJ
-class DefaultWalkNodeExplorer implements NodeExplorer {
+class WalkNodeExplorer implements NodeExplorer {
     private final PathAgent agent;
     private final NodeStepper stepper;
     private final ChunkCoordinateProvider chunkBounds;
 
-    DefaultWalkNodeExplorer(@NotNull PathAgent agent, @NotNull NodeStepper stepper,
-                            @NotNull ChunkCoordinateProvider chunkBounds) {
+    WalkNodeExplorer(@NotNull PathAgent agent, @NotNull NodeStepper stepper,
+                     @NotNull ChunkCoordinateProvider chunkBounds) {
         this.agent = agent;
         this.stepper = stepper;
         this.chunkBounds = chunkBounds;
@@ -70,7 +70,7 @@ class DefaultWalkNodeExplorer implements NodeExplorer {
 
     @Override
     public boolean comparesWith(@NotNull NodeExplorer other) {
-        return other instanceof DefaultWalkNodeExplorer;
+        return other instanceof WalkNodeExplorer;
     }
 }
 

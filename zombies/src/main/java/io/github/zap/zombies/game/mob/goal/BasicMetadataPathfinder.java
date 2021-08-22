@@ -38,7 +38,7 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                 PathOperation operation = new PathOperationBuilder()
                         .withAgent(self)
                         .withDestination(Objects.requireNonNull(closestPlayer.getPlayer()), closestPlayer)
-                        .withChunks(arena.getMapBounds())
+                        .withRange(arena.getMapBounds())
                         .build();
 
                 if(operation != null) {

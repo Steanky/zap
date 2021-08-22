@@ -106,6 +106,7 @@ public class BreakWindow extends BasicMetadataPathfinder {
                 PathOperation operation = new PathOperationBuilder()
                         .withAgent(self)
                         .withDestination(Vectors.asIntFloor(Vectors.of(destination)))
+                        .withRange(2)
                         .build();
 
                 getHandler().queueOperation(operation, arena.getWorld());
