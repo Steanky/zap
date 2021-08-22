@@ -14,12 +14,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
+import org.mockito.stubbing.OngoingStubbing;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
 public class PartyTest {
+
+    private final static int BEST_TICK = 69;
 
     private final UUID veryAverageUUID = UUID.fromString("ade229bf-d062-46e8-99d8-97b667d5a127");
 
@@ -40,8 +43,10 @@ public class PartyTest {
     @BeforeEach
     public void setup() {
         this.plugin = Mockito.mock(Plugin.class);
-        this.server = Mockito.mock(Server.class);
         this.scheduler = Mockito.mock(BukkitScheduler.class);
+
+        this.server = Mockito.mock(Server.class);
+        Mockito.when(this.server.getCurrentTick()).thenReturn(BEST_TICK);
 
         Mockito.when(this.plugin.getServer()).thenReturn(this.server);
         Mockito.when(this.server.getScheduler()).thenReturn(this.scheduler);
@@ -49,10 +54,15 @@ public class PartyTest {
         this.owner = Mockito.mock(Player.class);
         Mockito.when(this.owner.getUniqueId()).thenReturn(veryAverageUUID);
         Mockito.when(this.owner.displayName()).thenReturn(Component.text("VeryAverage"));
+        Mockito.when(this.owner.getServer()).thenReturn(this.server);
 
         this.member = Mockito.mock(Player.class);
         Mockito.when(this.member.getUniqueId()).thenReturn(bigDipUUID);
         Mockito.when(this.member.displayName()).thenReturn(Component.text("BigDip123"));
+        Mockito.when(this.member.getServer()).thenReturn(this.server);
+
+        Mockito.when(this.server.getOfflinePlayer(this.owner.getUniqueId())).thenReturn(this.owner);
+        Mockito.when(this.server.getOfflinePlayer(this.member.getUniqueId())).thenReturn(this.member);
     }
 
     @Test
@@ -450,18 +460,18 @@ public class PartyTest {
 
     @Test
     public void testKickOfflineWithOnlineOwner() {
+        Mockito.when(this.server.getPlayer(this.owner.getUniqueId())).thenReturn(this.owner);
+
         Mockito.when(this.owner.getPlayer()).thenReturn(this.owner);
         Mockito.when(this.owner.isOnline()).thenReturn(true);
         Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
-        Server server = Mockito.mock(Server.class);
-
         Mockito.when(this.member.getPlayer()).thenReturn(this.member);
         Mockito.when(this.member.isOnline()).thenReturn(false);
-        Mockito.when(this.member.getServer()).thenReturn(server);
-        Mockito.when(server.getOfflinePlayer(this.member.getUniqueId())).thenReturn(this.member);
         party.addMember(this.member);
+
+        Mockito.when(this.server.getCurrentTick()).thenReturn(BEST_TICK + 1);
 
         int[] playersRemoved = new int[] { 0 };
         party.registerLeaveHandler(player -> {
@@ -479,9 +489,9 @@ public class PartyTest {
 
     @Test // also strange
     public void testKickOfflineWithOfflineOwner() {
+        Mockito.when(this.server.getCurrentTick()).thenReturn(BEST_TICK).thenReturn(BEST_TICK + 1);
+
         Mockito.when(this.owner.isOnline()).thenReturn(false);
-        Mockito.when(this.owner.getServer()).thenReturn(this.server);
-        Mockito.when(this.server.getOfflinePlayer(this.owner.getUniqueId())).thenReturn(this.owner);
         Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
                 PartyMember::new);
 
