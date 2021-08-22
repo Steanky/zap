@@ -25,4 +25,8 @@ public class Bounds {
         this(Math.min(minX, maxX), Math.min(minY, maxY), Math.min(minZ, maxZ),
                 Math.max(minX, maxX), Math.max(minY, maxY), Math.max(minZ, maxZ), false);
     }
+
+    public @NotNull Bounds copy() {
+        return new Bounds(minX, minY, minZ, maxX, maxY, maxZ, false);
+    }
 }

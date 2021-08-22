@@ -57,7 +57,7 @@ public abstract class ZombiesPathfinder {
             throw new UnsupportedOperationException("Failed to reflect entity navigator!");
         }
 
-        handler = new PathHandler(PathfinderEngine.proxyAsync());
+        handler = new PathHandler(PathfinderEngine.proxyAsync(Zombies.getInstance()));
 
         if (!Zombies.getInstance().getNmsBridge().entityBridge().replacePersistentGoals(self)) {
             Zombies.warning("Failed to replace persistent goals on a " + self.getClass().getName() + " due to a " +

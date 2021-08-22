@@ -11,9 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * of performance.
  */
 public interface NodeExplorer {
-    void init(@NotNull PathfinderContext context, @NotNull PathAgent agent);
-
-    void exploreNodes(@NotNull PathNode[] buffer, @NotNull PathNode current);
+    void exploreNodes(@NotNull PathfinderContext context, @NotNull PathNode[] buffer, @NotNull PathNode current);
 
     boolean comparesWith(@NotNull NodeExplorer other);
 }

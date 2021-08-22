@@ -1,20 +1,16 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-class AsyncProxyPathfinderEngine extends AsyncPathfinderEngineAbstract<PathfinderContext> {
-    private static final AsyncProxyPathfinderEngine INSTANCE = new AsyncProxyPathfinderEngine();
+public class AsyncProxyPathfinderEngine extends AsyncPathfinderEngineAbstract<PathfinderContext> {
     private static final int PATH_CAPACITY = 32;
 
-    private AsyncProxyPathfinderEngine() {
-        super(new ConcurrentHashMap<>());
-    }
-
-    public static AsyncProxyPathfinderEngine getInstance() {
-        return INSTANCE;
+    public AsyncProxyPathfinderEngine(@NotNull Plugin plugin) {
+        super(new ConcurrentHashMap<>(), plugin);
     }
 
     @NotNull
@@ -24,7 +20,7 @@ class AsyncProxyPathfinderEngine extends AsyncPathfinderEngineAbstract<Pathfinde
     }
 
     @Override
-    protected @NotNull BlockCollisionProvider getBlockCollisionProvider(@NotNull World world) {
-        return new ProxyBlockCollisionProvider(world);
+    protected @NotNull BlockCollisionProvider makeBlockCollisionProvider(@NotNull World world) {
+        return new ProxyBlockCollisionProvider(world, MAX_THREADS);
     }
 }

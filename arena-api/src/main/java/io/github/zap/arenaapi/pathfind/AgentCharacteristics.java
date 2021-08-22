@@ -10,15 +10,15 @@ public class AgentCharacteristics {
 
     private final BoundingBox bounds;
     private final double jumpHeight;
-    private final int fallTolerance;
+    private final int maxFall;
     private final double width;
     private final double height;
 
-    public AgentCharacteristics(double width, double height, double jumpHeight, int fallTolerance) {
+    public AgentCharacteristics(double width, double height, double jumpHeight, int maxFall) {
         bounds = new BoundingBox(0, 0, 0, width, height, width);
         this.jumpHeight = jumpHeight;
 
-        this.fallTolerance = fallTolerance;
+        this.maxFall = maxFall;
         this.width  = width;
         this.height = height;
     }
@@ -35,7 +35,7 @@ public class AgentCharacteristics {
         this(0, 0, DEFAULT_JUMP_HEIGHT, DEFAULT_FALL_TOLERANCE);
     }
 
-    public double fallTolerance() { return fallTolerance; }
+    public double maxFall() { return maxFall; }
 
     public double width() {
         return width;

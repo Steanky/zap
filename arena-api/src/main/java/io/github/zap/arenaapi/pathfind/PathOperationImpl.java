@@ -8,56 +8,40 @@ import io.github.zap.vector.graph.ChunkGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-
 class PathOperationImpl implements PathOperation {
     private static final double MERGE_TOLERANCE_SQUARED = 1;
 
     private final PathAgent agent;
-    private final Set<? extends PathDestination> destinations;
+    private final PathDestination destination;
     private State state;
     private final HeuristicCalculator heuristicCalculator;
     private final AversionCalculator aversionCalculator;
     private final SuccessCondition condition;
     private final NodeExplorer nodeExplorer;
-    private final DestinationSelector destinationSelector;
     private final ChunkCoordinateProvider searchArea;
 
     private final ChunkGraph<PathNode> visited;
-    private final NodeHeap openHeap = new BinaryMinNodeHeap(128);
+    private final NodeHeap openHeap = new BinaryMinNodeHeap(32);
     private final PathNode[] sampleBuffer = new PathNode[8];
 
-    private PathDestination bestDestination;
     private PathNode currentNode;
     private PathNode bestFound;
     private PathResult result;
 
-    PathOperationImpl(@NotNull PathAgent agent, @NotNull Set<? extends PathDestination> destinations,
+    PathOperationImpl(@NotNull PathAgent agent, @NotNull PathDestination destination,
                       @NotNull HeuristicCalculator heuristicCalculator, @NotNull AversionCalculator aversionCalculator,
                       @NotNull SuccessCondition condition, @NotNull NodeExplorer nodeExplorer,
-                      @NotNull DestinationSelector destinationSelector, @NotNull ChunkCoordinateProvider searchArea) {
+                      @NotNull ChunkCoordinateProvider searchArea) {
         this.agent = agent;
-        this.destinations = destinations;
-        this.state = State.NOT_STARTED;
+        this.destination = destination;
+        this.state = State.STARTED;
         this.heuristicCalculator = heuristicCalculator;
         this.aversionCalculator = aversionCalculator;
         this.condition = condition;
         this.nodeExplorer = nodeExplorer;
-        this.destinationSelector = destinationSelector;
         this.searchArea = searchArea;
 
         visited = new ArrayChunkGraph<>(searchArea.minX(), searchArea.minZ(), searchArea.maxX(), searchArea.maxZ());
-    }
-
-    @Override
-    public void init(@NotNull PathfinderContext context) {
-        if(state == State.NOT_STARTED) {
-            state = State.STARTED;
-            nodeExplorer.init(context, agent);
-        }
-        else {
-            throw new IllegalStateException("Cannot initialize a PathOperation with state " + state);
-        }
     }
 
     @Override
@@ -79,35 +63,18 @@ class PathOperationImpl implements PathOperation {
             }
             else {
                 currentNode = new PathNode(Vectors.asIntFloor(agent));
-                bestDestination = destinationSelector.selectDestination(this, currentNode);
-                currentNode.score.set(0, heuristicCalculator.compute(context, currentNode, bestDestination));
+                currentNode.score.set(0, heuristicCalculator.compute(context, currentNode, destination));
                 bestFound = currentNode;
             }
 
-            PathDestination best = null;
-            double bestScore = Double.POSITIVE_INFINITY;
-
-            for(PathDestination destination : destinations) {
-                if(condition.hasCompleted(context, currentNode, destination)) {
-                    bestFound = currentNode;
-                    bestDestination = destination;
-                    complete(true);
-                    return true;
-                }
-
-                if(best == null || currentNode.score.getH() < bestScore) {
-                    best = destination;
-                    bestScore = currentNode.score.getH();
-                }
-            }
-
-            if(best == null) { //couldn't find a destination
-                complete(false);
+            if(condition.hasCompleted(context, currentNode, destination)) {
+                bestFound = currentNode;
+                complete(true);
                 return true;
             }
 
             visited.putElement(currentNode, currentNode);
-            nodeExplorer.exploreNodes(sampleBuffer, currentNode);
+            nodeExplorer.exploreNodes(context, sampleBuffer, currentNode);
 
             for(PathNode candidateNode : sampleBuffer) {
                 if(candidateNode == null) {
@@ -125,8 +92,7 @@ class PathOperationImpl implements PathOperation {
 
                 PathNode existingNode = openHeap.nodeAt(candidateNode.x(), candidateNode.y(), candidateNode.z());
                 if(existingNode == null) {
-                    bestDestination = destinationSelector.selectDestination(this, candidateNode);
-                    candidateNode.score.setH(heuristicCalculator.compute(context, candidateNode, bestDestination));
+                    candidateNode.score.setH(heuristicCalculator.compute(context, candidateNode, destination));
                     openHeap.addNode(candidateNode);
                 }
                 else if(candidateNode.score.getG() < existingNode.score.getG()) {
@@ -154,7 +120,7 @@ class PathOperationImpl implements PathOperation {
 
     @Override
     public @NotNull PathResult result() {
-        if(state == State.STARTED || state == State.NOT_STARTED) {
+        if(state == State.STARTED) {
             throw new IllegalStateException("Cannot get PathResult for a PathOperation that has not completed!");
         }
 
@@ -171,8 +137,8 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull Set<? extends PathDestination> destinations() {
-        return destinations;
+    public @NotNull PathDestination destination() {
+        return destination;
     }
 
     @Override
@@ -196,11 +162,6 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @Nullable PathDestination bestDestination() {
-        return bestDestination;
-    }
-
-    @Override
     public @Nullable PathNode currentNode() {
         return currentNode;
     }
@@ -213,7 +174,7 @@ class PathOperationImpl implements PathOperation {
                 mergeIntoCharacteristics.width() >= agent.characteristics().width() &&
                 mergeIntoCharacteristics.jumpHeight() <= agent.characteristics().jumpHeight() &&
                 mergeIntoCharacteristics.height() >= agent.characteristics().height() &&
-                checkDestinationComparability(mergeInto.bestDestination()));
+                checkDestinationComparability(mergeInto.destination()));
     }
 
     @Override
@@ -236,14 +197,14 @@ class PathOperationImpl implements PathOperation {
 
     private void complete(boolean success) {
         state = success ? State.SUCCEEDED : State.FAILED;
-        result = new PathResultImpl(bestFound.reverse(), this, visited, bestDestination, state);
+        result = new PathResultImpl(bestFound.reverse(), this, visited, destination, state);
     }
 
     private boolean checkDestinationComparability(Vector3I other) {
         if(other == null) {
-            return bestDestination == null;
+            return destination == null;
         }
 
-        return Vectors.distanceSquared(bestDestination, other) <= MERGE_TOLERANCE_SQUARED;
+        return Vectors.distanceSquared(destination, other) <= MERGE_TOLERANCE_SQUARED;
     }
 }

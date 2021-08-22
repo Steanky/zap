@@ -7,5 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface NodeStepper {
-    @Nullable Vector3I stepDirectional(@NotNull Vector3D agentPosition, @NotNull Direction direction);
+    @Nullable Vector3I stepDirectional(@NotNull BlockCollisionProvider collisionProvider,
+                                       @NotNull Vector3D agentPosition, @NotNull Direction direction);
 }

@@ -1,8 +1,12 @@
 package io.github.zap.arenaapi.pathfind;
 
+import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
+import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
+import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vectors;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +56,7 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
     }
 
     @Override
-    public boolean collidesWithAny(@NotNull BoundingBox worldRelativeBounds) {
+    public boolean collidesAt(@NotNull BoundingBox worldRelativeBounds) {
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
 
         while(iterator.hasNext()) {
@@ -68,7 +72,7 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
     }
 
     @Override
-    public @NotNull List<BlockCollisionView> collidingSolids(@NotNull BoundingBox worldRelativeBounds) {
+    public @NotNull List<BlockCollisionView> collidingSolidsAt(@NotNull BoundingBox worldRelativeBounds) {
         List<BlockCollisionView> shapes = new ArrayList<>();
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
 
@@ -82,5 +86,55 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
         }
 
         return shapes;
+    }
+
+    @Override
+    public boolean collidesMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction, double directionMultiplier) {
+        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(
+                Vectors.asBukkit(Vectors.multiply(direction, directionMultiplier)));
+
+        if(direction.isCardinal()) {
+            return collidesAt(expandedBounds);
+        }
+        else {
+            double width = agentBounds.getWidthX();
+            int dirFac = direction.x() *  direction.z();
+            List<BlockCollisionView> shapes = collidingSolidsAt(expandedBounds);
+
+            for(BlockCollisionView shape : shapes) {
+                VoxelShapeWrapper collision = shape.collision();
+
+                double x = shape.x() - agentBounds.getCenterX();
+                double z = shape.z() - agentBounds.getCenterZ();
+
+                if(collision.anyBoundsMatches((minX, minY, minZ, maxX, maxY, maxZ) -> {
+                    minX += x;
+                    minZ += z;
+
+                    maxX += x;
+                    maxZ += z;
+
+                    return diagonalCollisionCheck(width, dirFac, minX, minZ, maxX, maxZ);
+                })) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean diagonalCollisionCheck(double width, int dirFac, double minX, double minZ,
+                                           double maxX, double maxZ) {
+        double zMinusXMin = minZ - (minX * dirFac);
+        if(!(DoubleMath.fuzzyCompare(zMinusXMin, width, Vectors.EPSILON) == -1)) {
+            return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), width, Vectors.EPSILON) == -1;
+        }
+
+        if(DoubleMath.fuzzyCompare(zMinusXMin, -width, Vectors.EPSILON) == 1) {
+            return true;
+        }
+
+        return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), -width, Vectors.EPSILON) == 1;
     }
 }

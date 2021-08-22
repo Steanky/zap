@@ -11,4 +11,9 @@ record BlockCollisionViewImpl(int x, int y, int z, BlockData data, VoxelShapeWra
                 worldBounds.getMinZ() - z, worldBounds.getMaxX() - x, worldBounds.getMaxY() - y,
                 worldBounds.getMaxZ() - z);
     }
+
+    @Override
+    public double maxY() {
+        return y + collision.maxY();
+    }
 }

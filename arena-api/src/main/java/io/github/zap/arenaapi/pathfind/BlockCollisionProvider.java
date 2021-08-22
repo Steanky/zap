@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
+import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -43,9 +44,11 @@ public interface BlockCollisionProvider {
 
     @Nullable BlockCollisionView getBlock(int x, int y, int z);
 
-    boolean collidesWithAny(@NotNull BoundingBox bounds);
+    boolean collidesAt(@NotNull BoundingBox bounds);
 
-    @NotNull List<BlockCollisionView> collidingSolids(@NotNull BoundingBox bounds);
+    @NotNull List<BlockCollisionView> collidingSolidsAt(@NotNull BoundingBox bounds);
+
+    boolean collidesMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction, double directionMultiplier);
 
     default @Nullable BlockCollisionView getBlock(@NotNull Vector3I at) {
         return getBlock(at.x(), at.y(), at.z());
