@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 
 public class EntityBridge_v1_16_R3 implements EntityBridge {
-
     public static final EntityBridge_v1_16_R3 INSTANCE = new EntityBridge_v1_16_R3();
 
     @Override

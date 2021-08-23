@@ -351,4 +351,8 @@ public class Vectors {
     public static boolean equals(@NotNull Vector3I first, @NotNull Vector3I second) {
         return first.x() == second.x() && first.y() == second.y() && first.z() == second.z();
     }
+
+    public static boolean equals(@NotNull Vector3I first, int x, int y, int z) {
+        return first.x() == x && first.y() == y && first.z() == z;
+    }
 }

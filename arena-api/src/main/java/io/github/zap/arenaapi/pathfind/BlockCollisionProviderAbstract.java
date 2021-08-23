@@ -123,7 +123,6 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
                             DoubleMath.fuzzyCompare(maxX, -halfWidth, Vectors.EPSILON) > 0 &&
                             DoubleMath.fuzzyCompare(minZ, halfWidth, Vectors.EPSILON) < 0 &&
                             DoubleMath.fuzzyCompare(maxZ, -halfWidth, Vectors.EPSILON) > 0) {
-                        ArenaApi.info("Not colliding because we overlap original bounds");
                         return false;
                     }
                     else {

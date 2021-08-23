@@ -67,12 +67,6 @@ class PathOperationImpl implements PathOperation {
                 bestFound = currentNode;
             }
 
-            if(condition.hasCompleted(context, currentNode, destination)) {
-                bestFound = currentNode;
-                complete(true);
-                return true;
-            }
-
             visited.putElement(currentNode, currentNode);
             nodeExplorer.exploreNodes(context, sampleBuffer, currentNode);
 
@@ -103,6 +97,12 @@ class PathOperationImpl implements PathOperation {
                 //comparison for best path in case of inaccessible target
                 if(candidateNode.score.getH() < bestFound.score.getH()) {
                     bestFound = candidateNode;
+                }
+
+                if(condition.hasCompleted(context, candidateNode, destination)) {
+                    bestFound = candidateNode;
+                    complete(true);
+                    return true;
                 }
             }
         }
