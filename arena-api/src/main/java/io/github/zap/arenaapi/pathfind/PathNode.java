@@ -17,7 +17,6 @@ public class PathNode implements Vector3I {
     final Score score;
     PathNode parent;
     PathNode child;
-    boolean isPartialBlock;
 
     private final int hash;
 

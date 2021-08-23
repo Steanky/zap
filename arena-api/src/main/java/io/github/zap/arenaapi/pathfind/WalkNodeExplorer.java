@@ -50,15 +50,7 @@ class WalkNodeExplorer implements NodeExplorer {
                 Vector3I nodePosition = stepper.stepDirectional(context.blockProvider(), position, direction);
 
                 if(nodePosition != null) {
-                    PathNode node = new PathNode(nodePosition);
-                    BlockCollisionView block = context.blockProvider().getBlock(nodePosition);
-
-                    if(block != null && !block.collision().isEmpty() &&
-                            DoubleMath.fuzzyCompare(block.collision().maxY(), 0.5, Vectors.EPSILON) > 0) {
-                        node.isPartialBlock = true;
-                    }
-
-                    buffer[j++] = node;
+                    buffer[j++] = new PathNode(nodePosition);
                 }
             }
         }

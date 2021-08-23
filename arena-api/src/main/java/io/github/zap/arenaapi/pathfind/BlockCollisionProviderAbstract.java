@@ -96,7 +96,7 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
                                        @NotNull Vector3D translation) {
         BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translation));
 
-        if(direction.isCardinal()) {
+        if(!direction.isIntercardinal()) {
             return collidesAt(expandedBounds);
         }
         else {
