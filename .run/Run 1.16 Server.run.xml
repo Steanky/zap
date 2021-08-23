@@ -3,7 +3,7 @@
     <option name="JAR_PATH" value="$PROJECT_DIR$/run/server-1/paper.jar" />
     <option name="VM_PARAMETERS" value="-javaagent:slimeworldmanager-classmodifier-2.6.2-SNAPSHOT.jar -DdisableWatchdog=true" />
     <option name="PROGRAM_PARAMETERS" value="-nogui" />
-    <option name="WORKING_DIRECTORY" value="C:\Users\Owner\IdeaProjects\zap\run\server-1\" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run/server-1/" />
     <option name="ALTERNATIVE_JRE_PATH" value="openjdk-16" />
     <method v="2">
       <option name="Gradle.BeforeRunTask" enabled="false" tasks="build jar" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />

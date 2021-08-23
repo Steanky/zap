@@ -6,9 +6,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface VoxelShapeWrapper {
+    double maxX();
+
+    double minX();
+
     double maxY();
 
     double minY();
+
+    double maxZ();
+
+    double minZ();
 
     boolean isFull();
 

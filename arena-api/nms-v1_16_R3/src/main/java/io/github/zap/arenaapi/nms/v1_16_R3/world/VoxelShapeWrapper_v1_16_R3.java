@@ -2,7 +2,9 @@ package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
 import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
+import io.github.zap.vector.Vectors;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.craftbukkit.v1_16_R3.scheduler.CraftScheduler;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,6 +24,16 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     }
 
     @Override
+    public double maxX() {
+        return shape.c(EnumDirection.EnumAxis.X);
+    }
+
+    @Override
+    public double minX() {
+        return shape.b(EnumDirection.EnumAxis.X);
+    }
+
+    @Override
     public double maxY() {
         return shape.c(EnumDirection.EnumAxis.Y);
     }
@@ -29,6 +41,16 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     @Override
     public double minY() {
         return shape.b(EnumDirection.EnumAxis.Y);
+    }
+
+    @Override
+    public double maxZ() {
+        return shape.c(EnumDirection.EnumAxis.Z);
+    }
+
+    @Override
+    public double minZ() {
+        return shape.b(EnumDirection.EnumAxis.Z);
     }
 
     @Override

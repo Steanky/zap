@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import com.google.common.math.DoubleMath;
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
@@ -118,12 +119,20 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
                     maxX += x;
                     maxZ += z;
 
-                    //*may* need to change these to DoubleMath.fuzzyCompare
-                    if(minX < halfWidth && maxX > -halfWidth && minZ < halfWidth && maxZ > -halfWidth) {
+                    if(DoubleMath.fuzzyCompare(minX, halfWidth, Vectors.EPSILON) < 0 &&
+                            DoubleMath.fuzzyCompare(maxX, -halfWidth, Vectors.EPSILON) > 0 &&
+                            DoubleMath.fuzzyCompare(minZ, halfWidth, Vectors.EPSILON) < 0 &&
+                            DoubleMath.fuzzyCompare(maxZ, -halfWidth, Vectors.EPSILON) > 0) {
+                        ArenaApi.info("Not colliding because we overlap original bounds");
                         return false;
                     }
                     else {
-                        return diagonalCollisionCheck(width, dirFac, minX, minZ, maxX, maxZ);
+                        return switch (dirFac) {
+                            case 1 -> diagonalCollisionCheck(width, dirFac, maxX, minZ, minX, maxZ);
+                            case -1 -> diagonalCollisionCheck(width, dirFac, minX, minZ, maxX, maxZ);
+                            default -> throw new IllegalArgumentException("dirFac was " + dirFac);
+                        };
+
                     }
                 })) {
                     return true;
@@ -136,14 +145,14 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
 
     private boolean diagonalCollisionCheck(double width, int dirFac, double minX, double minZ, double maxX, double maxZ) {
         double zMinusXMin = minZ - (minX * dirFac);
-        if(!(DoubleMath.fuzzyCompare(zMinusXMin, width, Vectors.EPSILON) == -1)) {
-            return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), width, Vectors.EPSILON) == -1;
+        if(zMinusXMin >= width) { //min not in first
+            return maxZ - (maxX * dirFac) < width; //return max in first
         }
 
-        if(DoubleMath.fuzzyCompare(zMinusXMin, -width, Vectors.EPSILON) == 1) {
+        if(zMinusXMin > -width) { //min in first && min in second
             return true;
         }
 
-        return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), -width, Vectors.EPSILON) == 1;
+        return maxZ - (maxX * dirFac) > -width; //return max in second
     }
 }
