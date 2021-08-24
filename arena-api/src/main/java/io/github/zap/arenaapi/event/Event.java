@@ -20,7 +20,7 @@ public class Event<T> implements Disposable {
 
     private final Queue<EventHandler<T>> pendingAdditions = new ArrayDeque<>();
     private final Queue<EventHandler<T>> pendingDeletions = new ArrayDeque<>();
-    private final List<Exception> thrownExceptions = new ArrayList<>();
+    private final Queue<Exception> thrownExceptions = new ArrayDeque<>();
 
     private final boolean rethrowExceptions;
 
@@ -31,7 +31,7 @@ public class Event<T> implements Disposable {
 
     /**
      * Creates a new event with the specified exception handling policy.
-     * @param rethrowExceptions The exception handling policy, which if true will rethrow exceptions outside of the
+     * @param rethrowExceptions The exception handling policy, which when true will rethrow exceptions outside the
      *                          calling loop (that is, one handler cannot prevent the execution of other handlers if
      *                          it throws an exception).
      */
@@ -39,6 +39,9 @@ public class Event<T> implements Disposable {
         this.rethrowExceptions = rethrowExceptions;
     }
 
+    /**
+     * Creates a new Event that will rethrow exceptions.
+     */
     public Event() {
         this(true);
     }
@@ -175,7 +178,9 @@ public class Event<T> implements Disposable {
         }
 
         if(!thrownExceptions.isEmpty()) {
-            throw new AggregateException("Exception(s) during event processing", thrownExceptions);
+            List<Exception> thrown = new ArrayList<>(thrownExceptions);
+            thrownExceptions.clear();
+            throw new AggregateException("Exception(s) during event processing", thrown);
         }
     }
 

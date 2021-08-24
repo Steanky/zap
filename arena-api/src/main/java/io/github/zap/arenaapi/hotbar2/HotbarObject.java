@@ -30,13 +30,7 @@ public interface HotbarObject {
 
     @Nullable ItemStack getStack();
 
-    void onPlayerInteract(@NotNull PlayerInteractEvent event);
-
     void cleanup();
 
     boolean isSelected();
-
-    void setSelected(@NotNull PlayerItemHeldEvent event);
-
-    void setDeselected(@NotNull PlayerItemHeldEvent event);
 }

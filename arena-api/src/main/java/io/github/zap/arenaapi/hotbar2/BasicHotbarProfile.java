@@ -7,7 +7,9 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class BasicHotbarProfile implements HotbarProfile {
-    private final HotbarObject[] objects = new HotbarObject[9];
+    private static final int CAPACITY = 9;
+
+    private final HotbarObject[] objects = new HotbarObject[CAPACITY];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
 
     private HotbarObject lastObject = null;
@@ -58,7 +60,12 @@ class BasicHotbarProfile implements HotbarProfile {
     }
 
     @Override
-    public int indexOf(@NotNull HotbarObject object) {
+    public int slotCapacity() {
+        return CAPACITY;
+    }
+
+    @Override
+    public int getSlotFor(@NotNull HotbarObject object) {
         if(object == lastObject) { //for render loops that frequently index the same item, don't iterate again
             return lastIndex;
         }

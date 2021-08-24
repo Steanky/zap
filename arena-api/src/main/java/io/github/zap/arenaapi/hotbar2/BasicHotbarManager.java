@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.hotbar2;
 
+import io.github.zap.arenaapi.event.EventRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 class BasicHotbarManager implements HotbarManager {
+    private final EventRegister register;
     private final HotbarCanvas canvas;
     private final Supplier<HotbarProfile> hotbarProfileSupplier;
     private final Map<String, HotbarProfile> profiles = new HashMap<>();
@@ -15,7 +17,8 @@ class BasicHotbarManager implements HotbarManager {
 
     private HotbarProfile currentProfile;
 
-    BasicHotbarManager(@NotNull HotbarCanvas canvas, @NotNull Supplier<HotbarProfile> hotbarProfileSupplier) {
+    BasicHotbarManager(@NotNull EventRegister register, @NotNull HotbarCanvas canvas, @NotNull Supplier<HotbarProfile> hotbarProfileSupplier) {
+        this.register = register;
         this.canvas = canvas;
         this.hotbarProfileSupplier = hotbarProfileSupplier;
         this.currentProfile = this.defaultProfile = hotbarProfileSupplier.get();
@@ -50,7 +53,7 @@ class BasicHotbarManager implements HotbarManager {
 
     @Override
     public void redrawCurrentProfile() {
-        for(int i = 0; i < 9; i++) {
+        for(int i = 0; i < currentProfile.slotCapacity(); i++) {
             HotbarObject.Slotted slottedObject = currentProfile.getObject(i);
             HotbarObject hotbarObject = slottedObject.getHotbarObject();
 
@@ -95,6 +98,11 @@ class BasicHotbarManager implements HotbarManager {
                 canvas.drawItem(null, slottedObject.getSlot());
             }
         }
+    }
+
+    @Override
+    public @NotNull EventRegister eventRegister() {
+        return register;
     }
 
     @Override
