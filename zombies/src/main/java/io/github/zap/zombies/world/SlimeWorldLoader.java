@@ -90,7 +90,7 @@ public class SlimeWorldLoader implements WorldLoader {
     @Override
     public boolean unloadWorld(World world) {
         if(!Bukkit.unloadWorld(world, false)) {
-            Zombies.warning("Failed to unload world " + world.toString());
+            Zombies.warning("Failed to unload world " + world);
             return false;
         }
 

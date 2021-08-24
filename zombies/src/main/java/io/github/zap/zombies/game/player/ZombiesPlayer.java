@@ -22,7 +22,9 @@ import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.player.task.BoundsCheckTask;
 import io.github.zap.zombies.game.player.task.ReviveTask;
 import io.github.zap.zombies.game.player.task.WindowRepairTask;
+import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
 import io.github.zap.zombies.game.powerups.EarnedGoldMultiplierPowerUp;
+import io.github.zap.zombies.game.powerups.PowerUp;
 import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.game.task.ZombiesTask;
 import io.github.zap.zombies.stats.CacheInformation;
@@ -452,7 +454,17 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     public void onDealsDamage(@NotNull DamageAttempt attempt, @NotNull Mob damaged, double deltaHealth) {
         Player player = getPlayer();
         if (player != null) {
-            int coins = attempt.getCoins(this, damaged);
+            int coins = -1;
+            for(PowerUp powerup : getArena().getPowerUps()) {
+                if (powerup instanceof DamageModificationPowerUp && powerup.getState() == PowerUpState.ACTIVATED) {
+                    coins = 50;
+                    break;
+                }
+            }
+
+            if(coins != -1) {
+                coins = attempt.getCoins(this, damaged);
+            }
 
             if (attempt.ignoresArmor(this, damaged)) {
                 addCoins(coins, Component.text("Critical Hit", NamedTextColor.GOLD));

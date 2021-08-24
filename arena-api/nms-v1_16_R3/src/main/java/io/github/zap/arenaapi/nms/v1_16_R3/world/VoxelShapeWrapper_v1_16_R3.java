@@ -64,6 +64,11 @@ class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
     }
 
     @Override
+    public boolean isPartial() {
+        return shape != VoxelShapes.empty() && shape != VoxelShapes.fullCube();
+    }
+
+    @Override
     public @NotNull List<BoundingBox> boundingBoxes() {
         return bounds.stream().map(bb -> new BoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ))
                 .collect(Collectors.toList());

@@ -22,6 +22,8 @@ public interface VoxelShapeWrapper {
 
     boolean isEmpty();
 
+    boolean isPartial();
+
     @NotNull List<BoundingBox> boundingBoxes();
 
     boolean anyBoundsMatches(@NotNull BoxPredicate predicate);
