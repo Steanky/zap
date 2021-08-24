@@ -5,7 +5,6 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.ref.SoftReference;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,7 +17,9 @@ public class PartyMember {
 
     private final UUID playerUUID;
 
-    private SoftReference<OfflinePlayer> cachedPlayer;
+    private Player player;
+
+    private int captureTick;
 
     private boolean inPartyChat = false;
 
@@ -27,36 +28,22 @@ public class PartyMember {
     public PartyMember(@NotNull Player player) {
         this.server = player.getServer();
         this.playerUUID = player.getUniqueId();
-        this.cachedPlayer = new SoftReference<>(player);
+        this.player = player;
+        this.captureTick = player.getServer().getCurrentTick();
     }
 
     /**
      * Gets the associated {@link Player} with this member if they are online.
-     * This should be used in contrast to {@link OfflinePlayer#getPlayer()} from {@link #getOfflinePlayer()}
-     * for better caching
      * @return An optional of the player
      */
     public @NotNull Optional<Player> getPlayerIfOnline() {
-        OfflinePlayer player = cachedPlayer.get();
-
-        if (player != null) {
-            if (player.isOnline()) {
-                return Optional.ofNullable(player.getPlayer());
-            }
-            else {
-                this.cachedPlayer.clear();
-            }
-        }
-        else {
-            Player fresh = this.server.getPlayer(this.playerUUID);
-
-            if (fresh != null && fresh.isOnline()) {
-                this.cachedPlayer = new SoftReference<>(fresh);
-                return Optional.of(fresh);
-            }
+        int currentTick = this.server.getCurrentTick();
+        if (currentTick == this.captureTick) {
+            return Optional.ofNullable(this.player);
         }
 
-        return Optional.empty();
+        this.captureTick = currentTick;
+        return Optional.ofNullable(this.player = this.server.getPlayer(this.playerUUID));
     }
 
     /**
@@ -64,15 +51,13 @@ public class PartyMember {
      * @return The offline player
      */
     public @NotNull OfflinePlayer getOfflinePlayer() {
-        OfflinePlayer player = this.cachedPlayer.get();
-        if (player != null) {
-            return player;
+        Optional<Player> playerOptional = this.getPlayerIfOnline();
+
+        if (playerOptional.isPresent()) {
+            return playerOptional.get();
         }
-        else {
-            OfflinePlayer fresh = this.server.getOfflinePlayer(this.playerUUID);
-            this.cachedPlayer = new SoftReference<>(fresh);
-            return fresh;
-        }
+
+        return this.server.getOfflinePlayer(this.playerUUID);
     }
 
     public boolean isInPartyChat() {

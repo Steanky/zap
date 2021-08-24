@@ -55,6 +55,13 @@ public enum Direction implements Vector3I {
         };
     }
 
+    boolean isCardinal() {
+        return switch (this) {
+            case NORTH, SOUTH, EAST, WEST -> true;
+            default -> false;
+        };
+    }
+
     public static Direction valueAtIndex(int position) {
         return values[position];
     }

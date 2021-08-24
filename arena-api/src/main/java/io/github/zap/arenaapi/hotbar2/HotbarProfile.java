@@ -11,7 +11,9 @@ public interface HotbarProfile extends Iterable<HotbarObject.Slotted> {
 
     HotbarObject.Slotted[] getObjects();
 
-    int indexOf(@NotNull HotbarObject object);
+    int slotCapacity();
+
+    int getSlotFor(@NotNull HotbarObject object);
 
     @NotNull HotbarObject.Slotted getObject(int slot);
 

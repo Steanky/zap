@@ -15,10 +15,6 @@ class JacksonDataContainer implements DataContainer {
     private static class TypeReferenceWrapper<T> extends TypeReference<T> {
         private final Type type;
 
-        private TypeReferenceWrapper(Class<?> clazz) {
-            type = clazz;
-        }
-
         private TypeReferenceWrapper(TypeToken<?> token) {
             type = token.type();
         }
@@ -141,6 +137,6 @@ class JacksonDataContainer implements DataContainer {
 
     @Override
     public String toString() {
-        return "DataContainer{node=" + node + "}";
+        return "JacksonDataContainer{node=" + node + "}";
     }
 }

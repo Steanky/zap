@@ -3,12 +3,13 @@ package io.github.zap.arenaapi.nms.v1_16_R3.pathfind;
 import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.nms.common.pathfind.MobNavigator;
 import io.github.zap.arenaapi.nms.common.pathfind.PathEntityWrapper;
+import io.github.zap.vector.Vectors;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.util.NumberConversions;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -21,38 +22,40 @@ public class MobNavigator_v1_16_R3 extends Navigation implements MobNavigator {
     public void navigateAlongPath(@NotNull PathEntityWrapper pathEntityWrapper, double speed) {
         PathEntity newPath = ((PathEntityWrapper_v1_16_R3)pathEntityWrapper).pathEntity();
 
-        if(c != null) {
-            this.c = null;
+        Vec3D currentPos = getEntity().getPositionVector();
 
-            Vec3D currentPos = getEntity().getPositionVector();
+        int entityX = NumberConversions.floor(currentPos.x);
+        int entityY = NumberConversions.floor(currentPos.y);
+        int entityZ = NumberConversions.floor(currentPos.z);
 
-            PathPoint entityPoint = new PathPoint(NumberConversions.floor(currentPos.x),
-                    NumberConversions.floor(currentPos.y), NumberConversions.floor(currentPos.z));
+        for(int i = 0; i < newPath.e(); i++) {
+            PathPoint sample = newPath.a(i); //(pr)
 
-            for(int i = 0; i < newPath.e(); i++) {
-                PathPoint sample = newPath.a(i); //(pr)
+            double distanceToSampleSquared = Vectors.distanceSquared(entityX, entityY, entityZ,
+                    sample.getX(), sample.getY(), sample.getZ());
 
-                float distanceSquared = sample.a(entityPoint);
-                if(DoubleMath.fuzzyCompare(distanceSquared, 1, Vector.getEpsilon()) <= 0) {
-                    int nextIndex = i + 1;
-                    if(nextIndex < newPath.e()) {
-                        PathPoint nextPoint = newPath.a(nextIndex);
-                        float distanceSquaredToNext = nextPoint.a(entityPoint);
+            if(DoubleMath.fuzzyCompare(distanceToSampleSquared, 2, Vectors.EPSILON) <= 0) {
+                int nextIndex = i + 1;
+                if(nextIndex < newPath.e()) {
+                    PathPoint next = newPath.a(nextIndex);
 
-                        if(DoubleMath.fuzzyCompare(distanceSquaredToNext, distanceSquared, Vector.getEpsilon()) <= 0
-                                && entityPoint.getY() == nextPoint.getY()) {
-                            i = nextIndex;
-                        }
+                    double distanceToNextSquared = Vectors.distanceSquared(entityX, entityY, entityZ,
+                            next.getX(), next.getY(), next.getZ());
+
+                    if(distanceToNextSquared < distanceToSampleSquared) {
+                        newPath.c(nextIndex);
                     }
-
-                    newPath.c(i);
-                    a(newPath, speed);
-                    return;
                 }
+                else {
+                    newPath.c(i);
+                }
+
+                a(newPath, speed);
+                return;
             }
         }
 
-        a(newPath, speed);
+        a((PathEntity)null, speed);
     }
 
     @Override

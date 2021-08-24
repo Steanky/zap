@@ -2,6 +2,8 @@ package io.github.zap.arenaapi.event;
 
 import io.github.zap.arenaapi.Disposable;
 import io.github.zap.arenaapi.ObjectDisposedException;
+import io.github.zap.arenaapi.util.AggregateException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ public class Event<T> implements Disposable {
 
     private final Queue<EventHandler<T>> pendingAdditions = new ArrayDeque<>();
     private final Queue<EventHandler<T>> pendingDeletions = new ArrayDeque<>();
+    private final Queue<Exception> thrownExceptions = new ArrayDeque<>();
 
     private final boolean rethrowExceptions;
 
@@ -28,14 +31,17 @@ public class Event<T> implements Disposable {
 
     /**
      * Creates a new event with the specified exception handling policy.
-     * @param rethrowExceptions The exception handling policy, which if true will rethrow exceptions outside of the
+     * @param rethrowExceptions The exception handling policy, which when true will rethrow exceptions outside the
      *                          calling loop (that is, one handler cannot prevent the execution of other handlers if
-     *                          it throws an exception). If multiple handlers throw exceptions,
+     *                          it throws an exception).
      */
     public Event(boolean rethrowExceptions) {
         this.rethrowExceptions = rethrowExceptions;
     }
 
+    /**
+     * Creates a new Event that will rethrow exceptions.
+     */
     public Event() {
         this(true);
     }
@@ -57,7 +63,7 @@ public class Event<T> implements Disposable {
      * handler will be added only after all the handlers have been called once.
      * @param handler The handler to register
      */
-    public void registerHandler(EventHandler<T> handler) {
+    public void registerHandler(@NotNull EventHandler<T> handler) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
@@ -75,7 +81,7 @@ public class Event<T> implements Disposable {
      * handler will be removed only after all the handlers have been called once.
      * @param handler The handler to remove
      */
-    public void removeHandler(EventHandler<T> handler) {
+    public void removeHandler(@NotNull EventHandler<T> handler) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
@@ -129,7 +135,7 @@ public class Event<T> implements Disposable {
      * called. If it is not configured to rethrow exceptions, any remaining handlers will not be called.
      * @param args The arguments
      */
-    public void callEvent(T args) {
+    public void callEvent(@NotNull T args) {
         if(disposed) {
             throw new ObjectDisposedException();
         }
@@ -150,11 +156,11 @@ public class Event<T> implements Disposable {
                 handlers.clear();
             }
             else {
-                while(pendingAdditions.size() > 0) {
+                while(!pendingAdditions.isEmpty()) {
                     handlers.add(pendingAdditions.remove());
                 }
 
-                while(pendingDeletions.size() > 0) {
+                while(!pendingDeletions.isEmpty()) {
                     handlers.remove(pendingDeletions.remove());
                 }
             }
@@ -162,18 +168,19 @@ public class Event<T> implements Disposable {
     }
 
     private void callWithRethrow(T args) {
-        RuntimeException rethrow = null;
         for(EventHandler<T> handler : handlers) {
             try {
                 handler.handleEvent(args);
             }
-            catch (RuntimeException exception) {
-                rethrow = exception;
+            catch (Exception exception) {
+                thrownExceptions.add(exception);
             }
         }
 
-        if(rethrow != null) {
-            throw rethrow;
+        if(!thrownExceptions.isEmpty()) {
+            List<Exception> thrown = new ArrayList<>(thrownExceptions);
+            thrownExceptions.clear();
+            throw new AggregateException("Exception(s) during event processing", thrown);
         }
     }
 

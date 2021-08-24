@@ -2,6 +2,7 @@ package io.github.zap.arenaapi.event;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Event that fires periodically; based on Bukkit's scheduler. It is created in a non-started state and must be started
@@ -14,7 +15,7 @@ public class RepeatingEvent extends Event<EmptyEventArgs> {
 
     private int taskId = -1;
 
-    public RepeatingEvent(Plugin plugin, int delay, int period) {
+    public RepeatingEvent(@NotNull Plugin plugin, int delay, int period) {
         this.plugin = plugin;
         this.delay = delay;
         this.period = period;
@@ -46,7 +47,7 @@ public class RepeatingEvent extends Event<EmptyEventArgs> {
      */
     @Override
     public void dispose() {
-        if(super.disposed) {
+        if(disposed) {
             return;
         }
 

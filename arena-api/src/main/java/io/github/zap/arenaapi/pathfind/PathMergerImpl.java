@@ -40,23 +40,17 @@ class PathMergerImpl implements PathMerger {
                                 first = first.child;
                             }
 
-                            PathDestination destination = operation.bestDestination(); //we can just stop now
-                            if(destination != null) {
-                                return new PathResultImpl(first, operation, resultVisited, destination,
-                                        PathOperation.State.SUCCEEDED);
-                            }
 
-                            intersection.child = oldIntersectionChild;
-                            return null;
+                            return new PathResultImpl(first, operation, resultVisited, operation.destination(),
+                                    PathOperation.State.SUCCEEDED);
                         }
 
                         sample = sample.parent;
                     }
 
-                    PathDestination destination = operation.bestDestination();
-                    if(intersection != null && destination != null) {
+                    if(intersection != null) {
                         //if we reach this point, it means we started directly on an existing path
-                        return new PathResultImpl(intersection, operation, resultVisited, destination,
+                        return new PathResultImpl(intersection, operation, resultVisited, operation.destination(),
                                 PathOperation.State.SUCCEEDED);
                     }
                 }

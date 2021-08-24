@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Future;
@@ -39,13 +40,17 @@ public interface PathfinderEngine {
      */
     boolean isAsync();
 
+    @NotNull Plugin getPlugin();
+
     /**
      * Returns the default asynchronous implementation of PathfinderEngine.
      * @return An asynchronous PathfinderEngine implementation
      */
-    static PathfinderEngine async() {
-        return AsyncSnapshotPathfinderEngine.getInstance();
+    static PathfinderEngine async(@NotNull Plugin plugin) {
+        return new AsyncSnapshotPathfinderEngine(plugin);
     }
 
-    static PathfinderEngine proxyAsync() { return AsyncProxyPathfinderEngine.getInstance(); }
+    static PathfinderEngine proxyAsync(@NotNull Plugin plugin) {
+        return new AsyncProxyPathfinderEngine(plugin);
+    }
 }

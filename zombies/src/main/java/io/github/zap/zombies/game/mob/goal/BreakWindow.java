@@ -1,9 +1,7 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathOperation;
-import io.github.zap.arenaapi.pathfind.PathResult;
-import io.github.zap.arenaapi.pathfind.PathTarget;
+import io.github.zap.arenaapi.pathfind.*;
+import io.github.zap.vector.Vectors;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.WindowData;
@@ -105,15 +103,13 @@ public class BreakWindow extends BasicMetadataPathfinder {
         }
         else {
             if(++navCounter == retargetTicks) {
-                PathDestination pathDestination = PathDestination.fromLocation(new Location(arena.getWorld(),
-                        destination.getX(),
-                        destination.getY(), destination.getZ()),  new PathTarget() {});
+                PathOperation operation = new PathOperationBuilder()
+                        .withAgent(self)
+                        .withDestination(Vectors.asIntFloor(Vectors.of(destination)))
+                        .withRange(2)
+                        .build();
 
-                if(pathDestination != null) {
-                    getHandler().queueOperation(PathOperation.forEntityWalking(self,
-                            Set.of(pathDestination), 2), arena.getWorld());
-                }
-
+                getHandler().queueOperation(operation, arena.getWorld());
                 navCounter = getArenaNmsBridge().entityBridge().getRandomFor(self).nextInt(retargetTicks / 2);
             }
 

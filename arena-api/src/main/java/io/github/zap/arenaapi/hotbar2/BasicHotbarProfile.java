@@ -7,13 +7,26 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class BasicHotbarProfile implements HotbarProfile {
-    private final HotbarObject[] objects = new HotbarObject[9];
+    private static final int CAPACITY = 9;
+
+    private final HotbarObject[] objects = new HotbarObject[CAPACITY];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
 
-    private HotbarObject lastObject = null;
+    private HotbarObject.Slotted lastObject = null;
     private int lastIndex = -1;
 
     BasicHotbarProfile() {}
+
+    private void reportIndexChange(int... changed) {
+        if(lastObject != null) {
+            for(int index : changed) {
+                if(lastObject.getSlot() == index) {
+                    lastObject = null;
+                    return;
+                }
+            }
+        }
+    }
 
     @Override
     public void putObject(@NotNull HotbarObject object, int slot) {
@@ -24,6 +37,7 @@ class BasicHotbarProfile implements HotbarProfile {
         }
 
         objects[slot] = object;
+        reportIndexChange(slot);
     }
 
     @Override
@@ -35,6 +49,7 @@ class BasicHotbarProfile implements HotbarProfile {
         }
 
         objects[slot] = null;
+        reportIndexChange(slot);
     }
 
     @Override
@@ -44,13 +59,14 @@ class BasicHotbarProfile implements HotbarProfile {
 
         objects[indexTo] = from;
         objects[indexFrom] = to;
+        reportIndexChange(indexFrom, indexTo);
     }
 
     @Override
     public HotbarObject.Slotted[] getObjects() {
-        HotbarObject.Slotted[] newArray = new HotbarObject.Slotted[objects.length];
+        HotbarObject.Slotted[] newArray = new HotbarObject.Slotted[CAPACITY];
 
-        for(int i = 0; i < objects.length; i++) {
+        for(int i = 0; i < CAPACITY; i++) {
             newArray[i] = new HotbarObject.Slotted(objects[i], i);
         }
 
@@ -58,15 +74,22 @@ class BasicHotbarProfile implements HotbarProfile {
     }
 
     @Override
-    public int indexOf(@NotNull HotbarObject object) {
-        if(object == lastObject) { //for render loops that frequently index the same item, don't iterate again
+    public int slotCapacity() {
+        return CAPACITY;
+    }
+
+    @Override
+    public int getSlotFor(@NotNull HotbarObject object) {
+        //for render loops that frequently index the same item, don't iterate again
+        if(lastObject != null && lastObject.getHotbarObject() == object) {
             return lastIndex;
         }
 
-        for(int i = 0; i < objects.length; i++) {
+        for(int i = 0; i < CAPACITY; i++) {
             HotbarObject sample = objects[i];
+
             if(object == sample) {
-                lastObject = sample;
+                lastObject = new HotbarObject.Slotted(object, i);
                 return lastIndex = i;
             }
         }

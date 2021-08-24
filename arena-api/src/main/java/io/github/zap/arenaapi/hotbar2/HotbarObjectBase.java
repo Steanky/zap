@@ -17,10 +17,37 @@ public class HotbarObjectBase implements HotbarObject {
         this.hotbarManager = hotbarManager;
         this.currentStack = initialStack;
         this.selected = selected;
+
+        hotbarManager.eventRegister().registerHandler(this::handlePlayerInteract, PlayerInteractEvent.class);
+        hotbarManager.eventRegister().registerHandler(this::handleItemHeld, PlayerItemHeldEvent.class);
     }
 
     protected HotbarObjectBase(@NotNull HotbarManager hotbarManager, boolean selected) {
         this(hotbarManager, null, selected);
+    }
+
+    private void handlePlayerInteract(@NotNull PlayerInteractEvent event) {
+        Action action = event.getAction();
+
+        if(action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
+            onLeftClick(event);
+        }
+        else if(action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+            onRightClick(event);
+        }
+    }
+
+    private void handleItemHeld(@NotNull PlayerItemHeldEvent event) {
+        int index = getSlot();
+
+        if(index == event.getNewSlot()) {
+            selected = true;
+            onSelected(event);
+        }
+        else if(index == event.getPreviousSlot()) {
+            selected = false;
+            onDeselected(event);
+        }
     }
 
     @Override
@@ -32,44 +59,20 @@ public class HotbarObjectBase implements HotbarObject {
     }
 
     @Override
-    public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
-        Action action = event.getAction();
-
-        if(action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
-            onLeftClick(event);
-        }
-        else if(action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
-            onRightClick(event);
-        }
-    }
-
-    @Override
     public final boolean isSelected() {
         return selected;
     }
 
-    @Override
-    public final void setSelected(@NotNull PlayerItemHeldEvent event) {
-        if(!selected) {
-            selected = true;
-            onSelected(event);
-        }
-    }
-
-    @Override
-    public final void setDeselected(@NotNull PlayerItemHeldEvent event) {
-        if(selected) {
-            selected = false;
-            onDeselected(event);
-        }
-    }
-
     public void redraw() {
-        int index = hotbarManager.currentProfile().indexOf(this);
+        int index = getSlot();
 
         if(index != -1) {
             hotbarManager.redrawHotbarObject(index);
         }
+    }
+
+    public int getSlot() {
+        return hotbarManager.currentProfile().getSlotFor(this);
     }
 
     protected void onLeftClick(@NotNull PlayerInteractEvent event) {}

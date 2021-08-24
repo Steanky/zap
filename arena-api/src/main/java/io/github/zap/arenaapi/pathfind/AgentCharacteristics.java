@@ -6,31 +6,36 @@ import org.jetbrains.annotations.NotNull;
 
 public class AgentCharacteristics {
     private static final double DEFAULT_JUMP_HEIGHT = 1.125D;
+    private static final int DEFAULT_FALL_TOLERANCE = 16;
 
     private final BoundingBox bounds;
     private final double jumpHeight;
+    private final int maxFall;
     private final double width;
     private final double height;
 
-    public AgentCharacteristics(double width, double height, double jumpHeight) {
+    public AgentCharacteristics(double width, double height, double jumpHeight, int maxFall) {
         bounds = new BoundingBox(0, 0, 0, width, height, width);
         this.jumpHeight = jumpHeight;
 
+        this.maxFall = maxFall;
         this.width  = width;
         this.height = height;
     }
 
     public AgentCharacteristics(double width, double height) {
-        this(width, height, DEFAULT_JUMP_HEIGHT);
+        this(width, height, DEFAULT_JUMP_HEIGHT, DEFAULT_FALL_TOLERANCE);
     }
 
     public AgentCharacteristics(@NotNull Entity fromEntity) {
-        this(fromEntity.getWidth(), fromEntity.getHeight(), DEFAULT_JUMP_HEIGHT);
+        this(fromEntity.getWidth(), fromEntity.getHeight(), DEFAULT_JUMP_HEIGHT, DEFAULT_FALL_TOLERANCE);
     }
 
     public AgentCharacteristics() {
-        this(0, 0, DEFAULT_JUMP_HEIGHT);
+        this(0, 0, DEFAULT_JUMP_HEIGHT, DEFAULT_FALL_TOLERANCE);
     }
+
+    public double maxFall() { return maxFall; }
 
     public double width() {
         return width;

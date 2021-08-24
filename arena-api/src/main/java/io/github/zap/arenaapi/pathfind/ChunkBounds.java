@@ -68,6 +68,18 @@ public class ChunkBounds implements ChunkCoordinateProvider {
     }
 
     @Override
+    public boolean hasBlock(int x, int y, int z) {
+        if(y > -1 && y < 256) {
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+
+            return hasChunk(chunkX, chunkZ);
+        }
+
+        return false;
+    }
+
+    @Override
     public int chunkCount() {
         return (maxX - minX) * (maxZ - minZ);
     }

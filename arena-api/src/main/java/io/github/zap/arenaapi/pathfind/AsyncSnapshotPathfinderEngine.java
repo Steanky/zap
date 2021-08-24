@@ -8,20 +8,24 @@ import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
-public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract<SynchronizedPathfinderContext> implements Listener {
-    private static final AsyncSnapshotPathfinderEngine INSTANCE = new AsyncSnapshotPathfinderEngine();
-
+class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract<SynchronizedPathfinderContext> implements Listener {
     private static final int MIN_CHUNK_SYNC_AGE = 40;
     private static final int PATH_CAPACITY = 32;
     private static final int MAX_SCHEDULED_SYNC_TASKS = 2;
     private static final double PERCENTAGE_STALE_REQUIRED_TO_FORCE = 0.9;
     private static final int CHUNK_SYNC_TIMEOUT_MS = 1000;
+
+    AsyncSnapshotPathfinderEngine(@NotNull Plugin plugin) { //singleton
+        super(new ConcurrentHashMap<>(), plugin);
+    }
 
     @Override
     protected void preProcess(@NotNull SynchronizedPathfinderContext context, @NotNull PathOperation operation) {
@@ -34,12 +38,8 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
     }
 
     @Override
-    protected @NotNull BlockCollisionProvider getBlockCollisionProvider(@NotNull World world) {
+    protected @NotNull BlockCollisionProvider makeBlockCollisionProvider(@NotNull World world) {
         return new SnapshotBlockCollisionProvider(world, MIN_CHUNK_SYNC_AGE);
-    }
-
-    private AsyncSnapshotPathfinderEngine() { //singleton
-        super(new ConcurrentHashMap<>());
     }
 
     /**
@@ -81,8 +81,9 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
                 try {
                     context.acquirePermit();
                 }
-                catch (InterruptedException e) {
-                    ArenaApi.warning("Interrupted while attempting to force acquire synchronization semaphore.");
+                catch (InterruptedException exception) {
+                    plugin.getLogger().log(Level.WARNING, "Interrupted while attempting to force acquire " +
+                            "synchronization semaphore", exception);
                     return;
                 }
             }
@@ -93,8 +94,7 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
                     context.blockProvider().updateRegion(coordinateProvider);
                 }
                 catch (Exception exception) {
-                    ArenaApi.warning("An exception occurred while synchronizing chunks:");
-                    exception.printStackTrace();
+                    plugin.getLogger().log(Level.WARNING, "An exception occurred while synchronizing chunks", exception);
                 }
                 finally {
                     context.reportSync();
@@ -108,18 +108,15 @@ public class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract
                 if(force) {
                     latch.await(); //await forever if forced, to ensure pathing in urgent cases is not premature
                 } else if(!latch.await(CHUNK_SYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-                    ArenaApi.warning("Chunk synchronizing took more than " + CHUNK_SYNC_TIMEOUT_MS + "ms! Is the server lagging?");
+                    plugin.getLogger().log(Level.WARNING, "Chunk synchronizing took more than " + CHUNK_SYNC_TIMEOUT_MS + "ms! Is the server lagging?");
+                    plugin.getLogger().log(Level.WARNING, "Cancelling sync.");
                     Bukkit.getScheduler().cancelTask(taskId); //don't bother to finish sync on a laggy server
                     latch.countDown(); //idk if necessary
                 }
-            } catch (InterruptedException ignored) {
-                ArenaApi.warning("Interrupted while waiting for chunks to sync.");
+            } catch (InterruptedException exception) {
+                plugin.getLogger().log(Level.WARNING, "Interrupted while waiting for chunks to sync", exception);
                 Bukkit.getScheduler().cancelTask(taskId);
             }
         }
-    }
-
-    public static AsyncSnapshotPathfinderEngine getInstance() {
-        return INSTANCE;
     }
 }

@@ -49,6 +49,7 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
     private void tryAttack(LivingEntity target) {
         if(this.attackTimer <= 0) {
             Location location = target.getLocation();
+
             if (getArenaNmsBridge().entityBridge().distanceTo(self, location.getX(), location.getY(), location.getZ())
                     <= this.checkDistance(target)) {
                 this.resetAttackTimer();
@@ -65,5 +66,4 @@ public class OptimizedMeleeAttack extends RetargetingPathfinder {
     private double checkDistance(LivingEntity target) {
         return (self.getWidth() * self.getWidth() * attackReachSquared + target.getWidth());
     }
-
 }

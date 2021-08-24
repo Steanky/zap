@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.hotbar2;
 
+import io.github.zap.arenaapi.event.EventRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -23,7 +24,10 @@ public interface HotbarManager {
 
     void redrawHotbarGroup(@NotNull String groupName);
 
-    static @NotNull HotbarManager newManager(@NotNull HotbarCanvas canvas, @NotNull Supplier<HotbarProfile> profileSupplier) {
-        return new BasicHotbarManager(canvas, profileSupplier);
+    @NotNull EventRegister eventRegister();
+
+    static @NotNull HotbarManager newManager(@NotNull EventRegister eventRegister, @NotNull HotbarCanvas canvas,
+                                             @NotNull Supplier<HotbarProfile> profileSupplier) {
+        return new BasicHotbarManager(eventRegister, canvas, profileSupplier);
     }
 }

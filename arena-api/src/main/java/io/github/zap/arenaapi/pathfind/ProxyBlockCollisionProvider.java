@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
+import com.google.common.collect.MapMaker;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
@@ -15,12 +16,13 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
-    private final Map<Vector2I, CollisionChunkView> chunkMap = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<Vector2I, CollisionChunkView> chunkCache;
 
     private final WorldBridge worldBridge = ArenaApi.getInstance().getNmsBridge().worldBridge();
 
-    ProxyBlockCollisionProvider(@NotNull World world) {
+    ProxyBlockCollisionProvider(@NotNull World world, int concurrency) {
         super(world, true);
+        chunkCache = new MapMaker().weakValues().concurrencyLevel(concurrency).makeMap();
     }
 
     @Override
@@ -32,13 +34,14 @@ class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
     @Override
     public @Nullable CollisionChunkView chunkAt(int x, int z) {
         Vector2I loc = Vectors.of(x, z);
-        CollisionChunkView view = chunkMap.get(loc);
+        CollisionChunkView view = chunkCache.get(loc);
 
         if(view == null) {
             Chunk chunk = worldBridge.getChunkIfLoadedImmediately(world, x, z);
+
             if(chunk != null) {
                 view = worldBridge.proxyView(chunk);
-                chunkMap.put(loc, view);
+                chunkCache.put(loc, view);
             }
         }
 

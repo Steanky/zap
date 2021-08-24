@@ -1,8 +1,6 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.PathDestination;
-import io.github.zap.arenaapi.pathfind.PathOperation;
-import io.github.zap.arenaapi.pathfind.PathResult;
+import io.github.zap.arenaapi.pathfind.*;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
@@ -34,14 +32,14 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
         }
 
         if(arena != null) {
-            //player.getPlayer() should NEVER throw an NPE, since we just checked isAlive in the stream
-            Set<PathDestination> validTargets = arena.getPlayerMap().values().stream().filter(ZombiesPlayer::isAlive)
-                    .map(player -> PathDestination.fromEntity(Objects.requireNonNull(player.getPlayer()), player, true))
-                    .filter(Objects::nonNull).collect(Collectors.toSet());
+            ZombiesPlayer closestPlayer = closestPlayer(arena);
 
-            if(!validTargets.isEmpty()) {
-                PathOperation operation = PathOperation.forEntityWalking(self, validTargets, arena.getMapBounds(),
-                        targetDeviation);
+            if(closestPlayer != null) {
+                PathOperation operation = new PathOperationBuilder()
+                        .withAgent(self)
+                        .withDestination(Objects.requireNonNull(closestPlayer.getPlayer()), closestPlayer)
+                        .withRange(arena.getMapBounds())
+                        .build();
 
                 if(operation != null) {
                     getHandler().queueOperation(operation, self.getWorld());
@@ -58,16 +56,44 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                                 this.result = result;
                             }
                             else {
-                                this.zombiesPlayer = null;
+                                clearTarget();
                             }
                         }
                     }
                 }
+            }
+            else {
+                clearTarget();
             }
         }
     }
 
     protected void setPath(@NotNull PathResult result) {
         getNavigator().navigateAlongPath(result.toPathEntity(), speed);
+    }
+
+    protected ZombiesPlayer closestPlayer(ZombiesArena arena) {
+        double closestDistance = Double.MAX_VALUE;
+        ZombiesPlayer closestPlayer = null;
+
+        for(ZombiesPlayer player : arena.getPlayerMap().values()) {
+            if(player.isAlive() && player.isInGame()) {
+                Player bukkitPlayer = player.getPlayer();
+                if(bukkitPlayer != null) {
+                    double distance = self.getLocation().distanceSquared(bukkitPlayer.getLocation());
+                    if(distance < closestDistance) {
+                        closestDistance = distance;
+                        closestPlayer = player;
+                    }
+                }
+            }
+        }
+
+        return closestPlayer;
+    }
+
+    protected void clearTarget() {
+        self.setTarget(null);
+        zombiesPlayer = null;
     }
 }

@@ -132,6 +132,10 @@ public class Vectors {
                 NumberConversions.floor(other.z()));
     }
 
+    public static @NotNull Vector3I asIntFloor(double x, double y, double z) {
+        return new Vector3IImpl(NumberConversions.floor(x), NumberConversions.floor(y), NumberConversions.floor(z));
+    }
+
     public static @NotNull Vector3I asChunkRelative(@NotNull Vector3I worldRelative) {
         return new Vector3IImpl(worldRelative.x() & 15, worldRelative.y(), worldRelative.z() & 15);
     }
@@ -346,5 +350,9 @@ public class Vectors {
 
     public static boolean equals(@NotNull Vector3I first, @NotNull Vector3I second) {
         return first.x() == second.x() && first.y() == second.y() && first.z() == second.z();
+    }
+
+    public static boolean equals(@NotNull Vector3I first, int x, int y, int z) {
+        return first.x() == x && first.y() == y && first.z() == z;
     }
 }

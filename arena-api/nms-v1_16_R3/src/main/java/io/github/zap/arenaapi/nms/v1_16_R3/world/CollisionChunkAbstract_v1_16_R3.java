@@ -111,7 +111,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
             while(iterator.hasNext()) {
                 BlockCollisionView snapshot = iterator.next();
 
-                if(snapshot.overlaps(overlap)) {
+                if(snapshot != null && snapshot.overlaps(overlap)) {
                     return true;
                 }
             }
@@ -131,7 +131,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
             while(iterator.hasNext()) {
                 BlockCollisionView snapshot = iterator.next();
 
-                if(snapshot.overlaps(overlap)) {
+                if(snapshot != null && snapshot.overlaps(overlap)) {
                     shapes.add(snapshot);
                 }
             }

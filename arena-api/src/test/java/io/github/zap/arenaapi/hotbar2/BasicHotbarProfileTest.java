@@ -1,9 +1,6 @@
 package io.github.zap.arenaapi.hotbar2;
 
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +14,6 @@ class BasicHotbarProfileTest {
         }
 
         @Override
-        public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
-
-        }
-
-        @Override
         public void cleanup() {
 
         }
@@ -29,16 +21,6 @@ class BasicHotbarProfileTest {
         @Override
         public boolean isSelected() {
             return false;
-        }
-
-        @Override
-        public void setSelected(@NotNull PlayerItemHeldEvent event) {
-
-        }
-
-        @Override
-        public void setDeselected(@NotNull PlayerItemHeldEvent event) {
-
         }
     }
 
@@ -122,7 +104,7 @@ class BasicHotbarProfileTest {
         HotbarObject object = new MockHotbarObject();
         profile.putObject(object, 5);
 
-        Assertions.assertEquals(5, profile.indexOf(object));
+        Assertions.assertEquals(5, profile.getSlotFor(object));
     }
 
     @Test
@@ -130,7 +112,7 @@ class BasicHotbarProfileTest {
         HotbarObject object = new MockHotbarObject();
         profile.putObject(object, 5);
 
-        Assertions.assertEquals(-1, profile.indexOf(new MockHotbarObject()));
+        Assertions.assertEquals(-1, profile.getSlotFor(new MockHotbarObject()));
     }
 
     @Test

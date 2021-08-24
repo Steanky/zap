@@ -177,9 +177,9 @@ public class ArrayChunkGraph<T> implements ChunkGraph<T> {
      * width * height.
      *
      * The region of values over which this array may be used is determined by the minX, minZ, maxX and maxZ parameters.
-     * Specifically, one cannot store elements whose key would be outside of the specified bounds. More specifically,
-     * the key's X and Z values cannot go below their respective min, nor can they equal or exceed their respective
-     * max. If the key is invalid (out of bounds), an ArrayIndexOutOfBounds exception will be thrown.
+     * Specifically, one cannot store elements whose key would be outside the specified bounds. More specifically, the
+     * key's X and Z values cannot go below their respective min, nor can they equal or exceed their respective max. If
+     * the key is invalid (out of bounds), an ArrayIndexOutOfBounds exception will be thrown.
      *
      * For accessing values using triplets of integers, this collection is consistently 2-3 times faster than an
      * equivalent hashmap-based setup.
