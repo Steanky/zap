@@ -49,6 +49,10 @@ public class Corpse {
         this.deathTime = deathTime;
     }
 
+    public void tick() {
+
+    }
+
     public void setReviver(@Nullable ZombiesPlayer reviver) {
         if (!active) {
             return;

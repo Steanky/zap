@@ -1,18 +1,19 @@
-package io.github.zap.zombies.game2.arena.player;
+package io.github.zap.zombies.game2.arena.hiddenplayer;
 
+import io.github.zap.arenaapi.hotbar2.PlayerView;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
+public interface HiddenPlayers {
 
-public interface HiddenPlayersManager {
-
-    void addPlayer(@NotNull Supplier<Player> player);
+    void addPlayer(@NotNull PlayerView playerView);
 
     void removePlayer(@NotNull Player player);
 
     void showHiddenPlayersToPlayer(@NotNull Player player);
 
     void hideHiddenPlayersForPlayer(@NotNull Player player);
+
+    void unhideAll();
 
 }

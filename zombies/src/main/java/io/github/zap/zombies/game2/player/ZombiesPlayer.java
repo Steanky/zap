@@ -7,7 +7,6 @@ import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game2.player.armor.ArmorHolder;
 import io.github.zap.zombies.game2.player.coin.Coins;
 import io.github.zap.zombies.game2.player.kills.Kills;
-import io.github.zap.zombies.game2.player.state.PlayerStateManager;
 import io.github.zap.zombies.game2.player.task.PlayerTask;
 import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +16,6 @@ import java.util.List;
 public class ZombiesPlayer implements Damager {
 
     private final PlayerView playerView;
-
-    private final PlayerStateManager playerStateManager;
 
     private final ArmorHolder armorHolder;
 
@@ -30,13 +27,14 @@ public class ZombiesPlayer implements Damager {
 
     private final List<PlayerTask> tasks;
 
+    private String state = ZombiesPlayerState.ALIVE;
+
     private boolean inGame = true;
 
-    public ZombiesPlayer(@NotNull PlayerView playerView, @NotNull PlayerStateManager playerStateManager,
-                         @NotNull ArmorHolder armorHolder, @NotNull HotbarManager hotbarManager, @NotNull Kills kills,
-                         @NotNull Coins coins, @NotNull List<PlayerTask> tasks) {
+    public ZombiesPlayer(@NotNull PlayerView playerView, @NotNull ArmorHolder armorHolder,
+                         @NotNull HotbarManager hotbarManager, @NotNull Kills kills, @NotNull Coins coins,
+                         @NotNull List<PlayerTask> tasks) {
         this.playerView = playerView;
-        this.playerStateManager = playerStateManager;
         this.armorHolder = armorHolder;
         this.hotbarManager = hotbarManager;
         this.kills = kills;
@@ -48,10 +46,6 @@ public class ZombiesPlayer implements Damager {
         return playerView;
     }
 
-    public @NotNull PlayerStateManager getPlayerStateManager() {
-        return playerStateManager;
-    }
-
     public @NotNull ArmorHolder getArmorHolder() {
         return armorHolder;
     }
@@ -60,15 +54,23 @@ public class ZombiesPlayer implements Damager {
         return hotbarManager;
     }
 
-    public @NotNull Coins getCoinManager() {
+    public @NotNull Kills getKills() {
+        return kills;
+    }
+
+    public @NotNull Coins getCoins() {
         return coins;
+    }
+
+    public @NotNull String getState() {
+        return state;
     }
 
     public boolean isInGame() {
         return inGame;
     }
 
-    public void tickTasks() {
+    public void tick() {
         for (PlayerTask task : tasks) {
             task.tick();
         }
