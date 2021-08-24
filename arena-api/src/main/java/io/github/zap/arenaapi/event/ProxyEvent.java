@@ -7,8 +7,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
 
 /**
  * Class that proxies Bukkit events to ArenaApi ones for better encapsulation and control. Event registration with
@@ -35,7 +37,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
      * @param ignoreCancelled Whether or not we ignore cancelled events. If set to true, cancelled events will not
      *                        cause this ProxyEvent to fire. If set to true, it will fire regardless.
      */
-    public ProxyEvent(Plugin plugin, Class<T> bukkitEventClass, EventPriority priority,
+    public ProxyEvent(@NotNull Plugin plugin, @NotNull Class<T> bukkitEventClass, @NotNull EventPriority priority,
                       boolean ignoreCancelled) {
         this.plugin = plugin;
         this.bukkitEventClass = bukkitEventClass;
@@ -48,12 +50,12 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
      * @param plugin The plugin to register the Bukkit event under
      * @param bukkitEventClass The Bukkit event we're wrapping
      */
-    public ProxyEvent(Plugin plugin, Class<T> bukkitEventClass) {
+    public ProxyEvent(@NotNull Plugin plugin, @NotNull Class<T> bukkitEventClass) {
         this(plugin, bukkitEventClass, EventPriority.NORMAL, true);
     }
 
     @Override
-    public void registerHandler(EventHandler<T> handler) {
+    public void registerHandler(@NotNull EventHandler<T> handler) {
         super.registerHandler(handler);
 
         /*
@@ -88,7 +90,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
     }
 
     @Override
-    public void removeHandler(EventHandler<T> handler) {
+    public void removeHandler(@NotNull EventHandler<T> handler) {
         super.removeHandler(handler);
     }
 
@@ -105,7 +107,7 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
                 handlerList.unregister(registeredListener);
             }
             else {
-                ArenaApi.warning("Had to use slow method of handler unregistration; handlerList was null.");
+                plugin.getLogger().log(Level.WARNING, "Had to use slow method of handler deregistration; handlerList was null");
                 HandlerList.unregisterAll(this);
             }
         }
@@ -116,10 +118,8 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
             try {
                 handlerList = (HandlerList)bukkitEventClass.getMethod("getHandlerList").invoke(null);
             }
-            catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException ignored) {
-                ArenaApi.warning("Failed to reflect getHandlerList due to a reflection-related exception.");
-                ArenaApi.warning("Name of event class we couldn't reflect: " + bukkitEventClass.getName());
-                ArenaApi.warning("This shouldn't cause bugs or crashes, but may reduce performance.");
+            catch(NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException exception) {
+                plugin.getLogger().log(Level.WARNING, "Failed to reflect getHandlerList due to a reflection-related exception", exception);
             }
         }
     }

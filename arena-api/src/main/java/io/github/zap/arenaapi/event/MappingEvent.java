@@ -1,10 +1,11 @@
 package io.github.zap.arenaapi.event;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Filters an event's calls based on the results of a MappingPredicate, which performs a validation and a conversion
- * on the given inpput arguments.
+ * on the given input arguments.
  * @param <T> The argument type of the event we are wrapping
  * @param <U> The argument type of this event
  */
@@ -19,7 +20,7 @@ public class MappingEvent<T, U> extends Event<U> {
      * @param event The event to register to
      * @param mapper The mapper to test and convert event arguments
      */
-    public MappingEvent(Event<T> event, MappingPredicate<T, U> mapper) {
+    public MappingEvent(@NotNull Event<T> event, @NotNull MappingPredicate<T, U> mapper) {
         underlyingEvent = event;
 
         event.registerHandler((args) -> {
@@ -37,7 +38,6 @@ public class MappingEvent<T, U> extends Event<U> {
         }
 
         super.dispose();
-
         underlyingEvent.dispose();
     }
 }
