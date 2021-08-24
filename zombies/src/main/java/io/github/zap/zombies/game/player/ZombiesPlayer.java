@@ -462,7 +462,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 }
             }
 
-            if(coins != -1) {
+            if(coins == -1) {
                 coins = attempt.getCoins(this, damaged);
             }
 
