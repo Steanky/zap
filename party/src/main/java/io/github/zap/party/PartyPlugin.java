@@ -5,7 +5,6 @@ import io.github.zap.party.command.PartyCommand;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
 import io.papermc.paper.event.player.AsyncChatEvent;
-import lombok.Getter;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.apache.commons.lang3.time.StopWatch;
 import org.bukkit.Bukkit;
