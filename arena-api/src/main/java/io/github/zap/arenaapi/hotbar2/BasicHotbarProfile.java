@@ -12,10 +12,21 @@ class BasicHotbarProfile implements HotbarProfile {
     private final HotbarObject[] objects = new HotbarObject[CAPACITY];
     private final HotbarGroupView groupView = new BasicHotbarGroupView(this);
 
-    private HotbarObject lastObject = null;
+    private HotbarObject.Slotted lastObject = null;
     private int lastIndex = -1;
 
     BasicHotbarProfile() {}
+
+    private void reportIndexChange(int... changed) {
+        if(lastObject != null) {
+            for(int index : changed) {
+                if(lastObject.getSlot() == index) {
+                    lastObject = null;
+                    return;
+                }
+            }
+        }
+    }
 
     @Override
     public void putObject(@NotNull HotbarObject object, int slot) {
@@ -26,6 +37,7 @@ class BasicHotbarProfile implements HotbarProfile {
         }
 
         objects[slot] = object;
+        reportIndexChange(slot);
     }
 
     @Override
@@ -37,6 +49,7 @@ class BasicHotbarProfile implements HotbarProfile {
         }
 
         objects[slot] = null;
+        reportIndexChange(slot);
     }
 
     @Override
@@ -46,6 +59,7 @@ class BasicHotbarProfile implements HotbarProfile {
 
         objects[indexTo] = from;
         objects[indexFrom] = to;
+        reportIndexChange(indexFrom, indexTo);
     }
 
     @Override
@@ -66,7 +80,8 @@ class BasicHotbarProfile implements HotbarProfile {
 
     @Override
     public int getSlotFor(@NotNull HotbarObject object) {
-        if(object == lastObject) { //for render loops that frequently index the same item, don't iterate again
+        //for render loops that frequently index the same item, don't iterate again
+        if(lastObject != null && lastObject.getHotbarObject() == object) {
             return lastIndex;
         }
 
@@ -74,7 +89,7 @@ class BasicHotbarProfile implements HotbarProfile {
             HotbarObject sample = objects[i];
 
             if(object == sample) {
-                lastObject = sample;
+                lastObject = new HotbarObject.Slotted(object, i);
                 return lastIndex = i;
             }
         }
