@@ -16,7 +16,7 @@ class BasicHotbarGroupView implements HotbarGroupView {
 
     private boolean validateNewSlots(int[] newSlots) {
         for(int newSlot : newSlots) {
-            if(newSlot < 0 || newSlot > 8) {
+            if(newSlot < 0 || newSlot >= profile.slotCapacity()) {
                 return false;
             }
 

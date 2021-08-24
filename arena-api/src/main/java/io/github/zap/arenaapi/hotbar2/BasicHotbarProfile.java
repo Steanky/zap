@@ -50,9 +50,9 @@ class BasicHotbarProfile implements HotbarProfile {
 
     @Override
     public HotbarObject.Slotted[] getObjects() {
-        HotbarObject.Slotted[] newArray = new HotbarObject.Slotted[objects.length];
+        HotbarObject.Slotted[] newArray = new HotbarObject.Slotted[CAPACITY];
 
-        for(int i = 0; i < objects.length; i++) {
+        for(int i = 0; i < CAPACITY; i++) {
             newArray[i] = new HotbarObject.Slotted(objects[i], i);
         }
 
@@ -70,8 +70,9 @@ class BasicHotbarProfile implements HotbarProfile {
             return lastIndex;
         }
 
-        for(int i = 0; i < objects.length; i++) {
+        for(int i = 0; i < CAPACITY; i++) {
             HotbarObject sample = objects[i];
+
             if(object == sample) {
                 lastObject = sample;
                 return lastIndex = i;
