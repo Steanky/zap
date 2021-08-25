@@ -15,7 +15,7 @@ import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
 import io.github.zap.arenaapi.nms.v1_16_R3.ArenaNMSBridge_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
-import io.github.zap.party.PartyPlusPlus;
+import io.github.zap.party.plugin.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import org.apache.commons.lang3.Validate;

@@ -7,8 +7,8 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import io.github.zap.party.plugin.tracker.PartyTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -25,16 +25,16 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
             new Parameter("\\w+", "[player-name]")
     };
 
-    private final PartyPlusPlus partyPlusPlus;
+    private final PartyTracker partyTracker;
 
     private final CommandValidator<OfflinePlayer, ?> validator;
 
-    public KickMemberForm(@NotNull PartyPlusPlus partyPlusPlus) {
+    public KickMemberForm(@NotNull PartyTracker partyTracker) {
         super("Kicks a member from your party.", Permissions.NONE, PARAMETERS);
 
-        this.partyPlusPlus = partyPlusPlus;
+        this.partyTracker = partyTracker;
         this.validator = new CommandValidator<>((context, arguments, previousData) -> {
-            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            Optional<Party> partyOptional = partyTracker.getPartyForPlayer(previousData);
             if (partyOptional.isEmpty()) {
                 return ValidationResult.of(false, "You are not currently in a party.", null);
             }
@@ -56,7 +56,7 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
                         null);
             }
 
-            Optional<Party> toKickPartyOptional = partyPlusPlus.getPartyForPlayer(toKick);
+            Optional<Party> toKickPartyOptional = partyTracker.getPartyForPlayer(toKick);
             if (toKickPartyOptional.isPresent()) {
                 if (party.equals(toKickPartyOptional.get())) {
                     return ValidationResult.of(true, null, toKick);
@@ -70,12 +70,12 @@ public class KickMemberForm extends CommandForm<OfflinePlayer> {
 
     @Override
     public CommandValidator<OfflinePlayer, ?> getValidator(Context context, Object[] arguments) {
-        return validator;
+        return this.validator;
     }
 
     @Override
     public String execute(Context context, Object[] arguments, OfflinePlayer data) {
-        partyPlusPlus.getPartyForPlayer(data).ifPresent(party -> party.removeMember(data, true));
+        this.partyTracker.getPartyForPlayer(data).ifPresent(party -> party.removeMember(data, true));
         return null;
     }
 

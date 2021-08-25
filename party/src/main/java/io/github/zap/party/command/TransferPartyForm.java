@@ -7,8 +7,8 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import io.github.zap.party.plugin.tracker.PartyTracker;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -28,11 +28,11 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
 
     private final CommandValidator<Pair<Party, Player>, ?> validator;
 
-    public TransferPartyForm(@NotNull PartyPlusPlus partyPlusPlus) {
+    public TransferPartyForm(@NotNull PartyTracker partyTracker) {
         super("Transfers the party to another member.", Permissions.NONE, PARAMETERS);
 
         this.validator = new CommandValidator<>((context, arguments, previousData) -> {
-            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            Optional<Party> partyOptional = partyTracker.getPartyForPlayer(previousData);
             if (partyOptional.isEmpty()) {
                 return ValidationResult.of(false, "You are not currently in a party.", null);
             }
@@ -45,15 +45,17 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
 
             String playerName = (String) arguments[1];
             if (previousData.getName().equalsIgnoreCase(playerName)) {
-                return ValidationResult.of(false, "You cannot transfer the party to yourself.", null);
+                return ValidationResult.of(false, "You cannot transfer the party to yourself.",
+                        null);
             }
 
             Player toTransfer = Bukkit.getPlayer(playerName);
             if (toTransfer == null) {
-                return ValidationResult.of(false, String.format("%s is currently not online.", playerName), null);
+                return ValidationResult.of(false, String.format("%s is currently not online.", playerName),
+                        null);
             }
 
-            Optional<Party> toTransferPartyOptional = partyPlusPlus.getPartyForPlayer(toTransfer);
+            Optional<Party> toTransferPartyOptional = partyTracker.getPartyForPlayer(toTransfer);
             if (toTransferPartyOptional.isPresent()) {
                 Party toTransferParty = toTransferPartyOptional.get();
                 if (party.equals(toTransferParty)) {
@@ -67,7 +69,7 @@ public class TransferPartyForm extends CommandForm<Pair<Party, Player>> {
 
     @Override
     public CommandValidator<Pair<Party, Player>, ?> getValidator(Context context, Object[] arguments) {
-        return validator;
+        return this.validator;
     }
 
     @Override

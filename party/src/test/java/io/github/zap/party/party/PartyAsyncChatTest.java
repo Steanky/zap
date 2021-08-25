@@ -1,9 +1,19 @@
 package io.github.zap.party.party;
 
+import io.github.zap.party.party.chat.BasicPartyChatHandler;
+import io.github.zap.party.party.invitation.TimedInvitationManager;
+import io.github.zap.party.party.list.BasicPartyLister;
+import io.github.zap.party.party.list.PartyLister;
+import io.github.zap.party.party.member.PartyMember;
+import io.github.zap.party.party.namer.OfflinePlayerNamer;
+import io.github.zap.party.party.namer.SingleTextColorOfflinePlayerNamer;
+import io.github.zap.party.party.settings.PartySettings;
+import io.github.zap.party.plugin.PartyPlugin;
 import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -25,13 +35,13 @@ public class PartyAsyncChatTest {
 
     private final static int BEST_TICK = 69;
 
-    private final MiniMessage miniMessage = MiniMessage.get();
-
     private static Server server;
 
-    private Player owner, member, noob;
+    private final MiniMessage miniMessage = MiniMessage.get();
 
-    private Plugin plugin;
+    private Party party;
+
+    private Player owner, member, noob;
 
     @BeforeAll
     public static void start() {
@@ -67,19 +77,26 @@ public class PartyAsyncChatTest {
         OngoingStubbing<Collection<? extends Player>> ongoingStubbing = Mockito.when(Bukkit.getServer().getOnlinePlayers());
         ongoingStubbing.thenReturn(List.of(this.owner, this.member, this.noob)); // why does java hate me? why can't I put it on one line?
 
-        this.plugin = Mockito.mock(Plugin.class);
+        Plugin plugin = Mockito.mock(Plugin.class);
+        Random random = new Random();
+        OfflinePlayerNamer playerNamer = new SingleTextColorOfflinePlayerNamer();
+        PartyLister partyLister = new BasicPartyLister(plugin, this.miniMessage,
+                new SingleTextColorOfflinePlayerNamer(NamedTextColor.GREEN),
+                new SingleTextColorOfflinePlayerNamer(NamedTextColor.RED),
+                new SingleTextColorOfflinePlayerNamer(NamedTextColor.BLUE));
+        this.party = new Party(this.miniMessage, random, new PartyMember(this.owner),
+                new PartySettings(), PartyMember::new,
+                new TimedInvitationManager(plugin, this.miniMessage, playerNamer),
+                new BasicPartyChatHandler(plugin, this.miniMessage), partyLister, playerNamer);
     }
 
     @Test
     public void testAsyncChatFromPlayerNotInParty() {
-        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
-                PartyMember::new);
-
         Set<Audience> audiences = Set.of(this.owner, this.noob);
         Component originalMessage = Component.text("Hello, World!");
         AsyncChatEvent event = new AsyncChatEvent(true, this.noob, new HashSet<>(audiences),
                 Mockito.mock(ChatRenderer.class), originalMessage, originalMessage);
-        party.onAsyncChat(event);
+        this.party.onAsyncChat(event);
 
         Assertions.assertFalse(event.isCancelled());
         Assertions.assertEquals(audiences, event.viewers());
@@ -88,15 +105,13 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromUnmutedPlayerInUnmutedPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
-                PartyMember::new);
-        party.addMember(this.member);
+        this.party.addMember(this.member);
 
         Component originalMessage = Component.text("Hello, World!");
         AsyncChatEvent event = new AsyncChatEvent(true, member,
                 new HashSet<>(Set.of(this.owner, this.member, this.noob)),
                 Mockito.mock(ChatRenderer.class), originalMessage, originalMessage);
-        party.onAsyncChat(event);
+        this.party.onAsyncChat(event);
 
         Assertions.assertFalse(event.isCancelled());
         Assertions.assertEquals(Set.of(this.owner, this.member, this.noob), event.viewers());
@@ -105,9 +120,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromUnmutedPlayerInUnmutedPartyInPartyChat() {
-        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
-                PartyMember::new);
-        Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
+        Optional<PartyMember> partyMemberOptional = this.party.addMember(this.member);
 
         Assertions.assertTrue(partyMemberOptional.isPresent());
         partyMemberOptional.get().setInPartyChat(true);
@@ -117,7 +130,7 @@ public class PartyAsyncChatTest {
                 new HashSet<>(Set.of(this.owner, this.member, this.noob)),
                 ChatRenderer.defaultRenderer(), originalMessage, originalMessage);
         ChatRenderer originalRenderer = event.renderer();
-        party.onAsyncChat(event);
+        this.party.onAsyncChat(event);
 
         Assertions.assertFalse(event.isCancelled());
         Assertions.assertEquals(Set.of(this.owner, this.member), event.viewers());
@@ -131,9 +144,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromMutedPlayerInPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
-                PartyMember::new);
-        Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
+        Optional<PartyMember> partyMemberOptional = this.party.addMember(this.member);
 
         Assertions.assertTrue(partyMemberOptional.isPresent());
         partyMemberOptional.get().setMuted(true);
@@ -142,7 +153,7 @@ public class PartyAsyncChatTest {
         AsyncChatEvent event = new AsyncChatEvent(true, this.member,
                 new HashSet<>(Set.of(this.owner, this.member, this.noob)),
                 Mockito.mock(ChatRenderer.class), originalMessage, originalMessage);
-        party.onAsyncChat(event);
+        this.party.onAsyncChat(event);
 
         Assertions.assertFalse(event.isCancelled());
         Assertions.assertEquals(Set.of(this.owner, this.member, this.noob), event.viewers());
@@ -150,9 +161,6 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromMutedPlayerInPartyInPartyChat() {
-        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
-                PartyMember::new);
-
         boolean[] freeze = new boolean[]{ false };
         int[] counts = new int[]{ 0 };
         Mockito.doAnswer((Answer<Void>) invocation -> {
@@ -160,8 +168,8 @@ public class PartyAsyncChatTest {
                 counts[0]++;
             }
             return null;
-        }).when(member).sendMessage(ArgumentMatchers.any(Component.class));
-        Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
+        }).when(this.member).sendMessage(ArgumentMatchers.any(Component.class));
+        Optional<PartyMember> partyMemberOptional = this.party.addMember(this.member);
 
         Assertions.assertTrue(partyMemberOptional.isPresent());
         PartyMember partyMember = partyMemberOptional.get();
@@ -173,7 +181,7 @@ public class PartyAsyncChatTest {
         AsyncChatEvent event = new AsyncChatEvent(true, this.member,
                 new HashSet<>(Set.of(this.owner, this.member, this.noob)),
                 Mockito.mock(ChatRenderer.class), originalMessage, originalMessage);
-        party.onAsyncChat(event);
+        this.party.onAsyncChat(event);
 
         Assertions.assertTrue(event.isCancelled());
         Mockito.verify(this.member, Mockito.times(counts[0] + 1))
@@ -182,16 +190,14 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerInMutedPartyNotInPartyChat() {
-        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
-                PartyMember::new);
-        party.getPartySettings().setMuted(true);
-        party.addMember(this.member);
+        this.party.getPartySettings().setMuted(true);
+        this.party.addMember(this.member);
 
         Component originalMessage = Component.text("Hello, World!");
         AsyncChatEvent event = new AsyncChatEvent(true, this.member,
                 new HashSet<>(Set.of(this.owner, this.member, this.noob)),
                 Mockito.mock(ChatRenderer.class), originalMessage, originalMessage);
-        party.onAsyncChat(event);
+        this.party.onAsyncChat(event);
 
         Assertions.assertFalse(event.isCancelled());
         Assertions.assertEquals(Set.of(this.owner, this.member, this.noob), event.viewers());
@@ -199,9 +205,7 @@ public class PartyAsyncChatTest {
 
     @Test
     public void testAsyncChatFromPlayerInMutedPartyInPartyChat() {
-        Party party = new Party(this.plugin, this.miniMessage, new PartyMember(this.owner), new PartySettings(),
-                PartyMember::new);
-        party.getPartySettings().setMuted(true);
+        this.party.getPartySettings().setMuted(true);
 
         boolean[] freeze = new boolean[]{ false };
         int[] counts = new int[]{ 0 };
@@ -210,8 +214,8 @@ public class PartyAsyncChatTest {
                 counts[0]++;
             }
             return null;
-        }).when(member).sendMessage(ArgumentMatchers.any(Component.class));
-        Optional<PartyMember> partyMemberOptional = party.addMember(this.member);
+        }).when(this.member).sendMessage(ArgumentMatchers.any(Component.class));
+        Optional<PartyMember> partyMemberOptional = this.party.addMember(this.member);
 
         Assertions.assertTrue(partyMemberOptional.isPresent());
         partyMemberOptional.get().setInPartyChat(true);
@@ -221,7 +225,7 @@ public class PartyAsyncChatTest {
         AsyncChatEvent event = new AsyncChatEvent(true, this.member,
                 new HashSet<>(Set.of(this.owner, this.member, this.noob)),
                 Mockito.mock(ChatRenderer.class), originalMessage, originalMessage);
-        party.onAsyncChat(event);
+        this.party.onAsyncChat(event);
 
         Assertions.assertTrue(event.isCancelled());
         Mockito.verify(this.member, Mockito.times(counts[0] + 1))

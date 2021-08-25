@@ -1,4 +1,4 @@
-package io.github.zap.party.party;
+package io.github.zap.party.party.settings;
 
 /**
  * Settings for a party. These can be modified by the owner.

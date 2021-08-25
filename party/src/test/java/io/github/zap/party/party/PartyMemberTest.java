@@ -1,5 +1,6 @@
 package io.github.zap.party.party;
 
+import io.github.zap.party.party.member.PartyMember;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -17,39 +18,38 @@ public class PartyMemberTest {
 
     private Server server;
 
-    private Player veryAverage;
+    private Player member;
 
     @BeforeEach
     public void setup() {
         this.server = Mockito.mock(Server.class);
         Mockito.when(this.server.getCurrentTick()).thenReturn(BEST_TICK).thenReturn(BEST_TICK + 1);
 
-        this.veryAverage = Mockito.mock(Player.class);
-        Mockito.when(this.veryAverage.getUniqueId())
-                .thenReturn(UUID.fromString("ade229bf-d062-46e8-99d8-97b667d5a127"));
-        Mockito.when(this.veryAverage.displayName()).thenReturn(Component.text("VeryAverage"));
+        this.member = Mockito.mock(Player.class);
+        Mockito.when(this.member.getUniqueId()).thenReturn(UUID.fromString("ade229bf-d062-46e8-99d8-97b667d5a127"));
+        Mockito.when(this.member.displayName()).thenReturn(Component.text("VeryAverage"));
 
-        Mockito.when(this.veryAverage.getServer()).thenReturn(this.server);
+        Mockito.when(this.member.getServer()).thenReturn(this.server);
     }
 
     @Test
     public void testGetPlayerIfOnlineWhenOnline() {
-        Mockito.when(this.veryAverage.isOnline()).thenReturn(true);
-        Mockito.when(this.veryAverage.getPlayer()).thenReturn(this.veryAverage);
-        Mockito.when(this.server.getPlayer(this.veryAverage.getUniqueId())).thenReturn(this.veryAverage);
+        Mockito.when(this.member.isOnline()).thenReturn(true);
+        Mockito.when(this.member.getPlayer()).thenReturn(this.member);
+        Mockito.when(this.server.getPlayer(this.member.getUniqueId())).thenReturn(this.member);
 
-        PartyMember partyMember = new PartyMember(this.veryAverage);
+        PartyMember partyMember = new PartyMember(this.member);
         Optional<Player> playerOptional = partyMember.getPlayerIfOnline();
         Assertions.assertTrue(playerOptional.isPresent());
-        Assertions.assertEquals(this.veryAverage, playerOptional.get());
+        Assertions.assertEquals(this.member, playerOptional.get());
     }
 
     @Test
     public void testGetPlayerIfOnlineWhenNotOnline() {
-        Mockito.when(this.veryAverage.isOnline()).thenReturn(false);
-        Mockito.when(this.server.getPlayer(this.veryAverage.getUniqueId())).thenReturn(null);
+        Mockito.when(this.member.isOnline()).thenReturn(false);
+        Mockito.when(this.server.getPlayer(this.member.getUniqueId())).thenReturn(null);
 
-        PartyMember partyMember = new PartyMember(this.veryAverage);
+        PartyMember partyMember = new PartyMember(this.member);
         Optional<Player> playerOptional = partyMember.getPlayerIfOnline();
         Assertions.assertTrue(playerOptional.isEmpty());
     }

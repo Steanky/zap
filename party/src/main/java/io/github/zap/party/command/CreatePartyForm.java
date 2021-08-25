@@ -7,11 +7,9 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import io.github.zap.party.party.PartyMember;
-import io.github.zap.party.party.PartySettings;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import io.github.zap.party.party.creator.PartyCreator;
+import io.github.zap.party.plugin.tracker.PartyTracker;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -27,17 +25,19 @@ public class CreatePartyForm extends CommandForm<Void> {
             new Parameter("create")
     };
 
+    private final PartyTracker partyTracker;
 
-    private final PartyPlusPlus partyPlusPlus;
+    private final PartyCreator partyCreator;
 
     private final CommandValidator<Void, ?> validator;
 
-    public CreatePartyForm(@NotNull PartyPlusPlus partyPlusPlus) {
+    public CreatePartyForm(@NotNull PartyTracker partyTracker, @NotNull PartyCreator partyCreator) {
         super("Creates a party.", Permissions.NONE, PARAMETERS);
 
-        this.partyPlusPlus = partyPlusPlus;
+        this.partyTracker = partyTracker;
+        this.partyCreator = partyCreator;
         this.validator = new CommandValidator<>((context, arguments, previousData) -> {
-            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer((OfflinePlayer) context.getSender());
+            Optional<Party> partyOptional = partyTracker.getPartyForPlayer((OfflinePlayer) context.getSender());
 
             if (partyOptional.isPresent()) {
                 return ValidationResult.of(false, "You are already in a party.", null);
@@ -54,15 +54,12 @@ public class CreatePartyForm extends CommandForm<Void> {
 
     @Override
     public CommandValidator<Void, ?> getValidator(Context context, Object[] arguments) {
-        return validator;
+        return this.validator;
     }
 
     @Override
     public String execute(Context context, Object[] arguments, Void data) {
-        Player sender = (Player) context.getSender();
-        partyPlusPlus.trackParty(new Party(partyPlusPlus, MiniMessage.get(),
-                new PartyMember(sender), new PartySettings(), PartyMember::new));
-
+        this.partyTracker.trackParty(this.partyCreator.createParty((Player) context.getSender()));
         return ">gold{Created a new party.}";
     }
 

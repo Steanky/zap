@@ -1,5 +1,6 @@
-package io.github.zap.party.party;
+package io.github.zap.party.party.member;
 
+import io.github.zap.party.party.Party;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -9,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * A member of a party
+ * A member of a {@link Party}.
  */
 public class PartyMember {
 
@@ -25,6 +26,10 @@ public class PartyMember {
 
     private boolean muted = false;
 
+    /**
+     * Creates a party member.
+     * @param player The player this party member initially manages.
+     */
     public PartyMember(@NotNull Player player) {
         this.server = player.getServer();
         this.playerUUID = player.getUniqueId();
@@ -47,7 +52,7 @@ public class PartyMember {
     }
 
     /**
-     * Gets the {@link OfflinePlayer} associated with this member
+     * Gets the {@link OfflinePlayer} associated with this member.
      * @return The offline player
      */
     public @NotNull OfflinePlayer getOfflinePlayer() {
@@ -60,18 +65,36 @@ public class PartyMember {
         return this.server.getOfflinePlayer(this.playerUUID);
     }
 
+    /**
+     * Gets whether the member is currently in party chat.
+     * Party messages will be routed to a specific party chat if this returns {@code true}.
+     * @return Whether the member is currently in party chat
+     */
     public boolean isInPartyChat() {
         return this.inPartyChat;
     }
 
+    /**
+     * Sets whether the member is currently in party chat.
+     * @param inPartyChat Whether the member should now be in party chat
+     */
     public void setInPartyChat(boolean inPartyChat) {
         this.inPartyChat = inPartyChat;
     }
 
+    /**
+     * Gets whether the member is muted.
+     * {@link io.github.zap.party.party.chat.PartyChatHandler}s should block messages if this returns {@code true}.
+     * @return Whether the member is currently muted
+     */
     public boolean isMuted() {
         return this.muted;
     }
 
+    /**
+     * Sets whether the member is muted.
+     * @param muted Whether the member should now be muted
+     */
     public void setMuted(boolean muted) {
         this.muted = muted;
     }

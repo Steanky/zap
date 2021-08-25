@@ -7,8 +7,8 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import io.github.zap.party.plugin.tracker.PartyTracker;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,11 +26,11 @@ public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
 
     private final CommandValidator<Pair<Party, Object[]>, ?> validator;
 
-    public PartySettingsForm(@NotNull PartyPlusPlus partyPlusPlus) {
+    public PartySettingsForm(@NotNull PartyTracker partyTracker) {
         super("Modifies party settings.", Permissions.NONE, PARAMETERS);
 
         this.validator = new CommandValidator<>((context, arguments, previousData) -> {
-            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            Optional<Party> partyOptional = partyTracker.getPartyForPlayer(previousData);
             if (partyOptional.isEmpty()) {
                 return ValidationResult.of(false, "You are not currently in a party.", null);
             }
@@ -53,7 +53,7 @@ public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
 
     @Override
     public CommandValidator<Pair<Party, Object[]>, ?> getValidator(Context context, Object[] arguments) {
-        return validator;
+        return this.validator;
     }
 
     @Override

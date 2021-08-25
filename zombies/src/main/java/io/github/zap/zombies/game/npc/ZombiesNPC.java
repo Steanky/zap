@@ -12,7 +12,7 @@ import io.github.zap.arenaapi.game.Joinable;
 import io.github.zap.arenaapi.game.SimpleJoinable;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
 import io.github.zap.arenaapi.nms.common.entity.EntityBridge;
-import io.github.zap.party.PartyPlusPlus;
+import io.github.zap.party.plugin.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -329,7 +329,7 @@ public class ZombiesNPC implements Listener {
                     Joinable joinable = null;
                     PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
                     if (partyPlusPlus != null) {
-                        Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(player);
+                        Optional<Party> partyOptional = partyPlusPlus.getPartyTracker().getPartyForPlayer(player);
                         if (partyOptional.isPresent()) {
                             if (!partyOptional.get().isOwner(player)) {
                                 player.sendMessage(Component.text("You are not the owner of the party!",

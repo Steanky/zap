@@ -7,9 +7,9 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import io.github.zap.party.party.PartyMember;
+import io.github.zap.party.party.member.PartyMember;
+import io.github.zap.party.plugin.tracker.PartyTracker;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,11 +23,11 @@ public class PartyChatForm extends CommandForm<Party> {
 
     private final CommandValidator<Party, ?> validator;
 
-    public PartyChatForm(@NotNull PartyPlusPlus partyPlusPlus) {
+    public PartyChatForm(@NotNull PartyTracker partyTracker) {
         super("Toggles party chat.", Permissions.NONE, PARAMETERS);
 
         this.validator = new CommandValidator<>((context, arguments, previousData) -> {
-            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            Optional<Party> partyOptional = partyTracker.getPartyForPlayer(previousData);
             if (partyOptional.isEmpty()) {
                 return ValidationResult.of(false, "You are not currently in a party.", null);
             }
@@ -43,7 +43,7 @@ public class PartyChatForm extends CommandForm<Party> {
 
     @Override
     public CommandValidator<Party, ?> getValidator(Context context, Object[] arguments) {
-        return validator;
+        return this.validator;
     }
 
     @Override

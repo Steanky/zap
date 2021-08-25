@@ -7,8 +7,8 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import io.github.zap.party.plugin.tracker.PartyTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -28,10 +28,10 @@ public class JoinPartyForm extends CommandForm<Party> {
 
     private final CommandValidator<Party, ?> validator;
 
-    public JoinPartyForm(@NotNull PartyPlusPlus partyPlusPlus) {
+    public JoinPartyForm(@NotNull PartyTracker partyTracker) {
         super("Joins a party.", Permissions.NONE, PARAMETERS);
         this.validator = new CommandValidator<>(((context, arguments, previousData) -> {
-            if (partyPlusPlus.getPartyForPlayer(previousData).isPresent()) {
+            if (partyTracker.getPartyForPlayer(previousData).isPresent()) {
                 return ValidationResult.of(false,
                         "You are already in a party! Leave it to join another one.", null);
             }
@@ -49,13 +49,14 @@ public class JoinPartyForm extends CommandForm<Party> {
 
             ownerName = owner.getName(); // change any capitalization
 
-            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(owner);
+            Optional<Party> partyOptional = partyTracker.getPartyForPlayer(owner);
             if (partyOptional.isEmpty()) {
                 return ValidationResult.of(false, String.format("%s is not in a party.", ownerName), null);
             }
 
             Party party = partyOptional.get();
-            if (!(party.hasInvite(previousData) || party.getPartySettings().isAnyoneCanJoin())) {
+            if (!(party.getInvitationManager().hasInvitation(previousData)
+                    || party.getPartySettings().isAnyoneCanJoin())) {
                 return ValidationResult.of(false, String.format("You don't have an invite to %s's party!",
                         ownerName), null);
             }
@@ -66,7 +67,7 @@ public class JoinPartyForm extends CommandForm<Party> {
 
     @Override
     public CommandValidator<Party, ?> getValidator(Context context, Object[] arguments) {
-        return validator;
+        return this.validator;
     }
 
     @Override

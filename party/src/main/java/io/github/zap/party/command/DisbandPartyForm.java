@@ -7,8 +7,8 @@ import io.github.regularcommands.util.Permissions;
 import io.github.regularcommands.util.Validators;
 import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
-import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
+import io.github.zap.party.plugin.tracker.PartyTracker;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -24,10 +24,10 @@ public class DisbandPartyForm extends CommandForm<Party> {
 
     private final CommandValidator<Party, ?> validator;
 
-    public DisbandPartyForm(@NotNull PartyPlusPlus partyPlusPlus) {
+    public DisbandPartyForm(@NotNull PartyTracker partyTracker) {
         super("Disbands the party.", Permissions.NONE, PARAMETERS);
         this.validator = new CommandValidator<>((context, arguments, previousData) -> {
-            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            Optional<Party> partyOptional = partyTracker.getPartyForPlayer(previousData);
 
             if (partyOptional.isEmpty()) {
                 return ValidationResult.of(false, "You are not currently in a party.", null);
@@ -44,7 +44,7 @@ public class DisbandPartyForm extends CommandForm<Party> {
 
     @Override
     public CommandValidator<Party, ?> getValidator(Context context, Object[] arguments) {
-        return validator;
+        return this.validator;
     }
 
     @Override
