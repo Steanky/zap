@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.serialize2.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.zap.arenaapi.serialize2.IOSource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -112,13 +113,7 @@ public class ArraySegment<T> implements Iterable<T> {
      * ArraySegment
      */
     public T[] copyOf() {
-        Object newArray = Array.newInstance(array.getClass().getComponentType(), array.length);
-
-        //noinspection SuspiciousSystemArraycopy
-        System.arraycopy(array, offset, newArray, 0, length);
-
-        //noinspection unchecked
-        return (T[]) newArray;
+        return Arrays.copyOfRange(array, offset, offset + length);
     }
 
     /**

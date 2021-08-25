@@ -1,9 +1,7 @@
 package io.github.zap.arenaapi.pathfind;
 
 import com.google.common.math.DoubleMath;
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
-import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.Vector2I;
@@ -11,7 +9,6 @@ import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vectors;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,62 +93,75 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
                                        @NotNull Vector3D translation) {
         BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translation));
 
-        if(!direction.isIntercardinal()) {
-            return collidesAt(expandedBounds);
-        }
-        else {
-            double width = agentBounds.getWidthX();
-            double halfWidth = width / 2;
-            int dirFac = direction.x() * direction.z();
-            List<BlockCollisionView> shapes = collidingSolidsAt(expandedBounds);
+        double width = agentBounds.getWidthX();
+        double halfWidth = width / 2;
+        int dirFac = direction.x() * direction.z();
+        double adjustedWidth = width * ((Math.abs(direction.x()) + Math.abs(direction.z())) / 2D);
 
-            for(BlockCollisionView shape : shapes) {
-                VoxelShapeWrapper collision = shape.collision();
+        List<BlockCollisionView> shapes = collidingSolidsAt(expandedBounds);
 
-                //translate to a coordinate space centered on our entity
-                double x = shape.x() - agentBounds.getCenterX();
-                double z = shape.z() - agentBounds.getCenterZ();
+        for(BlockCollisionView shape : shapes) {
+            VoxelShapeWrapper collision = shape.collision();
 
-                if(collision.anyBoundsMatches((minX, minY, minZ, maxX, maxY, maxZ) -> {
-                    minX += x;
-                    minZ += z;
+            //translate to a coordinate space centered on our entity
+            double x = shape.x() - agentBounds.getCenterX();
+            double y = shape.y() - agentBounds.getMinY();
+            double z = shape.z() - agentBounds.getCenterZ();
 
-                    maxX += x;
-                    maxZ += z;
+            if(collision.anyBoundsMatches((minX, minY, minZ, maxX, maxY, maxZ) -> {
+                minX += x;
+                minY += y;
+                minZ += z;
 
-                    if(DoubleMath.fuzzyCompare(minX, halfWidth, Vectors.EPSILON) < 0 &&
-                            DoubleMath.fuzzyCompare(maxX, -halfWidth, Vectors.EPSILON) > 0 &&
-                            DoubleMath.fuzzyCompare(minZ, halfWidth, Vectors.EPSILON) < 0 &&
-                            DoubleMath.fuzzyCompare(maxZ, -halfWidth, Vectors.EPSILON) > 0) {
-                        return false;
+                maxX += x;
+                maxY += y;
+                maxZ += z;
+
+                if(collidesAtEntity(minX, minY, minZ, maxX, maxY, maxZ, halfWidth, agentBounds.getHeight())) {
+                    return false;
+                }
+                else {
+                    if(direction == Direction.UP) {
+                        return collidesAtEntity(minX, minY, minZ, maxX, maxY, maxZ, halfWidth, expandedBounds.getHeight());
                     }
                     else {
                         return switch (dirFac) {
-                            case 1 -> diagonalCollisionCheck(width, dirFac, maxX, minZ, minX, maxZ);
-                            case -1 -> diagonalCollisionCheck(width, dirFac, minX, minZ, maxX, maxZ);
+                            case -1, 0 -> collisionCheck(adjustedWidth, direction.x(), direction.z(), minX, minZ, maxX, maxZ);
+                            case 1 -> collisionCheck(adjustedWidth, direction.x(), direction.z(), maxX, minZ, minX, maxZ);
                             default -> throw new IllegalArgumentException("dirFac was " + dirFac);
                         };
-
                     }
-                })) {
-                    return true;
                 }
+            })) {
+                return true;
             }
         }
 
         return false;
     }
 
-    private boolean diagonalCollisionCheck(double width, int dirFac, double minX, double minZ, double maxX, double maxZ) {
-        double zMinusXMin = minZ - (minX * dirFac);
+    private boolean collisionCheck(double width, int dirX, int dirZ, double minX, double minZ, double maxX, double maxZ) {
+        /*
+        inequalities:
+        (y-z) < w
+        (y-z) > -w
+         */
+
+        double zMinusXMin = (minZ * dirX) - (minX * dirZ);
         if(zMinusXMin >= width) { //min not in first
-            return maxZ - (maxX * dirFac) < width; //return max in first
+            return (maxZ * dirX) - (maxX * dirZ) < width; //return max in first
         }
 
         if(zMinusXMin > -width) { //min in first && min in second
             return true;
         }
 
-        return maxZ - (maxX * dirFac) > -width; //return max in second
+        return (maxZ * dirX) - (maxX * dirZ) > -width; //return max in second
+    }
+
+    private boolean collidesAtEntity(double minX, double minY, double minZ, double maxX, double maxY, double maxZ,
+                                     double halfWidth, double height) {
+        return -halfWidth < maxX && halfWidth > minX && 0 < maxY &&
+                height > minY && -halfWidth < maxZ && halfWidth > minZ;
     }
 }

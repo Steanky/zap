@@ -90,11 +90,6 @@ public class ProxyEvent<T extends org.bukkit.event.Event> extends Event<T> imple
     }
 
     @Override
-    public void removeHandler(@NotNull EventHandler<T> handler) {
-        super.removeHandler(handler);
-    }
-
-    @Override
     public void dispose() {
         if(super.disposed) {
             return;

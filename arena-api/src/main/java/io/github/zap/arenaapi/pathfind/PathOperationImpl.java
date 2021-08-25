@@ -13,7 +13,7 @@ class PathOperationImpl implements PathOperation {
 
     private final PathAgent agent;
     private final PathDestination destination;
-    private State state;
+
     private final HeuristicCalculator heuristicCalculator;
     private final AversionCalculator aversionCalculator;
     private final SuccessCondition condition;
@@ -22,8 +22,9 @@ class PathOperationImpl implements PathOperation {
 
     private final ChunkGraph<PathNode> visited;
     private final NodeHeap openHeap = new BinaryMinNodeHeap(32);
-    private final PathNode[] sampleBuffer = new PathNode[8];
+    private final PathNode[] sampleBuffer = new PathNode[9];
 
+    private State state = State.STARTED;
     private PathNode currentNode;
     private PathNode bestFound;
     private PathResult result;
@@ -34,7 +35,6 @@ class PathOperationImpl implements PathOperation {
                       @NotNull ChunkCoordinateProvider searchArea) {
         this.agent = agent;
         this.destination = destination;
-        this.state = State.STARTED;
         this.heuristicCalculator = heuristicCalculator;
         this.aversionCalculator = aversionCalculator;
         this.condition = condition;
@@ -167,22 +167,6 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public boolean mergeValid(@NotNull PathOperation mergeInto) {
-        AgentCharacteristics mergeIntoCharacteristics = mergeInto.agent().characteristics();
-
-        return this != mergeInto && (nodeExplorer.comparesWith(mergeInto.nodeExplorer()) &&
-                mergeIntoCharacteristics.width() >= agent.characteristics().width() &&
-                mergeIntoCharacteristics.jumpHeight() <= agent.characteristics().jumpHeight() &&
-                mergeIntoCharacteristics.height() >= agent.characteristics().height() &&
-                checkDestinationComparability(mergeInto.destination()));
-    }
-
-    @Override
-    public boolean allowMerges() {
-        return false;
-    }
-
-    @Override
     public String toString() {
         return "PathOperationImpl{agent=" + agent + ", state=" + state + ", currentNode=" + currentNode + "}";
     }
@@ -198,13 +182,5 @@ class PathOperationImpl implements PathOperation {
     private void complete(boolean success) {
         state = success ? State.SUCCEEDED : State.FAILED;
         result = new PathResultImpl(bestFound.reverse(), this, visited, destination, state);
-    }
-
-    private boolean checkDestinationComparability(Vector3I other) {
-        if(other == null) {
-            return destination == null;
-        }
-
-        return Vectors.distanceSquared(destination, other) <= MERGE_TOLERANCE_SQUARED;
     }
 }

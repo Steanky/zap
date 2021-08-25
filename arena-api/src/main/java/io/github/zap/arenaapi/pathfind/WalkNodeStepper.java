@@ -22,7 +22,7 @@ class WalkNodeStepper implements NodeStepper {
     private Vector3D lastAgentPosition;
     private BoundingBox cachedAgentBounds = null;
 
-    public WalkNodeStepper(@NotNull AgentCharacteristics characteristics) {
+    WalkNodeStepper(@NotNull AgentCharacteristics characteristics) {
         this.characteristics = characteristics;
         this.halfWidth = characteristics.width() / 2;
     }
@@ -30,13 +30,13 @@ class WalkNodeStepper implements NodeStepper {
     @Override
     public @Nullable Vector3I stepDirectional(@NotNull BlockCollisionProvider collisionProvider,
                                               @NotNull Vector3D agentPosition, @NotNull Direction direction) {
-        Vector3D horizontalTranslation = computeHorizontalTranslation(agentPosition, direction);
+        Vector3D translation = computeTranslation(agentPosition, direction);
         BoundingBox agentBounds = getAgentBounds(agentPosition);
-        BoundingBox agentBoundsShifted = agentBounds.clone().shift(horizontalTranslation.x(),
-                horizontalTranslation.y(), horizontalTranslation.z());
+        BoundingBox agentBoundsShifted = agentBounds.clone().shift(translation.x(),
+                translation.y(), translation.z());
 
-        if(collisionProvider.collidesMovingAlong(agentBounds, direction, horizontalTranslation)) {
-            if(direction.isIntercardinal()) { //mobs can't jump diagonally
+        if(collisionProvider.collidesMovingAlong(agentBounds, direction, translation)) {
+            if(direction.isIntercardinal() || direction == Direction.UP) { //mobs can't jump diagonally
                 return null;
             }
 
@@ -47,7 +47,7 @@ class WalkNodeStepper implements NodeStepper {
 
                 if(!collisionProvider.collidesMovingAlong(agentBounds, Direction.UP, Vectors.of(0, deltaY, 0)) &&
                         !collisionProvider.collidesMovingAlong(agentBounds.clone().shift(0, deltaY, 0),
-                                direction, horizontalTranslation)) {
+                                direction, translation)) {
                     return Vectors.asIntFloor(result);
                 }
             }
@@ -123,10 +123,11 @@ class WalkNodeStepper implements NodeStepper {
         return highestBlock;
     }
 
-    private Vector3D computeHorizontalTranslation(Vector3D agentPosition, Direction direction) {
+    private Vector3D computeTranslation(Vector3D agentPosition, Direction direction) {
         Vector3I agentBlockPosition = Vectors.asIntFloor(agentPosition);
         Vector3I targetBlock = Vectors.add(agentBlockPosition, direction);
         Vector3D targetBlockCenter = Vectors.add(targetBlock, BLOCK_OFFSET);
-        return Vectors.of(targetBlockCenter.x() - agentPosition.x(), 0, targetBlockCenter.z() - agentPosition.z());
+        return Vectors.of(targetBlockCenter.x() - agentPosition.x(), direction.y(),
+                targetBlockCenter.z() - agentPosition.z());
     }
 }

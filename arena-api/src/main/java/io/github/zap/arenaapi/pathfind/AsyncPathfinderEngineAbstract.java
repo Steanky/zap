@@ -76,14 +76,6 @@ abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implem
                 plugin.getLogger().log(Level.WARNING, "processOperation interrupted for PathOperation. Returning null PathResult");
                 return null;
             }
-
-            if(operation.allowMerges()) {
-                PathResult result = context.merger().attemptMerge(operation, context);
-
-                if(result != null) {
-                    return result;
-                }
-            }
         }
 
         return operation.result();

@@ -78,8 +78,4 @@ public interface PathOperation {
     @NotNull NodeExplorer nodeExplorer();
 
     @Nullable PathNode currentNode();
-
-    boolean mergeValid(@NotNull PathOperation other);
-
-    boolean allowMerges();
 }

@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.serialize2.jackson;
+package io.github.zap.arenaapi.serialize2;
 
 import org.jetbrains.annotations.NotNull;
 

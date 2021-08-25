@@ -3,6 +3,7 @@ package io.github.zap.arenaapi.serialize2.jackson;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import io.github.zap.arenaapi.serialize2.IOSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

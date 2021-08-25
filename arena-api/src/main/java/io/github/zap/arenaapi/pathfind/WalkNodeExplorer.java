@@ -42,7 +42,7 @@ class WalkNodeExplorer implements NodeExplorer {
         }
 
         int j = 0;
-        for(int i = 0; i < buffer.length; i++) { //try to go all 8 cardinal + intercardinal directions
+        for(int i = 0; i < buffer.length; i++) { //try to go all 8 cardinal + intercardinal directions as well as up
             Direction direction = Direction.valueAtIndex(i);
             Vector3I nextTarget = Vectors.add(current, direction);
 
