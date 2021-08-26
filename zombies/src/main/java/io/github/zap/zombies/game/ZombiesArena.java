@@ -1282,7 +1282,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                                 AttributeInstance finalAttributeInstance = attributeInstance;
                                 AttributeModifier[] last = new AttributeModifier[] { null };
                                 double[] value = new double[] { 1.0 };
-                                BukkitTask speedupTask = runTaskTimer(0L, 20L, new DisposableBukkitRunnable() {
+                                BukkitTask speedupTask = runTaskTimer(0L, 200L, new DisposableBukkitRunnable() {
                                     @Override
                                     public void run() {
                                         if (!mob.isDead()) {
@@ -1290,7 +1290,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                                             if (finalLast != null) {
                                                 finalAttributeInstance.removeModifier(finalLast);
                                             }
-                                            finalAttributeInstance.addModifier(last[0] = new AttributeModifier(MOB_SPEEDUP_ATTRIBUTE_NAME, (value[0] *= 1.00366875) - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+                                            finalAttributeInstance.addModifier(last[0] = new AttributeModifier(MOB_SPEEDUP_ATTRIBUTE_NAME, (value[0] *= 1.0372991973) - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
                                         }
                                         else cancel();
                                     }
