@@ -371,11 +371,10 @@ public class Corpse {
             }
         }
 
-        packetContainer.getPlayerInfoDataLists().write(0,
-                Collections.singletonList(new PlayerInfoData(wrappedGameProfile, 0,
-                        EnumWrappers.NativeGameMode.NOT_SET,
-                        WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16)))));
-
+        List<PlayerInfoData> list = new ArrayList<>();
+        list.add(new PlayerInfoData(wrappedGameProfile, 0, EnumWrappers.NativeGameMode.NOT_SET,
+                WrappedChatComponent.fromText(uniqueId.toString().substring(0, 16))));
+        packetContainer.getPlayerInfoDataLists().write(0, list);
         return packetContainer;
     }
 
