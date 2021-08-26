@@ -9,8 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class PathOperationImpl implements PathOperation {
-    private static final double MERGE_TOLERANCE_SQUARED = 1;
-
     private final PathAgent agent;
     private final PathDestination destination;
 

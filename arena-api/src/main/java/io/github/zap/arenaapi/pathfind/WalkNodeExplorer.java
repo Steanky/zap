@@ -49,7 +49,7 @@ class WalkNodeExplorer implements NodeExplorer {
             if(chunkBounds.hasBlock(nextTarget)) {
                 Vector3I nodePosition = stepper.stepDirectional(context.blockProvider(), position, direction);
 
-                if(nodePosition != null) {
+                if(nodePosition != null && chunkBounds.hasBlock(nodePosition)) {
                     PathNode node = new PathNode(nodePosition);
 
                     if(blockAtCurrent.collision().isPartial() && nodePosition.y() > current.y()) {

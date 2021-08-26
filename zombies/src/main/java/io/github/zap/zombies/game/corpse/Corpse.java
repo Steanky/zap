@@ -270,7 +270,9 @@ public class Corpse {
         addCorpseToTeamPacket.getSpecificModifier(Collection.class)
                 .write(0, Collections.singletonList(uniqueId.toString().substring(0, 16)));
 
-        sendPacketToPlayer(addCorpseToTeamPacket, player);
+        if(player != null) {
+            sendPacketToPlayer(addCorpseToTeamPacket, player);
+        }
     }
 
     private void startDying() {
