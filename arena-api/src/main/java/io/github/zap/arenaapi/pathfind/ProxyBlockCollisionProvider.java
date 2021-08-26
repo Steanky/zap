@@ -6,6 +6,7 @@ import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 
 class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
     private final Map<Vector2I, CollisionChunkView> chunkCache;

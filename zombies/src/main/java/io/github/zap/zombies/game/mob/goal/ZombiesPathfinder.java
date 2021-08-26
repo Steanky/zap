@@ -20,6 +20,7 @@ import java.util.Map;
  * functions will not be called until all required metadata has been loaded.
  */
 public abstract class ZombiesPathfinder {
+    private static final PathfinderEngine asyncPathfinder = PathfinderEngine.proxyAsync(Zombies.getInstance());
 
     protected final Mob self;
 
@@ -50,14 +51,14 @@ public abstract class ZombiesPathfinder {
         arenaNmsBridge = ArenaApi.getInstance().getNmsBridge();
         zombiesNmsBridge = Zombies.getInstance().getNmsBridge();
 
+        handler = new PathHandler(asyncPathfinder);
+
         try {
             navigator = ArenaApi.getInstance().getNmsBridge().entityBridge().overrideNavigatorFor(mob);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             ArenaApi.info(e.getMessage());
             throw new UnsupportedOperationException("Failed to reflect entity navigator!");
         }
-
-        handler = new PathHandler(PathfinderEngine.proxyAsync(Zombies.getInstance()));
 
         if (!Zombies.getInstance().getNmsBridge().entityBridge().replacePersistentGoals(self)) {
             Zombies.warning("Failed to replace persistent goals on a " + self.getClass().getName() + " due to a " +

@@ -2,6 +2,8 @@ package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
+import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vectors;
 import net.minecraft.server.v1_16_R3.Chunk;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -86,14 +88,19 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
 
     private final BoundingBox chunkBounds;
 
-    CollisionChunkAbstract_v1_16_R3(@NotNull Chunk chunk) {
-        this.x = chunk.locX;
-        this.z = chunk.locZ;
+    CollisionChunkAbstract_v1_16_R3(int locX, int locZ) {
+        this.x = locX;
+        this.z = locZ;
 
         this.originX = x << 4;
         this.originZ = z << 4;
 
         this.chunkBounds = new BoundingBox(originX, 0, originZ, originX + 16, 255, originZ + 16);
+    }
+
+    @Override
+    public @NotNull Vector2I position() {
+        return Vectors.of(x, z);
     }
 
     @Override

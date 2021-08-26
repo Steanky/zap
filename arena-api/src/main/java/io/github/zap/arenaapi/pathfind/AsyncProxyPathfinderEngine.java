@@ -5,6 +5,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class AsyncProxyPathfinderEngine extends AsyncPathfinderEngineAbstract<PathfinderContext> {
     private static final int PATH_CAPACITY = 32;
@@ -16,6 +17,7 @@ public class AsyncProxyPathfinderEngine extends AsyncPathfinderEngineAbstract<Pa
     @NotNull
     @Override
     protected PathfinderContext makeContext(@NotNull BlockCollisionProvider provider) {
+        plugin.getLogger().log(Level.INFO, "Context created for world " + provider.world().getName());
         return new ProxyPathfinderContextImpl(provider, new PathMergerImpl(), PATH_CAPACITY);
     }
 

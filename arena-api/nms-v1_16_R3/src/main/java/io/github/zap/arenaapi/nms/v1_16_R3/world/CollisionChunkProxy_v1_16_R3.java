@@ -7,12 +7,13 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
+import java.util.logging.Level;
 
 public class CollisionChunkProxy_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     private final WeakReference<Chunk> chunk;
 
     CollisionChunkProxy_v1_16_R3(@NotNull Chunk chunk) {
-        super(chunk);
+        super(chunk.locX, chunk.locZ);
         this.chunk = new WeakReference<>(chunk);
     }
 

@@ -29,7 +29,7 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     private final int captureTick;
 
     CollisionChunkSnapshot_v1_16_R3(@NotNull Chunk chunk) {
-        super(chunk);
+        super(chunk.locX, chunk.locZ);
 
         palette = loadFromChunk(chunk);
         captureTick = Bukkit.getCurrentTick();

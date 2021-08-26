@@ -1,13 +1,14 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.ArenaApi;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldUnloadEvent;
+import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +30,15 @@ abstract class AsyncPathfinderEngineAbstract<T extends PathfinderContext> implem
     AsyncPathfinderEngineAbstract(@NotNull Map<UUID, T> contexts, @NotNull Plugin plugin) {
         this.contexts = contexts;
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+
+        try {
+            WorldUnloadEvent.getHandlerList().register(new RegisteredListener(this,
+                    EventExecutor.create(AsyncPathfinderEngineAbstract.class.getDeclaredMethod(
+                            "onWorldUnload", WorldUnloadEvent.class), WorldUnloadEvent.class),
+                    EventPriority.MONITOR, plugin, true));
+        } catch (NoSuchMethodException error) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to register onWorldUnload", error);
+        }
     }
 
     @Override
