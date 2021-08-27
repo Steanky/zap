@@ -8,7 +8,7 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.hotbar.HotbarProfile;
-import io.github.zap.arenaapi.pathfind.PathTarget;
+import io.github.zap.arenaapi.pathfind.path.PathTarget;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
 import io.github.zap.zombies.game.*;

@@ -8,8 +8,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class Vectors {
+public final class Vectors {
     public static final double EPSILON = 0.000001;
+    public static final Vector3I ZERO = new Vector3IImpl(0,0, 0);
 
     private record Vector3DImpl(double x, double y, double z) implements Vector3D {
         @Override
@@ -328,6 +329,10 @@ public class Vectors {
     public static boolean validChunkRelative(@NotNull Vector3I vector) {
         return vector.x() >= 0 && vector.y() >= 0 && vector.z() >= 0 &&
                 vector.x() < 16 && vector.y() < 256 && vector.z() < 16;
+    }
+
+    public static boolean equals(@NotNull Vector3D first, @NotNull Vector3D second) {
+        return first.x() == second.x() && first.y() == second.y() && first.z() == second.z();
     }
 
     public static boolean fuzzyEquals(@NotNull Vector3D first, @NotNull Vector3D second) {

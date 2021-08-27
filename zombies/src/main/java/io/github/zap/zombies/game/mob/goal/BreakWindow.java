@@ -1,6 +1,8 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.*;
+import io.github.zap.arenaapi.pathfind.operation.PathOperation;
+import io.github.zap.arenaapi.pathfind.operation.PathOperationBuilder;
+import io.github.zap.arenaapi.pathfind.path.PathResult;
 import io.github.zap.vector.Vectors;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
@@ -10,8 +12,6 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
-
-import java.util.Set;
 
 public class BreakWindow extends BasicMetadataPathfinder {
     private ZombiesArena arena;

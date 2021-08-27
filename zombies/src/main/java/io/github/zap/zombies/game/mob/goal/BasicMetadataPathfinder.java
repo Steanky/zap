@@ -1,6 +1,8 @@
 package io.github.zap.zombies.game.mob.goal;
 
-import io.github.zap.arenaapi.pathfind.*;
+import io.github.zap.arenaapi.pathfind.operation.PathOperation;
+import io.github.zap.arenaapi.pathfind.operation.PathOperationBuilder;
+import io.github.zap.arenaapi.pathfind.path.PathResult;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
@@ -9,8 +11,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
     protected ZombiesPlayer zombiesPlayer;
@@ -41,23 +41,20 @@ public abstract class BasicMetadataPathfinder extends ZombiesPathfinder {
                         .withRange(arena.getMapBounds())
                         .build();
 
-                if(operation != null) {
-                    getHandler().queueOperation(operation, self.getWorld());
+                getHandler().queueOperation(operation, self.getWorld());
+                PathResult result = getHandler().tryTakeResult();
 
-                    PathResult result = getHandler().tryTakeResult();
+                if(result != null) {
+                    if(result.destination().target() instanceof ZombiesPlayer zombiesPlayer) {
+                        Player player = zombiesPlayer.getPlayer();
 
-                    if(result != null) {
-                        if(result.destination().target() instanceof ZombiesPlayer zombiesPlayer) {
-                            Player player = zombiesPlayer.getPlayer();
-
-                            if(player != null) {
-                                self.setTarget(player);
-                                this.zombiesPlayer = zombiesPlayer;
-                                this.result = result;
-                            }
-                            else {
-                                clearTarget();
-                            }
+                        if(player != null) {
+                            self.setTarget(player);
+                            this.zombiesPlayer = zombiesPlayer;
+                            this.result = result;
+                        }
+                        else {
+                            clearTarget();
                         }
                     }
                 }

@@ -3,8 +3,9 @@ package io.github.zap.zombies.game.mob.goal;
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
 import io.github.zap.arenaapi.nms.common.pathfind.MobNavigator;
-import io.github.zap.arenaapi.pathfind.PathHandler;
-import io.github.zap.arenaapi.pathfind.PathfinderEngine;
+import io.github.zap.arenaapi.pathfind.engine.PathfinderEngine;
+import io.github.zap.arenaapi.pathfind.engine.PathfinderEngines;
+import io.github.zap.arenaapi.pathfind.util.PathHandler;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.nms.common.ZombiesNMSBridge;
@@ -20,7 +21,7 @@ import java.util.Map;
  * functions will not be called until all required metadata has been loaded.
  */
 public abstract class ZombiesPathfinder {
-    private static final PathfinderEngine asyncPathfinder = PathfinderEngine.proxyAsync(Zombies.getInstance());
+    private static final PathfinderEngine asyncPathfinder = PathfinderEngines.proxyAsync(Zombies.getInstance());
 
     protected final Mob self;
 
