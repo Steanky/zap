@@ -21,6 +21,4 @@ public interface PathAgent extends Vector3D {
     double jumpHeight();
 
     double fallTolerance();
-
-    @NotNull BoundingBox getBounds();
 }

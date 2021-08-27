@@ -27,7 +27,7 @@ public final class AversionCalculators {
                     return parent.y() - linkedNode.y() <= 3 ? 1 : 2;
                 }
 
-                return 0;
+                return 1;
             }
         };
     }

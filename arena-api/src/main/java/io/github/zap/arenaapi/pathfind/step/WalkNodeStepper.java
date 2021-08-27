@@ -37,7 +37,7 @@ class WalkNodeStepper implements NodeStepper {
     private Vector3I doStep(@NotNull BlockCollisionProvider collisionProvider,
                             @NotNull PathAgent agent, @NotNull Vector3D position, @NotNull Direction direction) {
         Vector3D translation = computeTranslation(position, direction);
-        BoundingBox agentBounds = getAgentBounds(agent);
+        BoundingBox agentBounds = getAgentBounds(agent, position);
         BoundingBox agentBoundsShifted = agentBounds.clone().shift(translation.x(),
                 translation.y(), translation.z());
 
@@ -69,18 +69,20 @@ class WalkNodeStepper implements NodeStepper {
         return null;
     }
 
-    private Vector3D seekDirectional(BlockCollisionProvider collisionProvider, PathAgent agent, BoundingBox bounds,
+    private Vector3D seekDirectional(BlockCollisionProvider collisionProvider, PathAgent agent, BoundingBox shiftedBounds,
                                      boolean isJump) {
+        shiftedBounds = shiftedBounds.clone();
+
         double maximumDelta = isJump ? agent.jumpHeight() : agent.fallTolerance();
         double delta = 0;
 
         do {
-            List<BlockCollisionView> collisions = collisionProvider.collidingSolidsAt(bounds);
+            List<BlockCollisionView> collisions = collisionProvider.collidingSolidsAt(shiftedBounds);
 
             double stepDelta;
             if(collisions.isEmpty()) {
                 if(isJump) { //termination condition for jumping
-                    return Vectors.of(bounds.getCenterX(), bounds.getMinY(), bounds.getCenterZ());
+                    return Vectors.of(shiftedBounds.getCenterX(), shiftedBounds.getMinY(), shiftedBounds.getCenterZ());
                 }
                 else {
                     stepDelta = -agent.height();
@@ -90,25 +92,34 @@ class WalkNodeStepper implements NodeStepper {
                 BlockCollisionView highest = selectHighest(collisions);
 
                 if(isJump) {
-                    stepDelta = highest.exactY() - bounds.getMinY();
+                    stepDelta = highest.exactY() - shiftedBounds.getMinY();
                 }
                 else { //termination condition for falling
-                    return Vectors.of(bounds.getCenterX(), highest.exactY(), bounds.getCenterZ());
+                    return Vectors.of(shiftedBounds.getCenterX(), highest.exactY(), shiftedBounds.getCenterZ());
                 }
             }
 
-            bounds.shift(0, stepDelta, 0);
-            delta += Math.abs(stepDelta);
+            shiftedBounds.shift(0, stepDelta, 0);
+            delta += Math.abs(stepDelta); //stepDelta i'm stuck
         }
         while(DoubleMath.fuzzyCompare(delta, maximumDelta, Vectors.EPSILON) <= 0);
 
         return null;
     }
 
-    private BoundingBox getAgentBounds(PathAgent agent) {
-        if(!Vectors.equals(agent, lastAgentPosition)) {
-            cachedAgentBounds = agent.getBounds();
-            lastAgentPosition = Vectors.copy(agent);
+    private BoundingBox getAgentBounds(PathAgent agent, Vector3D newAgentPosition) {
+        if(lastAgentPosition == null || !Vectors.equals(newAgentPosition, lastAgentPosition)) {
+            double halfWidth = agent.width() / 2;
+            double height = agent.height();
+            cachedAgentBounds = new BoundingBox(
+                    newAgentPosition.x() - halfWidth,
+                    newAgentPosition.y(),
+                    newAgentPosition.z() - halfWidth,
+                    newAgentPosition.x() + halfWidth,
+                    newAgentPosition.y() + height,
+                    newAgentPosition.z() + halfWidth);
+
+            lastAgentPosition = newAgentPosition;
         }
 
         return cachedAgentBounds;

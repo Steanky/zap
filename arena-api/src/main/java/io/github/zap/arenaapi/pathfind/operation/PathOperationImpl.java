@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.pathfind.operation;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
 import io.github.zap.arenaapi.pathfind.calculate.AversionCalculator;
