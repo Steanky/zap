@@ -29,4 +29,9 @@ public interface VoxelShapeWrapper {
     boolean anyBoundsMatches(@NotNull BoxPredicate predicate);
 
     boolean collidesWith(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
+
+    default boolean collidesWith(@NotNull BoundingBox boundingBox) {
+        return collidesWith(boundingBox.getMinX(), boundingBox.getMinY(), boundingBox.getMinZ(),
+                boundingBox.getMaxX(), boundingBox.getMaxY(), boundingBox.getMaxZ());
+    }
 }

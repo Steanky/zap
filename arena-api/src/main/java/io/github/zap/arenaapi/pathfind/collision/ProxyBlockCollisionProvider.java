@@ -12,10 +12,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class ProxyBlockCollisionProvider extends BlockCollisionProviderAbstract {
-    private final WorldBridge worldBridge = ArenaApi.getInstance().getNmsBridge().worldBridge();
+    private final WorldBridge worldBridge;
 
-    ProxyBlockCollisionProvider(@NotNull World world, int concurrency) {
+    ProxyBlockCollisionProvider(@NotNull WorldBridge worldBridge, @NotNull World world, int concurrency) {
         super(world, new MapMaker().weakValues().concurrencyLevel(concurrency).makeMap(), true);
+        this.worldBridge = worldBridge;
     }
 
     @Override

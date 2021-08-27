@@ -69,10 +69,9 @@ class WalkNodeStepper implements NodeStepper {
         return null;
     }
 
+    //WARNING mutates shiftedBounds, currently is never called multiple times on the same execution path
     private Vector3D seekDirectional(BlockCollisionProvider collisionProvider, PathAgent agent, BoundingBox shiftedBounds,
                                      boolean isJump) {
-        shiftedBounds = shiftedBounds.clone();
-
         double maximumDelta = isJump ? agent.jumpHeight() : agent.fallTolerance();
         double delta = 0;
 
