@@ -1,12 +1,11 @@
 package io.github.zap.arenaapi.pathfind.operation;
 
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
 import io.github.zap.arenaapi.pathfind.calculate.AversionCalculator;
 import io.github.zap.arenaapi.pathfind.calculate.HeuristicCalculator;
 import io.github.zap.arenaapi.pathfind.calculate.SuccessCondition;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.collision.BlockCollisionProvider;
 import io.github.zap.arenaapi.pathfind.context.PathfinderContext;
 import io.github.zap.arenaapi.pathfind.destination.PathDestination;
@@ -28,7 +27,7 @@ class PathOperationImpl implements PathOperation {
     private final AversionCalculator aversionCalculator;
     private final SuccessCondition condition;
     private final NodeExplorer nodeExplorer;
-    private final ChunkCoordinateProvider searchArea;
+    private final ChunkBounds searchArea;
 
     private final ChunkGraph<PathNodeImpl> visited;
     private final NodeHeap openHeap = new BinaryMinNodeHeap(32);
@@ -43,7 +42,7 @@ class PathOperationImpl implements PathOperation {
     PathOperationImpl(@NotNull PathAgent agent, @NotNull PathDestination destination,
                       @NotNull HeuristicCalculator heuristicCalculator, @NotNull AversionCalculator aversionCalculator,
                       @NotNull SuccessCondition condition, @NotNull NodeExplorer nodeExplorer,
-                      @NotNull ChunkCoordinateProvider searchArea) {
+                      @NotNull ChunkBounds searchArea) {
         this.agent = agent;
         this.destination = destination;
         this.heuristicCalculator = heuristicCalculator;
@@ -161,7 +160,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     @Override
-    public @NotNull ChunkCoordinateProvider searchArea() {
+    public @NotNull ChunkBounds searchArea() {
         return searchArea;
     }
 

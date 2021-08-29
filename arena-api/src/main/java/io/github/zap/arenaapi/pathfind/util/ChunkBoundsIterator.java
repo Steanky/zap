@@ -1,4 +1,4 @@
-package io.github.zap.arenaapi.pathfind.chunk;
+package io.github.zap.arenaapi.pathfind.util;
 
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
@@ -7,6 +7,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class ChunkBoundsIterator implements Iterator<Vector2I> {
     private final int minChunkX;
@@ -48,7 +49,7 @@ public class ChunkBoundsIterator implements Iterator<Vector2I> {
         }
 
         if(z >= maxChunkZ || x >= maxChunkX) {
-            throw new IllegalStateException();
+            throw new NoSuchElementException();
         }
 
         return Vectors.of(x, z);

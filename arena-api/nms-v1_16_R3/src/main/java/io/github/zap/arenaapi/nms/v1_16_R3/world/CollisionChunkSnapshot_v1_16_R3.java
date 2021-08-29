@@ -36,7 +36,8 @@ class CollisionChunkSnapshot_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
     }
 
     @Override
-    protected BlockCollisionView makeSnapshot(int chunkX, int chunkY, int chunkZ) {
+    public BlockCollisionView collisionView(int chunkX, int chunkY, int chunkZ) {
+        assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
         BlockCollisionView snapshot = nonSolidOrPartial.elementAt(chunkX, chunkY, chunkZ);
 
         if(snapshot == null) {

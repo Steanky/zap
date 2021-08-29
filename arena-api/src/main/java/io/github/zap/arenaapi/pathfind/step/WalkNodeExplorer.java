@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind.step;
 
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
 import io.github.zap.arenaapi.pathfind.path.PathNode;
 import io.github.zap.arenaapi.pathfind.path.PathNodeFactory;
@@ -15,9 +15,9 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("ClassCanBeRecord") //unintelliJ
 class WalkNodeExplorer implements NodeExplorer {
     private final NodeStepper stepper;
-    private final ChunkCoordinateProvider chunkBounds;
+    private final ChunkBounds chunkBounds;
 
-    WalkNodeExplorer(@NotNull NodeStepper stepper, @NotNull ChunkCoordinateProvider chunkBounds) {
+    WalkNodeExplorer(@NotNull NodeStepper stepper, @NotNull ChunkBounds chunkBounds) {
         this.stepper = stepper;
         this.chunkBounds = chunkBounds;
     }

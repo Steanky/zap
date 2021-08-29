@@ -7,15 +7,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public final class ChunkCoordinateProviders {
-    public static ChunkCoordinateProvider boundedSquare(@NotNull Vector2I from, @NotNull Vector2I to) {
+    public static ChunkBounds boundedSquare(@NotNull Vector2I from, @NotNull Vector2I to) {
         Objects.requireNonNull(from, "from cannot be null!");
         Objects.requireNonNull(to, "to cannot be null!");
-        return new ChunkBounds(from, to);
+        return new ChunkBoundsImpl(from, to);
     }
 
-    public static ChunkCoordinateProvider squareFromCenter(@NotNull Vector2I center, int radius) {
+    public static ChunkBounds squareFromCenter(@NotNull Vector2I center, int radius) {
         Objects.requireNonNull(center, "center cannot be null!");
         Validate.isTrue(radius > 0, "radius cannot be negative!");
-        return new ChunkBounds(center, radius);
+        return new ChunkBoundsImpl(center, radius);
     }
 }

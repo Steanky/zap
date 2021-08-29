@@ -1,10 +1,9 @@
 package io.github.zap.arenaapi.pathfind.collision;
 
 import com.google.common.collect.MapMaker;
-import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.Bukkit;
@@ -23,7 +22,7 @@ class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
     }
 
     @Override
-    public void updateRegion(@NotNull ChunkCoordinateProvider coordinates) {
+    public void updateRegion(@NotNull ChunkBounds coordinates) {
         for(Vector2I coordinate : coordinates) {
             if(world.isChunkLoaded(coordinate.x(), coordinate.z())) {
                 CollisionChunkView oldSnapshot = chunkViewMap.get(coordinate);
@@ -39,7 +38,7 @@ class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
     }
 
     @Override
-    public void clearRegion(@NotNull ChunkCoordinateProvider coordinates) {
+    public void clearRegion(@NotNull ChunkBounds coordinates) {
         for(Vector2I coordinate : coordinates) {
             chunkViewMap.remove(coordinate);
         }

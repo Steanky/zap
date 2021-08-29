@@ -36,11 +36,7 @@ public enum Direction implements Vector3I {
     private final int y;
     private final int z;
 
-    private static final Direction[] values;
-
-    static {
-        values = Direction.values();
-    }
+    private static final Direction[] VALUES = Direction.values();
 
     Direction(int x, int y, int z) {
         this.x = x;
@@ -63,7 +59,7 @@ public enum Direction implements Vector3I {
     }
 
     public static Direction valueAtIndex(int position) {
-        return values[position];
+        return VALUES[position];
     }
 
     @Override

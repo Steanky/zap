@@ -3,9 +3,9 @@ package io.github.zap.arenaapi.pathfind.collision;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.util.Direction;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkBoundsIterator;
+import io.github.zap.arenaapi.pathfind.util.ChunkBoundsIterator;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vectors;
@@ -41,10 +41,10 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
     }
 
     @Override
-    public void updateRegion(@NotNull ChunkCoordinateProvider coordinates) {}
+    public void updateRegion(@NotNull ChunkBounds coordinates) {}
 
     @Override
-    public void clearRegion(@NotNull ChunkCoordinateProvider coordinates) {}
+    public void clearRegion(@NotNull ChunkBounds coordinates) {}
 
     @Override
     public void clearForWorld() {}
@@ -103,9 +103,7 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
         int dirFac = direction.x() * direction.z();
         double adjustedWidth = width * ((Math.abs(direction.x()) + Math.abs(direction.z())) / 2D);
 
-        List<BlockCollisionView> shapes = collidingSolidsAt(expandedBounds);
-
-        for(BlockCollisionView shape : shapes) {
+        for(BlockCollisionView shape : collidingSolidsAt(expandedBounds)) {
             VoxelShapeWrapper collision = shape.collision();
 
             //translate to a coordinate space centered on our entity

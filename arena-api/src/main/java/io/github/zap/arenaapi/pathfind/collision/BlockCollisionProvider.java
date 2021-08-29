@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind.collision;
 
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.util.Direction;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
@@ -34,9 +34,9 @@ public interface BlockCollisionProvider {
      */
     boolean supportsAsync();
 
-    void updateRegion(@NotNull ChunkCoordinateProvider coordinates);
+    void updateRegion(@NotNull ChunkBounds coordinates);
 
-    void clearRegion(@NotNull ChunkCoordinateProvider coordinates);
+    void clearRegion(@NotNull ChunkBounds coordinates);
 
     void clearForWorld();
 

@@ -4,7 +4,6 @@ import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vectors;
-import net.minecraft.server.v1_16_R3.Chunk;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -75,8 +74,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
             int chunkY = y;
             int chunkZ = z & 15;
 
-            assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
-            return makeSnapshot(chunkX, chunkY, chunkZ);
+            return collisionView(chunkX, chunkY, chunkZ);
         }
     }
 
@@ -101,12 +99,6 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
     @Override
     public @NotNull Vector2I position() {
         return Vectors.of(x, z);
-    }
-
-    @Override
-    public @Nullable BlockCollisionView collisionView(int chunkX, int chunkY, int chunkZ) {
-        assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
-        return makeSnapshot(chunkX, chunkY, chunkZ);
     }
 
     @Override
@@ -152,6 +144,4 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
             throw new IllegalArgumentException("Invalid chunk coordinates [" + x + ", " + y + ", " + z + "]");
         }
     }
-
-    protected abstract BlockCollisionView makeSnapshot(int chunkX, int chunkY, int chunkZ);
 }

@@ -3,7 +3,7 @@ package io.github.zap.arenaapi.pathfind.operation;
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
 import io.github.zap.arenaapi.pathfind.agent.PathAgents;
 import io.github.zap.arenaapi.pathfind.calculate.*;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProviders;
 import io.github.zap.arenaapi.pathfind.destination.PathDestination;
 import io.github.zap.arenaapi.pathfind.destination.PathDestinations;
@@ -35,7 +35,7 @@ public class PathOperationBuilder {
     private AversionCalculator aversionCalculator;
     private SuccessCondition successCondition;
     private NodeExplorer nodeExplorer;
-    private ChunkCoordinateProvider chunkCoordinateProvider;
+    private ChunkBounds chunkBounds;
     private NodeStepper nodeStepper;
     private int pathfindRadius = DEFAULT_PATHFIND_RADIUS;
 
@@ -85,8 +85,8 @@ public class PathOperationBuilder {
         return this;
     }
 
-    public @NotNull PathOperationBuilder withRange(@Nullable ChunkCoordinateProvider chunkCoordinateProvider) {
-        this.chunkCoordinateProvider = chunkCoordinateProvider;
+    public @NotNull PathOperationBuilder withRange(@Nullable ChunkBounds chunkBounds) {
+        this.chunkBounds = chunkBounds;
         return this;
     }
 
@@ -109,15 +109,15 @@ public class PathOperationBuilder {
 
         heuristicCalculator = heuristicCalculator == null ? HeuristicCalculators.distanceOnly() : heuristicCalculator;
         aversionCalculator = aversionCalculator == null ? AversionCalculators.defaultWalk() : aversionCalculator;
-        successCondition = successCondition == null ? SuccessCondition.SAME_BLOCK : successCondition;
+        successCondition = successCondition == null ? SuccessConditions.sameBlock() : successCondition;
         agent = agent == null ? (PathAgents.fromVector(Vectors.of(agentEntity.getLocation()), agentEntity.getWidth(),
                 agentEntity.getHeight(), jumpHeight, fallTolerance)) : agent;
-        chunkCoordinateProvider = chunkCoordinateProvider == null ?
-                ChunkCoordinateProviders.squareFromCenter(Vectors.asChunk(agent), pathfindRadius) : chunkCoordinateProvider;
+        chunkBounds = chunkBounds == null ?
+                ChunkCoordinateProviders.squareFromCenter(Vectors.asChunk(agent), pathfindRadius) : chunkBounds;
         nodeExplorer = nodeExplorer == null ? NodeExplorers.basicWalk(nodeStepper == null ?
-                NodeSteppers.basicWalk() : nodeStepper, chunkCoordinateProvider) : nodeExplorer;
+                NodeSteppers.basicWalk() : nodeStepper, chunkBounds) : nodeExplorer;
 
         return new PathOperationImpl(agent, destination, heuristicCalculator, aversionCalculator, successCondition,
-                nodeExplorer, chunkCoordinateProvider);
+                nodeExplorer, chunkBounds);
     }
 }

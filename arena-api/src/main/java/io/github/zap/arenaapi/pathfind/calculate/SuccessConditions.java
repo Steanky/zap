@@ -9,6 +9,10 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 public final class SuccessConditions {
+    public static @NotNull SuccessCondition sameBlock() {
+        return (context, node, destination) -> Vectors.equals(node, destination);
+    }
+
     public static @NotNull SuccessCondition whenWithin(double distanceSquared) {
         Validate.isTrue(distanceSquared >= 0, "distanceSquared must be greater than or equal to 0");
         Validate.isTrue(Double.isFinite(distanceSquared), "distanceSquared must be finite");

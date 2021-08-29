@@ -34,8 +34,7 @@ class WalkNodeStepper implements NodeStepper {
         };
     }
 
-    private Vector3I doStep(@NotNull BlockCollisionProvider collisionProvider,
-                            @NotNull PathAgent agent, @NotNull Vector3D position, @NotNull Direction direction) {
+    private Vector3I doStep(BlockCollisionProvider collisionProvider, PathAgent agent, Vector3D position, Direction direction) {
         Vector3D translation = computeTranslation(position, direction);
         BoundingBox agentBounds = getAgentBounds(agent, position);
         BoundingBox agentBoundsShifted = agentBounds.clone().shift(translation.x(),

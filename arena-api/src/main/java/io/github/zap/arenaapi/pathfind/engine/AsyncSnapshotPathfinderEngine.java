@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind.engine;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.collision.BlockCollisionProvider;
 import io.github.zap.arenaapi.pathfind.collision.BlockCollisionProviders;
 import io.github.zap.arenaapi.pathfind.context.PathfinderContexts;
@@ -52,7 +52,7 @@ class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract<Synchr
      * Simple algorithm to quickly evaluate if the percentage of chunks for a given provider that are either outdated or
      * not present is high enough to warrant forcing a chunk sync
      */
-    private boolean isUrgent(ChunkCoordinateProvider chunks, BlockCollisionProvider provider) {
+    private boolean isUrgent(ChunkBounds chunks, BlockCollisionProvider provider) {
         int stale = 0;
 
         for(Vector2I chunkVectorAccess : chunks) {
@@ -66,7 +66,7 @@ class AsyncSnapshotPathfinderEngine extends AsyncPathfinderEngineAbstract<Synchr
         return (double)stale / (double)chunks.chunkCount() >= PERCENTAGE_STALE_REQUIRED_TO_FORCE;
     }
 
-    private void trySyncChunks(SynchronizedPathfinderContext context, ChunkCoordinateProvider coordinateProvider, boolean force) {
+    private void trySyncChunks(SynchronizedPathfinderContext context, ChunkBounds coordinateProvider, boolean force) {
         int currentTick = Bukkit.getCurrentTick();
 
         /*

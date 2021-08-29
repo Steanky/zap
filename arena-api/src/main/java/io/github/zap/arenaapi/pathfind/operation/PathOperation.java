@@ -1,7 +1,7 @@
 package io.github.zap.arenaapi.pathfind.operation;
 
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
-import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProvider;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.context.PathfinderContext;
 import io.github.zap.arenaapi.pathfind.destination.PathDestination;
 import io.github.zap.arenaapi.pathfind.path.PathNode;
@@ -72,7 +72,7 @@ public interface PathOperation {
     /**
      * Returns the chunk coordinates this operation encompasses.
      */
-    @NotNull ChunkCoordinateProvider searchArea();
+    @NotNull ChunkBounds searchArea();
 
     /**
      * Returns the NodeProvider instance used by this object. This is used to create explorable nodes for the

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 class PathParserTest {
     private static final String basic = "this is/a/well formed/path";
-    private static final String drunk = "/this is///a path///that////someone///made////while///drunk///";
+    private static final String drunk = "////this is///a path///that////someone///made////while///drunk////";
 
     private static final String[] basicExpected = new String[] {
             "this is",
@@ -30,7 +30,7 @@ class PathParserTest {
     }
 
     @Test
-    public void testComplicatedInput() {
+    public void testDrunkInput() {
         Assertions.assertArrayEquals(drunkExpected, PathParser.path(drunk));
     }
 }

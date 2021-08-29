@@ -18,7 +18,9 @@ public class CollisionChunkProxy_v1_16_R3 extends CollisionChunkAbstract_v1_16_R
     }
 
     @Override
-    protected BlockCollisionView makeSnapshot(int chunkX, int chunkY, int chunkZ) {
+    public BlockCollisionView collisionView(int chunkX, int chunkY, int chunkZ) {
+        assertValidChunkCoordinate(chunkX, chunkY, chunkZ);
+
         Chunk currentChunk = this.chunk.get();
         if(currentChunk != null) {
             ChunkSection[] sections = currentChunk.getSections();

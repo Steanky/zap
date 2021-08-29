@@ -84,10 +84,6 @@ public final class Vectors {
         return new Vector3DImpl(vector.getX(), vector.getY(), vector.getZ());
     }
 
-    public static @NotNull Vector3D of(@NotNull Vector3I intVector) {
-        return new Vector3DImpl(intVector.x(), intVector.y(), intVector.z());
-    }
-
     public static @NotNull Vector3D of(double x, double y, double z) {
         return new Vector3DImpl(x, y, z);
     }
