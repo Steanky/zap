@@ -31,9 +31,11 @@ class ProxyBlockCollisionProviderTest {
 
     private static final BoundingBox agentBounds = new BoundingBox(0, 0, 0, 1, 2, 1);
     private static final List<BoundingBox> FULL_BLOCK = new ArrayList<>();
+    private static final List<BoundingBox> TINY_BLOCK = new ArrayList<>();
 
     static {
         FULL_BLOCK.add(new BoundingBox(0, 0, 0, 1, 1, 1));
+        TINY_BLOCK.add(new BoundingBox(0.4, 0, 0.4, 0.6, 1, 0.6));
     }
 
     private void assertNoModification(BoundingBox bounds, Consumer<BoundingBox> consumer) {
@@ -87,11 +89,25 @@ class ProxyBlockCollisionProviderTest {
         return mockBlockView;
     }
 
-    private void testWalkDirection(List<BlockCollisionView> collisions, Direction direction, Vector3I origin) {
+    private void testWalkDirection(List<BlockCollisionView> collisions, Direction direction, Vector3I origin, boolean collides) {
         CollisionChunkView chunk = mockChunkAt(origin.x() >> 4, origin.z() >> 4);
 
         Mockito.when(chunk.collisionsWith(ArgumentMatchers.any())).thenReturn(collisions).thenThrow();
-        Assertions.assertTrue(provider.collidesMovingAlong(agentBounds, direction, Vectors.asDouble(direction)));
+        Assertions.assertSame(collides, provider.collidesMovingAlong(agentBounds, direction, Vectors.asDouble(direction)));
+    }
+
+    private void testCardinal(BlockCollisionView[] collisions, boolean collides) {
+        testWalkDirection(List.of(collisions[0]), Direction.NORTH, Vectors.ZERO, collides);
+        testWalkDirection(List.of(collisions[1]), Direction.EAST, Vectors.ZERO, collides);
+        testWalkDirection(List.of(collisions[2]), Direction.SOUTH, Vectors.ZERO, collides);
+        testWalkDirection(List.of(collisions[3]), Direction.WEST, Vectors.ZERO, collides);
+    }
+
+    private void testIntercardinal(BlockCollisionView[] collisions, boolean collides) {
+        testWalkDirection(List.of(collisions[0], collisions[1]), Direction.NORTHEAST, Vectors.ZERO, collides);
+        testWalkDirection(List.of(collisions[1], collisions[2]), Direction.SOUTHEAST, Vectors.ZERO, collides);
+        testWalkDirection(List.of(collisions[2], collisions[3]), Direction.SOUTHWEST, Vectors.ZERO, collides);
+        testWalkDirection(List.of(collisions[3], collisions[0]), Direction.NORTHWEST, Vectors.ZERO, collides);
     }
 
     private BlockCollisionView[] createFullTestBlocks() {
@@ -100,6 +116,15 @@ class ProxyBlockCollisionProviderTest {
         blocks[1] = mockBlockAt(1, 0, 0, FULL_BLOCK);
         blocks[2] = mockBlockAt(0, 0, 1, FULL_BLOCK);
         blocks[3] = mockBlockAt(-1, 0, 0, FULL_BLOCK);
+        return blocks;
+    }
+
+    private BlockCollisionView[] createTinyTestBlocks() {
+        BlockCollisionView[] blocks = new BlockCollisionView[4];
+        blocks[0] = mockBlockAt(0, 0, -1, TINY_BLOCK);
+        blocks[1] = mockBlockAt(1, 0, 0, TINY_BLOCK);
+        blocks[2] = mockBlockAt(0, 0, 1, TINY_BLOCK);
+        blocks[3] = mockBlockAt(-1, 0, 0, TINY_BLOCK);
         return blocks;
     }
 
@@ -118,21 +143,37 @@ class ProxyBlockCollisionProviderTest {
 
     @Test
     void testCardinalCollisionWithFullBlocks() {
-        BlockCollisionView[] blocks = createFullTestBlocks();
-
-        testWalkDirection(List.of(blocks[0]), Direction.NORTH, Vectors.ZERO);
-        testWalkDirection(List.of(blocks[1]), Direction.EAST, Vectors.ZERO);
-        testWalkDirection(List.of(blocks[2]), Direction.SOUTH, Vectors.ZERO);
-        testWalkDirection(List.of(blocks[3]), Direction.WEST, Vectors.ZERO);
+        testCardinal(createFullTestBlocks(), true);
     }
 
     @Test
     void testIntercardinalCollisionWithFullBlocks() {
-        BlockCollisionView[] blocks = createFullTestBlocks();
+        testIntercardinal(createFullTestBlocks(), true);
+    }
 
-        testWalkDirection(List.of(blocks[0], blocks[1]), Direction.NORTHEAST, Vectors.ZERO);
-        testWalkDirection(List.of(blocks[1], blocks[2]), Direction.SOUTHEAST, Vectors.ZERO);
-        testWalkDirection(List.of(blocks[2], blocks[3]), Direction.SOUTHWEST, Vectors.ZERO);
-        testWalkDirection(List.of(blocks[3], blocks[0]), Direction.NORTHWEST, Vectors.ZERO);
+    @Test
+    void testCardinalCollisionWithTinyBlocks() {
+        testCardinal(createTinyTestBlocks(), true);
+    }
+
+    @Test
+    void testIntercardinalCollisionWithTinyBlocks() {
+        testIntercardinal(createTinyTestBlocks(), true);
+    }
+
+    @Test
+    void testAbsentCardinalCollision() {
+        testWalkDirection(new ArrayList<>(), Direction.NORTH, Vectors.ZERO, false);
+        testWalkDirection(new ArrayList<>(), Direction.EAST, Vectors.ZERO, false);
+        testWalkDirection(new ArrayList<>(), Direction.SOUTH, Vectors.ZERO, false);
+        testWalkDirection(new ArrayList<>(), Direction.WEST, Vectors.ZERO, false);
+    }
+
+    @Test
+    void testAbsentIntercardinalCollision() {
+        testWalkDirection(new ArrayList<>(), Direction.NORTHEAST, Vectors.ZERO, false);
+        testWalkDirection(new ArrayList<>(), Direction.SOUTHEAST, Vectors.ZERO, false);
+        testWalkDirection(new ArrayList<>(), Direction.SOUTHWEST, Vectors.ZERO, false);
+        testWalkDirection(new ArrayList<>(), Direction.NORTHWEST, Vectors.ZERO, false);
     }
 }
