@@ -1,7 +1,5 @@
 package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
-import com.google.common.collect.MapMaker;
-import com.mojang.serialization.RecordBuilder;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.*;

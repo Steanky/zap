@@ -131,4 +131,12 @@ public class EntityBridge_v1_16_R3 implements EntityBridge {
         ((CraftWorld) world).addEntity(((CraftEntity) dream).getHandle(), CreatureSpawnEvent.SpawnReason.CUSTOM);
     }
 
+    @Override
+    public void shootProjectile(@NotNull LivingEntity mob, @NotNull LivingEntity target, float idk) {
+        CraftLivingEntity craftLivingEntity = (CraftLivingEntity) mob;
+
+        if(craftLivingEntity.getHandle() instanceof IRangedEntity rangedEntity) {
+            rangedEntity.a(((CraftLivingEntity)target).getHandle(), idk);
+        }
+    }
 }

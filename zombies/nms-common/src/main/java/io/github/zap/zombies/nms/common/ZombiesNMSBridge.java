@@ -11,7 +11,6 @@ import java.util.Objects;
  * Used to provide a consistent interface between various NMS versions and ZAP-related code modules.
  */
 public interface ZombiesNMSBridge {
-
     String CURRENT_NMS_VERSION = nmsVersion();
 
     private static String nmsVersion() {

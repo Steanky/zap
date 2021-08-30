@@ -41,7 +41,7 @@ public interface EntityBridge {
     int getTicksUsingItem(@NotNull LivingEntity livingEntity);
 
     /**
-     * Gets the charged of a ranged attack
+     * Gets the charge of a ranged attack
      * @param ticks The number of ticks to get the charge for
      */
     float getCharge(int ticks);
@@ -74,4 +74,5 @@ public interface EntityBridge {
      */
     void spawnDream(@NotNull Piglin dream, @NotNull World world);
 
+    void shootProjectile(@NotNull LivingEntity livingEntity, @NotNull LivingEntity target, float idk);
 }
