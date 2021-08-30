@@ -2,7 +2,7 @@ package io.github.zap.vector;
 
 import org.jetbrains.annotations.NotNull;
 
-public class Bounds {
+public final class Bounds {
     private final double minX;
     private final double minY;
     private final double minZ;
@@ -11,22 +11,45 @@ public class Bounds {
     private final double maxY;
     private final double maxZ;
 
-    private Bounds(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, boolean ignored) {
-        this.minX = minX;
-        this.minY = minY;
-        this.minZ = minZ;
-
-        this.maxX = maxX;
-        this.maxY = maxY;
-        this.maxZ = maxZ;
-    }
-
     public Bounds(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        this(Math.min(minX, maxX), Math.min(minY, maxY), Math.min(minZ, maxZ),
-                Math.max(minX, maxX), Math.max(minY, maxY), Math.max(minZ, maxZ), false);
+        this.minX = Math.min(minX, maxX);
+        this.minY = Math.min(minY, maxY);
+        this.minZ = Math.min(minZ, maxZ);
+
+        this.maxX = Math.max(minX, maxX);
+        this.maxY = Math.max(minY, maxY);
+        this.maxZ = Math.max(minZ, maxZ);
     }
 
-    public @NotNull Bounds copy() {
-        return new Bounds(minX, minY, minZ, maxX, maxY, maxZ, false);
+    public double minX() {
+        return minX;
+    }
+
+    public double minY() {
+        return minY;
+    }
+
+    public double minZ() {
+        return minZ;
+    }
+
+    public double maxX() {
+        return maxX;
+    }
+
+    public double maxY() {
+        return maxY;
+    }
+
+    public double maxZ() {
+        return maxZ;
+    }
+
+    public boolean overlaps(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        return this.minX < maxX && this.maxX > minX && this.minY < maxY && this.maxY > minY && this.minZ < maxZ && this.maxZ > minZ;
+    }
+
+    public boolean overlaps(@NotNull Bounds other) {
+        return overlaps(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ);
     }
 }

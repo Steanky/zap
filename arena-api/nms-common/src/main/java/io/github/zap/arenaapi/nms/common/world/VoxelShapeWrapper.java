@@ -1,5 +1,6 @@
 package io.github.zap.arenaapi.nms.common.world;
 
+import io.github.zap.vector.Bounds;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +25,9 @@ public interface VoxelShapeWrapper {
 
     boolean isPartial();
 
-    @NotNull List<BoundingBox> boundingBoxes();
+    int size();
+
+    @NotNull Bounds boundsAt(int index);
 
     boolean anyBoundsMatches(@NotNull BoxPredicate predicate);
 

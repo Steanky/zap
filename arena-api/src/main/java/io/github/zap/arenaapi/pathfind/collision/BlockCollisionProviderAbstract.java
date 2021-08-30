@@ -1,11 +1,13 @@
 package io.github.zap.arenaapi.pathfind.collision;
 
+import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.util.Direction;
 import io.github.zap.arenaapi.pathfind.util.ChunkBoundsIterator;
+import io.github.zap.vector.Bounds;
 import io.github.zap.vector.Vector2I;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vectors;
@@ -111,31 +113,37 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
             double y = shape.y() - agentBounds.getMinY();
             double z = shape.z() - agentBounds.getCenterZ();
 
-            if(collision.anyBoundsMatches((minX, minY, minZ, maxX, maxY, maxZ) -> {
-                minX += x;
-                minY += y;
-                minZ += z;
+            boolean collides = false;
+            for(int i = 0; i < collision.size(); i++) {
+                Bounds bounds = collision.boundsAt(i);
 
-                maxX += x;
-                maxY += y;
-                maxZ += z;
+                double minX = x + bounds.minX();
+                double minY = y + bounds.minY();
+                double minZ = z + bounds.minZ();
+
+                double maxX = x + bounds.maxX();
+                double maxY = y + bounds.maxY();
+                double maxZ = z + bounds.maxZ();
 
                 if(collidesAtEntity(minX, minY, minZ, maxX, maxY, maxZ, halfWidth, agentBounds.getHeight())) {
-                    return false;
+                    collides = false; //skip evaluating collision for block we're in
+                    break;
                 }
-                else {
+                else if(!collides) {
                     if(direction == Direction.UP) {
-                        return collidesAtEntity(minX, minY, minZ, maxX, maxY, maxZ, halfWidth, expandedBounds.getHeight());
+                        collides = collidesAtEntity(minX, minY, minZ, maxX, maxY, maxZ, halfWidth, expandedBounds.getHeight());
                     }
                     else {
-                        return switch (dirFac) {
+                        collides = switch (dirFac) {
                             case -1, 0 -> collisionCheck(adjustedWidth, direction.x(), direction.z(), minX, minZ, maxX, maxZ);
                             case 1 -> collisionCheck(adjustedWidth, direction.x(), direction.z(), maxX, minZ, minX, maxZ);
                             default -> throw new IllegalArgumentException("dirFac was " + dirFac);
                         };
                     }
                 }
-            })) {
+            }
+
+            if(collides) {
                 return true;
             }
         }
@@ -164,7 +172,11 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
 
     private boolean collidesAtEntity(double minX, double minY, double minZ, double maxX, double maxY, double maxZ,
                                      double halfWidth, double height) {
-        return -halfWidth < maxX && halfWidth > minX && 0 < maxY &&
-                height > minY && -halfWidth < maxZ && halfWidth > minZ;
+        return DoubleMath.fuzzyCompare(-halfWidth, maxX, Vectors.EPSILON) < 0 &&
+                DoubleMath.fuzzyCompare(halfWidth, minX, Vectors.EPSILON) > 0 &&
+                DoubleMath.fuzzyCompare(0, maxY, Vectors.EPSILON) < 0 &&
+                DoubleMath.fuzzyCompare(height, minY, Vectors.EPSILON) > 0 &&
+                DoubleMath.fuzzyCompare(-halfWidth, maxZ, Vectors.EPSILON) < 0 &&
+                DoubleMath.fuzzyCompare(halfWidth, minZ, Vectors.EPSILON) > 0;
     }
 }

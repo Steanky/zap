@@ -13,12 +13,14 @@ import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
 import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
+import io.github.zap.arenaapi.pathfind.chunk.ChunkCoordinateProviders;
 import io.github.zap.arenaapi.shadow.com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zap.arenaapi.shadow.org.apache.commons.lang3.tuple.Pair;
 import io.github.zap.arenaapi.stats.StatsManager;
 import io.github.zap.arenaapi.util.MetadataHelper;
 import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.arenaapi.util.WorldUtils;
+import io.github.zap.vector.Vectors;
 import io.github.zap.zombies.ChunkLoadHandler;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.corpse.Corpse;
@@ -559,8 +561,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         Vector min = bounds.getMin();
         Vector max = bounds.getMax();
 
-        mapBounds = new ChunkBounds(min.getBlockX() >> 4, min.getBlockZ() >> 4,
-                (max.getBlockX() >> 4) + 1, (max.getBlockZ() >> 4) + 1);
+        mapBounds = ChunkCoordinateProviders.boundedSquare(Vectors.of(min.getBlockX() >> 4, min.getBlockZ() >> 4),
+                Vectors.of((max.getBlockX() >> 4) + 1, (max.getBlockZ() >> 4) + 1));
     }
 
     private void registerArenaEvents() {

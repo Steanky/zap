@@ -1,5 +1,7 @@
 package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
+import com.google.common.collect.MapMaker;
+import com.mojang.serialization.RecordBuilder;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import net.minecraft.server.v1_16_R3.*;
@@ -7,9 +9,13 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
-import java.util.logging.Level;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 public class CollisionChunkProxy_v1_16_R3 extends CollisionChunkAbstract_v1_16_R3 {
+    private static final Map<VoxelShape, VoxelShapeWrapper> shapeMap = Collections.synchronizedMap(new IdentityHashMap<>());
+
     private final WeakReference<Chunk> chunk;
 
     CollisionChunkProxy_v1_16_R3(@NotNull Chunk chunk) {
@@ -34,20 +40,11 @@ public class CollisionChunkProxy_v1_16_R3 extends CollisionChunkAbstract_v1_16_R
                 }
 
                 VoxelShape voxelShape = data.getCollisionShape(currentChunk, new BlockPosition(chunkX, chunkY, chunkZ));
-                VoxelShapeWrapper wrapper;
+                VoxelShapeWrapper wrapper = shapeMap.computeIfAbsent(voxelShape, (key) ->
+                        new VoxelShapeWrapper_v1_16_R3(voxelShape));
 
-                if(voxelShape == VoxelShapes.fullCube()) {
-                    wrapper = VoxelShapeWrapper_v1_16_R3.FULL;
-                }
-                else if(voxelShape == VoxelShapes.empty()) {
-                    wrapper = VoxelShapeWrapper_v1_16_R3.EMPTY;
-                }
-                else {
-                    wrapper = new VoxelShapeWrapper_v1_16_R3(voxelShape);
-                }
-
-                return BlockCollisionView.from((x << 4) + chunkX, chunkY, (z << 4) +
-                        chunkZ, data.createCraftBlockData(), wrapper);
+                return BlockCollisionView.from((x << 4) + chunkX, chunkY, (z << 4) + chunkZ,
+                        data.createCraftBlockData(), wrapper);
             }
         }
 
