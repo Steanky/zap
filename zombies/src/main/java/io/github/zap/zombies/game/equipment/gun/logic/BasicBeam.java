@@ -33,6 +33,7 @@ import java.util.function.Predicate;
  */
 @Getter
 public class BasicBeam {
+    private static final double HITBOX_EXPANSION = 0.1;
 
     @RequiredArgsConstructor
     protected class BeamDamageAttempt implements DamageAttempt {
@@ -184,7 +185,7 @@ public class BasicBeam {
 
             List<Pair<RayTraceResult, Double>> rayTraceResults = new ArrayList<>(entities.size());
             for (Entity entity : entities) {
-                BoundingBox entityBoundingBox = entity.getBoundingBox();
+                BoundingBox entityBoundingBox = entity.getBoundingBox().expand(HITBOX_EXPANSION);
                 RayTraceResult hitResult = entityBoundingBox.rayTrace(root, directionVector, distance);
 
                 if (hitResult != null) {
@@ -211,7 +212,7 @@ public class BasicBeam {
         Set<UUID> entitySet = getZombiesPlayer().getArena().getEntitySet();
         Predicate<Entity> filter = (Entity entity) -> entitySet.contains(entity.getUniqueId());
 
-        BoundingBox aabb = BoundingBox.of(root, root).expandDirectional(dir);
+        BoundingBox aabb = BoundingBox.of(root, root).expandDirectional(dir).expand(HITBOX_EXPANSION);
         return world.getNearbyEntities(aabb, filter);
     }
 
