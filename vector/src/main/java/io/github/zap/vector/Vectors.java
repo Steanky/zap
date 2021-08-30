@@ -145,6 +145,10 @@ public final class Vectors {
         return new Vector2IImpl(((int)Math.floor(worldRelative.x())) >> 4, ((int)Math.floor(worldRelative.z())) >> 4);
     }
 
+    public static boolean isFinite(@NotNull Vector3D vector) {
+        return Double.isFinite(vector.x()) && Double.isFinite(vector.y()) && Double.isFinite(vector.z());
+    }
+
     public static @NotNull Vector3I asWorldRelative(@NotNull Vector3I chunkRelative, @NotNull Vector2I chunk) {
         if(validChunkRelative(chunkRelative)) {
             return new Vector3IImpl((chunk.x() << 4) + chunkRelative.x(),
