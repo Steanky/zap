@@ -1,12 +1,13 @@
 package io.github.zap.arenaapi.pathfind.step;
 
+import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
 import io.github.zap.arenaapi.pathfind.path.PathNode;
 import io.github.zap.arenaapi.pathfind.path.PathNodeFactory;
 import io.github.zap.arenaapi.pathfind.context.PathfinderContext;
-import io.github.zap.arenaapi.pathfind.util.Direction;
+import io.github.zap.vector.Direction;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
@@ -57,8 +58,16 @@ class WalkNodeExplorer implements NodeExplorer {
                 if(nodePosition != null && chunkBounds.hasBlock(nodePosition)) {
                     T newNode = pathNodeFactory.make(nodePosition);
 
-                    if(blockAtCurrent.collision().isPartial() && nodePosition.y() > current.y()) {
-                        newNode.setOffsetVector(Direction.UP);
+                    if(blockAtCurrent.collision().isPartial()) {
+                        BlockCollisionView blockAtNext = context.blockProvider().getBlock(nodePosition);
+
+                        if(blockAtNext != null) {
+                            double delta = blockAtNext.exactY() - blockAtCurrent.exactY();
+
+                            if(DoubleMath.fuzzyCompare(delta, agent.jumpHeight(), Vectors.EPSILON) >= 0) {
+                                newNode.setOffsetVector(Direction.UP);
+                            }
+                        }
                     }
 
                     buffer[j++] = newNode;

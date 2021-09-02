@@ -1,32 +1,29 @@
 package io.github.zap.arenaapi.pathfind.collision;
 
-import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.arenaapi.pathfind.chunk.ChunkBounds;
-import io.github.zap.arenaapi.pathfind.util.Direction;
+import io.github.zap.vector.*;
 import io.github.zap.arenaapi.pathfind.util.ChunkBoundsIterator;
-import io.github.zap.vector.Bounds;
-import io.github.zap.vector.Vector2I;
-import io.github.zap.vector.Vector3D;
-import io.github.zap.vector.Vectors;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider {
     protected final World world;
-    protected final Map<Vector2I, CollisionChunkView> chunkViewMap;
+    protected final Map<Long, CollisionChunkView> chunkViewMap;
 
     private final boolean supportsAsync;
 
-    BlockCollisionProviderAbstract(@NotNull World world, @NotNull Map<Vector2I, CollisionChunkView> chunkViewMap, boolean supportsAsync) {
+    BlockCollisionProviderAbstract(@NotNull World world, @NotNull Map<Long, CollisionChunkView> chunkViewMap,
+                                   boolean supportsAsync) {
         this.world = world;
         this.chunkViewMap = chunkViewMap;
         this.supportsAsync = supportsAsync;
@@ -79,7 +76,7 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
     }
 
     @Override
-    public @NotNull List<BlockCollisionView> collidingSolidsAt(@NotNull BoundingBox worldRelativeBounds) {
+    public @NotNull List<BlockCollisionView> solidsOverlapping(@NotNull BoundingBox worldRelativeBounds) {
         List<BlockCollisionView> shapes = new ArrayList<>();
         ChunkBoundsIterator iterator = new ChunkBoundsIterator(worldRelativeBounds);
 
@@ -96,62 +93,88 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
     }
 
     @Override
-    public boolean collidesMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction,
-                                       @NotNull Vector3D translation) {
-        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translation));
+    public @NotNull HitResult collisionMovingAlong(@NotNull BoundingBox agentBounds, @NotNull Direction direction,
+                                                   @NotNull Vector3D translation) {
+        BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translation)).expand(-Vectors.EPSILON);
 
         double width = agentBounds.getWidthX();
-        double halfWidth = width / 2;
-        int dirFac = direction.x() * direction.z();
-        double adjustedWidth = width * ((Math.abs(direction.x()) + Math.abs(direction.z())) / 2D);
 
-        for(BlockCollisionView shape : collidingSolidsAt(expandedBounds)) {
-            VoxelShapeWrapper collision = shape.collision();
+        List<BlockCollisionView> collisionViews = solidsOverlapping(expandedBounds);
+        removeCollidingAtAgent(agentBounds, collisionViews);
 
-            //translate to a coordinate space centered on our entity
-            double x = shape.x() - agentBounds.getCenterX();
-            double y = shape.y() - agentBounds.getMinY();
-            double z = shape.z() - agentBounds.getCenterZ();
+        BlockCollisionView nearestCollision = null;
+        double nearestMagnitudeSquared = Double.POSITIVE_INFINITY;
+        boolean anyCollides = false;
 
-            boolean collides = false;
-            for(int i = 0; i < collision.size(); i++) {
-                Bounds bounds = collision.boundsAt(i);
+        Direction opposite = direction.opposite();
 
-                double minX = x + bounds.minX();
-                double minY = y + bounds.minY();
-                double minZ = z + bounds.minZ();
+        if(direction == Direction.UP || direction == Direction.DOWN || direction.isCardinal()) {
+            for(BlockCollisionView shape : collisionViews) {
+                Vector3D shapeVector = Vectors.of(shape.x() - agentBounds.getCenterX(),
+                        shape.y() - agentBounds.getMinY(), shape.z() - agentBounds.getCenterZ());
 
-                double maxX = x + bounds.maxX();
-                double maxY = y + bounds.maxY();
-                double maxZ = z + bounds.maxZ();
+                VoxelShapeWrapper collision = shape.collision();
 
-                if(collidesAtEntity(minX, minY, minZ, maxX, maxY, maxZ, halfWidth, agentBounds.getHeight())) {
-                    collides = false; //skip evaluating collision for block we're in
-                    break;
+                Vector3D nearestVector = Vectors.add(collision.positionAtSide(opposite), shapeVector);
+                double currentMagnitudeSquared = Vectors.magnitudeSquared(nearestVector);
+
+                if(currentMagnitudeSquared < nearestMagnitudeSquared) {
+                    nearestCollision = shape;
+                    nearestMagnitudeSquared = currentMagnitudeSquared;
                 }
-                else if(!collides) {
-                    if(direction == Direction.UP) {
-                        collides = collidesAtEntity(minX, minY, minZ, maxX, maxY, maxZ, halfWidth, expandedBounds.getHeight());
-                    }
-                    else {
-                        collides = switch (dirFac) {
-                            case -1, 0 -> collisionCheck(adjustedWidth, direction.x(), direction.z(), minX, minZ, maxX, maxZ);
-                            case 1 -> collisionCheck(adjustedWidth, direction.x(), direction.z(), maxX, minZ, minX, maxZ);
-                            default -> throw new IllegalArgumentException("dirFac was " + dirFac);
-                        };
-                    }
-                }
-            }
 
-            if(collides) {
-                return true;
+                anyCollides = true;
             }
         }
+        else if(direction.isIntercardinal()) {
+            Direction first = direction.rotateClockwise();
+            Direction second = first.opposite();
 
-        return false;
+            double adjustedWidth = (width * (Math.abs(direction.x()) + Math.abs(direction.z()))) / (2);
+            for(BlockCollisionView shape : collisionViews) {
+                Vector3D shapeVector = Vectors.of(shape.x() - agentBounds.getCenterX(),
+                        shape.y() - agentBounds.getMinY(), shape.z() - agentBounds.getCenterZ());
+
+                VoxelShapeWrapper collision = shape.collision();
+                Vector3D firstPoint = Vectors.add(collision.positionAtSide(first), shapeVector);
+                Vector3D secondPoint = Vectors.add(collision.positionAtSide(second), shapeVector);
+
+                if(collisionCheck(adjustedWidth, direction.x(), direction.z(), firstPoint.x(), firstPoint.z(),
+                        secondPoint.x(), secondPoint.z())) {
+                    Vector3D nearestVector = Vectors.add(collision.positionAtSide(opposite), shapeVector);
+                    double currentMagnitudeSquared = Vectors.magnitudeSquared(nearestVector);
+
+                    if(currentMagnitudeSquared < nearestMagnitudeSquared) {
+                        nearestCollision = shape;
+                        nearestMagnitudeSquared = currentMagnitudeSquared;
+                    }
+
+                    anyCollides = true;
+                }
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Direction " + direction + " not supported");
+        }
+
+        return new HitResult(anyCollides, nearestCollision, nearestMagnitudeSquared);
     }
 
-    private boolean collisionCheck(double width, int dirX, int dirZ, double minX, double minZ, double maxX, double maxZ) {
+    protected long chunkKey(int x, int z) {
+        return ((long) x << 32) | z;
+    }
+
+    private void removeCollidingAtAgent(BoundingBox agentBounds, List<BlockCollisionView> hits) {
+        Iterator<BlockCollisionView> iterator = hits.listIterator();
+        if(iterator.hasNext()) {
+            BlockCollisionView sample = iterator.next();
+            if(sample.overlaps(agentBounds)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private boolean collisionCheck(double adjustedWidth, int dirX, int dirZ, double minX, double minZ, double maxX, double maxZ) {
         /*
         inequalities:
         (y-z) < w
@@ -159,24 +182,14 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
          */
 
         double zMinusXMin = (minZ * dirX) - (minX * dirZ);
-        if(zMinusXMin >= width) { //min not in first
-            return (maxZ * dirX) - (maxX * dirZ) < width; //return max in first
+        if(zMinusXMin >= adjustedWidth) { //min not in first
+            return (maxZ * dirX) - (maxX * dirZ) < adjustedWidth; //return max in first
         }
 
-        if(zMinusXMin > -width) { //min in first && min in second
+        if(zMinusXMin > -adjustedWidth) { //min in first && min in second
             return true;
         }
 
-        return (maxZ * dirX) - (maxX * dirZ) > -width; //return max in second
-    }
-
-    private boolean collidesAtEntity(double minX, double minY, double minZ, double maxX, double maxY, double maxZ,
-                                     double halfWidth, double height) {
-        return DoubleMath.fuzzyCompare(-halfWidth, maxX, Vectors.EPSILON) < 0 &&
-                DoubleMath.fuzzyCompare(halfWidth, minX, Vectors.EPSILON) > 0 &&
-                DoubleMath.fuzzyCompare(0, maxY, Vectors.EPSILON) < 0 &&
-                DoubleMath.fuzzyCompare(height, minY, Vectors.EPSILON) > 0 &&
-                DoubleMath.fuzzyCompare(-halfWidth, maxZ, Vectors.EPSILON) < 0 &&
-                DoubleMath.fuzzyCompare(halfWidth, minZ, Vectors.EPSILON) > 0;
+        return (maxZ * dirX) - (maxX * dirZ) > -adjustedWidth; //return max in second
     }
 }

@@ -206,6 +206,26 @@ public final class Vectors {
         return (xDif * xDif) + (yDif * yDif) + (zDif * zDif);
     }
 
+    public static double magnitude(double x, double y, double z) {
+        return Math.sqrt((x * x) + (y * y) + (z * z));
+    }
+
+    public static double magnitudeSquared(double x, double y, double z) {
+        return (x * x) + (y * y) + (z * z);
+    }
+
+    public static double magnitude(@NotNull Vector3D vector) {
+        return magnitude(vector.x(), vector.y(), vector.z());
+    }
+
+    public static double magnitudeSquared(@NotNull Vector3D vector) {
+        return magnitudeSquared(vector.x(), vector.y(), vector.z());
+    }
+
+    public static @NotNull Vector3I abs(@NotNull Vector3I vector) {
+        return new Vector3IImpl(Math.abs(vector.x()), Math.abs(vector.y()), Math.abs(vector.z()));
+    }
+
     public static int dotProduct(@NotNull Vector3I first, @NotNull Vector3I second) {
         return (first.x() * second.x()) + (first.y() * second.y()) + (first.z() * second.z());
     }

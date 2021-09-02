@@ -24,15 +24,17 @@ class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
     @Override
     public void updateRegion(@NotNull ChunkBounds coordinates) {
         for(Vector2I coordinate : coordinates) {
+            long key = chunkKey(coordinate.x(), coordinate.z());
+
             if(world.isChunkLoaded(coordinate.x(), coordinate.z())) {
-                CollisionChunkView oldSnapshot = chunkViewMap.get(coordinate);
+                CollisionChunkView oldSnapshot = chunkViewMap.get(key);
 
                 if(oldSnapshot == null || (Bukkit.getCurrentTick() - oldSnapshot.captureTick()) > maxCaptureAge) {
-                    chunkViewMap.put(coordinate, worldBridge.snapshotView(world.getChunkAt(coordinate.x(), coordinate.z())));
+                    chunkViewMap.put(key, worldBridge.snapshotView(world.getChunkAt(coordinate.x(), coordinate.z())));
                 }
             }
             else {
-                chunkViewMap.remove(coordinate);
+                chunkViewMap.remove(key);
             }
         }
     }
@@ -40,7 +42,7 @@ class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
     @Override
     public void clearRegion(@NotNull ChunkBounds coordinates) {
         for(Vector2I coordinate : coordinates) {
-            chunkViewMap.remove(coordinate);
+            chunkViewMap.remove(chunkKey(coordinate.x(), coordinate.z()));
         }
     }
 
@@ -51,11 +53,11 @@ class SnapshotBlockCollisionProvider extends BlockCollisionProviderAbstract {
 
     @Override
     public boolean hasChunk(int x, int z) {
-        return chunkViewMap.containsKey(Vectors.of(x, z));
+        return chunkViewMap.containsKey(chunkKey(x, z));
     }
 
     @Override
     public CollisionChunkView chunkAt(int x, int z) {
-        return chunkViewMap.get(Vectors.of(x, z));
+        return chunkViewMap.get(chunkKey(x, z));
     }
 }

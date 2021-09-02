@@ -4,7 +4,7 @@ import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
 import io.github.zap.arenaapi.pathfind.collision.BlockCollisionProvider;
-import io.github.zap.arenaapi.pathfind.util.Direction;
+import io.github.zap.vector.Direction;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
@@ -37,28 +37,35 @@ class WalkNodeStepper implements NodeStepper {
     private Vector3I doStep(BlockCollisionProvider collisionProvider, PathAgent agent, Vector3D position, Direction direction) {
         Vector3D translation = computeTranslation(position, direction);
         BoundingBox agentBounds = getAgentBounds(agent, position);
-        BoundingBox agentBoundsShifted = agentBounds.clone().shift(translation.x(),
-                translation.y(), translation.z());
+        BoundingBox agentBoundsAtTargetNode = agentBounds.clone().shift(translation.x(), translation.y(), translation.z());
 
-        if(collisionProvider.collidesMovingAlong(agentBounds, direction, translation)) {
-            if(direction.isIntercardinal() || direction == Direction.UP) { //mobs can't jump diagonally
+        BlockCollisionProvider.HitResult jumpTestResult = collisionProvider
+                .collisionMovingAlong(agentBounds, direction, translation);
+        if(jumpTestResult.collides()) { //test if we need to jump
+            if(direction.isIntercardinal() || direction == Direction.UP) { //mobs can't jump diagonally (thanks mojang)
                 return null;
             }
 
-            Vector3D result = seekDirectional(collisionProvider, agent, agentBoundsShifted, true);
+            Vector3D seekResult = seekDirectional(collisionProvider, agent, agentBoundsAtTargetNode.clone(), true);
 
-            if(result != null) {
-                double deltaY = result.y() - agentBounds.getMinY();
+            double adjustedDistance = Math.sqrt(jumpTestResult.nearestDistanceSquared());
+            Vector3D shiftVector = Vectors.multiply(direction, adjustedDistance);
 
-                if(!collisionProvider.collidesMovingAlong(agentBounds, Direction.UP, Vectors.of(0, deltaY, 0)) &&
-                        !collisionProvider.collidesMovingAlong(agentBounds.clone().shift(0, deltaY, 0),
-                                direction, translation)) {
-                    return Vectors.asIntFloor(result);
+            //agentBoundsAtTargetNode now shifted to the very edge of the nearest colliding block (not overlapping it)
+            agentBoundsAtTargetNode.shift(shiftVector.x(), shiftVector.y(), shiftVector.z());
+
+            if(seekResult != null) {
+                double deltaY = seekResult.y() - agentBounds.getMinY();
+
+                if(!collisionProvider.collisionMovingAlong(agentBoundsAtTargetNode, Direction.UP, Vectors.of(0, deltaY, 0)).collides() &&
+                        !collisionProvider.collisionMovingAlong(agentBoundsAtTargetNode.clone().shift(0, deltaY, 0),
+                                direction, translation).collides()) {
+                    return Vectors.asIntFloor(seekResult);
                 }
             }
         }
         else {
-            Vector3D result = seekDirectional(collisionProvider, agent, agentBoundsShifted, false);
+            Vector3D result = seekDirectional(collisionProvider, agent, agentBoundsAtTargetNode, false);
 
             if(result != null) {
                 return Vectors.asIntFloor(result);
@@ -75,7 +82,7 @@ class WalkNodeStepper implements NodeStepper {
         double delta = 0;
 
         do {
-            List<BlockCollisionView> collisions = collisionProvider.collidingSolidsAt(shiftedBounds);
+            List<BlockCollisionView> collisions = collisionProvider.solidsOverlapping(shiftedBounds);
 
             double stepDelta;
             if(collisions.isEmpty()) {

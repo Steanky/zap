@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind.step;
 
 import io.github.zap.arenaapi.pathfind.agent.PathAgent;
 import io.github.zap.arenaapi.pathfind.collision.BlockCollisionProvider;
-import io.github.zap.arenaapi.pathfind.util.Direction;
+import io.github.zap.vector.Direction;
 import io.github.zap.vector.Vector3D;
 import io.github.zap.vector.Vector3I;
 import org.jetbrains.annotations.NotNull;

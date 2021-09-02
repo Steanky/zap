@@ -1,6 +1,7 @@
 package io.github.zap.arenaapi.pathfind.util;
 
 import io.github.zap.arenaapi.ArenaApi;
+import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.arenaapi.nms.common.world.WorldBridge;
 import org.bukkit.Location;
@@ -22,10 +23,10 @@ public class Utils {
         World world = location.getWorld();
 
         while(y > -1) {
-            VoxelShapeWrapper shape = worldBridge.collisionShapeFor(world.getBlockAt(x, y, z));
+            BlockCollisionView block = worldBridge.collisionFor(world.getBlockAt(x, y, z));
 
-            if(!shape.isEmpty()) {
-                return location.getY() - (y + shape.maxY());
+            if(!block.collision().isEmpty()) {
+                return location.getY() - block.exactY();
             }
 
             y--;

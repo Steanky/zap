@@ -1,8 +1,11 @@
 package io.github.zap.arenaapi.nms.v1_16_R3.world;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.CollisionChunkView;
 import io.github.zap.vector.Vector2I;
+import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -70,11 +73,7 @@ abstract class CollisionChunkAbstract_v1_16_R3 implements CollisionChunkView {
                 x = startX;
             }
 
-            int chunkX = x & 15;
-            int chunkY = y;
-            int chunkZ = z & 15;
-
-            return collisionView(chunkX, chunkY, chunkZ);
+            return collisionView(x & 15, y, z & 15);
         }
     }
 

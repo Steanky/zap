@@ -1,11 +1,7 @@
 package io.github.zap.arenaapi.pathfind.collision;
 
 import io.github.zap.arenaapi.nms.common.world.*;
-import io.github.zap.arenaapi.pathfind.util.Direction;
-import io.github.zap.vector.Bounds;
-import io.github.zap.vector.Vector2I;
-import io.github.zap.vector.Vector3I;
-import io.github.zap.vector.Vectors;
+import io.github.zap.vector.*;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
@@ -19,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 class ProxyBlockCollisionProviderTest {
@@ -49,7 +46,8 @@ class ProxyBlockCollisionProviderTest {
             mockChunkViews.put(location, mockChunkView);
 
             Mockito.when(worldBridge.getChunkIfLoadedImmediately(world, x, z)).thenReturn(mockChunk);
-            Mockito.when(worldBridge.proxyView(mockChunk)).thenReturn(mockChunkView);
+            Mockito.when(worldBridge.proxyView(Mockito.eq(mockChunk), ArgumentMatchers.anyInt(), ArgumentMatchers.anyLong(),
+                    ArgumentMatchers.any())).thenReturn(mockChunkView);
 
             Mockito.when(mockChunkView.position()).thenReturn(Vectors.of(x, z));
             return mockChunkView;
@@ -73,7 +71,26 @@ class ProxyBlockCollisionProviderTest {
 
             return false;
         });
+
         Mockito.when(mockVoxelShapeWrapper.size()).thenReturn(voxelShapes.size());
+
+        Mockito.when(mockVoxelShapeWrapper.positionAtSide(ArgumentMatchers.any())).thenAnswer(invocation -> {
+            Direction direction = ((Direction)invocation.getArgument(0)).opposite();
+            if(voxelShapes == fullBlock || voxelShapes == stairs) {
+                return Vectors.of((double)(direction.x() == -1 ? 0 : direction.x()), direction.y() == -1 ? 0 : direction.y(),
+                        direction.z() == -1 ? 0 : direction.z());
+            }
+            else if(voxelShapes == tinyBlock) {
+                double dX = direction.x() == -1 ? 0.4 : (direction.x() == 1 ? 0.6 : 0);
+                double dY = direction.y() == -1 ? 0 : direction.y();
+                double dZ = direction.z() == -1 ? 0.4 : (direction.z() == 1 ? 0.6 : 0);
+                return Vectors.of(dX, dY, dZ);
+            }
+            else {
+                throw new IllegalArgumentException("List not supported");
+            }
+        });
+
         int i = 0;
         for(BoundingBox bounds : voxelShapes) {
             Mockito.when(mockVoxelShapeWrapper.boundsAt(i++)).thenAnswer(invocation ->
@@ -98,7 +115,10 @@ class ProxyBlockCollisionProviderTest {
         CollisionChunkView chunk = mockChunkAt(origin.x() >> 4, origin.z() >> 4);
 
         Mockito.when(chunk.collisionsWith(ArgumentMatchers.any())).thenReturn(collisions).thenThrow();
-        Assertions.assertSame(collides, provider.collidesMovingAlong(agentBounds, direction, Vectors.asDouble(direction)));
+        BlockCollisionProvider.HitResult result = provider.collisionMovingAlong(agentBounds, direction,
+                Vectors.asDouble(direction));
+        Assertions.assertSame(collides, result.collides());
+        System.out.println(result.nearestDistanceSquared());
     }
 
     private void testCardinal(BoundingBox agentBounds, BlockCollisionView[] collisions, boolean collides) {
@@ -142,17 +162,18 @@ class ProxyBlockCollisionProviderTest {
     void setUp() {
         worldBridge = Mockito.mock(WorldBridge.class);
         world = Mockito.mock(World.class);
-        provider = new ProxyBlockCollisionProvider(worldBridge, world, 1);
+        provider = new ProxyBlockCollisionProvider(worldBridge, world, 1, 0, TimeUnit.SECONDS);
 
         fullBlock.add(new BoundingBox(0, 0, 0, 1, 1, 1));
         tinyBlock.add(new BoundingBox(0.4, 0, 0.4, 0.6, 1, 0.6));
+
         stairs.add(new BoundingBox(0, 0.5, 0, 1, 1, 1));
         stairs.add(new BoundingBox(0, 0, 0, 0.5, 0.5, 1));
     }
 
     @Test
     void ensureCollidesMovingAlongNoModification() {
-        assertNoModification(fullAgentBounds, (bounds) -> provider.collidesMovingAlong(bounds, Direction.NORTH,
+        assertNoModification(fullAgentBounds, (bounds) -> provider.collisionMovingAlong(bounds, Direction.NORTH,
                 Vectors.asDouble(Direction.NORTH)));
     }
 
@@ -163,7 +184,7 @@ class ProxyBlockCollisionProviderTest {
 
     @Test
     void ensureCollidingSolidsAtNoModification() {
-        assertNoModification(fullAgentBounds, (bounds) -> provider.collidingSolidsAt(bounds));
+        assertNoModification(fullAgentBounds, (bounds) -> provider.solidsOverlapping(bounds));
     }
 
     @Test
