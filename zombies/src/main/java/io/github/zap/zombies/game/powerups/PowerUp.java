@@ -7,15 +7,20 @@ import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.ZombiesPlayerState;
 import io.github.zap.zombies.game.data.powerups.PowerUpData;
 import io.github.zap.zombies.game.data.util.ItemStackDescription;
+import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.powerups.events.ChangedAction;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.title.Title;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
@@ -114,19 +119,14 @@ public abstract class PowerUp {
                 checkForDistTask.cancel();
             }
 
-            getArena().getPlayerMap().forEach((l,r) -> {
-                if (r.getPlayer() != null && r.getState() == ZombiesPlayerState.ALIVE) {
-                    var itemBox = new BoundingBox(
-                            powerUpItemLocation.getX(),
-                            powerUpItemLocation.getY(),
-                            powerUpItemLocation.getZ(),
-                            powerUpItemLocation.getX(),
-                            powerUpItemLocation.getY(),
-                            powerUpItemLocation.getZ()).expand(getData().getPickupRange());
-
-                    var collide = r.getPlayer().getBoundingBox().overlaps(itemBox);
+            BoundingBox itemBox = new BoundingBox(powerUpItemLocation.getX(), powerUpItemLocation.getY(),
+                    powerUpItemLocation.getZ(), powerUpItemLocation.getX(), powerUpItemLocation.getY(),
+                    powerUpItemLocation.getZ()).expand(getData().getPickupRange());
+            for (ZombiesPlayer player : getArena().getPlayerMap().values()) {
+                Player bukkitPlayer = player.getPlayer();
+                if (bukkitPlayer != null && player.getState() == ZombiesPlayerState.ALIVE) {
+                    boolean collide = bukkitPlayer.getBoundingBox().overlaps(itemBox);
                     itemEntity.setCustomName(getData().getDisplayName());
-                    var pickupDist = getData().getPickupRange();
                     if (collide && !(boolean) isPickedUp.getValue() && getState() == PowerUpState.DROPPED) {
                         if (!checkForDistTask.isCancelled()) checkForDistTask.cancel();
                         var sameType = getSamePowerUp();
@@ -135,10 +135,13 @@ public abstract class PowerUp {
                         removePowerUpItem();
                         var eventArgs = new PowerUpChangedEventArgs(ChangedAction.ACTIVATED, Collections.singleton(getCurrent()));
                         getArena().getPowerUpChangedEvent().callEvent(eventArgs);
-                        getArena().getPlayerMap().forEach((id, player) -> {
-                            if (player != null) {
-                                player.getPlayer().sendTitle(getData().getDisplayName(), "");
-                                player.getPlayer().sendMessage(ChatColor.YELLOW + r.getPlayer().getName() + " activated " + getData().getDisplayName() + ChatColor.RESET + ChatColor.YELLOW + "!");
+                        getArena().getPlayerMap().forEach((id, otherPlayer) -> {
+                            Player otherBukkitPlayer = otherPlayer.getPlayer();
+                            Title title = Title.title(LegacyComponentSerializer.legacySection()
+                                    .deserialize(getData().getDisplayName()), Component.empty());
+                            if (otherBukkitPlayer != null) {
+                                otherBukkitPlayer.showTitle(title);
+                                player.getPlayer().sendMessage(ChatColor.YELLOW + bukkitPlayer.getName() + " activated " + getData().getDisplayName() + ChatColor.RESET + ChatColor.YELLOW + "!");
                                 player.getPlayer().playSound(player.getPlayer().getLocation(), getData().getPickupSound(), getData().getPickupSoundVolume(), getData().getPickupSoundPitch());
                             }
                         });
@@ -146,9 +149,10 @@ public abstract class PowerUp {
                         state = PowerUpState.ACTIVATED;
                         activatedTimeStamp = System.currentTimeMillis();
                         activate();
+                        break;
                     }
                 }
-            });
+            }
         });
     }
 

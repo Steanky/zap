@@ -290,6 +290,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
         if(isAlive() && isInGame()) {
             stateChangedEvent.callEvent(state = ZombiesPlayerState.KNOCKED);
 
+            disablePerks(false);
+
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
             corpse = new Corpse(this);
