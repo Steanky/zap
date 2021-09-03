@@ -56,7 +56,7 @@ class ProxyBlockCollisionProviderTest {
         return mockChunkViews.get(location);
     }
 
-    private BlockCollisionView mockBlockAt(int x, int y, int z, List<BoundingBox> voxelShapes) {
+    private BlockCollisionView mockBlockAt(int x, int y, int z, List<BoundingBox> voxelShapes, boolean shouldOverlap) {
         CollisionChunkView mockChunkView = mockChunkAt(x >> 4, z >> 4);
 
         VoxelShapeWrapper mockVoxelShapeWrapper = Mockito.mock(VoxelShapeWrapper.class);
@@ -101,6 +101,7 @@ class ProxyBlockCollisionProviderTest {
 
         BlockCollisionView mockBlockView = Mockito.mock(BlockCollisionView.class);
         Mockito.when(mockBlockView.collision()).thenReturn(mockVoxelShapeWrapper);
+        Mockito.when(mockBlockView.overlaps(ArgumentMatchers.any())).thenReturn(shouldOverlap);
 
         Mockito.when(mockBlockView.x()).thenReturn(x);
         Mockito.when(mockBlockView.y()).thenReturn(y);
@@ -151,10 +152,10 @@ class ProxyBlockCollisionProviderTest {
 
     private BlockCollisionView[] createCardinallyAdjacentTestBlocks(List<BoundingBox> blockBounds) {
         BlockCollisionView[] blocks = new BlockCollisionView[4];
-        blocks[0] = mockBlockAt(0, 0, -1, blockBounds);
-        blocks[1] = mockBlockAt(1, 0, 0, blockBounds);
-        blocks[2] = mockBlockAt(0, 0, 1, blockBounds);
-        blocks[3] = mockBlockAt(-1, 0, 0, blockBounds);
+        blocks[0] = mockBlockAt(0, 0, -1, blockBounds, false);
+        blocks[1] = mockBlockAt(1, 0, 0, blockBounds, false);
+        blocks[2] = mockBlockAt(0, 0, 1, blockBounds, false);
+        blocks[3] = mockBlockAt(-1, 0, 0, blockBounds, false);
         return blocks;
     }
 
@@ -239,27 +240,27 @@ class ProxyBlockCollisionProviderTest {
 
     @Test
     void testFullAgentNoCardinalCollisionInitialOverlapFullBlockAtWaist() {
-        BlockCollisionView block = mockBlockAt(0, 0, 0, fullBlock);
+        BlockCollisionView block = mockBlockAt(0, 0, 0, fullBlock, true);
         testCardinalSameCollision(fullAgentBounds, List.of(block), false);
     }
 
     @Test
     void testFullAgentNoIntercardinalCollisionInitialOverlapFullBlockAtWaist() {
-        BlockCollisionView block = mockBlockAt(0, 0, 0, fullBlock);
+        BlockCollisionView block = mockBlockAt(0, 0, 0, fullBlock, true);
         testIntercardinalSameCollision(fullAgentBounds, List.of(block), false);
     }
 
     @Test
     void testFullAgentNoCardinalCollisionInitialOverlapFullBlockAtWaistAndHead() {
-        BlockCollisionView blockWaist = mockBlockAt(0, 0, 0, fullBlock);
-        BlockCollisionView blockHead = mockBlockAt(0, 1, 0, fullBlock);
+        BlockCollisionView blockWaist = mockBlockAt(0, 0, 0, fullBlock, true);
+        BlockCollisionView blockHead = mockBlockAt(0, 1, 0, fullBlock, true);
         testCardinalSameCollision(fullAgentBounds, List.of(blockWaist, blockHead), false);
     }
 
     @Test
     void testFullAgentNoIntercardinalCollisionInitialOverlapFullBlockAtWaistAndHead() {
-        BlockCollisionView blockWaist = mockBlockAt(0, 0, 0, fullBlock);
-        BlockCollisionView blockHead = mockBlockAt(0, 1, 0, fullBlock);
+        BlockCollisionView blockWaist = mockBlockAt(0, 0, 0, fullBlock, true);
+        BlockCollisionView blockHead = mockBlockAt(0, 1, 0, fullBlock, true);
         testIntercardinalSameCollision(fullAgentBounds, List.of(blockWaist, blockHead), false);
     }
 
@@ -267,7 +268,7 @@ class ProxyBlockCollisionProviderTest {
     void testTallAgentNoCardinalCollisionInitialOverlapAtHeadStairs() {
         BoundingBox witherSkeleton = new BoundingBox(0.2, 0, 0.2, 0.8, 3, 0.8);
 
-        BlockCollisionView blockHead = mockBlockAt(0, 2, 0, stairs);
+        BlockCollisionView blockHead = mockBlockAt(0, 2, 0, stairs, true);
         testCardinalSameCollision(witherSkeleton, List.of(blockHead), false);
     }
 }

@@ -15,8 +15,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider {
+    @FunctionalInterface
+    private interface ViewPredicate {
+        boolean test(BlockCollisionView block, Vector3D shapeVector);
+    }
+
     protected final World world;
     protected final Map<Long, CollisionChunkView> chunkViewMap;
 
@@ -98,78 +104,72 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
         BoundingBox expandedBounds = agentBounds.clone().expandDirectional(Vectors.asBukkit(translation)).expand(-Vectors.EPSILON);
 
         double width = agentBounds.getWidthX();
+        double halfWidth = width / 2;
 
         List<BlockCollisionView> collisionViews = solidsOverlapping(expandedBounds);
         removeCollidingAtAgent(agentBounds, collisionViews);
 
-        BlockCollisionView nearestCollision = null;
-        double nearestMagnitudeSquared = Double.POSITIVE_INFINITY;
-        boolean anyCollides = false;
-
         Direction opposite = direction.opposite();
 
         if(direction == Direction.UP || direction == Direction.DOWN || direction.isCardinal()) {
-            for(BlockCollisionView shape : collisionViews) {
-                Vector3D shapeVector = Vectors.of(shape.x() - agentBounds.getCenterX(),
-                        shape.y() - agentBounds.getMinY(), shape.z() - agentBounds.getCenterZ());
-
-                VoxelShapeWrapper collision = shape.collision();
-
-                Vector3D nearestVector = Vectors.add(collision.positionAtSide(opposite), shapeVector);
-                double currentMagnitudeSquared = Vectors.magnitudeSquared(nearestVector);
-
-                if(currentMagnitudeSquared < nearestMagnitudeSquared) {
-                    nearestCollision = shape;
-                    nearestMagnitudeSquared = currentMagnitudeSquared;
-                }
-
-                anyCollides = true;
-            }
+            return nearestView(collisionViews, agentBounds, opposite, (shape, shapeVector) -> true);
         }
         else if(direction.isIntercardinal()) {
             Direction first = direction.rotateClockwise();
             Direction second = first.opposite();
 
             double adjustedWidth = (width * (Math.abs(direction.x()) + Math.abs(direction.z()))) / (2);
-            for(BlockCollisionView shape : collisionViews) {
-                Vector3D shapeVector = Vectors.of(shape.x() - agentBounds.getCenterX(),
-                        shape.y() - agentBounds.getMinY(), shape.z() - agentBounds.getCenterZ());
 
+            return nearestView(collisionViews, agentBounds, opposite, (shape, shapeVector) -> {
                 VoxelShapeWrapper collision = shape.collision();
                 Vector3D firstPoint = Vectors.add(collision.positionAtSide(first), shapeVector);
                 Vector3D secondPoint = Vectors.add(collision.positionAtSide(second), shapeVector);
 
-                if(collisionCheck(adjustedWidth, direction.x(), direction.z(), firstPoint.x(), firstPoint.z(),
-                        secondPoint.x(), secondPoint.z())) {
-                    Vector3D nearestVector = Vectors.add(collision.positionAtSide(opposite), shapeVector);
-                    double currentMagnitudeSquared = Vectors.magnitudeSquared(nearestVector);
-
-                    if(currentMagnitudeSquared < nearestMagnitudeSquared) {
-                        nearestCollision = shape;
-                        nearestMagnitudeSquared = currentMagnitudeSquared;
-                    }
-
-                    anyCollides = true;
-                }
-            }
+                return collisionCheck(adjustedWidth, direction.x(), direction.z(), firstPoint.x() - halfWidth,
+                        firstPoint.z() - halfWidth, secondPoint.x() - halfWidth, secondPoint.z() - halfWidth);
+            });
         }
         else {
             throw new IllegalArgumentException("Direction " + direction + " not supported");
         }
-
-        return new HitResult(anyCollides, nearestCollision, nearestMagnitudeSquared);
     }
 
     protected long chunkKey(int x, int z) {
         return ((long) x << 32) | z;
     }
 
+    private HitResult nearestView(Iterable<BlockCollisionView> collisions, BoundingBox agentBounds, Direction opposite,
+                                  ViewPredicate filter) {
+        double nearestMagnitudeSquared = Double.POSITIVE_INFINITY;
+        BlockCollisionView nearestCollision = null;
+        boolean collides = false;
+
+        for(BlockCollisionView shape : collisions) {
+            Vector3D shapeVector = Vectors.of(shape.x() - agentBounds.getMinX(), shape.y() - agentBounds.getMinY(),
+                    shape.z() - agentBounds.getMinZ());
+
+            if(filter.test(shape, shapeVector)) {
+                VoxelShapeWrapper collision = shape.collision();
+
+                Vector3D nearestVector = Vectors.add(collision.positionAtSide(opposite), shapeVector);
+                double currentMagnitudeSquared = Vectors.distanceSquared(nearestVector.x(), nearestVector.y(),
+                        nearestVector.z(), 0.5, 0, 0.5);
+
+                if(currentMagnitudeSquared < nearestMagnitudeSquared) {
+                    nearestCollision = shape;
+                    nearestMagnitudeSquared = currentMagnitudeSquared;
+                    collides = true;
+                }
+            }
+        }
+
+        return new HitResult(collides, nearestCollision, nearestMagnitudeSquared);
+    }
+
     private void removeCollidingAtAgent(BoundingBox agentBounds, List<BlockCollisionView> hits) {
-        Iterator<BlockCollisionView> iterator = hits.listIterator();
-        if(iterator.hasNext()) {
-            BlockCollisionView sample = iterator.next();
-            if(sample.overlaps(agentBounds)) {
-                iterator.remove();
+        for(int i = hits.size() - 1; i >= 0; i--) {
+            if(hits.get(i).overlaps(agentBounds)) {
+                hits.remove(i);
             }
         }
     }
