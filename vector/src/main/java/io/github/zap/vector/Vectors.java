@@ -226,6 +226,10 @@ public final class Vectors {
         return new Vector3IImpl(Math.abs(vector.x()), Math.abs(vector.y()), Math.abs(vector.z()));
     }
 
+    public static @NotNull Vector3D abs(@NotNull Vector3D vector) {
+        return new Vector3DImpl(Math.abs(vector.x()), Math.abs(vector.y()), Math.abs(vector.z()));
+    }
+
     public static int dotProduct(@NotNull Vector3I first, @NotNull Vector3I second) {
         return (first.x() * second.x()) + (first.y() * second.y()) + (first.z() * second.z());
     }

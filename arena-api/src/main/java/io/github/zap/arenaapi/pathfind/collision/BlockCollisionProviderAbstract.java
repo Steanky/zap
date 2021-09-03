@@ -109,18 +109,16 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
         List<BlockCollisionView> collisionViews = solidsOverlapping(expandedBounds);
         removeCollidingAtAgent(agentBounds, collisionViews);
 
-        Direction opposite = direction.opposite();
-
         if(direction == Direction.UP || direction == Direction.DOWN || direction.isCardinal()) {
-            return nearestView(collisionViews, agentBounds, opposite, (shape, shapeVector) -> true);
+            return nearestView(collisionViews, agentBounds, width, direction, (shape, shapeVector) -> true);
         }
         else if(direction.isIntercardinal()) {
             Direction first = direction.rotateClockwise();
             Direction second = first.opposite();
 
-            double adjustedWidth = (width * (Math.abs(direction.x()) + Math.abs(direction.z()))) / (2);
+            double adjustedWidth = (width * (Math.abs(direction.x()) + Math.abs(direction.z()))) / 2;
 
-            return nearestView(collisionViews, agentBounds, opposite, (shape, shapeVector) -> {
+            return nearestView(collisionViews, agentBounds, width, direction, (shape, shapeVector) -> {
                 VoxelShapeWrapper collision = shape.collision();
                 Vector3D firstPoint = Vectors.add(collision.positionAtSide(first), shapeVector);
                 Vector3D secondPoint = Vectors.add(collision.positionAtSide(second), shapeVector);
@@ -138,12 +136,13 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
         return ((long) x << 32) | z;
     }
 
-    private HitResult nearestView(Iterable<BlockCollisionView> collisions, BoundingBox agentBounds, Direction opposite,
-                                  ViewPredicate filter) {
+    private HitResult nearestView(Iterable<BlockCollisionView> collisions, BoundingBox agentBounds, double width,
+                                  Direction direction, ViewPredicate filter) {
         double nearestMagnitudeSquared = Double.POSITIVE_INFINITY;
         BlockCollisionView nearestCollision = null;
         boolean collides = false;
 
+        Vector3D centerVector = Vectors.of(width / 2, 0, width / 2);
         for(BlockCollisionView shape : collisions) {
             Vector3D shapeVector = Vectors.of(shape.x() - agentBounds.getMinX(), shape.y() - agentBounds.getMinY(),
                     shape.z() - agentBounds.getMinZ());
@@ -151,9 +150,11 @@ abstract class BlockCollisionProviderAbstract implements BlockCollisionProvider 
             if(filter.test(shape, shapeVector)) {
                 VoxelShapeWrapper collision = shape.collision();
 
-                Vector3D nearestVector = Vectors.add(collision.positionAtSide(opposite), shapeVector);
-                double currentMagnitudeSquared = Vectors.distanceSquared(nearestVector.x(), nearestVector.y(),
-                        nearestVector.z(), 0.5, 0, 0.5);
+                Vector3D nearestVector = Vectors.add(collision.positionAtSide(direction.opposite()), shapeVector);
+                Vector3D offsetVector = Vectors.multiply(direction, width / 2);
+                Vector3D agentCorner = Vectors.multiply(Vectors.add(centerVector, offsetVector), direction);
+
+                double currentMagnitudeSquared = Vectors.distanceSquared(nearestVector, agentCorner);
 
                 if(currentMagnitudeSquared < nearestMagnitudeSquared) {
                     nearestCollision = shape;

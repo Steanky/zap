@@ -75,14 +75,16 @@ class ProxyBlockCollisionProviderTest {
         Mockito.when(mockVoxelShapeWrapper.size()).thenReturn(voxelShapes.size());
 
         Mockito.when(mockVoxelShapeWrapper.positionAtSide(ArgumentMatchers.any())).thenAnswer(invocation -> {
-            Direction direction = ((Direction)invocation.getArgument(0)).opposite();
+            Direction direction = invocation.getArgument(0);
             if(voxelShapes == fullBlock || voxelShapes == stairs) {
-                return Vectors.of((double)(direction.x() == -1 ? 0 : direction.x()), direction.y() == -1 ? 0 : direction.y(),
-                        direction.z() == -1 ? 0 : direction.z());
+                double dX = direction.x() == -1 ? 0 : (direction.x() == 1 ? 1 : 0);
+                double dY = direction.y() == -1 ? 0 : (direction.y() == 1 ? 1 : 0);
+                double dZ = direction.z() == -1 ? 0 : (direction.z() == 1 ? 1 : 0);
+                return Vectors.of(dX, dY, dZ);
             }
             else if(voxelShapes == tinyBlock) {
                 double dX = direction.x() == -1 ? 0.4 : (direction.x() == 1 ? 0.6 : 0);
-                double dY = direction.y() == -1 ? 0 : direction.y();
+                double dY = direction.y() == -1 ? 0 : (direction.y() == 1 ? 1 : 0);
                 double dZ = direction.z() == -1 ? 0.4 : (direction.z() == 1 ? 0.6 : 0);
                 return Vectors.of(dX, dY, dZ);
             }
