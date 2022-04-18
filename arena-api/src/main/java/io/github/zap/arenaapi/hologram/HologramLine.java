@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.hologram;
 
 import com.comphenix.protocol.events.PacketContainer;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.nms.common.NMSBridge;
+import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -20,7 +20,7 @@ public abstract class HologramLine<V> {
 
     private final ArenaApi arenaApi;
 
-    private final NMSBridge bridge;
+    private final ArenaNMSBridge bridge;
 
     private final Location location;
 

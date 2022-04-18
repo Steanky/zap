@@ -3,7 +3,10 @@ package io.github.zap.arenaapi.data;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 @RequiredArgsConstructor
 public class ListContainer<V> implements Container<Integer, V> {

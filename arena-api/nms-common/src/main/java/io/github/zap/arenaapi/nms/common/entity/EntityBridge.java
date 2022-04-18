@@ -4,13 +4,11 @@ import io.github.zap.arenaapi.nms.common.pathfind.MobNavigator;
 import io.github.zap.arenaapi.nms.common.pathfind.PathEntityWrapper;
 import io.github.zap.arenaapi.nms.common.pathfind.PathPointWrapper;
 import io.github.zap.vector.Vector3I;
-import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
-import org.bukkit.entity.Piglin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

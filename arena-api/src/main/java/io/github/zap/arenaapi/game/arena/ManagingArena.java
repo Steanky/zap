@@ -8,6 +8,7 @@ import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.event.MappingEvent;
 import io.github.zap.arenaapi.event.ProxyEvent;
 import io.github.zap.party.PartyPlusPlus;
+import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
@@ -252,9 +253,15 @@ implements Listener {
     public void onAsyncChat(AsyncChatEvent event) { // public so that subclasses also register
         PartyPlusPlus partyPlusPlus = ArenaApi.getInstance().getPartyPlusPlus();
         if (partyPlusPlus != null) {
-            PartyMember partyMember = partyPlusPlus.getPartyManager().getPlayerAsPartyMember(event.getPlayer());
-            if (partyMember != null && partyMember.isInPartyChat()) {
-                return;
+            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(event.getPlayer());
+            if (partyOptional.isPresent()) {
+                Optional<PartyMember> partyMemberOptional = partyOptional.get().getMember(event.getPlayer());
+                if (partyMemberOptional.isPresent()) {
+                    PartyMember partyMember = partyMemberOptional.get();
+                    if (partyMember.isInPartyChat()) {
+                        return;
+                    }
+                }
             }
         }
 
@@ -495,10 +502,10 @@ implements Listener {
             }
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
-            Arena<?> arena = ArenaApi.getInstance().arenaCurrentlyIn(player);
-            if (arena == null) {
+            if (leaving.contains(player) || ArenaApi.getInstance().arenaCurrentlyIn(player) == null) {
                 for (Player leaver : leaving) {
                     leaver.showPlayer(ArenaApi.getInstance(), player);
+                    player.showPlayer(ArenaApi.getInstance(), leaver);
                 }
             }
         }
@@ -597,13 +604,14 @@ implements Listener {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             Arena<?> arena = ArenaApi.getInstance().arenaCurrentlyIn(player);
-            if (arena == null) {
+            if (arena == null || playerMap.containsKey(player.getUniqueId())) {
                 // TODO: this can prob be optimized by getting a set of good managedplayers that execute this code
                 for (S leaver : playerMap.values()) {
                     if (leaver.isInGame()) {
                         Player leaverPlayer = leaver.getPlayer();
                         if (leaverPlayer != null) {
                             leaverPlayer.showPlayer(ArenaApi.getInstance(), player);
+                            player.showPlayer(ArenaApi.getInstance(), leaverPlayer);
                         }
                     }
                 }

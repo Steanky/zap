@@ -1,6 +1,6 @@
 package io.github.zap.arenaapi.pathfind;
 
-import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
 import io.github.zap.vector.graph.ArrayChunkGraph;
@@ -227,7 +227,7 @@ class PathOperationImpl implements PathOperation {
     }
 
     private void calculateAversion(PathNode node, BlockCollisionProvider provider) {
-        BlockSnapshot standingOn = provider.getBlock(node.x(), node.y() - 1, node.z());
+        BlockCollisionView standingOn = provider.getBlock(node.x(), node.y() - 1, node.z());
 
         node.score.setG(node.parent.score.getG() + (standingOn != null ? (aversionCalculator.aversionForMaterial(
                 standingOn.data().getMaterial())) : 0) + (aversionCalculator.aversionFactor(node) *

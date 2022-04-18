@@ -9,21 +9,24 @@ import io.github.regularcommands.validator.CommandValidator;
 import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
-import io.github.zap.party.party.PartyManager;
+import io.github.zap.party.party.PartyMember;
+import io.github.zap.party.party.PartySettings;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Invites a player to your party
  */
 public class InvitePlayerForm extends CommandForm<Player> {
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("invite"),
             new Parameter("\\w+", "[player-name]")
     };
 
-    private static final CommandValidator<Player, ?> VALIDATOR
+    private final static CommandValidator<Player, ?> VALIDATOR
             = new CommandValidator<>((context, arguments, previousData) -> {
         String playerName = (String) arguments[1];
 
@@ -39,8 +42,14 @@ public class InvitePlayerForm extends CommandForm<Player> {
         return ValidationResult.of(true, null, player);
     }, Validators.PLAYER_EXECUTOR);
 
-    public InvitePlayerForm() {
+    private final PartyPlusPlus partyPlusPlus;
+
+    private final MiniMessage miniMessage;
+
+    public InvitePlayerForm(@NotNull PartyPlusPlus partyPlusPlus, @NotNull MiniMessage miniMessage) {
         super("Invites a player to your party.", Permissions.NONE, PARAMETERS);
+        this.partyPlusPlus = partyPlusPlus;
+        this.miniMessage = miniMessage;
     }
 
     @Override
@@ -50,17 +59,18 @@ public class InvitePlayerForm extends CommandForm<Player> {
 
     @Override
     public String execute(Context context, Object[] arguments, Player data) {
-        PartyManager partyManager = PartyPlusPlus.getInstance().getPartyManager();
-
         Player sender = (Player) context.getSender();
-        Party party = partyManager.getPartyForPlayer(sender);
 
-        if (party == null) {
-            party = partyManager.createParty(sender);
-        }
+        Party party = partyPlusPlus.getPartyForPlayer(sender).orElseGet(() -> {
+            Party newParty = new Party(partyPlusPlus, miniMessage, new PartyMember(sender),
+                    new PartySettings(), PartyMember::new);
+            partyPlusPlus.trackParty(newParty);
+
+            return newParty;
+        });
 
         if (party.isOwner(sender) || party.getPartySettings().isAllInvite()) {
-            partyManager.invitePlayer(party, sender, data);
+            party.invitePlayer(data, sender);
             return null;
         }
 

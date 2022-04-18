@@ -11,26 +11,29 @@ import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import io.github.zap.party.party.PartyMember;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-public class PartyChatForm extends CommandForm<Void> {
+import java.util.Optional;
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+public class PartyChatForm extends CommandForm<Party> {
+
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("chat")
     };
 
-    private static final CommandValidator<Void, ?> VALIDATOR
-            = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager().getPartyForPlayer(previousData);
+    private final CommandValidator<Party, ?> validator;
 
-        if (party == null) {
-            return ValidationResult.of(false, "You are not currently in a party.", null);
-        }
-
-        return ValidationResult.of(true, null, null);
-    }, Validators.PLAYER_EXECUTOR);
-
-    public PartyChatForm() {
+    public PartyChatForm(@NotNull PartyPlusPlus partyPlusPlus) {
         super("Toggles party chat.", Permissions.NONE, PARAMETERS);
+
+        this.validator = new CommandValidator<>((context, arguments, previousData) -> {
+            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            if (partyOptional.isEmpty()) {
+                return ValidationResult.of(false, "You are not currently in a party.", null);
+            }
+
+            return ValidationResult.of(true, null, partyOptional.get());
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     @Override
@@ -39,16 +42,15 @@ public class PartyChatForm extends CommandForm<Void> {
     }
 
     @Override
-    public CommandValidator<Void, ?> getValidator(Context context, Object[] arguments) {
-        return VALIDATOR;
+    public CommandValidator<Party, ?> getValidator(Context context, Object[] arguments) {
+        return validator;
     }
 
     @Override
-    public String execute(Context context, Object[] arguments, Void data) {
-        Player sender = (Player) context.getSender();
-
-        PartyMember partyMember = PartyPlusPlus.getInstance().getPartyManager().getPlayerAsPartyMember(sender);
-        if (partyMember != null) {
+    public String execute(Context context, Object[] arguments, Party data) {
+        Optional<PartyMember> partyMemberOptional = data.getMember((Player) context.getSender());
+        if (partyMemberOptional.isPresent()) {
+            PartyMember partyMember = partyMemberOptional.get();
             partyMember.setInPartyChat(!partyMember.isInPartyChat());
             return String.format(">gold{Turned party chat %s!}", (partyMember.isInPartyChat()) ? "ON" : "OFF");
         }

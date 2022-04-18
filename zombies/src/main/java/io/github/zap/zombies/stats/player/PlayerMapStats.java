@@ -44,8 +44,8 @@ public class PlayerMapStats {
 
     int timesPlayed = 0;
 
-    Integer bestTime = null;
+    Long bestTime = null;
 
-    Map<Integer, Integer> bestTimes = new HashMap<>();
+    Map<Integer, Long> bestTimes = new HashMap<>();
 
 }

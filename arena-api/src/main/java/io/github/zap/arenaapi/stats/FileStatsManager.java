@@ -2,20 +2,27 @@ package io.github.zap.arenaapi.stats;
 
 import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.serialize.DataLoader;
-import lombok.AllArgsConstructor;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
 /**
  * Stats manager which stores stats using the file system
  */
-@AllArgsConstructor
 public class FileStatsManager extends StatsManager {
 
     private final Map<String, DataLoader> dataLoaderMap;
+
+    public FileStatsManager(@NotNull Plugin plugin, @NotNull ExecutorService executorService,
+                            @NotNull Map<String, DataLoader> dataLoaderMap) {
+        super(plugin, executorService);
+
+        this.dataLoaderMap = dataLoaderMap;
+    }
 
     @Override
     protected <I, S extends Stats<I>> @NotNull S loadStats(@NotNull String cacheName, @NotNull I identifier,

@@ -18,6 +18,7 @@ repositories {
     maven("https://repo.rapture.pw/repository/maven-snapshots")
     maven("https://repo.glaremasters.me/repository/concuncan/")
     maven("https://repo.dmulloy2.net/repository/public/")
+    maven("https://papermc.io/repo/repository/maven-public/")
 }
 
 val shade: Configuration by configurations.creating
@@ -35,25 +36,38 @@ val outputDir = project.properties["outputDir"] ?: "../run/server-1"
 val pluginDir = "$outputDir/plugins"
 
 dependencies {
-    implementation(project(":arena-api", "dependencyApi"))
+    implementation(project(":arena-api", "dependencyCompileOnlyApi"))
     implementation(project(":arena-api", "shadow"))
     implementation("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    implementation("com.grinderwolf:slimeworldmanager-api:2.6.1-SNAPSHOT")
+    implementation("com.grinderwolf:slimeworldmanager-api:2.6.2-SNAPSHOT")
 
     shadeProject(project(":zombies:nms-common")) {
         isTransitive = false
     }
     shadeProject(project(":zombies:nms-v1_16_R3", "shadow"))
-
+    shadeProject(project(":zombies:nms-v1_17_R1", "reobf"))
+    shade("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT") {
+        exclude("net.kyori", "adventure-api")
+    }
     shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
 
     bukkitPlugin("io.lumine.xikage:MythicMobs:4.12.0-Fixed")
-    bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.1-SNAPSHOT")
+    bukkitPlugin("com.grinderwolf:slimeworldmanager-plugin:2.6.2-SNAPSHOT")
 
-    classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.6.1-SNAPSHOT")
+    classModifier("com.grinderwolf:slimeworldmanager-classmodifier:2.6.2-SNAPSHOT")
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
+
+
+    testRuntimeOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+
+    testImplementation("org.mockito:mockito-core:3.11.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.0-M1")
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.0-M1")
 }
 
 val copyPlugins = tasks.register<Copy>("copyPlugins") {
@@ -70,8 +84,12 @@ val copyClassModifier = tasks.register<Copy>("copyClassModifier") {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 tasks.compileJava {
-    dependsOn(copyPlugins.get(), copyClassModifier.get())
+    dependsOn(copyPlugins, copyClassModifier)
 }
 
 tasks.processResources {
@@ -84,9 +102,9 @@ val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
 }
 
 tasks.shadowJar {
-    dependsOn(relocate.get())
+    dependsOn(relocate.get(), shadeProject)
 
-    configurations = listOf(shade)
+    configurations = listOf(shade) // TODO: when it is decided we can actually relocate arena-api stuff, remove shade and change stuff to implementation
     archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
 

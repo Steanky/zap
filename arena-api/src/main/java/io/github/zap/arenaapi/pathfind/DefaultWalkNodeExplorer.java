@@ -2,7 +2,7 @@ package io.github.zap.arenaapi.pathfind;
 
 import com.google.common.math.DoubleMath;
 import io.github.zap.arenaapi.ArenaApi;
-import io.github.zap.arenaapi.nms.common.world.BlockSnapshot;
+import io.github.zap.arenaapi.nms.common.world.BlockCollisionView;
 import io.github.zap.arenaapi.nms.common.world.BoxPredicate;
 import io.github.zap.arenaapi.nms.common.world.VoxelShapeWrapper;
 import io.github.zap.vector.Vector3D;
@@ -53,7 +53,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
 
     @Override
     public void exploreNodes(@Nullable PathNode[] buffer, @NotNull PathNode current) {
-        BlockSnapshot blockAtCurrent = context.blockProvider().getBlock(current);
+        BlockCollisionView blockAtCurrent = context.blockProvider().getBlock(current);
         if(blockAtCurrent == null) { //return if we have no block at the current node
             if(buffer.length > 0) {
                 buffer[0] = null;
@@ -106,7 +106,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
                     direction, blockMaxY);
 
             if(node != null) {
-                BlockSnapshot block = context.blockProvider().getBlock(node);
+                BlockCollisionView block = context.blockProvider().getBlock(node);
 
                 if(block != null && DoubleMath.fuzzyCompare(block.collision().maxY(), 0.5, Vectors.EPSILON) > 0) {
                     node.up = true;
@@ -156,11 +156,11 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
             shiftedBounds.resize(shiftedBounds.getMinX(), shiftedBounds.getMinY(), shiftedBounds.getMinZ(),
                     shiftedBounds.getMaxX(), shiftedBounds.getMinY() + 1, shiftedBounds.getMaxZ());
 
-            List<BlockSnapshot> collidingSnapshots = provider.collidingSolids(shiftedBounds);
+            List<BlockCollisionView> collidingSnapshots = provider.collidingSolids(shiftedBounds);
 
             if(!collidingSnapshots.isEmpty()) {
                 //we hit something
-                BlockSnapshot highestSnapshot = highestSnapshot(collidingSnapshots);
+                BlockCollisionView highestSnapshot = highestSnapshot(collidingSnapshots);
 
                 if(highestSnapshot != null) {
                     double newY = highestSnapshot.y() + highestSnapshot.collision().maxY();
@@ -198,7 +198,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
 
         int iterations = (int)Math.ceil(jumpHeight + height);
         for(int i = 0; i < iterations; i++) {
-            BlockSnapshot snapshot = provider.getBlock(x, y, z);
+            BlockCollisionView snapshot = provider.getBlock(x, y, z);
             if(snapshot == null) {
                 return null;
             }
@@ -290,9 +290,9 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         while(boundsAtTranslate.getMinY() > 0 && iters < MAX_FALL_TEST_ITERS) {
             boundsAtTranslate.shift(0, -1, 0);
 
-            List<BlockSnapshot> snapshots = provider.collidingSolids(boundsAtTranslate);
+            List<BlockCollisionView> snapshots = provider.collidingSolids(boundsAtTranslate);
             if(!snapshots.isEmpty()) {
-                BlockSnapshot highest = highestSnapshot(snapshots);
+                BlockCollisionView highest = highestSnapshot(snapshots);
 
                 if(highest != null) {
                     double maxY = highest.collision().maxY();
@@ -323,7 +323,7 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
             return provider.collidesWithAny(expandedBounds);
         }
 
-        List<BlockSnapshot> candidates = provider.collidingSolids(expandedBounds);
+        List<BlockCollisionView> candidates = provider.collidingSolids(expandedBounds);
         if(!candidates.isEmpty()) {
             int dirFactor = direction.x() * direction.z();
 
@@ -356,9 +356,9 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         return DoubleMath.fuzzyCompare(maxZ - (maxX * dirFac), negativeWidth, Vectors.EPSILON) == 1;
     }
 
-    private boolean processCollisions(List<BlockSnapshot> candidates, BoxPredicate collisionChecker,
+    private boolean processCollisions(List<BlockCollisionView> candidates, BoxPredicate collisionChecker,
                                       double agentCenterX, double agentCenterZ) {
-        for(BlockSnapshot snapshot : candidates) {
+        for(BlockCollisionView snapshot : candidates) {
             double x = snapshot.x() - agentCenterX;
             double y = snapshot.y();
             double z = snapshot.z() - agentCenterZ;
@@ -381,10 +381,10 @@ public class DefaultWalkNodeExplorer implements NodeExplorer {
         return false;
     }
 
-    private @Nullable BlockSnapshot highestSnapshot(List<BlockSnapshot> collidingSnapshots) {
+    private @Nullable BlockCollisionView highestSnapshot(List<BlockCollisionView> collidingSnapshots) {
         double highestY = -1;
-        BlockSnapshot highestSnapshot = null;
-        for(BlockSnapshot snapshot : collidingSnapshots) {
+        BlockCollisionView highestSnapshot = null;
+        for(BlockCollisionView snapshot : collidingSnapshots) {
             VoxelShapeWrapper voxelShape = snapshot.collision();
             double sampleY = voxelShape.maxY();
 

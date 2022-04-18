@@ -9,9 +9,9 @@ import io.github.zap.arenaapi.hologram.Hologram;
 import io.github.zap.arenaapi.hotbar.HotbarManager;
 import io.github.zap.arenaapi.hotbar.HotbarObject;
 import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
-import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.arenaapi.nms.common.entity.EntityBridge;
 import io.github.zap.arenaapi.nms.common.player.PlayerBridge;
+import io.github.zap.arenaapi.util.TimeUtil;
 import io.github.zap.zombies.Zombies;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.data.map.MapData;
@@ -28,14 +28,15 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents the corpse of a knocked down or dead player
@@ -46,6 +47,8 @@ public class Corpse {
 
     @Getter
     private final ZombiesPlayer zombiesPlayer;
+
+    private final ItemStack boots, leggings, chestplate, helmet;
 
     @Getter
     private final Location location;
@@ -74,6 +77,14 @@ public class Corpse {
         this.zombiesPlayer = player;
 
         if (player.getPlayer() != null) {
+            EntityEquipment equipment = player.getPlayer().getEquipment();
+            ItemStack boots = equipment.getBoots(), leggings = equipment.getLeggings();
+            ItemStack chestplate = equipment.getChestplate(), helmet = equipment.getHelmet();
+            this.boots = (boots != null) ? new ItemStack(boots.getType()) : null;
+            this.leggings = (leggings != null) ? new ItemStack(leggings.getType()) : null;
+            this.chestplate = (chestplate != null) ? new ItemStack(chestplate.getType()) : null;
+            this.helmet = (helmet != null) ? new ItemStack(helmet.getType()) : null;
+
             EntityBridge entityBridge = ArenaApi.getInstance().getNmsBridge().entityBridge();
 
             this.location = player.getPlayer().getLocation();
@@ -131,6 +142,7 @@ public class Corpse {
                 zombiesPlayer.getArena().getAvailableCorpses().add(this);
                 startDying();
             } else {
+                zombiesPlayer.getArena().getAvailableCorpses().remove(this);
                 if (deathTaskId != -1) {
                     Bukkit.getScheduler().cancelTask(deathTaskId);
                 }
@@ -179,17 +191,17 @@ public class Corpse {
                     thisPlayer.sendActionBar(Component.empty());
                     reviverPlayer.sendActionBar(Component.empty());
 
-                    ZombiesArena zombiesArena = reviver.getArena();
-                    MapData map = zombiesArena.getMap();
+                    ZombiesArena arena = reviver.getArena();
+                    MapData map = arena.getMap();
                     PotionEffect speedEffect = new PotionEffect(PotionEffectType.SPEED, map.getReviveSpeedTicks(),
                             map.getReviveSpeedLevel(), true, false, false);
                     reviverPlayer.addPotionEffect(speedEffect);
 
-                    zombiesArena.getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                            reviverPlayer.getUniqueId(), (stats) -> {
-                        PlayerMapStats mapStats = stats.getMapStatsForMap(zombiesArena.getMap());
+                    arena.getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                            reviverPlayer.getUniqueId(), PlayerGeneralStats::new, (stats) -> {
+                        PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
                         mapStats.setPlayersRevived(mapStats.getPlayersRevived() + 1);
-                    }, PlayerGeneralStats::new);
+                    });
 
                     HotbarManager hotbarManager = zombiesPlayer.getHotbarManager();
                     HotbarObjectGroup hotbarObjectGroup = hotbarManager
@@ -202,6 +214,16 @@ public class Corpse {
                                 break;
                             }
                         }
+                    }
+
+                    Component message = TextComponent.ofChildren(
+                            thisPlayer.displayName(),
+                            Component.text(" was revived by ", NamedTextColor.RED),
+                            reviverPlayer.displayName(),
+                            Component.text("!", NamedTextColor.RED)
+                    );
+                    for (Player player : arena.getWorld().getPlayers()) {
+                        player.sendMessage(message);
                     }
                 }
 
@@ -260,7 +282,7 @@ public class Corpse {
 
     private void continueDying() {
         if (deathTime <= 0) {
-            zombiesPlayer.kill();
+            zombiesPlayer.kill("DEFAULT");
 
             Player bukkitPlayer = zombiesPlayer.getPlayer();
             if (bukkitPlayer != null) {
@@ -324,6 +346,7 @@ public class Corpse {
     private void spawnDeadBodyForPlayer(Player player) {
         sendPacketToPlayer(createPlayerInfoPacketContainer(EnumWrappers.PlayerInfoAction.ADD_PLAYER), player);
         sendPacketToPlayer(createSpawnPlayerPacketContainer(), player);
+        sendPacketToPlayer(createArmorPacketContainer(), player);
         sendPacketToPlayer(createSleepingPacketContainer(), player);
         addCorpseToScoreboardTeamForPlayer(player);
 
@@ -374,6 +397,21 @@ public class Corpse {
         }
 
         throw new IllegalArgumentException("Tried to send packet container for player that does not exist!");
+    }
+
+    private @NotNull PacketContainer createArmorPacketContainer() {
+        PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_EQUIPMENT);
+        packetContainer.getIntegers().write(0, id);
+
+        List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentSlotStackPairList = new ArrayList<>();
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.FEET, boots));
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.LEGS, leggings));
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.CHEST, chestplate));
+        equipmentSlotStackPairList.add(new Pair<>(EnumWrappers.ItemSlot.HEAD, helmet));
+
+        packetContainer.getSlotStackPairLists().write(0, equipmentSlotStackPairList);
+
+        return packetContainer;
     }
 
     private PacketContainer createSleepingPacketContainer() {

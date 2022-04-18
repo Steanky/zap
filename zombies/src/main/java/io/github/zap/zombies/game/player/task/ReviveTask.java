@@ -38,15 +38,13 @@ public class ReviveTask extends ZombiesTask {
             if (targetCorpse == null) {
                 selectNewCorpse(bukkitPlayer);
             } else if (!targetCorpse.isActive()) {
-                bukkitPlayer.sendActionBar(Component.empty());
-                targetCorpse = null;
-
+                resetTargetCorpse();
                 selectNewCorpse(bukkitPlayer);
             } else {
                 attemptToContinueReviving(bukkitPlayer);
             }
         } else if (targetCorpse != null) {
-            targetCorpse.setReviver(null);
+            resetTargetCorpse();
         }
     }
 

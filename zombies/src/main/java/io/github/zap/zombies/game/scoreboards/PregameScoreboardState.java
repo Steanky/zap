@@ -44,7 +44,7 @@ public class PregameScoreboardState implements GameScoreboardState, Disposable {
         writer.clear();
         writer.line(ChatColor.GRAY, date)
               .line()
-              .line("Map: ", ChatColor.GREEN, mapInfo.getName())
+              .line("Map: ", ChatColor.GREEN, mapInfo.getMapDisplayName())
               .line("Players: ", ChatColor.GREEN, tfPlayerCount, "/", mapInfo.getMaximumCapacity())
               .line()
               .line(status, ChatColor.GREEN + " ", cd)

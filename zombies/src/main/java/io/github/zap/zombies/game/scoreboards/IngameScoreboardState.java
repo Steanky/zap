@@ -44,7 +44,7 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
     public void stateChangedFrom(ZombiesArenaState gameState, GameScoreboard scoreboard) {
         this.gameScoreboard = scoreboard;
         var date = DATE_FORMATTER.format(LocalDateTime.now());
-        var map = scoreboard.getZombiesArena().getMap().getName();
+        var map = scoreboard.getZombiesArena().getMap().getMapDisplayName();
 
         for(var i : scoreboard.getZombiesArena().getPlayerMap().entrySet()) {
             var tfName = new StringFragment(i.getValue().getOfflinePlayer().getName());
@@ -64,7 +64,15 @@ public class IngameScoreboardState implements GameScoreboardState, Disposable {
                     .line("Zombies Left: " + ChatColor.GREEN, zombieLeft)
                     .line();
 
-            playerStatues.forEach((l,r) -> writer.line(ChatColor.GRAY, r.getLeft(), ChatColor.WHITE + ": ", r.getRight()));
+            Pair<StringFragment, StringFragment> first = playerStatues.get(player.getKey());
+            writer.line(ChatColor.GRAY, first.getLeft(), ChatColor.WHITE + ": ",
+                    first.getRight());
+            for (Map.Entry<UUID, Pair<StringFragment, StringFragment>> entry : playerStatues.entrySet()) {
+                if (!entry.getKey().equals(player.getKey())) {
+                    writer.line(ChatColor.GRAY, entry.getValue().getLeft(), ChatColor.WHITE + ": ",
+                            entry.getValue().getRight());
+                }
+            }
 
             writer.line()
                     .line("Zombie Kills: " + ChatColor.GREEN, zombieKills)

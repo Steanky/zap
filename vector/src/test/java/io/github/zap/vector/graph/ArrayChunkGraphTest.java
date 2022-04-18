@@ -2,7 +2,10 @@ package io.github.zap.vector.graph;
 
 import io.github.zap.vector.Vector3I;
 import io.github.zap.vector.Vectors;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +15,7 @@ public class ArrayChunkGraphTest {
     private ArrayChunkGraph<Vector3I> graph;
     int size = 30;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         vectorsAdded = new HashSet<>();
         graph = new ArrayChunkGraph<>(-5, -5, 5, 5);
@@ -21,7 +24,7 @@ public class ArrayChunkGraphTest {
             for(int j = 0; j < size * 2; j++) {
                 for(int k = -size; k < size; k++) {
                     Vector3I vector = Vectors.of(i, j, k);
-                    Assert.assertTrue(vectorsAdded.add(vector));
+                    Assertions.assertTrue(vectorsAdded.add(vector));
 
                     graph.putElement(i, j, k, vector);
                 }
@@ -29,7 +32,7 @@ public class ArrayChunkGraphTest {
         }
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         graph = null;
         vectorsAdded = null;
@@ -38,8 +41,8 @@ public class ArrayChunkGraphTest {
     @Test
     public void testAdded() {
         for(Vector3I vector : vectorsAdded) {
-            Assert.assertTrue(graph.hasElementAt(vector.x(), vector.y(), vector.z()));
-            Assert.assertSame(graph.elementAt(vector.x(), vector.y(), vector.z()), vector);
+            Assertions.assertTrue(graph.hasElementAt(vector.x(), vector.y(), vector.z()));
+            Assertions.assertSame(graph.elementAt(vector.x(), vector.y(), vector.z()), vector);
         }
     }
 
@@ -48,7 +51,7 @@ public class ArrayChunkGraphTest {
         int size = this.size * 2;
         int expectedSize = (int)Math.pow(size, 3);
 
-        Assert.assertEquals(expectedSize, graph.size());
+        Assertions.assertEquals(expectedSize, graph.size());
     }
 
     @Test
@@ -59,11 +62,11 @@ public class ArrayChunkGraphTest {
         int actualSize = 0;
         for(Vector3I vector : graph) {
             actualSize++;
-            Assert.assertFalse(vectors.contains(vector));
-            Assert.assertTrue(graph.hasElementAt(vector));
+            Assertions.assertFalse(vectors.contains(vector));
+            Assertions.assertTrue(graph.hasElementAt(vector));
             vectors.add(vector);
         }
 
-        Assert.assertEquals(expectedSize, actualSize);
+        Assertions.assertEquals(expectedSize, actualSize);
     }
 }

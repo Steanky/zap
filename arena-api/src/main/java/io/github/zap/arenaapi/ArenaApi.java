@@ -12,9 +12,10 @@ import com.google.common.collect.Lists;
 import io.github.zap.arenaapi.game.arena.Arena;
 import io.github.zap.arenaapi.game.arena.ArenaManager;
 import io.github.zap.arenaapi.game.arena.JoinInformation;
+import io.github.zap.arenaapi.nms.common.ArenaNMSBridge;
+import io.github.zap.arenaapi.nms.v1_16_R3.ArenaNMSBridge_v1_16_R3;
 import io.github.zap.arenaapi.serialize.*;
-import io.github.zap.arenaapi.nms.common.NMSBridge;
-import io.github.zap.arenaapi.nms.v1_16_R3.NMSBridge_v1_16_R3;
+import io.github.zap.arenaapi.v1_17_R1.ArenaNMSBridge_v1_17_R1;
 import io.github.zap.party.PartyPlusPlus;
 import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
@@ -23,7 +24,10 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.GameMode;
+import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -51,7 +55,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
     private static ArenaApi instance;
 
     @Getter
-    private NMSBridge nmsBridge;
+    private ArenaNMSBridge nmsBridge;
 
     @Getter
     private PartyPlusPlus partyPlusPlus;
@@ -95,13 +99,15 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         for(ArenaManager<?> manager : arenaManagers.values()) {
             manager.dispose();
         }
+
+        info("Disabled successfully.");
     }
 
     private void initBridge() throws LoadFailureException {
-        nmsBridge = NMSBridge.selectBridge(NMSBridge_v1_16_R3.INSTANCE);
+        nmsBridge = ArenaNMSBridge.selectBridge(ArenaNMSBridge_v1_16_R3.INSTANCE, ArenaNMSBridge_v1_17_R1.INSTANCE);
 
         if(nmsBridge == null) {
-            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", NMSBridge.CURRENT_NMS_VERSION));
+            throw new LoadFailureException(String.format("Unsupported NMS package version '%s'.", ArenaNMSBridge.CURRENT_NMS_VERSION));
         }
     }
 
@@ -230,6 +236,7 @@ public final class ArenaApi extends JavaPlugin implements Listener {
         player.setSaturation(20);
         player.setHealth(20);
         player.setInvulnerable(true);
+        player.setInvisible(false);
         player.setWalkSpeed(0.2F);
         player.setFallDistance(0);
         player.setAllowFlight(false);

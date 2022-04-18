@@ -2,8 +2,16 @@ package io.github.zap.arenaapi.pathfind;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface PathfinderContext {
-    @NotNull PathfinderEngine engine();
+import java.util.Collection;
 
+public interface PathfinderContext {
     @NotNull BlockCollisionProvider blockProvider();
+
+    void recordPath(@NotNull PathResult result);
+
+    @NotNull PathMerger merger();
+
+    @NotNull Collection<PathResult> failedPaths();
+
+    @NotNull Collection<PathResult> successfulPaths();
 }

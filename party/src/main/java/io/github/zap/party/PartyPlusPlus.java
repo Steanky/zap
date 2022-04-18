@@ -1,53 +1,25 @@
 package io.github.zap.party;
 
-import io.github.regularcommands.commands.CommandManager;
-import io.github.zap.party.command.PartyCommand;
-import io.github.zap.party.party.PartyManager;
-import lombok.Getter;
-import org.apache.commons.lang3.time.StopWatch;
-import org.bukkit.plugin.java.JavaPlugin;
+import io.github.zap.party.party.Party;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.logging.Level;
+import java.util.Optional;
 
-/**
- * Creates cool parties for you!
- */
-public class PartyPlusPlus extends JavaPlugin {
-
-    @Getter
-    private static PartyPlusPlus instance;
-
-    @Getter
-    private PartyManager partyManager;
-
-    private CommandManager commandManager;
-
-    @Override
-    public void onEnable() {
-        StopWatch timer = StopWatch.createStarted();
-
-        instance = this;
-
-        initPartyManager();
-        initCommands();
-
-        timer.stop();
-        instance.getLogger().log(Level.INFO, String.format("Enabled successfully; ~%sms elapsed.", timer.getTime()));
-    }
+public interface PartyPlusPlus extends Plugin {
 
     /**
-     * Initializes the party manager
+     * Starts tracking a party
+     * @param party The party to track
      */
-    private void initPartyManager() {
-        partyManager = new PartyManager();
-    }
+    void trackParty(@NotNull Party party);
 
     /**
-     * Registers the command manager
+     * Gets the party a player is in
+     * @param player The player to check
+     * @return An optional of their party
      */
-    private void initCommands() {
-        commandManager = new CommandManager(this);
-        commandManager.registerCommand(new PartyCommand());
-    }
+    @NotNull Optional<Party> getPartyForPlayer(@NotNull OfflinePlayer player);
 
 }

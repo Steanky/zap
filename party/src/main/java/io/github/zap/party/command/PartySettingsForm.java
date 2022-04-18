@@ -10,37 +10,40 @@ import io.github.regularcommands.validator.ValidationResult;
 import io.github.zap.party.PartyPlusPlus;
 import io.github.zap.party.party.Party;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 // TODO: far post-beta, allow for settings to be more flexible
 public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
 
-    private static final Parameter[] PARAMETERS = new Parameter[] {
+    private final static Parameter[] PARAMETERS = new Parameter[] {
             new Parameter("settings"),
             new Parameter(".*", "[setting-name]"),
             new Parameter(".*", "[setting-value]")
     };
 
-    private static final CommandValidator<Pair<Party, Object[]>, ?> VALIDATOR
-            = new CommandValidator<>((context, arguments, previousData) -> {
-        Party party = PartyPlusPlus.getInstance().getPartyManager()
-                .getPartyForPlayer(previousData);
+    private final CommandValidator<Pair<Party, Object[]>, ?> validator;
 
-        if (party == null) {
-            return ValidationResult.of(false, "You are not currently in a party.", null);
-        }
-
-        if (!party.isOwner(previousData)) {
-            return ValidationResult.of(false, "You are not the party owner.", null);
-        }
-
-        return ValidationResult.of(true, null,
-                Pair.of(party, Arrays.copyOfRange(arguments, 1, arguments.length)));
-    }, Validators.PLAYER_EXECUTOR);
-
-    public PartySettingsForm() {
+    public PartySettingsForm(@NotNull PartyPlusPlus partyPlusPlus) {
         super("Modifies party settings.", Permissions.NONE, PARAMETERS);
+
+        this.validator = new CommandValidator<>((context, arguments, previousData) -> {
+            Optional<Party> partyOptional = partyPlusPlus.getPartyForPlayer(previousData);
+            if (partyOptional.isEmpty()) {
+                return ValidationResult.of(false, "You are not currently in a party.", null);
+            }
+
+            Party party = partyOptional.get();
+
+            if (!party.isOwner(previousData)) {
+                return ValidationResult.of(false, "You are not the party owner.", null);
+            }
+
+            return ValidationResult.of(true, null,
+                    Pair.of(party, Arrays.copyOfRange(arguments, 1, arguments.length)));
+        }, Validators.PLAYER_EXECUTOR);
     }
 
     @Override
@@ -50,7 +53,7 @@ public class PartySettingsForm extends CommandForm<Pair<Party, Object[]>> {
 
     @Override
     public CommandValidator<Pair<Party, Object[]>, ?> getValidator(Context context, Object[] arguments) {
-        return VALIDATOR;
+        return validator;
     }
 
     @Override

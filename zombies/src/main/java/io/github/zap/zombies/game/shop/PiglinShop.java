@@ -1,5 +1,6 @@
 package io.github.zap.zombies.game.shop;
 
+import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.arenaapi.game.arena.ManagingArena;
 import io.github.zap.arenaapi.hologram.Hologram;
@@ -15,9 +16,9 @@ import io.github.zap.zombies.game.player.ZombiesPlayer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Piglin;
@@ -85,13 +86,11 @@ public class PiglinShop extends Shop<PiglinShopData> {
                 hologram.addLine(Component.empty());
             }
 
-            hologram.updateLineForEveryone(0, Component.text("Lucky Swine", NamedTextColor.GOLD,
-                    TextDecoration.BOLD));
+            hologram.updateLineForEveryone(0, MiniMessage.get().parse("<gold><bold>Lucky Swine"));
             hologram.updateLineForEveryone(1,
                     getShopData().isRequiresPower() && !isPowered()
-                            ? Component.text("Requires Power!", NamedTextColor.GRAY)
-                            : Component.text(getShopData().getCost() + " Gold", NamedTextColor.YELLOW,
-                            TextDecoration.BOLD));
+                            ? MiniMessage.get().parse("<gray>Requires Power!")
+                            : MiniMessage.get().parse("<yellow><bold>" + getShopData().getCost() + " Gold"));
 
         }
         if (!init) {
@@ -121,8 +120,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
                 if (bukkitPlayer != null) {
                     if (getShopData().isRequiresPower() && !isPowered()) {
-                        bukkitPlayer.sendMessage(Component.text("I need some power to trade!",
-                                NamedTextColor.RED));
+                        bukkitPlayer.sendMessage(MiniMessage.get().parse("<red>I need some power to trade!"));
                     } else if (!active) {
                         String notActive = "Shop's not open right now.";
                         String piglinRoom = getArena().getPiglinRoom();
@@ -130,7 +128,7 @@ public class PiglinShop extends Shop<PiglinShopData> {
                             notActive += " Go to " + piglinRoom + ", will ya?";
                         }
 
-                        bukkitPlayer.sendMessage(Component.text(notActive, NamedTextColor.RED));
+                        bukkitPlayer.sendMessage(MiniMessage.get().parse("<red>" + notActive));
                     } else if (roller != null) {
                         if (bukkitPlayer.equals(roller)) {
                             if (doneThinking) {
@@ -138,16 +136,18 @@ public class PiglinShop extends Shop<PiglinShopData> {
                                     return true;
                                 }
                             } else {
-                                bukkitPlayer.sendMessage(Component.text("Hey, let me think what to give you!", NamedTextColor.RED));
+                                bukkitPlayer.sendMessage(MiniMessage.get()
+                                        .parse("<red>Hey, let me think what to give you!"));
                             }
                         } else {
-                            bukkitPlayer.sendMessage(Component.text("I'm trading with someone else!", NamedTextColor.RED));
+                            bukkitPlayer.sendMessage(MiniMessage.get()
+                                    .parse("<red>I'm trading with someone else!"));
                         }
                     } else {
                         int cost = getShopData().getCost();
                         if (args.getManagedPlayer().getCoins() < cost) {
-                            bukkitPlayer.sendMessage(Component
-                                    .text("You don't have enough coins to trade with me!", NamedTextColor.RED));
+                            bukkitPlayer.sendMessage(MiniMessage.get()
+                                    .parse("<red>You don't have enough coins to trade with me!"));
                         } else {
                             player.subtractCoins(cost);
 
@@ -227,11 +227,11 @@ public class PiglinShop extends Shop<PiglinShopData> {
 
                     return true;
                 } else {
-                    bukkitPlayer.sendMessage(Component.text("Choose a slot to receive the item in!",
-                            NamedTextColor.RED));
+                    bukkitPlayer.sendMessage(MiniMessage.get()
+                            .parse("<red>Choose a slot to receive the item in!"));
                 }
             } else {
-                bukkitPlayer.sendMessage(Component.text("You can't claim this weapon!", NamedTextColor.RED));
+                bukkitPlayer.sendMessage(MiniMessage.get().parse("<red>You can't claim this weapon!"));
                 sitter.destroy();
             }
         }
@@ -277,14 +277,23 @@ public class PiglinShop extends Shop<PiglinShopData> {
             this.player = player;
 
             doneThinking = true;
-            endHologram.addLine(Component.text("Right Click to Claim!", NamedTextColor.RED));
+            endHologram.addLine(MiniMessage.get().parse("<red>Right Click to Claim!"));
             endHologram.addLine(Component.empty());
-            endHologram.addLine(Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW));
+            endHologram.addLine(MiniMessage.get().parse("<yellow>" + equipmentData.getDisplayName()));
 
+            Component equipmentName = Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW);
+            Component exclamationPoint = Component.text("!", NamedTextColor.RED);
             if (roller.isOnline()) {
-                roller.sendMessage(TextComponent.ofChildren(Component.text("You got a ", NamedTextColor.RED),
-                        Component.text(equipmentData.getDisplayName(), NamedTextColor.YELLOW),
-                        Component.text("!", NamedTextColor.RED)));
+                roller.sendMessage(MiniMessage.get().parse("<red>You got a <reset><equipment><reset><red>!",
+                        Template.of("equipment", equipmentName)));
+            }
+            Component message = MiniMessage.get().parse("<red><roller> <reset><red>got a " +
+                            "<reset><equipment><reset><red>!",
+                    Template.of("roller", equipmentName), Template.of("equipment", equipmentName));
+            for (Player otherPlayer : roller.getWorld().getPlayers()) {
+                if (!otherPlayer.equals(roller)) {
+                    otherPlayer.sendMessage(message);
+                }
             }
         }
 

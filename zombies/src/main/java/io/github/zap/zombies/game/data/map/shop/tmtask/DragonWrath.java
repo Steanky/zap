@@ -5,6 +5,8 @@ import io.github.zap.zombies.game.Damager;
 import io.github.zap.zombies.game.ZombiesArena;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
 import io.github.zap.zombies.game.shop.TeamMachine;
+import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -16,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -81,13 +84,22 @@ public class DragonWrath extends TeamMachineTask implements Damager {
                 int entitiesKilled = 0;
                 for (Mob mob : world.getNearbyEntitiesByType(Mob.class, location, radius)) {
                     if (mobIds.contains(mob.getUniqueId())) {
-                        world.strikeLightningEffect(mob.getLocation());
-                        zombiesArena.getDamageHandler().damageEntity(
-                                DragonWrath.this,
-                                new DragonWrathDamage(),
-                                mob
-                        );
-                        entitiesKilled++;
+                        Optional<ActiveMob> activeMob = MythicMobs.inst().getMobManager().getActiveMob(mob.getUniqueId());
+                        boolean resistInstakill = false;
+                        if (activeMob.isPresent()) {
+                            resistInstakill = activeMob.get().getType().getConfig().getBoolean("ResistInstakill",
+                                    false);
+                        }
+
+                        if (!resistInstakill) {
+                            world.strikeLightningEffect(mob.getLocation());
+                            zombiesArena.getDamageHandler().damageEntity(
+                                    DragonWrath.this,
+                                    new DragonWrathDamage(),
+                                    mob
+                            );
+                            entitiesKilled++;
+                        }
                     }
                 }
 

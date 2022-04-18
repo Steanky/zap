@@ -19,25 +19,26 @@ repositories {
 
 val shade: Configuration by configurations.creating
 val shadeProject: Configuration by configurations.creating
-val dependencyApi: Configuration by configurations.creating
+val dependencyCompileOnlyApi: Configuration by configurations.creating
 val bukkitPlugin: Configuration by configurations.creating {
     isTransitive = false
 }
 
-configurations.api.get().extendsFrom(dependencyApi)
+configurations.compileOnlyApi.get().extendsFrom(dependencyCompileOnlyApi)
 configurations.implementation.get().extendsFrom(shade, shadeProject)
-dependencyApi.extendsFrom(bukkitPlugin)
+dependencyCompileOnlyApi.extendsFrom(bukkitPlugin)
 
 val pluginDir = "${project.properties["outputDir"] ?: "../run/server-1"}/plugins"
 
 dependencies {
-    dependencyApi(project(":party", "dependencyApi"))
-    dependencyApi(project(":party", "shadow"))
+    dependencyCompileOnlyApi(project(":party", "dependencyCompileOnlyApi"))
+    dependencyCompileOnlyApi(project(":party", "shadow"))
 
     shadeProject(project(":arena-api:nms-common")) {
         isTransitive = false
     }
     shadeProject(project(":arena-api:nms-v1_16_R3", "shadow"))
+    shadeProject(project(":arena-api:nms-v1_17_R1", "reobf"))
     shadeProject(project(":vector")) {
         isTransitive = false
     }
@@ -50,6 +51,20 @@ dependencies {
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
+
+
+    testRuntimeOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+
+    testImplementation("org.mockito:mockito-core:3.11.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.0-M1")
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.0-M1")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 val copyPlugins = tasks.register<Copy>("copyPlugins") {
@@ -57,7 +72,7 @@ val copyPlugins = tasks.register<Copy>("copyPlugins") {
 }
 
 tasks.compileJava {
-    dependsOn(copyPlugins.get())
+    dependsOn(copyPlugins)
 }
 
 tasks.processResources {
@@ -70,7 +85,7 @@ val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
 }
 
 tasks.shadowJar {
-    dependsOn(relocate.get(), shadeProject)
+    dependsOn(relocate, shadeProject)
 
     configurations = listOf(shade)
     archiveClassifier.set("")

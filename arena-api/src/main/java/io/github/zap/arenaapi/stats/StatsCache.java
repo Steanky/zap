@@ -1,35 +1,35 @@
 package io.github.zap.arenaapi.stats;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.logging.Level;
 
 /**
  * Represents a cache of stats
  * @param <I> The identifier of the stats
  * @param <S> The type of the stats
  */
-@RequiredArgsConstructor
+// TODO: proper failure handling, currently stuff will just lock up if statsmanager doesn't shutdown correctly
 public class StatsCache<I, S extends Stats<I>> {
 
-    @Getter
+    private final Plugin plugin;
+
     private final String name;
 
-    @Getter
     private final Class<S> statsClass;
 
     private final int maximumFreeCacheSize;
 
-    private final Map<I, S> cache = new HashMap<>();
+    private final Map<I, S> cache = new ConcurrentHashMap<>();
 
     private final Map<I, Integer> cacheTaskCount = new ConcurrentHashMap<>();
 
@@ -37,14 +37,27 @@ public class StatsCache<I, S extends Stats<I>> {
 
     private final Phaser pendingFlushPhaser = new Phaser(), pendingRequestPhaser = new Phaser();
 
+    private final ReentrantLock flushLock = new ReentrantLock();
+
+    private final Map<UUID, ConcurrentHashMap<Integer, Object>> map = new ConcurrentHashMap<>();
+
+    public StatsCache(@NotNull Plugin plugin, @NotNull String name, @NotNull Class<S> statsClass,
+                      int maximumFreeCacheSize) {
+        this.plugin = plugin;
+        this.name = name;
+        this.statsClass = statsClass;
+        this.maximumFreeCacheSize = maximumFreeCacheSize;
+    }
+
     /**
-     * Gets a value in the cache or computes it
+     * Gets a value in the cache. Note that the callback is supposed to be called on the same thread.
      * @param identifier The identifier for the value
      * @param absenceMapping The mapping to determine the value if it is not present in the cache
-     * @return The stats associated with the identifier
+     * @param callback The callback that accepts the cache value
      */
-    public @NotNull S getValueFor(@NotNull I identifier, @NotNull Function<I, S> absenceMapping) {
-        return accessCacheMember(identifier, () -> {
+    public void getValueFor(@NotNull I identifier, @NotNull Function<I, S> absenceMapping,
+                            @NotNull Consumer<S> callback) {
+        accessCacheMember(identifier, () -> {
             Integer taskCount = cacheTaskCount.get(identifier);
 
             if (taskCount != null) {
@@ -55,7 +68,12 @@ public class StatsCache<I, S extends Stats<I>> {
                 }
             }
 
-            return cache.computeIfAbsent(identifier, absenceMapping);
+            S stats = cache.computeIfAbsent(identifier, absenceMapping);
+            try {
+                callback.accept(stats);
+            } catch (Exception exception) {
+                plugin.getLogger().log(Level.WARNING, "A stat modification caused an exception.", exception);
+            }
         });
     }
 
@@ -71,32 +89,18 @@ public class StatsCache<I, S extends Stats<I>> {
      * Accesses part of the cache while waiting for any pending flushes to complete
      * @param identifier The identifier for the member of the cache
      * @param callback The callback for when cache access is ready
-     * @return The value returned by the callback
-     */
-    private <R> R accessCacheMember(@NotNull I identifier, @NotNull Supplier<R> callback) {
-        pendingRequestPhaser.register(); // register the request
-        waitIfOngoingFlush();
-
-        R value;
-        synchronized (getLockFor(identifier)) {
-            value = callback.get();
-            pendingRequestPhaser.arriveAndDeregister();
-        }
-        return value;
-    }
-
-    /**
-     * Accesses part of the cache while waiting for any pending flushes to complete
-     * @param identifier The identifier for the member of the cache
-     * @param callback The callback for when cache access is ready
      */
     private void accessCacheMember(@NotNull I identifier, @NotNull Runnable callback) {
-        pendingRequestPhaser.register(); // register the request
+        synchronized (pendingRequestPhaser) {
+            pendingRequestPhaser.register();
+        }
         waitIfOngoingFlush();
 
-        synchronized (getLockFor(identifier)) {
+        synchronized (getLockFor(identifier)) { // Make sure checks for ongoing requests are accurate
             callback.run();
-            pendingRequestPhaser.arriveAndDeregister();
+            synchronized (pendingRequestPhaser) { // Make sure checks for ongoing requests are accurate
+                pendingRequestPhaser.arriveAndDeregister();
+            }
         }
     }
 
@@ -105,12 +109,17 @@ public class StatsCache<I, S extends Stats<I>> {
      * Must be called after registering to pendingRequestPhaser
      */
     private void waitIfOngoingFlush() {
-        // check for ongoing flush
-        if (pendingFlushPhaser.getRegisteredParties() > 0) {
-            pendingFlushPhaser.register(); // add request to the parties waiting for the flush
-            pendingRequestPhaser.arriveAndDeregister(); // unregister from requests due to needing to wait
-            pendingFlushPhaser.arriveAndAwaitAdvance(); // await flush completion
-            pendingRequestPhaser.register(); // reregister the request
+        Integer phase = null;
+        synchronized (pendingRequestPhaser) { // Make sure that the current requests do not complete or else we arrive on an incorrect phase
+            synchronized (pendingFlushPhaser) { // Make sure flush phase does not update
+                if (pendingFlushPhaser.getRegisteredParties() > 0) {
+                    phase = pendingFlushPhaser.getPhase(); // Set phase if ongoing flush
+                    pendingRequestPhaser.arrive(); // "Disable" request until flush done
+                }
+            }
+        }
+        if (phase != null) {
+            pendingFlushPhaser.awaitAdvance(phase); // await flush completion
         }
     }
 
@@ -125,7 +134,6 @@ public class StatsCache<I, S extends Stats<I>> {
 
     /**
      * Determines if the cache should be flushed
-     * Not entirely threadsafe due to being an approximate measure
      * @return Whether the cache should be flushed
      */
     public boolean shouldFlush() {
@@ -135,26 +143,68 @@ public class StatsCache<I, S extends Stats<I>> {
 
     /**
      * Flushes the cache of any unnecessary values
+     * Do <b>not</b> call this in the callback of {@link #getValueFor(Object, Function, Consumer)}, as it will cause
+     * a deadlock.
      * @param callback A callback for each set of flushed stats
      */
-    public synchronized void flush(@NotNull Consumer<Stats<I>> callback) {
-        pendingFlushPhaser.register(); // register a flush to notify requests to wait
-        pendingRequestPhaser.register(); // register to the pending requests
-        pendingRequestPhaser.arriveAndAwaitAdvance(); // await until all pending requests have completed
+    public void flush(@NotNull Consumer<Stats<I>> callback) {
+        if (flushLock.tryLock()) { // If the lock is not acquired, another flush is already happening so no reason to flush
+            try {
+                synchronized (pendingFlushPhaser) { // Make sure checks for flushes are accurate
+                    pendingFlushPhaser.register(); // Register a flush to notify requests to wait
+                }
+                waitIfOngoingRequests();
 
-        Iterator<Map.Entry<I, S>> iterator = cache.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<I, S> next = iterator.next();
-            callback.accept(next.getValue());
+                Iterator<Map.Entry<I, S>> iterator = cache.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<I, S> next = iterator.next();
+                    callback.accept(next.getValue());
 
-            // Remove item from the cache if there aren't any enqueued tasks that want to modify the stats
-            if (!cacheTaskCount.containsKey(next.getKey())) {
-                locks.remove(next.getKey());
-                iterator.remove();
+                    // Remove item from the cache if there aren't any enqueued tasks that want to modify the stats
+                    if (!cacheTaskCount.containsKey(next.getKey())) {
+                        locks.remove(next.getKey());
+                        iterator.remove();
+                    }
+                }
+
+                synchronized (pendingFlushPhaser) { // Make sure checks for flushes are accurate
+                    pendingFlushPhaser.arriveAndDeregister(); // complete flush and restart waiting requests
+                }
+            } finally {
+                flushLock.unlock();
             }
         }
+    }
 
-        pendingFlushPhaser.arriveAndDeregister(); // complete flush and restart waiting requests
+    /**
+     * Used by {@link #flush(Consumer)} to wait for all ongoing requests to complete before continuing.
+     */
+    private void waitIfOngoingRequests() {
+        Integer phase = null;
+        synchronized (pendingRequestPhaser) { // Make sure request phase does not update
+            if (pendingRequestPhaser.getRegisteredParties() > 0) { // Check for ongoing requests
+                phase = pendingRequestPhaser.getPhase(); // Set phase if ongoing requests in order to wait
+            }
+        }
+        if (phase != null) {
+            pendingRequestPhaser.awaitAdvance(phase);
+        }
+    }
+
+    /**
+     * Gets the name of the cache
+     * @return The cache name
+     */
+    public @NotNull String getName() {
+        return this.name;
+    }
+
+    /**
+     * Gets the class associated with the stats
+     * @return The class
+     */
+    public @NotNull Class<S> getStatsClass() {
+        return this.statsClass;
     }
 
 }

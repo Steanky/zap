@@ -87,7 +87,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
             GunLevel level = getCurrentLevel();
             int clipAmmo = level.getClipAmmo();
 
-            if (currentClipAmmo < clipAmmo && clipAmmo <= currentAmmo) {
+            if (currentClipAmmo < clipAmmo && currentAmmo > 0) {
                 canReload = false;
                 canShoot = false;
 
@@ -150,6 +150,14 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
         Player player = getPlayer();
 
+        if (currentClipAmmo == 0) {
+            if (currentAmmo > 0) {
+                reload();
+            } else {
+                player.sendMessage(Component.text("You don't have any ammo!", NamedTextColor.RED));
+            }
+        }
+
         // Animate xp bar
         fireDelayTask = getArena().runTaskTimer(0L, 1L, new DisposableBukkitRunnable() {
 
@@ -172,16 +180,8 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                         player.setExp(1);
                     }
 
-                    canReload = true;
-                    if (currentAmmo > 0) {
+                    if (canReload && currentAmmo > 0) {
                         canShoot = true;
-                    }
-                    if (currentClipAmmo == 0) {
-                        if (currentAmmo > 0) {
-                            reload();
-                        } else {
-                            player.sendMessage(Component.text("You don't have any ammo!", NamedTextColor.RED));
-                        }
                     }
                     fireDelayTask = -1;
                     cancel();
@@ -296,7 +296,7 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
         super.onRightClick(action);
 
         if (canShoot) {
-            canReload = canShoot = false;
+            canShoot = false;
             shoot(); // Shoot your first shot on the same tick
 
             if (getCurrentLevel().getShotsPerClick() > 1) { // Don't schedule if unnecessary
@@ -307,9 +307,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
                     @Override
                     public void run() {
                         if (firedShots++ == Math.min(getCurrentLevel().getShotsPerClick(), currentAmmo)) { // Reload while shooting possible
-                            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                                    getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + firedShots),
-                                    PlayerGeneralStats::new);
+                            getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                                    getPlayer().getUniqueId(), PlayerGeneralStats::new,
+                                    (stats) -> stats.setBulletsShot(stats.getBulletsShot() + firedShots));
                             updateAfterShooting(firedShots);
 
                             shootingTask = -1;
@@ -321,9 +321,9 @@ public abstract class Gun<D extends GunData<L>, L extends GunLevel> extends Upgr
 
                 }).getTaskId();
             } else {
-                getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                        getPlayer().getUniqueId(), (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1),
-                        PlayerGeneralStats::new);
+                getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                        getPlayer().getUniqueId(), PlayerGeneralStats::new,
+                        (stats) -> stats.setBulletsShot(stats.getBulletsShot() + 1));
                 updateAfterShooting(1);
             }
         }

@@ -122,7 +122,7 @@ public class ArraySegment<T> implements Iterable<T> {
     }
 
     /**
-     * Wrapped for System.arraycopy that copies this ArraySegment's values to another array.
+     * Wrapper for System.arraycopy that copies this ArraySegment's values to another array.
      * @param offset The offset relative to the start of this ArraySegment
      * @param dest The destination array object
      * @param destOffset The offset of the destination array

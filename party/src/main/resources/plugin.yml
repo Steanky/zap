@@ -1,6 +1,6 @@
 name: PartyPlusPlus
 version: ${version}
-main: io.github.zap.party.PartyPlusPlus
+main: io.github.zap.party.PartyPlugin
 api-version: 1.16
 commands:
   party:

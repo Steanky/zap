@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 class VoxelShapeWrapper_v1_16_R3 implements VoxelShapeWrapper {
+    public static final VoxelShapeWrapper FULL = new VoxelShapeWrapper_v1_16_R3(VoxelShapes.fullCube());
+    public static final VoxelShapeWrapper EMPTY = new VoxelShapeWrapper_v1_16_R3(VoxelShapes.empty());
+
     private final VoxelShape shape;
     private final List<AxisAlignedBB> bounds;
 

@@ -6,7 +6,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 
-public record RoundContext(List<BukkitTask> spawnTasks, List<BukkitTask> removeTasks, List<ActiveMob> spawnedMobs) {
+public record RoundContext(List<BukkitTask> spawnTasks, List<BukkitTask> speedupTasks, List<BukkitTask> removeTasks, List<ActiveMob> spawnedMobs) {
     void cancelRound() {
         for(BukkitTask task : spawnTasks) {
             task.cancel();

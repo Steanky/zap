@@ -17,21 +17,38 @@ repositories {
     maven("https://papermc.io/repo/repository/maven-public/")
 }
 
-val shade: Configuration by configurations.creating
-val dependencyApi: Configuration by configurations.creating
+val dependencyCompileOnlyApi: Configuration by configurations.creating
 
-configurations.implementation.get().extendsFrom(shade)
-configurations.api.get().extendsFrom(dependencyApi)
+configurations.compileOnlyApi.get().extendsFrom(dependencyCompileOnlyApi)
 
 val pluginDir = "${project.properties["outputDir"] ?: "../run/server-1"}/plugins"
 
 dependencies {
-    dependencyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    shade("com.github.Steanky:RegularCommands:master-SNAPSHOT")
-    shade("org.apache.commons:commons-lang3:3.12.0")
+    dependencyCompileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+
+    implementation("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT") {
+        exclude("net.kyori", "adventure-api")
+    }
+    implementation("com.github.Steanky:RegularCommands:master-SNAPSHOT")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
+
+
+    testRuntimeOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
+        exclude("junit", "junit")
+    }
+
+    testImplementation("org.mockito:mockito-core:3.11.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.0-M1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.0-M1")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 tasks.processResources {
@@ -44,15 +61,14 @@ val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
 }
 
 tasks.shadowJar {
-    dependsOn(relocate.get())
+    dependsOn(relocate)
 
-    configurations = listOf(shade)
     archiveClassifier.set("")
     destinationDirectory.set(File(pluginDir))
 }
 
 tasks.build {
-    dependsOn(tasks.shadowJar.get())
+    dependsOn(tasks.shadowJar)
 }
 
 description = "party-plus-plus"

@@ -2,6 +2,7 @@ package io.github.zap.zombies.game;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import io.github.zap.arenaapi.DisposableBukkitRunnable;
 import io.github.zap.arenaapi.Property;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
@@ -31,7 +32,10 @@ import io.github.zap.zombies.game.data.powerups.DamageModificationPowerUpData;
 import io.github.zap.zombies.game.equipment.melee.MeleeWeapon;
 import io.github.zap.zombies.game.hotbar.ZombiesHotbarManager;
 import io.github.zap.zombies.game.player.ZombiesPlayer;
-import io.github.zap.zombies.game.powerups.*;
+import io.github.zap.zombies.game.powerups.DamageModificationPowerUp;
+import io.github.zap.zombies.game.powerups.PowerUp;
+import io.github.zap.zombies.game.powerups.PowerUpBossBar;
+import io.github.zap.zombies.game.powerups.PowerUpState;
 import io.github.zap.zombies.game.powerups.events.PowerUpChangedEventArgs;
 import io.github.zap.zombies.game.powerups.managers.PowerUpManager;
 import io.github.zap.zombies.game.powerups.spawnrules.DefaultPowerUpSpawnRule;
@@ -52,12 +56,15 @@ import lombok.Value;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.block.Action;
@@ -387,6 +394,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         }
     }
 
+    private static final String MOB_SPEEDUP_ATTRIBUTE_NAME = "mob_speedup";
+
     @Getter
     private final MapData map;
 
@@ -593,31 +602,27 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                 .add(new Vector(0, Hologram.DEFAULT_LINE_SPACE * map.getBestTimesCount(), 0));
         Hologram hologram = new Hologram(hologramLocation.toLocation(getWorld()));
 
-        statsManager.queueCacheModification(CacheInformation.MAP, map.getName(), (stats) -> {
+        statsManager.queueCacheRequest(CacheInformation.MAP, map.getName(), MapStats::new, (stats) -> {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            List<Map.Entry<UUID, Integer>> bestTimes = new ArrayList<>(stats.getBestTimes().entrySet());
+            List<Map.Entry<UUID, Long>> bestTimes = new ArrayList<>(stats.getBestTimes().entrySet());
             bestTimes.sort((a, b) -> b.getValue().compareTo(a.getValue()));
 
             int bound = Math.min(map.getBestTimesCount(), bestTimes.size());
             for (int i = 0; i < bound; i++) {
-                Map.Entry<UUID, Integer> time = bestTimes.get(i);
+                Map.Entry<UUID, Long> time = bestTimes.get(i);
                 int finalI = i;
 
                 Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                     if (startTimeStamp != -1) {
-                        hologram.addLine(TextComponent.ofChildren(Component.text("#" + finalI,
-                                        NamedTextColor.YELLOW),
-                                Component.text(" - ", NamedTextColor.WHITE),
-                                Component.text("Loading...", NamedTextColor.GRAY),
-                                Component.text(" - ", NamedTextColor.WHITE),
-                                Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
-                                        NamedTextColor.YELLOW)));
+                        hologram.addLine(MiniMessage.get()
+                                .parse(String.format("<yellow>#%d <white>- <gray>Loading... <white>- <yellow>%s",
+                                        finalI, TimeUtil.convertTicksToSecondsString(time.getValue()))));
                     }
                 });
             }
             for (int i = 0; i < bound; i++) {
-                Map.Entry<UUID, Integer> time = bestTimes.get(i);
+                Map.Entry<UUID, Long> time = bestTimes.get(i);
                 int finalI = i;
 
                 try {
@@ -628,20 +633,16 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                     String name = objectMapper.readTree(message).get("name").textValue();
                     Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
                         if (startTimeStamp != -1) {
-                            hologram.updateLine(finalI, TextComponent.ofChildren(
-                                    Component.text("#" + finalI, NamedTextColor.YELLOW),
-                                    Component.text(" - ", NamedTextColor.WHITE),
-                                    Component.text(name, NamedTextColor.GRAY),
-                                    Component.text(" - ", NamedTextColor.WHITE),
-                                    Component.text(TimeUtil.convertTicksToSecondsString(time.getValue()),
-                                            NamedTextColor.YELLOW)));
+                            hologram.updateLine(finalI, MiniMessage.get()
+                                    .parse(String.format("<yellow>#%d <white>- <gray>%s <white>- <yellow>%s",
+                                            finalI, name, TimeUtil.convertTicksToSecondsString(time.getValue()))));
                         }
                     });
                 } catch (IOException e) {
                     Zombies.warning("Failed to get name of player with UUID " + time.getKey().toString());
                 }
             }
-        }, MapStats::new);
+        });
 
         return hologram;
     }
@@ -653,6 +654,17 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
     @Override
     public void dispose() {
+        for (ZombiesPlayer player : getPlayerMap().values()) {
+            if (player.isInGame()) {
+                Player bukkitPlayer = player.getPlayer();
+                if (bukkitPlayer != null) {
+                    for (Player hiddenPlayer : hiddenPlayers) {
+                        bukkitPlayer.showPlayer(Zombies.getInstance(), hiddenPlayer);
+                    }
+                }
+            }
+        }
+
         super.dispose(); //dispose of superclass-specific resources
 
         //cleanup mappings and remove arena from manager
@@ -782,7 +794,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                     // There are no players alive, so end the game
                     for (ZombiesPlayer player : getPlayerMap().values()) {
-                        player.kill();
+                        player.kill("DEFAULT");
                     }
                     doLoss();
                 }
@@ -962,7 +974,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
                     // There are no players alive, so end the game
                     for (ZombiesPlayer player : getPlayerMap().values()) {
-                        player.kill();
+                        player.kill("DEFAULT");
                     }
                     doLoss();
                 }
@@ -1156,11 +1168,11 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                         }
                     }
 
-                    statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
-                            (stats) -> {
+                    statsManager.queueCacheRequest(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
+                            PlayerGeneralStats::new, (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(map);
                         mapStats.setTimesPlayed(mapStats.getTimesPlayed() + 1);
-                        }, PlayerGeneralStats::new);
+                    });
 
                     zombiesPlayer.startTasks();
                 }
@@ -1171,7 +1183,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     }
 
     public void doRound(int targetRound) {
-        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        RoundContext context = new RoundContext(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         if(currentRound != null) {
             currentRound.cancelRound();
         }
@@ -1181,7 +1193,8 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
         Property<Integer> roundIndexProperty = map.getCurrentRoundProperty();
 
         int lastRoundIndex = targetRound - 1;
-        int secondsElapsed = (int) ((System.currentTimeMillis() - startTimeStamp) / 1000);
+        long approximateTicks = (System.currentTimeMillis() - startTimeStamp) / 50; // todo: approximation bad
+
         for (ZombiesPlayer zombiesPlayer : getPlayerMap().values()) {
             if (!zombiesPlayer.isAlive()) {
                 zombiesPlayer.respawn();
@@ -1189,8 +1202,9 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
 
             Player player = zombiesPlayer.getPlayer();
             if (player != null) {
-                if (map.getRoundTimesShouldSave().contains(lastRoundIndex + 1)) {
-                    statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
+                if (map.getRoundTimesShouldSave().contains(targetRound)) {
+                    statsManager.queueCacheRequest(CacheInformation.PLAYER, player.getUniqueId(),
+                            PlayerGeneralStats::new, (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
@@ -1198,21 +1212,44 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                             mapStats.setBestRound(lastRoundIndex + 1);
                         }
 
-                        Map<Integer, Integer> bestTimes = mapStats.getBestTimes();
-                        Integer bestTime = bestTimes.get(lastRoundIndex + 1);
-                        if (bestTime == null || bestTime < secondsElapsed) {
-                            bestTimes.put(lastRoundIndex + 1, secondsElapsed);
+                        Component bar = MiniMessage.get().parse("<green>=======================");
+                        Map<Integer, Long> bestTimes = mapStats.getBestTimes();
+                        Long bestTime = bestTimes.get(targetRound);
+                        if (bestTime == null || bestTime < approximateTicks) {
+                            bestTimes.put(targetRound, approximateTicks);
+                            Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
+                                if (player.isOnline()) {
+                                    player.sendMessage(bar);
+                                    player.sendMessage(MiniMessage.get()
+                                            .parse(String.format("<red>You beat round %d in %s!", targetRound + 1,
+                                                    TimeUtil.convertTicksToSecondsString(approximateTicks))));
+                                    player.sendMessage(MiniMessage.get().parse("<gold>NEW PERSONAL BEST!"));
+                                    player.sendMessage(bar);
+                                }
+                            });
                         }
-                    }, PlayerGeneralStats::new);
+                        else {
+                            Bukkit.getScheduler().runTask(Zombies.getInstance(), () -> {
+                                if (player.isOnline()) {
+                                    player.sendMessage(bar);
+                                    player.sendMessage(MiniMessage.get()
+                                            .parse(String.format("<red>You beat round %d in %s!", targetRound + 1,
+                                                    TimeUtil.convertTicksToSecondsString(approximateTicks))));
+                                    player.sendMessage(bar);
+                                }
+                            });
+                        }
+                    });
                 } else {
-                    statsManager.queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(), (stats) -> {
+                    statsManager.queueCacheRequest(CacheInformation.PLAYER, player.getUniqueId(),
+                            PlayerGeneralStats::new, (stats) -> {
                         PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                         mapStats.setRoundsSurvived(mapStats.getRoundsSurvived() + 1);
 
                         if (mapStats.getBestRound() < lastRoundIndex + 1) {
                             mapStats.setBestRound(lastRoundIndex + 1);
                         }
-                    }, PlayerGeneralStats::new);
+                    });
                 }
             }
         }
@@ -1234,6 +1271,34 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
                     for(ActiveMob activeMob : newlySpawned) {
                         MetadataHelper.setMetadataFor(activeMob.getEntity().getBukkitEntity(),
                                 Zombies.SPAWNINFO_WAVE_METADATA_NAME, Zombies.getInstance(), wave);
+                        Entity entity = activeMob.getEntity().getBukkitEntity();
+                        if (entity instanceof Mob mob) {
+                            AttributeInstance attributeInstance = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                            if (attributeInstance == null) {
+                                mob.registerAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                                attributeInstance = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                            }
+                            if (attributeInstance != null) {
+                                AttributeInstance finalAttributeInstance = attributeInstance;
+                                AttributeModifier[] last = new AttributeModifier[] { null };
+                                double[] value = new double[] { 1.0 };
+                                BukkitTask speedupTask = runTaskTimer(0L, 20L, new DisposableBukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        if (!mob.isDead()) {
+                                            AttributeModifier finalLast = last[0];
+                                            if (finalLast != null) {
+                                                finalAttributeInstance.removeModifier(finalLast);
+                                            }
+                                            finalAttributeInstance.addModifier(last[0] = new AttributeModifier(MOB_SPEEDUP_ATTRIBUTE_NAME, (value[0] *= 1.00366875) - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+                                        }
+                                        else cancel();
+                                    }
+                                });
+
+                                context.speedupTasks().add(speedupTask);
+                            }
+                        }
                     }
 
                     BukkitTask removeMobTask = runTaskLater(6000, () -> {
@@ -1295,7 +1360,7 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
     private void doVictory() {
         state = ZombiesArenaState.ENDED;
         endTimeStamp = System.currentTimeMillis();
-        int duration = (int) ((endTimeStamp - startTimeStamp) / 1000);
+        long approximateTicks = (endTimeStamp - startTimeStamp) / 50;
 
         var round = map.getCurrentRoundProperty().getValue(this);
         getPlayerMap().forEach((l,r) -> {
@@ -1304,19 +1369,20 @@ public class ZombiesArena extends ManagingArena<ZombiesArena, ZombiesPlayer> {
             if(bukkitPlayer != null) {
                 bukkitPlayer.showTitle(Title.title(Component.text("You Win!", NamedTextColor.GREEN),
                         Component.text("You made it to Round " + (round + 1) + "!", NamedTextColor.GRAY)));
-                statsManager.queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
-                        (playerStats) -> {
+                statsManager.queueCacheRequest(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
+                        PlayerGeneralStats::new, (playerStats) -> {
                     PlayerMapStats playerMapStats = playerStats.getMapStatsForMap(getArena().getMap());
                     playerMapStats.setWins(playerMapStats.getWins() + 1);
 
-                    if (playerMapStats.getBestTime() == null || duration < playerMapStats.getBestTime()) {
-                        playerMapStats.setBestTime(duration);
-                        statsManager.queueCacheModification(CacheInformation.MAP, map.getName(), (mapStats) -> {
-                            Map<UUID, Integer> bestTimes = mapStats.getBestTimes();
-                            bestTimes.put(bukkitPlayer.getUniqueId(), duration);
-                        }, MapStats::new);
+                    if (playerMapStats.getBestTime() == null || approximateTicks < playerMapStats.getBestTime()) {
+                        playerMapStats.setBestTime(approximateTicks);
+                        statsManager.queueCacheRequest(CacheInformation.MAP, map.getName(), MapStats::new,
+                                (mapStats) -> {
+                            Map<UUID, Long> bestTimes = mapStats.getBestTimes();
+                            bestTimes.put(bukkitPlayer.getUniqueId(), approximateTicks);
+                        });
                     }
-                }, PlayerGeneralStats::new);
+                });
             }
         });
         runTaskLater(200L, this::dispose);

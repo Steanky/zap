@@ -4,7 +4,10 @@ import io.github.zap.arenaapi.ArenaApi;
 import io.github.zap.arenaapi.ResourceManager;
 import io.github.zap.arenaapi.event.Event;
 import io.github.zap.arenaapi.game.arena.ManagedPlayer;
-import io.github.zap.arenaapi.hotbar.*;
+import io.github.zap.arenaapi.hotbar.HotbarManager;
+import io.github.zap.arenaapi.hotbar.HotbarObject;
+import io.github.zap.arenaapi.hotbar.HotbarObjectGroup;
+import io.github.zap.arenaapi.hotbar.HotbarProfile;
 import io.github.zap.arenaapi.pathfind.PathTarget;
 import io.github.zap.arenaapi.util.AttributeHelper;
 import io.github.zap.arenaapi.util.WorldUtils;
@@ -25,6 +28,9 @@ import io.github.zap.zombies.game.task.ZombiesTask;
 import io.github.zap.zombies.stats.CacheInformation;
 import io.github.zap.zombies.stats.player.PlayerGeneralStats;
 import io.github.zap.zombies.stats.player.PlayerMapStats;
+import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.api.bukkit.BukkitAPIHelper;
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -32,18 +38,25 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> implements Damager, PathTarget {
@@ -90,6 +103,9 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     @Getter
     private final List<ZombiesTask> tasks = new ArrayList<>();
 
+    @Getter
+    private final Event<ZombiesPlayerState> stateChangedEvent = new Event<>();
+
     /**
      * Creates a new ZombiesPlayer instance from the provided values.
      * @param arena The ZombiesArena this player belongs to
@@ -116,7 +132,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
     public void quit() {
         if (isInGame()) {
-            kill();
+            kill("QUIT");
             disablePerks(arena.getMap().isPerksLostOnQuit());
             endTasks();
         }
@@ -128,7 +144,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
     public void rejoin() {
         super.rejoin();
 
-        state = ZombiesPlayerState.DEAD;
+        stateChangedEvent.callEvent(state = ZombiesPlayerState.DEAD);
         setDeadState();
 
         //noinspection ConstantConditions
@@ -270,7 +286,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      */
     public void knock() {
         if(isAlive() && isInGame()) {
-            state = ZombiesPlayerState.KNOCKED;
+            stateChangedEvent.callEvent(state = ZombiesPlayerState.KNOCKED);
 
             hotbarManager.switchProfile(ZombiesHotbarManager.KNOCKED_DOWN_PROFILE_NAME);
 
@@ -280,22 +296,23 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 zombiesTask.notifyChange();
             }
 
-            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                    getOfflinePlayer().getUniqueId(), (stats) -> {
+            getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                    getOfflinePlayer().getUniqueId(), PlayerGeneralStats::new, (stats) -> {
                 PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setKnockDowns(mapStats.getKnockDowns() + 1);
-            }, PlayerGeneralStats::new);
+            });
 
             setKnockedState();
         }
     }
 
+    // TODO: no magic strings
     /**
      * Commits murder. 😈
      */
-    public void kill() {
+    public void kill(@NotNull String killReason) {
         if (state == ZombiesPlayerState.KNOCKED && isInGame()) {
-            state = ZombiesPlayerState.DEAD;
+            stateChangedEvent.callEvent(state = ZombiesPlayerState.DEAD);
 
             disablePerks(arena.getMap().isPerksLostOnDeath());
 
@@ -303,6 +320,49 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
 
             for (ZombiesTask zombiesTask : tasks) {
                 zombiesTask.notifyChange();
+            }
+
+            Player bukkitPlayer = getPlayer();
+            if (bukkitPlayer != null) {
+                switch (killReason) {
+                    case "QUIT" -> {
+                        for (Player player : getArena().getWorld().getPlayers()) {
+                            player.sendMessage(TextComponent.ofChildren(
+                                    Component.text(bukkitPlayer.getName(), NamedTextColor.YELLOW),
+                                    Component.text(" quit.", NamedTextColor.RED)
+                            ));
+                        }
+                    }
+                    default -> {
+                        if (bukkitPlayer.getLastDamageCause() instanceof EntityDamageByEntityEvent event) {
+                            Component lastHitterName = event.getDamager().customName();
+                            if (lastHitterName != null) broadcastDeathMessage(bukkitPlayer.getName(), lastHitterName);
+                            else {
+                                BukkitAPIHelper apiHelper = MythicMobs.inst().getAPIHelper();
+                                ActiveMob activeMob = apiHelper.getMythicMobInstance(event.getDamager());
+
+                                if (activeMob != null) {
+                                    String mythicMobsDisplayName = activeMob.getDisplayName();
+                                    if (mythicMobsDisplayName != null) {
+                                        broadcastDeathMessage(bukkitPlayer.getName(),
+                                                Component.text(mythicMobsDisplayName));
+                                    }
+                                    else {
+                                        String configDisplayName = apiHelper.getMythicMob(activeMob.getMobType())
+                                                .getConfig().getString("DisplayName");
+                                        broadcastDeathMessage(bukkitPlayer.getName(),
+                                                configDisplayName != null
+                                                        ? Component.text(configDisplayName)
+                                                        : Component.text(activeMob.getMobType(), NamedTextColor.RED));
+                                    }
+                                }
+                                else broadcastDeathMessage(bukkitPlayer.getName(),
+                                        Component.text(event.getDamager().getName(), NamedTextColor.RED));
+                            }
+                        }
+                        else broadcastDeathMessage(bukkitPlayer.getName(), null);
+                    }
+                }
             }
 
             Location corpseLocation = corpse.getLocation();
@@ -316,13 +376,33 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             }
             corpse.terminate();
 
-            getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER,
-                    getOfflinePlayer().getUniqueId(), (stats) -> {
+            getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER,
+                    getOfflinePlayer().getUniqueId(), PlayerGeneralStats::new, (stats) -> {
                 PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                 mapStats.setDeaths(mapStats.getDeaths() + 1);
-            }, PlayerGeneralStats::new);
+            });
 
             setDeadState();
+        }
+    }
+
+    // TODO: player name nullability in arena refactor
+    private void broadcastDeathMessage(@NotNull String playerName, @Nullable Component killer) {
+        if (killer == null || killer == Component.empty()) {
+            for (Player player : getArena().getWorld().getPlayers()) {
+                player.sendMessage(TextComponent.ofChildren(
+                        Component.text(playerName, NamedTextColor.YELLOW),
+                        Component.text(" was killed!", NamedTextColor.RED)
+                ));
+            }
+        }
+        else for (Player player : getArena().getWorld().getPlayers()) {
+            player.sendMessage(TextComponent.ofChildren(
+                    Component.text(playerName, NamedTextColor.YELLOW),
+                    Component.text(" was killed by ", NamedTextColor.RED),
+                    killer,
+                    Component.text("!", NamedTextColor.RED)
+            ));
         }
     }
 
@@ -331,7 +411,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
      */
     public void revive() {
         if (!isAlive() && isInGame()) {
-            state = ZombiesPlayerState.ALIVE;
+            stateChangedEvent.callEvent(state = ZombiesPlayerState.ALIVE);
 
             hotbarManager.switchProfile(ZombiesHotbarManager.DEFAULT_PROFILE_NAME);
 
@@ -344,8 +424,8 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                 zombiesTask.notifyChange();
             }
 
-            enablePerks();
             setAliveState();
+            enablePerks();
         }
     }
 
@@ -384,11 +464,11 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
                     attempt.ignoresArmor(this, damaged) ? 1.5F : 2F));
 
             if (damaged.getHealth() <= 0) {
-                getArena().getStatsManager().queueCacheModification(CacheInformation.PLAYER, player.getUniqueId(),
-                        (stats) -> {
+                getArena().getStatsManager().queueCacheRequest(CacheInformation.PLAYER, player.getUniqueId(),
+                        PlayerGeneralStats::new, (stats) -> {
                     PlayerMapStats mapStats = stats.getMapStatsForMap(getArena().getMap());
                     mapStats.setKills(mapStats.getKills() + 1);
-                    }, PlayerGeneralStats::new);
+                });
 
                 addKills(1);
             } else {
@@ -491,6 +571,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 128, false,
                     false, false));
             player.setInvulnerable(true);
+            player.setInvisible(true);
             player.setGameMode(GameMode.ADVENTURE);
             getArena().getHiddenPlayers().add(player);
         }
@@ -519,6 +600,7 @@ public class ZombiesPlayer extends ManagedPlayer<ZombiesPlayer, ZombiesArena> im
             ArenaApi.getInstance().applyDefaultCondition(player);
             player.setAllowFlight(true);
             player.setCollidable(false);
+            player.setInvisible(true);
             player.setGameMode(GameMode.ADVENTURE);
             arena.getHiddenPlayers().add(player);
         }

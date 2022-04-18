@@ -18,27 +18,24 @@ repositories {
     maven("https://repo.aikar.co/content/groups/aikar/")
 }
 
-val shade: Configuration by configurations.creating
-
-configurations.implementation.get().extendsFrom(shade)
-
 dependencies {
-    implementation(project(":arena-api:nms-common"))
-    implementation("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
+    compileOnlyApi(project(":arena-api:nms-common"))
+
+    compileOnly("com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT") {
         exclude("io.papermc", "minecraft-server")
     }
-    shade("org.apache.commons:commons-lang3:3.12.0")
+
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 }
 
 val relocate = tasks.register<ConfigureShadowRelocation>("relocate") {
     target = tasks.shadowJar.get()
-    prefix = "io.github.zap.nms.v1_16_R3.shadow"
+    prefix = "io.github.zap.arenaapi.nms.v1_16_R3.shadow"
 }
 
 tasks.shadowJar {
-    dependsOn(relocate.get())
+    dependsOn(relocate)
 
-    configurations = listOf(shade)
     archiveClassifier.set("")
 }
 

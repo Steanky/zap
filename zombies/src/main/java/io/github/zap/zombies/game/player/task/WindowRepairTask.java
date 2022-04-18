@@ -161,11 +161,11 @@ public class WindowRepairTask extends ZombiesTask {
     }
 
     private void updateStats(@NotNull Player bukkitPlayer) {
-        arena.getStatsManager().queueCacheModification(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
-                (stats) -> {
+        arena.getStatsManager().queueCacheRequest(CacheInformation.PLAYER, bukkitPlayer.getUniqueId(),
+                PlayerGeneralStats::new, (stats) -> {
             PlayerMapStats mapStats = stats.getMapStatsForMap(arena.getMap());
             mapStats.setWindowsRepaired(mapStats.getWindowsRepaired() + 1);
-            }, PlayerGeneralStats::new);
+        });
     }
 
     @Override
